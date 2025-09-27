@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Stay Hi — Home</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#FFFDF9;color:#111;margin:0}
+    .wrap{max-width:720px;margin:40px auto;padding:20px}
+    .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+    a.btn{display:inline-block;background:#065f46;color:#fff;text-decoration:none;padding:12px 18px;border-radius:10px;font-weight:600}
+    .ghost{background:#fff;color:#111;border:1px solid #ddd}
+    .note{color:#666;font-size:14px;margin-top:24px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Welcome to Stay Hi!</h1>
+    <p>Join our community of positive vibes.</p>
+    <div class="row">
+      <a class="btn" href="signin.html">Sign in</a>
+      <a class="btn ghost" href="signup.html">Join now</a>
+      <a class="btn ghost" id="homeGo" href="profile.html" style="display:none">My profile</a>
+    </div>
+    <div class="note" id="who"></div>
+  </div>
+<script>
+  // show quick session state
+  fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'me'})}).then(r=>r.json()).then(x=>{
+      const who=document.getElementById('who');
+      if(x?.user){ who.textContent=`Signed in as ${x.user.email}`; document.getElementById('homeGo').style.display='inline-block';}
+      else{ who.textContent='You are not signed in.'}
+    });
+</script>
+</body>
+</html>
