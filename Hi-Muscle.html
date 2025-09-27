@@ -3,15 +3,26 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Hi Island · Stay Hi</title>
+  <title>Hi Muscle · Stay Hi</title>
   <link rel="stylesheet" href="/assets/create-parity.css"/>
 </head>
 <body>
   <header id="app-header" class="header"></header>
+
   <main class="page">
     <section class="panel">
-      <h1 class="h1">Hi Session</h1>
-      <p class="lead">Three quick steps — exactly like your Create flow.</p>
+      <h1 class="h1">Build Your Hi Muscle</h1>
+      <p class="lead">Daily reps compound. Track your streak and check in.</p>
+      <div id="streaks" class="toast">Loading…</div>
+      <div style="margin:10px 0 6px">
+        <button id="checkin" class="btn">Check in for Today</button>
+      </div>
+      <div id="mtoast" class="toast" aria-live="polite"></div>
+    </section>
+
+    <section class="panel">
+      <h2 class="h1" style="font-size:1.2rem;margin:0 0 10px">Hi Session</h2>
+      <p class="lead">Three quick steps — same feel as Create.</p>
       <div class="bar"><i></i></div>
       <div class="dots"><span class="dot on"></span><span class="dot"></span><span class="dot"></span></div>
 
@@ -37,11 +48,13 @@
 
     <section class="panel">
       <h2 class="h1" style="font-size:1.2rem">Recent Sessions</h2>
-      <div id="entries"></div>
+      <div id="entries" style="display:grid;gap:12px;margin-top:10px"></div>
     </section>
   </main>
 
   <script src="/assets/create-parity.js" defer></script>
-  <script>window.addEventListener('DOMContentLoaded', ()=>CreateParity.initMuscle())</script>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => CreateParity.initMuscle());
+  </script>
 </body>
 </html>
