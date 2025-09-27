@@ -1,10 +1,10 @@
 // assets/island.js
-// Hi Island: world map placeholder + two feeds (General & Hi Show)
+// Hi Island: Leaflet world map + two feeds (General & Hi Show)
 
 (function () {
   const $ = (s) => document.querySelector(s);
 
-  // simple POST helper
+  // POST helper
   const post = (url, body) =>
     fetch(url, {
       method: "POST",
@@ -12,7 +12,7 @@
       body: JSON.stringify(body || {}),
     }).then((r) => r.json());
 
-  // tiny header (same look as other pages)
+  // header
   function header(active) {
     const H = $("#app-header");
     if (!H) return;
@@ -45,9 +45,7 @@
     }
     root.innerHTML = items
       .map((it) => {
-        const when = it.created_at
-          ? new Date(it.created_at).toLocaleString()
-          : "";
+        const when = it.created_at ? new Date(it.created_at).toLocaleString() : "";
         const who = escapeHtml(it.user || "Someone");
         const text = escapeHtml(it.text || "");
         return `
@@ -62,45 +60,75 @@
       .join("");
   }
 
-  // very light “globe” placeholder (decorative)
-  function renderGlobe() {
-    const g = $("#globe");
-    if (!g) return;
-    g.innerHTML = `
-      <div style="width:100%;height:100%;border-radius:18px;border:1px solid #242643;
-                  background:
-                    radial-gradient(60% 80% at 20% 10%, #3dd4ff12, transparent 60%),
-                    radial-gradient(80% 70% at 80% 0%, #ffb84d18, transparent 60%),
-                    linear-gradient(180deg,#0e1222,#0a0d18); 
-                  display:grid;place-items:center;position:relative;overflow:hidden">
-        <div style="position:absolute;inset:12px;border-radius:16px;border:1px dashed #2a2c4f;opacity:.6"></div>
-        <div style="text-align:center;color:#aeb1cc">
-          <div style="font-weight:800;color:#f7f8ff">Hi Island</div>
-          <div style="font-size:.95rem">World map & pins coming soon</div>
-        </div>
-      </div>`;
+  // ---- Map bits (Leaflet) ----
+  let map, markers;
+
+  function initMap() {
+    if (map) return;
+    // the map is rendered into the #globe div (already 320px high in the HTML)
+    map = L.map("globe", { worldCopyJump: true }).setView([20, 0], 2);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(map);
+
+    markers = L.layerGroup().addTo(map);
+  }
+
+  function setPins(items) {
+    if (!markers) return;
+    markers.clearLayers();
+    const pins = (items || []).filter(
+      (it) => typeof it.lat === "number" && typeof it.lng === "number"
+    );
+    pins.forEach((it) => {
+      L.marker([it.lat, it.lng])
+        .addTo(markers)
+        .bindPopup(
+          `<strong>${escapeHtml(it.user || "Someone")}</strong><br>${escapeHtml(
+            it.text || ""
+          )}`
+        );
+    });
   }
 
   async function loadFeeds() {
+    let genItems = [], showItems = [];
     try {
-      const gen = await post("/api/shares", { action: "list" }); // using the working route
-      renderList("#general-list", gen.items || []);
-    } catch (e) {
+      const gen = await post("/api/shares", { action: "list" });
+      genItems = gen.items || [];
+      renderList("#general-list", genItems);
+    } catch {
       renderList("#general-list", []);
     }
     try {
       const show = await post("/api/hi-show-shares", { action: "list" });
-      renderList("#show-list", show.items || []);
-    } catch (e) {
+      showItems = show.items || [];
+      renderList("#show-list", showItems);
+    } catch {
       renderList("#show-list", []);
     }
+
+    // combine any items with lat/lng for pins; fallback to sample pins if none yet
+    let all = [...genItems, ...showItems];
+    const hasPins = all.some((it) => typeof it.lat === "number" && typeof it.lng === "number");
+    if (!hasPins) {
+      all = [
+        { user: "NYC",    text: "Hi from New York!", lat: 40.7128, lng: -74.0060 },
+        { user: "London", text: "Hello 🇬🇧",          lat: 51.5074, lng:  -0.1278 },
+        { user: "Sydney", text: "G'day 🇦🇺",          lat: -33.8688, lng: 151.2093 },
+      ];
+    }
+    setPins(all);
   }
 
   async function init() {
     header("island");
-    renderGlobe();
+    initMap();
     await loadFeeds();
-    // optional manual refresh
+
+    // refresh buttons
     const r1 = document.getElementById("refresh-general");
     const r2 = document.getElementById("refresh-show");
     r1 && (r1.onclick = loadFeeds);
@@ -109,4 +137,3 @@
 
   window.HiIsland = { init };
 })();
-
