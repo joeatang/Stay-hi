@@ -1,5 +1,4 @@
 // /api/journal/route.js
-// Node runtime (NOT edge)
 export const config = { runtime: 'nodejs' };
 
 const COOKIE_NAME = 'stayhi_session';
