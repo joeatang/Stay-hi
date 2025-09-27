@@ -1,35 +1,38 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Hi Muscle · Stay Hi</title>
-<link rel="stylesheet" href="/assets/create-parity.css"/>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Hi Island · Stay Hi</title>
+  <link rel="stylesheet" href="/assets/create-parity.css"/>
 </head>
 <body>
-<header id="app-header" class="header"></header>
-<main class="page">
-<section class="panel">
-<h1 class="h1">Build Your Hi Muscle</h1>
-<p class="lead">Daily reps compound. Track your streak, check‑in, and watch the 90‑day grid fill.</p>
-<div id="streaks" class="toast">Loading…</div>
-<div style="margin:10px 0 6px">
-<button id="checkin" class="btn-primary">Check in for Today</button>
-</div>
-<div id="mtoast" class="toast" aria-live="polite"></div>
-</section>
+  <header id="app-header" class="header"></header>
+  <main class="page">
+    <section class="panel">
+      <h1 class="h1">Hi Island</h1>
+      <p class="lead">Global vibes: world map and shared moments from the community.</p>
+      <div id="globe" style="height:320px"></div>
+    </section>
 
+    <section class="panel">
+      <div style="display:flex;align-items:center;gap:10px">
+        <h2 class="h1" style="font-size:1.2rem;margin:0">General shares</h2>
+        <button id="refresh-general" class="btn" style="width:auto;padding:8px 12px;font-weight:700">Refresh</button>
+      </div>
+      <div id="general-list" style="display:grid;gap:12px;margin-top:10px"></div>
+    </section>
 
-<section class="panel">
-<h2 class="h1" style="font-size:1.2rem">Last 90 Days</h2>
-<div id="grid90" class="grid90"></div>
-<p class="toast">Filled squares = at least one session or check‑in on that day.</p>
-</section>
-</main>
+    <section class="panel">
+      <div style="display:flex;align-items:center;gap:10px">
+        <h2 class="h1" style="font-size:1.2rem;margin:0">Hi Show shares</h2>
+        <button id="refresh-show" class="btn" style="width:auto;padding:8px 12px;font-weight:700">Refresh</button>
+      </div>
+      <div id="show-list" style="display:grid;gap:12px;margin-top:10px"></div>
+    </section>
+  </main>
 
-
-<script src="/assets/app.js" defer></script>
-<script src="/assets/create-parity.js" defer></script>
-<script>window.addEventListener('DOMContentLoaded', ()=>CreateParity.initIsland())</script>
+  <script src="/assets/island.js" defer></script>
+  <script>window.addEventListener('DOMContentLoaded', ()=>HiIsland.init())</script>
 </body>
 </html>
