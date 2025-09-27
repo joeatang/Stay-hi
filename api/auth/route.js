@@ -2,7 +2,7 @@
 // Next.js (Vercel) Route Handler – no supabase-js dependency.
 // Uses Supabase REST & Storage HTTP + cookie session.
 
-export const runtime = 'nodejs';
+export const config = { runtime: 'nodejs' };
 
 /* ---------------- cookie helpers ---------------- */
 const COOKIE_NAME = 'stayhi_session';
