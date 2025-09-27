@@ -1,1 +1,79 @@
+// /api/check-in/route.js
+const COOKIE_NAME = 'stayhi_session';
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json' } });
+}
+function parseCookies(req) {
+  const raw = req.headers.get('cookie') || '';
+  return Object.fromEntries(raw.split(/;\s*/).filter(Boolean).map(kv => {
+    const i = kv.indexOf('=');
+    return [decodeURIComponent(kv.slice(0, i)), decodeURIComponent(kv.slice(i + 1))];
+  }));
+}
+function readSession(req) {
+  try {
+    const raw = parseCookies(req)[COOKIE_NAME];
+    if (!raw) return null;
+    const val = raw.startsWith('{') ? raw : Buffer.from(raw, 'base64url').toString('utf8');
+    return JSON.parse(val);
+  } catch { return null; }
+}
+function requireEnv() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+  return { url, key };
+}
+
+export const config = { runtime: 'nodejs18.x' };
+
+export default async function handler(req) {
+  if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
+  const body = await req.json().catch(() => ({}));
+  if (body?.action === 'health') return json({ ok: true, route: 'check-in' });
+
+  const sess = readSession(req);
+  const user = sess?.user;
+  if (!user?.id) return json({ error: 'Not signed in' }, 401);
+
+  try {
+    const { url, key } = requireEnv();
+
+    // one-per-day (UTC) check-in guard
+    const todayIso = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const from = `${todayIso}T00:00:00Z`, to = `${todayIso}T23:59:59Z`;
+
+    // check if already checked in today
+    const existing = await fetch(
+      `${url}/rest/v1/entries?user_id=eq.${encodeURIComponent(user.id)}&kind=eq.checkin&created_at=gte.${from}&created_at=lte.${to}`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } }
+    ).then(r => r.json());
+
+    if (Array.isArray(existing) && existing.length) {
+      return json({ ok: true, already: true });
+    }
+
+    // insert new check-in
+    const r = await fetch(`${url}/rest/v1/entries`, {
+      method: 'POST',
+      headers: {
+        apikey: key, Authorization: `Bearer ${key}`,
+        'Content-Type': 'application/json', Prefer: 'return=representation'
+      },
+      body: JSON.stringify({
+        user_id: user.id,
+        emotion_from: body?.emotion_from || 'Okay',
+        emotion_to: body?.emotion_to || 'Grateful',
+        note: body?.note || null,
+        kind: 'checkin'
+      })
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.message || 'Insert failed');
+
+    return json({ ok: true, entry: data?.[0] || null });
+  } catch (e) {
+    return json({ error: e.message || 'Server error' }, 500);
+  }
+}
 
