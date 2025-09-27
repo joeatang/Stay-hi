@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hi Island · Stay Hi</title>
+  <link rel="preconnect" href="/" />
+  <link rel="stylesheet" href="/assets/styles.css" />
+</head>
+<body class="bg">
+  <!-- Header gets injected by app.js -->
+  <header id="app-header" class="header"></header>
+
+  <main class="container">
+    <section class="card">
+      <h1 class="h1">Hi Island</h1>
+      <p class="muted">Log a quick “Hi Session”: how you feel now, how you want to feel next, and a short note.</p>
+
+      <form id="hi-form" class="form">
+        <!-- Step 1 -->
+        <label class="label">How are you feeling <strong>now</strong>?</label>
+        <select id="feel-now" class="input" required>
+          <option value="">Select one…</option>
+          <option>Worried</option>
+          <option>Anxious</option>
+          <option>Tired</option>
+          <option>Okay</option>
+          <option>Grateful</option>
+          <option>Excited</option>
+          <option>Peaceful</option>
+          <option>Confident</option>
+        </select>
+
+        <!-- Step 2 -->
+        <label class="label">How do you want to feel <strong>next</strong>?</label>
+        <select id="feel-next" class="input" required>
+          <option value="">Select one…</option>
+          <option>Calm</option>
+          <option>Grounded</option>
+          <option>Hopeful</option>
+          <option>Grateful</option>
+          <option>Inspired</option>
+          <option>Confident</option>
+          <option>Joyful</option>
+          <option>Peaceful</option>
+        </select>
+
+        <!-- Step 3 -->
+        <label class="label">One line to help future-you:</label>
+        <textarea id="note" class="textarea" placeholder="What’s a tiny action, reframe, or reminder?" rows="4"></textarea>
+
+        <button id="submit" type="submit" class="btn">Save Hi Session</button>
+        <div id="status" class="status" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2 class="h2">Recent Sessions</h2>
+      <div id="entries" class="list"></div>
+    </section>
+  </main>
+
+  <script src="/assets/app.js" defer></script>
+  <script defer>
+    window.addEventListener('DOMContentLoaded', async () => {
+      // Render header + check session
+      const session = await window.StayHi.initHeader({ active: 'Hi Island' });
+      // Optional: require sign-in
+      if (!session?.user) {
+        window.location.href = '/signin.html';
+        return;
+      }
+
+      const statusEl = document.getElementById('status');
+      const listEl = document.getElementById('entries');
+      const formEl = document.getElementById('hi-form');
+
+      async function refreshList() {
+        listEl.innerHTML = '<div class="muted">Loading…</div>';
+        try {
+          const r = await fetch('/api/journal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'list' })
+          });
+          const data = await r.json();
+          if (!r.ok) throw new Error(data.error || 'Failed to load');
+          if (!Array.isArray(data.entries) || data.entries.length === 0) {
+            listEl.innerHTML = '<div class="muted">No entries yet.</div>';
+            return;
+          }
+          listEl.innerHTML = data.entries.map(e => `
+            <article class="row">
+              <div class="row-main">
+                <div class="pill">${e.emotion_from} → ${e.emotion_to}</div>
+                <div class="note">${(e.note || '').replace(/</g,'&lt;')}</div>
+              </div>
+              <time class="time">${new Date(e.created_at).toLocaleString()}</time>
+            </article>
+          `).join('');
+        } catch (err) {
+          listEl.innerHTML = `<div class="error">Could not load entries: ${err.message}</div>`;
+        }
+      }
+
+      formEl.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        statusEl.textContent = 'Saving…';
+        statusEl.className = 'status';
+        const emotion_from = document.getElementById('feel-now').value.trim();
+        const emotion_to = document.getElementById('feel-next').value.trim();
+        const note = document.getElementById('note').value.trim();
+
+        try {
+          const r = await fetch('/api/journal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'create', emotion_from, emotion_to, note })
+          });
+          const data = await r.json();
+          if (!r.ok) throw new Error(data.error || 'Save failed');
+          statusEl.textContent = 'Saved ✨';
+          statusEl.className = 'status ok';
+          formEl.reset();
+          refreshList();
+        } catch (err) {
+          statusEl.textContent = err.message;
+          statusEl.className = 'status error';
+        }
+      });
+
+      refreshList();
+    });
+  </script>
+</body>
+</html>
