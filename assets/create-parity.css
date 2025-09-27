@@ -1,80 +1,34 @@
-/* Create-like visual system: warm gradient, big cards, bold buttons, stepper dots */
-@font-face { font-family: InterVar; src: local('Inter'); font-display: swap; }
+/* Create-ish theme */
 :root{
---bg-a:#0b0b0f; --bg-b:#0e0e16;
---panel-a:#10121b; --panel-b:#14172a; --bd:#242643; --ink:#f7f8ff; --muted:#aeb1cc;
---brand:#F5A623; --brand-2:#FFC107; /* Create-ish warm gradient */
---ok:#66e08a; --err:#ff6b6b; --shadow:0 14px 40px rgba(0,0,0,.35);
---r-lg:20px; --r-sm:12px;
+  --bg-a:#0b0b0f; --bg-b:#0e0e16; --panel-a:#10121b; --panel-b:#14172a;
+  --bd:#242643; --ink:#f7f8ff; --muted:#aeb1cc; --brand:#F5A623; --brand2:#FFC107;
 }
-html,body{margin:0;padding:0;color:var(--ink);font:16px/1.55 InterVar,system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;
-background: radial-gradient(1400px 900px at 12% -8%, #201a4766,transparent),
-radial-gradient(1200px 800px at 88% -6%, #914f1166,transparent),
-linear-gradient(180deg,var(--bg-a),var(--bg-b));}
-
-
-/* Header */
-.header{position:sticky;top:0;z-index:10;backdrop-filter:saturate(1.15) blur(12px);background:#0b0b0fd8;border-bottom:1px solid #1e2040}
-.header-inner{max-width:1080px;margin:0 auto;padding:14px 18px;display:flex;gap:14px;align-items:center}
-.brand{font-weight:800;letter-spacing:.2px;text-decoration:none;color:var(--ink)}
-.nav{display:flex;gap:8px}
-.nav-link{color:var(--muted);text-decoration:none;padding:8px 12px;border-radius:10px}
-.nav-link.active,.nav-link:hover{color:var(--ink);background:#ffffff12}
-.user{color:var(--muted);font-size:.92rem;margin-left:6px}
-.link{color:#7ce0c5;text-decoration:none}
-
-
-/* Page + Panels */
+html,body{margin:0;color:var(--ink);font:16px/1.55 system-ui,Inter,sans-serif;
+  background: radial-gradient(1200px 800px at 12% -8%, #201a4766,transparent),
+              radial-gradient(1000px 700px at 88% -6%, #914f1166,transparent),
+              linear-gradient(180deg,var(--bg-a),var(--bg-b));}
+.header{position:sticky;top:0;background:#0b0b0fd8;border-bottom:1px solid #1e2040;backdrop-filter:blur(10px)}
+.header-inner{max-width:1080px;margin:0 auto;padding:14px 18px;display:flex;gap:12px;align-items:center}
+.brand{font-weight:800;color:var(--ink);text-decoration:none}
+.nav{display:flex;gap:8px}.nav a{color:var(--muted);text-decoration:none;padding:8px 12px;border-radius:10px}
+.nav a.active,.nav a:hover{background:#ffffff12;color:var(--ink)}
 .page{max-width:1080px;margin:22px auto;padding:0 18px;display:grid;gap:16px}
 .panel{background:linear-gradient(180deg,var(--panel-a),var(--panel-b));border:1px solid var(--bd);
-border-radius:var(--r-lg);box-shadow:var(--shadow);padding:22px}
-.h1{margin:0 0 8px;font-size:1.6rem;font-weight:800;letter-spacing:.2px}
+  border-radius:18px;box-shadow:0 14px 40px #0006;padding:22px}
+.h1{margin:0 0 8px;font-size:1.6rem;font-weight:800}
 .lead{color:var(--muted);margin:4px 0 14px}
-
-
-/* Inputs & Buttons */
 .input,.select,.textarea{width:100%;background:#0f1020;color:var(--ink);border:1px solid var(--bd);border-radius:14px;padding:12px 14px}
 .textarea{min-height:120px;resize:vertical}
-.btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:10px;border:none;cursor:pointer;border-radius:14px;padding:14px 16px;width:100%;font-weight:800;letter-spacing:.2px;color:#0b0b0f;background:linear-gradient(90deg,var(--brand),var(--brand-2));box-shadow:0 10px 24px #0008}
-.btn-primary:active{transform:translateY(1px)}
-
-
-/* Stepper */
+.btn{display:inline-flex;align-items:center;justify-content:center;border:none;border-radius:14px;padding:14px 16px;width:100%;
+  background:linear-gradient(90deg,var(--brand),var(--brand2));color:#0b0b0f;font-weight:800;box-shadow:0 10px 24px #0008;cursor:pointer}
 .bar{height:8px;background:#ffffff15;border:1px solid var(--bd);border-radius:999px;overflow:hidden}
-.bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand),var(--brand-2));transition:width .35s ease}
-.dots{display:flex;gap:6px;align-items:center;justify-content:center;margin-top:8px}
-.dot{width:8px;height:8px;border-radius:50%;background:#ffffff25;border:1px solid #2a2c4f;transition:transform .2s ease,background .2s ease}
-.dot.on{background:var(--brand-2);transform:scale(1.14)}
-
-
-/* Steps */
-.step{display:none;animation:fade .22s ease}
-.step.on{display:block}
-@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-
-
-/* List + Pills */
-.list{display:grid;gap:12px;margin-top:8px}
-.item{display:flex;gap:12px;align-items:flex-start;padding:12px;background:#0f1020;border:1px solid var(--bd);border-radius:var(--r-sm)}
-.pill{padding:4px 10px;border-radius:999px;background:#ffffff15;border:1px solid var(--bd);font-size:.86rem}
-.time{margin-left:auto;color:var(--muted);font-size:.9rem}
-
-
-/* Toast */
-.toast{margin-top:8px;font-size:.95rem;color:var(--muted)}
-.toast.ok{color:var(--ok)}
-.toast.err{color:var(--err)}
-
-
-/* Wheel (decorative) */
-.wheel{width:220px;aspect-ratio:1;border-radius:50%;border:10px solid #ffffff12;position:relative;margin:8px auto 6px;
-background:conic-gradient(from 0deg,#F5A62322 0 45deg,#FFC10722 45deg 90deg,#F5A62322 90deg 135deg,
-#FFC10722 135deg 180deg,#F5A62322 180deg 225deg,#FFC10722 225deg 270deg,#F5A62322 270deg 315deg,#FFC10722 315deg 360deg);
-display:grid;place-items:center}
-.wheel .current{font-weight:800;color:var(--ink);text-align:center}
-
-
-/* Bingo grid (90-day) */
-.grid90{display:grid;grid-template-columns:repeat(15,1fr);gap:6px;margin-top:10px}
-.cell{height:18px;border-radius:6px;background:#ffffff12;border:1px solid var(--bd)}
-.cell.on{background:linear-gradient(90deg,var(--brand),var(--brand-2))}
+.bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand),var(--brand2));transition:width .35s}
+.dots{display:flex;gap:6px;justify-content:center;margin-top:8px}
+.dot{width:8px;height:8px;border-radius:50%;background:#ffffff25;border:1px solid #2a2c4f}
+.dot.on{background:var(--brand2);transform:scale(1.1)}
+.step{display:none}.step.on{display:block}
+.toast{margin-top:8px;color:var(--muted)} .toast.ok{color:#66e08a} .toast.err{color:#ff6b6b}
+.wheel{width:220px;aspect-ratio:1;border-radius:50%;border:10px solid #ffffff12;margin:8px auto;background:
+  conic-gradient(#F5A62322 0 45deg,#FFC10722 45deg 90deg,#F5A62322 90deg 135deg,#FFC10722 135deg 180deg,
+                 #F5A62322 180deg 225deg,#FFC10722 225deg 270deg,#F5A62322 270deg 315deg,#FFC10722 315deg 360deg);
+  display:grid;place-items:center}
