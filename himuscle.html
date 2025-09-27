@@ -1,1 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Hi Muscle · Stay Hi</title>
+  <link rel="stylesheet" href="/assets/create-parity.css"/>
+</head>
+<body>
+  <header id="app-header" class="header"></header>
+
+  <main class="page">
+    <section class="panel">
+      <h1 class="h1">Build Your Hi Muscle</h1>
+      <p class="lead">Daily reps compound. Track your streak and check in.</p>
+      <div id="streaks" class="toast">Loading…</div>
+      <div style="margin:10px 0 6px">
+        <button id="checkin" class="btn">Check in for Today</button>
+      </div>
+      <div id="mtoast" class="toast" aria-live="polite"></div>
+    </section>
+
+    <section class="panel">
+      <h2 class="h1" style="font-size:1.2rem;margin:0 0 10px">Hi Session</h2>
+      <p class="lead">Three quick steps — same feel as Create.</p>
+      <div class="bar"><i></i></div>
+      <div class="dots"><span class="dot on"></span><span class="dot"></span><span class="dot"></span></div>
+
+      <div class="step on">
+        <div class="wheel"><div style="font-weight:800;text-align:center">How do you feel<br><small>(now)</small></div></div>
+        <select id="feel-now" class="select"><option>Loading…</option></select>
+        <button id="next1" class="btn">Next</button>
+      </div>
+
+      <div class="step">
+        <div class="wheel"><div style="font-weight:800;text-align:center">How do you want to feel<br><small>(next)</small></div></div>
+        <select id="feel-next" class="select"><option>Loading…</option></select>
+        <button id="next2" class="btn">Next</button>
+      </div>
+
+      <div class="step">
+        <label class="lead" for="note">One line for future-you</label>
+        <textarea id="note" class="textarea" placeholder="Tiny action, reframe, or reminder…"></textarea>
+        <button id="save" class="btn">Save Hi Session</button>
+        <div id="toast" class="toast" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="h1" style="font-size:1.2rem">Recent Sessions</h2>
+      <div id="entries" style="display:grid;gap:12px;margin-top:10px"></div>
+    </section>
+  </main>
+
+  <script src="/assets/create-parity.js" defer></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => CreateParity.initMuscle());
+  </script>
+</body>
+</html>
 
