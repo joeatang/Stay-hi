@@ -1,312 +1,341 @@
-// app/api/auth/route.js
-import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { createClient } from "@supabase/supabase-js";
+// /api/auth.js  (Vercel Node serverless function, CommonJS + fetch to Supabase REST)
 
-/**
- * Cookie/session basics
- */
-const COOKIE_NAME = "stayhi_session";
+const COOKIE_NAME = 'stayhi_session';
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
-function ok(data = {}, status = 200) {
-  return NextResponse.json(data, { status });
-}
-function err(message = "Internal server error", status = 500, extra = {}) {
-  return NextResponse.json({ error: message, ...extra }, { status });
+function getEnv(name) {
+  try { return process.env[name]; } catch { return undefined; }
 }
 
-/**
- * Supabase admin client (service role)
- */
-function getSupabaseAdmin() {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) {
-    return { ok: false, reason: "missing-envs", url: !!url, key: !!key };
-  }
-  const client = createClient(url, key, {
-    auth: { autoRefreshToken: false, persistSession: false },
+function readCookie(header, name) {
+  if (!header) return null;
+  const m = header.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+function cookieHeaderForSession(session) {
+  const val = encodeURIComponent(JSON.stringify(session));
+  return `${COOKIE_NAME}=${val}; Path=/; Max-Age=${COOKIE_MAX_AGE}; SameSite=Lax; HttpOnly`;
+}
+
+function baseUrl() {
+  const u = getEnv('SUPABASE_URL') || '';
+  return u.replace(/\/+$/, '');
+}
+
+function hasEnv() {
+  return {
+    hasUrl: !!getEnv('SUPABASE_URL'),
+    hasKey: !!getEnv('SUPABASE_SERVICE_ROLE_KEY'),
+    urlLooksRight: /^https?:\/\/.+\.supabase\.co/.test(getEnv('SUPABASE_URL') || '')
+  };
+}
+
+// generic Supabase REST fetch
+async function sfetch(path, init = {}) {
+  const url = `${baseUrl()}${path.startsWith('/') ? '' : '/'}${path}`;
+  const headers = Object.assign(
+    {
+      Authorization: `Bearer ${getEnv('SUPABASE_SERVICE_ROLE_KEY')}`,
+      apikey: getEnv('SUPABASE_SERVICE_ROLE_KEY'),
+    },
+    init.headers || {}
+  );
+  const res = await fetch(url, { ...init, headers });
+  return res;
+}
+
+// users helpers (REST)
+async function selectUserByEmail(email) {
+  const res = await sfetch(`/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id,email,username,avatar_url&limit=1`, {
+    headers: { Accept: 'application/json' }
   });
-  return { ok: true, client };
+  if (!res.ok) throw new Error(`users select failed: ${res.status}`);
+  const rows = await res.json();
+  return rows?.[0] || null;
 }
 
-/**
- * Ensure a user row exists (by email) and return it.
- */
-async function ensureUserRow(sb, email) {
-  const { data: existing, error: selErr } = await sb
-    .from("users")
-    .select("id,email,username,avatar_url")
-    .eq("email", email)
-    .maybeSingle();
-
-  if (selErr) throw selErr;
-  if (existing) return existing;
-
-  const { data, error: insErr } = await sb
-    .from("users")
-    .insert({ email })
-    .select("id,email,username,avatar_url")
-    .single();
-
-  if (insErr) throw insErr;
-  return data;
+async function insertUser(email) {
+  const res = await sfetch(`/rest/v1/users`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      Prefer: 'return=representation'
+    },
+    body: JSON.stringify({ email })
+  });
+  if (!res.ok) throw new Error(`users insert failed: ${res.status} ${await res.text()}`);
+  const rows = await res.json();
+  return rows?.[0] || null;
 }
 
-/**
- * Helpers for data URLs -> Buffer (for avatar upload)
- */
+async function ensureUserRow(email) {
+  const got = await selectUserByEmail(email);
+  if (got) return got;
+  return await insertUser(email);
+}
+
+async function updateUserById(id, patch) {
+  const res = await sfetch(`/rest/v1/users?id=eq.${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      Prefer: 'return=representation'
+    },
+    body: JSON.stringify({ ...patch, updated_at: new Date().toISOString() })
+  });
+  if (!res.ok) throw new Error(`users update failed: ${res.status} ${await res.text()}`);
+  const rows = await res.json();
+  return rows?.[0] || null;
+}
+
+function validUsername(x) {
+  return /^[a-zA-Z0-9._-]{2,32}$/.test(String(x || ''));
+}
+
 function parseDataUrl(dataUrl) {
-  if (!dataUrl || typeof dataUrl !== "string") return null;
+  if (!dataUrl || typeof dataUrl !== 'string') return null;
   const m = dataUrl.match(/^data:([^;]+);base64,(.*)$/);
   if (!m) return null;
   const mime = m[1];
   const base64 = m[2];
-  const buffer = Buffer.from(base64, "base64");
-  let ext = "png";
-  if (mime === "image/jpeg") ext = "jpg";
-  else if (mime === "image/webp") ext = "webp";
-  else if (mime === "image/png") ext = "png";
-  return { mime, buffer, ext };
+  const buf = Buffer.from(base64, 'base64');
+  let ext = 'png';
+  if (mime === 'image/jpeg') ext = 'jpg';
+  else if (mime === 'image/webp') ext = 'webp';
+  else if (mime === 'image/png') ext = 'png';
+  return { mime, buffer: buf, ext };
 }
 
-function validUsername(x) {
-  return /^[a-zA-Z0-9._-]{2,32}$/.test(String(x || ""));
+async function uploadAvatar(userId, dataUrl) {
+  const parsed = parseDataUrl(dataUrl);
+  if (!parsed) throw new Error('bad-image');
+  const objectPath = `${encodeURIComponent(userId)}/${Date.now()}.${parsed.ext}`;
+
+  // PUT bytes
+  const res = await sfetch(`/storage/v1/object/avatars/${objectPath}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': parsed.mime,
+      'x-upsert': 'true'
+    },
+    body: parsed.buffer
+  });
+  if (!res.ok) throw new Error(`upload failed ${res.status} ${await res.text()}`);
+
+  // if bucket is public, we can build the public URL
+  const publicUrl = `${baseUrl()}/storage/v1/object/public/avatars/${objectPath}`;
+  return publicUrl;
 }
 
-/**
- * Route handler
- */
-export async function POST(request) {
-  let body = {};
+async function readJsonBody(req) {
   try {
-    body = await request.json();
+    if (req.body && typeof req.body === 'object') return req.body; // Vercel sometimes parses for us
   } catch {}
-
-  const {
-    action,
-    email,
-    password,
-    inviteCode,
-    username,
-    avatarDataUrl,
-  } = body;
-
-  // --- Health probe (quick sanity for env + db + storage) ---
-  if (action === "health") {
-    const admin = getSupabaseAdmin();
-    const envs = {
-      hasUrl: !!process.env.SUPABASE_URL,
-      hasKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-    };
-
-    let dbOk = false;
-    let storageOk = false;
-    const diag = {};
-
-    try {
-      if (admin.ok) {
-        const sb = admin.client;
-        const { error: usersErr } = await sb.from("users").select("id").limit(1);
-        dbOk = !usersErr;
-        if (usersErr) diag.usersErr = String(usersErr.message || usersErr);
-
-        const { data: buckets, error: stoErr } = await sb.storage.listBuckets();
-        storageOk = !stoErr && Array.isArray(buckets);
-        if (stoErr) diag.storageErr = String(stoErr.message || stoErr);
-      }
-    } catch (e) {
-      diag.healthCatch = String(e);
-    }
-
-    return ok({ ok: true, envs, dbOk, storageOk, diag });
-  }
-
-  const jar = cookies();
-  const rawSession = jar.get(COOKIE_NAME)?.value || null;
-
-  // --- Who am I? ---
-  if (action === "me") {
-    if (!rawSession) return ok({ ok: true, user: null });
-    try {
-      const s = JSON.parse(rawSession);
-      if (!s?.id || !s?.email) return ok({ ok: true, user: null });
-      return ok({ ok: true, user: s });
-    } catch {
-      return ok({ ok: true, user: null });
-    }
-  }
-
-  // --- Sign out ---
-  if (action === "logout") {
-    const res = ok({ ok: true });
-    res.cookies.set(COOKIE_NAME, "", {
-      path: "/",
-      maxAge: 0,
-      sameSite: "lax",
-    });
-    return res;
-  }
-
-  // --- Sign in (demo password rule just for MVP) ---
-  if (action === "signin") {
-    if (!email || !password) return err("Missing email/password", 400);
-    if (String(password).length < 6) return err("Invalid credentials", 401);
-
-    const session = {
-      id: `user_${Date.now()}`,
-      email: String(email).toLowerCase(),
-      username: null,
-      avatar_url: null,
-      isAdmin: false,
-    };
-
-    try {
-      const admin = getSupabaseAdmin();
-      if (admin.ok) {
-        const row = await ensureUserRow(admin.client, session.email);
-        session.username = row?.username || null;
-        session.avatar_url = row?.avatar_url || null;
-      }
-    } catch {}
-
-    const res = ok({ ok: true, user: session });
-    res.cookies.set(COOKIE_NAME, JSON.stringify(session), {
-      path: "/",
-      maxAge: COOKIE_MAX_AGE,
-      sameSite: "lax",
-    });
-    return res;
-  }
-
-  // --- Sign up (invite code check is a placeholder for later) ---
-  if (action === "signup") {
-    if (!email || !password || !inviteCode) return err("Missing fields", 400);
-    if (String(password).length < 6) return err("Weak password", 400);
-
-    const session = {
-      id: `user_${Date.now()}`,
-      email: String(email).toLowerCase(),
-      username: null,
-      avatar_url: null,
-      isAdmin: false,
-    };
-
-    try {
-      const admin = getSupabaseAdmin();
-      if (admin.ok) {
-        const row = await ensureUserRow(admin.client, session.email);
-        session.username = row?.username || null;
-        session.avatar_url = row?.avatar_url || null;
-      }
-    } catch {}
-
-    const res = ok({ ok: true, user: session });
-    res.cookies.set(COOKIE_NAME, JSON.stringify(session), {
-      path: "/",
-      maxAge: COOKIE_MAX_AGE,
-      sameSite: "lax",
-    });
-    return res;
-  }
-
-  // --- Profile update (username + avatar upload) ---
-  if (action === "profile.update") {
-    if (!rawSession) return err("Not signed in", 401);
-
-    let session;
-    try {
-      session = JSON.parse(rawSession);
-    } catch {
-      return err("Bad session", 401);
-    }
-    if (!session?.email) return err("Bad session", 401);
-
-    const admin = getSupabaseAdmin();
-    if (!admin.ok) {
-      return err("Server not configured", 500, {
-        details:
-          "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables.",
-      });
-    }
-    const sb = admin.client;
-
-    // ensure row so we know userId
-    const row = await ensureUserRow(sb, session.email);
-    const userId = row.id;
-
-    // username
-    let newUsername = undefined; // undefined = no change
-    if (typeof username !== "undefined" && username !== null) {
-      if (username && !validUsername(username)) {
-        return err(
-          "Username must be 2–32 chars and only letters, numbers, dot, underscore, or hyphen.",
-          400
-        );
-      }
-      newUsername = username || null;
-
-      if (newUsername) {
-        const { count, error: cntErr } = await sb
-          .from("users")
-          .select("*", { head: true, count: "exact" })
-          .eq("username", newUsername)
-          .neq("id", userId);
-
-        if (cntErr) return err("DB error", 500, { details: String(cntErr) });
-        if ((count || 0) > 0) return err("Username already taken", 409);
-      }
-    }
-
-    // avatar upload (optional)
-    let avatarUrl = null;
-    if (avatarDataUrl) {
-      const parsed = parseDataUrl(avatarDataUrl);
-      if (!parsed) return err("Bad image payload", 400);
-
-      // Make sure you created a bucket named "avatars" in Supabase Storage
-      const objectPath = `${userId}/${Date.now()}.${parsed.ext}`;
-      const { data: put, error: upErr } = await sb.storage
-        .from("avatars")
-        .upload(objectPath, parsed.buffer, {
-          contentType: parsed.mime,
-          upsert: true,
-        });
-
-      if (upErr) return err("Upload failed", 500, { details: String(upErr) });
-
-      const { data: pub } = sb.storage.from("avatars").getPublicUrl(put.path);
-      avatarUrl = pub?.publicUrl || null;
-    }
-
-    // patch users row
-    const patch = { updated_at: new Date().toISOString() };
-    if (typeof newUsername !== "undefined") patch.username = newUsername;
-    if (avatarUrl !== null) patch.avatar_url = avatarUrl;
-
-    if (Object.keys(patch).length > 1) {
-      const { error: upErr } = await sb.from("users").update(patch).eq("id", userId);
-      if (upErr) return err("Update failed", 500, { details: String(upErr) });
-    }
-
-    // reflect in cookie
-    const newSession = {
-      ...session,
-      username:
-        typeof newUsername !== "undefined" ? newUsername : session.username,
-      avatar_url: avatarUrl !== null ? avatarUrl : session.avatar_url,
-    };
-
-    const res = ok({ ok: true, user: newSession });
-    res.cookies.set(COOKIE_NAME, JSON.stringify(newSession), {
-      path: "/",
-      maxAge: COOKIE_MAX_AGE,
-      sameSite: "lax",
-    });
-    return res;
-  }
-
-  return err("Unknown action", 400);
+  const chunks = [];
+  for await (const c of req) chunks.push(c);
+  const txt = Buffer.concat(chunks).toString('utf8');
+  try { return JSON.parse(txt || '{}'); } catch { return {}; }
 }
 
+module.exports = async function handler(req, res) {
+  try {
+    if (req.method !== 'POST') {
+      res.status(405).json({ error: 'Method not allowed' });
+      return;
+    }
+
+    const body = await readJsonBody(req);
+    const { action } = body || {};
+
+    // -------- health
+    if (action === 'health') {
+      const envs = hasEnv();
+      let dbOk = false;
+      let storageOk = false;
+      const diag = {};
+
+      try {
+        if (envs.hasUrl && envs.hasKey) {
+          // users table check
+          const r1 = await sfetch(`/rest/v1/users?select=id&limit=1`, { headers: { Accept: 'application/json' } });
+          dbOk = r1.ok;
+          if (!r1.ok) diag.usersErr = await r1.text();
+
+          // storage check (list buckets)
+          const r2 = await sfetch(`/storage/v1/bucket`, { headers: { Accept: 'application/json' } });
+          storageOk = r2.ok;
+          if (!r2.ok) diag.storageErr = await r2.text();
+        }
+      } catch (e) {
+        diag.healthCatch = String(e);
+      }
+
+      res.status(200).json({ ok: true, envs, dbOk, storageOk, diag });
+      return;
+    }
+
+    // -------- me (from cookie)
+    if (action === 'me') {
+      const raw = readCookie(req.headers.cookie || '', COOKIE_NAME);
+      if (!raw) {
+        res.status(200).json({ ok: true, user: null });
+        return;
+      }
+      try {
+        const s = JSON.parse(raw);
+        if (!s?.id || !s?.email) {
+          res.status(200).json({ ok: true, user: null });
+          return;
+        }
+        res.status(200).json({ ok: true, user: s });
+        return;
+      } catch {
+        res.status(200).json({ ok: true, user: null });
+        return;
+      }
+    }
+
+    // -------- logout
+    if (action === 'logout') {
+      res.setHeader('Set-Cookie', `${COOKIE_NAME}=; Path=/; Max-Age=0; SameSite=Lax; HttpOnly`);
+      res.status(200).json({ ok: true });
+      return;
+    }
+
+    // -------- signin (demo)
+    if (action === 'signin') {
+      const { email, password } = body || {};
+      if (!email || !password) return res.status(400).json({ error: 'Missing email/password' });
+      if (String(password).length < 6) return res.status(401).json({ error: 'Invalid credentials' });
+
+      const session = {
+        id: `user_${Date.now()}`,
+        email: String(email).toLowerCase(),
+        username: null,
+        avatar_url: null,
+        isAdmin: false
+      };
+
+      try {
+        const row = await ensureUserRow(session.email);
+        if (row) {
+          session.username = row.username || null;
+          session.avatar_url = row.avatar_url || null;
+        }
+      } catch {}
+
+      res.setHeader('Set-Cookie', cookieHeaderForSession(session));
+      res.status(200).json({ ok: true, user: session });
+      return;
+    }
+
+    // -------- signup (demo)
+    if (action === 'signup') {
+      const { email, password, inviteCode } = body || {};
+      if (!email || !password || !inviteCode) return res.status(400).json({ error: 'Missing fields' });
+      if (String(password).length < 6) return res.status(400).json({ error: 'Weak password' });
+
+      const session = {
+        id: `user_${Date.now()}`,
+        email: String(email).toLowerCase(),
+        username: null,
+        avatar_url: null,
+        isAdmin: false
+      };
+
+      try {
+        const row = await ensureUserRow(session.email);
+        if (row) {
+          session.username = row.username || null;
+          session.avatar_url = row.avatar_url || null;
+        }
+      } catch {}
+
+      res.setHeader('Set-Cookie', cookieHeaderForSession(session));
+      res.status(200).json({ ok: true, user: session });
+      return;
+    }
+
+    // -------- profile.update
+    if (action === 'profile.update') {
+      const raw = readCookie(req.headers.cookie || '', COOKIE_NAME);
+      if (!raw) return res.status(401).json({ error: 'Not signed in' });
+
+      let session;
+      try { session = JSON.parse(raw); } catch { return res.status(401).json({ error: 'Bad session' }); }
+      if (!session?.email) return res.status(401).json({ error: 'Bad session' });
+
+      if (!getEnv('SUPABASE_URL') || !getEnv('SUPABASE_SERVICE_ROLE_KEY')) {
+        return res.status(500).json({ error: 'Server not configured', details: 'Missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY' });
+      }
+
+      // ensure row
+      const row = await ensureUserRow(session.email);
+      const userId = row.id;
+
+      const { username, avatarDataUrl } = body || {};
+
+      // username validation & uniqueness
+      let newUsername;
+      if (typeof username !== 'undefined' && username !== null) {
+        if (username && !validUsername(username)) {
+          return res.status(400).json({ error: 'Username must be 2–32 chars and only letters, numbers, dot, underscore, or hyphen.' });
+        }
+        newUsername = username || null;
+
+        if (newUsername) {
+          const r = await sfetch(`/rest/v1/users?username=eq.${encodeURIComponent(newUsername)}&id=neq.${encodeURIComponent(userId)}&select=id`, {
+            headers: { Accept: 'application/json' }
+          });
+          if (!r.ok) return res.status(500).json({ error: 'DB error', details: await r.text() });
+          const rows = await r.json();
+          if (Array.isArray(rows) && rows.length > 0) {
+            return res.status(409).json({ error: 'Username already taken' });
+          }
+        }
+      }
+
+      // avatar upload (optional)
+      let newAvatarUrl = null;
+      if (avatarDataUrl) {
+        try {
+          newAvatarUrl = await uploadAvatar(userId, avatarDataUrl);
+        } catch (e) {
+          return res.status(500).json({ error: 'Upload failed', details: String(e) });
+        }
+      }
+
+      // build patch
+      const patch = {};
+      if (typeof newUsername !== 'undefined') patch.username = newUsername;
+      if (newAvatarUrl !== null) patch.avatar_url = newAvatarUrl;
+
+      if (Object.keys(patch).length > 0) {
+        try {
+          await updateUserById(userId, patch);
+        } catch (e) {
+          return res.status(500).json({ error: 'Update failed', details: String(e) });
+        }
+      }
+
+      // reflect in cookie
+      const newSession = {
+        ...session,
+        username: typeof newUsername !== 'undefined' ? newUsername : session.username,
+        avatar_url: newAvatarUrl !== null ? newAvatarUrl : session.avatar_url
+      };
+
+      res.setHeader('Set-Cookie', cookieHeaderForSession(newSession));
+      res.status(200).json({ ok: true, user: newSession });
+      return;
+    }
+
+    res.status(400).json({ error: 'Unknown action' });
+  } catch (err) {
+    console.error('/api/auth error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
