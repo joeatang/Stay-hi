@@ -1,4 +1,50 @@
-<!doctype html><meta charset="utf-8"><title>Home</title>
-<body style="font:16px system-ui;padding:24px">
-  Home is alive ✅ — we’ll paste the real index next.
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Stay Hi</title>
+  <link rel="stylesheet" href="/assets/create-parity.css"/>
+</head>
+<body>
+  <header id="app-header" class="header"></header>
+  <main class="page">
+    <section class="panel">
+      <h1 class="h1">Welcome to Stay Hi</h1>
+      <p class="lead">Choose where you want to go:</p>
+      <div style="display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+        <a class="panel" href="/hi-island.html" style="text-decoration:none">
+          <h2 class="h1" style="font-size:1.1rem;margin:0 0 6px">Hi Island</h2>
+          <p class="lead" style="margin:0">World map + community shares.</p>
+        </a>
+        <a class="panel" href="/hi-muscle.html" style="text-decoration:none">
+          <h2 class="h1" style="font-size:1.1rem;margin:0 0 6px">Hi Muscle</h2>
+          <p class="lead" style="margin:0">Daily check-in + 3-step session.</p>
+        </a>
+        <a class="panel" href="/profile.html" style="text-decoration:none">
+          <h2 class="h1" style="font-size:1.1rem;margin:0 0 6px">Profile</h2>
+          <p class="lead" style="margin:0">Username + avatar.</p>
+        </a>
+      </div>
+    </section>
+    <section class="panel">
+      <h2 class="h1" style="font-size:1.1rem;margin:0 0 8px">API health</h2>
+      <pre id="apiout" class="toast">Checking…</pre>
+    </section>
+  </main>
+  <script src="/assets/create-parity.js" defer></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      window.CreateParity?.renderHeader?.('home');
+      Promise.all([
+        fetch('/api/my-archive',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'health'})}).then(r=>r.status),
+        fetch('/api/emotions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'health'})}).then(r=>r.status),
+      ]).then(([a,b])=>{
+        document.getElementById('apiout').textContent=`/api/my-archive → ${a}\n/api/emotions → ${b}`;
+      }).catch(e=>{
+        document.getElementById('apiout').textContent='error: '+e.message;
+      });
+    });
+  </script>
 </body>
+</html>
