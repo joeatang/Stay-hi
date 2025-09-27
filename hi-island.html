@@ -1,53 +1,47 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Hi Island · Stay Hi</title>
-<link rel="stylesheet" href="/assets/create-parity.css"/>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Hi Island · Stay Hi</title>
+  <link rel="stylesheet" href="/assets/create-parity.css"/>
 </head>
 <body>
-<header id="app-header" class="header"></header>
-<main class="page">
-<section class="panel">
-<h1 class="h1">Hi Session</h1>
-<p class="lead">Same 3-step flow as your Create build — one screen at a time.</p>
-<div class="bar"><i style="width:0%"></i></div>
-<div class="dots"><span class="dot on"></span><span class="dot"></span><span class="dot"></span></div>
+  <header id="app-header" class="header"></header>
+  <main class="page">
+    <section class="panel">
+      <h1 class="h1">Hi Session</h1>
+      <p class="lead">Three quick steps — exactly like your Create flow.</p>
+      <div class="bar"><i></i></div>
+      <div class="dots"><span class="dot on"></span><span class="dot"></span><span class="dot"></span></div>
 
+      <div class="step on">
+        <div class="wheel"><div style="font-weight:800;text-align:center">How do you feel<br><small>(now)</small></div></div>
+        <select id="feel-now" class="select"><option>Loading…</option></select>
+        <button id="next1" class="btn">Next</button>
+      </div>
 
-<div class="step on" id="step1">
-<div class="wheel"><div class="current">How do you feel<br><small>(now)</small></div></div>
-<select id="feel-now" class="select" required><option value="">Loading…</option></select>
-<button id="next1" class="btn-primary">Next</button>
-</div>
+      <div class="step">
+        <div class="wheel"><div style="font-weight:800;text-align:center">How do you want to feel<br><small>(next)</small></div></div>
+        <select id="feel-next" class="select"><option>Loading…</option></select>
+        <button id="next2" class="btn">Next</button>
+      </div>
 
+      <div class="step">
+        <label class="lead" for="note">One line for future-you</label>
+        <textarea id="note" class="textarea" placeholder="Tiny action, reframe, or reminder…"></textarea>
+        <button id="save" class="btn">Save Hi Session</button>
+        <div id="toast" class="toast" aria-live="polite"></div>
+      </div>
+    </section>
 
-<div class="step" id="step2">
-<div class="wheel"><div class="current">How do you want to feel<br><small>(next)</small></div></div>
-<select id="feel-next" class="select" required><option value="">Loading…</option></select>
-<button id="next2" class="btn-primary">Next</button>
-</div>
+    <section class="panel">
+      <h2 class="h1" style="font-size:1.2rem">Recent Sessions</h2>
+      <div id="entries"></div>
+    </section>
+  </main>
 
-
-<div class="step" id="step3">
-<label for="note" class="lead">One line for future‑you</label>
-<textarea id="note" class="textarea" placeholder="Tiny action, reframe, or reminder…"></textarea>
-<button id="save" class="btn-primary">Save Hi Session</button>
-<div id="toast" class="toast" aria-live="polite"></div>
-</div>
-</section>
-
-
-<section class="panel">
-<h2 class="h1" style="font-size:1.2rem">Recent Sessions</h2>
-<div id="entries" class="list"></div>
-</section>
-</main>
-
-
-<script src="/assets/app.js" defer></script>
-<script src="/assets/create-parity.js" defer></script>
-<script>window.addEventListener('DOMContentLoaded', ()=>CreateParity.initIsland());</script>
+  <script src="/assets/create-parity.js" defer></script>
+  <script>window.addEventListener('DOMContentLoaded', ()=>CreateParity.initIsland())</script>
 </body>
 </html>
