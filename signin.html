@@ -4,17 +4,32 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Sign in — Stay Hi</title>
   <style>
-    body{font-family:system-ui;background:#FFFDF9;margin:0}
-    .wrap{max-width:420px;margin:40px auto;background:#fff;border:1px solid #eee;border-radius:16px;padding:20px}
+    :root{--brand-bg1:#F5A623;--brand-bg2:#FFC107;--hi-green:#006400}
+    body{font-family:system-ui;margin:0;background:linear-gradient(135deg,var(--brand-bg1),var(--brand-bg2))}
+    .wrap{max-width:460px;margin:40px auto;background:#fff;border:1px solid #eee;border-radius:16px;padding:20px;box-shadow:0 8px 18px rgba(0,0,0,.05)}
     label{display:block;font-size:14px;margin-top:12px}
-    input{width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;margin-top:6px}
-    button{width:100%;padding:12px;margin-top:16px;border:0;border-radius:10px;background:#111;color:#fff;font-weight:700}
+    input{width:100%;padding:12px;border:1px solid #ddd;border-radius:12px;margin-top:6px}
+    button{width:100%;padding:12px;margin-top:16px;border:0;border-radius:12px;background:#111;color:#fff;font-weight:800}
     .err{color:#b00020;margin-top:10px}
-    .row{display:flex;gap:10px;margin-top:12px}
-    a{color:#065f46}
+    .row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+    a{color:var(--hi-green)}
+    /* header (brand only, no menu) */
+    header.slim{position:sticky;top:0;background:rgba(255,255,255,.85);backdrop-filter:saturate(1.2) blur(6px);border-bottom:1px solid rgba(0,0,0,.06)}
+    .bar{height:56px;max-width:960px;margin:0 auto;padding:0 12px;display:flex;align-items:center;justify-content:center}
+    .brand{display:flex;align-items:center;gap:8px}
+    .brand img{width:20px;height:20px}
   </style>
 </head>
 <body>
+  <header class="slim">
+    <div class="bar">
+      <a class="brand" href="index.html">
+        <img src="https://ucarecdn.com/4233fafa-2eee-45bf-bee2-eb6578070c5b/-/format/auto/" alt="Stay Hi" />
+        <strong>Stay Hi</strong>
+      </a>
+    </div>
+  </header>
+
   <div class="wrap">
     <h2>Sign in</h2>
     <form id="f">
@@ -25,7 +40,14 @@
       <div class="row"><a href="signup.html">New here? Join now</a><a href="index.html">Home</a></div>
     </form>
   </div>
+
 <script>
+  // If already signed in → Home
+  (async ()=>{
+    const me = await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'me'})}).then(r=>r.json()).catch(()=>({}));
+    if(me?.user) location.href='index.html';
+  })();
+
   f.onsubmit=async (e)=>{
     e.preventDefault(); err.textContent=''; go.disabled=true;
     const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},
