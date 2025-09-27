@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Join — Stay Hi</title>
+  <style>
+    body{font-family:system-ui;background:#FFFDF9;margin:0}
+    .wrap{max-width:420px;margin:40px auto;background:#fff;border:1px solid #eee;border-radius:16px;padding:20px}
+    label{display:block;font-size:14px;margin-top:12px}
+    input{width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;margin-top:6px}
+    button{width:100%;padding:12px;margin-top:16px;border:0;border-radius:10px;background:#065f46;color:#fff;font-weight:700}
+    .err{color:#b00020;margin-top:10px}
+    .row{display:flex;gap:10px;margin-top:12px}
+    a{color:#065f46}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h2>Join Stay Hi</h2>
+    <form id="f">
+      <label>Email <input type="email" id="email" required autocomplete="email"></label>
+      <label>Password <input type="password" id="pw" required minlength="6" autocomplete="new-password"></label>
+      <button type="submit" id="go">Create account</button>
+      <div class="err" id="err"></div>
+      <div class="row"><a href="signin.html">Have an account? Sign in</a><a href="index.html">Home</a></div>
+    </form>
+  </div>
+<script>
+  f.onsubmit=async (e)=>{
+    e.preventDefault(); err.textContent=''; go.disabled=true;
+    const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'signup',email:email.value,password:pw.value})});
+    const x=await r.json().catch(()=>({}));
+    go.disabled=false;
+    if(r.ok&&x?.ok){ location.href='index.html'; } else { err.textContent=x?.error||'Internal server error'; }
+  };
+</script>
+</body>
+</html>
