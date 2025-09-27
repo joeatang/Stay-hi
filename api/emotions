@@ -1,1 +1,26 @@
+// /api/emotions/route.js
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status, headers: { 'Content-Type': 'application/json' }
+  });
+}
+
+export const config = { runtime: 'nodejs18.x' };
+
+export default async function handler(req) {
+  if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
+
+  const body = await req.json().catch(() => ({}));
+  if (body?.action === 'health') return json({ ok: true, route: 'emotions' });
+
+  // Curated lists (tune these to match your Create set)
+  const now = [
+    'Worried','Anxious','Overwhelmed','Tired','Okay','Grateful','Excited','Peaceful','Confident'
+  ];
+  const next = [
+    'Calm','Grounded','Hopeful','Grateful','Inspired','Confident','Joyful','Peaceful','Proud'
+  ];
+
+  return json({ now, next });
+}
 
