@@ -3,48 +3,319 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Stay Hi</title>
-  <link rel="stylesheet" href="/assets/create-parity.css"/>
+  <title>Stay Hi — Home</title>
+  <link rel="stylesheet" href="assets/create-parity.css"/>
+  <style>
+    /* small page-local bits */
+    .hud{display:flex;justify-content:center;gap:10px;margin:6px 0 2px}
+    .hud .dot{width:10px;height:10px;border-radius:50%}
+    .hud .today{background:#22c55e}.hud .goal{background:#f59e0b}
+    .ring-wrap{ position:relative; width:260px; height:260px; margin:0 auto }
+    .wheel{ position:absolute; inset:0; border-radius:50%;
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,.15)); }
+    .wheel-cut{ position:absolute; inset:12px; border-radius:50%;
+      box-shadow: inset 0 0 0 18px rgba(255,255,255,.92); background:transparent; }
+    .goal-dot{ position:absolute; inset:0 }
+    .goal-dot i{ position:absolute; left:50%; top:6px; transform:translateX(-50%);
+      width:10px; height:10px; border-radius:50%; background:#F5A623; box-shadow:0 1px 4px #0009 }
+    .hand{ position:absolute; inset:40px; border-radius:50%; overflow:hidden; background:#fff; cursor:pointer }
+    .timerRead{ margin-top:14px; text-align:center; font-size:44px; font-weight:900; letter-spacing:1px }
+    .legend{ margin-top:2px; text-align:center; color:#cfd2ea; font-size:12px }
+    .legend .chip{ display:inline-flex; align-items:center; gap:6px; margin:0 8px }
+    .chip .sq{ display:inline-block; width:12px; height:12px; border-radius:2px }
+    .chips{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap }
+    .chips .chipb{ background:#0f1324; border:1px solid var(--bd); color:var(--text); border-radius:999px; font-weight:800; padding:8px 12px }
+    .chips .chipb:active{ transform:translateY(1px) }
+    .count-row{ text-align:center; margin-top:14px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap }
+    .pill{ display:inline-flex; align-items:center; gap:8px; background:#ffffffcc; color:#041016;
+      border:1px solid #00000015; border-radius:999px; padding:8px 12px; font-size:14px }
+    .toast-mini{ position:fixed; left:50%; bottom:22px; transform:translateX(-50%);
+      background:#000000e6; color:#fff; border-radius:10px; padding:8px 12px; font-size:13px; z-index:50; }
+    .burst{ position:absolute; inset:0; pointer-events:none }
+    .burst span{ position:absolute; font-size:28px; will-change:transform,opacity }
+    @keyframes waveUp { 0%{ transform:translate(-50%,-50%) scale(var(--s,1)); opacity:.9 }
+      100%{ transform:translate(calc(-50% + var(--dx,0px)),-240%) scale(calc(var(--s,1)*.9)); opacity:0 } }
+    .calendar-backdrop{ position:fixed; inset:0; background:#0009; display:grid; place-items:center; z-index:70 }
+    .calendar{ background:#101010; color:#fff; border:1px solid #ffffff1a; border-radius:18px; width:min(720px,92vw); }
+    .calendar .hd{ display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid #ffffff1a }
+    .calendar .grid7{ display:grid; grid-template-columns:repeat(7,1fr); gap:8px }
+    .calendar .cell{ height:66px; border-radius:10px; display:grid; place-items:center; border:1px solid #ffffff1a; background:#ffffff0f }
+    .calendar .cell.met{ background:#0a5; border-color:#0a5 }
+  </style>
 </head>
-<body>
+<body class="sunrise">
   <header id="app-header" class="header"></header>
+
   <main class="page">
+    <!-- announcement -->
+    <section class="panel" id="announce-panel" style="display:none">
+      <div id="announce" class="lead"></div>
+    </section>
+
+    <!-- RING METER -->
     <section class="panel">
-      <h1 class="h1">Welcome to Stay Hi</h1>
-      <p class="lead">Choose where you want to go:</p>
-      <div style="display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
-        <a class="panel" href="/hi-island.html" style="text-decoration:none">
-          <h2 class="h1" style="font-size:1.1rem;margin:0 0 6px">Hi Island</h2>
-          <p class="lead" style="margin:0">World map + community shares.</p>
-        </a>
-        <a class="panel" href="/hi-muscle.html" style="text-decoration:none">
-          <h2 class="h1" style="font-size:1.1rem;margin:0 0 6px">Hi Muscle</h2>
-          <p class="lead" style="margin:0">Daily check-in + 3-step session.</p>
-        </a>
-        <a class="panel" href="/profile.html" style="text-decoration:none">
-          <h2 class="h1" style="font-size:1.1rem;margin:0 0 6px">Profile</h2>
-          <p class="lead" style="margin:0">Username + avatar.</p>
-        </a>
+      <div class="hud"><span class="dot today"></span><span class="lead">Hi mins today</span>&nbsp;&nbsp;
+        <span class="dot goal"></span><span class="lead">14m goal (24h wheel)</span></div>
+
+      <div class="ring-wrap">
+        <div id="wheel" class="wheel"></div>
+        <div class="goal-dot"><i id="goalDot"></i></div>
+        <div class="wheel-cut"></div>
+
+        <button id="handBtn" class="hand" aria-label="Tap to send a community Hi 5">
+          <img id="handImg" alt="Hi Hand"
+               src="https://ucarecdn.com/312e1fb9-34ae-4724-a338-5a333df1fd21/-/format/auto/"
+               style="width:100%;height:100%;object-fit:cover">
+        </button>
+        <div class="burst" id="burst"></div>
+      </div>
+
+      <div class="timerRead" id="readout">00:00:00</div>
+      <div class="legend">
+        <span class="chip"><span class="sq" style="background:#0a5"></span>Hi mins today</span>
+        <span class="chip"><span class="sq" style="border-radius:50%;background:#F5A623"></span><b id="goalLbl">14m</b> goal (24h wheel)</span>
+      </div>
+
+      <div class="meta">Today: <b id="todayLbl">0m</b> / <span id="goalLbl2">14m</span> goal</div>
+
+      <div class="grid2" style="max-width:520px;margin:10px auto">
+        <div class="card">
+          <label>STARTED</label>
+          <div id="started">—</div>
+        </div>
+        <div class="card">
+          <label>HI SESH GOAL (mins)</label>
+          <input id="goal" type="number" min="1" step="1" value="14" />
+        </div>
+      </div>
+
+      <div style="max-width:520px;margin:0 auto">
+        <button id="toggle" class="btn big">Stay Hi</button>
+        <div class="chips">
+          <button class="chipb" data-delta="1">+1m</button>
+          <button class="chipb" data-delta="5">+5m</button>
+          <button class="chipb" data-delta="10">+10m</button>
+        </div>
+      </div>
+
+      <div class="count-row">
+        <div class="pill">🌍 Global Hi’s <strong id="gHi" class="font-mono">0</strong></div>
+        <div class="pill">🏁 Global Hi Starts <strong id="gStarts" class="font-mono">0</strong></div>
+        <button id="openCal" class="btn" style="width:auto;padding:6px 10px;font-weight:800">📅</button>
       </div>
     </section>
-    <section class="panel">
-      <h2 class="h1" style="font-size:1.1rem;margin:0 0 8px">API health</h2>
-      <pre id="apiout" class="toast">Checking…</pre>
+
+    <!-- Hiffirmation -->
+    <section class="panel" style="max-width:540px;margin:0 auto">
+      <h3 class="h1" style="font-size:1.1rem;color:#ffd166">Today's Hiffirmation</h3>
+      <div id="hiff" class="lead"></div>
     </section>
   </main>
-  <script src="/assets/create-parity.js" defer></script>
+
+  <!-- calendar modal (hidden by default) -->
+  <div id="calWrap" class="calendar-backdrop" style="display:none">
+    <div class="calendar">
+      <div class="hd">
+        <button id="calPrev" class="btn" style="width:auto;padding:4px 10px">‹</button>
+        <div id="calLabel" class="h1" style="font-size:1.1rem;margin:0"></div>
+        <button id="calNext" class="btn" style="width:auto;padding:4px 10px">›</button>
+      </div>
+      <div style="padding:14px">
+        <div class="grid7" style="margin-bottom:6px;color:#cfd2ea;font-size:12px">
+          <div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div><div>SUN</div>
+        </div>
+        <div id="calGrid" class="grid7"></div>
+        <div style="text-align:right;margin-top:12px">
+          <button id="calClose" class="btn" style="width:auto;padding:8px 12px">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast-mini" style="display:none"></div>
+
+  <!-- logic: pure JS, mock mode (localStorage) -->
   <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      window.CreateParity?.renderHeader?.('home');
-      Promise.all([
-        fetch('/api/my-archive',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'health'})}).then(r=>r.status),
-        fetch('/api/emotions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'health'})}).then(r=>r.status),
-      ]).then(([a,b])=>{
-        document.getElementById('apiout').textContent=`/api/my-archive → ${a}\n/api/emotions → ${b}`;
-      }).catch(e=>{
-        document.getElementById('apiout').textContent='error: '+e.message;
-      });
+    /* ---------- utils ---------- */
+    const pad2=n=>String(n).padStart(2,'0');
+    const todayKey=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const weekStartMonday=(d=new Date())=>{const x=new Date(d);const day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(0,0,0,0);return x};
+    function dailyHiNote(date=new Date()){
+      const key=`${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      let h=0; for(let i=0;i<key.length;i++) h=(h*31+key.charCodeAt(i))|0;
+      const pick=arr=>arr[Math.abs(h++%arr.length)];
+      const verbs=["Rise Hi","Shine Hi","Lead with Hi","Start with Hi","Carry your Hi","Breathe Hi","Choose Hi","Stay Hi","Move Hi","Speak Hi","Believe in Hi","Keep your head up Hi","Aim Hi","Climb Hi","Soar Hi","Flow Hi"];
+      const closers=["— small Hi’s change big days.","and let courage follow.","and watch doors open.","and pass a Hi forward.","and brighten a corner.","and meet the moment.","and lift someone with you.","and let kindness ripple."];
+      return `${pick(verbs)} ${pick(closers)}`;
+    }
+
+    /* ---------- state (localStorage) ---------- */
+    const LS={ goal:"hi.goalMin", hist:"hi.history", start:"hi.sessionStart", gFive:"hi.globalFives", gStart:"hi.globalStarts" };
+    const read=(k,def)=>{ try{ const v=localStorage.getItem(k); return v==null?def:JSON.parse(v) }catch{ return def } };
+    const write=(k,v)=>{ try{ localStorage.setItem(k, JSON.stringify(v)) }catch{} };
+
+    let goalMin = Number(read(LS.goal, 14)) || 14;
+    let history = read(LS.hist, {});        // { YYYY-MM-DD: minutes }
+    let sessionStart = Number(localStorage.getItem(LS.start) || 0) || 0;
+    let sessionActive = !!sessionStart;
+
+    let gFives  = Number(localStorage.getItem(LS.gFive)  || 0) || 0;
+    let gStarts = Number(localStorage.getItem(LS.gStart) || 0) || 0;
+
+    /* ---------- elements ---------- */
+    const readout = document.getElementById('readout');
+    const wheel   = document.getElementById('wheel');
+    const goalDot = document.getElementById('goalDot');
+    const goalLbl = document.getElementById('goalLbl');
+    const goalLbl2= document.getElementById('goalLbl2');
+    const todayLbl= document.getElementById('todayLbl');
+    const started = document.getElementById('started');
+    const goalInp = document.getElementById('goal');
+    const toggle  = document.getElementById('toggle');
+    const gHiEl   = document.getElementById('gHi');
+    const gStEl   = document.getElementById('gStarts');
+    const handBtn = document.getElementById('handBtn');
+    const burst   = document.getElementById('burst');
+    const toast   = document.getElementById('toast');
+
+    /* ---------- helpers ---------- */
+    function showToast(msg){ toast.textContent=msg; toast.style.display='block'; setTimeout(()=>toast.style.display='none',2000); }
+    function todayMins(){ return Number(history[todayKey()]||0) }
+    function setTodayMins(m){ history[todayKey()]=m; write(LS.hist, history) }
+    function liveSec(){ return sessionActive ? Math.max(0, Math.floor((Date.now()-sessionStart)/1000)) : 0 }
+    function fmtHMS(sec){ const h=pad2(Math.floor(sec/3600)), m=pad2(Math.floor((sec%3600)/60)), s=pad2(sec%60); return `${h}:${m}:${s}` }
+
+    function renderWheel(){
+      // 24h wheel progress for today minutes
+      const totalMin = todayMins() + Math.floor(liveSec()/60);
+      const dayDeg   = Math.min(360, totalMin/1440*360);
+      const goalDeg  = Math.min(360, goalMin/1440*360);
+      wheel.style.background = `conic-gradient(#0a5 ${dayDeg}deg, #222 0deg)`;
+      goalDot.parentElement.style.transform = `rotate(${goalDeg}deg)`;
+      goalLbl.textContent = goalMin+'m'; goalLbl2.textContent = goalMin+'m';
+      todayLbl.textContent = totalMin+'m';
+    }
+    function renderHUD(){
+      readout.textContent = fmtHMS(liveSec());
+      started.textContent = sessionActive ? new Date(sessionStart).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}) : '—';
+      gHiEl.textContent = gFives.toLocaleString();
+      gStEl.textContent = gStarts.toLocaleString();
+      goalInp.value = goalMin;
+      toggle.textContent = sessionActive ? 'Complete — Stay Hi' : 'Stay Hi';
+    }
+
+    function tick(){ renderWheel(); renderHUD(); }
+
+    /* ---------- interactions ---------- */
+    goalInp.oninput = ()=>{ goalMin = Math.max(1, Math.round(goalInp.value||14)); write(LS.goal, goalMin); tick(); };
+
+    document.querySelectorAll('.chipb').forEach(b=>{
+      b.onclick=()=>{ goalMin = Math.max(1, goalMin + parseInt(b.dataset.delta,10)); write(LS.goal, goalMin); tick(); };
     });
+
+    toggle.onclick = ()=>{
+      if(!sessionActive){
+        sessionStart = Date.now(); sessionActive = true;
+        localStorage.setItem(LS.start, String(sessionStart));
+        gStarts += 1; localStorage.setItem(LS.gStart, String(gStarts));
+        showToast('Hi session started ✨');
+      }else{
+        const end = Date.now(); const mins = Math.floor(Math.max(0, end - sessionStart)/60000);
+        setTodayMins(todayMins()+mins);
+        sessionStart=0; sessionActive=false; localStorage.removeItem(LS.start);
+        showToast(`Beautiful — +${mins}m`);
+        // little confetti burst
+        makeBurst();
+      }
+      tick();
+    };
+
+    handBtn.onclick = ()=>{
+      try{ navigator?.vibrate?.(35) }catch{}
+      gFives += 1; localStorage.setItem(LS.gFive, String(gFives));
+      // tiny scale anim
+      handBtn.style.transform='scale(.98) rotate(-1deg)';
+      setTimeout(()=>handBtn.style.transform='',140);
+      // emoji sprinkles
+      makeBurst(16, '👋');
+      tick();
+    };
+
+    function makeBurst(count=14, emoji='✨'){
+      const arr = Array.from({length:count}, (_,i)=>({
+        id: `${Date.now()}-${i}`,
+        x: 50 + (Math.random()-0.5)*10,
+        y: 48 + (Math.random()-0.5)*6,
+        dx: (Math.random()-0.5)*160,
+        s: 0.9 + Math.random()*0.35,
+        delay: Math.random()*180
+      }));
+      arr.forEach(p=>{
+        const el=document.createElement('span');
+        el.textContent=emoji; el.style.left=p.x+'%'; el.style.top=p.y+'%';
+        el.style.transform='translate(-50%,-50%)';
+        el.style.setProperty('--dx', p.dx+'px'); el.style.setProperty('--s', p.s);
+        el.style.animation = `waveUp 1100ms cubic-bezier(.22,1,.36,1) ${p.delay}ms forwards`;
+        burst.appendChild(el);
+        setTimeout(()=>el.remove(), 1400);
+      });
+    }
+
+    // announcements + hiffirmation (simple rotator)
+    const announcePanel = document.getElementById('announce-panel');
+    const announceEl = document.getElementById('announce');
+    const notes = [];
+    const streakDays = 0; if(streakDays>0) notes.push(`🔥 You’re on a ${streakDays}-day Hi streak!`);
+    notes.push(`🏁 Global Hi Starts: ${gStarts.toLocaleString()}`);
+    notes.push(`🌍 Global Hi’s: ${gFives.toLocaleString()}`);
+    const hiff = document.getElementById('hiff');
+    hiff.textContent = dailyHiNote();
+    let idx=0;
+    if(notes.length){
+      announcePanel.style.display='block';
+      announceEl.textContent = notes[0];
+      setInterval(()=>{ idx=(idx+1)%notes.length; announceEl.textContent=notes[idx]; }, 6000);
+    }
+
+    // calendar modal
+    const calWrap = document.getElementById('calWrap');
+    const calLabel= document.getElementById('calLabel');
+    const calGrid = document.getElementById('calGrid');
+    const openCal = document.getElementById('openCal');
+    const calPrev = document.getElementById('calPrev');
+    const calNext = document.getElementById('calNext');
+    const calClose= document.getElementById('calClose');
+
+    let monthBase = new Date(); monthBase.setDate(1); monthBase.setHours(0,0,0,0);
+    function renderCal(){
+      calLabel.textContent = monthBase.toLocaleDateString(undefined, {month:'long', year:'numeric'});
+      calGrid.innerHTML='';
+      const first = new Date(monthBase);
+      const firstWeekday = (first.getDay()+6)%7; // Mon=0
+      for(let i=0;i<firstWeekday;i++){ const d=document.createElement('div'); d.className='cell'; d.style.opacity='.35'; calGrid.appendChild(d); }
+      const next = new Date(first);
+      while(next.getMonth()===first.getMonth()){
+        const k = todayKey(next);
+        const mins = Number(history[k]||0);
+        const cell = document.createElement('div'); cell.className = 'cell'+(mins>=goalMin?' met':'');
+        cell.innerHTML = `<div>${next.getDate()}</div><div style="font-size:10px;opacity:.8">${mins?mins+'m':''}</div>`;
+        calGrid.appendChild(cell);
+        next.setDate(next.getDate()+1);
+      }
+      while(calGrid.children.length%7!==0){ const d=document.createElement('div'); d.className='cell'; d.style.opacity='.35'; calGrid.appendChild(d); }
+    }
+    openCal.onclick = ()=>{ calWrap.style.display='grid'; renderCal(); };
+    calPrev.onclick = ()=>{ monthBase.setMonth(monthBase.getMonth()-1); renderCal(); };
+    calNext.onclick = ()=>{ monthBase.setMonth(monthBase.getMonth()+1); renderCal(); };
+    calClose.onclick= ()=>{ calWrap.style.display='none'; };
+
+    // kick things off
+    tick();
+    setInterval(tick, 1000);
   </script>
+
+  <!-- shared UI -->
+  <script src="assets/header.js" defer></script>
+  <script src="assets/tabs.js" defer></script>
 </body>
 </html>
