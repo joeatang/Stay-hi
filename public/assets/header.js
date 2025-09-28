@@ -10,7 +10,7 @@
     <div class="appbar">
       <button id="btnCal" class="icon-btn" aria-label="Open calendar">📅</button>
       <a class="brand" href="index.html" aria-label="Stay Hi home">
-        <img class="logo" src="assets/brand/logo.svg" alt="" />
+        <img class="logo" src="assets/brand/logo.png" alt="" />
         <span class="brand-name">Stay Hi</span>
       </a>
       <div class="menu">
