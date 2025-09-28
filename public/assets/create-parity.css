@@ -104,3 +104,42 @@ body.sunrise::before{
 .staging-banner{position:fixed;left:50%;transform:translateX(-50%);top:10px;z-index:1200;background:linear-gradient(180deg,#FFE066,#FFD166);
   color:#041016;border:1px solid #00000020;border-radius:999px;padding:8px 14px;font-weight:800;box-shadow:0 10px 30px #0007}
 
+/* --- mobile-first polish --- */
+:root{
+  --ring-size: 76vw;          /* responsive halo */
+  --ring-max: 320px;
+}
+
+/* ring sizing */
+@media (min-width:520px){
+  :root{ --ring-size: 320px; }
+}
+
+/* app bar, week strip, menu, tabs already defined earlier */
+
+/* staging badge: tiny on phones */
+.staging-banner{
+  position:fixed; top:8px; right:8px; z-index:1200;
+  background:#10131f; color:#ffd166; border:1px solid #ffffff20;
+  border-radius:999px; padding:4px 8px; font-weight:900; font-size:11px;
+  letter-spacing:.2px; box-shadow:0 6px 18px #0006;
+}
+@media (min-width:640px){
+  .staging-banner{ top:10px; right:12px; font-size:12px; padding:6px 10px; }
+}
+
+/* announcement rotator card (compact for mobile) */
+.announce{max-width:520px;margin:6px auto 2px;padding:8px 12px;border-radius:12px;
+  background:#ffffffdd;border:1px solid #00000012;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.announce .txt{font-size:13px;font-weight:800;color:#041016;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.announce .x{background:transparent;border:0;color:#04101699;font-size:18px;line-height:1}
+
+/* ring + timer layout */
+.ring{ width:min(var(--ring-size), var(--ring-max)); height:min(var(--ring-size), var(--ring-max)); }
+.timerRead{ font-size:36px; }
+@media (min-width:420px){ .timerRead{ font-size:42px; } }
+
+/* bottom tabs labels tighter */
+.tabs .tab{gap:2px;font-size:12px}
+
+
