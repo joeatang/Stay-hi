@@ -64,3 +64,43 @@ body.sunrise::before{
 .panel{backdrop-filter: blur(4px)}
 .btn{background:linear-gradient(180deg, #10b981, #059669); color:#041016}
 .btn:active{transform:translateY(1px)}
+
+/* --- App bar (Zero-style) --- */
+.appbar{position:sticky;top:0;z-index:30;display:grid;grid-template-columns:40px 1fr 40px;gap:8px;
+  align-items:center; padding:10px 14px; backdrop-filter:blur(8px);
+  background:color-mix(in srgb, #FFFDF9 80%, transparent); border-bottom:1px solid #00000010}
+.icon-btn{width:36px;height:36px;border-radius:999px;border:1px solid #00000010;background:#fff;box-shadow:0 2px 6px #0001}
+.brand{display:flex;align-items:center;gap:8px;justify-self:center;text-decoration:none}
+.logo{width:28px;height:28px;border-radius:50%;object-fit:cover}
+.brand-name{font-weight:800;color:#041016}
+.menu{justify-self:end;position:relative}
+.menu-sheet{position:absolute;right:0;top:110%;width:220px;background:#fff;border:1px solid #00000016;border-radius:14px;
+  box-shadow:0 20px 50px #0003;overflow:hidden;display:none}
+.menu-sheet.open{display:block}
+.menu-sheet a{display:block;padding:10px 12px;color:#041016;text-decoration:none;font-weight:700}
+.menu-sheet a:hover{background:#f7f8ff}
+.menu-sheet .sep{height:1px;background:#00000012;margin:4px 0}
+
+/* --- Week strip (just under header) --- */
+.weekstrip{display:flex;justify-content:space-between;gap:8px;padding:8px 14px 0;max-width:520px;margin:0 auto}
+.weekdot{display:flex;flex-direction:column;align-items:center;width:13%}
+.weekdot .lbl{font-size:10px;color:#041016b0;font-weight:800}
+.weekdot .c{margin-top:4px;width:24px;height:24px;border-radius:999px;display:grid;place-items:center;border:1px solid #00000016;background:#fff}
+.weekdot .c.met{background:#0aa15a;border-color:#0aa15a;color:#fff}
+
+/* --- Bottom tabs --- */
+.tabs{position:sticky;bottom:0;z-index:25;display:grid;grid-template-columns:repeat(4,1fr);
+  padding:8px 10px; background:#0f1324; color:#cfd2ea; border-top:1px solid #FFFFFF10}
+.tabs .tab{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 4px;text-decoration:none;color:inherit;font-weight:800}
+.tabs .tab .ico{font-size:18px;line-height:1}
+.tabs .tab.active{color:#ff6a3d}
+
+/* --- Tap hint bubble --- */
+.tap-hint{position:absolute;left:50%;top:54%;transform:translate(-50%,-50%);background:#041016; color:#fff;
+  border-radius:999px;padding:8px 12px;font-weight:800;font-size:12px;box-shadow:0 8px 30px #0006; pointer-events:none}
+.tap-hint.hide{display:none}
+
+/* Keep staging banner style */
+.staging-banner{position:fixed;left:50%;transform:translateX(-50%);top:10px;z-index:1200;background:linear-gradient(180deg,#FFE066,#FFD166);
+  color:#041016;border:1px solid #00000020;border-radius:999px;padding:8px 14px;font-weight:800;box-shadow:0 10px 30px #0007}
+
