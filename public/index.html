@@ -8,7 +8,6 @@
   <style>
     .ring{ position:relative; margin:0 auto }
     .ring svg{ width:100%; height:100% }
-    .label{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none }
     .goal-marker{ position:absolute; inset:0; transform-origin:50% 50%; pointer-events:none }
     .goal-marker i{ position:absolute; left:50%; top:6px; transform:translateX(-50%); width:10px; height:10px; border-radius:50%; background:#F5A623; box-shadow:0 1px 4px #0009 }
     .hud{display:flex;justify-content:center;gap:10px;margin:8px 0}
@@ -18,7 +17,9 @@
     .burst span{ position:absolute; font-size:26px; will-change:transform,opacity }
     @keyframes waveUp { 0%{ transform:translate(-50%,-50%) scale(var(--s,1)); opacity:.9 }
       100%{ transform:translate(calc(-50% + var(--dx,0px)),-240%) scale(calc(var(--s,1)*.9)); opacity:0 } }
-    .calendar-backdrop{ position:fixed; inset:0; background:#0009; display:grid; place-items:center; z-index:70 }
+    .timerRead{ font-size:36px; }
+    @media (min-width:420px){ .timerRead{ font-size:42px; } }
+    .calendar-backdrop{ position:fixed; inset:0; background:#0009; display:grid; place-items:center; z-index:700 }
     .calendar{ background:#101010; color:#fff; border:1px solid #ffffff1a; border-radius:18px; width:min(720px,92vw); }
     .calendar .hd{ display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid #ffffff1a }
     .calendar .grid7{ display:grid; grid-template-columns:repeat(7,1fr); gap:8px }
@@ -30,14 +31,14 @@
   <!-- Header -->
   <header id="app-header" class="header"></header>
 
-  <!-- Announcement rotator (compact) -->
+  <!-- Week strip (stays above halo) -->
+  <div id="weekStrip" class="weekstrip" aria-label="Your week"></div>
+
+  <!-- Announcement rotator (now directly above halo) -->
   <div id="announceWrap" class="announce" style="display:none">
     <div id="announceTxt" class="txt"></div>
     <button id="announceX" class="x" aria-label="Dismiss">✕</button>
   </div>
-
-  <!-- Week strip -->
-  <div id="weekStrip" class="weekstrip" aria-label="Your week"></div>
 
   <main class="page">
     <!-- METER -->
@@ -74,7 +75,7 @@
         <div class="burst" id="burst"></div>
       </div>
 
-      <!-- timer + controls (below ring to declutter center) -->
+      <!-- timer + controls (below ring to keep center clean) -->
       <div class="text-center" style="margin-top:10px">
         <div class="timerRead" id="readout">00:00:00</div>
         <div class="subline">Today <b id="todayLbl">0m</b> • Target <b id="goalLbl">14m</b></div>
@@ -117,6 +118,9 @@
     </div>
   </div>
 
+  <!-- toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
   <!-- logic -->
   <script>
     const pad2=n=>String(n).padStart(2,'0');
@@ -158,27 +162,13 @@
     const R_DAY=98, C_DAY=2*Math.PI*R_DAY;
     const R_GOAL=82, C_GOAL=2*Math.PI*R_GOAL;
 
+    const toastEl = document.getElementById('toast');
+    function toast(msg, ttl=1800){ toastEl.textContent=msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'), ttl); }
+
     function getTodayMins(){ return Number(history[todayKey()]||0) }
     function setTodayMins(m){ history[todayKey()]=m; write(LS.hist, history) }
     function liveSec(){ return sessionActive ? Math.max(0, Math.floor((Date.now()-sessionStart)/1000)) : 0 }
     function fmtHMS(sec){ const h=pad2(Math.floor(sec/3600)), m=pad2(Math.floor((sec%3600)/60)), s=pad2(sec%60); return \`\${h}:\${m}:\${s}\` }
-
-    // Rotator under header
-    (function rotator(){
-      const wrap = document.getElementById('announceWrap');
-      const txt  = document.getElementById('announceTxt');
-      const close= document.getElementById('announceX');
-      const notes=[
-        \`🏁 Global Hi Starts: \${gStarts.toLocaleString()}\`,
-        \`🌍 Global Hi’s: \${gFives.toLocaleString()}\`,
-        \`💡 \${dailyHiNote()}\`
-      ];
-      if(!notes.length) return;
-      wrap.style.display='flex';
-      let i=0; txt.textContent = notes[0];
-      const t = setInterval(()=>{ i=(i+1)%notes.length; txt.textContent = notes[i]; }, 5500);
-      close.onclick = ()=>{ wrap.style.display='none'; clearInterval(t); };
-    })();
 
     // Week strip
     function renderWeekStrip(){
@@ -194,19 +184,56 @@
       }
     }
 
+    // Rotator
+    const wrap = document.getElementById('announceWrap');
+    const txt  = document.getElementById('announceTxt');
+    const close= document.getElementById('announceX');
+    let notes = [];
+    let idx = 0; let rotT;
+
+    function marqueeify(text){
+      const dur = Math.min(22, Math.max(10, text.length/7));
+      txt.innerHTML = \`<span class="pill"><span class="badge">NOTE</span></span><div class="marquee" style="--marquee-dur:\${dur}s"><span>\${text}&nbsp;&nbsp;&nbsp;</span></div>\`;
+    }
+
+    function setRot(i){
+      idx = i % notes.length;
+      const n = notes[idx];
+      if (n.type === 'note'){
+        wrap.style.display='flex';
+        marqueeify(n.text);
+      } else {
+        wrap.style.display='flex';
+        txt.innerHTML = \`<span class="pill"><span class="badge">\${n.type==='starts'?'STARTS':'HI'}</span></span>\${n.text}\`;
+      }
+    }
+
+    function updateRotator(){
+      notes = [
+        {type:'starts', text:`🏁 Global Hi Starts: ${gStarts.toLocaleString()}`},
+        {type:'global', text:`🌍 Global Hi’s: ${gFives.toLocaleString()}`},
+        {type:'note',   text:`💡 ${dailyHiNote()}`}
+      ];
+      setRot(idx);
+      clearInterval(rotT);
+      rotT = setInterval(()=> setRot((idx+1)%notes.length), 5500);
+    }
+
+    close.onclick = ()=>{ wrap.style.display='none'; clearInterval(rotT); };
+
     function renderRing(){
       const live = liveSec();
       const totalMin = getTodayMins() + Math.floor(live/60);
 
       const dayP = Math.min(1, totalMin / 1440);
-      dayArc.setAttribute('stroke-dasharray', \`\${(dayP*C_DAY).toFixed(1)} \${C_DAY.toFixed(1)}\`);
+      dayArc.setAttribute('stroke-dasharray', `${(dayP*C_DAY).toFixed(1)} ${C_DAY.toFixed(1)}`);
 
       const goalP = Math.min(1, totalMin / Math.max(1, goalMin));
-      goalArc.setAttribute('stroke-dasharray', \`\${(goalP*C_GOAL).toFixed(1)} \${C_GOAL.toFixed(1)}\`);
+      goalArc.setAttribute('stroke-dasharray', `${(goalP*C_GOAL).toFixed(1)} ${C_GOAL.toFixed(1)}`);
       goalArc.setAttribute('stroke', totalMin>=goalMin ? 'url(#goalGradMet)' : 'url(#goalGrad)');
 
       const goalDeg = Math.min(360, (goalMin/1440)*360);
-      goalMarker.style.transform = \`rotate(\${goalDeg}deg)\`;
+      goalMarker.style.transform = `rotate(${goalDeg}deg)`;
 
       readout.textContent = fmtHMS(live);
       goalLblTop.textContent = goalMin+'m';
@@ -236,7 +263,8 @@
       if (e.target.closest('input,button')) return;
       try{ navigator?.vibrate?.(35) }catch{}
       gFives += 1; localStorage.setItem(LS.gFive, String(gFives));
-      addBurst(12,'👋'); renderRing();
+      addBurst(12,'👋'); toast('👋 +1 Hi sent');
+      updateRotator(); renderRing();
     });
 
     goalInp.oninput = ()=>{ goalMin = Math.max(1, Math.round(goalInp.value||14)); localStorage.setItem(LS.goal, String(goalMin)); renderRing(); };
@@ -246,12 +274,14 @@
         sessionStart = Date.now(); sessionActive = true;
         localStorage.setItem(LS.start, String(sessionStart));
         gStarts += 1; localStorage.setItem(LS.gStart, String(gStarts));
+        toast('🏁 Hi session started');
       }else{
         const end=Date.now(); const mins=Math.floor(Math.max(0, end-sessionStart)/60000);
         setTodayMins(getTodayMins()+mins);
         sessionStart=0; sessionActive=false; localStorage.removeItem(LS.start);
+        toast(`✨ +${mins}m added`);
       }
-      renderRing();
+      updateRotator(); renderRing();
     };
 
     // calendar modal
@@ -270,7 +300,7 @@
         const k = todayKey(next);
         const mins = Number(history[k]||0);
         const cell = document.createElement('div'); cell.className = 'cell'+(mins>=goalMin?' met':'');
-        cell.innerHTML = \`<div>\${next.getDate()}</div><div style="font-size:10px;opacity:.8">\${mins?mins+'m':''}</div>\`;
+        cell.innerHTML = `<div>${next.getDate()}</div><div style="font-size:10px;opacity:.8">${mins?mins+'m':''}</div>`;
         calGrid.appendChild(cell);
         next.setDate(next.getDate()+1);
       }
@@ -282,6 +312,7 @@
     document.getElementById('calClose').onclick= ()=>{ calWrap.style.display='none'; };
 
     // boot
+    updateRotator();
     renderRing();
     setInterval(()=>{ if(sessionActive) renderRing(); }, 1000);
   </script>
