@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Hi Island · Stay Hi</title>
+  <link rel="stylesheet" href="/assets/create-parity.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+  <style>.leaflet-container{border-radius:18px;border:1px solid var(--bd);box-shadow:0 14px 40px #0006}</style>
+</head>
+<body>
+  <header id="app-header" class="header"></header>
+  <main class="page">
+    <section class="panel">
+      <h1 class="h1">Hi Island</h1>
+      <p class="lead">World map + shared moments.</p>
+      <div id="globe" style="height:320px"></div>
+    </section>
+
+    <section class="panel">
+      <div style="display:flex;align-items:center;gap:10px">
+        <h2 class="h1" style="font-size:1.2rem;margin:0">General shares</h2>
+        <button id="refresh-general" class="btn" style="width:auto;padding:8px 12px;font-weight:700">Refresh</button>
+      </div>
+      <div id="general-list" style="display:grid;gap:12px;margin-top:10px"></div>
+    </section>
+
+    <section class="panel">
+      <div style="display:flex;align-items:center;gap:10px">
+        <h2 class="h1" style="font-size:1.2rem;margin:0">Hi Show shares</h2>
+        <button id="refresh-show" class="btn" style="width:auto;padding:8px 12px;font-weight:700">Refresh</button>
+      </div>
+      <div id="show-list" style="display:grid;gap:12px;margin-top:10px"></div>
+    </section>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+  <script src="/assets/island.js" defer></script>
+  <script>window.addEventListener('DOMContentLoaded', ()=>HiIsland.init())</script>
+</body>
+</html>
