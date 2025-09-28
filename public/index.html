@@ -6,35 +6,39 @@
   <title>Stay Hi — Home</title>
   <link rel="stylesheet" href="assets/create-parity.css"/>
   <style>
-    /* small page-local bits */
+    /* --- meter layout --- */
+    .ring{ position:relative; width:260px; height:260px; margin:0 auto }
+    .ring svg{ width:100%; height:100%; display:block }
+    .ring .label{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center }
+    .timerRead{ font-size:44px; font-weight:900; letter-spacing:1px }
+    .subline{ color:var(--muted); font-size:12px }
+    .goal-marker{ position:absolute; inset:0; transform-origin:50% 50%; pointer-events:none }
+    .goal-marker i{ position:absolute; left:50%; top:8px; transform:translateX(-50%); width:10px; height:10px; border-radius:50%; background:#F5A623; box-shadow:0 1px 4px #0009 }
+
+    /* goal met → gold glow */
+    .ring.met #goalArc{ filter: drop-shadow(0 0 12px #ffd166cc) }
+    .ring.met .timerRead{ color:#ffd166 }
+
+    /* heads-up row + quick-add */
     .hud{display:flex;justify-content:center;gap:10px;margin:6px 0 2px}
     .hud .dot{width:10px;height:10px;border-radius:50%}
     .hud .today{background:#22c55e}.hud .goal{background:#f59e0b}
-    .ring-wrap{ position:relative; width:260px; height:260px; margin:0 auto }
-    .wheel{ position:absolute; inset:0; border-radius:50%;
-      filter: drop-shadow(0 4px 10px rgba(0,0,0,.15)); }
-    .wheel-cut{ position:absolute; inset:12px; border-radius:50%;
-      box-shadow: inset 0 0 0 18px rgba(255,255,255,.92); background:transparent; }
-    .goal-dot{ position:absolute; inset:0 }
-    .goal-dot i{ position:absolute; left:50%; top:6px; transform:translateX(-50%);
-      width:10px; height:10px; border-radius:50%; background:#F5A623; box-shadow:0 1px 4px #0009 }
-    .hand{ position:absolute; inset:40px; border-radius:50%; overflow:hidden; background:#fff; cursor:pointer }
-    .timerRead{ margin-top:14px; text-align:center; font-size:44px; font-weight:900; letter-spacing:1px }
-    .legend{ margin-top:2px; text-align:center; color:#cfd2ea; font-size:12px }
-    .legend .chip{ display:inline-flex; align-items:center; gap:6px; margin:0 8px }
-    .chip .sq{ display:inline-block; width:12px; height:12px; border-radius:2px }
     .chips{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap }
     .chips .chipb{ background:#0f1324; border:1px solid var(--bd); color:var(--text); border-radius:999px; font-weight:800; padding:8px 12px }
     .chips .chipb:active{ transform:translateY(1px) }
     .count-row{ text-align:center; margin-top:14px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap }
     .pill{ display:inline-flex; align-items:center; gap:8px; background:#ffffffcc; color:#041016;
       border:1px solid #00000015; border-radius:999px; padding:8px 12px; font-size:14px }
+
+    /* small toasts + burst */
     .toast-mini{ position:fixed; left:50%; bottom:22px; transform:translateX(-50%);
       background:#000000e6; color:#fff; border-radius:10px; padding:8px 12px; font-size:13px; z-index:50; }
     .burst{ position:absolute; inset:0; pointer-events:none }
     .burst span{ position:absolute; font-size:28px; will-change:transform,opacity }
     @keyframes waveUp { 0%{ transform:translate(-50%,-50%) scale(var(--s,1)); opacity:.9 }
       100%{ transform:translate(calc(-50% + var(--dx,0px)),-240%) scale(calc(var(--s,1)*.9)); opacity:0 } }
+
+    /* calendar */
     .calendar-backdrop{ position:fixed; inset:0; background:#0009; display:grid; place-items:center; z-index:70 }
     .calendar{ background:#101010; color:#fff; border:1px solid #ffffff1a; border-radius:18px; width:min(720px,92vw); }
     .calendar .hd{ display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid #ffffff1a }
@@ -52,39 +56,59 @@
       <div id="announce" class="lead"></div>
     </section>
 
-    <!-- RING METER -->
+    <!-- METER -->
     <section class="panel">
       <div class="hud"><span class="dot today"></span><span class="lead">Hi mins today</span>&nbsp;&nbsp;
-        <span class="dot goal"></span><span class="lead">14m goal (24h wheel)</span></div>
+        <span class="dot goal"></span><span class="lead"><b id="goalLblTop">14m</b> target</span></div>
 
-      <div class="ring-wrap">
-        <div id="wheel" class="wheel"></div>
-        <div class="goal-dot"><i id="goalDot"></i></div>
-        <div class="wheel-cut"></div>
+      <div class="ring" id="ringBox">
+        <svg viewBox="0 0 220 220" aria-hidden="true">
+          <defs>
+            <!-- goal progress gradients -->
+            <linearGradient id="goalGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%"  stop-color="#10b981"/>
+              <stop offset="100%" stop-color="#059669"/>
+            </linearGradient>
+            <linearGradient id="goalGradMet" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%"  stop-color="#ffd166"/>
+              <stop offset="100%" stop-color="#ff7a18"/>
+            </linearGradient>
+          </defs>
 
-        <button id="handBtn" class="hand" aria-label="Tap to send a community Hi 5">
-          <img id="handImg" alt="Hi Hand"
-               src="https://ucarecdn.com/312e1fb9-34ae-4724-a338-5a333df1fd21/-/format/auto/"
-               style="width:100%;height:100%;object-fit:cover">
-        </button>
+          <!-- 24h track (thin, background) -->
+          <circle cx="110" cy="110" r="98" stroke="#1f2748" stroke-width="8" fill="none"/>
+          <!-- 24h progress -->
+          <circle id="dayArc" cx="110" cy="110" r="98" stroke="#0aa15a" stroke-width="8" fill="none"
+                  stroke-linecap="round" stroke-dasharray="0 1000"/>
+
+          <!-- GOAL track -->
+          <circle cx="110" cy="110" r="82" stroke="#1f2748" stroke-width="18" fill="none"/>
+          <!-- GOAL progress (color swaps to gold when met) -->
+          <circle id="goalArc" cx="110" cy="110" r="82" stroke="url(#goalGrad)" stroke-width="18" fill="none"
+                  stroke-linecap="round" stroke-dasharray="0 1000"/>
+        </svg>
+
+        <!-- center readout -->
+        <div class="label">
+          <div class="timerRead" id="readout">00:00:00</div>
+          <div class="subline">Today: <b id="todayLbl">0m</b> • Target: <b id="goalLbl">14m</b></div>
+        </div>
+
+        <!-- marker for goal position on the GOAL ring (24h-based so you can see "where" 14m sits) -->
+        <div class="goal-marker" id="goalMarker"><i></i></div>
+
+        <!-- emoji burst layer -->
         <div class="burst" id="burst"></div>
       </div>
 
-      <div class="timerRead" id="readout">00:00:00</div>
-      <div class="legend">
-        <span class="chip"><span class="sq" style="background:#0a5"></span>Hi mins today</span>
-        <span class="chip"><span class="sq" style="border-radius:50%;background:#F5A623"></span><b id="goalLbl">14m</b> goal (24h wheel)</span>
-      </div>
-
-      <div class="meta">Today: <b id="todayLbl">0m</b> / <span id="goalLbl2">14m</span> goal</div>
-
+      <!-- controls -->
       <div class="grid2" style="max-width:520px;margin:10px auto">
         <div class="card">
           <label>STARTED</label>
           <div id="started">—</div>
         </div>
         <div class="card">
-          <label>HI SESH GOAL (mins)</label>
+          <label>HI SESH TARGET (mins)</label>
           <input id="goal" type="number" min="1" step="1" value="14" />
         </div>
       </div>
@@ -112,7 +136,7 @@
     </section>
   </main>
 
-  <!-- calendar modal (hidden by default) -->
+  <!-- calendar modal -->
   <div id="calWrap" class="calendar-backdrop" style="display:none">
     <div class="calendar">
       <div class="hd">
@@ -163,85 +187,72 @@
     let gStarts = Number(localStorage.getItem(LS.gStart) || 0) || 0;
 
     /* ---------- elements ---------- */
+    const ringBox = document.getElementById('ringBox');
     const readout = document.getElementById('readout');
-    const wheel   = document.getElementById('wheel');
-    const goalDot = document.getElementById('goalDot');
+    const goalLblTop = document.getElementById('goalLblTop');
     const goalLbl = document.getElementById('goalLbl');
-    const goalLbl2= document.getElementById('goalLbl2');
     const todayLbl= document.getElementById('todayLbl');
     const started = document.getElementById('started');
     const goalInp = document.getElementById('goal');
     const toggle  = document.getElementById('toggle');
     const gHiEl   = document.getElementById('gHi');
     const gStEl   = document.getElementById('gStarts');
-    const handBtn = document.getElementById('handBtn');
     const burst   = document.getElementById('burst');
     const toast   = document.getElementById('toast');
+    const goalMarker = document.getElementById('goalMarker');
+
+    // SVG arcs
+    const goalArc = document.getElementById('goalArc');
+    const dayArc  = document.getElementById('dayArc');
+    const R_GOAL = 82, C_GOAL = 2*Math.PI*R_GOAL;
+    const R_DAY  = 98, C_DAY  = 2*Math.PI*R_DAY;
 
     /* ---------- helpers ---------- */
     function showToast(msg){ toast.textContent=msg; toast.style.display='block'; setTimeout(()=>toast.style.display='none',2000); }
-    function todayMins(){ return Number(history[todayKey()]||0) }
+    function getTodayMins(){ return Number(history[todayKey()]||0) }
     function setTodayMins(m){ history[todayKey()]=m; write(LS.hist, history) }
     function liveSec(){ return sessionActive ? Math.max(0, Math.floor((Date.now()-sessionStart)/1000)) : 0 }
     function fmtHMS(sec){ const h=pad2(Math.floor(sec/3600)), m=pad2(Math.floor((sec%3600)/60)), s=pad2(sec%60); return `${h}:${m}:${s}` }
 
-    function renderWheel(){
-      // 24h wheel progress for today minutes
-      const totalMin = todayMins() + Math.floor(liveSec()/60);
-      const dayDeg   = Math.min(360, totalMin/1440*360);
-      const goalDeg  = Math.min(360, goalMin/1440*360);
-      wheel.style.background = `conic-gradient(#0a5 ${dayDeg}deg, #222 0deg)`;
-      goalDot.parentElement.style.transform = `rotate(${goalDeg}deg)`;
-      goalLbl.textContent = goalMin+'m'; goalLbl2.textContent = goalMin+'m';
+    function renderRing(){
+      const live = liveSec();
+      const totalMin = getTodayMins() + Math.floor(live/60);
+
+      // 24h ring (thin): progress across the day
+      const dayP = Math.min(1, totalMin / 1440);
+      dayArc.setAttribute('stroke-dasharray', `${(dayP*C_DAY).toFixed(1)} ${C_DAY.toFixed(1)}`);
+
+      // Goal ring: prominent
+      const goalP = Math.min(1, totalMin / Math.max(1, goalMin));
+      goalArc.setAttribute('stroke-dasharray', `${(goalP*C_GOAL).toFixed(1)} ${C_GOAL.toFixed(1)}`);
+
+      // swap color when met
+      if (totalMin >= goalMin) {
+        goalArc.setAttribute('stroke', 'url(#goalGradMet)');
+        ringBox.classList.add('met');
+      } else {
+        goalArc.setAttribute('stroke', 'url(#goalGrad)');
+        ringBox.classList.remove('met');
+      }
+
+      // goal marker position (24h-based reference so users see where 14m sits)
+      const goalDeg = Math.min(360, (goalMin/1440)*360);
+      goalMarker.style.transform = `rotate(${goalDeg}deg)`;
+
+      // labels
+      readout.textContent = fmtHMS(live);
+      goalLblTop.textContent = goalMin+'m';
+      goalLbl.textContent = goalMin+'m';
       todayLbl.textContent = totalMin+'m';
-    }
-    function renderHUD(){
-      readout.textContent = fmtHMS(liveSec());
       started.textContent = sessionActive ? new Date(sessionStart).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}) : '—';
       gHiEl.textContent = gFives.toLocaleString();
       gStEl.textContent = gStarts.toLocaleString();
-      goalInp.value = goalMin;
+
+      // button text
       toggle.textContent = sessionActive ? 'Complete — Stay Hi' : 'Stay Hi';
     }
 
-    function tick(){ renderWheel(); renderHUD(); }
-
-    /* ---------- interactions ---------- */
-    goalInp.oninput = ()=>{ goalMin = Math.max(1, Math.round(goalInp.value||14)); write(LS.goal, goalMin); tick(); };
-
-    document.querySelectorAll('.chipb').forEach(b=>{
-      b.onclick=()=>{ goalMin = Math.max(1, goalMin + parseInt(b.dataset.delta,10)); write(LS.goal, goalMin); tick(); };
-    });
-
-    toggle.onclick = ()=>{
-      if(!sessionActive){
-        sessionStart = Date.now(); sessionActive = true;
-        localStorage.setItem(LS.start, String(sessionStart));
-        gStarts += 1; localStorage.setItem(LS.gStart, String(gStarts));
-        showToast('Hi session started ✨');
-      }else{
-        const end = Date.now(); const mins = Math.floor(Math.max(0, end - sessionStart)/60000);
-        setTodayMins(todayMins()+mins);
-        sessionStart=0; sessionActive=false; localStorage.removeItem(LS.start);
-        showToast(`Beautiful — +${mins}m`);
-        // little confetti burst
-        makeBurst();
-      }
-      tick();
-    };
-
-    handBtn.onclick = ()=>{
-      try{ navigator?.vibrate?.(35) }catch{}
-      gFives += 1; localStorage.setItem(LS.gFive, String(gFives));
-      // tiny scale anim
-      handBtn.style.transform='scale(.98) rotate(-1deg)';
-      setTimeout(()=>handBtn.style.transform='',140);
-      // emoji sprinkles
-      makeBurst(16, '👋');
-      tick();
-    };
-
-    function makeBurst(count=14, emoji='✨'){
+    function addBurst(count=14, emoji='✨'){
       const arr = Array.from({length:count}, (_,i)=>({
         id: `${Date.now()}-${i}`,
         x: 50 + (Math.random()-0.5)*10,
@@ -261,14 +272,47 @@
       });
     }
 
+    /* ---------- interactions ---------- */
+    goalInp.oninput = ()=>{ goalMin = Math.max(1, Math.round(goalInp.value||14)); write(LS.goal, goalMin); renderRing(); };
+
+    document.querySelectorAll('.chipb').forEach(b=>{
+      b.onclick=()=>{ goalMin = Math.max(1, goalMin + parseInt(b.dataset.delta,10)); write(LS.goal, goalMin); renderRing(); };
+    });
+
+    // The big button: start/complete
+    toggle.onclick = ()=>{
+      if(!sessionActive){
+        sessionStart = Date.now(); sessionActive = true;
+        localStorage.setItem(LS.start, String(sessionStart));
+        gStarts += 1; localStorage.setItem(LS.gStart, String(gStarts));
+        showToast('Hi session started ✨');
+      }else{
+        const end = Date.now(); const mins = Math.floor(Math.max(0, end - sessionStart)/60000);
+        setTodayMins(getTodayMins()+mins);
+        sessionStart=0; sessionActive=false; localStorage.removeItem(LS.start);
+        showToast(`Beautiful — +${mins}m`);
+        addBurst(16,'✨');
+      }
+      renderRing();
+    };
+
+    // “Hi tapper” bump for the global counter (tap on the center area – anywhere inside the ring)
+    ringBox.onclick = (e)=>{
+      // ignore if the click was on the input or button
+      if (e.target.closest('input,button')) return;
+      try{ navigator?.vibrate?.(35) }catch{}
+      gFives += 1; localStorage.setItem(LS.gFive, String(gFives));
+      addBurst(12,'👋'); renderRing();
+    };
+
     // announcements + hiffirmation (simple rotator)
     const announcePanel = document.getElementById('announce-panel');
     const announceEl = document.getElementById('announce');
+    const hiff = document.getElementById('hiff');
     const notes = [];
     const streakDays = 0; if(streakDays>0) notes.push(`🔥 You’re on a ${streakDays}-day Hi streak!`);
     notes.push(`🏁 Global Hi Starts: ${gStarts.toLocaleString()}`);
     notes.push(`🌍 Global Hi’s: ${gFives.toLocaleString()}`);
-    const hiff = document.getElementById('hiff');
     hiff.textContent = dailyHiNote();
     let idx=0;
     if(notes.length){
@@ -277,7 +321,7 @@
       setInterval(()=>{ idx=(idx+1)%notes.length; announceEl.textContent=notes[idx]; }, 6000);
     }
 
-    // calendar modal
+    /* ---------- calendar ---------- */
     const calWrap = document.getElementById('calWrap');
     const calLabel= document.getElementById('calLabel');
     const calGrid = document.getElementById('calGrid');
@@ -309,9 +353,9 @@
     calNext.onclick = ()=>{ monthBase.setMonth(monthBase.getMonth()+1); renderCal(); };
     calClose.onclick= ()=>{ calWrap.style.display='none'; };
 
-    // kick things off
-    tick();
-    setInterval(tick, 1000);
+    // boot
+    renderRing();
+    setInterval(()=>{ if(sessionActive) renderRing(); }, 1000);
   </script>
 
   <!-- shared UI -->
