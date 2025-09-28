@@ -36,7 +36,7 @@
     if (!sheet.contains(e.target) && e.target !== btnMore) sheet.classList.remove("open");
   });
 
-  // STAGING badge (very small on mobile)
+  // STAGING badge — tiny on phones
   const isProd =
     location.hostname.endsWith("vercel.app") ||
     location.hostname === "stay-hi.app" ||
