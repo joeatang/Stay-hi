@@ -7,14 +7,14 @@
     <a href="index.html" data-tab="today" class="tab">
       <span class="ico">⭘</span><span>Today</span>
     </a>
-    <a href="hi-island.html" data-tab="explore" class="tab">
-      <span class="ico">🧭</span><span>Explore</span>
+    <a href="hi-island.html" data-tab="island" class="tab">
+      <span class="ico">🧭</span><span>Hi Island</span>
+    </a>
+    <a href="account.html" data-tab="account" class="tab">
+      <span class="ico">📈</span><span>Hi Account</span>
     </a>
     <a href="profile.html" data-tab="me" class="tab">
       <span class="ico">👤</span><span>Me</span>
-    </a>
-    <a href="hi-muscle.html" data-tab="plus" class="tab">
-      <span class="ico">🔥</span><span>Hi+</span>
     </a>
   `;
   document.body.appendChild(el);
