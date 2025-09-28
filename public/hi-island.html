@@ -3,13 +3,10 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Hi Island · Stay Hi</title>
-
-  <!-- Theme -->
-  <link rel="stylesheet" href="/assets/create-parity.css"/>
-
-  <!-- Leaflet map styles -->
+  <title>Hi Island · Staging</title>
+  <link rel="stylesheet" href="assets/create-parity.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+  <style>.leaflet-container{border-radius:18px;border:1px solid var(--bd);box-shadow:0 14px 40px #0006}</style>
 </head>
 <body>
   <header id="app-header" class="header"></header>
@@ -17,8 +14,7 @@
   <main class="page">
     <section class="panel">
       <h1 class="h1">Hi Island</h1>
-      <p class="lead">Global vibes: world map and shared moments from the community.</p>
-      <!-- Map goes here -->
+      <p class="lead">World map + shared moments (mock mode for staging).</p>
       <div id="globe" style="height:320px"></div>
     </section>
 
@@ -39,13 +35,8 @@
     </section>
   </main>
 
-  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
-
-  <!-- Page logic -->
-  <script src="/assets/island.js" defer></script>
-  <script>
-    window.addEventListener('DOMContentLoaded', () => HiIsland.init());
-  </script>
+  <script src="assets/island.js" defer></script>
+  <script>window.addEventListener('DOMContentLoaded', ()=>HiIsland.init())</script>
 </body>
 </html>
