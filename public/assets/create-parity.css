@@ -142,4 +142,44 @@ body.sunrise::before{
 /* bottom tabs labels tighter */
 .tabs .tab{gap:2px;font-size:12px}
 
+/* menu sheet must float above ring */
+.header, .appbar { position:sticky; top:0; z-index:250; }
+.menu .menu-sheet{
+  position:fixed; right:12px; top:56px; z-index:500;
+  width:260px; background:#fff; border:1px solid #00000012; border-radius:12px;
+  box-shadow:0 24px 40px rgba(0,0,0,.2); padding:6px; display:none;
+}
+.menu .menu-sheet.open{ display:block; }
+.menu .menu-sheet a{ display:block; padding:10px 12px; border-radius:8px; font-weight:700; color:#041016; }
+.menu .menu-sheet a:hover{ background:#f6f7fb; }
+.menu .menu-sheet .sep{ height:1px; background:#00000010; margin:6px 0; }
+
+/* compact announcement rotator (sits right above halo) */
+.announce{max-width:540px;margin:8px auto 6px;padding:8px 12px;border-radius:12px;
+  background:#ffffffdd;border:1px solid #00000012;display:flex;align-items:center;gap:10px}
+.announce .txt{font-size:13px;font-weight:800;color:#041016;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.announce .x{background:transparent;border:0;color:#04101699;font-size:18px;line-height:1}
+.announce .pill{display:inline-flex;align-items:center;gap:8px;font-weight:900}
+.announce .pill .badge{padding:2px 6px;border-radius:999px;background:#10131f;color:#ffd166;border:1px solid #ffffff22;font-size:10px}
+
+/* marquee for long hi-notes */
+.marquee{overflow:hidden; position:relative}
+.marquee span{display:inline-block; padding-left:100%;
+  animation: marquee var(--marquee-dur,12s) linear infinite}
+@keyframes marquee{ 0%{transform:translateX(0)} 100%{transform:translateX(-100%)} }
+
+/* halo sizing */
+:root{ --ring-size:76vw; --ring-max:320px; }
+@media (min-width:520px){ :root{ --ring-size:320px; } }
+.ring{ width:min(var(--ring-size), var(--ring-max)); height:min(var(--ring-size), var(--ring-max)); }
+
+/* staging pill tiny */
+.staging-banner{position:fixed;top:8px;right:8px;z-index:1200;background:#10131f;color:#ffd166;border:1px solid #ffffff20;border-radius:999px;padding:4px 8px;font-weight:900;font-size:11px;letter-spacing:.2px;box-shadow:0 6px 18px #0006}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:600;
+  background:#10131f;color:#fff;padding:10px 14px;border-radius:10px;font-weight:800;
+  border:1px solid #ffffff22;box-shadow:0 16px 26px rgba(0,0,0,.25);display:none}
+.toast.show{display:block}
+
 
