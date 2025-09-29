@@ -1,96 +1,118 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Build Your Hi Muscle — Stay Hi</title>
-  <link rel="stylesheet" href="assets/create-parity.css" />
-  <link rel="icon" href="assets/hi.png" />
+  <link rel="stylesheet" href="assets/create-parity.css"/>
   <style>
-    /* Page theming */
-    body.sunrise { background: radial-gradient(120% 120% at 50% 0%, #ffc107 0%, #f5a623 60%, #f59e0b 100%); }
-
-    .page { max-width: 1024px; margin: 0 auto; padding: 24px; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
-    h1.title { font-size: clamp(28px, 5.5vw, 44px); line-height: 1.1; color: #fff; text-align: center; margin: 28px 0 14px; font-weight: 800; text-shadow: 0 8px 20px rgba(0,0,0,.18); }
-    .card { background: #fffdf9; border: 1px solid #eee7d8; border-radius: 16px; box-shadow: 0 6px 22px rgba(0,0,0,.06); }
-    .section { margin: 18px 0 22px; padding: 18px; }
-    .section h3 { margin: 0 0 14px; font-size: 15px; color: #0b0b0b; }
-
-    /* Tabs */
-    .tabs { display: inline-flex; gap: 8px; padding: 6px; background: rgba(255,255,255,.35); border: 1px solid rgba(255,255,255,.55); border-radius: 14px; backdrop-filter: blur(6px); }
-    .tab { appearance: none; border: 0; padding: 10px 16px; border-radius: 10px; font-weight: 700; color: #6b4d00; background: transparent; cursor: pointer; }
-    .tab[aria-current="true"] { background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,.06); color: #0b0b0b; }
-
-    /* Emotions grid */
-    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-    @media (max-width: 780px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-    .chip { display: grid; place-items: center; gap: 8px; padding: 18px 8px; border-radius: 12px; border: 1px solid #efe7d3; background: #fff; cursor: pointer; font-weight: 600; }
-    .chip .emoji { font-size: 22px; }
-    .chip .label { font-size: 13px; color: #1a1a1a; }
-    .chip:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,.06); }
-    .chip[aria-pressed="true"] { border-color: #0a5; box-shadow: 0 0 0 3px #0a54; }
-
-    /* Journal */
-    .textarea { width: 100%; min-height: 140px; border-radius: 12px; border: 1px solid #eae2cf; padding: 14px; resize: vertical; font: inherit; }
-    .count { text-align: right; font-size: 12px; color: #888; margin-top: 6px; }
-
-    /* Buttons */
-    .btn { appearance: none; border: 0; padding: 14px 18px; border-radius: 12px; font-weight: 800; cursor: pointer; }
-    .btn-primary { background: #006400; color: #fff; }
-    .btn-primary:disabled { opacity: .45; cursor: not-allowed; }
-    .btn-ghost { background: #fff; border: 1px solid #e9e2ce; color: #0b0b0b; }
-
-    /* Toast */
-    .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: #111; color: #fff; padding: 10px 14px; border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,.25); font-size: 13px; z-index: 9999; }
+    :root{
+      --hi-green:#006400;
+      --hi-amber:#F5A623;
+      --ink:#111;
+      --muted:#666;
+      --bg:#FFFDF9;
+      --chip:#ffffff;
+      --chip-b:#e9e9e9;
+      --ring:#ffd78a;
+    }
+    body{background:var(--bg); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;}
+    .wrap{max-width:980px;margin:0 auto;padding:16px}
+    .title{font-weight:900;color:var(--ink);text-align:center;margin:8px 0 12px}
+    .subtitle{color:var(--muted);text-align:center;margin:0 0 16px}
+    /* stepper */
+    .stepper{display:flex;align-items:center;justify-content:center;gap:10px;margin:10px auto 16px}
+    .dot{width:12px;height:12px;border-radius:50%;background:#e5e5e5;border:2px solid #ddd}
+    .dot.active{background:var(--hi-green);border-color:var(--hi-green)}
+    .pipe{height:2px;width:44px;background:#e5e5e5}
+    .pipe.filled{background:var(--hi-green)}
+    /* tabs */
+    .tabs{display:flex;gap:6px;overflow:auto;border-bottom:1px solid #eee;padding-bottom:6px;margin-bottom:10px}
+    .tab{white-space:nowrap;padding:8px 12px;border-radius:999px;border:1px solid var(--chip-b);background:var(--chip);font-weight:700;color:#333;cursor:pointer}
+    .tab[aria-selected="true"]{background:#111;color:#fff;border-color:#111}
+    /* search */
+    .search{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid #eee;border-radius:12px;padding:8px 10px}
+    .search input{border:0;outline:0;width:100%;font-size:16px}
+    /* grid of chips */
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+    @media (max-width:720px){ .grid{grid-template-columns:repeat(2,1fr);} }
+    .chip{
+      display:flex;gap:8px;align-items:center;
+      background:var(--chip); border:1px solid var(--chip-b); border-radius:14px;
+      padding:10px 12px; cursor:pointer; position:relative;
+      transition:transform .08s ease, box-shadow .12s ease, border-color .12s ease;
+    }
+    .chip:hover{transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.05)}
+    .chip .emo{font-size:20px}
+    .chip .name{font-weight:800;color:#222}
+    .chip .desc{font-size:12px;color:#666;line-height:1.2}
+    .chip.selected{outline:3px solid var(--ring); border-color:#ffefc7; background:#fffaf0}
+    .pickTitle{font-weight:900;color:#222;margin:14px 0 6px}
+    .actions{display:flex;gap:10px;justify-content:center;margin:16px 0}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+         padding:12px 16px;border-radius:14px;font-weight:900;cursor:pointer;border:1px solid transparent}
+    .btn-primary{background:var(--hi-green);color:#fff}
+    .btn-ghost{background:#fff;border-color:#ddd;color:#111}
+    .btn[disabled]{opacity:.6;cursor:not-allowed}
+    /* journal */
+    .card{background:#fff;border:1px solid #eee;border-radius:16px;padding:14px}
+    textarea{width:100%;border:1px solid #e4e4e4;border-radius:12px;min-height:110px;padding:12px;font:inherit}
+    .hint{color:var(--muted);font-size:12px}
+    .badge{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #eee;border-radius:999px;padding:8px 10px;font-weight:700}
+    .inline{display:flex;gap:10px;flex-wrap:wrap}
+    .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#000;color:#fff;padding:10px 14px;border-radius:12px;opacity:0;pointer-events:none}
+    .toast.show{opacity:1;transition:opacity .2s}
   </style>
 </head>
-<body class="sunrise" data-tab="today">
-  <!-- Header (auto-injected) -->
-  <header id="app-header" class="header"></header>
+<body>
+  <header id="app-header"></header>
 
-  <main class="page" aria-label="Build Your Hi Muscle">
-    <h1 class="title">Build Your Hi Muscle 💪</h1>
+  <div class="wrap">
+    <h1 class="title">Build Your Hi Muscle</h1>
+    <p class="subtitle">Pick your <b>current vibe</b>, then your <b>desired vibe</b>. Reflect for 1–2 lines. Drop your Hi.</p>
 
-    <div class="flex-center" style="display:flex;justify-content:center;margin:8px 0 18px">
-      <div class="tabs" role="tablist" aria-label="Emotion category">
-        <button class="tab" role="tab" id="tab-hi" aria-selected="true" aria-current="true" data-tab="hi">Hi Energy</button>
-        <button class="tab" role="tab" id="tab-neutral" aria-selected="false" data-tab="neutral">Neutral</button>
-        <button class="tab" role="tab" id="tab-opportunity" aria-selected="false" data-tab="opportunity">Hi Opportunity</button>
+    <!-- stepper -->
+    <div class="stepper" aria-label="Progress">
+      <div class="dot" id="s1"></div><div class="pipe" id="p1"></div><div class="dot" id="s2"></div>
+    </div>
+
+    <!-- selection badges -->
+    <div class="inline" style="justify-content:center;margin-bottom:8px">
+      <span class="badge" id="badge-current" style="display:none"></span>
+      <span class="badge" id="badge-desired" style="display:none"></span>
+    </div>
+
+    <!-- tabs + search -->
+    <div class="tabs" role="tablist" aria-label="Emotion categories">
+      <button class="tab" role="tab" id="tab-hi" aria-selected="true" data-cat="hi">Hi Energy</button>
+      <button class="tab" role="tab" id="tab-neutral" aria-selected="false" data-cat="neutral">Neutral</button>
+      <button class="tab" role="tab" id="tab-opportunity" aria-selected="false" data-cat="opportunity">Hi Opportunity</button>
+    </div>
+
+    <div class="search">
+      <span>🔎</span><input id="search" placeholder="Search emotions (e.g., calm, joy, worry)"/>
+      <button id="toggleView" class="btn btn-ghost" style="padding:8px 10px">Compact</button>
+    </div>
+
+    <!-- grid -->
+    <div id="grid" class="grid" aria-live="polite"></div>
+
+    <!-- journal card (appears after both selected) -->
+    <div id="journalCard" class="card" style="display:none;margin-top:14px">
+      <div class="pickTitle">Hi Reflection (why this vibe matters)</div>
+      <textarea id="journal" maxlength="600" placeholder="One or two honest lines. What would Hi look or feel like right now?"></textarea>
+      <div class="inline" style="justify-content:space-between;margin-top:6px">
+        <span class="hint" id="count">0/600</span>
+        <label class="hint"><input type="checkbox" id="anon" /> Share anonymously</label>
       </div>
     </div>
 
-    <!-- Current Vibe -->
-    <section class="section card">
-      <h3>Current Vibe</h3>
-      <div id="currentGrid" class="grid" role="group" aria-label="Pick your current vibe"></div>
-    </section>
-
-    <!-- Desired Vibe -->
-    <section class="section card">
-      <h3>Desired Vibe</h3>
-      <div id="desiredGrid" class="grid" role="group" aria-label="Pick your desired vibe"></div>
-    </section>
-
-    <!-- Journal -->
-    <section class="section card">
-      <h3>Journal Entry</h3>
-      <textarea id="journal" class="textarea" maxlength="200" placeholder="Why upgrade/maintain vibe?"></textarea>
-      <div class="count"><span id="jc">0</span>/200</div>
-    </section>
-
-    <!-- Actions -->
-    <div style="text-align:center;margin:8px 0 16px">
-      <button id="submitBtn" class="btn btn-primary" disabled>Drop Your Hi</button>
+    <!-- actions -->
+    <div class="actions">
+      <button id="back" class="btn btn-ghost">Back</button>
+      <button id="next" class="btn btn-primary" disabled>Continue</button>
     </div>
 
-    <div style="display:flex;gap:10px;justify-content:center;margin-bottom:32px">
-      <a href="hi-island.html" class="btn btn-primary" style="text-decoration:none;display:inline-block">Go to Hi Island</a>
-      <a href="index.html" class="btn btn-ghost" style="text-decoration:none;display:inline-block">Back to Home</a>
-    </div>
-  </main>
-
-  <!-- Scripts -->
-  <script src="assets/header.js" defer></script>
-  <script src="assets/muscle.js" defer></script>
-</body>
-</html>
+    <div class="inline" style="justify-content:center;margin-top:8px">
+      <a class="btn btn-ghost" href="hi-island.html">Go to Hi Island</a>
+      <a class="btn btn-ghost" href="index.htm
