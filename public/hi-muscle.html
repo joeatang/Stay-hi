@@ -115,4 +115,210 @@
 
     <div class="inline" style="justify-content:center;margin-top:8px">
       <a class="btn btn-ghost" href="hi-island.html">Go to Hi Island</a>
-      <a class="btn btn-ghost" href="index.htm
+      <a class="btn btn-ghost" href="index.html">Back to Home</a>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Saved</div>
+
+  <!-- header/menu injection -->
+  <script src="assets/header.js" defer></script>
+
+  <!-- Supabase client + auth guard -->
+  <script src="assets/supabase-init.js"></script>
+  <script src="assets/auth.js"></script>
+
+  <!-- emotions data -->
+  <script src="assets/emotions.js"></script>
+
+  <script>
+  (async function(){
+    // Require login; keep this here so local dev with file:// can still preview if you used the dev flag
+    try { await hiAuth.requireAuth(); } catch {}
+
+    const state = {
+      step: 1,                         // 1=current, 2=desired, 3=journal
+      current: null,
+      desired: null,
+      compact: false,
+      cat: 'hi',
+      q: ''
+    };
+
+    // Elements
+    const grid = document.getElementById('grid');
+    const tabs = document.querySelectorAll('.tab');
+    const search = document.getElementById('search');
+    const toggleView = document.getElementById('toggleView');
+    const nextBtn = document.getElementById('next');
+    const backBtn = document.getElementById('back');
+    const badgeCur = document.getElementById('badge-current');
+    const badgeDes = document.getElementById('badge-desired');
+    const journalCard = document.getElementById('journalCard');
+    const journal = document.getElementById('journal');
+    const count = document.getElementById('count');
+    const toast = document.getElementById('toast');
+    const s1 = document.getElementById('s1'), s2 = document.getElementById('s2'), p1 = document.getElementById('p1');
+
+    function setStep(n){
+      state.step = n;
+      s1.classList.toggle('active', n >= 1);
+      s2.classList.toggle('active', n >= 2);
+      p1.classList.toggle('filled', n >= 2);
+      nextBtn.textContent = (n === 3) ? 'Drop Your Hi' : 'Continue';
+      renderGrid();
+      renderBadges();
+      journalCard.style.display = (n === 3) ? '' : 'none';
+      validate();
+    }
+
+    function toastShow(t){ toast.textContent = t; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'), 1400); }
+    function saveDraft(){
+      const draft = {
+        current: state.current, desired: state.desired,
+        text: journal.value.trim(), anon: document.getElementById('anon').checked
+      };
+      try { localStorage.setItem('hi_draft', JSON.stringify(draft)); } catch {}
+    }
+    function loadDraft(){
+      try {
+        const raw = localStorage.getItem('hi_draft'); if(!raw) return;
+        const d = JSON.parse(raw);
+        state.current = d.current || null;
+        state.desired = d.desired || null;
+        journal.value = d.text || '';
+        document.getElementById('anon').checked = !!d.anon;
+      } catch {}
+    }
+
+    function renderBadges(){
+      if (state.current){
+        badgeCur.style.display = '';
+        badgeCur.innerHTML = `Current: ${state.current.emoji} <b>${state.current.name}</b>`;
+      } else badgeCur.style.display = 'none';
+
+      if (state.desired){
+        badgeDes.style.display = '';
+        badgeDes.innerHTML = `Desired: ${state.desired.emoji} <b>${state.desired.name}</b>`;
+      } else badgeDes.style.display = 'none';
+    }
+
+    function currentList(){
+      const cat = window.HI_EMOTIONS.categories.find(c => c.id === state.cat) || window.HI_EMOTIONS.categories[0];
+      let list = cat.items;
+      if (state.q) {
+        const q = state.q.toLowerCase();
+        list = list.filter(x => x.name.toLowerCase().includes(q) || (x.desc||'').toLowerCase().includes(q));
+      }
+      return list;
+    }
+
+    function renderGrid(){
+      const list = currentList();
+      grid.innerHTML = '';
+      grid.classList.toggle('grid-compact', state.compact);
+
+      list.forEach(item => {
+        const div = document.createElement('button');
+        div.type = 'button';
+        div.className = 'chip';
+        div.setAttribute('data-name', item.name);
+        div.setAttribute('title', item.desc || item.name);
+
+        div.innerHTML = `
+          <span class="emo">${item.emoji}</span>
+          <div style="display:flex;flex-direction:column;align-items:flex-start">
+            <span class="name">${item.name}</span>
+            ${state.compact ? '' : `<span class="desc">${item.desc || ''}</span>`}
+          </div>
+        `;
+
+        const isSelected = (state.step === 1 && state.current?.name === item.name) ||
+                           (state.step === 2 && state.desired?.name === item.name);
+        if (isSelected) div.classList.add('selected');
+
+        div.addEventListener('click', () => {
+          if (state.step === 1) {
+            state.current = item;
+            setStep(2);
+          } else if (state.step === 2) {
+            state.desired = item;
+            setStep(3);
+          } else {
+            // In journal step, clicking lets you tweak selection again
+            state.current = item;
+            state.desired = null;
+            setStep(2);
+          }
+          saveDraft();
+        });
+
+        grid.appendChild(div);
+      });
+    }
+
+    function validate(){
+      if (state.step === 1) { nextBtn.disabled = !state.current; return; }
+      if (state.step === 2) { nextBtn.disabled = !state.desired; return; }
+      if (state.step === 3) {
+        const ok = !!(state.current && state.desired && journal.value.trim().length >= 10);
+        nextBtn.disabled = !ok; return;
+      }
+    }
+
+    // events
+    tabs.forEach(t => t.addEventListener('click', () => {
+      tabs.forEach(x => x.setAttribute('aria-selected','false'));
+      t.setAttribute('aria-selected','true');
+      state.cat = t.dataset.cat;
+      renderGrid();
+    }));
+
+    search.addEventListener('input', () => { state.q = search.value.trim(); renderGrid(); });
+    toggleView.addEventListener('click', () => {
+      state.compact = !state.compact;
+      toggleView.textContent = state.compact ? 'Comfort' : 'Compact';
+      renderGrid();
+    });
+    backBtn.addEventListener('click', () => {
+      if (state.step === 1) { window.location.href = 'index.html'; return; }
+      if (state.step === 2) { setStep(1); return; }
+      if (state.step === 3) { setStep(2); return; }
+    });
+    nextBtn.addEventListener('click', async () => {
+      if (state.step < 3) { setStep(state.step + 1); return; }
+
+      // Final submit (MVP: stage to localStorage; Step 7 will post to Supabase)
+      const payload = {
+        currentEmoji: state.current.emoji,
+        currentName: state.current.name,
+        desiredEmoji: state.desired.emoji,
+        desiredName: state.desired.name,
+        journal: journal.value.trim(),
+        isAnonymous: document.getElementById('anon').checked,
+        createdAt: new Date().toISOString()
+      };
+      try {
+        localStorage.setItem('hi_staged_share', JSON.stringify(payload));
+        toastShow('Saved — we’ll light up Hi Island next step');
+        setTimeout(()=> window.location.href = 'hi-island.html', 800);
+      } catch(e){
+        alert('Could not save locally. We will wire the database next.');
+      }
+    });
+
+    journal.addEventListener('input', () => {
+      count.textContent = `${journal.value.length}/600`;
+      validate(); saveDraft();
+    });
+
+    // init
+    loadDraft();
+    renderBadges();
+    renderGrid();
+    validate();
+    if (state.current && state.desired) setStep(3); else if (state.current) setStep(2); else setStep(1);
+  })();
+  </script>
+</body>
+</html>
