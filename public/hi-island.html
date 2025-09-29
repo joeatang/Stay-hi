@@ -1,44 +1,134 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Hi Island · Stay Hi</title>
-  <link rel="stylesheet" href="assets/create-parity.css"/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
-  <style>.leaflet-container{border-radius:18px;border:1px solid var(--bd);box-shadow:0 14px 40px #0006}</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hi Island</title>
+  <link rel="stylesheet" href="assets/create-parity.css" />
+  <style>
+    body { background:#FFFDF9; }
+    .wrap { max-width:1100px; margin:0 auto; padding:20px 20px 80px; }
+    .page-title { text-align:center; color:#F5A623; font-weight:800; font-size:clamp(28px,4.5vw,40px); margin:12px 0 18px; }
+    /* tabs */
+    .tabs { display:flex; gap:6px; overflow-x:auto; border-bottom:1px solid #e5e5e5; padding-bottom:6px; }
+    .tab { white-space:nowrap; padding:10px 14px; font-weight:700; border-bottom:2px solid transparent; color:#666; }
+    .tab[aria-selected="true"] { color:#F5A623; border-color:#F5A623; }
+    /* panels */
+    .panel { margin-top:18px; }
+    .card { background:#fff; border:1px solid #eee; border-radius:14px; box-shadow:0 6px 16px rgba(0,0,0,.04); }
+    .card.pad { padding:16px; }
+    /* map shell (your existing map script will take over this node) */
+    #hi-map { position:relative; width:100%; aspect-ratio:2/1; border-radius:14px; overflow:hidden; }
+    /* lists */
+    .list { display:grid; gap:12px; }
+    .row { background:#fff; border:1px solid #eee; border-radius:12px; padding:12px; }
+    .row .meta { color:#777; font-size:12px; }
+    .row .text { color:#111; font-size:15px; line-height:1.45; }
+    .pill { display:inline-flex; align-items:center; gap:6px; padding:4px 9px; border-radius:999px; border:1px solid #eee; background:#fff; font-size:12px; color:#444; }
+    .grid-2 { display:grid; grid-template-columns: 1fr; gap:12px; }
+    @media (min-width:720px){ .grid-2 { grid-template-columns: 1fr 1fr; } }
+    .btnbar { display:flex; gap:12px; justify-content:center; margin-top:18px; }
+    .btn { background:#006400; color:#fff; border:none; border-radius:10px; padding:10px 16px; font-weight:700; }
+    .empty { text-align:center; color:#7a7a7a; padding:20px 12px; }
+    /* small helper badges */
+    .emo { font-size:22px; line-height:1; }
+  </style>
 </head>
-<body class="sunrise">
-  <header id="app-header" class="header"></header>
+<body>
 
-  <main class="page">
-    <section class="panel">
-      <h1 class="h1">Hi Island</h1>
-      <p class="lead">World map + shared moments (mock mode for staging).</p>
-      <div id="globe" style="height:320px"></div>
-    </section>
+  <!-- shared header placeholder -->
+  <header id="app-header"></header>
 
-    <section class="panel">
-      <div style="display:flex;align-items:center;gap:10px">
-        <h2 class="h1" style="font-size:1.2rem;margin:0">General shares</h2>
-        <button id="refresh-general" class="btn" style="width:auto;padding:8px 12px;font-weight:700">Refresh</button>
+  <main class="wrap" id="page">
+    <!-- top bar: home / logo / profile -->
+    <div style="display:flex; align-items:center; justify-content:space-between; margin:8px 0 6px;">
+      <a href="/" class="a">← Home</a>
+      <img src="https://ucarecdn.com/4233fafa-2eee-45bf-bee2-eb6578070c5b/-/format/auto/" alt="Stay Hi" style="width:86px; height:auto;" />
+      <a href="/profile.html" class="a">Profile</a>
+    </div>
+
+    <h1 class="page-title">Hi Island 🌎</h1>
+
+    <!-- tabs -->
+    <nav class="tabs" role="tablist" aria-label="Hi Island sections">
+      <button class="tab" role="tab" id="tab-general"   aria-controls="panel-general"   aria-selected="true">General Shares</button>
+      <button class="tab" role="tab" id="tab-archive"   aria-controls="panel-archive"   aria-selected="false">My Archive</button>
+      <button class="tab" role="tab" id="tab-trends"    aria-controls="panel-trends"    aria-selected="false">Emotional Trend</button>
+      <button class="tab" role="tab" id="tab-milestones"aria-controls="panel-milestones"aria-selected="false">Points Milestones</button>
+      <button class="tab" role="tab" id="tab-hishow"    aria-controls="panel-hishow"    aria-selected="false">Hi Show Shares</button>
+    </nav>
+
+    <!-- panels -->
+    <section class="panel" id="panel-general" role="tabpanel" aria-labelledby="tab-general">
+      <div class="card pad" style="margin-bottom:14px;">
+        <h3 style="margin:0 0 6px; font-size:20px;">General Shares</h3>
+        <div style="color:#666; margin-bottom:8px;">Live emoji map showing Hi submissions around the world</div>
+        <div id="hi-map" class="card"></div>
       </div>
-      <div id="general-list" style="display:grid;gap:12px;margin-top:10px"></div>
+
+      <div id="generalList" class="list"></div>
+      <div id="generalEmpty" class="empty" style="display:none;">No general shares yet. Share your Hi journey!</div>
     </section>
 
-    <section class="panel">
-      <div style="display:flex;align-items:center;gap:10px">
-        <h2 class="h1" style="font-size:1.2rem;margin:0">Hi Show shares</h2>
-        <button id="refresh-show" class="btn" style="width:auto;padding:8px 12px;font-weight:700">Refresh</button>
-      </div>
-      <div id="show-list" style="display:grid;gap:12px;margin-top:10px"></div>
+    <section class="panel" id="panel-archive" hidden role="tabpanel" aria-labelledby="tab-archive">
+      <h3 style="margin:0 0 10px; font-size:20px;">My Archive</h3>
+      <div id="archiveList" class="list"></div>
+      <div id="archiveEmpty" class="empty" style="display:none;">No entries yet. Start building your Hi muscle!</div>
     </section>
+
+    <section class="panel" id="panel-trends" hidden role="tabpanel" aria-labelledby="tab-trends">
+      <h3 style="margin:0 10px 10px 0; font-size:20px;">Emotional Trend</h3>
+      <div class="card pad" style="text-align:center; color:#666; margin-bottom:12px;">
+        <div style="font-size:38px; margin-bottom:6px;">📊</div>
+        <div style="font-weight:700;">Emotional Trends Bar Graph</div>
+        <div style="font-size:12px; opacity:.8;">Chart visualization coming soon</div>
+      </div>
+      <div id="trendList" class="list"></div>
+      <div id="trendEmpty" class="empty" style="display:none;">No emotional trend data yet. Keep building your Hi muscle!</div>
+    </section>
+
+    <section class="panel" id="panel-milestones" hidden role="tabpanel" aria-labelledby="tab-milestones">
+      <h3 style="margin:0 0 10px; font-size:20px;">Points Milestones</h3>
+      <div id="milestoneList" class="list grid-2"></div>
+      <div id="milestoneEmpty" class="empty" style="display:none;">Milestones will appear as you Stay Hi ✨</div>
+    </section>
+
+    <section class="panel" id="panel-hishow" hidden role="tabpanel" aria-labelledby="tab-hishow">
+      <h3 style="margin:0 0 10px; font-size:20px;">Hi Show Shares</h3>
+      <div id="hishowList" class="list"></div>
+      <div id="hishowEmpty" class="empty" style="display:none;">No Hi Show shares yet. Be the first to get your squeeze!</div>
+    </section>
+
+    <div class="btnbar">
+      <a href="hi-muscle.html"><button class="btn">Build Hi Muscle</button></a>
+      <a href="index.html"><button class="btn">Back to Home</button></a>
+    </div>
   </main>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
-  <script src="assets/island.js" defer></script>
-  <!-- shared header (logo + nav) -->
+  <!-- shared header + your existing map script -->
   <script src="assets/header.js" defer></script>
-  <script>window.addEventListener('DOMContentLoaded', ()=>HiIsland.init())</script>
-</body>
-</html>
+  <script src="assets/island.js" defer></script>
+
+  <!-- page logic -->
+  <script>
+  (function(){
+    /* ---------- tabs ---------- */
+    const tabs = [
+      {id:'general'}, {id:'archive'}, {id:'trends'}, {id:'milestones'}, {id:'hishow'}
+    ];
+    tabs.forEach(t => {
+      const btn = document.getElementById('tab-'+t.id);
+      const panel = document.getElementById('panel-'+t.id);
+      btn.addEventListener('click', () => {
+        tabs.forEach(x => {
+          document.getElementById('tab-'+x.id).setAttribute('aria-selected', String(x.id===t.id));
+          document.getElementById('panel-'+x.id).hidden = x.id!==t.id;
+        });
+        window.scrollTo({top:0, behavior:'smooth'});
+      });
+    });
+
+    /* ---------- helpers ---------- */
+    const byId = id => document.getElementById(id);
+    const safeJSON = async (res) => { try { return await res.json(); } catch { return null; } };
+    const ok = v => Array.isArray(v) ?
