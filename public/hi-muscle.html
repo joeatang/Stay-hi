@@ -1,144 +1,96 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Hi Muscle · Stay Hi</title>
-  <link rel="stylesheet" href="assets/create-parity.css"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Build Your Hi Muscle — Stay Hi</title>
+  <link rel="stylesheet" href="assets/create-parity.css" />
+  <link rel="icon" href="assets/hi.png" />
+  <style>
+    /* Page theming */
+    body.sunrise { background: radial-gradient(120% 120% at 50% 0%, #ffc107 0%, #f5a623 60%, #f59e0b 100%); }
+
+    .page { max-width: 1024px; margin: 0 auto; padding: 24px; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    h1.title { font-size: clamp(28px, 5.5vw, 44px); line-height: 1.1; color: #fff; text-align: center; margin: 28px 0 14px; font-weight: 800; text-shadow: 0 8px 20px rgba(0,0,0,.18); }
+    .card { background: #fffdf9; border: 1px solid #eee7d8; border-radius: 16px; box-shadow: 0 6px 22px rgba(0,0,0,.06); }
+    .section { margin: 18px 0 22px; padding: 18px; }
+    .section h3 { margin: 0 0 14px; font-size: 15px; color: #0b0b0b; }
+
+    /* Tabs */
+    .tabs { display: inline-flex; gap: 8px; padding: 6px; background: rgba(255,255,255,.35); border: 1px solid rgba(255,255,255,.55); border-radius: 14px; backdrop-filter: blur(6px); }
+    .tab { appearance: none; border: 0; padding: 10px 16px; border-radius: 10px; font-weight: 700; color: #6b4d00; background: transparent; cursor: pointer; }
+    .tab[aria-current="true"] { background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,.06); color: #0b0b0b; }
+
+    /* Emotions grid */
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    @media (max-width: 780px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+    .chip { display: grid; place-items: center; gap: 8px; padding: 18px 8px; border-radius: 12px; border: 1px solid #efe7d3; background: #fff; cursor: pointer; font-weight: 600; }
+    .chip .emoji { font-size: 22px; }
+    .chip .label { font-size: 13px; color: #1a1a1a; }
+    .chip:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,.06); }
+    .chip[aria-pressed="true"] { border-color: #0a5; box-shadow: 0 0 0 3px #0a54; }
+
+    /* Journal */
+    .textarea { width: 100%; min-height: 140px; border-radius: 12px; border: 1px solid #eae2cf; padding: 14px; resize: vertical; font: inherit; }
+    .count { text-align: right; font-size: 12px; color: #888; margin-top: 6px; }
+
+    /* Buttons */
+    .btn { appearance: none; border: 0; padding: 14px 18px; border-radius: 12px; font-weight: 800; cursor: pointer; }
+    .btn-primary { background: #006400; color: #fff; }
+    .btn-primary:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-ghost { background: #fff; border: 1px solid #e9e2ce; color: #0b0b0b; }
+
+    /* Toast */
+    .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: #111; color: #fff; padding: 10px 14px; border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,.25); font-size: 13px; z-index: 9999; }
+  </style>
 </head>
-<body class="sunrise">
+<body class="sunrise" data-tab="today">
+  <!-- Header (auto-injected) -->
   <header id="app-header" class="header"></header>
 
-  <main class="page">
-    <section class="panel">
-      <h1 class="h1">Build Your Hi Muscle</h1>
-      <p class="lead">Mock mode — saves to your browser so we can iterate without deploy limits.</p>
-      <div id="streaks" class="toast">Loading…</div>
-      <div style="margin:10px 0 6px">
-        <button id="checkin" class="btn">Check in for Today</button>
+  <main class="page" aria-label="Build Your Hi Muscle">
+    <h1 class="title">Build Your Hi Muscle 💪</h1>
+
+    <div class="flex-center" style="display:flex;justify-content:center;margin:8px 0 18px">
+      <div class="tabs" role="tablist" aria-label="Emotion category">
+        <button class="tab" role="tab" id="tab-hi" aria-selected="true" aria-current="true" data-tab="hi">Hi Energy</button>
+        <button class="tab" role="tab" id="tab-neutral" aria-selected="false" data-tab="neutral">Neutral</button>
+        <button class="tab" role="tab" id="tab-opportunity" aria-selected="false" data-tab="opportunity">Hi Opportunity</button>
       </div>
-      <div id="mtoast" class="toast" aria-live="polite"></div>
+    </div>
+
+    <!-- Current Vibe -->
+    <section class="section card">
+      <h3>Current Vibe</h3>
+      <div id="currentGrid" class="grid" role="group" aria-label="Pick your current vibe"></div>
     </section>
 
-    <section class="panel">
-      <h2 class="h1" style="font-size:1.2rem;margin:0 0 10px">Hi Session</h2>
-      <p class="lead">Three quick steps — Create-style.</p>
-      <div class="bar"><i></i></div>
-      <div class="dots"><span class="dot on"></span><span class="dot"></span><span class="dot"></span></div>
-
-      <div class="step on">
-        <div class="wheel">
-          <div style="font-weight:800;text-align:center">How do you feel<br><small>(now)</small></div>
-        </div>
-        <select id="feel-now" class="select">
-          <option value="">Select one…</option>
-          <option>Calm</option><option>Energized</option><option>Grateful</option>
-          <option>Stressed</option><option>Tired</option>
-        </select>
-        <button id="next1" class="btn">Next</button>
-      </div>
-
-      <div class="step">
-        <div class="wheel">
-          <div style="font-weight:800;text-align:center">How do you want to feel<br><small>(next)</small></div>
-        </div>
-        <select id="feel-next" class="select">
-          <option value="">Select one…</option>
-          <option>Calm</option><option>Energized</option><option>Grateful</option>
-          <option>Focused</option><option>Optimistic</option>
-        </select>
-        <button id="next2" class="btn">Next</button>
-      </div>
-
-      <div class="step">
-        <label class="lead" for="note">One line for future-you</label>
-        <textarea id="note" class="textarea" placeholder="Tiny action, reframe, or reminder…"></textarea>
-        <button id="save" class="btn">Save Hi Session</button>
-        <div id="toast" class="toast" aria-live="polite"></div>
-      </div>
+    <!-- Desired Vibe -->
+    <section class="section card">
+      <h3>Desired Vibe</h3>
+      <div id="desiredGrid" class="grid" role="group" aria-label="Pick your desired vibe"></div>
     </section>
 
-    <section class="panel">
-      <h2 class="h1" style="font-size:1.2rem">Recent Sessions</h2>
-      <div id="entries" style="display:grid;gap:12px;margin-top:10px"></div>
+    <!-- Journal -->
+    <section class="section card">
+      <h3>Journal Entry</h3>
+      <textarea id="journal" class="textarea" maxlength="200" placeholder="Why upgrade/maintain vibe?"></textarea>
+      <div class="count"><span id="jc">0</span>/200</div>
     </section>
+
+    <!-- Actions -->
+    <div style="text-align:center;margin:8px 0 16px">
+      <button id="submitBtn" class="btn btn-primary" disabled>Drop Your Hi</button>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:center;margin-bottom:32px">
+      <a href="hi-island.html" class="btn btn-primary" style="text-decoration:none;display:inline-block">Go to Hi Island</a>
+      <a href="index.html" class="btn btn-ghost" style="text-decoration:none;display:inline-block">Back to Home</a>
+    </div>
   </main>
 
-  <!-- page logic (mock mode: localStorage) -->
-  <script>
-    const H = document.getElementById('app-header'); // header injected by assets/header.js
-
-    // --- mock store (localStorage) ---
-    const KEY = 'stayhi.sessions.v1';
-    const STREAK_KEY = 'stayhi.streak.v1';
-    const read = () => JSON.parse(localStorage.getItem(KEY) || '[]');
-    const write = (a) => localStorage.setItem(KEY, JSON.stringify(a));
-    const readStreak = () => JSON.parse(localStorage.getItem(STREAK_KEY) || '{"count":0,"last":""}');
-    const writeStreak = (s) => localStorage.setItem(STREAK_KEY, JSON.stringify(s));
-
-    // --- ui helpers ---
-    const $ = s => document.querySelector(s);
-    const dots = () => document.querySelectorAll('.dots .dot');
-    const steps = () => document.querySelectorAll('.step');
-    const barI = () => document.querySelector('.bar i');
-
-    function setStep(n){
-      steps().forEach((el,i)=>el.classList.toggle('on', i===n));
-      dots().forEach((el,i)=>el.classList.toggle('on', i<=n));
-      barI().style.width = ((n+1)/3*100)+'%';
-    }
-
-    function renderEntries() {
-      const root = $('#entries');
-      const list = read().slice().reverse();
-      if (!list.length) { root.innerHTML = '<div class="toast">No sessions yet.</div>'; return; }
-      root.innerHTML = list.map(it=>`
-        <div class="panel" style="padding:12px 14px;margin:0">
-          <strong>${it.now || '—'}</strong> → ${it.next || '—'}
-          <span style="float:right;color:#aeb1cc">${new Date(it.ts).toLocaleString()}</span>
-          <div style="color:#cfd2ea;margin-top:6px">${(it.note||'').replace(/[&<>]/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[s]))}</div>
-        </div>`).join('');
-    }
-
-    function renderStreak() {
-      const {count,last} = readStreak();
-      $('#streaks').textContent = `Streak: ${count}   (last check-in: ${last || '—'})`;
-    }
-
-    // --- events ---
-    $('#next1').onclick = ()=> {
-      if (!$('#feel-now').value) return $('#toast').textContent='Pick how you feel now.';
-      $('#toast').textContent='';
-      setStep(1);
-    };
-    $('#next2').onclick = ()=> {
-      if (!$('#feel-next').value) return $('#toast').textContent='Pick how you want to feel.';
-      $('#toast').textContent='';
-      setStep(2);
-    };
-    $('#save').onclick = ()=> {
-      const now = $('#feel-now').value, next = $('#feel-next').value, note = $('#note').value.trim();
-      if (!now || !next) return $('#toast').textContent='Finish the steps first.';
-      const list = read(); list.push({ now, next, note, ts: Date.now() }); write(list);
-      $('#note').value=''; setStep(0); renderEntries();
-      $('#toast').textContent='Saved!';
-      setTimeout(()=>$('#toast').textContent='',1500);
-    };
-    $('#checkin').onclick = ()=> {
-      const s = readStreak();
-      const today = new Date().toISOString().slice(0,10);
-      if (s.last === today) { $('#mtoast').textContent='Already checked in today ✨'; return; }
-      const y = new Date(Date.now()-86400000).toISOString().slice(0,10);
-      s.count = (s.last === y) ? (s.count+1) : 1;
-      s.last = today; writeStreak(s); renderStreak();
-      $('#mtoast').textContent='Checked in!'; setTimeout(()=>$('#mtoast').textContent='',1500);
-    };
-
-    // --- init ---
-    setStep(0); renderEntries(); renderStreak();
-  </script>
-
-  <!-- shared header (logo + nav) -->
+  <!-- Scripts -->
   <script src="assets/header.js" defer></script>
+  <script src="assets/muscle.js" defer></script>
 </body>
 </html>
