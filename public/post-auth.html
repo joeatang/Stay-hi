@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Finishing sign-in…</title>
+  <link rel="stylesheet" href="assets/create-parity.css"/>
+  <style>
+    body { background:#FFFDF9; display:grid; place-items:center; min-height:100vh; }
+    .box { background:#fff; border:1px solid #eee; border-radius:16px; padding:24px; width:min(560px, calc(100vw - 28px)); box-shadow:0 10px 30px rgba(0,0,0,.05);}
+    .btn { background:#006400; color:#fff; padding:10px 14px; border-radius:10px; font-weight:700; display:inline-block; }
+    .muted { color:#666; font-size:13px; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>One moment…</h2>
+    <div id="log" class="muted">Completing sign-in</div>
+    <div style="margin-top:16px">
+      <a id="homeLink" class="btn" href="/">Go to Home</a>
+    </div>
+  </div>
+
+  <!-- Supabase client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="assets/supabase-init.js"></script>
+
+  <script>
+    (async () => {
+      const log = (t) => document.getElementById('log').textContent = t;
+
+      try {
+        // 1) Set the session from the magic-link URL
+        await sb.auth.exchangeCodeForSession(window.location.href);
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) { log('Could not establish a session. Try the link again.'); return; }
+
+        // 2) claim invite → creates membership + decrements uses
+        const invite = new URLSearchParams(location.search).get('invite');
+        if (!invite) { log('Missing invite in URL.'); return; }
+
+        const { data, error } = await sb.rpc('grant_membership_from_invite', { p_code: invite });
+        if (error) throw error;
+
+        const row = Array.isArray(data) ? data[0] : data;
+        if (!row?.ok) {
+          log(`Signed in, but could not claim invite (${row?.reason ?? 'unknown'}).`);
+          return;
+        }
+
+        // 3) success UX
+        const until = row.expires_at ? new Date(row.expires_at).toLocaleDateString() : '—';
+        log(`All set ✨ Your membership is active until ${until}.`);
+      } catch (e) {
+        console.error(e);
+        log(`Error: ${e.message || e}`);
+      }
+    })();
+  </script>
+</body>
+</html>
