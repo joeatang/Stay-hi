@@ -1,105 +1,116 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Join Stay Hi</title>
-  <link rel="stylesheet" href="assets/create-parity.css" />
-  <style>
-    body { background: #FFFDF9; }
-    .card { max-width: 520px; margin: 6vh auto; background: #fff; border: 1px solid #eee; border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,.04);}
-    .brand { display:flex; gap:10px; align-items:center; justify-content:center; margin-bottom:18px; }
-    .brand img { width:56px; height:auto; }
-    .btn { background:#006400; color:#fff; padding:12px 16px; border-radius:12px; font-weight:700; width:100%; }
-    .btn[disabled] { opacity:.5; }
-    .hint { color:#666; font-size:12px; }
-    .err { color:#b00020; margin-top:8px; }
-    .ok { color:#0a5; margin-top:8px; }
-    label { font-weight:600; font-size:14px; color:#111 }
-    input { width:100%; padding:12px 14px; border:1px solid #ddd; border-radius:10px; }
-    .row { display:grid; gap:10px; margin-bottom:14px; }
-  </style>
-</head>
-<body>
+<!-- public/assets/auth.js -->
+<script>
+/* Assumes window.sb (Supabase client) is created by assets/supabase-init.js */
+(function () {
+  if (!window.sb) {
+    console.error('Supabase client (window.sb) not found. Include assets/supabase-init.js before auth.js');
+    return;
+  }
 
-  <div class="card">
-    <div class="brand">
-      <img src="https://ucarecdn.com/4233fafa-2eee-45bf-bee2-eb6578070c5b/-/format/auto/" alt="Stay Hi"/>
-      <h1 style="font-size:22px;margin:0">Join Stay Hi</h1>
-    </div>
+  // Local-dev bypass: lets you preview UI without a real session when using file:// or localhost
+  const DEV_BYPASS = (location.protocol === 'file:' || location.hostname === 'localhost');
 
-    <form id="signupForm" class="row" autocomplete="on">
-      <div class="row">
-        <label for="invite">Invite code</label>
-        <input id="invite" name="invite" placeholder="e.g. HI-7DAY-001" required />
-        <div id="inviteStatus" class="hint"></div>
-      </div>
-
-      <div class="row">
-        <label for="email">Email</label>
-        <input id="email" name="email" type="email" placeholder="you@example.com" required />
-      </div>
-
-      <button class="btn" type="submit" id="submitBtn">Send magic link</button>
-      <div id="msg" class="hint" style="margin-top:10px"></div>
-
-      <div class="hint" style="margin-top:14px;text-align:center">
-        Already have an account? <a href="signin.html">Sign in</a>
-      </div>
-    </form>
-  </div>
-
-  <!-- Supabase client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="assets/supabase-init.js"></script>
-
-  <script>
-    const form = document.getElementById('signupForm');
-    const btn  = document.getElementById('submitBtn');
-    const msg  = document.getElementById('msg');
-    const inviteStatus = document.getElementById('inviteStatus');
-
-    async function checkInvite(code){
-      try{
-        const { data, error } = await sb.rpc('check_invite', { p_code: code });
-        if(error) throw error;
-        const row = Array.isArray(data) ? data[0] : data;
-        return row || { ok:false, reason:'invalid' };
-      }catch(e){
-        console.error(e);
-        return { ok:false, reason:'server_error' };
-      }
+  async function getSession() {
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      return session || null;
+    } catch {
+      return null;
     }
+  }
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      msg.textContent = ''; inviteStatus.textContent = '';
-      btn.disabled = true;
+  async function getUser() {
+    try {
+      const { data: { user } } = await sb.auth.getUser();
+      return user || null;
+    } catch {
+      return null;
+    }
+  }
 
-      const email  = form.email.value.trim();
-      const invite = form.invite.value.trim();
+  async function getMembership() {
+    try {
+      const { data, error } = await sb.rpc('get_my_membership');
+      if (error) return { is_member: false };
+      const row = Array.isArray(data) ? data[0] : data;
+      return row || { is_member: false };
+    } catch {
+      return { is_member: false };
+    }
+  }
 
-      // 1) validate invite first
-      const chk = await checkInvite(invite);
-      if(!chk.ok){
-        inviteStatus.innerHTML = `<span class="err">Invite not valid (${chk.reason})</span>`;
-        btn.disabled = false; return;
-      }
-      inviteStatus.innerHTML = `<span class="ok">✅ Code looks good${chk.expires_at ? ` · expires ${new Date(chk.expires_at).toLocaleDateString()}`:''}</span>`;
+  async function requireAuth(opts = {}) {
+    const { redirectTo = 'signin.html', allowDevBypass = true } = opts;
+    const session = await getSession();
+    if (session) return true;
+    if (allowDevBypass && DEV_BYPASS && localStorage.getItem('hi_dev_user')) return true;
+    window.location.href = redirectTo;
+    return false;
+  }
 
-      // 2) send magic link (sign-in link)
-      const redirectTo = `${location.origin}/post-auth.html?invite=${encodeURIComponent(invite)}`;
-      const { error } = await sb.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: redirectTo, shouldCreateUser: true }
+  async function requireMember(opts = {}) {
+    const { redirectTo = 'membership-required.html', soft = false } = opts;
+    const m = await getMembership();
+    const ok = !!m.is_member;
+    if (ok) return true;
+    if (soft) return false;
+    window.location.href = redirectTo;
+    return false;
+  }
+
+  async function signOut() {
+    try {
+      await sb.auth.signOut();
+    } catch {}
+    try {
+      localStorage.removeItem('hi_dev_user');
+      localStorage.removeItem('hi_member');
+    } catch {}
+    window.location.href = 'index.html';
+  }
+
+  // UI helpers: show/hide elements with data-show-auth / data-show-member
+  async function applyAuthVisibility() {
+    const session = await getSession();
+    const authed = !!session || (DEV_BYPASS && localStorage.getItem('hi_dev_user'));
+    const mem = authed ? await getMembership() : { is_member: false };
+
+    document.querySelectorAll('[data-show-auth]')
+      .forEach(el => {
+        const want = el.getAttribute('data-show-auth'); // "in" | "out"
+        const show = (want === 'in') ? authed : !authed;
+        el.style.display = show ? '' : 'none';
       });
 
-      if(error){
-        msg.innerHTML = `<span class="err">${error.message}</span>`;
-        btn.disabled = false; return;
-      }
-      msg.innerHTML = `<span class="ok">Magic link sent to <b>${email}</b>. Check your inbox.</span>`;
+    document.querySelectorAll('[data-show-member]')
+      .forEach(el => {
+        const want = el.getAttribute('data-show-member'); // "yes" | "no"
+        const show = (want === 'yes') ? !!mem.is_member : !mem.is_member;
+        el.style.display = show ? '' : 'none';
+      });
+
+    // Wire logout buttons/links
+    document.querySelectorAll('[data-action="logout"]').forEach(el => {
+      el.onclick = (e) => { e.preventDefault(); signOut(); };
     });
-  </script>
-</body>
-</html>
+  }
+
+  // Expose a tiny API
+  window.hiAuth = {
+    requireAuth,
+    requireMember,
+    getUser,
+    getMembership,
+    signOut,
+    applyAuthVisibility
+  };
+
+  // Keep visibility in sync on auth changes
+  sb.auth.onAuthStateChange((_event, _session) => {
+    applyAuthVisibility();
+  });
+
+  // Initial pass
+  document.addEventListener('DOMContentLoaded', applyAuthVisibility);
+})();
+</script>
