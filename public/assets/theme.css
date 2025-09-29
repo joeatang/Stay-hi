@@ -1,0 +1,199 @@
+/* ==========================================================================
+   Stay Hi — Global Theme (brand-uniform)
+   Place in: /public/assets/theme.css
+   Include on EVERY page, before create-parity.css if you want tokens first.
+   ========================================================================== */
+
+/* -------------------------
+   1) Brand tokens (CSS vars)
+   ------------------------- */
+:root{
+  /* Core palette */
+  --hi-bg:        #FFFDF9;           /* paper */
+  --hi-ink:       #0F172A;           /* slate-900 */
+  --hi-muted:     #6B7280;           /* gray-500 */
+  --hi-border:    #E5E7EB;           /* gray-200 */
+
+  /* Brand accents */
+  --hi-green:     #0a8a3a;           /* action (positive/primary) */
+  --hi-green-2:   #059669;           /* darker mix for gradients */
+
+  /* Retro sunrise oranges */
+  --hi-orange-1:  #FF7A18;           /* vivid tangerine */
+  --hi-orange-2:  #FFD166;           /* warm amber */
+  --hi-orange-3:  #FFB347;           /* soft cantaloupe */
+
+  /* Utility highlights */
+  --ring:         #FFD78A;           /* selection ring / halo */
+  --shadow:       0 10px 30px rgba(0,0,0,.06);
+
+  /* Radii & rhythm */
+  --r-chip:       14px;
+  --r-card:       16px;
+  --r-btn:        14px;
+
+  /* Typography scale */
+  --f-sans:       "Inter", "Space Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --fs-hero:      clamp(1.6rem, 2vw + 1rem, 2.2rem);
+  --fs-h1:        clamp(1.4rem, 1.6vw + 1rem, 1.9rem);
+  --fs-h2:        clamp(1.2rem, 1.2vw + 1rem, 1.4rem);
+  --fs-body:      1rem;
+  --fs-muted:     0.9rem;
+
+  /* Gradients */
+  --grad-sunrise: linear-gradient(135deg, var(--hi-orange-2) 0%, var(--hi-orange-1) 45%, #ff4d00 100%);
+  --grad-ember:   linear-gradient(135deg, #FFB347 0%, #FF7A18 60%, #FF4D00 100%);
+  --grad-green:   linear-gradient(135deg, #10B981 0%, var(--hi-green-2) 100%);
+}
+
+/* Optional dark mode baseline (future) */
+@media (prefers-color-scheme: dark){
+  :root{
+    --hi-bg:      #0E0E12;
+    --hi-ink:     #F5F7FF;
+    --hi-muted:   #9CA3AF;
+    --hi-border:  #1F2431;
+    --ring:       #FFBD63;
+    --shadow:     0 14px 34px rgba(0,0,0,.45);
+  }
+}
+
+/* -------------------------
+   2) Base / resets
+   ------------------------- */
+html, body {
+  height: 100%;
+}
+body {
+  background: var(--hi-bg);
+  color: var(--hi-ink);
+  font-family: var(--f-sans);
+  font-size: var(--fs-body);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+img { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; }
+
+/* Utility wrappers */
+.page-wrap { max-width: 980px; margin: 0 auto; padding: 16px; }
+
+/* Headings */
+.h1, h1 { font-size: var(--fs-h1); font-weight: 900; margin: 8px 0 6px; }
+.h2, h2 { font-size: var(--fs-h2); font-weight: 800; margin: 10px 0 6px; }
+.subtle   { color: var(--hi-muted); }
+.hint, .hi-hint { color: var(--hi-muted); font-size: var(--fs-muted); }
+
+/* -------------------------
+   3) Buttons
+   ------------------------- */
+.hi-btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:12px 16px; border-radius:var(--r-btn); font-weight:900; cursor:pointer;
+  border:1px solid transparent; transition: transform .06s ease, box-shadow .12s ease, opacity .12s ease;
+  user-select:none;
+}
+.hi-btn:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.08); }
+.hi-btn:active{ transform:translateY(0); box-shadow:none; }
+
+.hi-btn--primary{
+  color:#fff; background: var(--grad-ember); border-color: transparent;
+}
+.hi-btn--primary:hover{
+  filter: brightness(1.03);
+}
+
+.hi-btn--green{
+  color:#fff; background: var(--grad-green);
+}
+
+.hi-btn--ghost{
+  background:#fff; color: var(--hi-ink); border-color: var(--hi-border);
+}
+
+.hi-btn--link{
+  padding:0; border:0; background:transparent; color: var(--hi-orange-1); font-weight:800;
+}
+
+/* -------------------------
+   4) Cards / Chips / Inputs
+   ------------------------- */
+.hi-card{
+  background:#fff; border:1px solid var(--hi-border);
+  border-radius:var(--r-card); padding:14px; box-shadow: var(--shadow);
+}
+
+.hi-chip{
+  display:inline-flex; gap:8px; align-items:center;
+  background:#fff; border:1px solid var(--hi-border);
+  border-radius:999px; padding:8px 12px; font-weight:700;
+}
+
+.hi-chip--selectable{
+  cursor:pointer; transition: transform .08s ease, box-shadow .12s ease, border-color .12s ease, background .12s ease;
+}
+.hi-chip--selectable:hover{ transform: translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.05) }
+.hi-chip--active{ outline:3px solid var(--ring); border-color:#ffefc7; background:#fffaf0; }
+
+.hi-input, textarea, input[type="text"], input[type="search"], input[type="number"]{
+  width:100%; border:1px solid var(--hi-border); border-radius:12px; padding:10px 12px; background:#fff; color:var(--hi-ink);
+}
+.hi-field{ display:flex; gap:8px; align-items:center; border:1px solid var(--hi-border); border-radius:12px; padding:8px 10px; background:#fff; }
+
+/* -------------------------
+   5) Header / Footer helpers
+   ------------------------- */
+.header{
+  position:sticky; top:0; z-index:500;
+  background: linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,0.85) 70%, rgba(255,255,255,0.75) 100%);
+  border-bottom:1px solid var(--hi-border);
+  backdrop-filter: saturate(120%) blur(8px);
+}
+.footer{
+  position:sticky; bottom:0; z-index:400;
+  background:#fff; border-top:1px solid var(--hi-border);
+}
+
+/* -------------------------
+   6) Toast / Pills / Badges
+   ------------------------- */
+.toast{
+  position:fixed; left:50%; bottom:20px; transform:translateX(-50%);
+  background:#000; color:#fff; padding:10px 14px; border-radius:12px;
+  opacity:0; pointer-events:none; z-index:1000;
+}
+.toast.show{ opacity:1; transition:opacity .2s; }
+
+.badge{
+  display:inline-flex; align-items:center; gap:6px;
+  font-weight:800; font-size:.75rem; padding:.25rem .5rem;
+  border-radius:999px; background:#111; color:#fff;
+}
+
+/* -------------------------
+   7) Backgrounds (retro sunrise)
+   ------------------------- */
+.bg-sunrise{
+  background: radial-gradient(1200px 600px at 50% -200px, rgba(255, 210, 140, .55) 0%, rgba(255, 210, 140, 0) 60%),
+              var(--grad-sunrise);
+  color:#1b0f02;
+}
+.bg-ember{ background: var(--grad-ember); color:#1b0f02; }
+.bg-green{ background: var(--grad-green); color:#032b1e; }
+
+/* Panel helper (for index “ready player one” vibe but on brand) */
+.panel{
+  background: #0f1024;
+  color:#e8ebff;
+  border:1px solid #23264d;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+
+/* Week strip dots to harmonize */
+.weekdot .c.met { color:#fff; background: linear-gradient(135deg, #ffd166, #ff7a18); border-radius:12px; padding:2px 6px; }
+
+/* Accessibility focus outline */
+:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
