@@ -15,12 +15,13 @@
       --chip:#ffffff;
       --chip-b:#e9e9e9;
       --ring:#ffd78a;
+      --shadow:0 10px 30px rgba(0,0,0,.06);
     }
     body{background:var(--bg); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;}
     .wrap{max-width:980px;margin:0 auto;padding:16px}
-    .title{font-weight:900;color:var(--ink);text-align:center;margin:8px 0 12px}
+    .title{font-weight:900;color:var(--ink);text-align:center;margin:8px 0 6px}
     .subtitle{color:var(--muted);text-align:center;margin:0 0 16px}
-    /* stepper */
+    /* stepper 3 steps */
     .stepper{display:flex;align-items:center;justify-content:center;gap:10px;margin:10px auto 16px}
     .dot{width:12px;height:12px;border-radius:50%;background:#e5e5e5;border:2px solid #ddd}
     .dot.active{background:var(--hi-green);border-color:var(--hi-green)}
@@ -54,26 +55,47 @@
     .btn-primary{background:var(--hi-green);color:#fff}
     .btn-ghost{background:#fff;border-color:#ddd;color:#111}
     .btn[disabled]{opacity:.6;cursor:not-allowed}
-    /* journal */
-    .card{background:#fff;border:1px solid #eee;border-radius:16px;padding:14px}
-    textarea{width:100%;border:1px solid #e4e4e4;border-radius:12px;min-height:110px;padding:12px;font:inherit}
+    /* cards / inputs */
+    .card{background:#fff;border:1px solid #eee;border-radius:16px;padding:14px;box-shadow:var(--shadow)}
+    textarea{width:100%;border:1px solid #e4e4e4;border-radius:12px;min-height:120px;padding:12px;font:inherit}
     .hint{color:var(--muted);font-size:12px}
     .badge{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #eee;border-radius:999px;padding:8px 10px;font-weight:700}
     .inline{display:flex;gap:10px;flex-wrap:wrap}
     .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#000;color:#fff;padding:10px 14px;border-radius:12px;opacity:0;pointer-events:none}
     .toast.show{opacity:1;transition:opacity .2s}
+
+    /* share sheet (bottom sheet) */
+    .sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;z-index:50}
+    .sheet{position:fixed;left:0;right:0;bottom:-100%;background:#FFFDF9;border-radius:18px 18px 0 0;border:1px solid #eee;padding:16px 14px;z-index:60;box-shadow:0 -10px 30px rgba(0,0,0,.12)}
+    .sheet.show + .sheet-backdrop{display:block}
+    .sheet.show{animation:sheetIn .25s ease-out forwards}
+    .sheet.hide{animation:sheetOut .2s ease-in forwards}
+    @keyframes sheetIn{from{bottom:-100%}to{bottom:0}}
+    @keyframes sheetOut{from{bottom:0}to{bottom:-100%}}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0}
+    .switch{position:relative;width:44px;height:26px;background:#e8e8e8;border-radius:999px;cursor:pointer;border:1px solid #ddd}
+    .knob{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:left .15s}
+    .switch.on{background:#0a8a3a;border-color:#0a8a3a}
+    .switch.on .knob{left:22px}
+    .sheet h3{margin:4px 0 2px;font-size:16px}
+    .sheet .muted{font-size:13px}
+    .hr{height:1px;background:#eee;margin:8px 0}
+    .field{display:flex;gap:8px;align-items:center;border:1px solid #e9e9e9;border-radius:12px;padding:8px 10px;background:#fff}
+    .field input{border:0;outline:0;width:100%;font:inherit}
+    .sheet-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
   </style>
 </head>
 <body>
+  <!-- Shared header -->
   <header id="app-header"></header>
 
   <div class="wrap">
     <h1 class="title">Build Your Hi Muscle</h1>
     <p class="subtitle">Pick your <b>current vibe</b>, then your <b>desired vibe</b>. Reflect for 1–2 lines. Drop your Hi.</p>
 
-    <!-- stepper -->
+    <!-- stepper (3) -->
     <div class="stepper" aria-label="Progress">
-      <div class="dot" id="s1"></div><div class="pipe" id="p1"></div><div class="dot" id="s2"></div>
+      <div class="dot" id="s1"></div><div class="pipe" id="p1"></div><div class="dot" id="s2"></div><div class="pipe" id="p2"></div><div class="dot" id="s3"></div>
     </div>
 
     <!-- selection badges -->
@@ -97,13 +119,18 @@
     <!-- grid -->
     <div id="grid" class="grid" aria-live="polite"></div>
 
-    <!-- journal card (appears after both selected) -->
+    <!-- Hi Thought / reflection (appears after both selected) -->
     <div id="journalCard" class="card" style="display:none;margin-top:14px">
-      <div class="pickTitle">Hi Reflection (why this vibe matters)</div>
-      <textarea id="journal" maxlength="600" placeholder="One or two honest lines. What would Hi look or feel like right now?"></textarea>
+      <div class="pickTitle">Hi Thought</div>
+      <p class="hint" style="margin:.25rem 0 .6rem">
+        In <b>1–2 honest lines</b>, tell your future self why shifting to
+        <span id="desiredLabel">this vibe</span> matters <i>today</i>. Think:
+        “What would Hi look or feel like right now?”
+      </p>
+      <textarea id="journal" maxlength="600" placeholder="e.g., Choosing calm helps me be present with my family tonight, even if the day was loud."></textarea>
       <div class="inline" style="justify-content:space-between;margin-top:6px">
         <span class="hint" id="count">0/600</span>
-        <label class="hint"><input type="checkbox" id="anon" /> Share anonymously</label>
+        <label class="hint"><input type="checkbox" id="anon" /> Post as Anonymous</label>
       </div>
     </div>
 
@@ -119,6 +146,39 @@
     </div>
   </div>
 
+  <!-- Share Sheet / bottom modal -->
+  <div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" aria-hidden="true">
+    <h3 id="sheetTitle">How do you want to drop your Hi?</h3>
+    <p class="muted">We’ll always save a private copy in <b>My Archive</b>.</p>
+
+    <div class="row" style="margin-top:6px">
+      <div>
+        <div style="font-weight:800">Show on Hi Island</div>
+        <div class="muted">Appear in the global General Shares feed</div>
+      </div>
+      <div id="togglePublic" class="switch on" role="switch" aria-checked="true" tabindex="0"><div class="knob" aria-hidden="true"></div></div>
+    </div>
+
+    <div class="row">
+      <div>
+        <div style="font-weight:800">Post as Anonymous</div>
+        <div class="muted">Your name becomes “Hi Friend”</div>
+      </div>
+      <div id="toggleAnon" class="switch" role="switch" aria-checked="false" tabindex="0"><div class="knob" aria-hidden="true"></div></div>
+    </div>
+
+    <div class="hr"></div>
+    <div class="field" aria-label="Optional location">
+      <span>📍</span><input id="locationInput" placeholder="City, State (optional)"/>
+    </div>
+
+    <div class="sheet-actions">
+      <button id="cancelShare" class="btn btn-ghost">Cancel</button>
+      <button id="confirmShare" class="btn btn-primary">Drop Hi</button>
+    </div>
+  </div>
+  <div id="backdrop" class="sheet-backdrop" aria-hidden="true"></div>
+
   <div id="toast" class="toast">Saved</div>
 
   <!-- header/menu injection -->
@@ -133,16 +193,17 @@
 
   <script>
   (async function(){
-    // Require login; keep this here so local dev with file:// can still preview if you used the dev flag
+    // Require login (local file preview still works if you used the dev flag)
     try { await hiAuth.requireAuth(); } catch {}
 
     const state = {
-      step: 1,                         // 1=current, 2=desired, 3=journal
+      step: 1,                // 1=current, 2=desired, 3=journal
       current: null,
       desired: null,
       compact: false,
       cat: 'hi',
-      q: ''
+      q: '',
+      sheetOpen: false
     };
 
     // Elements
@@ -158,18 +219,34 @@
     const journal = document.getElementById('journal');
     const count = document.getElementById('count');
     const toast = document.getElementById('toast');
-    const s1 = document.getElementById('s1'), s2 = document.getElementById('s2'), p1 = document.getElementById('p1');
+    const desiredLabel = document.getElementById('desiredLabel');
+    const s1 = document.getElementById('s1'), s2 = document.getElementById('s2'), s3 = document.getElementById('s3');
+    const p1 = document.getElementById('p1'), p2 = document.getElementById('p2');
+
+    // Share sheet bits
+    const sheet = document.getElementById('sheet');
+    const backdrop = document.getElementById('backdrop');
+    const togglePublic = document.getElementById('togglePublic');
+    const toggleAnon = document.getElementById('toggleAnon');
+    const locationInput = document.getElementById('locationInput');
+    const cancelShare = document.getElementById('cancelShare');
+    const confirmShare = document.getElementById('confirmShare');
 
     function setStep(n){
       state.step = n;
       s1.classList.toggle('active', n >= 1);
       s2.classList.toggle('active', n >= 2);
+      s3.classList.toggle('active', n >= 3);
       p1.classList.toggle('filled', n >= 2);
+      p2.classList.toggle('filled', n >= 3);
       nextBtn.textContent = (n === 3) ? 'Drop Your Hi' : 'Continue';
       renderGrid();
       renderBadges();
       journalCard.style.display = (n === 3) ? '' : 'none';
       validate();
+      if (n === 3 && state.desired) {
+        desiredLabel.textContent = `${state.desired.emoji} ${state.desired.name}`;
+      }
     }
 
     function toastShow(t){ toast.textContent = t; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'), 1400); }
@@ -216,8 +293,6 @@
     function renderGrid(){
       const list = currentList();
       grid.innerHTML = '';
-      grid.classList.toggle('grid-compact', state.compact);
-
       list.forEach(item => {
         const div = document.createElement('button');
         div.type = 'button';
@@ -229,7 +304,7 @@
           <span class="emo">${item.emoji}</span>
           <div style="display:flex;flex-direction:column;align-items:flex-start">
             <span class="name">${item.name}</span>
-            ${state.compact ? '' : `<span class="desc">${item.desc || ''}</span>`}
+            <span class="desc">${item.desc || ''}</span>
           </div>
         `;
 
@@ -266,45 +341,105 @@
       }
     }
 
-    // events
-    tabs.forEach(t => t.addEventListener('click', () => {
-      tabs.forEach(x => x.setAttribute('aria-selected','false'));
+    // Tabs / search / view
+    document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected','false'));
       t.setAttribute('aria-selected','true');
       state.cat = t.dataset.cat;
       renderGrid();
     }));
-
     search.addEventListener('input', () => { state.q = search.value.trim(); renderGrid(); });
     toggleView.addEventListener('click', () => {
-      state.compact = !state.compact;
-      toggleView.textContent = state.compact ? 'Comfort' : 'Compact';
-      renderGrid();
+      const descs = document.querySelectorAll('.desc');
+      const compact = toggleView.textContent === 'Compact';
+      toggleView.textContent = compact ? 'Comfort' : 'Compact';
+      descs.forEach(d => d.style.display = compact ? 'none' : '');
     });
+
+    // Nav buttons
     backBtn.addEventListener('click', () => {
       if (state.step === 1) { window.location.href = 'index.html'; return; }
       if (state.step === 2) { setStep(1); return; }
       if (state.step === 3) { setStep(2); return; }
     });
+
+    // Share sheet helpers
+    function setSwitch(el, on){
+      el.classList.toggle('on', !!on);
+      el.setAttribute('aria-checked', on ? 'true' : 'false');
+    }
+    function getSwitch(el){ return el.classList.contains('on'); }
+    function openSheet(){
+      sheet.classList.remove('hide');
+      sheet.classList.add('show');
+      sheet.setAttribute('aria-hidden','false');
+      backdrop.style.display = 'block';
+      state.sheetOpen = true;
+    }
+    function closeSheet(){
+      sheet.classList.remove('show');
+      sheet.classList.add('hide');
+      sheet.setAttribute('aria-hidden','true');
+      setTimeout(()=>{ backdrop.style.display = 'none';}, 180);
+      state.sheetOpen = false;
+    }
+    [togglePublic, toggleAnon].forEach(sw=>{
+      sw.addEventListener('click', ()=> setSwitch(sw, !getSwitch(sw)));
+      sw.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' ') { e.preventDefault(); setSwitch(sw, !getSwitch(sw)); }});
+    });
+    backdrop.addEventListener('click', closeSheet);
+    cancelShare.addEventListener('click', closeSheet);
+
+    // Drop Hi flow
     nextBtn.addEventListener('click', async () => {
       if (state.step < 3) { setStep(state.step + 1); return; }
+      // open share options sheet
+      openSheet();
+    });
 
-      // Final submit (MVP: stage to localStorage; Step 7 will post to Supabase)
-      const payload = {
+    confirmShare.addEventListener('click', async () => {
+      // Build entry
+      const text = journal.value.trim();
+      const isAnon = getSwitch(toggleAnon) || document.getElementById('anon').checked;
+      const toIsland = getSwitch(togglePublic);
+      const userName = isAnon ? 'Hi Friend' : 'You';
+      const entry = {
+        id: 'hi_' + Date.now(),
         currentEmoji: state.current.emoji,
         currentName: state.current.name,
         desiredEmoji: state.desired.emoji,
         desiredName: state.desired.name,
-        journal: journal.value.trim(),
-        isAnonymous: document.getElementById('anon').checked,
+        text,
+        isAnonymous: isAnon,
+        userName,
+        location: (locationInput.value || '').trim(),
         createdAt: new Date().toISOString()
       };
+
+      // Always archive privately
       try {
-        localStorage.setItem('hi_staged_share', JSON.stringify(payload));
-        toastShow('Saved — we’ll light up Hi Island next step');
-        setTimeout(()=> window.location.href = 'hi-island.html', 800);
-      } catch(e){
-        alert('Could not save locally. We will wire the database next.');
+        const keyA = 'hi_my_archive';
+        const arrA = JSON.parse(localStorage.getItem(keyA) || '[]');
+        arrA.unshift(entry);
+        localStorage.setItem(keyA, JSON.stringify(arrA));
+      } catch(e){ console.warn('archive save failed', e); }
+
+      // Optionally publish to General Shares (for preview until DB wiring)
+      if (toIsland) {
+        try {
+          const keyG = 'hi_general_shares';
+          const arrG = JSON.parse(localStorage.getItem(keyG) || '[]');
+          arrG.unshift(entry);
+          localStorage.setItem(keyG, JSON.stringify(arrG));
+        } catch(e){ console.warn('general save failed', e); }
       }
+
+      // Persist a tiny "last drop" for confetti ideas later
+      try { localStorage.setItem('hi_last_drop', entry.id); } catch {}
+
+      closeSheet();
+      toastShow('Hi dropped ✨');
+      setTimeout(()=> window.location.href = 'hi-island.html', 700);
     });
 
     journal.addEventListener('input', () => {
@@ -318,6 +453,9 @@
     renderGrid();
     validate();
     if (state.current && state.desired) setStep(3); else if (state.current) setStep(2); else setStep(1);
+    // defaults
+    setSwitch(togglePublic, true);
+    setSwitch(toggleAnon, false);
   })();
   </script>
 </body>
