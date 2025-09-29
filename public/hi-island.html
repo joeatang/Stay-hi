@@ -2,133 +2,188 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Hi Island</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Hi Island — Stay Hi</title>
   <link rel="stylesheet" href="assets/create-parity.css" />
   <style>
-    body { background:#FFFDF9; }
-    .wrap { max-width:1100px; margin:0 auto; padding:20px 20px 80px; }
-    .page-title { text-align:center; color:#F5A623; font-weight:800; font-size:clamp(28px,4.5vw,40px); margin:12px 0 18px; }
-    /* tabs */
-    .tabs { display:flex; gap:6px; overflow-x:auto; border-bottom:1px solid #e5e5e5; padding-bottom:6px; }
-    .tab { white-space:nowrap; padding:10px 14px; font-weight:700; border-bottom:2px solid transparent; color:#666; }
-    .tab[aria-selected="true"] { color:#F5A623; border-color:#F5A623; }
-    /* panels */
-    .panel { margin-top:18px; }
-    .card { background:#fff; border:1px solid #eee; border-radius:14px; box-shadow:0 6px 16px rgba(0,0,0,.04); }
-    .card.pad { padding:16px; }
-    /* map shell (your existing map script will take over this node) */
-    #hi-map { position:relative; width:100%; aspect-ratio:2/1; border-radius:14px; overflow:hidden; }
-    /* lists */
-    .list { display:grid; gap:12px; }
-    .row { background:#fff; border:1px solid #eee; border-radius:12px; padding:12px; }
-    .row .meta { color:#777; font-size:12px; }
-    .row .text { color:#111; font-size:15px; line-height:1.45; }
-    .pill { display:inline-flex; align-items:center; gap:6px; padding:4px 9px; border-radius:999px; border:1px solid #eee; background:#fff; font-size:12px; color:#444; }
-    .grid-2 { display:grid; grid-template-columns: 1fr; gap:12px; }
-    @media (min-width:720px){ .grid-2 { grid-template-columns: 1fr 1fr; } }
-    .btnbar { display:flex; gap:12px; justify-content:center; margin-top:18px; }
-    .btn { background:#006400; color:#fff; border:none; border-radius:10px; padding:10px 16px; font-weight:700; }
-    .empty { text-align:center; color:#7a7a7a; padding:20px 12px; }
-    /* small helper badges */
-    .emo { font-size:22px; line-height:1; }
+    /* Layout & page chrome */
+    body { background: #FFFDF9; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 24px 20px 80px; }
+    h1.title { text-align:center; font-weight:800; color:#F5A623; margin: 6px 0 18px; }
+
+    /* Tabs */
+    .tabs { display:flex; gap:6px; overflow-x:auto; border-bottom:1px solid #e8e8e8; margin-bottom:16px; }
+    .tab { padding:12px 14px; font-weight:700; white-space:nowrap; border-bottom:2px solid transparent; color:#666; }
+    .tab.active { color:#F5A623; border-color:#F5A623; }
+    .tab:hover { color:#F5A623; }
+
+    /* Map panel (uses your existing map from assets/island.js) */
+    .panel { background:#fff; border:1px solid #eee; border-radius:14px; box-shadow:0 1px 8px rgba(0,0,0,.04); }
+    .map-panel { position:relative; overflow:hidden; }
+    .map-head { padding:14px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #f0f0f0; }
+    .map-body { height: min(56vw, 520px); } /* responsive height */
+    @media (max-width:520px){ .map-body{ height: 58vw; } }
+
+    /* Feed */
+    .feed { margin-top:14px; }
+    .card { background:#fff; border:1px solid #eee; border-radius:14px; padding:14px; margin-bottom:10px; box-shadow:0 1px 8px rgba(0,0,0,.04); }
+    .card .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .chip { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:#fafafa; border:1px solid #eee; font-size:13px; }
+    .dot { width:8px; height:8px; border-radius:50%; background:#0a5; display:inline-block }
+    .meta { margin-left:auto; color:#777; font-size:12px; }
+    .text { margin-top:8px; color:#111; line-height:1.5; font-size:15px; }
+    .empty { text-align:center; color:#8a8a8a; padding:26px 12px; }
+
+    /* Utilities */
+    .actions { display:flex; gap:10px; justify-content:center; margin-top:16px; }
+    .btn { background:#006400; color:#fff; padding:10px 14px; border-radius:10px; font-weight:700; }
+    .btn:hover { transform: translateY(-1px); }
   </style>
 </head>
 <body>
+  <!-- Shared header is injected by assets/header.js -->
 
-  <!-- shared header placeholder -->
-  <header id="app-header"></header>
-
-  <main class="wrap" id="page">
-    <!-- top bar: home / logo / profile -->
-    <div style="display:flex; align-items:center; justify-content:space-between; margin:8px 0 6px;">
-      <a href="/" class="a">← Home</a>
-      <img src="https://ucarecdn.com/4233fafa-2eee-45bf-bee2-eb6578070c5b/-/format/auto/" alt="Stay Hi" style="width:86px; height:auto;" />
-      <a href="/profile.html" class="a">Profile</a>
+  <main class="wrap" id="top">
+    <!-- Back/Home + Profile row -->
+    <div class="row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+      <a href="/" class="link">← Home</a>
+      <img src="https://ucarecdn.com/4233fafa-2eee-45bf-bee2-eb6578070c5b/-/format/auto/" alt="Stay Hi" style="width:88px; height:auto;">
+      <a href="/profile.html" class="link">Profile</a>
     </div>
 
-    <h1 class="page-title">Hi Island 🌎</h1>
+    <h1 class="title">Hi Island 🌎</h1>
 
-    <!-- tabs -->
-    <nav class="tabs" role="tablist" aria-label="Hi Island sections">
-      <button class="tab" role="tab" id="tab-general"   aria-controls="panel-general"   aria-selected="true">General Shares</button>
-      <button class="tab" role="tab" id="tab-archive"   aria-controls="panel-archive"   aria-selected="false">My Archive</button>
-      <button class="tab" role="tab" id="tab-trends"    aria-controls="panel-trends"    aria-selected="false">Emotional Trend</button>
-      <button class="tab" role="tab" id="tab-milestones"aria-controls="panel-milestones"aria-selected="false">Points Milestones</button>
-      <button class="tab" role="tab" id="tab-hishow"    aria-controls="panel-hishow"    aria-selected="false">Hi Show Shares</button>
-    </nav>
+    <!-- Tabs (visual only for now) -->
+    <div class="tabs" role="tablist" aria-label="Hi Island sections">
+      <button class="tab active" role="tab" aria-selected="true">General Shares</button>
+      <button class="tab" role="tab" aria-selected="false" onclick="location.href='#archive'">My Archive</button>
+      <button class="tab" role="tab" aria-selected="false" onclick="location.href='#trends'">Emotional Trend</button>
+      <button class="tab" role="tab" aria-selected="false" onclick="location.href='#milestones'">Points Milestones</button>
+      <button class="tab" role="tab" aria-selected="false" onclick="location.href='#hishow'">Hi Show Shares</button>
+    </div>
 
-    <!-- panels -->
-    <section class="panel" id="panel-general" role="tabpanel" aria-labelledby="tab-general">
-      <div class="card pad" style="margin-bottom:14px;">
-        <h3 style="margin:0 0 6px; font-size:20px;">General Shares</h3>
-        <div style="color:#666; margin-bottom:8px;">Live emoji map showing Hi submissions around the world</div>
-        <div id="hi-map" class="card"></div>
+    <!-- Map panel (uses your existing map code) -->
+    <section class="panel map-panel" aria-labelledby="generalHead">
+      <div class="map-head">
+        <div>
+          <div id="generalHead" style="font-weight:800; color:#111;">General Shares</div>
+          <div style="color:#666; font-size:13px;">Live pins from submissions around the world</div>
+        </div>
+        <div class="chip"><span class="dot"></span> live</div>
       </div>
-
-      <div id="generalList" class="list"></div>
-      <div id="generalEmpty" class="empty" style="display:none;">No general shares yet. Share your Hi journey!</div>
+      <div class="map-body" id="hiMap"></div>
     </section>
 
-    <section class="panel" id="panel-archive" hidden role="tabpanel" aria-labelledby="tab-archive">
-      <h3 style="margin:0 0 10px; font-size:20px;">My Archive</h3>
-      <div id="archiveList" class="list"></div>
-      <div id="archiveEmpty" class="empty" style="display:none;">No entries yet. Start building your Hi muscle!</div>
+    <!-- Vertical feed under the map -->
+    <section class="feed" id="feed">
+      <div class="empty" id="feedEmpty">Loading general shares…</div>
     </section>
 
-    <section class="panel" id="panel-trends" hidden role="tabpanel" aria-labelledby="tab-trends">
-      <h3 style="margin:0 10px 10px 0; font-size:20px;">Emotional Trend</h3>
-      <div class="card pad" style="text-align:center; color:#666; margin-bottom:12px;">
-        <div style="font-size:38px; margin-bottom:6px;">📊</div>
-        <div style="font-weight:700;">Emotional Trends Bar Graph</div>
-        <div style="font-size:12px; opacity:.8;">Chart visualization coming soon</div>
-      </div>
-      <div id="trendList" class="list"></div>
-      <div id="trendEmpty" class="empty" style="display:none;">No emotional trend data yet. Keep building your Hi muscle!</div>
-    </section>
-
-    <section class="panel" id="panel-milestones" hidden role="tabpanel" aria-labelledby="tab-milestones">
-      <h3 style="margin:0 0 10px; font-size:20px;">Points Milestones</h3>
-      <div id="milestoneList" class="list grid-2"></div>
-      <div id="milestoneEmpty" class="empty" style="display:none;">Milestones will appear as you Stay Hi ✨</div>
-    </section>
-
-    <section class="panel" id="panel-hishow" hidden role="tabpanel" aria-labelledby="tab-hishow">
-      <h3 style="margin:0 0 10px; font-size:20px;">Hi Show Shares</h3>
-      <div id="hishowList" class="list"></div>
-      <div id="hishowEmpty" class="empty" style="display:none;">No Hi Show shares yet. Be the first to get your squeeze!</div>
-    </section>
-
-    <div class="btnbar">
-      <a href="hi-muscle.html"><button class="btn">Build Hi Muscle</button></a>
-      <a href="index.html"><button class="btn">Back to Home</button></a>
+    <div class="actions">
+      <a class="btn" href="hi-muscle.html">Build Hi Muscle</a>
+      <a class="btn" href="index.html">Back to Home</a>
     </div>
   </main>
 
-  <!-- shared header + your existing map script -->
-  <script src="assets/header.js" defer></script>
-  <script src="assets/island.js" defer></script>
+  <!-- Your island map script (keeps current look/feel). It should read #hiMap. -->
+  <script src="island.js" defer></script>
 
-  <!-- page logic -->
   <script>
-  (function(){
-    /* ---------- tabs ---------- */
-    const tabs = [
-      {id:'general'}, {id:'archive'}, {id:'trends'}, {id:'milestones'}, {id:'hishow'}
-    ];
-    tabs.forEach(t => {
-      const btn = document.getElementById('tab-'+t.id);
-      const panel = document.getElementById('panel-'+t.id);
-      btn.addEventListener('click', () => {
-        tabs.forEach(x => {
-          document.getElementById('tab-'+x.id).setAttribute('aria-selected', String(x.id===t.id));
-          document.getElementById('panel-'+x.id).hidden = x.id!==t.id;
-        });
-        window.scrollTo({top:0, behavior:'smooth'});
-      });
-    });
+    // ---------- small helpers ----------
+    const tryJSON = async (res) => {
+      const text = await res.text();
+      try { return JSON.parse(text); } catch { return text; }
+    };
+    const fmtDate = (d) => {
+      const dt = new Date(d);
+      if (isNaN(dt)) return '';
+      return dt.toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' });
+    };
+    const nameFor = (emoji) => {
+      // simple friendly labels; can be replaced by a richer map later
+      const m = { '😀':'Happy','😊':'Joyful','💪':'Confident','🙏':'Grateful','😌':'Calm','🎯':'Focused',
+                  '😴':'Tired','😟':'Stressed','😢':'Sad','🙂':'Content','⚖️':'Balanced' };
+      return m[emoji] || '';
+    };
 
-    /* ---------- helpers ---------- */
-    const byId = id => document.getElementById(id);
-    const safeJSON = async (res) => { try { return await res.json(); } catch { return null; } };
-    const ok = v => Array.isArray(v) ?
+    // Normalize different API payload shapes into a simple array
+    const normalizeShares = (json) => {
+      if (!json) return [];
+      if (Array.isArray(json)) return json;
+      if (Array.isArray(json.shares)) return json.shares;
+      if (Array.isArray(json.data)) return json.data;
+      return [];
+    };
+
+    // ---------- fetch general shares (robust to a few backends) ----------
+    async function loadGeneralShares() {
+      const attempts = [
+        () => fetch('/api/general-shares'),
+        () => fetch('/api/general-shares', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'list'}) }),
+        () => fetch('/api/shares', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'general.list'}) }),
+        () => fetch('/api/shares', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'list'}) }),
+      ];
+      for (const attempt of attempts) {
+        try {
+          const res = await attempt();
+          if (!res.ok) continue;
+          const json = await tryJSON(res);
+          const list = normalizeShares(json);
+          if (list.length) return list;
+        } catch {}
+      }
+      return [];
+    }
+
+    // ---------- render feed ----------
+    function renderFeed(items) {
+      const feed = document.getElementById('feed');
+      const empty = document.getElementById('feedEmpty');
+      feed.innerHTML = '';
+      if (!items.length) {
+        empty.textContent = 'No general shares yet. Share your Hi journey!';
+        feed.appendChild(empty);
+        return;
+      }
+      items.forEach((share, i) => {
+        const currentEmoji = share.currentEmoji || share.current_emoji || '👋';
+        const desiredEmoji = share.desiredEmoji || share.desired_emoji || '✨';
+        const text = share.text || share.text_content || share.hi_of_day || '';
+        const ts = share.timestamp || share.created_at || share.createdAt;
+        const userName = (share.isAnonymous || share.is_anonymous) ? 'Anonymous' :
+                         (share.userName || share.user_name || 'Hi Friend');
+        const loc = share.location || share.country || 'Somewhere';
+
+        const el = document.createElement('article');
+        el.className = 'card';
+        el.innerHTML = `
+          <div class="row">
+            <span class="chip"><span class="text-2xl">${currentEmoji}</span><span>${nameFor(currentEmoji)}</span></span>
+            <span style="color:#bbb;">→</span>
+            <span class="chip"><span class="text-2xl">${desiredEmoji}</span><span>${nameFor(desiredEmoji)}</span></span>
+            <div class="meta">${userName} • ${loc} • ${fmtDate(ts)}</div>
+          </div>
+          ${text ? `<div class="text">${text}</div>` : ''}
+        `;
+        feed.appendChild(el);
+      });
+    }
+
+    // ---------- boot ----------
+    (async () => {
+      // 1) map bootstrap – if your island.js exposes a boot function, call it
+      //    Otherwise it just reads #hiMap on load and we don't need to do anything.
+      if (window.HiIsland && typeof window.HiIsland.init === 'function') {
+        try { window.HiIsland.init('#hiMap'); } catch {}
+      }
+
+      // 2) load + render feed
+      const items = await loadGeneralShares();
+      renderFeed(items);
+    })();
+  </script>
+
+  <!-- Shared header/footer injection -->
+  <script src="assets/header.js" defer></script>
+</body>
+</html>
