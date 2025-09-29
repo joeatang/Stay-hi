@@ -1,192 +1,245 @@
-<link rel="stylesheet" href="assets/theme.css"/>
-
-
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Hi Island — Stay Hi</title>
-  <link rel="stylesheet" href="assets/create-parity.css" />
+
+  <!-- Brand + shared UI -->
+  <link rel="stylesheet" href="assets/theme.css"/>
+  <link rel="stylesheet" href="assets/create-parity.css"/>
+
   <style>
-    /* Layout & page chrome */
-    body { background: #FFFDF9; }
-    .wrap { max-width: 1120px; margin: 0 auto; padding: 24px 20px 80px; }
-    h1.title { text-align:center; font-weight:800; color:#F5A623; margin: 6px 0 18px; }
+    body{ background: var(--hi-bg); }
+    .wrap{ max-width: 1040px; margin: 0 auto; padding: 16px; }
+
+    /* Top banner map (placeholder for now) */
+    .mapwrap{
+      position: relative; overflow: hidden; border-radius: 18px;
+      border: 1px solid var(--hi-border); box-shadow: var(--shadow);
+      background: radial-gradient(1200px 600px at 50% -220px, rgba(255, 210, 140, .5) 0%, rgba(255, 210, 140, 0) 60%), var(--grad-sunrise);
+      min-height: 180px;
+      display: grid; place-items: center;
+      color: #241203;
+    }
+    .mapwrap .title{ font-size: var(--fs-h1); font-weight: 900; text-shadow: 0 1px 0 #ffffff80; }
+    .mapwrap .sub{ font-size: .95rem; color: #3d2a16; }
 
     /* Tabs */
-    .tabs { display:flex; gap:6px; overflow-x:auto; border-bottom:1px solid #e8e8e8; margin-bottom:16px; }
-    .tab { padding:12px 14px; font-weight:700; white-space:nowrap; border-bottom:2px solid transparent; color:#666; }
-    .tab.active { color:#F5A623; border-color:#F5A623; }
-    .tab:hover { color:#F5A623; }
+    .tabs{ display:flex; gap:6px; overflow:auto; border-bottom:1px solid var(--hi-border); padding-bottom:6px; margin:12px 0; }
+    .tab{ white-space:nowrap; padding:8px 12px; border-radius:999px; border:1px solid var(--hi-border); background:#fff; font-weight:700; color:#333; cursor:pointer }
+    .tab[aria-selected="true"]{ background:#111; color:#fff; border-color:#111 }
 
-    /* Map panel (uses your existing map from assets/island.js) */
-    .panel { background:#fff; border:1px solid #eee; border-radius:14px; box-shadow:0 1px 8px rgba(0,0,0,.04); }
-    .map-panel { position:relative; overflow:hidden; }
-    .map-head { padding:14px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #f0f0f0; }
-    .map-body { height: min(56vw, 520px); } /* responsive height */
-    @media (max-width:520px){ .map-body{ height: 58vw; } }
+    /* Lists */
+    .list{ display:flex; flex-direction:column; gap:10px; }
+    .card{ background:#fff; border:1px solid var(--hi-border); border-radius:16px; padding:14px; box-shadow: var(--shadow); }
+    .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+    .meta{ display:flex; gap:8px; align-items:center; color: var(--hi-muted); font-size: .9rem; }
+    .pill{ display:inline-flex; gap:6px; align-items:center; padding:4px 8px; border-radius:999px; border:1px solid var(--hi-border); background:#fff; font-weight:700; }
+    .emo{ font-size: 18px; }
+    .text{ margin:8px 0 4px; line-height:1.35; }
+    .muted{ color: var(--hi-muted); }
 
-    /* Feed */
-    .feed { margin-top:14px; }
-    .card { background:#fff; border:1px solid #eee; border-radius:14px; padding:14px; margin-bottom:10px; box-shadow:0 1px 8px rgba(0,0,0,.04); }
-    .card .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    .chip { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:#fafafa; border:1px solid #eee; font-size:13px; }
-    .dot { width:8px; height:8px; border-radius:50%; background:#0a5; display:inline-block }
-    .meta { margin-left:auto; color:#777; font-size:12px; }
-    .text { margin-top:8px; color:#111; line-height:1.5; font-size:15px; }
-    .empty { text-align:center; color:#8a8a8a; padding:26px 12px; }
+    .empty{ text-align:center; padding:20px; color: var(--hi-muted); }
+    .section{ display:none }
+    .section[aria-hidden="false"]{ display:block }
 
-    /* Utilities */
-    .actions { display:flex; gap:10px; justify-content:center; margin-top:16px; }
-    .btn { background:#006400; color:#fff; padding:10px 14px; border-radius:10px; font-weight:700; }
-    .btn:hover { transform: translateY(-1px); }
+    /* Right rail (optional later); keep simple for now */
+    @media (min-width: 920px){
+      .grid2{ display:grid; grid-template-columns: 1.6fr .8fr; gap:16px; }
+    }
   </style>
 </head>
-<body>
-  <!-- Shared header is injected by assets/header.js -->
+<body data-tab="island">
+  <!-- Shared header -->
+  <header id="app-header" class="header"></header>
 
-  <main class="wrap" id="top">
-    <!-- Back/Home + Profile row -->
-    <div class="row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-      <a href="/" class="link">← Home</a>
-      <img src="https://ucarecdn.com/4233fafa-2eee-45bf-bee2-eb6578070c5b/-/format/auto/" alt="Stay Hi" style="width:88px; height:auto;">
-      <a href="/profile.html" class="link">Profile</a>
-    </div>
-
-    <h1 class="title">Hi Island 🌎</h1>
-
-    <!-- Tabs (visual only for now) -->
-    <div class="tabs" role="tablist" aria-label="Hi Island sections">
-      <button class="tab active" role="tab" aria-selected="true">General Shares</button>
-      <button class="tab" role="tab" aria-selected="false" onclick="location.href='#archive'">My Archive</button>
-      <button class="tab" role="tab" aria-selected="false" onclick="location.href='#trends'">Emotional Trend</button>
-      <button class="tab" role="tab" aria-selected="false" onclick="location.href='#milestones'">Points Milestones</button>
-      <button class="tab" role="tab" aria-selected="false" onclick="location.href='#hishow'">Hi Show Shares</button>
-    </div>
-
-    <!-- Map panel (uses your existing map code) -->
-    <section class="panel map-panel" aria-labelledby="generalHead">
-      <div class="map-head">
-        <div>
-          <div id="generalHead" style="font-weight:800; color:#111;">General Shares</div>
-          <div style="color:#666; font-size:13px;">Live pins from submissions around the world</div>
-        </div>
-        <div class="chip"><span class="dot"></span> live</div>
+  <main class="wrap">
+    <!-- Map / hero -->
+    <section class="mapwrap" aria-label="Hi Island – world map">
+      <div style="text-align:center">
+        <div class="title">Hi Island</div>
+        <div class="sub">A gentle stream of Hi Shares from around the world</div>
       </div>
-      <div class="map-body" id="hiMap"></div>
     </section>
 
-    <!-- Vertical feed under the map -->
-    <section class="feed" id="feed">
-      <div class="empty" id="feedEmpty">Loading general shares…</div>
+    <!-- Tabs -->
+    <nav class="tabs" role="tablist" aria-label="Hi Island tabs">
+      <button class="tab" id="tab-general" role="tab" aria-selected="true" data-target="general">General Shares</button>
+      <button class="tab" id="tab-archive" role="tab" aria-selected="false" data-target="archive">My Archive</button>
+      <button class="tab" id="tab-trends" role="tab" aria-selected="false" data-target="trends">Emotional Trends</button>
+      <button class="tab" id="tab-milestones" role="tab" aria-selected="false" data-target="milestones">Points Milestones</button>
+      <button class="tab" id="tab-show" role="tab" aria-selected="false" data-target="show">Hi Show Shares</button>
+    </nav>
+
+    <!-- Content sections -->
+    <section id="sec-general" class="section" aria-hidden="false" aria-labelledby="tab-general">
+      <div class="row" style="margin:8px 0 12px">
+        <div class="muted">Public feed (latest first). Anonymous posts show as “Hi Friend”.</div>
+        <a class="hi-btn hi-btn--primary" href="hi-muscle.html">Drop a Hi</a>
+      </div>
+      <div id="generalList" class="list" aria-live="polite" aria-busy="true"></div>
     </section>
 
-    <div class="actions">
-      <a class="btn" href="hi-muscle.html">Build Hi Muscle</a>
-      <a class="btn" href="index.html">Back to Home</a>
-    </div>
+    <section id="sec-archive" class="section" aria-hidden="true" aria-labelledby="tab-archive">
+      <div class="row" style="margin:8px 0 12px">
+        <div class="muted">Private to you. Only you can see these entries.</div>
+        <a class="hi-btn hi-btn--ghost" href="hi-muscle.html">Write a new Hi Thought</a>
+      </div>
+      <div id="archiveList" class="list" aria-live="polite" aria-busy="true"></div>
+    </section>
+
+    <!-- Placeholders for future steps -->
+    <section id="sec-trends" class="section" aria-hidden="true" aria-labelledby="tab-trends">
+      <div class="card muted">Emotional Trends coming soon.</div>
+    </section>
+
+    <section id="sec-milestones" class="section" aria-hidden="true" aria-labelledby="tab-milestones">
+      <div class="card muted">Points & Milestones coming soon.</div>
+    </section>
+
+    <section id="sec-show" class="section" aria-hidden="true" aria-labelledby="tab-show">
+      <div class="card muted">Hi Show Shares coming soon.</div>
+    </section>
   </main>
 
-  <!-- Your island map script (keeps current look/feel). It should read #hiMap. -->
-  <script src="island.js" defer></script>
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- Scripts: header → supabase → auth → db → page -->
+  <script src="assets/header.js" defer></script>
+
+  <script src="assets/supabase-init.js"></script>
+  <script src="assets/auth.js"></script>
+  <script src="assets/db.js"></script>
 
   <script>
-    // ---------- small helpers ----------
-    const tryJSON = async (res) => {
-      const text = await res.text();
-      try { return JSON.parse(text); } catch { return text; }
-    };
-    const fmtDate = (d) => {
-      const dt = new Date(d);
-      if (isNaN(dt)) return '';
-      return dt.toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' });
-    };
-    const nameFor = (emoji) => {
-      // simple friendly labels; can be replaced by a richer map later
-      const m = { '😀':'Happy','😊':'Joyful','💪':'Confident','🙏':'Grateful','😌':'Calm','🎯':'Focused',
-                  '😴':'Tired','😟':'Stressed','😢':'Sad','🙂':'Content','⚖️':'Balanced' };
-      return m[emoji] || '';
-    };
+    (async function(){
+      // You can gate this page if you want; for now, let signed-out users view public feed.
+      try { await hiAuth.ensureSessionMaybe?.(); } catch {}
 
-    // Normalize different API payload shapes into a simple array
-    const normalizeShares = (json) => {
-      if (!json) return [];
-      if (Array.isArray(json)) return json;
-      if (Array.isArray(json.shares)) return json.shares;
-      if (Array.isArray(json.data)) return json.data;
-      return [];
-    };
+      const toastEl = document.getElementById('toast');
+      const generalList = document.getElementById('generalList');
+      const archiveList = document.getElementById('archiveList');
 
-    // ---------- fetch general shares (robust to a few backends) ----------
-    async function loadGeneralShares() {
-      const attempts = [
-        () => fetch('/api/general-shares'),
-        () => fetch('/api/general-shares', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'list'}) }),
-        () => fetch('/api/shares', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'general.list'}) }),
-        () => fetch('/api/shares', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action:'list'}) }),
-      ];
-      for (const attempt of attempts) {
-        try {
-          const res = await attempt();
-          if (!res.ok) continue;
-          const json = await tryJSON(res);
-          const list = normalizeShares(json);
-          if (list.length) return list;
-        } catch {}
-      }
-      return [];
-    }
+      function toast(msg, ttl=1600){ toastEl.textContent=msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'), ttl); }
 
-    // ---------- render feed ----------
-    function renderFeed(items) {
-      const feed = document.getElementById('feed');
-      const empty = document.getElementById('feedEmpty');
-      feed.innerHTML = '';
-      if (!items.length) {
-        empty.textContent = 'No general shares yet. Share your Hi journey!';
-        feed.appendChild(empty);
-        return;
-      }
-      items.forEach((share, i) => {
-        const currentEmoji = share.currentEmoji || share.current_emoji || '👋';
-        const desiredEmoji = share.desiredEmoji || share.desired_emoji || '✨';
-        const text = share.text || share.text_content || share.hi_of_day || '';
-        const ts = share.timestamp || share.created_at || share.createdAt;
-        const userName = (share.isAnonymous || share.is_anonymous) ? 'Anonymous' :
-                         (share.userName || share.user_name || 'Hi Friend');
-        const loc = share.location || share.country || 'Somewhere';
-
-        const el = document.createElement('article');
-        el.className = 'card';
-        el.innerHTML = `
-          <div class="row">
-            <span class="chip"><span class="text-2xl">${currentEmoji}</span><span>${nameFor(currentEmoji)}</span></span>
-            <span style="color:#bbb;">→</span>
-            <span class="chip"><span class="text-2xl">${desiredEmoji}</span><span>${nameFor(desiredEmoji)}</span></span>
-            <div class="meta">${userName} • ${loc} • ${fmtDate(ts)}</div>
-          </div>
-          ${text ? `<div class="text">${text}</div>` : ''}
-        `;
-        feed.appendChild(el);
+      // Tabs
+      const tabs = document.querySelectorAll('.tab');
+      const sections = {
+        general: document.getElementById('sec-general'),
+        archive: document.getElementById('sec-archive'),
+        trends: document.getElementById('sec-trends'),
+        milestones: document.getElementById('sec-milestones'),
+        show: document.getElementById('sec-show')
+      };
+      tabs.forEach(t => {
+        t.addEventListener('click', () => {
+          tabs.forEach(x => x.setAttribute('aria-selected','false'));
+          t.setAttribute('aria-selected','true');
+          const target = t.dataset.target;
+          Object.entries(sections).forEach(([key,sec]) => sec.setAttribute('aria-hidden', key===target? 'false':'true'));
+          // lazy load My Archive when tab becomes active
+          if (target === 'archive' && !archiveList.dataset.loaded) {
+            loadArchive();
+          }
+        });
       });
-    }
 
-    // ---------- boot ----------
-    (async () => {
-      // 1) map bootstrap – if your island.js exposes a boot function, call it
-      //    Otherwise it just reads #hiMap on load and we don't need to do anything.
-      if (window.HiIsland && typeof window.HiIsland.init === 'function') {
-        try { window.HiIsland.init('#hiMap'); } catch {}
+      // Render helpers
+      function fmtDate(iso){
+        try { return new Date(iso).toLocaleString([], { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }); }
+        catch { return ''; }
+      }
+      function el(tag, attrs={}, html=''){
+        const n = document.createElement(tag);
+        for (const [k,v] of Object.entries(attrs)){ if(k==='class') n.className=v; else n.setAttribute(k,v); }
+        n.innerHTML = html;
+        return n;
       }
 
-      // 2) load + render feed
-      const items = await loadGeneralShares();
-      renderFeed(items);
+      function renderGeneral(list){
+        generalList.innerHTML = '';
+        if (!list?.length){
+          generalList.appendChild(el('div', {class:'empty'}, 'No public shares yet. Be the first to drop a Hi ✨'));
+          generalList.setAttribute('aria-busy','false');
+          return;
+        }
+        for (const it of list){
+          const head = el('div', {class:'meta'},
+            `<span class="emo">${it.currentEmoji}</span>
+             <span>→</span>
+             <span class="emo">${it.desiredEmoji}</span>
+             <span class="pill">${it.isAnonymous ? 'Hi Friend' : (it.userName || 'You')}</span>
+             ${it.location ? `<span class="pill" title="Location">📍 ${it.location}</span>` : ''}
+             <span class="muted">${fmtDate(it.createdAt)}</span>`
+          );
+          const text = el('div', {class:'text'}, it.text);
+          const card = el('div', {class:'card'});
+          card.appendChild(head);
+          card.appendChild(text);
+          generalList.appendChild(card);
+        }
+        generalList.setAttribute('aria-busy','false');
+      }
+
+      function renderArchive(list){
+        archiveList.innerHTML = '';
+        if (!list?.length){
+          archiveList.appendChild(el('div', {class:'empty'}, 'Your archive is empty. Write a Hi Thought and it will appear here.'));
+          archiveList.setAttribute('aria-busy','false');
+          return;
+        }
+        for (const it of list){
+          const head = el('div', {class:'meta'},
+            `<span class="emo">${it.currentEmoji}</span>
+             <span>→</span>
+             <span class="emo">${it.desiredEmoji}</span>
+             ${it.location ? `<span class="pill">📍 ${it.location}</span>` : ''}
+             <span class="muted">${fmtDate(it.createdAt)}</span>`
+          );
+          const text = el('div', {class:'text'}, it.journalEntry);
+          const card = el('div', {class:'card'});
+          card.appendChild(head);
+          card.appendChild(text);
+          archiveList.appendChild(card);
+        }
+        archiveList.setAttribute('aria-busy','false');
+      }
+
+      // Data loads (DB → local fallback handled inside hiDB)
+      async function loadGeneral(){
+        try{
+          generalList.setAttribute('aria-busy','true');
+          const list = await window.hiDB.fetchPublicShares({ limit: 100 });
+          renderGeneral(list);
+        }catch(e){
+          renderGeneral([]);
+          console.warn('general load error', e);
+          toast('Could not load public shares. Showing local items if any.');
+        }
+      }
+      async function loadArchive(){
+        try{
+          archiveList.setAttribute('aria-busy','true');
+          const mine = await window.hiDB.fetchMyArchive({ limit: 200 });
+          renderArchive(mine);
+          archiveList.dataset.loaded = '1';
+        }catch(e){
+          renderArchive([]);
+          console.warn('archive load error', e);
+          toast('Could not load your archive. Showing local items if any.');
+        }
+      }
+
+      // Initial load
+      loadGeneral();
+      // Archive loads on first tab click; uncomment to eager-load:
+      // loadArchive();
+
+      // Try to sync any queued writes (e.g., from offline “Drop Hi”)
+      try { await window.hiDB.syncPending(); } catch {}
     })();
   </script>
-
-  <!-- Shared header/footer injection -->
-  <script src="assets/header.js" defer></script>
 </body>
 </html>
