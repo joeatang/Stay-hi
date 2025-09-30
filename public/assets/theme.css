@@ -61,9 +61,7 @@
 /* -------------------------
    2) Base / resets
    ------------------------- */
-html, body {
-  height: 100%;
-}
+html, body { height: 100%; }
 body {
   background: var(--hi-bg);
   color: var(--hi-ink);
@@ -76,11 +74,9 @@ body {
 img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; }
-
-/* Utility wrappers */
 .page-wrap { max-width: 980px; margin: 0 auto; padding: 16px; }
 
-/* Headings */
+/* Headings / text helpers */
 .h1, h1 { font-size: var(--fs-h1); font-weight: 900; margin: 8px 0 6px; }
 .h2, h2 { font-size: var(--fs-h2); font-weight: 800; margin: 10px 0 6px; }
 .subtle   { color: var(--hi-muted); }
@@ -101,18 +97,21 @@ button { font: inherit; }
 .hi-btn--primary{
   color:#fff; background: var(--grad-ember); border-color: transparent;
 }
-.hi-btn--primary:hover{
-  filter: brightness(1.03);
-}
+.hi-btn--primary:hover{ filter: brightness(1.03); }
 
-.hi-btn--green{
-  color:#fff; background: var(--grad-green);
-}
+.hi-btn--green{ color:#fff; background: var(--grad-green); }
 
+/* ✅ Stronger readable ghost style: white bg + black text */
 .hi-btn--ghost{
-  background:#fff; color: var(--hi-ink); border-color: var(--hi-border);
+  background:#fff;
+  color:#000;                 /* was var(--hi-ink) which looked grayish on some screens */
+  border-color:#D1D5DB;       /* a hair darker than --hi-border for contrast */
+}
+.hi-btn--ghost:hover{
+  border-color:#9CA3AF;
 }
 
+/* Link-style button */
 .hi-btn--link{
   padding:0; border:0; background:transparent; color: var(--hi-orange-1); font-weight:800;
 }
@@ -130,7 +129,6 @@ button { font: inherit; }
   background:#fff; border:1px solid var(--hi-border);
   border-radius:999px; padding:8px 12px; font-weight:700;
 }
-
 .hi-chip--selectable{
   cursor:pointer; transition: transform .08s ease, box-shadow .12s ease, border-color .12s ease, background .12s ease;
 }
@@ -183,7 +181,7 @@ button { font: inherit; }
 .bg-ember{ background: var(--grad-ember); color:#1b0f02; }
 .bg-green{ background: var(--grad-green); color:#032b1e; }
 
-/* Panel helper (for index “ready player one” vibe but on brand) */
+/* “Ready Player One” dark panel with ember gradient accents around it */
 .panel{
   background: #0f1024;
   color:#e8ebff;
