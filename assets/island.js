@@ -1,139 +1,173 @@
-// assets/island.js
-// Hi Island: Leaflet world map + two feeds (General & Hi Show)
+// /public/assets/island.js
+// Hi Island — interactive map w/ Leaflet
+// Exposes: window.HiIsland.init(), window.HiIsland.updateMarkers(list)
 
 (function () {
-  const $ = (s) => document.querySelector(s);
+  let map, markers, labelLayer;
+  const PADDING = [20, 20];
 
-  // POST helper
-  const post = (url, body) =>
-    fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body || {}),
-    }).then((r) => r.json());
+  // --- utils ---------------------------------------------------------------
 
-  // header
-  function header(active) {
-    const H = $("#app-header");
-    if (!H) return;
-    H.innerHTML = `
-      <div class="header-inner">
-        <a class="brand" href="/">Stay Hi</a>
-        <nav class="nav">
-          <a href="/hi-island.html" class="${active === "island" ? "active" : ""}">Hi Island</a>
-          <a href="/hi-muscle.html" class="${active === "muscle" ? "active" : ""}">Hi Muscle</a>
-          <a href="/profile.html">Profile</a>
-        </nav>
-        <span style="margin-left:auto"></span>
-        <a href="/signin.html" style="color:#7ce0c5;text-decoration:none">Sign in</a>
+  const debounce = (fn, ms = 200) => {
+    let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+  };
+
+  // Parse "lat,lng" or "lat lon" (numbers)
+  function parseLatLng(str) {
+    if (!str || typeof str !== 'string') return null;
+    const m = str.trim().match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);
+    if (!m) return null;
+    const lat = parseFloat(m[1]), lng = parseFloat(m[2]);
+    if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+      return [lat, lng];
+    }
+    return null;
+  }
+
+  // Deterministic hash → pseudo lat/lng.
+  // Keeps lat within inhabited band and spreads lng worldwide.
+  function hashToLatLng(text) {
+    const s = String(text || '');
+    // simple 32-bit hash
+    let h = 2166136261 >>> 0;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    // lat: -60..72 (avoid poles), lng: -180..180
+    const lat = -60 + (h % 132); // 132° span
+    const lng = -180 + ((h >>> 8) % 360);
+    // small variance so same city across different posts clusters but not identical
+    const jitter = ((h >>> 16) & 0xff) / 255 - 0.5;
+    return [lat + jitter * 1.2, lng + jitter * 1.2];
+  }
+
+  function makeIcon(emojiA = '👋', emojiB = '') {
+    const html = `
+      <div style="
+        display:grid;place-items:center;
+        width:34px;height:34px;border-radius:50%;
+        border:1px solid #ffffffaa;background:#fff;
+        box-shadow:0 8px 18px rgba(0,0,0,.18)">
+        <div style="font-size:18px;line-height:1">${emojiB || emojiA}</div>
+      </div>`;
+    return L.divIcon({ className: 'hi-pin', html, iconSize: [34, 34], iconAnchor: [17, 17] });
+  }
+
+  function popupHtml(item) {
+    const user = item.isAnonymous ? 'Hi Friend' : (item.userName || 'You');
+    const loc  = item.location ? `<div style="opacity:.75">📍 ${escapeHtml(item.location)}</div>` : '';
+    const text = item.text || item.journalEntry || '';
+    const body = escapeHtml(text);
+    return `
+      <div style="min-width:200px">
+        <div style="display:flex;align-items:center;gap:8px;font-weight:800;margin-bottom:4px">
+          <span>${escapeHtml(item.currentEmoji || '🙂')}</span>
+          <span>→</span>
+          <span>${escapeHtml(item.desiredEmoji || '😊')}</span>
+          <span style="margin-left:auto;border:1px solid #e5e7eb;border-radius:999px;padding:2px 8px;font-weight:700;background:#fff">${escapeHtml(user)}</span>
+        </div>
+        ${loc}
+        <div style="margin-top:6px;line-height:1.35">${body}</div>
       </div>`;
   }
 
   function escapeHtml(s) {
-    return String(s || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
+    return String(s ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
-  function renderList(rootSel, items) {
-    const root = $(rootSel);
-    if (!root) return;
-    if (!items || !items.length) {
-      root.innerHTML = `<div class="toast">No shares yet.</div>`;
+  // --- API ----------------------------------------------------------------
+
+  function init() {
+    if (typeof L === 'undefined') {
+      console.warn('[HiIsland] Leaflet not loaded');
       return;
     }
-    root.innerHTML = items
-      .map((it) => {
-        const when = it.created_at ? new Date(it.created_at).toLocaleString() : "";
-        const who = escapeHtml(it.user || "Someone");
-        const text = escapeHtml(it.text || "");
-        return `
-          <div class="panel" style="padding:12px 14px;margin:0">
-            <span style="background:#ffffff15;border:1px solid #242643;border-radius:999px;padding:4px 10px;margin-right:8px">
-              ${who}
-            </span>
-            <span>${text}</span>
-            <time style="float:right;color:#aeb1cc">${when}</time>
-          </div>`;
-      })
-      .join("");
-  }
+    const el = document.getElementById('globe');
+    if (!el) {
+      console.warn('[HiIsland] #globe element not found');
+      return;
+    }
 
-  // ---- Map bits (Leaflet) ----
-  let map, markers;
+    // Create map
+    map = L.map(el, {
+      worldCopyJump: true,
+      zoomControl: false,
+      attributionControl: false
+    }).setView([20, 0], 2);
 
-  function initMap() {
-    if (map) return;
-    // the map is rendered into the #globe div (already 320px high in the HTML)
-    map = L.map("globe", { worldCopyJump: true }).setView([20, 0], 2);
-
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; OpenStreetMap contributors',
+    // Base tiles (Carto light, no labels)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+      subdomains: 'abcd',
       maxZoom: 19
     }).addTo(map);
 
+    // Labels overlay (stays crisp and subtle)
+    labelLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
+      subdomains: 'abcd',
+      maxZoom: 19,
+      pane: 'overlayPane'
+    }).addTo(map);
+
+    // Marker layer
     markers = L.layerGroup().addTo(map);
+
+    // Fit bounds again on resize
+    window.addEventListener('resize', debounce(() => {
+      try {
+        const b = getCurrentBounds();
+        if (b) map.fitBounds(b, { padding: PADDING });
+      } catch {}
+    }, 250));
+
+    console.debug('[HiIsland] map ready');
   }
 
-  function setPins(items) {
-    if (!markers) return;
+  function updateMarkers(list) {
+    if (!markers || !map) return;
     markers.clearLayers();
-    const pins = (items || []).filter(
-      (it) => typeof it.lat === "number" && typeof it.lng === "number"
-    );
-    pins.forEach((it) => {
-      L.marker([it.lat, it.lng])
-        .addTo(markers)
-        .bindPopup(
-          `<strong>${escapeHtml(it.user || "Someone")}</strong><br>${escapeHtml(
-            it.text || ""
-          )}`
-        );
+
+    if (!Array.isArray(list) || !list.length) return;
+
+    const bounds = [];
+    list.forEach(item => {
+      let latlng = null;
+      if (item.location) {
+        latlng = parseLatLng(item.location);
+      }
+      if (!latlng) {
+        // Stable pseudo-geocode fallback based on whatever info we have
+        const seed = item.location || `${item.currentEmoji || ''}-${item.desiredEmoji || ''}-${item.createdAt || ''}`;
+        latlng = hashToLatLng(seed);
+      }
+
+      const marker = L.marker(latlng, {
+        icon: makeIcon(item.currentEmoji || '🙂', item.desiredEmoji || '')
+      }).addTo(markers);
+
+      marker.bindPopup(popupHtml(item), { closeButton: false });
+      bounds.push(latlng);
     });
-  }
 
-  async function loadFeeds() {
-    let genItems = [], showItems = [];
+    // Fit map to pins (if only one, zoom in a bit)
     try {
-      const gen = await post("/api/shares", { action: "list" });
-      genItems = gen.items || [];
-      renderList("#general-list", genItems);
-    } catch {
-      renderList("#general-list", []);
-    }
-    try {
-      const show = await post("/api/hi-show-shares", { action: "list" });
-      showItems = show.items || [];
-      renderList("#show-list", showItems);
-    } catch {
-      renderList("#show-list", []);
-    }
-
-    // combine any items with lat/lng for pins; fallback to sample pins if none yet
-    let all = [...genItems, ...showItems];
-    const hasPins = all.some((it) => typeof it.lat === "number" && typeof it.lng === "number");
-    if (!hasPins) {
-      all = [
-        { user: "NYC",    text: "Hi from New York!", lat: 40.7128, lng: -74.0060 },
-        { user: "London", text: "Hello 🇬🇧",          lat: 51.5074, lng:  -0.1278 },
-        { user: "Sydney", text: "G'day 🇦🇺",          lat: -33.8688, lng: 151.2093 },
-      ];
-    }
-    setPins(all);
+      if (bounds.length === 1) {
+        map.setView(bounds[0], 4);
+      } else if (bounds.length > 1) {
+        map.fitBounds(bounds, { padding: PADDING });
+      }
+    } catch {}
   }
 
-  async function init() {
-    header("island");
-    initMap();
-    await loadFeeds();
-
-    // refresh buttons
-    const r1 = document.getElementById("refresh-general");
-    const r2 = document.getElementById("refresh-show");
-    r1 && (r1.onclick = loadFeeds);
-    r2 && (r2.onclick = loadFeeds);
+  function getCurrentBounds() {
+    const layers = [];
+    markers.eachLayer(l => { if (l.getLatLng) layers.push(l.getLatLng()); });
+    if (!layers.length) return null;
+    return L.latLngBounds(layers);
   }
 
-  window.HiIsland = { init };
+  // expose
+  window.HiIsland = { init, updateMarkers };
 })();
