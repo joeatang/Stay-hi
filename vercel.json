@@ -1,4 +1,6 @@
 {
+  "framework": "other",
+  "outputDirectory": "public",
   "cleanUrls": true,
   "trailingSlash": false,
   "headers": [
