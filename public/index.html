@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Stay Hi — Today</title>
 
-  <!-- Brand + shared styles -->
   <link rel="stylesheet" href="assets/theme.css"/>
   <link rel="stylesheet" href="assets/create-parity.css"/>
 
@@ -14,27 +13,35 @@
     .stack{display:flex;flex-direction:column;gap:12px}
     .center{display:flex;flex-direction:column;align-items:center}
 
-    /* Rotator strip */
+    /* Rotator */
     .announce{display:flex;align-items:center;gap:10px;justify-content:center;margin:10px auto;padding:8px 10px;border-radius:12px;border:1px solid #23264d;background:#0f1020;color:#e8ebff;max-width:820px}
-    .announce .txt{display:flex;align-items:center;gap:8px;overflow:hidden;white-space:nowrap}
+    .announce .txt{display:flex;align-items:center;gap:8px;flex:1;min-width:0;overflow:hidden}
     .pill{display:inline-flex;align-items:center;background:#111;color:#fff;border-radius:999px;padding:2px 8px;font-weight:900}
     .badge{font-size:.7rem;letter-spacing:.02em}
-    .marquee{display:block;overflow:hidden}
-    .marquee span{display:inline-block;animation:mar 16s linear infinite}
-    @keyframes mar{ 0%{transform:translateX(0)}100%{transform:translateX(-50%)} }
+    .marquee{display:block;white-space:nowrap}
+    .marquee > span{display:inline-block;padding-right:40px}
+    .scroll{display:inline-block;will-change:transform;animation:mar 16s linear infinite}
+    @keyframes mar{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 
     /* Ring / meter */
     .ring{ position:relative; margin:0 auto; width:min(520px,90vw); }
     .ring svg{ width:100%; height:auto; display:block }
     .goal-marker{ position:absolute; inset:0; transform-origin:50% 50%; pointer-events:none }
     .goal-marker i{ position:absolute; left:50%; top:6px; transform:translateX(-50%); width:10px; height:10px; border-radius:50%; background:#F5A623; box-shadow:0 1px 4px #0009 }
-    .ring .centerBtn{
-      position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-      z-index:5; padding:14px 18px; border-radius:999px; font-weight:900;
+
+    /* Center stack inside ring */
+    .ringCenter{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:5; display:flex; flex-direction:column; align-items:center; gap:8px; width:70%; pointer-events:none }
+    .centerBtn{
+      pointer-events:auto;
+      padding:10px 14px; border-radius:999px; font-weight:900;
       border:1px solid var(--hi-border); background:#fff; color:#111;
       box-shadow:0 8px 20px rgba(0,0,0,.12);
     }
-    .burst{ position:absolute; inset:0; pointer-events:none }
+    .timerRead{ font-size:40px; text-align:center; color:#fff; text-shadow:0 2px 8px #000a; backdrop-filter: blur(2px); }
+    @media (min-width:420px){ .timerRead{ font-size:46px } }
+    .subCenter{ font-size:.95rem; color:#e8ebff; text-shadow:0 1px 6px #0009 }
+
+    .burst{ position:absolute; inset:0; pointer-events:none; z-index:4 }
     .burst span{ position:absolute; font-size:26px; will-change:transform,opacity }
     @keyframes waveUp { 0%{ transform:translate(-50%,-50%) scale(var(--s,1)); opacity:.9 }
       100%{ transform:translate(calc(-50% + var(--dx,0px)),-240%) scale(calc(var(--s,1)*.9)); opacity:0 } }
@@ -43,16 +50,14 @@
     .hud .dot{width:10px;height:10px;border-radius:50%}
     .hud .today{background:#22c55e}.hud .goal{background:#f59e0b}
 
-    .timerRead{ font-size:36px; text-align:center }
-    @media (min-width:420px){ .timerRead{ font-size:42px } }
-
     .legend{display:flex;gap:14px;justify-content:center;color:#cfd2ea;font-size:.9rem}
     .legend .sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px}
 
-    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 16px;border-radius:14px;font-weight:900;cursor:pointer;border:1px solid var(--hi-border);background:#fff;color:#111}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 16px;border-radius:14px;font-weight:900;cursor:pointer;border:1px solid var(--hi-border);background:#fff;color:#111;z-index:3;position:relative}
     .btn.primary{background:var(--grad-ember);color:#fff;border-color:transparent}
     .chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-    .chip{display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:999px;font-weight:800;background:#fff;border:1px solid var(--hi-border);color:#111}
+    .chip{display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border-radius:999px;font-weight:800;background:#fff;border:1px solid var(--hi-border);color:#111;z-index:3}
+
     .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#000;color:#fff;padding:10px 14px;border-radius:12px;opacity:0;pointer-events:none;z-index:1000}
     .toast.show{opacity:1;transition:opacity .2s}
 
@@ -70,9 +75,9 @@
 
   <main class="page wrap">
     <!-- Rotator -->
-    <div id="announceWrap" class="announce" style="display:flex">
-      <div id="announceTxt" class="txt">Loading…</div>
-      <button id="announceX" class="btn" style="width:auto;padding:4px 10px">✕</button>
+    <div id="announceWrap" class="announce">
+      <div id="announceTxt" class="txt">…</div>
+      <button id="announceX" class="btn" style="width:auto;padding:4px 10px" type="button">✕</button>
     </div>
 
     <!-- HUD -->
@@ -81,7 +86,7 @@
       &nbsp;&nbsp;<span class="dot goal"></span><span class="lead"><b id="goalLblTop">14m</b> target</span>
     </div>
 
-    <!-- Ring -->
+    <!-- Meter -->
     <section class="panel stack" aria-label="Hi meter">
       <div class="ring" id="ringBox" aria-label="Tap background to send a Hi">
         <svg viewBox="0 0 220 220" aria-hidden="true">
@@ -102,27 +107,30 @@
           <circle id="goalArc" cx="110" cy="110" r="82" stroke="url(#goalGrad)" stroke-width="18" fill="none"
                   stroke-linecap="round" stroke-dasharray="0 1000"/>
         </svg>
-        <button id="hi5Btn" class="centerBtn" type="button">👋 Global Hi-5</button>
+
+        <!-- Center content inside ring -->
+        <div class="ringCenter" aria-hidden="false">
+          <button id="hi5Btn" class="centerBtn" type="button">👋 Global Hi-5</button>
+          <div class="timerRead" id="readout">00:00:00</div>
+          <div class="subCenter">Today <b id="todayLbl">0m</b> • Target <b id="goalLbl">14m</b></div>
+        </div>
+
         <div class="goal-marker" id="goalMarker"><i></i></div>
         <div class="burst" id="burst"></div>
       </div>
 
-      <!-- timer + labels -->
-      <div class="center" style="gap:6px">
-        <div class="timerRead" id="readout">00:00:00</div>
-        <div class="subline">Today <b id="todayLbl">0m</b> • Target <b id="goalLbl">14m</b></div>
-        <div class="legend">
-          <span><span class="sw" style="background:#0aa15a"></span>Day progress</span>
-          <span><span class="sw" style="background:#ffd166"></span>Goal met</span>
-          <span><span class="sw" style="background:#ff7a18"></span>Goal surge</span>
-        </div>
+      <!-- legend -->
+      <div class="legend">
+        <span><span class="sw" style="background:#0aa15a"></span>Day progress</span>
+        <span><span class="sw" style="background:#ffd166"></span>Goal met</span>
+        <span><span class="sw" style="background:#ff7a18"></span>Goal surge</span>
       </div>
 
-      <!-- quick add + actions -->
+      <!-- quick add + action -->
       <div class="chips">
-        <button class="chip" data-add="1">+1 min</button>
-        <button class="chip" data-add="5">+5 min</button>
-        <button class="chip" data-add="10">+10 min</button>
+        <button class="chip" data-add="1"  type="button">+1 min</button>
+        <button class="chip" data-add="5"  type="button">+5 min</button>
+        <button class="chip" data-add="10" type="button">+10 min</button>
       </div>
       <div class="center" style="gap:10px">
         <button id="toggle" class="btn primary" type="button">Stay Hi</button>
@@ -130,7 +138,7 @@
     </section>
   </main>
 
-  <!-- Calendar modal (header icon opens this) -->
+  <!-- Calendar modal -->
   <div id="calWrap" class="calendar-backdrop">
     <div class="calendar" role="dialog" aria-modal="true" aria-labelledby="calLabel">
       <div class="hd">
@@ -168,7 +176,7 @@
 
     /* ---------- state ---------- */
     let goalMin = Number(read(LS.goal, null));
-    if(!goalMin){ goalMin = 14; write(LS.goal, 14); } // enforce 14m default
+    if(!goalMin || goalMin < 1){ goalMin = 14; write(LS.goal, 14); } // enforce 14m default
     let history = read(LS.hist, {});
     let sessionStart = Number(localStorage.getItem(LS.start) || 0) || 0;
     let sessionActive = !!sessionStart;
@@ -204,19 +212,19 @@
     /* ---------- ring render (smooth per second) ---------- */
     function renderRing(){
       const live = liveSec();                 // seconds
-      const todayMin = getTodayMins();        // whole minutes saved
+      const todayMin = getTodayMins();        // saved minutes
       const totalMinFloat = todayMin + (live/60);  // fractional minutes for smooth fill
 
-      // Day arc = fraction of 1440 minutes
+      // Day arc
       const dayP = Math.min(1, totalMinFloat / 1440);
       dayArc.setAttribute('stroke-dasharray', \`\${(dayP*C_DAY).toFixed(2)} \${C_DAY.toFixed(2)}\`);
 
-      // Goal arc = fraction of goal minutes
+      // Goal arc
       const goalP = Math.min(1, totalMinFloat / Math.max(1, goalMin));
       goalArc.setAttribute('stroke-dasharray', \`\${(goalP*C_GOAL).toFixed(2)} \${C_GOAL.toFixed(2)}\`);
       goalArc.setAttribute('stroke', totalMinFloat>=goalMin ? 'url(#goalGradMet)' : 'url(#goalGrad)');
 
-      // marker at goal position relative to day ring (constant)
+      // marker
       const goalDeg = Math.min(360, (goalMin/1440)*360);
       goalMarker.style.transform = \`rotate(\${goalDeg}deg)\`;
 
@@ -277,13 +285,13 @@
 
     /* ---------- calendar ---------- */
     function renderCal(){
-      calLabel.textContent = new Date().toLocaleDateString(undefined,{month:'long',year:'numeric'});
+      const base=new Date(); const first=new Date(base.getFullYear(), base.getMonth(), 1);
+      calLabel.textContent = base.toLocaleDateString(undefined,{month:'long',year:'numeric'});
       calGrid.innerHTML='';
-      const d0=new Date(); d0.setDate(1); d0.setHours(0,0,0,0);
-      const firstWeekday=(d0.getDay()+6)%7;
+      const firstWeekday=(first.getDay()+6)%7;
       for(let i=0;i<firstWeekday;i++){ const d=document.createElement('div'); d.className='cell'; d.style.opacity='.35'; calGrid.appendChild(d); }
-      const d=new Date(d0);
-      while(d.getMonth()===d0.getMonth()){
+      const d=new Date(first);
+      while(d.getMonth()===first.getMonth()){
         const k=todayKey(d); const mins=Number(history[k]||0);
         const cell=document.createElement('div'); cell.className='cell'+(mins>=goalMin?' met':'');
         cell.innerHTML=\`<div>\${d.getDate()}</div><div style="font-size:10px;opacity:.8">\${mins?mins+'m':''}</div>\`;
@@ -294,17 +302,28 @@
     function openCal(){ calWrap.style.display='grid'; renderCal(); }
     function closeCal(){ calWrap.style.display='none'; }
     document.getElementById('calClose').addEventListener('click', closeCal);
-    document.getElementById('calPrev').addEventListener('click', ()=>{ /* optional month nav later */ });
-    document.getElementById('calNext').addEventListener('click', ()=>{ /* optional month nav later */ });
-    window.addEventListener('open-calendar', openCal); // header icon uses this
+    // Optional future month nav:
+    document.getElementById('calPrev').addEventListener('click', ()=>{});
+    document.getElementById('calNext').addEventListener('click', ()=>{});
+    // Header integrations:
+    window.addEventListener('open-calendar', openCal);         // event-based
+    window.HI_OPEN_CAL = openCal;                              // function-based
+    document.addEventListener('click', (e)=>{                  // data attribute fallback
+      const t=e.target.closest('[data-open-calendar]'); if(t){ e.preventDefault(); openCal(); }
+    });
 
     /* ---------- rotator ---------- */
     const wrap = document.getElementById('announceWrap');
     const txt  = document.getElementById('announceTxt');
     const close= document.getElementById('announceX');
+
     function marqueeify(text){
-      const dur = Math.min(22, Math.max(10, text.length/7));
-      txt.innerHTML = \`<span class="pill"><span class="badge">NOTE</span></span><div class="marquee" style="--marquee-dur:\${dur}s"><span>\${text}&nbsp;&nbsp;&nbsp;</span></div>\`;
+      // two copies to make infinite scroll feel right
+      txt.innerHTML = `
+        <span class="pill"><span class="badge">NOTE</span></span>
+        <div class="marquee"><div class="scroll">
+          <span>${text}</span><span>${text}</span>
+        </div></div>`;
     }
     let rotIdx=0, rotT;
     function dataNotes(){
@@ -335,7 +354,6 @@
     setInterval(()=>{ if(sessionActive) renderRing(); }, 1000);
   </script>
 
-  <!-- shared UI -->
   <script src="assets/header.js" defer></script>
   <script src="assets/tabs.js" defer></script>
 </body>
