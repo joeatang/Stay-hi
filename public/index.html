@@ -1,32 +1,50 @@
-<link rel="stylesheet" href="assets/theme.css"/>
-
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Stay Hi — Today</title>
+
+  <!-- Brand + shared styles -->
+  <link rel="stylesheet" href="assets/theme.css"/>
   <link rel="stylesheet" href="assets/create-parity.css"/>
+
   <style>
+    /* page-specific polish */
     .ring{ position:relative; margin:0 auto }
     .ring svg{ width:100%; height:100% }
     .goal-marker{ position:absolute; inset:0; transform-origin:50% 50%; pointer-events:none }
     .goal-marker i{ position:absolute; left:50%; top:6px; transform:translateX(-50%); width:10px; height:10px; border-radius:50%; background:#F5A623; box-shadow:0 1px 4px #0009 }
-    .hud{display:flex;justify-content:center;gap:10px;margin:8px 0}
+
+    .hud{display:flex;justify-content:center;gap:10px;margin:8px 0;flex-wrap:wrap}
     .hud .dot{width:10px;height:10px;border-radius:50%}
     .hud .today{background:#22c55e}.hud .goal{background:#f59e0b}
+
     .burst{ position:absolute; inset:0; pointer-events:none }
     .burst span{ position:absolute; font-size:26px; will-change:transform,opacity }
-    @keyframes waveUp { 0%{ transform:translate(-50%,-50%) scale(var(--s,1)); opacity:.9 }
-      100%{ transform:translate(calc(-50% + var(--dx,0px)),-240%) scale(calc(var(--s,1)*.9)); opacity:0 } }
+    @keyframes waveUp {
+      0%{ transform:translate(-50%,-50%) scale(var(--s,1)); opacity:.9 }
+      100%{ transform:translate(calc(-50% + var(--dx,0px)),-240%) scale(calc(var(--s,1)*.9)); opacity:0 }
+    }
+
     .timerRead{ font-size:36px; }
     @media (min-width:420px){ .timerRead{ font-size:42px; } }
+
     .calendar-backdrop{ position:fixed; inset:0; background:#0009; display:grid; place-items:center; z-index:700 }
     .calendar{ background:#101010; color:#fff; border:1px solid #ffffff1a; border-radius:18px; width:min(720px,92vw); }
     .calendar .hd{ display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid #ffffff1a }
     .calendar .grid7{ display:grid; grid-template-columns:repeat(7,1fr); gap:8px }
     .calendar .cell{ height:66px; border-radius:10px; display:grid; place-items:center; border:1px solid #ffffff1a; background:#ffffff0f }
     .calendar .cell.met{ background:#0a5; border-color:#0a5 }
+
+    /* make our main button styles match theme */
+    .btn { /* map existing .btn to our hi look */
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      padding:10px 14px; border-radius:14px; font-weight:900; cursor:pointer; border:1px solid var(--hi-border);
+      background:#fff; color:#111;
+    }
+    .btn.big{ padding:14px 16px; font-size:1.05rem }
+    .btn.primary{ background: var(--grad-ember); color:#fff; border-color:transparent }
   </style>
 </head>
 <body class="sunrise" data-tab="today">
@@ -39,7 +57,7 @@
   <!-- Announcement rotator (now directly above halo) -->
   <div id="announceWrap" class="announce" style="display:none">
     <div id="announceTxt" class="txt"></div>
-    <button id="announceX" class="x" aria-label="Dismiss">✕</button>
+    <button id="announceX" class="btn" style="width:auto;padding:4px 10px">✕</button>
   </div>
 
   <main class="page">
@@ -63,264 +81,3 @@
             </linearGradient>
           </defs>
           <!-- 24h background/progress -->
-          <circle cx="110" cy="110" r="98" stroke="#1f2748" stroke-width="8" fill="none"/>
-          <circle id="dayArc" cx="110" cy="110" r="98" stroke="#0aa15a" stroke-width="8" fill="none"
-                  stroke-linecap="round" stroke-dasharray="0 1000"/>
-          <!-- Goal track/progress -->
-          <circle cx="110" cy="110" r="82" stroke="#1f2748" stroke-width="18" fill="none"/>
-          <circle id="goalArc" cx="110" cy="110" r="82" stroke="url(#goalGrad)" stroke-width="18" fill="none"
-                  stroke-linecap="round" stroke-dasharray="0 1000"/>
-        </svg>
-        <!-- goal marker -->
-        <div class="goal-marker" id="goalMarker"><i></i></div>
-        <!-- emoji burst -->
-        <div class="burst" id="burst"></div>
-      </div>
-
-      <!-- timer + controls (below ring to keep center clean) -->
-      <div class="text-center" style="margin-top:10px">
-        <div class="timerRead" id="readout">00:00:00</div>
-        <div class="subline">Today <b id="todayLbl">0m</b> • Target <b id="goalLbl">14m</b></div>
-      </div>
-
-      <div class="grid2" style="max-width:520px;margin:10px auto">
-        <div class="card">
-          <label>STARTED</label>
-          <div id="started">—</div>
-        </div>
-        <div class="card">
-          <label>HI SESH TARGET (mins)</label>
-          <input id="goal" type="number" min="1" step="1" value="14" />
-        </div>
-      </div>
-
-      <div style="max-width:520px;margin:0 auto">
-        <button id="toggle" class="btn big">Stay Hi</button>
-      </div>
-    </section>
-  </main>
-
-  <!-- calendar modal -->
-  <div id="calWrap" class="calendar-backdrop" style="display:none">
-    <div class="calendar">
-      <div class="hd">
-        <button id="calPrev" class="btn" style="width:auto;padding:4px 10px">‹</button>
-        <div id="calLabel" class="h1" style="font-size:1.1rem;margin:0"></div>
-        <button id="calNext" class="btn" style="width:auto;padding:4px 10px">›</button>
-      </div>
-      <div style="padding:14px">
-        <div class="grid7" style="margin-bottom:6px;color:#cfd2ea;font-size:12px">
-          <div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div><div>SUN</div>
-        </div>
-        <div id="calGrid" class="grid7"></div>
-        <div style="text-align:right;margin-top:12px">
-          <button id="calClose" class="btn" style="width:auto;padding:8px 12px">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- toast -->
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-  <!-- logic -->
-  <script>
-    const pad2=n=>String(n).padStart(2,'0');
-    const todayKey=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    const weekStartMonday=(d=new Date())=>{const x=new Date(d);const day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(0,0,0,0);return x};
-    function dailyHiNote(date=new Date()){
-      const key=\`\${date.getFullYear()}-\${date.getMonth()}-\${date.getDate()}\`;
-      let h=0; for(let i=0;i<key.length;i++) h=(h*31+key.charCodeAt(i))|0;
-      const pick=arr=>arr[Math.abs(h++%arr.length)];
-      const verbs=["Rise Hi","Shine Hi","Lead with Hi","Start with Hi","Carry your Hi","Breathe Hi","Choose Hi","Stay Hi","Move Hi","Speak Hi","Believe in Hi","Aim Hi","Soar Hi","Flow Hi"];
-      const closers=["— small Hi’s change big days.","and let courage follow.","and watch doors open.","and pass a Hi forward.","and brighten a corner.","and meet the moment.","and lift someone with you.","and let kindness ripple."];
-      return \`\${pick(verbs)} \${pick(closers)}\`;
-    }
-
-    const LS={ goal:"hi.goalMin", hist:"hi.history", start:"hi.sessionStart", gFive:"hi.globalFives", gStart:"hi.globalStarts" };
-    const read=(k,def)=>{ try{ const v=localStorage.getItem(k); return v==null?def:JSON.parse(v) }catch{ return def } };
-    const write=(k,v)=>{ try{ localStorage.setItem(k, JSON.stringify(v)) }catch{} };
-
-    let goalMin = Number(read(LS.goal, 14)) || 14;
-    let history = read(LS.hist, {});
-    let sessionStart = Number(localStorage.getItem(LS.start) || 0) || 0;
-    let sessionActive = !!sessionStart;
-    let gFives  = Number(localStorage.getItem(LS.gFive)  || 0) || 0;
-    let gStarts = Number(localStorage.getItem(LS.gStart) || 0) || 0;
-
-    const ringBox=document.getElementById('ringBox');
-    const readout=document.getElementById('readout');
-    const goalLblTop=document.getElementById('goalLblTop');
-    const goalLbl=document.getElementById('goalLbl');
-    const todayLbl=document.getElementById('todayLbl');
-    const started=document.getElementById('started');
-    const goalInp=document.getElementById('goal');
-    const toggle=document.getElementById('toggle');
-    const burst=document.getElementById('burst');
-    const goalMarker=document.getElementById('goalMarker');
-
-    const dayArc=document.getElementById('dayArc');
-    const goalArc=document.getElementById('goalArc');
-    const R_DAY=98, C_DAY=2*Math.PI*R_DAY;
-    const R_GOAL=82, C_GOAL=2*Math.PI*R_GOAL;
-
-    const toastEl = document.getElementById('toast');
-    function toast(msg, ttl=1800){ toastEl.textContent=msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'), ttl); }
-
-    function getTodayMins(){ return Number(history[todayKey()]||0) }
-    function setTodayMins(m){ history[todayKey()]=m; write(LS.hist, history) }
-    function liveSec(){ return sessionActive ? Math.max(0, Math.floor((Date.now()-sessionStart)/1000)) : 0 }
-    function fmtHMS(sec){ const h=pad2(Math.floor(sec/3600)), m=pad2(Math.floor((sec%3600)/60)), s=pad2(sec%60); return \`\${h}:\${m}:\${s}\` }
-
-    // Week strip
-    function renderWeekStrip(){
-      const wrap=document.getElementById('weekStrip'); wrap.innerHTML='';
-      const start=weekStartMonday(new Date());
-      for(let i=0;i<7;i++){
-        const d=new Date(start); d.setDate(start.getDate()+i);
-        const k=todayKey(d); const done=(history[k]||0)>=goalMin;
-        const lbl=d.toLocaleDateString(undefined,{weekday:'short'}).toUpperCase();
-        const el=document.createElement('div'); el.className='weekdot';
-        el.innerHTML=\`<div class="lbl">\${lbl}</div><div class="c \${done?'met':''}">\${done?'✓':'○'}</div>\`;
-        wrap.appendChild(el);
-      }
-    }
-
-    // Rotator
-    const wrap = document.getElementById('announceWrap');
-    const txt  = document.getElementById('announceTxt');
-    const close= document.getElementById('announceX');
-    let notes = [];
-    let idx = 0; let rotT;
-
-    function marqueeify(text){
-      const dur = Math.min(22, Math.max(10, text.length/7));
-      txt.innerHTML = \`<span class="pill"><span class="badge">NOTE</span></span><div class="marquee" style="--marquee-dur:\${dur}s"><span>\${text}&nbsp;&nbsp;&nbsp;</span></div>\`;
-    }
-
-    function setRot(i){
-      idx = i % notes.length;
-      const n = notes[idx];
-      if (n.type === 'note'){
-        wrap.style.display='flex';
-        marqueeify(n.text);
-      } else {
-        wrap.style.display='flex';
-        txt.innerHTML = \`<span class="pill"><span class="badge">\${n.type==='starts'?'STARTS':'HI'}</span></span>\${n.text}\`;
-      }
-    }
-
-    function updateRotator(){
-      notes = [
-        {type:'starts', text:`🏁 Global Hi Starts: ${gStarts.toLocaleString()}`},
-        {type:'global', text:`🌍 Global Hi’s: ${gFives.toLocaleString()}`},
-        {type:'note',   text:`💡 ${dailyHiNote()}`}
-      ];
-      setRot(idx);
-      clearInterval(rotT);
-      rotT = setInterval(()=> setRot((idx+1)%notes.length), 5500);
-    }
-
-    close.onclick = ()=>{ wrap.style.display='none'; clearInterval(rotT); };
-
-    function renderRing(){
-      const live = liveSec();
-      const totalMin = getTodayMins() + Math.floor(live/60);
-
-      const dayP = Math.min(1, totalMin / 1440);
-      dayArc.setAttribute('stroke-dasharray', `${(dayP*C_DAY).toFixed(1)} ${C_DAY.toFixed(1)}`);
-
-      const goalP = Math.min(1, totalMin / Math.max(1, goalMin));
-      goalArc.setAttribute('stroke-dasharray', `${(goalP*C_GOAL).toFixed(1)} ${C_GOAL.toFixed(1)}`);
-      goalArc.setAttribute('stroke', totalMin>=goalMin ? 'url(#goalGradMet)' : 'url(#goalGrad)');
-
-      const goalDeg = Math.min(360, (goalMin/1440)*360);
-      goalMarker.style.transform = `rotate(${goalDeg}deg)`;
-
-      readout.textContent = fmtHMS(live);
-      goalLblTop.textContent = goalMin+'m';
-      goalLbl.textContent = goalMin+'m';
-      todayLbl.textContent = totalMin+'m';
-      started.textContent = sessionActive ? new Date(sessionStart).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}) : '—';
-      toggle.textContent = sessionActive ? 'Complete — Stay Hi' : 'Stay Hi';
-      renderWeekStrip();
-    }
-
-    function addBurst(n=12, emoji='👋'){
-      for(let i=0;i<n;i++){
-        const s=document.createElement('span');
-        const x=50+(Math.random()-0.5)*10, y=48+(Math.random()-0.5)*6;
-        s.textContent=emoji; s.style.left=x+'%'; s.style.top=y+'%';
-        s.style.transform='translate(-50%,-50%)';
-        s.style.setProperty('--dx', ((Math.random()-0.5)*160)+'px');
-        s.style.setProperty('--s', (0.9+Math.random()*0.35));
-        s.style.animation = `waveUp 1100ms cubic-bezier(.22,1,.36,1) ${(Math.random()*180)|0}ms forwards`;
-        document.getElementById('burst').appendChild(s);
-        setTimeout(()=>s.remove(), 1400);
-      }
-    }
-
-    // interactions
-    ringBox.addEventListener('click', (e) => {
-      if (e.target.closest('input,button')) return;
-      try{ navigator?.vibrate?.(35) }catch{}
-      gFives += 1; localStorage.setItem(LS.gFive, String(gFives));
-      addBurst(12,'👋'); toast('👋 +1 Hi sent');
-      updateRotator(); renderRing();
-    });
-
-    goalInp.oninput = ()=>{ goalMin = Math.max(1, Math.round(goalInp.value||14)); localStorage.setItem(LS.goal, String(goalMin)); renderRing(); };
-
-    toggle.onclick = ()=>{
-      if(!sessionActive){
-        sessionStart = Date.now(); sessionActive = true;
-        localStorage.setItem(LS.start, String(sessionStart));
-        gStarts += 1; localStorage.setItem(LS.gStart, String(gStarts));
-        toast('🏁 Hi session started');
-      }else{
-        const end=Date.now(); const mins=Math.floor(Math.max(0, end-sessionStart)/60000);
-        setTodayMins(getTodayMins()+mins);
-        sessionStart=0; sessionActive=false; localStorage.removeItem(LS.start);
-        toast(`✨ +${mins}m added`);
-      }
-      updateRotator(); renderRing();
-    };
-
-    // calendar modal
-    const calWrap = document.getElementById('calWrap');
-    const calLabel= document.getElementById('calLabel');
-    const calGrid = document.getElementById('calGrid');
-    let monthBase = new Date(); monthBase.setDate(1); monthBase.setHours(0,0,0,0);
-    function renderCal(){
-      calLabel.textContent = monthBase.toLocaleDateString(undefined, {month:'long', year:'numeric'});
-      calGrid.innerHTML='';
-      const first = new Date(monthBase);
-      const firstWeekday = (first.getDay()+6)%7;
-      for(let i=0;i<firstWeekday;i++){ const d=document.createElement('div'); d.className='cell'; d.style.opacity='.35'; calGrid.appendChild(d); }
-      const next = new Date(first);
-      while(next.getMonth()===first.getMonth()){
-        const k = todayKey(next);
-        const mins = Number(history[k]||0);
-        const cell = document.createElement('div'); cell.className = 'cell'+(mins>=goalMin?' met':'');
-        cell.innerHTML = `<div>${next.getDate()}</div><div style="font-size:10px;opacity:.8">${mins?mins+'m':''}</div>`;
-        calGrid.appendChild(cell);
-        next.setDate(next.getDate()+1);
-      }
-      while(calGrid.children.length%7!==0){ const d=document.createElement('div'); d.className='cell'; d.style.opacity='.35'; calGrid.appendChild(d); }
-    }
-    window.addEventListener('open-calendar', ()=>{ calWrap.style.display='grid'; renderCal(); });
-    document.getElementById('calPrev').onclick = ()=>{ monthBase.setMonth(monthBase.getMonth()-1); renderCal(); };
-    document.getElementById('calNext').onclick = ()=>{ monthBase.setMonth(monthBase.getMonth()+1); renderCal(); };
-    document.getElementById('calClose').onclick= ()=>{ calWrap.style.display='none'; };
-
-    // boot
-    updateRotator();
-    renderRing();
-    setInterval(()=>{ if(sessionActive) renderRing(); }, 1000);
-  </script>
-
-  <!-- shared UI -->
-  <script src="assets/header.js" defer></script>
-  <script src="assets/tabs.js" defer></script>
-</body>
-</html>
