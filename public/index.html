@@ -39,6 +39,12 @@
       padding:22px;
     }
 
+    /* Week strip (streak) */
+    .weekstrip{ display:flex; gap:8px; justify-content:center; margin:8px auto 6px; color:#cfd2ea; font-size:12px }
+    .weekdot{ display:grid; place-items:center; gap:4px; }
+    .weekdot .c{ width:28px; height:20px; border-radius:10px; display:grid; place-items:center; border:1px solid #31365f; }
+    .weekdot .c.met{ color:#fff; background: linear-gradient(135deg, #ffd166, #ff7a18); }
+
     /* Ring */
     .ring{ position:relative; margin:10px auto; width:min(540px,86vw); aspect-ratio:1/1 }
     .ring svg{ width:100%; height:100% }
@@ -50,23 +56,17 @@
     .hi-logo{ position:relative; width:min(360px,60%); aspect-ratio:1/1; display:grid; place-items:center }
     .hi-mark{ width:min(180px,40%); height:auto; display:block; filter:drop-shadow(0 6px 18px rgba(0,0,0,.35)) }
     .hand{
-      position:absolute; top:10%; left:50%; transform:translateX(-50%);
+      position:absolute; top:18%; left:50%; transform:translateX(-50%);
       display:inline-flex; align-items:center; gap:8px; padding:8px 12px;
       border-radius:999px; border:1px solid var(--hi-border); background:#fff; color:#111; font-weight:900;
       box-shadow:0 10px 22px rgba(0,0,0,.22);
     }
 
-    /* Timer read / legend (we keep a small readout for fun) */
+    /* Small read / legend */
     .read{ text-align:center; margin-top:6px }
     .timerRead{ font-size:40px; line-height:1; font-weight:900 }
     @media (min-width:420px){ .timerRead{ font-size:46px } }
     .subline{ opacity:.85 }
-
-    /* Week strip (streak) */
-    .weekstrip{ display:flex; gap:8px; justify-content:center; margin:8px auto 6px; color:#cfd2ea; font-size:12px }
-    .weekdot{ display:grid; place-items:center; gap:4px; }
-    .weekdot .c{ width:28px; height:20px; border-radius:10px; display:grid; place-items:center; border:1px solid #31365f; }
-    .weekdot .c.met{ color:#fff; background: linear-gradient(135deg, #ffd166, #ff7a18); }
 
     /* Legend dots */
     .hud{display:flex;justify-content:center;gap:12px;margin:8px 0 6px;flex-wrap:wrap;color:#cfd2ea}
@@ -116,7 +116,7 @@
   <header id="app-header" class="header"></header>
 
   <!-- Announcement -->
-  <div id="announceWrap" class="announce">
+  <div id="announceWrap" class="announce" style="display:flex">
     <div id="announceTxt" class="txt"></div>
     <button id="announceX" class="hi-btn hi-btn--ghost x" aria-label="Dismiss">✕</button>
   </div>
@@ -139,31 +139,36 @@
               <stop offset="100%" stop-color="#ff7a18"/>
             </linearGradient>
           </defs>
-          <!-- Outer progress (fun: fills to today's personal tally mod 24m) -->
+          <!-- Outer "day" progress -->
           <circle cx="110" cy="110" r="98" stroke="#1f2748" stroke-width="8" fill="none"/>
           <circle id="dayArc" cx="110" cy="110" r="98" stroke="#0aa15a" stroke-width="8" fill="none"
                   stroke-linecap="round" stroke-dasharray="0 1000"/>
-          <!-- Inner goal ring (fixed to 14m “nice target”) -->
+          <!-- Inner goal ring (14m) -->
           <circle cx="110" cy="110" r="82" stroke="#1f2748" stroke-width="18" fill="none"/>
           <circle id="goalArc" cx="110" cy="110" r="82" stroke="url(#goalGrad)" stroke-width="18" fill="none"
                   stroke-linecap="round" stroke-dasharray="0 1000"/>
         </svg>
 
-        <!-- marker for “goal” -->
+        <!-- goal marker -->
         <div class="goal-marker" id="goalMarker"><i></i></div>
 
         <!-- Playful center -->
         <div class="hi-medal" id="medal">
           <div class="hi-logo">
             <div class="hand">👋 Global Hi-5</div>
-            <!-- Swap this path to your real logo -->
-            <img class="hi-mark" src="assets/brand/hi-logo.svg" alt="Stay Hi"/>
+
+            <!-- YOUR LOGO (auto light/dark) -->
+            <picture>
+              <source srcset="assets/brand/logo/hi-logo-light.png" media="(prefers-color-scheme: dark)">
+              <source srcset="assets/brand/logo/hi-logo-dark.png"  media="(prefers-color-scheme: light)">
+              <img class="hi-mark" src="assets/brand/logo/hi-logo-light.png" alt="Stay Hi">
+            </picture>
           </div>
           <div class="burst" id="burst"></div>
         </div>
       </div>
 
-      <!-- Small read + legend -->
+      <!-- Minimal read + legend -->
       <div class="read">
         <div class="timerRead" id="readout">00:00:00</div>
         <div class="subline">Today <b id="todayLbl">0</b> • Streak <b id="streakLbl">0</b> • Total <b id="totalLbl">0</b></div>
@@ -231,10 +236,9 @@
 
   <script>
   (async function(){
-    // allow anonymous play (offline ok)
     try { await hiAuth.ensureSessionMaybe?.(); } catch {}
 
-    /* ---------- tiny utils ---------- */
+    /* ---------- utils ---------- */
     const pad2=n=>String(n).padStart(2,'0');
     const todayKey=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     const weekStartMonday=(d=new Date())=>{const x=new Date(d);const day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(0,0,0,0);return x};
@@ -252,18 +256,20 @@
 
     /* ---------- state ---------- */
     const LS={
-      total:"hi.total",
-      streak:"hi.streak",
-      last:"hi.lastDate",
-      today:"hi.todayCount",
-      globalFives:"hi.globalFives"
+      total    :"hi.total",
+      streak   :"hi.streak",
+      last     :"hi.lastDate",
+      today    :"hi.todayCount",
+      globalFives:"hi.globalFives",
+      hist     :"hi.hist"            // date → count (for week strip)
     };
 
-    let total = Number(read(LS.total, 0))||0;
-    let streak = Number(read(LS.streak, 0))||0;
-    let lastDate = read(LS.last, '');
-    let todayCount = Number(read(LS.today, 0))||0;
+    let total       = Number(read(LS.total, 0))||0;
+    let streak      = Number(read(LS.streak, 0))||0;
+    let lastDate    = read(LS.last, '');
+    let todayCount  = Number(read(LS.today, 0))||0;
     let globalFives = Number(localStorage.getItem(LS.globalFives)||0)||0;
+    let hist        = read(LS.hist, {});  // { 'YYYY-MM-DD': number }
 
     /* ---------- els ---------- */
     const ringBox = document.getElementById('ringBox');
@@ -280,7 +286,6 @@
 
     const weekStrip = document.getElementById('weekStrip');
     const toastEl = document.getElementById('toast');
-
     const markBtn = document.getElementById('markHi');
 
     // sheet
@@ -289,9 +294,9 @@
     const togglePublic = document.getElementById('togglePublic');
     const toggleAnon   = document.getElementById('toggleAnon');
     const locationInput= document.getElementById('locationInput');
-    const journal = document.getElementById('journal');
-    const cancelShare = document.getElementById('cancelShare');
-    const confirmShare= document.getElementById('confirmShare');
+    const journal      = document.getElementById('journal');
+    const cancelShare  = document.getElementById('cancelShare');
+    const confirmShare = document.getElementById('confirmShare');
 
     // rotator
     const wrap = document.getElementById('announceWrap');
@@ -342,7 +347,8 @@
       const start=weekStartMonday(new Date());
       for(let i=0;i<7;i++){
         const d=new Date(start); d.setDate(start.getDate()+i);
-        const k=todayKey(d); const done=(read(LS.today,0)&&k===todayKey()) ? todayCount>0 : (read('hi.history.'+k,0)||0) > 0;
+        const k=todayKey(d);
+        const done = (hist[k]||0) > 0;
         const lbl=d.toLocaleDateString(undefined,{weekday:'short'}).toUpperCase();
         const el=document.createElement('div'); el.className='weekdot';
         el.innerHTML=`<div class="lbl">${lbl}</div><div class="c ${done?'met':''}">${done?'✓':'○'}</div>`;
@@ -351,8 +357,7 @@
     }
 
     function renderRing(){
-      // fun “progress”: (todayCount minutes proxy) → fill outer / inner
-      const dayMin = Math.min(24, todayCount); // cap for look
+      const dayMin = Math.min(24, todayCount); // proxy fill
       const dayP = Math.min(1, dayMin / 24);
       dayArc.setAttribute('stroke-dasharray', `${(dayP*C_DAY).toFixed(1)} ${C_DAY.toFixed(1)}`);
 
@@ -371,7 +376,6 @@
       totalLbl.textContent = total;
       renderWeekStrip();
     }
-
     setInterval(renderRing, 1000);
 
     /* ---------- rotator ---------- */
@@ -391,7 +395,7 @@
     }
     function updateRotator(){
       notes = [
-        {type:'starts', text:`🏁 Global Starts: ${total.toLocaleString()}`},            // local-proxy for demo
+        {type:'starts', text:`🏁 Global Starts: ${total.toLocaleString()}`},  // proxy for now
         {type:'global', text:`🌍 Global Hi-5s: ${globalFives.toLocaleString()}`},
         {type:'note',   text:`💡 ${dailyHiNote()}`}
       ];
@@ -399,55 +403,60 @@
       clearInterval(rotT);
       rotT = setInterval(()=> setRot((idx+1)%notes.length), 5500);
     }
-    close.onclick = ()=>{ wrap.style.display='none'; clearInterval(rotT); };
+    document.getElementById('announceX').onclick = ()=>{ wrap.style.display='none'; clearInterval(rotT); };
 
     /* ---------- interactions ---------- */
-    // playful global hi-5 (tap logo)
-    medal.addEventListener('click', (e)=>{
-      // ignore if sheet is open
-      if (sheet.getAttribute('aria-hidden')==='false') return;
+    // playful global hi-5 (tap logo area)
+    medal.addEventListener('click', ()=>{
+      if (sheet.getAttribute('aria-hidden')==='false') return; // ignore when sheet open
       try{ navigator?.vibrate?.(25) }catch{}
       globalFives += 1; localStorage.setItem(LS.globalFives, String(globalFives));
       addBurst(12,'👋'); toast('👋 Global Hi-5');
       updateRotator(); renderRing();
     });
 
-    // main action (personal)
+    // main action (personal mark)
     markBtn.addEventListener('click', ()=>{
       const k=todayKey();
-      if (lastDate !== k){ // new day → streak handling
+
+      // streak logic
+      if (lastDate !== k){
         const dLast = lastDate ? new Date(lastDate) : null;
         const dYesterday = new Date(); dYesterday.setDate(dYesterday.getDate()-1);
-        const same = dLast && (dLast.toDateString() === dYesterday.toDateString());
-        streak = same ? (streak+1) : 1;
+        const continueStreak = dLast && (dLast.toDateString() === dYesterday.toDateString());
+        streak = continueStreak ? (streak+1) : 1;
         todayCount = 0;
       }
       lastDate = k;
+
       todayCount += 1;
       total += 1;
-      write(LS.total, total); write(LS.streak, streak); write(LS.last, lastDate); write(LS.today, todayCount);
+      hist[k] = (hist[k]||0) + 1;
 
-      // subtle confetti
+      write(LS.total, total);
+      write(LS.streak, streak);
+      write(LS.last, lastDate);
+      write(LS.today, todayCount);
+      write(LS.hist, hist);
+
       confettiBurst();
-
-      // open sheet to capture (optional) and write to DB
       openSheet();
       updateRotator(); renderRing();
     });
 
+    /* switches */
     function setSwitch(el, on){
       el.classList.toggle('on', !!on);
       el.setAttribute('aria-checked', on ? 'true' : 'false');
     }
     function getSwitch(el){ return el.classList.contains('on'); }
-    ;[togglePublic, toggleAnon].forEach(sw=>{
+    [togglePublic, toggleAnon].forEach(sw=>{
       sw.addEventListener('click', ()=> setSwitch(sw, !getSwitch(sw)));
       sw.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' ') { e.preventDefault(); setSwitch(sw, !getSwitch(sw)); }});
     });
 
-    backdrop.addEventListener('click', closeSheet);
-    cancelShare.addEventListener('click', closeSheet);
-
+    /* sheet open/close */
+    const backdrop = document.getElementById('backdrop');
     function openSheet(){
       sheet.classList.remove('hide');
       sheet.classList.add('show');
@@ -461,6 +470,8 @@
       sheet.setAttribute('aria-hidden','true');
       setTimeout(()=>{ backdrop.style.display = 'none'; }, 200);
     }
+    backdrop.addEventListener('click', closeSheet);
+    cancelShare.addEventListener('click', closeSheet);
 
     // Save to DB (always archive; Island optional)
     confirmShare.addEventListener('click', async ()=>{
@@ -470,7 +481,6 @@
       const text = (journal.value||'').trim() || 'Marked a Hi-5 ✨';
 
       try{
-        // always archive private
         await window.hiDB?.insertArchive?.({
           currentEmoji: '👋',
           desiredEmoji: '✨',
@@ -486,7 +496,7 @@
           });
         }
       }catch(e){
-        console.warn('DB write error (will be queued if supported)', e);
+        console.warn('DB write error (offline queue if supported)', e);
       }
 
       toast('Hi saved ✨');
@@ -495,6 +505,13 @@
     });
 
     /* ---------- boot ---------- */
+    function startClock(){
+      const now=new Date();
+      readout.textContent = `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+      requestAnimationFrame(startClock);
+    }
+    startClock();
+
     updateRotator();
     renderRing();
   })();
