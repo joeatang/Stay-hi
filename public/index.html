@@ -56,14 +56,8 @@
       height:auto; display:block; margin:0 auto; object-fit:contain;
       filter:drop-shadow(0 8px 22px rgba(0,0,0,.38));
     }
-    .wave-pill{
-      position:absolute; top:16px; left:50%; transform:translateX(-50%);
-      background:#fff; color:#111; border:1px solid var(--hi-border);
-      padding:6px 12px; border-radius:999px; font-weight:800; font-size:14px;
-      box-shadow:0 6px 16px rgba(0,0,0,.25); pointer-events:none; /* not a button */
-    }
 
-    /* Logo pop (now preserves --logo-shift-y so it doesn't “jump”) */
+    /* Logo pop (preserves --logo-shift-y so it doesn't “jump”) */
     @keyframes logoPop {
       0%  { transform:translate(-50%,-50%) translateY(var(--logo-shift-y,0%)) scale(1) }
       40% { transform:translate(-50%,-50%) translateY(var(--logo-shift-y,0%)) scale(1.06) }
@@ -95,27 +89,28 @@
     .pill{display:inline-flex;gap:6px;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid #2a2e55;background:#0f1228;color:#cfd2ea;font-weight:800}
     .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
 
-    /* Share sheet */
-    .sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;z-index:50}
-    .sheet{position:fixed;left:0;right:0;bottom:-100%;background:var(--hi-bg);border-radius:18px 18px 0 0;border:1px solid var(--hi-border);padding:16px 14px;z-index:60;box-shadow:0 -10px 30px rgba(0,0,0,.12)}
+    /* Share sheet (make it unmistakable) */
+    .sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;z-index:50}
+    .sheet{position:fixed;left:0;right:0;bottom:-100%;background:var(--hi-bg);
+      border-radius:18px 18px 0 0;border:1px solid var(--hi-border);padding:18px 14px 16px;z-index:60;
+      box-shadow:0 -18px 50px rgba(0,0,0,.35); transform-origin:50% 100%}
     .sheet.show + .sheet-backdrop{display:block}
     .sheet.show{animation:sheetIn .25s ease-out forwards}
     .sheet.hide{animation:sheetOut .2s ease-in forwards}
-    @keyframes sheetIn{from{bottom:-100%}to{bottom:0}}
-    @keyframes sheetOut{from{bottom:0}to{bottom:-100%}}
-    .row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;flex-wrap:wrap}
+    @keyframes sheetIn{from{bottom:-100%;transform:scale(.98)}to{bottom:0;transform:scale(1)}}
+    @keyframes sheetOut{from{bottom:0;transform:scale(1)}to{bottom:-100%;transform:scale(.98)}}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;flex-wrap:wrap}
 
     /* Textarea is black ink on white (visibility fix) */
     textarea{
       width:100%;border:1px solid var(--hi-border);border-radius:12px;
-      min-height:100px;padding:12px;font:inherit;background:#fff;color:#111;
-      caret-color:#111;
+      min-height:110px;padding:12px;font:inherit;background:#fff;color:#111;caret-color:#111;
     }
     textarea::placeholder{ color:#6b7280; }
 
     .muted{color:var(--hi-muted)}
-    .cta-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-    .choice{padding:10px 14px;border-radius:12px;border:1px solid var(--hi-border);background:#fff;font-weight:800;cursor:pointer}
+    .cta-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:10px}
+    .choice{padding:12px 14px;border-radius:12px;border:1px solid var(--hi-border);background:#fff;font-weight:800;cursor:pointer}
     .choice.primary{background:var(--grad-ember);color:#fff;border-color:transparent}
 
     /* Announcement bar — white bg, black text */
@@ -150,7 +145,6 @@
         <!-- Hi medallion -->
         <div class="hi-medal" id="hiMedal" style="margin:0 auto">
           <div class="hi-logo" id="hiLogo" style="--logo-shift-y:24%">
-            <div class="wave-pill">✨ Hi Wave</div>
             <picture>
               <source srcset="assets/brand/hi-logo-light.png" media="(prefers-color-scheme: dark)">
               <source srcset="assets/brand/hi-logo-dark.png"  media="(prefers-color-scheme: light)">
@@ -179,11 +173,11 @@
     </div>
   </main>
 
-  <!-- Share Sheet (3 choices) -->
+  <!-- Share Sheet (celebratory & clear) -->
   <div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" aria-hidden="true">
-    <h3 id="sheetTitle">Want to capture this Hi moment?</h3>
-    <p class="muted">Choose how you want to share. Private saves to <b>My Archive</b>. Public goes to <b>Hi Island</b>.</p>
-    <div style="margin-top:8px">
+    <h3 id="sheetTitle" style="margin:0 0 8px;font-weight:900">Nice! Self Hi-5 recorded 🎉</h3>
+    <p class="muted" style="margin:0 0 8px">Want to capture the moment? Private saves to <b>My Archive</b>. Public appears on <b>Hi Island</b>.</p>
+    <div>
       <textarea id="journal" maxlength="500" placeholder="What was the Hi moment you just noticed? (1–2 lines)"></textarea>
     </div>
     <div class="cta-row">
@@ -209,7 +203,11 @@
     try { await hiAuth.ensureSessionMaybe?.(); } catch {}
 
     /* ---------- storage ---------- */
-    const LS = { hist:'hi5.history', total:'hi5.total', last:'hi5.lastDate', streak:'hi5.streak', gFive:'hi.waves', gStart:'hi.starts' };
+    const LS = {
+      hist:'hi5.history', total:'hi5.total', last:'hi5.lastDate', streak:'hi5.streak',
+      gFive:'hi.waves', gStart:'hi.starts',
+      q:'hi.queue' // offline queue for server events
+    };
     const read=(k,def)=>{ try{ const v=localStorage.getItem(k); return v==null?def:JSON.parse(v) }catch{ return def } };
     const write=(k,v)=>{ try{ localStorage.setItem(k, JSON.stringify(v)) }catch{} };
     const todayKey=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -242,18 +240,22 @@
     const announceWrap=document.getElementById('announceWrap');
     const announceTxt =document.getElementById('announceTxt');
 
-    /* ---------- header logo (ensure visible) ---------- */
+    /* ---------- header logo + calendar hook ---------- */
     window.addEventListener('load', ()=> {
       const hdr = document.getElementById('app-header');
       const img = hdr && hdr.querySelector('img');
       const light = 'assets/brand/hi-logo-dark.png';
       if (img) { img.src = light; img.alt = 'Stay Hi'; }
+      // Calendar tab (several likely selectors)
+      const calBtn = hdr?.querySelector('[data-nav="calendar"], .btn-calendar, [aria-label="Open Calendar"], [data-route="calendar"]');
+      if (calBtn) calBtn.onclick = ()=> location.href='calendar.html';
     });
 
-    /* ---------- helpers ---------- */
+    /* ---------- toast / sheets ---------- */
     function toast(msg, ttl=1400){ toastEl.textContent=msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'), ttl); }
     function openSheet(){ sheet.classList.remove('hide'); sheet.classList.add('show'); sheet.setAttribute('aria-hidden','false'); backdrop.style.display='block'; try{ journal.focus(); }catch{} }
     function closeSheet(){ sheet.classList.remove('show'); sheet.classList.add('hide'); sheet.setAttribute('aria-hidden','true'); setTimeout(()=>backdrop.style.display='none', 180); }
+    backdrop.addEventListener('click', closeSheet);
 
     /* ---------- week + counters ---------- */
     function renderWeekStrip(){
@@ -359,6 +361,20 @@
       })();
     }
 
+    /* ---------- offline queue for server events ---------- */
+    function enqueue(evt){
+      const q = read(LS.q, []); q.push({...evt, t:Date.now()}); write(LS.q, q);
+    }
+    async function flushQueue(){
+      const q = read(LS.q, []);
+      if(!q.length) return;
+      try{
+        await window.hiDB?.bulkIngest?.(q);
+        write(LS.q, []);
+      }catch{ /* keep for later */ }
+    }
+    setInterval(flushQueue, 5000);
+
     /* ---------- interactions ---------- */
     // Tap logo → Hi Wave
     hiMedal.addEventListener('click', ()=>{
@@ -379,16 +395,21 @@
       hiMedal.classList.remove('pulse'); void hiMedal.offsetWidth; hiMedal.classList.add('pulse');
       hiLogo.classList.remove('logo-pop'); void hiLogo.offsetWidth; hiLogo.classList.add('logo-pop');
       hiMark.classList.remove('glow'); void hiMark.offsetWidth; hiMark.classList.add('glow');
+
+      // server-side counter (waves)
+      const evt = {type:'wave', delta:1};
+      enqueue(evt); try{ await window.hiDB?.incrementCounters?.({wavesDelta:1}); }catch{}
       toast('✨ Hi Wave');
       updateRotator();
     });
 
-    // Main CTA → Self Hi-5
-    hiBtn.addEventListener('click', ()=>{
+    // Main CTA → Self Hi-5 (updates starts + global hi5)
+    hiBtn.addEventListener('click', async ()=>{
       const key = todayKey();
       history[key] = (history[key]||0) + 1; total += 1;
       gStarts += 1; localStorage.setItem(LS.gStart, String(gStarts));
       write(LS.hist, history); write(LS.total, total);
+
       // streak
       if(!lastDay){ streak=1; }
       else{
@@ -400,43 +421,58 @@
       lastDay = key; write(LS.last,lastDay); write(LS.streak,streak);
       renderCounters(); renderWeekStrip(); updateRotator();
 
-      // hi-fi confetti + prompt
-      confettiPro();
-      openSheet();
+      // global counters (server)
+      const evt = {type:'self_hi5', startsDelta:1, hi5Delta:1, date:key};
+      enqueue(evt); try{ await window.hiDB?.incrementCounters?.({startsDelta:1, hi5Delta:1}); }catch{}
+
+      // celebratory confetti + unmistakable sheet
+      confettiPro(); openSheet();
     });
 
     // Persist choices (keeps pipes consistent; tags entry)
     async function persist({toIsland=false, anon=false}){
-      const text = (journal.value||'').trim();
+      const raw = (journal.value||'').trim();
+      // default text rules
+      const text = raw
+        ? raw
+        : 'Marked a Hi-5 ✨';
       try{
-        await window.hiDB?.insertArchive?.({
+        // Always archive (private)
+        const archivePayload = {
           currentEmoji:'👋', desiredEmoji:'👋',
-          journal:text, location:'',
-          kind:'self_hi5'
-        });
+          journal:text, location:'', kind:'self_hi5'
+        };
+        enqueue({type:'archive', payload:archivePayload});
+        await window.hiDB?.insertArchive?.(archivePayload);
+
         if (toIsland){
-          await window.hiDB?.insertPublicShare?.({
+          const publicPayload = {
             currentEmoji:'👋', currentName:'Hi-5',
             desiredEmoji:'👋', desiredName:'Hi-5',
             text, isAnonymous:anon, location:'', isPublic:true,
             channel:'general', kind:'self_hi5'
-          });
+          };
+          enqueue({type:'public', payload:publicPayload});
+          await window.hiDB?.insertPublicShare?.(publicPayload);
+
+          // map ping (best-effort)
+          try{ await window.hiDB?.updateMap?.(publicPayload); }catch{}
         }
         toast(toIsland ? (anon?'Shared anon ✨':'Shared ✨') : 'Saved privately ✨');
       }catch(e){
         console.warn('save error', e);
         toast('Saved locally. Will sync when online.');
       }finally{
-        journal.value=''; closeSheet();
+        journal.value=''; closeSheet(); flushQueue();
       }
     }
     savePrivate.addEventListener('click', ()=> persist({toIsland:false}));
     shareAnon.addEventListener('click',  ()=> persist({toIsland:true, anon:true}));
     sharePublic.addEventListener('click',()=> persist({toIsland:true, anon:false}));
-    backdrop.addEventListener('click', closeSheet);
 
     /* ---------- boot ---------- */
     renderCounters(); renderWeekStrip(); updateRotator();
+    flushQueue();
   })();
   </script>
 </body>
