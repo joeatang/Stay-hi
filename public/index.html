@@ -92,6 +92,18 @@
     .marquee{display:block;overflow:hidden;white-space:nowrap}
     .marquee span{display:inline-block;animation:mar var(--dur,14s) linear infinite}
     @keyframes mar{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+    /* --- PATCH: rotator text is black on white --- */
+.announce .txt,
+.announce .txt * { color:#111 !important; }
+
+/* --- PATCH: ensure logo is above decorative rings --- */
+.hi-medal{ position:relative; }
+.hi-medal::before, .hi-medal::after{ z-index:0; }
+.hi-logo{ position:absolute; inset:0; display:grid; place-items:center; z-index:2; }
+.hi-logo picture, .hi-logo img{ width:min(180px,40%); height:auto; filter:drop-shadow(0 6px 18px rgba(0,0,0,.35)); }
+
+/* Keep the small "Global Hi-5" chip readable on white too */
+.hi-logo .hand{ color:#111; background:#fff; }
   </style>
 </head>
 <body class="sunrise" data-tab="today">
