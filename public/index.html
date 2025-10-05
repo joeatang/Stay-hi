@@ -248,26 +248,112 @@
       setRot(rotIdx);
     }
 
-    /* Confetti canvas */
-    const fx=document.getElementById('fxCanvas'); const ctx=fx.getContext('2d');
-    function resizeFX(){ fx.width=innerWidth*devicePixelRatio; fx.height=innerHeight*devicePixelRatio; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0) }
-    resizeFX(); addEventListener('resize', resizeFX);
-    function confettiPro(){
-      const pieces=[], COLORS=['#ffd166','#ff7a18','#10b981','#60a5fa','#f472b6','#f59e0b','#22c55e'], shapes=['rect','circle','ribbon'], n=140;
-      for(let i=0;i<n;i++) pieces.push({x:innerWidth/2+(Math.random()-0.5)*80,y:innerHeight*0.35+(Math.random()-0.5)*40,vx:(Math.random()-0.5)*6,vy:-8-Math.random()*6,w:6+Math.random()*10,h:8+Math.random()*14,r:Math.random()*Math.PI,vr:(Math.random()-0.5)*0.2,g:0.25+Math.random()*0.25,drag:0.995,life:120+Math.random()*50,color:COLORS[i%COLORS.length],shape:shapes[(Math.random()*shapes.length)|0]});
-      (function tick(){
-        ctx.clearRect(0,0,innerWidth,innerHeight);
-        for(const p of pieces){ p.vx*=p.drag; p.vy=p.vy*p.drag+p.g; p.x+=p.vx; p.y+=p.vy; p.r+=p.vr; p.life--;
-          ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r); ctx.fillStyle=p.color;
-          if(p.shape==='circle'){ ctx.beginPath(); ctx.arc(0,0,p.w*0.6,0,Math.PI*2); ctx.fill(); }
-          else if(p.shape==='ribbon'){ ctx.beginPath(); ctx.moveTo(-p.w,0); ctx.bezierCurveTo(-p.w,-p.h,p.w,-p.h,p.w,0); ctx.bezierCurveTo(p.w,p.h,-p.w,p.h,-p.w,0); ctx.fill(); }
-          else{ ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); }
-          ctx.restore();
-        }
-        for(let i=pieces.length-1;i>=0;i--) if(pieces[i].life<=0||p.y>innerHeight+60) pieces.splice(i,1);
-        if(pieces.length) requestAnimationFrame(tick); else ctx.clearRect(0,0,innerWidth,innerHeight);
-      })();
+   /* ---------- Confetti (v2, launches from any element) ---------- */
+const fx  = document.getElementById('fxCanvas');
+const ctx = fx.getContext('2d');
+
+let DPR = 1, confetti = [], raf = null;
+
+function resizeFX(){
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  fx.width  = Math.floor(innerWidth  * DPR);
+  fx.height = Math.floor(innerHeight * DPR);
+  // draw using CSS pixels
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+resizeFX();
+addEventListener('resize', resizeFX);
+
+function centerOf(el){
+  const r = el.getBoundingClientRect();
+  return { x: r.left + r.width/2, y: r.top + r.height/2 };
+}
+
+function launchConfetti({x, y, count=150, spread=90, speed=13} = {}){
+  const COLORS = ['#ffd166','#ff7a18','#10b981','#60a5fa','#f472b6','#f59e0b','#22c55e'];
+  const SHAPES = ['rect','circle','ribbon','triangle'];
+
+  for (let i=0; i<count; i++){
+    const base = -Math.PI/2;           // upward
+    const a    = (Math.random()*spread - spread/2) * (Math.PI/180);
+    const v    = speed * (0.6 + Math.random()*0.9);
+
+    confetti.push({
+      x, y,
+      vx: Math.cos(base + a) * v + (Math.random()-0.5)*2,
+      vy: Math.sin(base + a) * v + (Math.random()*-2),
+      w:  6 + Math.random()*10,
+      h:  8 + Math.random()*14,
+      rot:  Math.random()*Math.PI*2,
+      vrot: (Math.random()-0.5)*0.25,
+      life: 110 + Math.random()*80,
+      color: COLORS[(Math.random()*COLORS.length)|0],
+      shape: SHAPES[(Math.random()*SHAPES.length)|0],
+      wind:  (Math.random()-0.5) * 0.08
+    });
+  }
+  if (!raf) tick();
+}
+
+function drawPiece(p){
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.rotate(p.rot);
+  ctx.fillStyle = p.color;
+
+  switch (p.shape){
+    case 'circle':
+      ctx.beginPath(); ctx.arc(0,0,p.w*0.6,0,Math.PI*2); ctx.fill(); break;
+    case 'triangle':
+      ctx.beginPath();
+      ctx.moveTo(-p.w/2, p.h/2);
+      ctx.lineTo( p.w/2, p.h/2);
+      ctx.lineTo( 0,     -p.h/2);
+      ctx.closePath(); ctx.fill(); break;
+    case 'ribbon':
+      ctx.beginPath();
+      ctx.moveTo(-p.w,0);
+      ctx.bezierCurveTo(-p.w,-p.h, p.w,-p.h, p.w,0);
+      ctx.bezierCurveTo( p.w, p.h,-p.w, p.h,-p.w,0);
+      ctx.fill(); break;
+    default:
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+  }
+
+  ctx.restore();
+}
+
+function tick(){
+  raf = requestAnimationFrame(tick);
+  ctx.clearRect(0, 0, innerWidth, innerHeight);
+
+  for (let i = confetti.length-1; i >= 0; i--){
+    const p = confetti[i];
+    p.vx += p.wind;
+    p.vy += 0.22;                 // gravity
+    p.x  += p.vx;
+    p.y  += p.vy;
+    p.rot+= p.vrot;
+    p.life--;
+
+    if (p.life <= 0 || p.y > innerHeight + 80){
+      confetti.splice(i,1);
+      continue;
     }
+    drawPiece(p);
+  }
+
+  if (!confetti.length){
+    cancelAnimationFrame(raf); raf = null;
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+  }
+}
+
+// Public helper: fire from any element
+function confettiFrom(el){
+  const { x, y } = centerOf(el);
+  launchConfetti({ x, y, count: (innerWidth < 640 ? 90 : 150), spread: 90, speed: 13 });
+}
 
     /* Offline queue */
     function enqueue(evt){ const q=read(LS.q,[]); q.push({...evt,t:Date.now()}); write(LS.q,q) }
@@ -289,27 +375,29 @@
       toast('✨ Hi Wave'); updateRotator();
     });
 
-    hiBtn.addEventListener('click', async ()=>{
-      const key=todayKey();
-      history[key]=(history[key]||0)+1; total+=1;
-      gStarts+=1; localStorage.setItem(LS.gStart,String(gStarts));
-      write(LS.hist,history); write(LS.total,total);
+   hiBtn.addEventListener('click', ()=>{
+  const key = todayKey();
+  history[key] = (history[key]||0) + 1; 
+  total += 1;
+  gStarts += 1; localStorage.setItem(LS.gStart, String(gStarts));
+  write(LS.hist, history); write(LS.total, total);
 
-      if(!lastDay){ streak=1 }
-      else{
-        const last=new Date(lastDay), cur=new Date(key);
-        last.setHours(0,0,0,0); cur.setHours(0,0,0,0);
-        const diff=Math.round((cur-last)/86400000);
-        if(diff===1) streak++; else if(diff!==0) streak=1;
-      }
-      lastDay=key; write(LS.last,lastDay); write(LS.streak,streak);
-      renderCounters(); renderWeekStrip(); updateRotator();
+  // streak math
+  if(!lastDay){ streak=1; } else {
+    const last=new Date(lastDay), cur=new Date(key);
+    last.setHours(0,0,0,0); cur.setHours(0,0,0,0);
+    const diff=Math.round((cur-last)/86400000);
+    if(diff===1) streak++; else if(diff!==0) streak=1;
+  }
+  lastDay = key; write(LS.last,lastDay); write(LS.streak,streak);
+  renderCounters(); renderWeekStrip(); updateRotator();
 
-      enqueue({type:'self_hi5',startsDelta:1,hi5Delta:1,date:key});
-      try{ await window.hiDB?.incrementCounters?.({startsDelta:1, hi5Delta:1}) }catch{}
+  // 🎉 launch the new confetti from the button center
+  confettiFrom(hiBtn);
 
-      confettiPro(); openSheet();
-    });
+  // then show the share sheet
+  openSheet();
+});
 
     async function persist({toIsland=false, anon=false}){
       const raw=(journal.value||'').trim();
