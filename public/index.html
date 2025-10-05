@@ -10,115 +10,61 @@
   <link rel="stylesheet" href="assets/create-parity.css"/>
 
   <style>
-    /* Layout */
     .wrap{max-width:980px;margin:0 auto;padding:16px}
     .center{display:grid;place-items:center}
     .spaced{display:flex;flex-direction:column;align-items:center;gap:12px}
 
-    /* 7-day strip */
     .weekstrip{display:flex;gap:10px;justify-content:center;margin:10px 0 14px}
     .weekdot{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:40px}
     .weekdot .lbl{font-size:11px;opacity:.85;color:#cfd2ea}
     .weekdot .c{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;border:1px solid #2a2e55;color:#cfd2ea}
     .weekdot .c.met{background:linear-gradient(135deg,#ffd166,#ff7a18);color:#111;border-color:#0000}
 
-    /* Card shell */
     .panel{background:#0f1022;border:1px solid #23264d;border-radius:22px;box-shadow:0 22px 60px rgba(0,0,0,.35)}
 
-    /* Hi medallion (halo) */
     .hi-medal{
-      width:min(420px,78vw); aspect-ratio:1/1; border-radius:999px;
-      background:#0f1022; border:1px solid #23264d; box-shadow:0 14px 40px rgba(0,0,0,.35);
-      position:relative; overflow:hidden; transition:box-shadow .25s ease, transform .18s ease;
+      width:min(420px,78vw);aspect-ratio:1/1;border-radius:999px;
+      background:#0f1022;border:1px solid #23264d;box-shadow:0 14px 40px rgba(0,0,0,.35);
+      position:relative;overflow:hidden;transition:box-shadow .25s ease,transform .18s ease;
     }
-    .hi-medal::before, .hi-medal::after{
-      content:""; position:absolute; inset:10%; border-radius:50%;
-      border:10px solid #1d2242; z-index:0;
-    }
-    .hi-medal::after{ inset:22% }
+    .hi-medal::before,.hi-medal::after{content:"";position:absolute;inset:10%;border-radius:50%;border:10px solid #1d2242;z-index:0}
+    .hi-medal::after{inset:22%}
+    @keyframes haloPulse{0%{box-shadow:0 14px 40px rgba(0,0,0,.35),inset 0 0 0 0 rgba(255,210,102,0)}40%{box-shadow:0 22px 60px rgba(0,0,0,.45),inset 0 0 40px 8px rgba(255,122,24,.28)}100%{box-shadow:0 14px 40px rgba(0,0,0,.35),inset 0 0 0 0 rgba(255,210,102,0)}}
+    .hi-medal.pulse{animation:haloPulse 900ms ease-out}
 
-    /* Halo pulse on tap */
-    @keyframes haloPulse {
-      0%{ box-shadow:0 14px 40px rgba(0,0,0,.35), inset 0 0 0 0 rgba(255,210,102,.0) }
-      40%{ box-shadow:0 22px 60px rgba(0,0,0,.45), inset 0 0 40px 8px rgba(255,122,24,.28) }
-      100%{ box-shadow:0 14px 40px rgba(0,0,0,.35), inset 0 0 0 0 rgba(255,210,102,.0) }
-    }
-    .hi-medal.pulse{ animation: haloPulse 900ms ease-out }
+    .hi-logo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) translateY(var(--logo-shift-y,0%));z-index:2;width:100%;height:100%;pointer-events:none}
+    .hi-mark{width:min(260px,60%);height:auto;display:block;margin:0 auto;object-fit:contain;filter:drop-shadow(0 8px 22px rgba(0,0,0,.38))}
+    @keyframes logoPop{0%{transform:translate(-50%,-50%) translateY(var(--logo-shift-y,0%)) scale(1)}40%{transform:translate(-50%,-50%) translateY(var(--logo-shift-y,0%)) scale(1.06)}100%{transform:translate(-50%,-50%) translateY(var(--logo-shift-y,0%)) scale(1)}}
+    .logo-pop{animation:logoPop 320ms cubic-bezier(.22,1,.36,1)}
+    @keyframes logoGlow{0%{filter:drop-shadow(0 8px 22px rgba(0,0,0,.38)) brightness(1)}50%{filter:drop-shadow(0 12px 30px rgba(255,122,24,.45)) brightness(1.08)}100%{filter:drop-shadow(0 8px 22px rgba(0,0,0,.38)) brightness(1)}}
+    .hi-mark.glow{animation:logoGlow 800ms ease-out}
 
-    /* Center logo (kept optically centered with adjustable offset) */
-    .hi-logo{
-      position:absolute; left:50%; top:50%;
-      transform:translate(-50%,-50%) translateY(var(--logo-shift-y,0%));
-      z-index:2; display:block; width:100%; height:100%; pointer-events:none;
-    }
-    .hi-mark{
-      width:min(260px,60%);
-      height:auto; display:block; margin:0 auto; object-fit:contain;
-      filter:drop-shadow(0 8px 22px rgba(0,0,0,.38));
-    }
+    .burst{position:absolute;inset:0;pointer-events:none;z-index:3}
+    .burst span{position:absolute;font-size:26px;will-change:transform,opacity}
+    @keyframes waveUp{0%{transform:translate(-50%,-50%) scale(var(--s,1));opacity:.9}100%{transform:translate(calc(-50% + var(--dx,0px)),-260%) scale(calc(var(--s,1)*.9));opacity:0}}
 
-    /* Logo pop (preserves --logo-shift-y so it doesn't “jump”) */
-    @keyframes logoPop {
-      0%  { transform:translate(-50%,-50%) translateY(var(--logo-shift-y,0%)) scale(1) }
-      40% { transform:translate(-50%,-50%) translateY(var(--logo-shift-y,0%)) scale(1.06) }
-      100%{ transform:translate(-50%,-50%) translateY(var(--logo-shift-y,0%)) scale(1) }
-    }
-    .logo-pop{ animation: logoPop 320ms cubic-bezier(.22,1,.36,1) }
+    #fxCanvas{position:fixed;inset:0;z-index:900;pointer-events:none}
 
-    /* Gentle glow on the hand logo */
-    @keyframes logoGlow {
-      0%  { filter:drop-shadow(0 8px 22px rgba(0,0,0,.38)) brightness(1) }
-      50% { filter:drop-shadow(0 12px 30px rgba(255,122,24,.45)) brightness(1.08) }
-      100%{ filter:drop-shadow(0 8px 22px rgba(0,0,0,.38)) brightness(1) }
-    }
-    .hi-mark.glow { animation: logoGlow 800ms ease-out }
-
-    /* Tap burst layer */
-    .burst{ position:absolute; inset:0; pointer-events:none; z-index:3 }
-    .burst span{ position:absolute; font-size:26px; will-change:transform,opacity }
-    @keyframes waveUp {
-      0%{ transform:translate(-50%,-50%) scale(var(--s,1)); opacity:.9 }
-      100%{ transform:translate(calc(-50% + var(--dx,0px)),-260%) scale(calc(var(--s,1)*.9)); opacity:0 }
-    }
-
-    /* Confetti canvas (hi-fi) */
-    #fxCanvas{ position:fixed; inset:0; z-index:900; pointer-events:none }
-
-    /* Counters */
     .counters{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:6px}
     .pill{display:inline-flex;gap:6px;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid #2a2e55;background:#0f1228;color:#cfd2ea;font-weight:800}
     .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
 
-    /* Share sheet (make it unmistakable) */
     .sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;z-index:50}
-    .sheet{position:fixed;left:0;right:0;bottom:-100%;background:var(--hi-bg);
-      border-radius:18px 18px 0 0;border:1px solid var(--hi-border);padding:18px 14px 16px;z-index:60;
-      box-shadow:0 -18px 50px rgba(0,0,0,.35); transform-origin:50% 100%}
+    .sheet{position:fixed;left:0;right:0;bottom:-100%;background:var(--hi-bg);border-radius:18px 18px 0 0;border:1px solid var(--hi-border);padding:18px 14px 16px;z-index:60;box-shadow:0 -18px 50px rgba(0,0,0,.35);transform-origin:50% 100%}
     .sheet.show + .sheet-backdrop{display:block}
     .sheet.show{animation:sheetIn .25s ease-out forwards}
     .sheet.hide{animation:sheetOut .2s ease-in forwards}
     @keyframes sheetIn{from{bottom:-100%;transform:scale(.98)}to{bottom:0;transform:scale(1)}}
     @keyframes sheetOut{from{bottom:0;transform:scale(1)}to{bottom:-100%;transform:scale(.98)}}
     .row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;flex-wrap:wrap}
-
-    /* Textarea is black ink on white (visibility fix) */
-    textarea{
-      width:100%;border:1px solid var(--hi-border);border-radius:12px;
-      min-height:110px;padding:12px;font:inherit;background:#fff;color:#111;caret-color:#111;
-    }
-    textarea::placeholder{ color:#6b7280; }
-
+    textarea{width:100%;border:1px solid var(--hi-border);border-radius:12px;min-height:110px;padding:12px;font:inherit;background:#fff;color:#111;caret-color:#111}
+    textarea::placeholder{color:#6b7280}
     .muted{color:var(--hi-muted)}
     .cta-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:10px}
     .choice{padding:12px 14px;border-radius:12px;border:1px solid var(--hi-border);background:#fff;font-weight:800;cursor:pointer}
     .choice.primary{background:var(--grad-ember);color:#fff;border-color:transparent}
 
-    /* Announcement bar — white bg, black text */
-    .announce{
-      display:flex;align-items:center;gap:8px;justify-content:center;margin:8px auto 6px;
-      padding:8px 12px; border-radius:999px; background:#fff; border:1px solid var(--hi-border); width:min(980px,94vw);
-      box-shadow:var(--shadow);
-    }
+    .announce{display:flex;align-items:center;gap:8px;justify-content:center;margin:8px auto 6px;padding:8px 12px;border-radius:999px;background:#fff;border:1px solid var(--hi-border);width:min(980px,94vw);box-shadow:var(--shadow)}
     .announce .txt{display:flex;align-items:center;gap:10px;font-weight:800;color:#111}
     .badge{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:.75rem;padding:.25rem .5rem;border-radius:999px;background:#111;color:#fff}
     .marquee{display:block;overflow:hidden;white-space:nowrap}
@@ -136,13 +82,10 @@
   </div>
 
   <main class="wrap">
-    <!-- 7-day strip -->
     <div id="weekStrip" class="weekstrip" aria-label="Your week"></div>
 
-    <!-- Card -->
     <section class="panel center" aria-label="Hi panel" style="padding:18px">
       <div class="spaced" style="width:100%">
-        <!-- Hi medallion -->
         <div class="hi-medal" id="hiMedal" style="margin:0 auto">
           <div class="hi-logo" id="hiLogo" style="--logo-shift-y:24%">
             <picture>
@@ -154,14 +97,12 @@
           <div class="burst" id="burst"></div>
         </div>
 
-        <!-- Counters -->
         <div class="counters">
           <span class="pill">Today <b id="todayCount">0</b></span>
           <span class="pill">Streak <b id="streakLen">0</b> 🔥</span>
           <span class="pill">Total Hi-5s <b id="totalCount">0</b></span>
         </div>
 
-        <!-- Primary action -->
         <div class="actions">
           <button id="hiBtn" class="hi-btn hi-btn--primary" style="min-width:280px">Self Hi-5</button>
         </div>
@@ -173,13 +114,11 @@
     </div>
   </main>
 
-  <!-- Share Sheet (celebratory & clear) -->
+  <!-- Share Sheet -->
   <div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" aria-hidden="true">
     <h3 id="sheetTitle" style="margin:0 0 8px;font-weight:900">Nice! Self Hi-5 recorded 🎉</h3>
     <p class="muted" style="margin:0 0 8px">Want to capture the moment? Private saves to <b>My Archive</b>. Public appears on <b>Hi Island</b>.</p>
-    <div>
-      <textarea id="journal" maxlength="500" placeholder="What was the Hi moment you just noticed? (1–2 lines)"></textarea>
-    </div>
+    <div><textarea id="journal" maxlength="500" placeholder="What was the Hi moment you just noticed? (1–2 lines)"></textarea></div>
     <div class="cta-row">
       <button id="savePrivate" class="choice">Save privately</button>
       <button id="shareAnon"  class="choice">Share anonymously</button>
@@ -202,68 +141,69 @@
   (async function(){
     try { await hiAuth.ensureSessionMaybe?.(); } catch {}
 
-    /* ---------- storage ---------- */
     const LS = {
       hist:'hi5.history', total:'hi5.total', last:'hi5.lastDate', streak:'hi5.streak',
-      gFive:'hi.waves', gStart:'hi.starts',
-      q:'hi.queue' // offline queue for server events
+      gFive:'hi.waves', gStart:'hi.starts', q:'hi.queue'
     };
     const read=(k,def)=>{ try{ const v=localStorage.getItem(k); return v==null?def:JSON.parse(v) }catch{ return def } };
     const write=(k,v)=>{ try{ localStorage.setItem(k, JSON.stringify(v)) }catch{} };
     const todayKey=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     const weekStartMonday=(d=new Date())=>{const x=new Date(d);const day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(0,0,0,0);return x};
 
-    /* ---------- state ---------- */
     let history = read(LS.hist, {}), total = Number(read(LS.total,0))||0, streak = Number(read(LS.streak,0))||0, lastDay = read(LS.last,'');
     let gWaves  = Number(localStorage.getItem(LS.gFive)||0)||0;
     let gStarts = Number(localStorage.getItem(LS.gStart)||0)||0;
 
-    /* ---------- els ---------- */
-    const todayCount = document.getElementById('todayCount');
-    const streakLen  = document.getElementById('streakLen');
-    const totalCount = document.getElementById('totalCount');
-    const weekStrip  = document.getElementById('weekStrip');
-    const hiMedal    = document.getElementById('hiMedal');
-    const hiLogo     = document.getElementById('hiLogo');
-    const hiMark     = document.getElementById('hiMark');
-    const burst      = document.getElementById('burst');
-    const hiBtn      = document.getElementById('hiBtn');
-    const toastEl    = document.getElementById('toast');
+    const todayCount=document.getElementById('todayCount');
+    const streakLen=document.getElementById('streakLen');
+    const totalCount=document.getElementById('totalCount');
+    const weekStrip=document.getElementById('weekStrip');
+    const hiMedal=document.getElementById('hiMedal');
+    const hiLogo=document.getElementById('hiLogo');
+    const hiMark=document.getElementById('hiMark');
+    const burst=document.getElementById('burst');
+    const hiBtn=document.getElementById('hiBtn');
+    const toastEl=document.getElementById('toast');
 
-    const sheet      = document.getElementById('sheet');
-    const backdrop   = document.getElementById('backdrop');
-    const journal    = document.getElementById('journal');
-    const savePrivate= document.getElementById('savePrivate');
-    const shareAnon  = document.getElementById('shareAnon');
-    const sharePublic= document.getElementById('sharePublic');
+    const sheet=document.getElementById('sheet');
+    const backdrop=document.getElementById('backdrop');
+    const journal=document.getElementById('journal');
+    const savePrivate=document.getElementById('savePrivate');
+    const shareAnon=document.getElementById('shareAnon');
+    const sharePublic=document.getElementById('sharePublic');
 
     const announceWrap=document.getElementById('announceWrap');
-    const announceTxt =document.getElementById('announceTxt');
+    const announceTxt=document.getElementById('announceTxt');
 
-    /* ---------- header logo + calendar hook ---------- */
-    window.addEventListener('load', ()=> {
-      const hdr = document.getElementById('app-header');
-      const img = hdr && hdr.querySelector('img');
-      const light = 'assets/brand/hi-logo-dark.png';
-      if (img) { img.src = light; img.alt = 'Stay Hi'; }
-      // Calendar tab (several likely selectors)
-      const calBtn = hdr?.querySelector('[data-nav="calendar"], .btn-calendar, [aria-label="Open Calendar"], [data-route="calendar"]');
+    /* Header logo: reinforce after header.js paints */
+    function patchHeaderLogo(attempt=0){
+      const hdr=document.getElementById('app-header');
+      if(!hdr){ if(attempt<10) return setTimeout(()=>patchHeaderLogo(attempt+1),100); return; }
+      const light='assets/brand/hi-logo-dark.png';
+      let img=hdr.querySelector('img');
+      if(!img){
+        const brand=document.createElement('a'); brand.href='/'; brand.className='brand';
+        img=document.createElement('img'); img.alt='Stay Hi'; img.src=light; img.style.height='20px'; img.style.width='auto';
+        brand.appendChild(img);
+        const inner=document.createElement('div'); inner.className='header-inner'; inner.appendChild(brand);
+        hdr.innerHTML=''; hdr.appendChild(inner);
+      }else{ img.src=light; img.alt='Stay Hi'; }
+      const calBtn = hdr.querySelector('[data-nav="calendar"], .btn-calendar, [aria-label="Open Calendar"], [data-route="calendar"]');
       if (calBtn) calBtn.onclick = ()=> location.href='calendar.html';
-    });
+    }
+    window.addEventListener('load', ()=>patchHeaderLogo());
 
-    /* ---------- toast / sheets ---------- */
     function toast(msg, ttl=1400){ toastEl.textContent=msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'), ttl); }
     function openSheet(){ sheet.classList.remove('hide'); sheet.classList.add('show'); sheet.setAttribute('aria-hidden','false'); backdrop.style.display='block'; try{ journal.focus(); }catch{} }
-    function closeSheet(){ sheet.classList.remove('show'); sheet.classList.add('hide'); sheet.setAttribute('aria-hidden','true'); setTimeout(()=>backdrop.style.display='none', 180); }
+    function closeSheet(){ sheet.classList.remove('show'); sheet.classList.add('hide'); sheet.setAttribute('aria-hidden','true'); setTimeout(()=>backdrop.style.display='none',180); }
     backdrop.addEventListener('click', closeSheet);
 
-    /* ---------- week + counters ---------- */
     function renderWeekStrip(){
       weekStrip.innerHTML='';
       const start=weekStartMonday(new Date());
       for(let i=0;i<7;i++){
         const d=new Date(start); d.setDate(start.getDate()+i);
-        const k=todayKey(d); const done=(history[k]||0) >= 1;
+        const k=todayKey(d); const done=(history[k]||0)>=1;
         const lbl=d.toLocaleDateString(undefined,{weekday:'short'}).toUpperCase();
         const el=document.createElement('div'); el.className='weekdot';
         el.innerHTML=`<div class="lbl">${lbl}</div><div class="c ${done?'met':''}">${done?'✓':'○'}</div>`;
@@ -271,12 +211,11 @@
       }
     }
     function renderCounters(){
-      todayCount.textContent = Number(history[todayKey()]||0);
-      streakLen.textContent  = streak;
-      totalCount.textContent = total;
+      todayCount.textContent=Number(history[todayKey()]||0);
+      streakLen.textContent=streak;
+      totalCount.textContent=total;
     }
 
-    /* ---------- rotator ---------- */
     function dailyHiNote(date=new Date()){
       const key=`${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`; let h=0;
       for(let i=0;i<key.length;i++) h=(h*31+key.charCodeAt(i))|0;
@@ -287,21 +226,21 @@
     }
     let rotTimer, rotIdx=0, notes=[];
     function setRot(i){
-      if(!notes.length){ announceWrap.style.display='none'; return; }
-      rotIdx = i % notes.length; const n = notes[rotIdx];
+      notes = notes || []; if(!notes.length){ announceWrap.style.display='none'; return; }
+      rotIdx = i % notes.length; const n=notes[rotIdx];
       announceWrap.style.display='flex'; clearTimeout(rotTimer);
       if(n.type==='note'){
-        const text=n.text; const dur = Math.min(22, Math.max(10, Math.ceil(text.length/7)));
-        announceTxt.innerHTML = `<span class="badge">NOTE</span><div class="marquee" style="--dur:${dur}s"><span>${text}&nbsp;&nbsp;&nbsp;</span></div>`;
-        rotTimer = setTimeout(()=> setRot((rotIdx+1)%notes.length), dur*1000 + 600);
+        const text=n.text; const dur=Math.min(22,Math.max(10,Math.ceil(text.length/7)));
+        announceTxt.innerHTML=`<span class="badge">NOTE</span><div class="marquee" style="--dur:${dur}s"><span>${text}&nbsp;&nbsp;&nbsp;</span></div>`;
+        rotTimer=setTimeout(()=>setRot((rotIdx+1)%notes.length),dur*1000+600);
       }else{
-        const label = n.type==='starts' ? 'STARTS' : 'WAVES';
-        announceTxt.innerHTML = `<span class="badge">${label}</span>${n.text}`;
-        rotTimer = setTimeout(()=> setRot((rotIdx+1)%notes.length), 5200);
+        const label=n.type==='starts'?'STARTS':'WAVES';
+        announceTxt.innerHTML=`<span class="badge">${label}</span>${n.text}`;
+        rotTimer=setTimeout(()=>setRot((rotIdx+1)%notes.length),5200);
       }
     }
     function updateRotator(){
-      notes = [
+      notes=[
         {type:'waves',  text:`🌊 Hi Waves: ${gWaves.toLocaleString()}`},
         {type:'starts', text:`🏁 Hi Starts: ${gStarts.toLocaleString()}`},
         {type:'note',   text:`💡 ${dailyHiNote()}`}
@@ -309,170 +248,90 @@
       setRot(rotIdx);
     }
 
-    /* ---------- hi-fi confetti ---------- */
-    const fx = document.getElementById('fxCanvas');
-    const ctx = fx.getContext('2d');
-    function resizeFX(){ fx.width = innerWidth * devicePixelRatio; fx.height = innerHeight * devicePixelRatio; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); }
+    /* Confetti canvas */
+    const fx=document.getElementById('fxCanvas'); const ctx=fx.getContext('2d');
+    function resizeFX(){ fx.width=innerWidth*devicePixelRatio; fx.height=innerHeight*devicePixelRatio; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0) }
     resizeFX(); addEventListener('resize', resizeFX);
-
     function confettiPro(){
-      const pieces = [];
-      const COLORS = ['#ffd166','#ff7a18','#10b981','#60a5fa','#f472b6','#f59e0b','#22c55e'];
-      const shapes = ['rect','circle','ribbon'];
-      const n = 140;
-      for(let i=0;i<n;i++){
-        pieces.push({
-          x: innerWidth/2 + (Math.random()-0.5)*80,
-          y: innerHeight*0.35 + (Math.random()-0.5)*40,
-          vx: (Math.random()-0.5)*6,
-          vy: -8 - Math.random()*6,
-          w: 6+Math.random()*10,
-          h: 8+Math.random()*14,
-          r: Math.random()*Math.PI,
-          vr: (Math.random()-0.5)*0.2,
-          g: 0.25+Math.random()*0.25,
-          drag: 0.995,
-          life: 120+Math.random()*50,
-          color: COLORS[i%COLORS.length],
-          shape: shapes[(Math.random()*shapes.length)|0]
-        });
-      }
-      let running = true;
+      const pieces=[], COLORS=['#ffd166','#ff7a18','#10b981','#60a5fa','#f472b6','#f59e0b','#22c55e'], shapes=['rect','circle','ribbon'], n=140;
+      for(let i=0;i<n;i++) pieces.push({x:innerWidth/2+(Math.random()-0.5)*80,y:innerHeight*0.35+(Math.random()-0.5)*40,vx:(Math.random()-0.5)*6,vy:-8-Math.random()*6,w:6+Math.random()*10,h:8+Math.random()*14,r:Math.random()*Math.PI,vr:(Math.random()-0.5)*0.2,g:0.25+Math.random()*0.25,drag:0.995,life:120+Math.random()*50,color:COLORS[i%COLORS.length],shape:shapes[(Math.random()*shapes.length)|0]});
       (function tick(){
-        if(!running) return;
         ctx.clearRect(0,0,innerWidth,innerHeight);
-        for(const p of pieces){
-          p.vx *= p.drag; p.vy = p.vy*p.drag + p.g;
-          p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life--;
-          ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r);
-          ctx.fillStyle = p.color;
+        for(const p of pieces){ p.vx*=p.drag; p.vy=p.vy*p.drag+p.g; p.x+=p.vx; p.y+=p.vy; p.r+=p.vr; p.life--;
+          ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r); ctx.fillStyle=p.color;
           if(p.shape==='circle'){ ctx.beginPath(); ctx.arc(0,0,p.w*0.6,0,Math.PI*2); ctx.fill(); }
-          else if(p.shape==='ribbon'){
-            ctx.beginPath();
-            ctx.moveTo(-p.w,0);
-            ctx.bezierCurveTo(-p.w,-p.h, p.w,-p.h, p.w,0);
-            ctx.bezierCurveTo(p.w, p.h,-p.w, p.h,-p.w,0);
-            ctx.fill();
-          }else{ ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); }
+          else if(p.shape==='ribbon'){ ctx.beginPath(); ctx.moveTo(-p.w,0); ctx.bezierCurveTo(-p.w,-p.h,p.w,-p.h,p.w,0); ctx.bezierCurveTo(p.w,p.h,-p.w,p.h,-p.w,0); ctx.fill(); }
+          else{ ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); }
           ctx.restore();
         }
-        for(let i=pieces.length-1;i>=0;i--) if(pieces[i].life<=0 || pieces[i].y>innerHeight+60) pieces.splice(i,1);
-        if(pieces.length){ requestAnimationFrame(tick); } else { running=false; ctx.clearRect(0,0,innerWidth,innerHeight); }
+        for(let i=pieces.length-1;i>=0;i--) if(pieces[i].life<=0||p.y>innerHeight+60) pieces.splice(i,1);
+        if(pieces.length) requestAnimationFrame(tick); else ctx.clearRect(0,0,innerWidth,innerHeight);
       })();
     }
 
-    /* ---------- offline queue for server events ---------- */
-    function enqueue(evt){
-      const q = read(LS.q, []); q.push({...evt, t:Date.now()}); write(LS.q, q);
-    }
+    /* Offline queue */
+    function enqueue(evt){ const q=read(LS.q,[]); q.push({...evt,t:Date.now()}); write(LS.q,q) }
     async function flushQueue(){
-      const q = read(LS.q, []);
-      if(!q.length) return;
-      try{
-        await window.hiDB?.bulkIngest?.(q);
-        write(LS.q, []);
-      }catch{ /* keep for later */ }
+      const q=read(LS.q,[]); if(!q.length) return;
+      try{ await window.hiDB?.bulkIngest?.(q); write(LS.q,[]) }catch{}
     }
-    setInterval(flushQueue, 5000);
+    setInterval(flushQueue,5000);
 
-    /* ---------- interactions ---------- */
-    // Tap logo → Hi Wave
-    hiMedal.addEventListener('click', ()=>{
+    /* Interactions */
+    document.getElementById('hiMedal').addEventListener('click', async ()=>{
       try{ navigator?.vibrate?.(25) }catch{}
-      gWaves += 1; localStorage.setItem(LS.gFive, String(gWaves));
-      // emoji burst
-      for(let i=0;i<12;i++){
-        const s=document.createElement('span');
-        const x=50+(Math.random()-0.5)*12, y=48+(Math.random()-0.5)*8;
-        s.textContent='👋'; s.style.left=x+'%'; s.style.top=y+'%';
-        s.style.transform='translate(-50%,-50%)';
-        s.style.setProperty('--dx', ((Math.random()-0.5)*160)+'px');
-        s.style.setProperty('--s', (0.9+Math.random()*0.35));
-        s.style.animation = `waveUp 1100ms cubic-bezier(.22,1,.36,1) ${(Math.random()*180)|0}ms forwards`;
-        burst.appendChild(s); setTimeout(()=>s.remove(), 1400);
-      }
-      // halo + logo animations (no vertical jump)
+      gWaves += 1; localStorage.setItem(LS.gFive,String(gWaves));
+      for(let i=0;i<12;i++){ const s=document.createElement('span'); const x=50+(Math.random()-0.5)*12, y=48+(Math.random()-0.5)*8; s.textContent='👋'; s.style.left=x+'%'; s.style.top=y+'%'; s.style.transform='translate(-50%,-50%)'; s.style.setProperty('--dx',((Math.random()-0.5)*160)+'px'); s.style.setProperty('--s',(0.9+Math.random()*0.35)); s.style.animation=`waveUp 1100ms cubic-bezier(.22,1,.36,1) ${(Math.random()*180)|0}ms forwards`; burst.appendChild(s); setTimeout(()=>s.remove(),1400) }
       hiMedal.classList.remove('pulse'); void hiMedal.offsetWidth; hiMedal.classList.add('pulse');
       hiLogo.classList.remove('logo-pop'); void hiLogo.offsetWidth; hiLogo.classList.add('logo-pop');
       hiMark.classList.remove('glow'); void hiMark.offsetWidth; hiMark.classList.add('glow');
-
-      // server-side counter (waves)
-      const evt = {type:'wave', delta:1};
-      enqueue(evt); try{ await window.hiDB?.incrementCounters?.({wavesDelta:1}); }catch{}
-      toast('✨ Hi Wave');
-      updateRotator();
+      enqueue({type:'wave',delta:1}); try{ await window.hiDB?.incrementCounters?.({wavesDelta:1}) }catch{}
+      toast('✨ Hi Wave'); updateRotator();
     });
 
-    // Main CTA → Self Hi-5 (updates starts + global hi5)
     hiBtn.addEventListener('click', async ()=>{
-      const key = todayKey();
-      history[key] = (history[key]||0) + 1; total += 1;
-      gStarts += 1; localStorage.setItem(LS.gStart, String(gStarts));
-      write(LS.hist, history); write(LS.total, total);
+      const key=todayKey();
+      history[key]=(history[key]||0)+1; total+=1;
+      gStarts+=1; localStorage.setItem(LS.gStart,String(gStarts));
+      write(LS.hist,history); write(LS.total,total);
 
-      // streak
-      if(!lastDay){ streak=1; }
+      if(!lastDay){ streak=1 }
       else{
         const last=new Date(lastDay), cur=new Date(key);
         last.setHours(0,0,0,0); cur.setHours(0,0,0,0);
         const diff=Math.round((cur-last)/86400000);
         if(diff===1) streak++; else if(diff!==0) streak=1;
       }
-      lastDay = key; write(LS.last,lastDay); write(LS.streak,streak);
+      lastDay=key; write(LS.last,lastDay); write(LS.streak,streak);
       renderCounters(); renderWeekStrip(); updateRotator();
 
-      // global counters (server)
-      const evt = {type:'self_hi5', startsDelta:1, hi5Delta:1, date:key};
-      enqueue(evt); try{ await window.hiDB?.incrementCounters?.({startsDelta:1, hi5Delta:1}); }catch{}
+      enqueue({type:'self_hi5',startsDelta:1,hi5Delta:1,date:key});
+      try{ await window.hiDB?.incrementCounters?.({startsDelta:1, hi5Delta:1}) }catch{}
 
-      // celebratory confetti + unmistakable sheet
       confettiPro(); openSheet();
     });
 
-    // Persist choices (keeps pipes consistent; tags entry)
     async function persist({toIsland=false, anon=false}){
-      const raw = (journal.value||'').trim();
-      // default text rules
-      const text = raw
-        ? raw
-        : 'Marked a Hi-5 ✨';
+      const raw=(journal.value||'').trim();
+      const text = raw || 'Marked a Hi-5 ✨';
       try{
-        // Always archive (private)
-        const archivePayload = {
-          currentEmoji:'👋', desiredEmoji:'👋',
-          journal:text, location:'', kind:'self_hi5'
-        };
-        enqueue({type:'archive', payload:archivePayload});
-        await window.hiDB?.insertArchive?.(archivePayload);
-
-        if (toIsland){
-          const publicPayload = {
-            currentEmoji:'👋', currentName:'Hi-5',
-            desiredEmoji:'👋', desiredName:'Hi-5',
-            text, isAnonymous:anon, location:'', isPublic:true,
-            channel:'general', kind:'self_hi5'
-          };
-          enqueue({type:'public', payload:publicPayload});
-          await window.hiDB?.insertPublicShare?.(publicPayload);
-
-          // map ping (best-effort)
-          try{ await window.hiDB?.updateMap?.(publicPayload); }catch{}
+        const archivePayload={currentEmoji:'👋',desiredEmoji:'👋',journal:text,location:'',kind:'self_hi5'};
+        enqueue({type:'archive',payload:archivePayload}); await window.hiDB?.insertArchive?.(archivePayload);
+        if(toIsland){
+          const publicPayload={currentEmoji:'👋',currentName:'Hi-5',desiredEmoji:'👋',desiredName:'Hi-5',text,isAnonymous:anon,location:'',isPublic:true,channel:'general',kind:'self_hi5'};
+          enqueue({type:'public',payload:publicPayload}); await window.hiDB?.insertPublicShare?.(publicPayload);
+          try{ await window.hiDB?.updateMap?.(publicPayload) }catch{}
         }
-        toast(toIsland ? (anon?'Shared anon ✨':'Shared ✨') : 'Saved privately ✨');
-      }catch(e){
-        console.warn('save error', e);
-        toast('Saved locally. Will sync when online.');
-      }finally{
-        journal.value=''; closeSheet(); flushQueue();
-      }
+        toast(toIsland?(anon?'Shared anon ✨':'Shared ✨'):'Saved privately ✨');
+      }catch(e){ console.warn('save error',e); toast('Saved locally. Will sync when online.') }
+      finally{ journal.value=''; closeSheet(); flushQueue() }
     }
-    savePrivate.addEventListener('click', ()=> persist({toIsland:false}));
-    shareAnon.addEventListener('click',  ()=> persist({toIsland:true, anon:true}));
-    sharePublic.addEventListener('click',()=> persist({toIsland:true, anon:false}));
+    document.getElementById('savePrivate').addEventListener('click',()=>persist({toIsland:false}));
+    document.getElementById('shareAnon').addEventListener('click',()=>persist({toIsland:true,anon:true}));
+    document.getElementById('sharePublic').addEventListener('click',()=>persist({toIsland:true,anon:false}));
 
-    /* ---------- boot ---------- */
-    renderCounters(); renderWeekStrip(); updateRotator();
-    flushQueue();
+    /* Boot */
+    renderCounters(); renderWeekStrip(); updateRotator(); flushQueue();
   })();
   </script>
 </body>
