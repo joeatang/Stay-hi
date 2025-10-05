@@ -47,19 +47,28 @@
 
     /* Logo: precise center with optical tweak via --logo-shift-y */
     .hi-logo{
-      position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) translateY(var(--logo-shift-y,0%));
+      position:absolute; left:50%; top:50%;
+      transform:translate(-50%,-50%) translateY(var(--logo-shift-y,0%));
       z-index:2; display:block; width:100%; height:100%; pointer-events:none;
     }
     .hi-mark{
-      width:min(260px,60%); /* size */
-      height:auto; display:block; margin:0 auto;
+      width:min(260px,60%); height:auto; display:block; margin:0 auto;
       object-fit:contain; filter:drop-shadow(0 8px 22px rgba(0,0,0,.38));
     }
 
-    /* Logo pop + subtle glow on tap (doesn't shift position) */
-    @keyframes logoPop { 0%{transform:translate(-50%,-50%) scale(1)} 40%{transform:translate(-50%,-50%) scale(1.06)} 100%{transform:translate(-50%,-50%) scale(1)} }
+    /* ✅ FIX: keep translateY(var(--logo-shift-y)) during animation */
+    @keyframes logoPop {
+      0%  { transform:translate(-50%,-50%) translateY(var(--logo-shift-y,0%)) scale(1) }
+      40% { transform:translate(-50%,-50%) translateY(var(--logo-shift-y,0%)) scale(1.06) }
+      100%{ transform:translate(-50%,-50%) translateY(var(--logo-shift-y,0%)) scale(1) }
+    }
     .logo-pop{ animation: logoPop 320ms cubic-bezier(.22,1,.36,1) }
-    @keyframes logoGlow { 0%{ filter:drop-shadow(0 8px 22px rgba(0,0,0,.38)) } 50%{ filter:drop-shadow(0 0 38px rgba(255,210,102,.55)) } 100%{ filter:drop-shadow(0 8px 22px rgba(0,0,0,.38)) } }
+
+    @keyframes logoGlow {
+      0%{   filter:drop-shadow(0 8px 22px rgba(0,0,0,.38)) }
+      50%{  filter:drop-shadow(0 0 38px rgba(255,210,102,.55)) }
+      100%{ filter:drop-shadow(0 8px 22px rgba(0,0,0,.38)) }
+    }
     .glow{ animation: logoGlow 700ms ease-out }
 
     /* Tap burst layer (emoji waves) */
@@ -88,7 +97,7 @@
     @keyframes sheetIn{from{bottom:-100%}to{bottom:0}}
     @keyframes sheetOut{from{bottom:0}to{bottom:-100%}}
     .row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;flex-wrap:wrap}
-    textarea{width:100%;border:1px solid var(--hi-border);border-radius:12px;min-height:100px;padding:12px;font:inherit;background:#fff;color:#111} /* black text */
+    textarea{width:100%;border:1px solid var(--hi-border);border-radius:12px;min-height:100px;padding:12px;font:inherit;background:#fff;color:#111}
     .muted{color:var(--hi-muted)}
     .cta-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
     .choice{padding:10px 14px;border-radius:12px;border:1px solid var(--hi-border);background:#fff;font-weight:800;cursor:pointer}
@@ -183,6 +192,9 @@
   (async function(){
     try { await hiAuth.ensureSessionMaybe?.(); } catch {}
 
+    /* ---------- config ---------- */
+    const CAL_URL = 'calendar.html'; // change if your calendar file is named differently
+
     /* ---------- storage helpers ---------- */
     const LS = { hist:'hi5.history', total:'hi5.total', last:'hi5.lastDate', streak:'hi5.streak', gFive:'hi.waves', gStart:'hi.starts', q:'hi.queue' };
     const read=(k,def)=>{ try{ const v=localStorage.getItem(k); return v==null?def:JSON.parse(v) }catch{ return def } };
@@ -217,12 +229,30 @@
     const announceWrap=document.getElementById('announceWrap');
     const announceTxt =document.getElementById('announceTxt');
 
-    /* ---------- header logo patch (ensure visible) ---------- */
+    /* ---------- header logo + calendar hook (resilient) ---------- */
     window.addEventListener('load', ()=> {
       const hdr = document.getElementById('app-header');
-      const img = hdr && hdr.querySelector('img');
+      if (!hdr) return;
+
+      // keep brand visible
+      const brandImg = hdr.querySelector('img');
       const light = 'assets/brand/hi-logo-dark.png';
-      if (img) { img.src = light; img.srcset = light; img.alt = 'Stay Hi'; }
+      if (brandImg) { brandImg.src = light; brandImg.srcset = light; brandImg.alt = 'Stay Hi'; }
+
+      // make calendar open reliably
+      const calTargets = [
+        hdr.querySelector('[data-link="calendar"]'),
+        hdr.querySelector('.js-calendar'),
+        hdr.querySelector('a[href*="calendar"]'),
+        hdr.querySelector('button[aria-label*="Calendar" i]'),
+        hdr.querySelector('a[aria-label*="Calendar" i]')
+      ].filter(Boolean);
+      calTargets.forEach(node=>{
+        node.addEventListener('click', (e)=>{
+          e.preventDefault();
+          window.location.href = CAL_URL;
+        }, { passive:false });
+      });
     });
 
     /* ---------- tiny UI helpers ---------- */
