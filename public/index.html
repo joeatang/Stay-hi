@@ -27,29 +27,45 @@
 
     /* Hi medallion */
     .hi-medal{
-      width:min(360px,72vw); aspect-ratio:1/1; border-radius:999px;
+      width:min(420px,78vw); aspect-ratio:1/1; border-radius:999px;
       background:#0f1022; border:1px solid #23264d; box-shadow:0 14px 40px rgba(0,0,0,.35);
-      position:relative; overflow:hidden;
+      position:relative; overflow:hidden; transition:box-shadow .25s ease, transform .18s ease;
     }
     /* inner glow rings */
     .hi-medal::before, .hi-medal::after{
       content:""; position:absolute; inset:10%; border-radius:50%;
-      border:10px solid #1d2242;
+      border:10px solid #1d2242; z-index:0;
     }
     .hi-medal::after{ inset:22% }
 
-    /* Center logo + global pill */
+    /* Live halo pulse on tap */
+    @keyframes haloPulse {
+      0%{ box-shadow:0 14px 40px rgba(0,0,0,.35), inset 0 0 0 0 rgba(255,210,102,.0) }
+      40%{ box-shadow:0 22px 60px rgba(0,0,0,.45), inset 0 0 40px 8px rgba(255,122,24,.25) }
+      100%{ box-shadow:0 14px 40px rgba(0,0,0,.35), inset 0 0 0 0 rgba(255,210,102,.0) }
+    }
+    .hi-medal.pulse{ animation: haloPulse 900ms ease-out }
+
+    /* Center logo + wave pill */
     .hi-logo{ position:absolute; inset:0; display:grid; place-items:center; z-index:2 }
-    .hi-logo picture, .hi-logo img{ width:min(180px,40%); height:auto; filter:drop-shadow(0 6px 18px rgba(0,0,0,.35)) }
-    .hi-logo .hand{
+    .hi-mark{ width:min(300px,68%); height:auto; display:block; filter:drop-shadow(0 8px 22px rgba(0,0,0,.38)) }
+    .hi-logo .wave-pill{
       position:absolute; top:16px; left:50%; transform:translateX(-50%);
       background:#fff; color:#111; border:1px solid var(--hi-border);
       padding:6px 12px; border-radius:999px; font-weight:800; font-size:14px;
       box-shadow:0 6px 16px rgba(0,0,0,.25)
     }
 
+    /* Logo pop on tap */
+    @keyframes logoPop {
+      0%{ transform:scale(1) }
+      40%{ transform:scale(1.06) }
+      100%{ transform:scale(1) }
+    }
+    .logo-pop{ animation: logoPop 320ms cubic-bezier(.22,1,.36,1) }
+
     /* Emo burst layer for taps */
-    .burst{ position:absolute; inset:0; pointer-events:none }
+    .burst{ position:absolute; inset:0; pointer-events:none; z-index:3 }
     .burst span{ position:absolute; font-size:26px; will-change:transform,opacity }
     @keyframes waveUp {
       0%{ transform:translate(-50%,-50%) scale(var(--s,1)); opacity:.9 }
@@ -85,7 +101,7 @@
     textarea{width:100%;border:1px solid var(--hi-border);border-radius:12px;min-height:100px;padding:12px;font:inherit;background:#fff;color:var(--hi-ink)}
     .muted{color:var(--hi-muted)}
 
-    /* Announcement bar (rotator) */
+    /* Announcement bar (rotator) — white bg, black text */
     .announce{
       display:flex;align-items:center;gap:8px;justify-content:center;margin:8px auto 6px;
       padding:8px 12px; border-radius:999px; background:#fff; border:1px solid var(--hi-border); width:min(980px,94vw);
@@ -116,8 +132,8 @@
       <div class="spaced" style="width:100%">
         <!-- Hi medallion -->
         <div class="hi-medal" id="hiMedal" style="margin:0 auto">
-          <div class="hi-logo">
-            <div class="hand">👋 Global Hi-5</div>
+          <div class="hi-logo" id="hiLogo">
+            <div class="wave-pill">✨ Hi Wave</div>
 
             <!-- YOUR LOGO (auto light/dark) -->
             <picture>
@@ -207,12 +223,12 @@
        Storage keys & helpers
        =============================== */
     const LS = {
-      hist : 'hi5.history',     // map yyyy-mm-dd -> count
+      hist : 'hi5.history',     // map yyyy-mm-dd -> count (Self Hi-5)
       total: 'hi5.total',
       last : 'hi5.lastDate',
       streak: 'hi5.streak',
-      gFive: 'hi.globalFives',  // local “global” taps (cosmetic)
-      gStart:'hi.globalStarts'  // kept for banner balance
+      gFive: 'hi.waves',        // Hi Waves (tap logo) — local cosmetic
+      gStart:'hi.starts'        // Self Hi-5 presses — local cosmetic
     };
     const read=(k,def)=>{ try{ const v=localStorage.getItem(k); return v==null?def:JSON.parse(v) }catch{ return def } };
     const write=(k,v)=>{ try{ localStorage.setItem(k, JSON.stringify(v)) }catch{} };
@@ -227,8 +243,8 @@
     let streak  = Number(read(LS.streak, 0)) || 0;
     let lastDay = read(LS.last, '');
 
-    let gFives  = Number(localStorage.getItem(LS.gFive)  || 0) || 0;
-    let gStarts = Number(localStorage.getItem(LS.gStart) || 0) || 0; // kept for banner balance
+    let gWaves  = Number(localStorage.getItem(LS.gFive)  || 0) || 0; // taps
+    let gStarts = Number(localStorage.getItem(LS.gStart) || 0) || 0; // Self Hi-5 presses
 
     /* ===============================
        Elements
@@ -238,7 +254,8 @@
     const totalCount = document.getElementById('totalCount');
     const weekStrip  = document.getElementById('weekStrip');
 
-    const hiMedal    = document.getElementById('hiMedal'); // tap area for global
+    const hiMedal    = document.getElementById('hiMedal'); // tap area for waves
+    const hiLogo     = document.getElementById('hiLogo');
     const burst      = document.getElementById('burst');
     const hiBtn      = document.getElementById('hiBtn');
 
@@ -347,14 +364,15 @@
         announceTxt.innerHTML = `<span class="badge">NOTE</span><div class="marquee" style="--dur:${dur}s"><span>${text}&nbsp;&nbsp;&nbsp;</span></div>`;
         rotTimer = setTimeout(()=> setRot((rotIdx+1)%notes.length), dur*1000 + 600); // wait for full pass
       }else{
-        announceTxt.innerHTML = `<span class="badge">${n.type==='starts'?'STARTS':'HI'}</span>${n.text}`;
+        const label = n.type==='starts' ? 'STARTS' : 'WAVES';
+        announceTxt.innerHTML = `<span class="badge">${label}</span>${n.text}`;
         rotTimer = setTimeout(()=> setRot((rotIdx+1)%notes.length), 5200);
       }
     }
     function updateRotator(){
       notes = [
-        {type:'global', text:`🌍 Global Hi-5s: ${gFives.toLocaleString()}`},
-        {type:'starts', text:`🏁 Global Starts: ${gStarts.toLocaleString()}`},
+        {type:'waves',  text:`🌊 Hi Waves: ${gWaves.toLocaleString()}`},
+        {type:'starts', text:`🏁 Hi Starts: ${gStarts.toLocaleString()}`},
         {type:'note',   text:`💡 ${dailyHiNote()}`}
       ];
       setRot(rotIdx);
@@ -381,6 +399,7 @@
       const key = todayKey();
       history[key] = (history[key]||0) + 1;
       total += 1;
+      gStarts += 1; localStorage.setItem(LS.gStart, String(gStarts));
 
       write(LS.hist, history); write(LS.total, total);
 
@@ -430,15 +449,18 @@
     /* ===============================
        Events
        =============================== */
-    // Tap logo → playful global count only
+    // Tap logo → Hi Wave (cosmetic global)
     hiMedal.addEventListener('click', ()=>{
       try{ navigator?.vibrate?.(25) }catch{}
-      gFives += 1; localStorage.setItem(LS.gFive, String(gFives));
-      addBurst(12,'👋'); toast('👋 Global Hi-5');
+      gWaves += 1; localStorage.setItem(LS.gFive, String(gWaves));
+      addBurst(12,'👋'); toast('✨ Hi Wave');
+      // Animate halo + logo
+      hiMedal.classList.remove('pulse'); void hiMedal.offsetWidth; hiMedal.classList.add('pulse');
+      hiLogo.classList.remove('logo-pop'); void hiLogo.offsetWidth; hiLogo.classList.add('logo-pop');
       updateRotator();
     });
 
-    // Main CTA
+    // Main CTA → Self Hi-5
     hiBtn.addEventListener('click', recordHi5);
 
     /* ===============================
