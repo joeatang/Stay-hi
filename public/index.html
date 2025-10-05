@@ -39,7 +39,7 @@
     .hi-medal::after{ inset:22% }
 
     /* Center logo + global pill */
-    .hi-logo{ position:absolute; inset:0; display:grid; place-items:center }
+    .hi-logo{ position:absolute; inset:0; display:grid; place-items:center; z-index:2 }
     .hi-logo picture, .hi-logo img{ width:min(180px,40%); height:auto; filter:drop-shadow(0 6px 18px rgba(0,0,0,.35)) }
     .hi-logo .hand{
       position:absolute; top:16px; left:50%; transform:translateX(-50%);
@@ -86,24 +86,16 @@
     .muted{color:var(--hi-muted)}
 
     /* Announcement bar (rotator) */
-    .announce{display:flex;align-items:center;gap:8px;justify-content:center;margin:8px auto 6px}
-    .announce .txt{display:flex;align-items:center;gap:10px;font-weight:800;color:#e8ebff}
+    .announce{
+      display:flex;align-items:center;gap:8px;justify-content:center;margin:8px auto 6px;
+      padding:8px 12px; border-radius:999px; background:#fff; border:1px solid var(--hi-border); width:min(980px,94vw);
+      box-shadow:var(--shadow);
+    }
+    .announce .txt{display:flex;align-items:center;gap:10px;font-weight:800;color:#111}
     .badge{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:.75rem;padding:.25rem .5rem;border-radius:999px;background:#111;color:#fff}
     .marquee{display:block;overflow:hidden;white-space:nowrap}
     .marquee span{display:inline-block;animation:mar var(--dur,14s) linear infinite}
     @keyframes mar{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-    /* --- PATCH: rotator text is black on white --- */
-.announce .txt,
-.announce .txt * { color:#111 !important; }
-
-/* --- PATCH: ensure logo is above decorative rings --- */
-.hi-medal{ position:relative; }
-.hi-medal::before, .hi-medal::after{ z-index:0; }
-.hi-logo{ position:absolute; inset:0; display:grid; place-items:center; z-index:2; }
-.hi-logo picture, .hi-logo img{ width:min(180px,40%); height:auto; filter:drop-shadow(0 6px 18px rgba(0,0,0,.35)); }
-
-/* Keep the small "Global Hi-5" chip readable on white too */
-.hi-logo .hand{ color:#111; background:#fff; }
   </style>
 </head>
 <body class="sunrise" data-tab="today">
@@ -129,9 +121,12 @@
 
             <!-- YOUR LOGO (auto light/dark) -->
             <picture>
-              <source srcset="assets/brand/logo/hi-logo-light.png" media="(prefers-color-scheme: dark)">
-              <source srcset="assets/brand/logo/hi-logo-dark.png"  media="(prefers-color-scheme: light)">
-              <img class="hi-mark" src="assets/brand/logo/hi-logo-light.png" alt="Stay Hi">
+              <!-- Dark UI → white logo -->
+              <source srcset="assets/brand/hi-logo-light.png" media="(prefers-color-scheme: dark)">
+              <!-- Light UI → black logo -->
+              <source srcset="assets/brand/hi-logo-dark.png"  media="(prefers-color-scheme: light)">
+              <!-- Fallback (site is dark-themed) -->
+              <img class="hi-mark" src="assets/brand/hi-logo-light.png" alt="Stay Hi">
             </picture>
           </div>
           <div class="burst" id="burst"></div>
@@ -216,8 +211,8 @@
       total: 'hi5.total',
       last : 'hi5.lastDate',
       streak: 'hi5.streak',
-      gFive: 'hi.globalFives',  // local “global” taps
-      gStart:'hi.globalStarts'
+      gFive: 'hi.globalFives',  // local “global” taps (cosmetic)
+      gStart:'hi.globalStarts'  // kept for banner balance
     };
     const read=(k,def)=>{ try{ const v=localStorage.getItem(k); return v==null?def:JSON.parse(v) }catch{ return def } };
     const write=(k,v)=>{ try{ localStorage.setItem(k, JSON.stringify(v)) }catch{} };
@@ -302,7 +297,7 @@
       sw.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); setSwitch(sw,!getSwitch(sw)); }});
     });
 
-    function openSheet(){ sheet.classList.remove('hide'); sheet.classList.add('show'); sheet.setAttribute('aria-hidden','false'); backdrop.style.display='block'; }
+    function openSheet(){ sheet.classList.remove('hide'); sheet.classList.add('show'); sheet.setAttribute('aria-hidden','false'); backdrop.style.display='block'; try{ journal.focus(); }catch{} }
     function closeSheet(){ sheet.classList.remove('show'); sheet.classList.add('hide'); sheet.setAttribute('aria-hidden','true'); setTimeout(()=>backdrop.style.display='none', 180); }
     backdrop.addEventListener('click', closeSheet);
     cancelShare.addEventListener('click', closeSheet);
@@ -339,22 +334,21 @@
       const closers=["— small Hi’s change big days.","and let courage follow.","and let kindness ripple.","and brighten a corner.","and pass a Hi forward."];
       return `${pick(verbs)} ${pick(closers)}`;
     }
-    let rotT, rotIdx=0, notes=[];
+    let rotTimer, rotIdx=0, notes=[];
     function setRot(i){
       if(!notes.length){ announceWrap.style.display='none'; return; }
       rotIdx = i % notes.length;
       const n = notes[rotIdx];
       announceWrap.style.display='flex';
+      clearTimeout(rotTimer);
       if(n.type==='note'){
         const text=n.text;
         const dur = Math.min(22, Math.max(10, Math.ceil(text.length/7))); // seconds
         announceTxt.innerHTML = `<span class="badge">NOTE</span><div class="marquee" style="--dur:${dur}s"><span>${text}&nbsp;&nbsp;&nbsp;</span></div>`;
-        clearTimeout(rotT);
-        rotT = setTimeout(()=> setRot((rotIdx+1)%notes.length), dur*1000 + 600); // wait for full pass
+        rotTimer = setTimeout(()=> setRot((rotIdx+1)%notes.length), dur*1000 + 600); // wait for full pass
       }else{
         announceTxt.innerHTML = `<span class="badge">${n.type==='starts'?'STARTS':'HI'}</span>${n.text}`;
-        clearTimeout(rotT);
-        rotT = setTimeout(()=> setRot((rotIdx+1)%notes.length), 5200);
+        rotTimer = setTimeout(()=> setRot((rotIdx+1)%notes.length), 5200);
       }
     }
     function updateRotator(){
