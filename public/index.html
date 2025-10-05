@@ -22,7 +22,7 @@
     .weekdot .c{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;border:1px solid #2a2e55;color:#cfd2ea}
     .weekdot .c.met{background:linear-gradient(135deg, #ffd166, #ff7a18); color:#111; border-color:#0000}
 
-    /* Card shell from parity */
+    /* Card shell */
     .panel{background:#0f1022;border:1px solid #23264d;border-radius:22px;box-shadow:0 22px 60px rgba(0,0,0,.35)}
 
     /* Hi medallion */
@@ -31,14 +31,13 @@
       background:#0f1022; border:1px solid #23264d; box-shadow:0 14px 40px rgba(0,0,0,.35);
       position:relative; overflow:hidden; transition:box-shadow .25s ease, transform .18s ease;
     }
-    /* inner glow rings */
     .hi-medal::before, .hi-medal::after{
       content:""; position:absolute; inset:10%; border-radius:50%;
       border:10px solid #1d2242; z-index:0;
     }
     .hi-medal::after{ inset:22% }
 
-    /* Live halo pulse on tap */
+    /* Halo pulse on tap */
     @keyframes haloPulse {
       0%{ box-shadow:0 14px 40px rgba(0,0,0,.35), inset 0 0 0 0 rgba(255,210,102,.0) }
       40%{ box-shadow:0 22px 60px rgba(0,0,0,.45), inset 0 0 40px 8px rgba(255,122,24,.25) }
@@ -46,37 +45,28 @@
     }
     .hi-medal.pulse{ animation: haloPulse 900ms ease-out }
 
-    /* Center logo + wave pill
-       --logo-shift-y lets us nudge the art up/down if the PNG is top-heavy. */
+    /* Logo: perfect optical center */
     .hi-logo{
-      position:absolute; inset:0; z-index:2;
-      display:flex; align-items:center; justify-content:center;
-      transform: translateY(var(--logo-shift-y, 0%));
+      position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) translateY(var(--logo-shift-y,0%));
+      z-index:2; display:block; width:100%; height:100%; pointer-events:none;
     }
-    /* ↓ 5–7% smaller + ensure true center with flex and no baseline quirks */
     .hi-mark{
-      width:min(264px,62%);   /* was ~68%; now ~6% smaller */
-      height:auto; display:block;
-      object-fit:contain; image-rendering:auto;
-      filter:drop-shadow(0 8px 22px rgba(0,0,0,.38));
-      pointer-events:none;
+      width:min(260px,60%); /* ~6% smaller than before */
+      height:auto; display:block; margin:0 auto;
+      object-fit:contain; filter:drop-shadow(0 8px 22px rgba(0,0,0,.38));
     }
-    .hi-logo .wave-pill{
+    .wave-pill{
       position:absolute; top:16px; left:50%; transform:translateX(-50%);
       background:#fff; color:#111; border:1px solid var(--hi-border);
       padding:6px 12px; border-radius:999px; font-weight:800; font-size:14px;
-      box-shadow:0 6px 16px rgba(0,0,0,.25)
+      box-shadow:0 6px 16px rgba(0,0,0,.25); pointer-events:auto;
     }
 
-    /* Logo pop on tap */
-    @keyframes logoPop {
-      0%{ transform:scale(1) }
-      40%{ transform:scale(1.06) }
-      100%{ transform:scale(1) }
-    }
+    /* Logo pop */
+    @keyframes logoPop { 0%{transform:translate(-50%,-50%) scale(1)} 40%{transform:translate(-50%,-50%) scale(1.06)} 100%{transform:translate(-50%,-50%) scale(1)} }
     .logo-pop{ animation: logoPop 320ms cubic-bezier(.22,1,.36,1) }
 
-    /* Emo burst layer for taps */
+    /* Tap burst layer */
     .burst{ position:absolute; inset:0; pointer-events:none; z-index:3 }
     .burst span{ position:absolute; font-size:26px; will-change:transform,opacity }
     @keyframes waveUp {
@@ -84,15 +74,13 @@
       100%{ transform:translate(calc(-50% + var(--dx,0px)),-260%) scale(calc(var(--s,1)*.9)); opacity:0 }
     }
 
-    /* Confetti for Self Hi-5 */
-    .confetti{ position:fixed; inset:0; pointer-events:none; z-index:900 }
-    .confetti i{ position:absolute; width:8px; height:8px; background:#fff; opacity:0; border-radius:2px }
+    /* Confetti canvas (hi-fi) */
+    #fxCanvas{ position:fixed; inset:0; z-index:900; pointer-events:none }
 
-    /* Counters row */
+    /* Counters */
     .counters{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:6px}
     .pill{display:inline-flex;gap:6px;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid #2a2e55;background:#0f1228;color:#cfd2ea;font-weight:800}
 
-    /* Actions */
     .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
 
     /* Share sheet */
@@ -104,16 +92,13 @@
     @keyframes sheetIn{from{bottom:-100%}to{bottom:0}}
     @keyframes sheetOut{from{bottom:0}to{bottom:-100%}}
     .row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;flex-wrap:wrap}
-    .switch{position:relative;width:44px;height:26px;background:#e8e8e8;border-radius:999px;cursor:pointer;border:1px solid var(--hi-border)}
-    .knob{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:left .15s}
-    .switch.on{background:#0a8a3a;border-color:#0a8a3a}
-    .switch.on .knob{left:22px}
-    .field{display:flex;gap:8px;align-items:center;border:1px solid var(--hi-border);border-radius:12px;padding:8px 10px;background:#fff}
-    .field input{border:0;outline:0;width:100%;font:inherit}
     textarea{width:100%;border:1px solid var(--hi-border);border-radius:12px;min-height:100px;padding:12px;font:inherit;background:#fff;color:var(--hi-ink)}
     .muted{color:var(--hi-muted)}
+    .cta-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .choice{padding:10px 14px;border-radius:12px;border:1px solid var(--hi-border);background:#fff;font-weight:800;cursor:pointer}
+    .choice.primary{background:var(--grad-ember);color:#fff;border-color:transparent}
 
-    /* Announcement bar (rotator) — white bg, black text */
+    /* Announcement bar — white bg, black text */
     .announce{
       display:flex;align-items:center;gap:8px;justify-content:center;margin:8px auto 6px;
       padding:8px 12px; border-radius:999px; background:#fff; border:1px solid var(--hi-border); width:min(980px,94vw);
@@ -146,14 +131,9 @@
         <div class="hi-medal" id="hiMedal" style="margin:0 auto">
           <div class="hi-logo" id="hiLogo" style="--logo-shift-y:0%">
             <div class="wave-pill">✨ Hi Wave</div>
-
-            <!-- YOUR LOGO (auto light/dark) -->
             <picture>
-              <!-- Dark UI → white logo -->
               <source srcset="assets/brand/hi-logo-light.png" media="(prefers-color-scheme: dark)">
-              <!-- Light UI → black logo -->
               <source srcset="assets/brand/hi-logo-dark.png"  media="(prefers-color-scheme: light)">
-              <!-- Fallback (site is dark-themed) -->
               <img class="hi-mark" src="assets/brand/hi-logo-light.png" alt="Stay Hi">
             </picture>
           </div>
@@ -174,53 +154,31 @@
       </div>
     </section>
 
-    <!-- Links -->
     <div class="center" style="margin-top:10px">
       <a class="hi-btn hi-btn--ghost" href="hi-island.html">Go to Hi Island</a>
     </div>
   </main>
 
-  <!-- Share Sheet -->
+  <!-- Share Sheet (3 clear choices) -->
   <div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" aria-hidden="true">
     <h3 id="sheetTitle">Want to capture this Hi moment?</h3>
-    <p class="muted">We’ll always save a private copy in <b>My Archive</b>. You can also share to the public feed.</p>
-
-    <div class="row" style="margin-top:6px">
-      <div>
-        <div style="font-weight:800">Show on Hi Island</div>
-        <div class="muted">Appear in the global General Shares feed</div>
-      </div>
-      <div id="togglePublic" class="switch on" role="switch" aria-checked="true" tabindex="0"><div class="knob" aria-hidden="true"></div></div>
-    </div>
-
-    <div class="row">
-      <div>
-        <div style="font-weight:800">Post as Anonymous</div>
-        <div class="muted">Your name becomes “Hi Friend”</div>
-      </div>
-      <div id="toggleAnon" class="switch" role="switch" aria-checked="false" tabindex="0"><div class="knob" aria-hidden="true"></div></div>
-    </div>
-
-    <div class="field" aria-label="Optional location">
-      <span>📍</span><input id="locationInput" placeholder="City, State (optional)"/>
-    </div>
-
+    <p class="muted">Choose how you want to share. Private saves to <b>My Archive</b>. Public goes to <b>Hi Island</b>.</p>
     <div style="margin-top:8px">
       <textarea id="journal" maxlength="500" placeholder="What was the Hi moment you just noticed? (1–2 lines)"></textarea>
     </div>
-
-    <div class="row" style="justify-content:flex-end">
-      <button id="cancelShare" class="hi-btn hi-btn--ghost">Not now</button>
-      <button id="confirmShare" class="hi-btn hi-btn--primary">Save / Share</button>
+    <div class="cta-row">
+      <button id="savePrivate" class="choice">Save privately</button>
+      <button id="shareAnon"  class="choice">Share anonymously</button>
+      <button id="sharePublic" class="choice primary">Share publicly</button>
     </div>
   </div>
   <div id="backdrop" class="sheet-backdrop" aria-hidden="true"></div>
 
-  <!-- toast + confetti -->
+  <!-- toast + fx canvas -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <div id="confetti" class="confetti" aria-hidden="true"></div>
+  <canvas id="fxCanvas"></canvas>
 
-  <!-- scripts (order matters) -->
+  <!-- scripts -->
   <script src="assets/supabase-init.js"></script>
   <script src="assets/auth.js"></script>
   <script src="assets/db.js"></script>
@@ -230,16 +188,19 @@
   (async function(){
     try { await hiAuth.ensureSessionMaybe?.(); } catch {}
 
+    /* ---------- storage helpers ---------- */
     const LS = { hist:'hi5.history', total:'hi5.total', last:'hi5.lastDate', streak:'hi5.streak', gFive:'hi.waves', gStart:'hi.starts' };
     const read=(k,def)=>{ try{ const v=localStorage.getItem(k); return v==null?def:JSON.parse(v) }catch{ return def } };
     const write=(k,v)=>{ try{ localStorage.setItem(k, JSON.stringify(v)) }catch{} };
     const todayKey=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     const weekStartMonday=(d=new Date())=>{const x=new Date(d);const day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(0,0,0,0);return x};
 
+    /* ---------- state ---------- */
     let history = read(LS.hist, {}), total = Number(read(LS.total,0))||0, streak = Number(read(LS.streak,0))||0, lastDay = read(LS.last,'');
     let gWaves  = Number(localStorage.getItem(LS.gFive)||0)||0;
     let gStarts = Number(localStorage.getItem(LS.gStart)||0)||0;
 
+    /* ---------- els ---------- */
     const todayCount = document.getElementById('todayCount');
     const streakLen  = document.getElementById('streakLen');
     const totalCount = document.getElementById('totalCount');
@@ -248,52 +209,45 @@
     const hiLogo     = document.getElementById('hiLogo');
     const burst      = document.getElementById('burst');
     const hiBtn      = document.getElementById('hiBtn');
+    const toastEl    = document.getElementById('toast');
 
     const sheet      = document.getElementById('sheet');
     const backdrop   = document.getElementById('backdrop');
-    const togglePublic = document.getElementById('togglePublic');
-    const toggleAnon   = document.getElementById('toggleAnon');
-    const locationInput= document.getElementById('locationInput');
-    const journal      = document.getElementById('journal');
-    const cancelShare  = document.getElementById('cancelShare');
-    const confirmShare = document.getElementById('confirmShare');
+    const journal    = document.getElementById('journal');
+    const savePrivate= document.getElementById('savePrivate');
+    const shareAnon  = document.getElementById('shareAnon');
+    const sharePublic= document.getElementById('sharePublic');
 
-    const toastEl   = document.getElementById('toast');
-    const confettiLayer = document.getElementById('confetti');
     const announceWrap=document.getElementById('announceWrap');
     const announceTxt =document.getElementById('announceTxt');
 
-    function toast(msg, ttl=1400){ toastEl.textContent=msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'), ttl); }
-    function addBurst(n=12, emoji='👋'){
-      for(let i=0;i<n;i++){
-        const s=document.createElement('span');
-        const x=50+(Math.random()-0.5)*12, y=48+(Math.random()-0.5)*8;
-        s.textContent=emoji; s.style.left=x+'%'; s.style.top=y+'%';
-        s.style.transform='translate(-50%,-50%)';
-        s.style.setProperty('--dx', ((Math.random()-0.5)*160)+'px');
-        s.style.setProperty('--s', (0.9+Math.random()*0.35));
-        s.style.animation = `waveUp 1100ms cubic-bezier(.22,1,.36,1) ${(Math.random()*180)|0}ms forwards`;
-        burst.appendChild(s); setTimeout(()=>s.remove(), 1400);
+    /* ---------- header logo patch ---------- */
+    window.addEventListener('load', ()=> {
+      const hdr = document.getElementById('app-header');
+      // Try to replace existing <img> if present
+      const img = hdr && hdr.querySelector('img');
+      const light = 'assets/brand/hi-logo-dark.png';  // dark ink for light headers
+      const dark  = 'assets/brand/hi-logo-light.png'; // white ink for dark headers
+      if (img) {
+        // prefer light mark in header (header bg is light in parity theme)
+        img.src = light;
+        img.srcset = `${light} 1x`;
+        img.alt = 'Stay Hi';
+      } else if (hdr && !hdr.children.length) {
+        // minimal header fallback
+        hdr.innerHTML = `
+          <div class="header-inner">
+            <a href="/" class="brand"><img src="${light}" alt="Stay Hi" style="height:20px;width:auto"/></a>
+          </div>`;
       }
-    }
-    function confettiBurst(){
-      for(let i=0;i<110;i++){
-        const p=document.createElement('i');
-        const x=Math.random()*100, d=600+Math.random()*700, delay=Math.random()*120;
-        p.style.left=x+'%'; p.style.top='-10px';
-        const size=6+Math.random()*6;
-        p.style.width=size+'px'; p.style.height=size+'px'; p.style.opacity='1';
-        p.style.background = ['#ffd166','#ff7a18','#10b981','#60a5fa','#f472b6'][i%5];
-        p.animate([{transform:`translateY(0) rotate(0deg)`, opacity:1},{transform:`translateY(${window.innerHeight+120}px) rotate(${120+Math.random()*240}deg)`, opacity:0.9}],{duration:d, delay, easing:'cubic-bezier(.22,1,.36,1)'});
-        setTimeout(()=>p.remove(), d+delay+60); confettiLayer.appendChild(p);
-      }
-    }
-    function setSwitch(el, on){ el.classList.toggle('on', !!on); el.setAttribute('aria-checked', on?'true':'false'); }
-    [togglePublic, toggleAnon].forEach(sw=>{
-      sw.addEventListener('click', ()=> setSwitch(sw, !sw.classList.contains('on')));
-      sw.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); setSwitch(sw,!sw.classList.contains('on')); }});
     });
 
+    /* ---------- tiny UI helpers ---------- */
+    function toast(msg, ttl=1400){ toastEl.textContent=msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'), ttl); }
+    function openSheet(){ sheet.classList.remove('hide'); sheet.classList.add('show'); sheet.setAttribute('aria-hidden','false'); backdrop.style.display='block'; try{ journal.focus(); }catch{} }
+    function closeSheet(){ sheet.classList.remove('show'); sheet.classList.add('hide'); sheet.setAttribute('aria-hidden','true'); setTimeout(()=>backdrop.style.display='none', 180); }
+
+    /* ---------- week + counters ---------- */
     function renderWeekStrip(){
       weekStrip.innerHTML='';
       const start=weekStartMonday(new Date());
@@ -312,6 +266,7 @@
       totalCount.textContent = total;
     }
 
+    /* ---------- rotator ---------- */
     function dailyHiNote(date=new Date()){
       const key=`${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`; let h=0;
       for(let i=0;i<key.length;i++) h=(h*31+key.charCodeAt(i))|0;
@@ -344,6 +299,7 @@
       setRot(rotIdx);
     }
 
+    /* ---------- streak logic ---------- */
     function bumpStreak(today){
       if(!lastDay){ streak = 1; }
       else{
@@ -356,51 +312,136 @@
       lastDay = today; write(LS.last,lastDay); write(LS.streak,streak);
     }
 
-    async function recordHi5(){
+    /* ---------- hi-fi confetti ---------- */
+    const fx = document.getElementById('fxCanvas');
+    const ctx = fx.getContext('2d');
+    function resizeFX(){ fx.width = innerWidth * devicePixelRatio; fx.height = innerHeight * devicePixelRatio; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); }
+    resizeFX(); addEventListener('resize', resizeFX);
+
+    function confettiPro(){
+      const pieces = [];
+      const COLORS = ['#ffd166','#ff7a18','#10b981','#60a5fa','#f472b6','#f59e0b','#22c55e'];
+      const shapes = ['rect','circle','ribbon'];
+      const n = 140;
+      for(let i=0;i<n;i++){
+        pieces.push({
+          x: innerWidth/2 + (Math.random()-0.5)*80,
+          y: innerHeight*0.35 + (Math.random()-0.5)*40,
+          vx: (Math.random()-0.5)*6,
+          vy: -8 - Math.random()*6,
+          w: 6+Math.random()*10,
+          h: 8+Math.random()*14,
+          r: Math.random()*Math.PI,
+          vr: (Math.random()-0.5)*0.2,
+          g: 0.25+Math.random()*0.25,
+          drag: 0.995,
+          life: 120+Math.random()*50,
+          color: COLORS[i%COLORS.length],
+          shape: shapes[(Math.random()*shapes.length)|0]
+        });
+      }
+      let running = true;
+      (function tick(){
+        if(!running) return;
+        ctx.clearRect(0,0,innerWidth,innerHeight);
+        for(const p of pieces){
+          // physics
+          p.vx *= p.drag; p.vy = p.vy*p.drag + p.g;
+          p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life--;
+          // draw
+          ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r);
+          ctx.fillStyle = p.color;
+          if(p.shape==='circle'){
+            ctx.beginPath(); ctx.arc(0,0,p.w*0.6,0,Math.PI*2); ctx.fill();
+          }else if(p.shape==='ribbon'){
+            ctx.beginPath();
+            ctx.moveTo(-p.w,0);
+            ctx.bezierCurveTo(-p.w, -p.h, p.w, -p.h, p.w, 0);
+            ctx.bezierCurveTo(p.w, p.h, -p.w, p.h, -p.w, 0);
+            ctx.fill();
+          }else{
+            ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+          }
+          ctx.restore();
+        }
+        // remove dead
+        for(let i=pieces.length-1;i>=0;i--) if(pieces[i].life<=0 || pieces[i].y > innerHeight+60) pieces.splice(i,1);
+        if(pieces.length){ requestAnimationFrame(tick); } else { running=false; ctx.clearRect(0,0,innerWidth,innerHeight); }
+      })();
+    }
+
+    /* ---------- interactions ---------- */
+    // Tap logo → Hi Wave (cosmetic)
+    hiMedal.addEventListener('click', ()=>{
+      try{ navigator?.vibrate?.(25) }catch{}
+      gWaves += 1; localStorage.setItem(LS.gFive, String(gWaves));
+      // emoji burst
+      for(let i=0;i<12;i++){
+        const s=document.createElement('span');
+        const x=50+(Math.random()-0.5)*12, y=48+(Math.random()-0.5)*8;
+        s.textContent='👋'; s.style.left=x+'%'; s.style.top=y+'%';
+        s.style.transform='translate(-50%,-50%)';
+        s.style.setProperty('--dx', ((Math.random()-0.5)*160)+'px');
+        s.style.setProperty('--s', (0.9+Math.random()*0.35));
+        s.style.animation = `waveUp 1100ms cubic-bezier(.22,1,.36,1) ${(Math.random()*180)|0}ms forwards`;
+        burst.appendChild(s); setTimeout(()=>s.remove(), 1400);
+      }
+      // halo + logo animations
+      hiMedal.classList.remove('pulse'); void hiMedal.offsetWidth; hiMedal.classList.add('pulse');
+      hiLogo.classList.remove('logo-pop'); void hiLogo.offsetWidth; hiLogo.classList.add('logo-pop');
+      toast('✨ Hi Wave');
+      updateRotator();
+    });
+
+    // Main CTA → Self Hi-5
+    hiBtn.addEventListener('click', ()=>{
       const key = todayKey();
       history[key] = (history[key]||0) + 1; total += 1;
       gStarts += 1; localStorage.setItem(LS.gStart, String(gStarts));
       write(LS.hist, history); write(LS.total, total);
-      bumpStreak(key);
-      renderCounters(); renderWeekStrip();
-      confettiBurst(); openSheet(); updateRotator();
-    }
+      // streak
+      if(!lastDay){ streak=1; }
+      else{
+        const last=new Date(lastDay), cur=new Date(key);
+        last.setHours(0,0,0,0); cur.setHours(0,0,0,0);
+        const diff=Math.round((cur-last)/86400000);
+        if(diff===1) streak++; else if(diff!==0) streak=1;
+      }
+      lastDay = key; write(LS.last,lastDay); write(LS.streak,streak);
+      renderCounters(); renderWeekStrip(); updateRotator();
 
-    confirmShare.addEventListener('click', async ()=>{
+      // hi-fi confetti + prompt
+      confettiPro();
+      openSheet();
+    });
+
+    // Sheet choices
+    async function persist({toIsland=false, anon=false}){
       const text = (journal.value||'').trim();
-      const isAnon = toggleAnon.classList.contains('on');
-      const toIsland = togglePublic.classList.contains('on');
-      const loc = (locationInput.value||'').trim();
       try{
-        await window.hiDB?.insertArchive?.({ currentEmoji:'👋', desiredEmoji:'👋', journal:text, location:loc });
+        await window.hiDB?.insertArchive?.({ currentEmoji:'👋', desiredEmoji:'👋', journal:text, location:'' });
         if (toIsland){
           await window.hiDB?.insertPublicShare?.({
             currentEmoji:'👋', currentName:'Hi-5',
             desiredEmoji:'👋', desiredName:'Hi-5',
-            text, isAnonymous:isAnon, location:loc, isPublic:true
+            text, isAnonymous:anon, location:'', isPublic:true
           });
         }
-        toast('Saved ✨'); 
-      }catch(e){ console.warn('save/share error', e); toast('Saved locally. Will sync when online.'); }
-      finally{
-        journal.value=''; locationInput.value=''; toggleAnon.classList.remove('on'); togglePublic.classList.add('on'); closeSheet();
+        toast(toIsland ? (anon?'Shared anon ✨':'Shared ✨') : 'Saved privately ✨');
+      }catch(e){
+        console.warn('save error', e);
+        toast('Saved locally. Will sync when online.');
+      }finally{
+        journal.value=''; closeSheet();
       }
-    });
+    }
+    savePrivate.addEventListener('click', ()=> persist({toIsland:false}));
+    shareAnon.addEventListener('click',  ()=> persist({toIsland:true, anon:true}));
+    sharePublic.addEventListener('click',()=> persist({toIsland:true, anon:false}));
+    backdrop.addEventListener('click', closeSheet);
 
-    // Tap logo → Hi Wave (cosmetic global)
-    hiMedal.addEventListener('click', ()=>{
-      try{ navigator?.vibrate?.(25) }catch{}
-      gWaves += 1; localStorage.setItem(LS.gFive, String(gWaves));
-      addBurst(12,'👋'); toast('✨ Hi Wave');
-      hiMedal.classList.remove('pulse'); void hiMedal.offsetWidth; hiMedal.classList.add('pulse');
-      hiLogo.classList.remove('logo-pop'); void hiLogo.offsetWidth; hiLogo.classList.add('logo-pop');
-      updateRotator();
-    });
-
-    hiBtn.addEventListener('click', recordHi5);
-
+    /* ---------- boot ---------- */
     renderCounters(); renderWeekStrip(); updateRotator();
-    togglePublic.classList.add('on'); toggleAnon.classList.remove('on');
   })();
   </script>
 </body>
