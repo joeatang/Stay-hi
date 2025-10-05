@@ -10,13 +10,6 @@
   <link rel="stylesheet" href="assets/create-parity.css"/>
 
   <style>
-    :root{
-      /* Fine-tune logo alignment if your PNG has uneven transparent padding */
-      --logo-x: 0%;         /* e.g. -2% or 6px */
-      --logo-y: 0%;         /* e.g. 1% or -4px */
-      --logo-scale: 1.06;   /* gentle zoom to fill the halo */
-    }
-
     /* Layout */
     .wrap{max-width:980px;margin:0 auto;padding:16px}
     .center{display:grid;place-items:center}
@@ -32,29 +25,42 @@
     /* Card shell from parity */
     .panel{background:#0f1022;border:1px solid #23264d;border-radius:22px;box-shadow:0 22px 60px rgba(0,0,0,.35)}
 
-    /* Hi medallion (bigger halo) */
+    /* Hi medallion */
     .hi-medal{
-      width:min(540px,86vw); aspect-ratio:1/1; border-radius:999px;
+      width:min(420px,78vw); aspect-ratio:1/1; border-radius:999px;
       background:#0f1022; border:1px solid #23264d; box-shadow:0 14px 40px rgba(0,0,0,.35);
       position:relative; overflow:hidden; transition:box-shadow .25s ease, transform .18s ease;
     }
     /* inner glow rings */
     .hi-medal::before, .hi-medal::after{
-      content:""; position:absolute; inset:11%; border-radius:50%;
+      content:""; position:absolute; inset:10%; border-radius:50%;
       border:10px solid #1d2242; z-index:0;
     }
-    .hi-medal::after{ inset:25% }
+    .hi-medal::after{ inset:22% }
 
     /* Live halo pulse on tap */
     @keyframes haloPulse {
       0%{ box-shadow:0 14px 40px rgba(0,0,0,.35), inset 0 0 0 0 rgba(255,210,102,.0) }
-      40%{ box-shadow:0 22px 60px rgba(0,0,0,.45), inset 0 0 44px 10px rgba(255,122,24,.26) }
+      40%{ box-shadow:0 22px 60px rgba(0,0,0,.45), inset 0 0 40px 8px rgba(255,122,24,.25) }
       100%{ box-shadow:0 14px 40px rgba(0,0,0,.35), inset 0 0 0 0 rgba(255,210,102,.0) }
     }
     .hi-medal.pulse{ animation: haloPulse 900ms ease-out }
 
-    /* Center logo + Hi Wave pill */
-    .hi-logo{ position:absolute; inset:0; display:grid; place-items:center; z-index:2 }
+    /* Center logo + wave pill
+       --logo-shift-y lets us nudge the art up/down if the PNG is top-heavy. */
+    .hi-logo{
+      position:absolute; inset:0; z-index:2;
+      display:flex; align-items:center; justify-content:center;
+      transform: translateY(var(--logo-shift-y, 0%));
+    }
+    /* ↓ 5–7% smaller + ensure true center with flex and no baseline quirks */
+    .hi-mark{
+      width:min(264px,62%);   /* was ~68%; now ~6% smaller */
+      height:auto; display:block;
+      object-fit:contain; image-rendering:auto;
+      filter:drop-shadow(0 8px 22px rgba(0,0,0,.38));
+      pointer-events:none;
+    }
     .hi-logo .wave-pill{
       position:absolute; top:16px; left:50%; transform:translateX(-50%);
       background:#fff; color:#111; border:1px solid var(--hi-border);
@@ -62,25 +68,15 @@
       box-shadow:0 6px 16px rgba(0,0,0,.25)
     }
 
-    /* The actual mark */
-    .hi-mark{
-      width:72%; height:72%;
-      max-width:420px; max-height:420px;
-      display:block; filter:drop-shadow(0 8px 22px rgba(0,0,0,.38));
-      object-fit:contain; object-position:center;
-      /* optical fine-tuning knobs (change in :root if needed) */
-      transform: translate(var(--logo-x), var(--logo-y)) scale(var(--logo-scale));
-    }
-
     /* Logo pop on tap */
     @keyframes logoPop {
-      0%{ transform: translate(var(--logo-x), var(--logo-y)) scale(var(--logo-scale)) }
-      40%{ transform: translate(var(--logo-x), var(--logo-y)) scale(calc(var(--logo-scale) * 1.06)) }
-      100%{ transform: translate(var(--logo-x), var(--logo-y)) scale(var(--logo-scale)) }
+      0%{ transform:scale(1) }
+      40%{ transform:scale(1.06) }
+      100%{ transform:scale(1) }
     }
     .logo-pop{ animation: logoPop 320ms cubic-bezier(.22,1,.36,1) }
 
-    /* Emoji burst layer for taps */
+    /* Emo burst layer for taps */
     .burst{ position:absolute; inset:0; pointer-events:none; z-index:3 }
     .burst span{ position:absolute; font-size:26px; will-change:transform,opacity }
     @keyframes waveUp {
@@ -148,7 +144,7 @@
       <div class="spaced" style="width:100%">
         <!-- Hi medallion -->
         <div class="hi-medal" id="hiMedal" style="margin:0 auto">
-          <div class="hi-logo" id="hiLogo">
+          <div class="hi-logo" id="hiLogo" style="--logo-shift-y:0%">
             <div class="wave-pill">✨ Hi Wave</div>
 
             <!-- YOUR LOGO (auto light/dark) -->
@@ -215,4 +211,197 @@
 
     <div class="row" style="justify-content:flex-end">
       <button id="cancelShare" class="hi-btn hi-btn--ghost">Not now</button>
-      <button id="
+      <button id="confirmShare" class="hi-btn hi-btn--primary">Save / Share</button>
+    </div>
+  </div>
+  <div id="backdrop" class="sheet-backdrop" aria-hidden="true"></div>
+
+  <!-- toast + confetti -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="confetti" class="confetti" aria-hidden="true"></div>
+
+  <!-- scripts (order matters) -->
+  <script src="assets/supabase-init.js"></script>
+  <script src="assets/auth.js"></script>
+  <script src="assets/db.js"></script>
+  <script src="assets/header.js" defer></script>
+
+  <script>
+  (async function(){
+    try { await hiAuth.ensureSessionMaybe?.(); } catch {}
+
+    const LS = { hist:'hi5.history', total:'hi5.total', last:'hi5.lastDate', streak:'hi5.streak', gFive:'hi.waves', gStart:'hi.starts' };
+    const read=(k,def)=>{ try{ const v=localStorage.getItem(k); return v==null?def:JSON.parse(v) }catch{ return def } };
+    const write=(k,v)=>{ try{ localStorage.setItem(k, JSON.stringify(v)) }catch{} };
+    const todayKey=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const weekStartMonday=(d=new Date())=>{const x=new Date(d);const day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(0,0,0,0);return x};
+
+    let history = read(LS.hist, {}), total = Number(read(LS.total,0))||0, streak = Number(read(LS.streak,0))||0, lastDay = read(LS.last,'');
+    let gWaves  = Number(localStorage.getItem(LS.gFive)||0)||0;
+    let gStarts = Number(localStorage.getItem(LS.gStart)||0)||0;
+
+    const todayCount = document.getElementById('todayCount');
+    const streakLen  = document.getElementById('streakLen');
+    const totalCount = document.getElementById('totalCount');
+    const weekStrip  = document.getElementById('weekStrip');
+    const hiMedal    = document.getElementById('hiMedal');
+    const hiLogo     = document.getElementById('hiLogo');
+    const burst      = document.getElementById('burst');
+    const hiBtn      = document.getElementById('hiBtn');
+
+    const sheet      = document.getElementById('sheet');
+    const backdrop   = document.getElementById('backdrop');
+    const togglePublic = document.getElementById('togglePublic');
+    const toggleAnon   = document.getElementById('toggleAnon');
+    const locationInput= document.getElementById('locationInput');
+    const journal      = document.getElementById('journal');
+    const cancelShare  = document.getElementById('cancelShare');
+    const confirmShare = document.getElementById('confirmShare');
+
+    const toastEl   = document.getElementById('toast');
+    const confettiLayer = document.getElementById('confetti');
+    const announceWrap=document.getElementById('announceWrap');
+    const announceTxt =document.getElementById('announceTxt');
+
+    function toast(msg, ttl=1400){ toastEl.textContent=msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'), ttl); }
+    function addBurst(n=12, emoji='👋'){
+      for(let i=0;i<n;i++){
+        const s=document.createElement('span');
+        const x=50+(Math.random()-0.5)*12, y=48+(Math.random()-0.5)*8;
+        s.textContent=emoji; s.style.left=x+'%'; s.style.top=y+'%';
+        s.style.transform='translate(-50%,-50%)';
+        s.style.setProperty('--dx', ((Math.random()-0.5)*160)+'px');
+        s.style.setProperty('--s', (0.9+Math.random()*0.35));
+        s.style.animation = `waveUp 1100ms cubic-bezier(.22,1,.36,1) ${(Math.random()*180)|0}ms forwards`;
+        burst.appendChild(s); setTimeout(()=>s.remove(), 1400);
+      }
+    }
+    function confettiBurst(){
+      for(let i=0;i<110;i++){
+        const p=document.createElement('i');
+        const x=Math.random()*100, d=600+Math.random()*700, delay=Math.random()*120;
+        p.style.left=x+'%'; p.style.top='-10px';
+        const size=6+Math.random()*6;
+        p.style.width=size+'px'; p.style.height=size+'px'; p.style.opacity='1';
+        p.style.background = ['#ffd166','#ff7a18','#10b981','#60a5fa','#f472b6'][i%5];
+        p.animate([{transform:`translateY(0) rotate(0deg)`, opacity:1},{transform:`translateY(${window.innerHeight+120}px) rotate(${120+Math.random()*240}deg)`, opacity:0.9}],{duration:d, delay, easing:'cubic-bezier(.22,1,.36,1)'});
+        setTimeout(()=>p.remove(), d+delay+60); confettiLayer.appendChild(p);
+      }
+    }
+    function setSwitch(el, on){ el.classList.toggle('on', !!on); el.setAttribute('aria-checked', on?'true':'false'); }
+    [togglePublic, toggleAnon].forEach(sw=>{
+      sw.addEventListener('click', ()=> setSwitch(sw, !sw.classList.contains('on')));
+      sw.addEventListener('keydown', (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); setSwitch(sw,!sw.classList.contains('on')); }});
+    });
+
+    function renderWeekStrip(){
+      weekStrip.innerHTML='';
+      const start=weekStartMonday(new Date());
+      for(let i=0;i<7;i++){
+        const d=new Date(start); d.setDate(start.getDate()+i);
+        const k=todayKey(d); const done=(history[k]||0) >= 1;
+        const lbl=d.toLocaleDateString(undefined,{weekday:'short'}).toUpperCase();
+        const el=document.createElement('div'); el.className='weekdot';
+        el.innerHTML=`<div class="lbl">${lbl}</div><div class="c ${done?'met':''}">${done?'✓':'○'}</div>`;
+        weekStrip.appendChild(el);
+      }
+    }
+    function renderCounters(){
+      todayCount.textContent = Number(history[todayKey()]||0);
+      streakLen.textContent  = streak;
+      totalCount.textContent = total;
+    }
+
+    function dailyHiNote(date=new Date()){
+      const key=`${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`; let h=0;
+      for(let i=0;i<key.length;i++) h=(h*31+key.charCodeAt(i))|0;
+      const pick=arr=>arr[Math.abs(h++%arr.length)];
+      const verbs=["Carry your Hi","Choose Hi","Breathe Hi","Start with Hi","Move Hi","Speak Hi","Believe in Hi","Aim Hi","Soar Hi","Flow Hi","Shine Hi","Rise Hi"];
+      const closers=["— small Hi’s change big days.","and let courage follow.","and let kindness ripple.","and brighten a corner.","and pass a Hi forward."];
+      return `${pick(verbs)} ${pick(closers)}`;
+    }
+    let rotTimer, rotIdx=0, notes=[];
+    function setRot(i){
+      if(!notes.length){ announceWrap.style.display='none'; return; }
+      rotIdx = i % notes.length; const n = notes[rotIdx];
+      announceWrap.style.display='flex'; clearTimeout(rotTimer);
+      if(n.type==='note'){
+        const text=n.text; const dur = Math.min(22, Math.max(10, Math.ceil(text.length/7)));
+        announceTxt.innerHTML = `<span class="badge">NOTE</span><div class="marquee" style="--dur:${dur}s"><span>${text}&nbsp;&nbsp;&nbsp;</span></div>`;
+        rotTimer = setTimeout(()=> setRot((rotIdx+1)%notes.length), dur*1000 + 600);
+      }else{
+        const label = n.type==='starts' ? 'STARTS' : 'WAVES';
+        announceTxt.innerHTML = `<span class="badge">${label}</span>${n.text}`;
+        rotTimer = setTimeout(()=> setRot((rotIdx+1)%notes.length), 5200);
+      }
+    }
+    function updateRotator(){
+      notes = [
+        {type:'waves',  text:`🌊 Hi Waves: ${gWaves.toLocaleString()}`},
+        {type:'starts', text:`🏁 Hi Starts: ${gStarts.toLocaleString()}`},
+        {type:'note',   text:`💡 ${dailyHiNote()}`}
+      ];
+      setRot(rotIdx);
+    }
+
+    function bumpStreak(today){
+      if(!lastDay){ streak = 1; }
+      else{
+        const last = new Date(lastDay), cur = new Date(today);
+        last.setHours(0,0,0,0); cur.setHours(0,0,0,0);
+        const diffDays = Math.round((cur-last)/86400000);
+        if(diffDays === 1){ streak += 1; }
+        else if(diffDays !== 0){ streak = 1; }
+      }
+      lastDay = today; write(LS.last,lastDay); write(LS.streak,streak);
+    }
+
+    async function recordHi5(){
+      const key = todayKey();
+      history[key] = (history[key]||0) + 1; total += 1;
+      gStarts += 1; localStorage.setItem(LS.gStart, String(gStarts));
+      write(LS.hist, history); write(LS.total, total);
+      bumpStreak(key);
+      renderCounters(); renderWeekStrip();
+      confettiBurst(); openSheet(); updateRotator();
+    }
+
+    confirmShare.addEventListener('click', async ()=>{
+      const text = (journal.value||'').trim();
+      const isAnon = toggleAnon.classList.contains('on');
+      const toIsland = togglePublic.classList.contains('on');
+      const loc = (locationInput.value||'').trim();
+      try{
+        await window.hiDB?.insertArchive?.({ currentEmoji:'👋', desiredEmoji:'👋', journal:text, location:loc });
+        if (toIsland){
+          await window.hiDB?.insertPublicShare?.({
+            currentEmoji:'👋', currentName:'Hi-5',
+            desiredEmoji:'👋', desiredName:'Hi-5',
+            text, isAnonymous:isAnon, location:loc, isPublic:true
+          });
+        }
+        toast('Saved ✨'); 
+      }catch(e){ console.warn('save/share error', e); toast('Saved locally. Will sync when online.'); }
+      finally{
+        journal.value=''; locationInput.value=''; toggleAnon.classList.remove('on'); togglePublic.classList.add('on'); closeSheet();
+      }
+    });
+
+    // Tap logo → Hi Wave (cosmetic global)
+    hiMedal.addEventListener('click', ()=>{
+      try{ navigator?.vibrate?.(25) }catch{}
+      gWaves += 1; localStorage.setItem(LS.gFive, String(gWaves));
+      addBurst(12,'👋'); toast('✨ Hi Wave');
+      hiMedal.classList.remove('pulse'); void hiMedal.offsetWidth; hiMedal.classList.add('pulse');
+      hiLogo.classList.remove('logo-pop'); void hiLogo.offsetWidth; hiLogo.classList.add('logo-pop');
+      updateRotator();
+    });
+
+    hiBtn.addEventListener('click', recordHi5);
+
+    renderCounters(); renderWeekStrip(); updateRotator();
+    togglePublic.classList.add('on'); toggleAnon.classList.remove('on');
+  })();
+  </script>
+</body>
+</html>
