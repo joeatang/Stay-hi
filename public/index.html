@@ -20,12 +20,12 @@
     .weekdot{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:40px}
     .weekdot .lbl{font-size:11px;opacity:.85;color:#cfd2ea}
     .weekdot .c{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;border:1px solid #2a2e55;color:#cfd2ea}
-    .weekdot .c.met{background:linear-gradient(135deg, #ffd166, #ff7a18); color:#111; border-color:#0000}
+    .weekdot .c.met{background:linear-gradient(135deg,#ffd166,#ff7a18);color:#111;border-color:#0000}
 
     /* Card shell */
     .panel{background:#0f1022;border:1px solid #23264d;border-radius:22px;box-shadow:0 22px 60px rgba(0,0,0,.35)}
 
-    /* Hi medallion */
+    /* Hi medallion (halo) */
     .hi-medal{
       width:min(420px,78vw); aspect-ratio:1/1; border-radius:999px;
       background:#0f1022; border:1px solid #23264d; box-shadow:0 14px 40px rgba(0,0,0,.35);
@@ -40,31 +40,44 @@
     /* Halo pulse on tap */
     @keyframes haloPulse {
       0%{ box-shadow:0 14px 40px rgba(0,0,0,.35), inset 0 0 0 0 rgba(255,210,102,.0) }
-      40%{ box-shadow:0 22px 60px rgba(0,0,0,.45), inset 0 0 40px 8px rgba(255,122,24,.25) }
+      40%{ box-shadow:0 22px 60px rgba(0,0,0,.45), inset 0 0 40px 8px rgba(255,122,24,.28) }
       100%{ box-shadow:0 14px 40px rgba(0,0,0,.35), inset 0 0 0 0 rgba(255,210,102,.0) }
     }
     .hi-medal.pulse{ animation: haloPulse 900ms ease-out }
 
-    /* Logo: perfect optical center */
+    /* Center logo (kept optically centered with adjustable offset) */
     .hi-logo{
-      position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) translateY(var(--logo-shift-y,0%));
+      position:absolute; left:50%; top:50%;
+      transform:translate(-50%,-50%) translateY(var(--logo-shift-y,0%));
       z-index:2; display:block; width:100%; height:100%; pointer-events:none;
     }
     .hi-mark{
-      width:min(260px,60%); /* ~6% smaller than before */
-      height:auto; display:block; margin:0 auto;
-      object-fit:contain; filter:drop-shadow(0 8px 22px rgba(0,0,0,.38));
+      width:min(260px,60%);
+      height:auto; display:block; margin:0 auto; object-fit:contain;
+      filter:drop-shadow(0 8px 22px rgba(0,0,0,.38));
     }
     .wave-pill{
       position:absolute; top:16px; left:50%; transform:translateX(-50%);
       background:#fff; color:#111; border:1px solid var(--hi-border);
       padding:6px 12px; border-radius:999px; font-weight:800; font-size:14px;
-      box-shadow:0 6px 16px rgba(0,0,0,.25); pointer-events:auto;
+      box-shadow:0 6px 16px rgba(0,0,0,.25); pointer-events:none; /* not a button */
     }
 
-    /* Logo pop */
-    @keyframes logoPop { 0%{transform:translate(-50%,-50%) scale(1)} 40%{transform:translate(-50%,-50%) scale(1.06)} 100%{transform:translate(-50%,-50%) scale(1)} }
+    /* Logo pop (now preserves --logo-shift-y so it doesn't “jump”) */
+    @keyframes logoPop {
+      0%  { transform:translate(-50%,-50%) translateY(var(--logo-shift-y,0%)) scale(1) }
+      40% { transform:translate(-50%,-50%) translateY(var(--logo-shift-y,0%)) scale(1.06) }
+      100%{ transform:translate(-50%,-50%) translateY(var(--logo-shift-y,0%)) scale(1) }
+    }
     .logo-pop{ animation: logoPop 320ms cubic-bezier(.22,1,.36,1) }
+
+    /* Gentle glow on the hand logo */
+    @keyframes logoGlow {
+      0%  { filter:drop-shadow(0 8px 22px rgba(0,0,0,.38)) brightness(1) }
+      50% { filter:drop-shadow(0 12px 30px rgba(255,122,24,.45)) brightness(1.08) }
+      100%{ filter:drop-shadow(0 8px 22px rgba(0,0,0,.38)) brightness(1) }
+    }
+    .hi-mark.glow { animation: logoGlow 800ms ease-out }
 
     /* Tap burst layer */
     .burst{ position:absolute; inset:0; pointer-events:none; z-index:3 }
@@ -80,7 +93,6 @@
     /* Counters */
     .counters{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:6px}
     .pill{display:inline-flex;gap:6px;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid #2a2e55;background:#0f1228;color:#cfd2ea;font-weight:800}
-
     .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
 
     /* Share sheet */
@@ -92,7 +104,15 @@
     @keyframes sheetIn{from{bottom:-100%}to{bottom:0}}
     @keyframes sheetOut{from{bottom:0}to{bottom:-100%}}
     .row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;flex-wrap:wrap}
-    textarea{width:100%;border:1px solid var(--hi-border);border-radius:12px;min-height:100px;padding:12px;font:inherit;background:#fff;color:var(--hi-ink)}
+
+    /* Textarea is black ink on white (visibility fix) */
+    textarea{
+      width:100%;border:1px solid var(--hi-border);border-radius:12px;
+      min-height:100px;padding:12px;font:inherit;background:#fff;color:#111;
+      caret-color:#111;
+    }
+    textarea::placeholder{ color:#6b7280; }
+
     .muted{color:var(--hi-muted)}
     .cta-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
     .choice{padding:10px 14px;border-radius:12px;border:1px solid var(--hi-border);background:#fff;font-weight:800;cursor:pointer}
@@ -129,12 +149,12 @@
       <div class="spaced" style="width:100%">
         <!-- Hi medallion -->
         <div class="hi-medal" id="hiMedal" style="margin:0 auto">
-          <div class="hi-logo" id="hiLogo" style="--logo-shift-y:23%">
+          <div class="hi-logo" id="hiLogo" style="--logo-shift-y:24%">
             <div class="wave-pill">✨ Hi Wave</div>
             <picture>
               <source srcset="assets/brand/hi-logo-light.png" media="(prefers-color-scheme: dark)">
               <source srcset="assets/brand/hi-logo-dark.png"  media="(prefers-color-scheme: light)">
-              <img class="hi-mark" src="assets/brand/hi-logo-light.png" alt="Stay Hi">
+              <img class="hi-mark" id="hiMark" src="assets/brand/hi-logo-light.png" alt="Stay Hi">
             </picture>
           </div>
           <div class="burst" id="burst"></div>
@@ -159,7 +179,7 @@
     </div>
   </main>
 
-  <!-- Share Sheet (3 clear choices) -->
+  <!-- Share Sheet (3 choices) -->
   <div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" aria-hidden="true">
     <h3 id="sheetTitle">Want to capture this Hi moment?</h3>
     <p class="muted">Choose how you want to share. Private saves to <b>My Archive</b>. Public goes to <b>Hi Island</b>.</p>
@@ -188,7 +208,7 @@
   (async function(){
     try { await hiAuth.ensureSessionMaybe?.(); } catch {}
 
-    /* ---------- storage helpers ---------- */
+    /* ---------- storage ---------- */
     const LS = { hist:'hi5.history', total:'hi5.total', last:'hi5.lastDate', streak:'hi5.streak', gFive:'hi.waves', gStart:'hi.starts' };
     const read=(k,def)=>{ try{ const v=localStorage.getItem(k); return v==null?def:JSON.parse(v) }catch{ return def } };
     const write=(k,v)=>{ try{ localStorage.setItem(k, JSON.stringify(v)) }catch{} };
@@ -207,6 +227,7 @@
     const weekStrip  = document.getElementById('weekStrip');
     const hiMedal    = document.getElementById('hiMedal');
     const hiLogo     = document.getElementById('hiLogo');
+    const hiMark     = document.getElementById('hiMark');
     const burst      = document.getElementById('burst');
     const hiBtn      = document.getElementById('hiBtn');
     const toastEl    = document.getElementById('toast');
@@ -221,28 +242,15 @@
     const announceWrap=document.getElementById('announceWrap');
     const announceTxt =document.getElementById('announceTxt');
 
-    /* ---------- header logo patch ---------- */
+    /* ---------- header logo (ensure visible) ---------- */
     window.addEventListener('load', ()=> {
       const hdr = document.getElementById('app-header');
-      // Try to replace existing <img> if present
       const img = hdr && hdr.querySelector('img');
-      const light = 'assets/brand/hi-logo-dark.png';  // dark ink for light headers
-      const dark  = 'assets/brand/hi-logo-light.png'; // white ink for dark headers
-      if (img) {
-        // prefer light mark in header (header bg is light in parity theme)
-        img.src = light;
-        img.srcset = `${light} 1x`;
-        img.alt = 'Stay Hi';
-      } else if (hdr && !hdr.children.length) {
-        // minimal header fallback
-        hdr.innerHTML = `
-          <div class="header-inner">
-            <a href="/" class="brand"><img src="${light}" alt="Stay Hi" style="height:20px;width:auto"/></a>
-          </div>`;
-      }
+      const light = 'assets/brand/hi-logo-dark.png';
+      if (img) { img.src = light; img.alt = 'Stay Hi'; }
     });
 
-    /* ---------- tiny UI helpers ---------- */
+    /* ---------- helpers ---------- */
     function toast(msg, ttl=1400){ toastEl.textContent=msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'), ttl); }
     function openSheet(){ sheet.classList.remove('hide'); sheet.classList.add('show'); sheet.setAttribute('aria-hidden','false'); backdrop.style.display='block'; try{ journal.focus(); }catch{} }
     function closeSheet(){ sheet.classList.remove('show'); sheet.classList.add('hide'); sheet.setAttribute('aria-hidden','true'); setTimeout(()=>backdrop.style.display='none', 180); }
@@ -299,19 +307,6 @@
       setRot(rotIdx);
     }
 
-    /* ---------- streak logic ---------- */
-    function bumpStreak(today){
-      if(!lastDay){ streak = 1; }
-      else{
-        const last = new Date(lastDay), cur = new Date(today);
-        last.setHours(0,0,0,0); cur.setHours(0,0,0,0);
-        const diffDays = Math.round((cur-last)/86400000);
-        if(diffDays === 1){ streak += 1; }
-        else if(diffDays !== 0){ streak = 1; }
-      }
-      lastDay = today; write(LS.last,lastDay); write(LS.streak,streak);
-    }
-
     /* ---------- hi-fi confetti ---------- */
     const fx = document.getElementById('fxCanvas');
     const ctx = fx.getContext('2d');
@@ -345,33 +340,27 @@
         if(!running) return;
         ctx.clearRect(0,0,innerWidth,innerHeight);
         for(const p of pieces){
-          // physics
           p.vx *= p.drag; p.vy = p.vy*p.drag + p.g;
           p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life--;
-          // draw
           ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r);
           ctx.fillStyle = p.color;
-          if(p.shape==='circle'){
-            ctx.beginPath(); ctx.arc(0,0,p.w*0.6,0,Math.PI*2); ctx.fill();
-          }else if(p.shape==='ribbon'){
+          if(p.shape==='circle'){ ctx.beginPath(); ctx.arc(0,0,p.w*0.6,0,Math.PI*2); ctx.fill(); }
+          else if(p.shape==='ribbon'){
             ctx.beginPath();
             ctx.moveTo(-p.w,0);
-            ctx.bezierCurveTo(-p.w, -p.h, p.w, -p.h, p.w, 0);
-            ctx.bezierCurveTo(p.w, p.h, -p.w, p.h, -p.w, 0);
+            ctx.bezierCurveTo(-p.w,-p.h, p.w,-p.h, p.w,0);
+            ctx.bezierCurveTo(p.w, p.h,-p.w, p.h,-p.w,0);
             ctx.fill();
-          }else{
-            ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
-          }
+          }else{ ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); }
           ctx.restore();
         }
-        // remove dead
-        for(let i=pieces.length-1;i>=0;i--) if(pieces[i].life<=0 || pieces[i].y > innerHeight+60) pieces.splice(i,1);
+        for(let i=pieces.length-1;i>=0;i--) if(pieces[i].life<=0 || pieces[i].y>innerHeight+60) pieces.splice(i,1);
         if(pieces.length){ requestAnimationFrame(tick); } else { running=false; ctx.clearRect(0,0,innerWidth,innerHeight); }
       })();
     }
 
     /* ---------- interactions ---------- */
-    // Tap logo → Hi Wave (cosmetic)
+    // Tap logo → Hi Wave
     hiMedal.addEventListener('click', ()=>{
       try{ navigator?.vibrate?.(25) }catch{}
       gWaves += 1; localStorage.setItem(LS.gFive, String(gWaves));
@@ -386,9 +375,10 @@
         s.style.animation = `waveUp 1100ms cubic-bezier(.22,1,.36,1) ${(Math.random()*180)|0}ms forwards`;
         burst.appendChild(s); setTimeout(()=>s.remove(), 1400);
       }
-      // halo + logo animations
+      // halo + logo animations (no vertical jump)
       hiMedal.classList.remove('pulse'); void hiMedal.offsetWidth; hiMedal.classList.add('pulse');
       hiLogo.classList.remove('logo-pop'); void hiLogo.offsetWidth; hiLogo.classList.add('logo-pop');
+      hiMark.classList.remove('glow'); void hiMark.offsetWidth; hiMark.classList.add('glow');
       toast('✨ Hi Wave');
       updateRotator();
     });
@@ -415,16 +405,21 @@
       openSheet();
     });
 
-    // Sheet choices
+    // Persist choices (keeps pipes consistent; tags entry)
     async function persist({toIsland=false, anon=false}){
       const text = (journal.value||'').trim();
       try{
-        await window.hiDB?.insertArchive?.({ currentEmoji:'👋', desiredEmoji:'👋', journal:text, location:'' });
+        await window.hiDB?.insertArchive?.({
+          currentEmoji:'👋', desiredEmoji:'👋',
+          journal:text, location:'',
+          kind:'self_hi5'
+        });
         if (toIsland){
           await window.hiDB?.insertPublicShare?.({
             currentEmoji:'👋', currentName:'Hi-5',
             desiredEmoji:'👋', desiredName:'Hi-5',
-            text, isAnonymous:anon, location:'', isPublic:true
+            text, isAnonymous:anon, location:'', isPublic:true,
+            channel:'general', kind:'self_hi5'
           });
         }
         toast(toIsland ? (anon?'Shared anon ✨':'Shared ✨') : 'Saved privately ✨');
