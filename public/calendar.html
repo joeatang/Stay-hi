@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>Stay Hi — Calendar</title>
+  <link rel="stylesheet" href="assets/theme.css"/>
+  <link rel="stylesheet" href="assets/create-parity.css"/>
+  <style>
+    body{min-height:100dvh}
+    .wrap{max-width:980px;margin:0 auto;padding:16px}
+    h1{font-size:22px;margin:16px 0}
+    .hint{color:var(--hi-muted)}
+    .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-top:14px}
+    .day{border:1px solid var(--hi-border);border-radius:12px;padding:10px;background:#0f1022}
+    .day.done{background:linear-gradient(135deg,#ffd166,#ff7a18);color:#111;border-color:transparent}
+  </style>
+</head>
+<body class="sunrise" data-tab="calendar">
+  <header id="app-header" class="header"></header>
+  <main class="wrap">
+    <h1>Calendar</h1>
+    <p class="hint">Shows which days you marked a <b>Self Hi-5</b> and your streak.</p>
+    <div id="cal" class="grid" aria-label="This week"></div>
+  </main>
+
+  <script src="assets/supabase-init.js"></script>
+  <script src="assets/auth.js"></script>
+  <script src="assets/db.js"></script>
+  <script src="assets/header.js" defer></script>
+  <script>
+  (function(){
+    const cal = document.getElementById('cal');
+    const LS = { hist:'hi5.history' };
+    function read(k,def){ try{ const v=localStorage.getItem(k); return v==null?def:JSON.parse(v) }catch{ return def } }
+    function todayKey(d=new Date()){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
+    function monday(d=new Date()){ const x=new Date(d); const w=(x.getDay()+6)%7; x.setDate(x.getDate()-w); x.setHours(0,0,0,0); return x }
+
+    const hist = read(LS.hist,{});
+    const start = monday(new Date());
+    for(let i=0;i<7;i++){
+      const d = new Date(start); d.setDate(start.getDate()+i);
+      const k = todayKey(d);
+      const el = document.createElement('div');
+      el.className = 'day' + ((hist[k]||0)>0 ? ' done':'');
+      el.innerHTML = `<div style="font-weight:800">${d.toLocaleDateString(undefined,{weekday:'short'})}</div>
+                      <div style="opacity:.85">${d.getMonth()+1}/${d.getDate()}</div>`;
+      cal.appendChild(el);
+    }
+  })();
+  </script>
+</body>
+</html>
