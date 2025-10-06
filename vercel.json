@@ -5,3 +5,11 @@
     { "source": "/(.*)", "headers": [{ "key": "Cache-Control", "value": "no-store" }] }
   ]
 }
+
+{
+  "rewrites": [
+    { "source": "/calendar",   "destination": "/calendar.html" },
+    { "source": "/hi-island",  "destination": "/hi-island.html" }
+  ]
+}
+
