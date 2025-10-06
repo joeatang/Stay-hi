@@ -48,3 +48,29 @@
     document.body.appendChild(b);
   }
 })();
+
+ // --- Calendar link hardening (works no matter what the markup looks like)
+(function(){
+  const CAL_URL = 'calendar.html';
+  function hook(){
+    const hdr = document.getElementById('app-header'); if(!hdr) return;
+    const candidates = [
+      hdr.querySelector('[data-link="calendar"]'),
+      hdr.querySelector('.js-calendar'),
+      hdr.querySelector('a[href*="calendar"]'),
+      hdr.querySelector('button[aria-label*="Calendar" i]'),
+      hdr.querySelector('a[aria-label*="Calendar" i]')
+    ].filter(Boolean);
+    candidates.forEach(node=>{
+      node.addEventListener('click', (e)=>{
+        e.preventDefault();
+        // Use clean path; vercel.json rewrites to /calendar.html
+        window.location.href = '/calendar';
+      }, { passive:false });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', hook);
+  } else { hook(); }
+})();
+
