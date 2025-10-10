@@ -178,6 +178,28 @@
   </div>
   <div id="backdrop" class="sheet-backdrop" aria-hidden="true"></div>
 
+  <!-- Calendar toast -->
+<div id="calSheet" class="cal-sheet" role="dialog" aria-modal="true" aria-labelledby="calTitle" aria-hidden="true">
+  <div class="cal-head">
+    <button id="calPrev" class="cal-close" aria-label="Previous month">‹</button>
+    <div class="cal-title" id="calTitle">September ’25</div>
+    <div class="cal-nav">
+      <button id="calNext" aria-label="Next month">›</button>
+      <button id="calClose" class="cal-close" aria-label="Close">✕</button>
+    </div>
+  </div>
+
+  <div class="cal-kpis">
+    <span class="kpi">Completed <b id="calCompleted">0</b> days</span>
+    <span class="kpi">Streak <b id="calStreak">0</b> 🔥</span>
+    <span class="kpi">Today <b id="calToday">0</b></span>
+  </div>
+
+  <div id="calGrid" class="cal-grid" aria-label="Month grid"></div>
+</div>
+<div id="calBackdrop" class="cal-backdrop" aria-hidden="true"></div>
+
+
   <!-- toast + fx canvas -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <canvas id="fxCanvas"></canvas>
