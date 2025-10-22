@@ -45,13 +45,25 @@
     </div>
   </main>
 
-  <!-- Supabase (no bundler) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Use unified Supabase client -->
+  <script src="assets/supabase-init.js"></script>
   <script>
-  // ---- Project keys (you can centralize these in assets/app.js if you prefer)
-  const SUPABASE_URL = window.SUPABASE_URL || 'https://YOUR-PROJECT.supabase.co';
-  const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'YOUR_PUBLIC_ANON_KEY';
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // Wait for Supabase client to be ready
+  let supabase;
+  
+  function waitForSupabase() {
+    return new Promise((resolve) => {
+      if (window.sb) {
+        supabase = window.sb;
+        resolve();
+      } else {
+        window.addEventListener('supabase-ready', () => {
+          supabase = window.sb;
+          resolve();
+        });
+      }
+    });
+  }
 
   const $ = (s)=>document.querySelector(s);
   const go = (p)=>{ window.location.href = p; };
@@ -116,7 +128,10 @@
     localStorage.setItem('hi_dev_user', 'dev@example.com');
     go('index.html');
   } else {
-    finishAuth();
+    // Wait for Supabase to be ready before finishing auth
+    waitForSupabase().then(() => {
+      finishAuth();
+    });
   }
   </script>
 </body>
