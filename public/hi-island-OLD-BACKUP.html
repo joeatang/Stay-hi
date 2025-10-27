@@ -1,0 +1,1885 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>Redirecting to Hi Island...</title>
+  <meta http-equiv="refresh" content="0; url=hi-island-NEW.html">
+  <script>
+    // Immediate redirect with URL preservation
+    (function() {
+      const newUrl = 'hi-island-NEW.html' + window.location.search + window.location.hash;
+      window.location.replace(newUrl);
+    })();
+  </script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .redirect-message {
+      text-align: center;
+      padding: 40px;
+    }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="redirect-message">
+    <div class="spinner"></div>
+    <h1>Redirecting to Hi Island...</h1>
+    <p>If you're not redirected automatically, <a href="hi-island-NEW.html" style="color: #4ecdc4;">click here</a>.</p>
+  </div>
+</body>
+</html>
+
+  <!-- Leaflet (interactive map) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+  <style>
+    /* ============================================================================
+       🏗️ GOLD STANDARD ARCHITECTURE: SCOPED CSS
+       ============================================================================
+       All Hi Island styles are namespaced to prevent conflicts with other pages.
+       This follows BEM methodology + CSS namespacing for component isolation.
+       
+       WHY: Prevents new CSS from breaking old functionality
+       HOW: Prefix all selectors with .hi-island or use direct descendants only
+    ============================================================================ */
+    
+    /* 🎨 PAGE-LEVEL BACKGROUND (Global, but specific to this page) */
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* 🎨 HI ISLAND CONTAINER (Main wrapper - all styles descend from here) */
+    .wrap{ 
+      max-width: 1040px; 
+      margin: 0 auto; 
+      padding: 16px;
+    }
+
+    /* 📍 MAP SECTION */
+    .mapwrap{
+      position: relative; 
+      overflow: hidden; 
+      border-radius: 20px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--shadow-premium);
+      min-height: 380px;
+      display: grid; 
+      grid-template-rows: auto 1fr;
+      color: white;
+      animation: fadeInUp 0.8s ease-out;
+      margin-bottom: 16px;
+    }
+    
+    /* 🗺️ LEAFLET MAP CONTAINER */
+    #mapid {
+      width: 100%; 
+      height: 100%; 
+      border-radius: 0 0 18px 18px;
+      z-index: 1;
+    }
+    
+    /* 📊 FEED CONTAINER */
+    .feed-container {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      box-shadow: var(--shadow-premium);
+      overflow: hidden;
+    }
+    
+    /* 🎨 PREMIUM TABS - Integrated into feed container */
+    .tabs {
+      display: flex;
+      background: rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0;
+      margin: 0;
+      position: relative;
+      z-index: 10;
+      pointer-events: auto; /* Ensure tabs are clickable */
+    }
+    
+    .tab {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.7);
+      padding: 16px 12px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color 0.15s ease, background-color 0.15s ease, border-bottom-color 0.15s ease;
+      border-bottom: 3px solid transparent;
+      will-change: color, background-color, border-bottom-color;
+      transform: translateZ(0);
+      pointer-events: auto; /* Ensure tab buttons are clickable */
+      position: relative;
+      z-index: 10;
+    }
+    
+    .tab:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: rgba(255, 255, 255, 0.9);
+      transform: translateZ(0);
+    }
+    
+    .tab:active {
+      transform: translateZ(0) scale(0.98);
+      transition: transform 0.1s ease;
+    }
+    
+    .tab[aria-selected="true"] {
+      color: white;
+      background: rgba(255, 255, 255, 0.1);
+      border-bottom-color: #4ECDC4;
+    }
+    
+    /* 🎨 SOCIAL FEED CONTENT AREA */
+    .section {
+      background: white;
+      min-height: auto; /* Allow natural sizing */
+      padding: 0;
+      margin: 0;
+    }
+    
+    .section .row {
+      padding: 20px 24px 16px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-bottom: 1px solid #dee2e6;
+      margin: 0;
+    }
+    
+    .section .row .muted {
+      color: #6c757d;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    
+    /* 🎨 ENHANCED FEED LIST */
+    .list {
+      background: white;
+      padding: 0;
+      margin: 0;
+      max-height: none; /* Allow natural height, don't constrain */
+      overflow-y: visible; /* Let natural scrolling work */
+    }
+    
+    /* 🎨 FEED CARD STYLING (Scoped to feed-container) */
+    .feed-container .card {
+      background: white;
+      border: none;
+      border-bottom: 1px solid #e9ecef;
+      border-radius: 0;
+      margin: 0;
+      padding: 20px 24px;
+      transition: all 0.2s ease;
+      position: relative;
+      cursor: pointer;
+    }
+    
+    .feed-container .card:hover {
+      background: #f8f9fa;
+      border-left: 3px solid #4ECDC4;
+      padding-left: 21px; /* Account for border */
+      transform: translateX(2px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .feed-container .card:last-child {
+      border-bottom: none;
+    }
+    
+    /* 🎨 CARD TEXT STYLING */
+    .feed-container .card .text,
+    .feed-container .card p {
+      color: #1a1a1a;
+      font-size: 15px;
+      line-height: 1.6;
+      margin: 8px 0;
+    }
+
+    .feed-container .card .user-name,
+    .feed-container .card .author {
+      color: #111;
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .feed-container .card .location,
+    .feed-container .card .tags {
+      color: #6c757d;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    .feed-container .card .timestamp,
+    .feed-container .card small {
+    .feed-item .timestamp,
+    .feed-item .meta,
+    .feed-item small {
+      color: #666 !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      margin-top: 8px;
+      padding: 4px 8px;
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 6px;
+      display: inline-block;
+      letter-spacing: 0.02em;
+    }
+
+    /* 🎯 MAIN TEXT - TRUE BLACK FOR MAXIMUM READABILITY */
+    .card .text,
+    .card p,
+    .feed-item .text,
+    .feed-item p,
+    .feed-item .content,
+    .feed-item .share-text,
+    .feed-item .main-text {
+      color: #111 !important;
+      font-size: 15px !important;
+      line-height: 1.5;
+      font-weight: 400;
+      margin: 8px 0;
+    }
+
+    /* 🎨 HIDE DUPLICATE DIAGNOSTIC CONTAINERS */
+    .debug-container,
+    .diagnostic-panel,
+    .test-controls,
+    .debug-buttons,
+    .system-info,
+    .diagnostics-toolbar,
+    [onclick*="instantMapTest"],
+    [onclick*="debugHiData"],
+    [onclick*="quickDiagnostic"],
+    [onclick*="forceMapInit"],
+    .write-hi-thought-btn {
+      display: none !important;
+    }
+
+    /* Hide duplicate feed containers */
+    .feed-container + .feed-container {
+      display: none !important;
+    }
+
+    /* 🚫 ELIMINATE BOTTOM WHITE BOX: Target any remaining white containers */
+    .white-container,
+    .white-box,
+    .bottom-container,
+    .footer-container,
+    div[style*="background: white"],
+    div[style*="background: #fff"],
+    div[style*="background-color: white"],
+    div[style*="background-color: #fff"] {
+      display: none !important;
+    }
+
+    /* Force purple background throughout entire page */
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 100px;
+      background: var(--purple-gradient);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Ensure no dark backgrounds override purple */
+    *[style*="background: #"],
+    *[style*="background:#"] {
+      background: transparent !important;
+    }
+
+    /* 📱 MOBILE RESPONSIVENESS FOR ENHANCED TIMESTAMPS */
+    @media (max-width: 768px) {
+      .card .timestamp,
+      .card .meta,
+      .card small,
+      .feed-item .timestamp,
+      .feed-item .meta,
+      .feed-item small {
+        font-size: 12px !important;
+        padding: 3px 6px;
+      }
+    }
+    
+    .mapwrap::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left 0.6s;
+    }
+    
+    .mapwrap:hover::before {
+      left: 100%;
+    }
+    
+    .mapwrap .hero{
+      padding: 20px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    }
+    .mapwrap .title{ 
+      font-size: var(--fs-h1); 
+      font-weight: 900; 
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .mapwrap .sub{ 
+      font-size: .95rem; 
+      color: rgba(255, 255, 255, 0.8); 
+    }
+    #globe{
+      height: 280px; margin: 0 12px 12px; border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: var(--shadow-floating);
+      backdrop-filter: blur(10px);
+    }
+    .leaflet-container{ 
+      border-radius: 16px; 
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Premium Lists (old styling - overridden by new design) */
+    .list{ display:flex; flex-direction:column; gap:12px; }
+    .card{ 
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px; 
+      padding: 18px; 
+      box-shadow: var(--shadow-floating);
+      color: white;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    
+    .card:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-premium);
+    }
+    .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+    .meta{ display:flex; gap:8px; align-items:center; color: var(--hi-muted); font-size: .9rem; }
+    .pill{ display:inline-flex; gap:6px; align-items:center; padding:4px 8px; border-radius:999px; border:1px solid var(--hi-border); background:#fff; font-weight:700; }
+    
+    /* 🚀 ORIGIN CHIPS: Brand-grade styling for Hi5️⃣ vs HiGYM */
+    .pill.origin-quick{ 
+      background: linear-gradient(135deg, #ff8a3d 0%, #ffb25e 100%); 
+      color: #111; 
+      border: 1px solid rgba(255, 138, 61, 0.3);
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 12px;
+      padding: 4px 10px;
+      line-height: 1;
+      letter-spacing: 0.5px;
+    }
+    .pill.origin-guided{ 
+      background: #10b981; 
+      color: white; 
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 12px;
+      padding: 4px 10px;
+      line-height: 1;
+      letter-spacing: 0.5px;
+    }
+
+    /* 🎯 ORIGIN FILTER CONTROLS */
+    .origin-filter-btn:hover {
+      background: rgba(255, 255, 255, 0.9) !important;
+      color: #111 !important;
+      transform: translateY(-1px);
+    }
+    .origin-filter-btn.active {
+      background: rgba(255, 255, 255, 0.9) !important;
+      color: #111 !important;
+    }
+
+    /* 📱 Emoji fallback detection */
+    .emoji-test {
+      font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+    }
+
+    /* 🎨 PREMIUM SHARE SHEET STYLES - Self Hi-5 Composer */
+    .premium-share-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .6);
+      display: none;
+      z-index: 50;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    
+    .premium-share-sheet {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.9);
+      width: min(480px, 95vw);
+      background: var(--glass-bg);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 24px;
+      z-index: 60;
+      box-shadow: var(--shadow-premium);
+      color: white;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    
+    .premium-share-sheet.show + .premium-share-backdrop {
+      display: block;
+    }
+    
+    .premium-share-sheet.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    
+    .premium-share-sheet.hide {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.9);
+    }
+    
+    /* Body scroll lock */
+    body.modal-open {
+      overflow: hidden;
+    }
+    
+    .share-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .share-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    
+    .share-header h3 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #4ECDC4 0%, #FFD700 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .share-subtitle {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+    }
+    
+    .share-input-container {
+      position: relative;
+      margin-bottom: 24px;
+    }
+    
+    .premium-textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 16px;
+      line-height: 1.4;
+      resize: none;
+      font-family: inherit;
+      transition: all 0.3s ease;
+    }
+    
+    .premium-textarea::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .premium-textarea:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+    }
+    
+    .character-count {
+      position: absolute;
+      bottom: 8px;
+      right: 12px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      font-weight: 600;
+    }
+    
+    .share-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .share-option {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      backdrop-filter: blur(10px);
+    }
+    
+    .share-option:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .option-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    
+    .option-content {
+      flex: 1;
+      text-align: left;
+    }
+    
+    .option-title {
+      font-weight: 700;
+      font-size: 16px;
+      color: white;
+      margin-bottom: 4px;
+    }
+    
+    .option-desc {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .public-option.primary-option {
+      background: linear-gradient(135deg, #4ECDC4 0%, #44B7AA 100%);
+      border-color: transparent;
+    }
+    
+    .public-option.primary-option:hover {
+      filter: brightness(1.1);
+      transform: translateY(-2px) scale(1.02);
+    }
+
+    /* Anonymous option styling */
+    .anonymous-option {
+      background: rgba(255, 159, 67, 0.15);
+      border-color: rgba(255, 159, 67, 0.3);
+    }
+
+    .anonymous-option:hover {
+      background: rgba(255, 159, 67, 0.25);
+      border-color: rgba(255, 159, 67, 0.4);
+    }
+    .emo{ font-size: 18px; }
+    .text{ margin:8px 0 4px; line-height:1.35; }
+    .muted{ color: var(--hi-muted); }
+
+    .empty{ text-align:center; padding:20px; color: var(--hi-muted); }
+    .section{ 
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+      will-change: opacity, visibility;
+      transform: translateZ(0);
+    }
+    .section[aria-hidden="false"]{ 
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* Map specific styles */
+    #globe {
+      height: 300px;
+      min-height: 300px;
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #1a1a2e;
+    }
+    
+    /* Custom marker styles */
+    .hi-location-marker {
+      background: transparent !important;
+      border: none !important;
+    }
+
+    @media (min-width: 920px){
+      .grid2{ display:grid; grid-template-columns: 1.6fr .8fr; gap:16px; }
+      #globe { height: 400px; min-height: 400px; }
+    }
+  </style>
+</head>
+<body data-tab="island">
+  <!-- Premium Enhanced Header -->
+  <header id="app-header" class="premium-header-container"></header>
+
+  <main class="wrap">
+    <!-- Map / hero -->
+    <section class="mapwrap" aria-label="Hi Island – world map">
+      <div class="hero">
+        <div>
+          <div class="title">Hi Island</div>
+          <div class="sub">A gentle stream of Hi Shares from around the world</div>
+        </div>
+        <button class="hi-btn hi-btn--primary" onclick="window.openHiComposer()">Drop a Hi</button>
+      </div>
+      <div id="globe" aria-label="Interactive world map"></div>
+    </section>
+
+    <!-- Tabs -->
+        <!-- Tabs -->
+    <div class="feed-container">
+      <nav class="tabs" role="tablist" aria-label="Hi Island tabs">
+        <button class="tab" id="tab-general" role="tab" aria-selected="true" data-target="general">General Shares</button>
+        <button class="tab" id="tab-archive" role="tab" aria-selected="false" data-target="archive">My Archive</button>
+        <button class="tab" id="tab-trends" role="tab" aria-selected="false" data-target="trends">Emotional Trends</button>
+        <button class="tab" id="tab-milestones" role="tab" aria-selected="false" data-target="milestones">Points Milestones</button>
+        <button class="tab" id="tab-show" role="tab" aria-selected="false" data-target="show">Hi Show Shares</button>
+      </nav>
+      
+      <!-- 🚀 ORIGIN FILTER CONTROLS -->
+      <div class="feed-filter-controls" style="
+        display: flex; 
+        gap: 8px; 
+        margin: 16px 0; 
+        padding: 12px; 
+        background: rgba(255, 255, 255, 0.05); 
+        border-radius: 12px; 
+        flex-wrap: wrap; 
+        justify-content: center;
+        position: relative;
+        z-index: 10;
+        pointer-events: auto;
+      ">
+        <button class="origin-filter-btn active" data-filter="all" style="
+          padding: 6px 12px; 
+          border: 1px solid rgba(255, 255, 255, 0.2); 
+          border-radius: 20px; 
+          background: rgba(255, 255, 255, 0.9); 
+          color: #111; 
+          font-size: 12px; 
+          font-weight: 600; 
+          cursor: pointer; 
+          transition: all 0.3s ease;
+          pointer-events: auto;
+          position: relative;
+          z-index: 10;
+        ">All</button>
+        <button class="origin-filter-btn" data-filter="quick" style="
+          padding: 6px 12px; 
+          border: 1px solid rgba(255, 255, 255, 0.2); 
+          border-radius: 20px; 
+          background: rgba(255, 255, 255, 0.1); 
+          color: rgba(255, 255, 255, 0.8); 
+          font-size: 12px; 
+          font-weight: 600; 
+          cursor: pointer; 
+          transition: all 0.3s ease;
+          pointer-events: auto;
+          position: relative;
+          z-index: 10;
+        "><span class="emoji-test">Hi5️⃣</span></button>
+        <button class="origin-filter-btn" data-filter="guided" style="
+          padding: 6px 12px; 
+          border: 1px solid rgba(255, 255, 255, 0.2); 
+          border-radius: 20px; 
+          background: rgba(255, 255, 255, 0.1); 
+          color: rgba(255, 255, 255, 0.8); 
+          font-size: 12px; 
+          font-weight: 600; 
+          cursor: pointer; 
+          transition: all 0.3s ease;
+          pointer-events: auto;
+          position: relative;
+          z-index: 10;
+        ">HiGYM</button>
+      </div>
+      
+      <!-- Content sections -->
+      <section id="sec-general" class="section" aria-hidden="false" aria-labelledby="tab-general">
+        <div class="row">
+          <div class="muted">🌍 Public feed from Hi Island community • Latest first</div>
+        </div>
+        <div id="generalList" class="list" aria-live="polite" aria-busy="true"></div>
+      </section>
+
+      <section id="sec-archive" class="section" aria-hidden="true" aria-labelledby="tab-archive">
+        <div class="row">
+          <div class="muted">🔒 Your private Hi archive • Only you can see these</div>
+        </div>
+        <div id="archiveList" class="list" aria-live="polite" aria-busy="true"></div>
+      </section>
+
+      <!-- Placeholders for future steps -->
+      <section id="sec-trends" class="section" aria-hidden="true" aria-labelledby="tab-trends">
+        <div class="row">
+          <div class="muted">📊 Emotional insights coming soon</div>
+        </div>
+        <div class="card muted">Emotional Trends coming soon.</div>
+      </section>
+
+      <section id="sec-milestones" class="section" aria-hidden="true" aria-labelledby="tab-milestones">
+        <div class="row">
+          <div class="muted">🏆 Achievements & milestones coming soon</div>
+        </div>
+        <div class="card muted">Points & Milestones coming soon.</div>
+      </section>
+
+      <section id="sec-show" class="section" aria-hidden="true" aria-labelledby="tab-show">
+        <div class="row">
+          <div class="muted">📺 Hi Show community coming soon</div>
+        </div>
+        <div class="card muted">Hi Show content coming soon.</div>
+      </section>
+    </div>
+    
+    <!-- Debug/Test Controls (HIDDEN FOR CLEAN UI) -->
+    </section>
+
+    <section id="sec-show" class="section" aria-hidden="true" aria-labelledby="tab-show">
+      <div class="card muted">Hi Show Shares coming soon.</div>
+    </section>
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- Scripts: header → supabase → auth → db → page logic -->
+  <script src="assets/header.js" defer></script>
+
+  <script src="assets/supabase-init.js"></script>
+  <script src="assets/auth.js"></script>
+  <script src="assets/db.js"></script>
+  <script src="assets/premium-ux.js"></script>
+  <script src="assets/premium-calendar.js"></script>
+  <script src="assets/activity-tracker.js"></script>
+  <script src="assets/hi-composer.js" defer></script>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+
+  <!-- Hi Island Map System -->
+  <script src="assets/island.js"></script>
+
+  <script>
+    (async function(){
+      // Allow signed-out users to view public feed; archive tab will request session on click.
+      try { await hiAuth.ensureSessionMaybe?.(); } catch {}
+
+      const toastEl = document.getElementById('toast');
+      const generalList = document.getElementById('generalList');
+      const archiveList = document.getElementById('archiveList');
+
+      function toast(msg, ttl=1600){ toastEl.textContent=msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'), ttl); }
+
+      // Check if user came from sharing and show welcome message
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('from') === 'share') {
+        setTimeout(() => {
+          toast('🎉 Your Hi-5 is now live on Hi Island! Look for it in General Shares below.', 3000);
+          // Refresh the general shares to show the new post
+          setTimeout(() => loadGeneral(), 1000);
+          // Clean URL after showing message
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }, 500);
+      }
+
+      // Expose functions globally for debugging and refresh
+      window.refreshHiIsland = function() {
+        loadGeneral();
+      };
+      
+      // Debug helpers for Hi Island
+      window.debugHiIsland = function() {
+        console.log('🔍 Hi Island Debug Info:');
+        console.log('  - HiIsland object:', window.HiIsland);
+        console.log('  - hiDB object:', window.hiDB);
+        console.log('  - Map element:', document.getElementById('globe'));
+        console.log('  - General list element:', document.getElementById('generalList'));
+        console.log('  - Leaflet loaded:', typeof L !== 'undefined');
+        console.log('  - Demo mode:', window.demoMode);
+        
+        // Check localStorage
+        const shares = localStorage.getItem('hi_general_shares');
+        const sharesData = shares ? JSON.parse(shares) : [];
+        console.log('  - LocalStorage shares:', sharesData);
+        console.log('  - Entries with location:', sharesData.filter(s => s.location));
+        console.log('  - Entries without location:', sharesData.filter(s => !s.location));
+        
+        // Test map update manually
+        if (sharesData.length > 0) {
+          console.log('🧪 Testing map update with current data...');
+          window.HiIsland?.updateMarkers?.(sharesData);
+        }
+      };
+      
+      // Force add a Hi-5 with guaranteed location for testing
+      window.forceAddHiWithLocation = async function() {
+        console.log('🧪 Adding test Hi-5 with guaranteed location...');
+        
+        const testShare = {
+          id: 'test_location_' + Date.now(),
+          currentEmoji: '👋',
+          desiredEmoji: '👋', 
+          text: 'Test Hi-5 with guaranteed location! 🗺️',
+          isAnonymous: false,
+          userName: 'Location Test User',
+          location: 'New York, NY', // Guaranteed to work
+          createdAt: new Date().toISOString()
+        };
+        
+        const shares = JSON.parse(localStorage.getItem('hi_general_shares') || '[]');
+        shares.unshift(testShare);
+        localStorage.setItem('hi_general_shares', JSON.stringify(shares));
+        console.log('✅ Added test Hi-5 with location:', testShare);
+        
+        // Immediately test the map update with this single entry
+        console.log('🎯 Testing map update with new entry...');
+        if (window.HiIsland?.updateMarkers) {
+          try {
+            await window.HiIsland.updateMarkers([testShare]);
+            console.log('✅ Map update test complete');
+          } catch (error) {
+            console.error('❌ Map update test failed:', error);
+          }
+        }
+        
+        // Also refresh the full page data
+        setTimeout(() => {
+          if (window.refreshHiIsland) window.refreshHiIsland();
+        }, 1000);
+      };
+      
+      // Complete map debug and repair function
+      window.debugAndFixMap = async function() {
+        console.log('🔧 COMPREHENSIVE MAP DEBUG & REPAIR');
+        console.log('=====================================');
+        
+        // 1. Check all components
+        console.log('1️⃣ Component Check:');
+        console.log('  - HiIsland:', !!window.HiIsland);
+        console.log('  - Leaflet:', typeof L !== 'undefined');
+        console.log('  - Map element:', !!document.getElementById('globe'));
+        console.log('  - hiDB:', !!window.hiDB);
+        
+        // 2. Check data
+        const shares = JSON.parse(localStorage.getItem('hi_general_shares') || '[]');
+        console.log('2️⃣ Data Check:');
+        console.log('  - Total entries:', shares.length);
+        console.log('  - Entries with location:', shares.filter(s => s.location).length);
+        console.log('  - Sample entry:', shares[0]);
+        
+        // 3. Test coordinate lookup
+        if (shares.length > 0) {
+          const testEntry = shares.find(s => s.location) || shares[0];
+          if (testEntry.location) {
+            console.log('3️⃣ Coordinate Lookup Test:');
+            console.log('  - Testing location:', testEntry.location);
+            try {
+              const coords = await window.HiIsland.getCityCoordinates(testEntry.location);
+              console.log('  - Result:', coords);
+            } catch (error) {
+              console.error('  - Error:', error);
+            }
+          }
+        }
+        
+        // 4. Force map update
+        console.log('4️⃣ Force Map Update:');
+        if (window.HiIsland?.updateMarkers && shares.length > 0) {
+          try {
+            await window.HiIsland.updateMarkers(shares);
+            console.log('  - ✅ Map update completed');
+          } catch (error) {
+            console.error('  - ❌ Map update failed:', error);
+          }
+        }
+        
+        console.log('🏁 Debug complete!');
+      };
+      
+      // 🌟 GOLD STANDARD: Guaranteed marker test
+      window.goldStandardMarkerTest = async function() {
+        console.log('🌟 GOLD STANDARD MARKER TEST');
+        console.log('===============================');
+        
+        // Create guaranteed test data with known locations
+        const goldStandardData = [
+          {
+            id: 'gold1',
+            currentEmoji: '👋',
+            desiredEmoji: '👋',
+            text: 'Gold Standard Test from New York! 🗽',
+            isAnonymous: false,
+            userName: 'NYC Tester',
+            location: 'New York, NY',
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: 'gold2',
+            currentEmoji: '🌟',
+            desiredEmoji: '🌟',
+            text: 'Gold Standard Test from San Francisco! 🌉',
+            isAnonymous: true,
+            userName: 'SF Tester',
+            location: 'San Francisco, CA',
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: 'gold3',
+            currentEmoji: '🎯',
+            desiredEmoji: '🎯',
+            text: 'Gold Standard Test from London! 🇬🇧',
+            isAnonymous: false,
+            userName: 'London Tester',
+            location: 'London, UK',
+            createdAt: new Date().toISOString()
+          }
+        ];
+        
+        console.log('📦 Testing with gold standard data:', goldStandardData);
+        
+        // Store test data
+        localStorage.setItem('hi_general_shares', JSON.stringify(goldStandardData));
+        
+        // Force map update
+        if (window.HiIsland?.updateMarkers) {
+          console.log('🚀 Forcing map update...');
+          await window.HiIsland.updateMarkers(goldStandardData);
+        }
+        
+        // Also refresh the UI
+        setTimeout(() => {
+          if (window.refreshHiIsland) {
+            window.refreshHiIsland();
+          }
+        }, 1000);
+        
+        console.log('✅ Gold standard test complete!');
+        console.log('🎯 You should now see 3 markers on the map');
+      };
+      
+      // 🎯 SHOW YOUR ACTUAL HI-5 ENTRIES on the map
+      window.showMyRealHi5s = async function() {
+        console.log('🎯 SHOWING YOUR REAL HI-5 ENTRIES');
+        console.log('=================================');
+        
+        // Get YOUR actual data
+        const myData = localStorage.getItem('hi_general_shares');
+        if (!myData) {
+          console.log('❌ No Hi-5 entries found. Create some first!');
+          console.log('💡 Go to main page, click "Self Hi-5", share publicly');
+          return;
+        }
+        
+        const myEntries = JSON.parse(myData);
+        console.log('📦 Found YOUR Hi-5 entries:', myEntries.length);
+        
+        // Add location to entries that don't have it
+        const entriesWithLocation = myEntries.map((entry, index) => {
+          if (!entry.location || entry.location.trim() === '') {
+            // Add a different location for each entry so they spread out
+            const locations = [
+              'New York, NY',
+              'San Francisco, CA', 
+              'Los Angeles, CA',
+              'Chicago, IL',
+              'Miami, FL',
+              'Seattle, WA'
+            ];
+            entry.location = locations[index % locations.length];
+            console.log('📍 Added location to entry:', entry.text?.substring(0, 30), '→', entry.location);
+          }
+          return entry;
+        });
+        
+        // Save back with locations
+        localStorage.setItem('hi_general_shares', JSON.stringify(entriesWithLocation));
+        
+        console.log('🗺️ Updating map with YOUR', entriesWithLocation.length, 'Hi-5s...');
+        
+        // Force map update with YOUR data
+        if (window.HiIsland?.updateMarkers) {
+          await window.HiIsland.updateMarkers(entriesWithLocation);
+          console.log('✅ SUCCESS: YOUR Hi-5 entries are now on the map!');
+        }
+        
+        // Refresh the UI too
+        setTimeout(() => {
+          if (window.refreshHiIsland) {
+            window.refreshHiIsland();
+          }
+        }, 1000);
+        
+        console.log('🎉 YOUR REAL HI-5s ARE NOW VISIBLE ON THE MAP!');
+      };
+      
+      // Auto-run debug on console load
+      setTimeout(() => {
+        if (window.location.search.includes('debug')) {
+          window.debugHiIsland();
+        }
+      }, 1000);
+      
+      // Debug function to check localStorage
+      window.debugHiData = function() {
+        const general = JSON.parse(localStorage.getItem('hi_general_shares') || '[]');
+        const archive = JSON.parse(localStorage.getItem('hi_my_archive') || '[]');
+        console.log('🏝️ Hi Island Data Debug:');
+        console.log('General shares:', general);
+        console.log('Archive:', archive);
+        return { general, archive };
+      };
+      
+      // Global seed data for gold standard experience
+      window.addGlobalSeedData = function() {
+        const globalEntries = [
+          {
+            id: "global_1_" + Date.now(),
+            currentEmoji: "😊",
+            currentName: "Happy",
+            desiredEmoji: "😊", 
+            desiredName: "Happy",
+            text: "Just launched my startup! 🚀 Feeling grateful for this community.",
+            isAnonymous: false,
+            userName: "Alex Chen",
+            location: "San Francisco, CA",
+            origin: "quick",
+            createdAt: new Date(Date.now() - 3600000).toISOString() // 1 hour ago
+          },
+          {
+            id: "global_2_" + Date.now(),
+            currentEmoji: "🧘‍♀️",
+            currentName: "Mindful",
+            desiredEmoji: "💪", 
+            desiredName: "Motivated",
+            text: "Completing my 30-day meditation challenge today. Ready to tackle new goals!",
+            isAnonymous: false,
+            userName: "Sarah Kumar",
+            location: "London, UK",
+            origin: "guided",
+            createdAt: new Date(Date.now() - 7200000).toISOString() // 2 hours ago
+          },
+          {
+            id: "global_3_" + Date.now(),
+            currentEmoji: "🎨",
+            currentName: "Creative",
+            desiredEmoji: "🎨", 
+            desiredName: "Creative",
+            text: "Finished my first digital art piece! Art has become my therapy.",
+            isAnonymous: false,
+            userName: "Maria Santos",
+            location: "Mexico City, Mexico",
+            origin: "quick",
+            createdAt: new Date(Date.now() - 14400000).toISOString() // 4 hours ago
+          },
+          {
+            id: "global_4_" + Date.now(),
+            currentEmoji: "🌱",
+            currentName: "Growing",
+            desiredEmoji: "🌟", 
+            desiredName: "Radiant",
+            text: "Day 100 of my personal growth journey. Small steps, big changes! 🌟",
+            isAnonymous: false,
+            userName: "Takeshi Yamamoto",
+            location: "Tokyo, Japan",
+            origin: "guided",
+            createdAt: new Date(Date.now() - 21600000).toISOString() // 6 hours ago
+          },
+          {
+            id: "global_5_" + Date.now(),
+            currentEmoji: "🤝",
+            currentName: "Connected",
+            desiredEmoji: "❤️", 
+            desiredName: "Loving",
+            text: "Volunteered at the local shelter today. Connection heals everything.",
+            isAnonymous: false,
+            userName: "Amara Okafor",
+            location: "Lagos, Nigeria",
+            origin: "quick",
+            createdAt: new Date(Date.now() - 28800000).toISOString() // 8 hours ago
+          },
+          {
+            id: "global_6_" + Date.now(),
+            currentEmoji: "🏃‍♂️",
+            currentName: "Active",
+            desiredEmoji: "💪", 
+            desiredName: "Strong",
+            text: "Ran my first 10K today! Mind-body connection is real. 💪",
+            isAnonymous: false,
+            userName: "Lars Andersen",
+            location: "Stockholm, Sweden",
+            origin: "guided",
+            createdAt: new Date(Date.now() - 36000000).toISOString() // 10 hours ago
+          }
+        ];
+        
+        const existing = JSON.parse(localStorage.getItem('hi_general_shares') || '[]');
+        const combined = [...globalEntries, ...existing];
+        localStorage.setItem('hi_general_shares', JSON.stringify(combined));
+        loadGeneral();
+        console.log('✅ Added global seed data for gold standard experience');
+      };
+      
+      // Test function to add demo data (single entry)
+      window.addTestHi = function() {
+        const testShare = {
+          id: "test_" + Date.now(),
+          currentEmoji: "👋",
+          currentName: "Hi-5",
+          desiredEmoji: "👋", 
+          desiredName: "Hi-5",
+          text: "Test Hi-5 share!",
+          isAnonymous: false,
+          userName: "You",
+          location: "",
+          createdAt: new Date().toISOString()
+        };
+        const existing = JSON.parse(localStorage.getItem('hi_general_shares') || '[]');
+        existing.unshift(testShare);
+        localStorage.setItem('hi_general_shares', JSON.stringify(existing));
+        loadGeneral();
+        console.log('✅ Added test Hi-5 share');
+      };
+
+      // Tab setup function
+      function setupTabs() {
+        console.log('🎯 Setting up tabs...');
+        const tabs = document.querySelectorAll('.tab');
+        console.log('📋 Found tabs:', tabs.length, tabs);
+        
+        const sections = {
+          general: document.getElementById('sec-general'),
+          archive: document.getElementById('sec-archive'),
+          trends: document.getElementById('sec-trends'),
+          milestones: document.getElementById('sec-milestones'),
+          show: document.getElementById('sec-show')
+        };
+        console.log('📋 Found sections:', Object.keys(sections).filter(k => sections[k]).length, 'of 5');
+        
+        if (tabs.length === 0) {
+          console.error('❌ No tabs found! DOM might not be ready.');
+          return;
+        }
+        
+        let isTransitioning = false;
+        
+        tabs.forEach(t => {
+          t.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            // Debounce rapid clicks
+            if (isTransitioning) return;
+            
+            const target = t.dataset.target;
+            const currentTab = document.querySelector('.tab[aria-selected="true"]');
+            
+            // Don't switch if already active
+            if (currentTab === t) return;
+            
+            isTransitioning = true;
+            
+            // Use requestAnimationFrame for smooth updates
+            requestAnimationFrame(() => {
+              // Update tabs
+              tabs.forEach(x => x.setAttribute('aria-selected','false'));
+              t.setAttribute('aria-selected','true');
+              
+              // Update sections
+              Object.entries(sections).forEach(([key,sec]) => {
+                sec.setAttribute('aria-hidden', key===target? 'false':'true');
+              });
+              
+              // Load archive if needed
+              if (target === 'archive' && !archiveList.dataset.loaded) {
+                loadArchive();
+              }
+              
+              // Reset transition lock after animation completes
+              setTimeout(() => {
+                isTransitioning = false;
+              }, 220); // Slightly longer than CSS transition
+            });
+          });
+        });
+        console.log('✅ Tabs initialized with smooth transitions');
+      }
+
+      // Render helpers
+      function fmtDate(iso){
+        try { return new Date(iso).toLocaleString([], { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }); }
+        catch { return ''; }
+      }
+      function el(tag, attrs={}, html=''){
+        const n = document.createElement(tag);
+        for (const [k,v] of Object.entries(attrs)){ if(k==='class') n.className=v; else n.setAttribute(k,v); }
+        n.innerHTML = html;
+        return n;
+      }
+
+      function renderGeneral(list){
+        generalList.innerHTML = '';
+        if (!list?.length){
+          // Auto-add global seed data for gold standard experience
+          console.log('🌍 No entries found, adding global community data for better experience...');
+          window.addGlobalSeedData();
+          return; // addGlobalSeedData will call loadGeneral again
+        }
+        for (const it of list){
+          // 🚀 ORIGIN CHIP: Show Hi5️⃣ vs HiGYM with emoji fallback
+          let originDisplay = '';
+          if (it.origin) {
+            // Detect emoji support for 5️⃣
+            const supportsEmoji = (function() {
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+              canvas.width = canvas.height = 1;
+              ctx.fillText('5️⃣', 0, 0);
+              return ctx.getImageData(0, 0, 1, 1).data[3] > 0;
+            })();
+            
+            const displayText = it.origin === 'quick' 
+              ? (supportsEmoji ? 'Hi5️⃣' : 'Hi5')
+              : 'HiGYM';
+            
+            const ariaLabel = it.origin === 'quick' ? 'Origin: Hi5' : 'Origin: HiGYM';
+            
+            originDisplay = `<span class="pill origin-${it.origin}" title="${ariaLabel}" aria-label="${ariaLabel}">${displayText}</span>`;
+          }
+          
+          const head = el('div', {class:'meta'},
+            `<span class="emo">${it.currentEmoji}</span>
+             <span>→</span>
+             <span class="emo">${it.desiredEmoji}</span>
+             ${originDisplay}
+             <span class="pill">${it.isAnonymous ? 'Hi Friend' : (it.userName || 'You')}</span>
+             ${it.location 
+               ? `<span class="pill" title="Location">📍 ${it.location}</span>` 
+               : `<span class="pill" title="Global Community" style="opacity:0.7">🌍 Global</span>`
+             }
+             <span class="muted">${fmtDate(it.createdAt)}</span>`
+          );
+          const text = el('div', {class:'text'}, it.text);
+          const card = el('div', {class:'card'});
+          card.appendChild(head);
+          card.appendChild(text);
+          generalList.appendChild(card);
+        }
+        generalList.setAttribute('aria-busy','false');
+      }
+
+      function renderArchive(list){
+        archiveList.innerHTML = '';
+        if (!list?.length){
+          archiveList.appendChild(el('div', {class:'empty'}, 'Your archive is empty. Write a Hi Thought and it will appear here.'));
+          archiveList.setAttribute('aria-busy','false');
+          return;
+        }
+        for (const it of list){
+          const head = el('div', {class:'meta'},
+            `<span class="emo">${it.currentEmoji}</span>
+             <span>→</span>
+             <span class="emo">${it.desiredEmoji}</span>
+             ${it.location ? `<span class="pill">📍 ${it.location}</span>` : ''}
+             <span class="muted">${fmtDate(it.createdAt)}</span>`
+          );
+          const text = el('div', {class:'text'}, it.journalEntry);
+          const card = el('div', {class:'card'});
+          card.appendChild(head);
+          card.appendChild(text);
+          archiveList.appendChild(card);
+        }
+        archiveList.setAttribute('aria-busy','false');
+      }
+
+      // 🌟 GOLD STANDARD: Load and display YOUR actual Hi-5 entries
+      async function loadGeneral(){
+        console.log('🏝️ GOLD STANDARD: Loading YOUR Hi-5 entries...');
+        try{
+          generalList.setAttribute('aria-busy','true');
+          
+          // STEP 1: Get data from BOTH sources (DB + localStorage)
+          let dbList = [];
+          let localList = [];
+          
+          // Try database first
+          try {
+            if (window.hiDB) {
+              dbList = await window.hiDB.fetchPublicShares({ limit: 100 });
+              console.log('📦 Loaded from database:', dbList.length, 'entries');
+            }
+          } catch (dbError) {
+            console.warn('⚠️ Database load failed:', dbError);
+          }
+          
+          // Always get localStorage data (this is where your Hi-5s likely are)
+          try {
+            const localData = localStorage.getItem('hi_general_shares');
+            if (localData) {
+              localList = JSON.parse(localData);
+              console.log('� Loaded from localStorage:', localList.length, 'entries');
+            }
+          } catch (localError) {
+            console.warn('⚠️ localStorage load failed:', localError);
+          }
+          
+          // STEP 2: Combine and deduplicate
+          const allEntries = [...localList, ...dbList];
+          const uniqueEntries = allEntries.filter((entry, index, self) => 
+            index === self.findIndex(e => e.id === entry.id || e.text === entry.text)
+          );
+          
+          console.log('🎯 FINAL DATA ANALYSIS:');
+          console.log('  - Database entries:', dbList.length);
+          console.log('  - localStorage entries:', localList.length);
+          console.log('  - Combined unique entries:', uniqueEntries.length);
+          console.log('  - Entries with location:', uniqueEntries.filter(item => item.location && item.location.trim()).length);
+          console.log('  - Sample entry:', uniqueEntries[0]);
+          
+          // STEP 3: Display in list
+          renderGeneral(uniqueEntries);
+          
+          // STEP 4: BULLETPROOF map update with YOUR data
+          if (window.HiIsland?.updateMarkers) {
+            console.log('🗺️ GOLD STANDARD: Updating map with YOUR', uniqueEntries.length, 'entries...');
+            try {
+              // Ensure map is ready before attempting update
+              if (!window.HiIsland.map) {
+                console.log('⏳ Waiting for map initialization...');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              }
+              
+              if (window.HiIsland.map) {
+                await window.HiIsland.updateMarkers(uniqueEntries);
+                const markerCount = window.HiIsland.markers?.getLayers?.()?.length || 0;
+                console.log('✅ Map update complete! Markers on map:', markerCount);
+                
+                if (markerCount === 0 && uniqueEntries.length > 0) {
+                  console.warn('⚠️ WARNING: No markers created despite having entries');
+                  console.log('🔧 Attempting emergency fix...');
+                  
+                  // Emergency fix: Try again with a delay
+                  setTimeout(async () => {
+                    try {
+                      await window.HiIsland.updateMarkers(uniqueEntries);
+                      const retryCount = window.HiIsland.markers?.getLayers?.()?.length || 0;
+                      console.log('🚨 Emergency fix result:', retryCount, 'markers');
+                    } catch (e) {
+                      console.error('🚨 Emergency fix failed:', e);
+                    }
+                  }, 2000);
+                }
+              } else {
+                console.error('❌ Map still not initialized after wait');
+              }
+            } catch (error) {
+              console.error('❌ Map update failed:', error);
+            }
+          } else {
+            console.error('❌ CRITICAL: Map update function not available');
+            console.log('🔧 Attempting to initialize map system...');
+            if (window.HiIsland?.init) {
+              window.HiIsland.init();
+              setTimeout(() => loadGeneral(), 2000); // Retry after init
+            }
+          }
+          
+        }catch(e){
+          console.error('❌ Load error:', e);
+          renderGeneral([]);
+          toast('Error loading Hi-5s, but map should still work');
+        }
+      }
+      async function loadArchive(){
+        try{
+          archiveList.setAttribute('aria-busy','true');
+          const mine = await window.hiDB.fetchMyArchive({ limit: 200 });
+          renderArchive(mine);
+          archiveList.dataset.loaded = '1';
+        }catch(e){
+          renderArchive([]);
+          console.warn('archive load error', e);
+          toast('Could not load your archive. Showing local items if any.');
+        }
+      }
+
+      // Boot the map and load data
+      async function initializeHiIsland() {
+        console.log('🏝️ Initializing Hi Island page...');
+        
+        // Verify DOM elements exist
+        const tabsCheck = document.querySelectorAll('.tab');
+        const filtersCheck = document.querySelectorAll('.origin-filter-btn');
+        const generalListCheck = document.getElementById('generalList');
+        
+        console.log('🔍 DOM verification:');
+        console.log('  - Tabs found:', tabsCheck.length);
+        console.log('  - Filter buttons found:', filtersCheck.length);
+        console.log('  - General list element:', !!generalListCheck);
+        
+        if (tabsCheck.length === 0 || filtersCheck.length === 0 || !generalListCheck) {
+          console.error('❌ Critical DOM elements missing! Delaying initialization...');
+          setTimeout(() => initializeHiIsland(), 500);
+          return;
+        }
+        
+        // Initialize the map
+        try { 
+          if (window.HiIsland) {
+            window.HiIsland.init(); 
+            console.log('✅ Map initialized');
+          } else {
+            console.warn('⚠️ HiIsland not available');
+          }
+        } catch(e) { 
+          console.error('❌ Map init failed:', e); 
+        }
+
+        // Setup tabs
+        console.log('🚀 About to call setupTabs...');
+        setupTabs();
+        console.log('🚀 setupTabs called');
+        
+        // Note: initOriginFilters() is already auto-called via DOMContentLoaded listener
+        // Don't call it again here to avoid duplicate event listeners
+        
+        // Load the data
+        console.log('🚀 About to load data...');
+        await loadGeneral();
+        console.log('🚀 Data loaded');
+      }
+
+      // Initialize when DOM is ready and Leaflet is available
+      function waitForDependencies() {
+        if (typeof L === 'undefined') {
+          console.log('⏳ Waiting for Leaflet to load...');
+          setTimeout(waitForDependencies, 100);
+          return;
+        }
+        initializeHiIsland();
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', waitForDependencies);
+      } else {
+        waitForDependencies();
+      }
+
+      // Try to sync any queued writes (e.g., from offline "Drop Hi")
+      try { await window.hiDB.syncPending(); } catch {}
+      
+      // Debug data helper (same as index.html)
+      window.debugHiData = function() {
+        console.log('📦 localStorage debug:');
+        console.log('  hi_general_shares:', JSON.parse(localStorage.getItem('hi_general_shares') || '[]'));
+        console.log('  hi_my_archive:', JSON.parse(localStorage.getItem('hi_my_archive') || '[]'));
+        console.log('  hi_pending_queue:', JSON.parse(localStorage.getItem('hi_pending_queue') || '[]'));
+      };
+      
+      // 🩺 Quick system diagnostic
+      window.quickDiagnostic = async function() {
+        console.log('🩺 QUICK DIAGNOSTIC STARTING...');
+        console.log('===============================');
+        
+        // Check 1: Basic system availability
+        console.log('✅ CHECK 1: System Components');
+        console.log('  - Leaflet loaded:', typeof L !== 'undefined');
+        console.log('  - HiIsland object:', !!window.HiIsland);
+        console.log('  - Map element:', !!document.getElementById('globe'));
+        console.log('  - Map initialized:', !!(window.HiIsland?.map));
+        console.log('  - Markers layer:', !!(window.HiIsland?.markers));
+        
+        // Check 2: Coordinate lookup
+        console.log('✅ CHECK 2: Coordinate Lookup');
+        if (window.HiIsland?.getCityCoordinates) {
+          const testCoords = await window.HiIsland.getCityCoordinates('New York, NY');
+          console.log('  - New York, NY coords:', testCoords);
+          console.log('  - Coordinates valid:', !!(testCoords?.lat && testCoords?.lng));
+        } else {
+          console.log('  ❌ getCityCoordinates not available');
+        }
+        
+        // Check 3: Data availability
+        console.log('✅ CHECK 3: Data Available');
+        const shares = JSON.parse(localStorage.getItem('hi_general_shares') || '[]');
+        console.log('  - localStorage entries:', shares.length);
+        console.log('  - Entries with location:', shares.filter(s => s.location).length);
+        if (shares.length > 0) {
+          console.log('  - Sample entry:', shares[0]);
+        }
+        
+        // Check 4: Try creating one marker manually
+        console.log('✅ CHECK 4: Manual Marker Test');
+        if (window.HiIsland?.map && window.HiIsland?.markers) {
+          try {
+            // Clear existing markers
+            window.HiIsland.markers.clearLayers();
+            
+            // Create a simple test marker
+            const testMarker = L.marker([40.7128, -74.0060]); // NYC coordinates
+            testMarker.addTo(window.HiIsland.markers);
+            testMarker.bindPopup('🩺 Diagnostic Test Marker');
+            
+            console.log('  ✅ Manual marker created successfully');
+            console.log('  📊 Markers on map:', window.HiIsland.markers.getLayers().length);
+            
+            // Fit map to show the marker
+            window.HiIsland.map.setView([40.7128, -74.0060], 10);
+            
+          } catch (error) {
+            console.error('  ❌ Manual marker creation failed:', error);
+          }
+        } else {
+          console.log('  ❌ Map or markers layer not available');
+        }
+        
+        console.log('🏁 DIAGNOSTIC COMPLETE - Check map for test marker');
+      };
+      
+      // 🗺️ Force map initialization with detailed logging
+      window.forceMapInit = function() {
+        console.log('🗺️ FORCE MAP INITIALIZATION STARTING...');
+        console.log('=============================================');
+        
+        // Check current state
+        console.log('📋 Current State:');
+        console.log('  - HiIsland available:', !!window.HiIsland);
+        console.log('  - Current map object:', window.HiIsland?.map);
+        console.log('  - Current markers:', window.HiIsland?.markers);
+        console.log('  - DOM element #globe:', document.getElementById('globe'));
+        console.log('  - Leaflet available:', typeof L !== 'undefined');
+        
+        // Force initialization
+        if (window.HiIsland?.init) {
+          console.log('🚀 Calling HiIsland.init()...');
+          window.HiIsland.init();
+          
+          // Check result after a moment
+          setTimeout(() => {
+            console.log('📊 Post-Init State:');
+            console.log('  - Map object:', window.HiIsland?.map);
+            console.log('  - Markers object:', window.HiIsland?.markers);
+            console.log('  - Map container:', window.HiIsland?.map?.getContainer?.());
+            
+            if (window.HiIsland?.map) {
+              console.log('✅ SUCCESS: Map successfully initialized!');
+              console.log('📍 Map center:', window.HiIsland.map.getCenter());
+              console.log('🔍 Map zoom:', window.HiIsland.map.getZoom());
+              
+              // Add a test marker to verify it works
+              try {
+                const testMarker = L.marker([40.7128, -74.0060]);
+                testMarker.addTo(window.HiIsland.markers);
+                testMarker.bindPopup('🎯 Force Init Test Marker - SUCCESS!');
+                window.HiIsland.map.setView([40.7128, -74.0060], 5);
+                console.log('🎉 Test marker added successfully!');
+              } catch (error) {
+                console.error('❌ Test marker failed:', error);
+              }
+            } else {
+              console.error('❌ FAILURE: Map still not initialized');
+            }
+          }, 500);
+        } else {
+          console.error('❌ HiIsland.init() not available');
+        }
+      };
+      
+      // 🎯 COMPREHENSIVE TEST: Verify entire Hi-5 → Map pipeline
+      window.instantMapTest = async function() {
+        console.log('🧪 COMPREHENSIVE HI-5 → MAP PIPELINE TEST');
+        console.log('==========================================');
+        
+        // STEP 1: Check system availability
+        console.log('📋 STEP 1: System Check');
+        console.log('  - HiIsland available:', !!window.HiIsland);
+        console.log('  - Map initialized:', !!(window.HiIsland?.map));
+        console.log('  - Markers layer:', !!(window.HiIsland?.markers));
+        console.log('  - getCityCoordinates:', !!(window.HiIsland?.getCityCoordinates));
+        
+        if (!window.HiIsland?.updateMarkers) {
+          console.error('❌ FATAL: HiIsland.updateMarkers not available');
+          return;
+        }
+        
+        // STEP 2: Test coordinate lookup system
+        console.log('📋 STEP 2: Testing Coordinate Lookup');
+        const testLocations = [
+          'New York, NY',
+          'San Francisco, CA',
+          'London, UK',
+          'Invalid Location XYZ'
+        ];
+        
+        for (const location of testLocations) {
+          try {
+            const coords = await window.HiIsland.getCityCoordinates(location);
+            console.log(`  📍 ${location}:`, coords);
+          } catch (error) {
+            console.error(`  ❌ ${location} failed:`, error);
+          }
+        }
+        
+        // STEP 3: Clear existing data for clean test
+        console.log('📋 STEP 3: Preparing Clean Test Environment');
+        if (window.HiIsland?.markers) {
+          window.HiIsland.markers.clearLayers();
+          console.log('  🗑️ Cleared existing markers');
+        }
+        
+        // STEP 4: Create test Hi-5 entries with various locations
+        console.log('📋 STEP 4: Creating Test Hi-5 Entries');
+        const testEntries = [
+          {
+            id: 'test_ny_' + Date.now(),
+            currentEmoji: '�',
+            text: '🧪 TEST: New York marker!',
+            location: 'New York, NY',
+            userName: 'NYC Test',
+            isAnonymous: false,
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: 'test_sf_' + Date.now(),
+            currentEmoji: '🌉',
+            text: '🧪 TEST: San Francisco marker!',
+            location: 'San Francisco, CA',
+            userName: 'SF Test',
+            isAnonymous: false,
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: 'test_london_' + Date.now(),
+            currentEmoji: '🇬🇧',
+            text: '🧪 TEST: London marker!',
+            location: 'London, UK',
+            userName: 'London Test',
+            isAnonymous: true,
+            createdAt: new Date().toISOString()
+          }
+        ];
+        
+        console.log('  📝 Created', testEntries.length, 'test entries');
+        
+        // STEP 5: Save to localStorage (same as real system)
+        console.log('📋 STEP 5: Saving to localStorage');
+        const existingShares = JSON.parse(localStorage.getItem('hi_general_shares') || '[]');
+        const allShares = [...testEntries, ...existingShares];
+        localStorage.setItem('hi_general_shares', JSON.stringify(allShares));
+        console.log('  💾 Saved', allShares.length, 'total entries to localStorage');
+        
+        // STEP 6: Test map update with test entries
+        console.log('� STEP 6: Testing Map Update');
+        try {
+          console.log('  🗺️ Calling updateMarkers with', testEntries.length, 'entries...');
+          await window.HiIsland.updateMarkers(testEntries);
+          
+          const finalMarkerCount = window.HiIsland.markers?.getLayers?.()?.length || 0;
+          console.log('  ✅ Map update complete! Final marker count:', finalMarkerCount);
+          
+          if (finalMarkerCount > 0) {
+            console.log('🎉 SUCCESS: Test markers are now visible on the map!');
+          } else {
+            console.error('❌ FAILURE: No markers created despite successful update call');
+          }
+          
+        } catch (error) {
+          console.error('  ❌ Map update failed:', error);
+        }
+        
+        // STEP 7: Test complete data reload (as user would experience)
+        console.log('📋 STEP 7: Testing Complete Data Reload');
+        setTimeout(async () => {
+          try {
+            await loadGeneral();
+            console.log('  ✅ Complete reload successful');
+            
+            const markerCount = window.HiIsland.markers?.getLayers?.()?.length || 0;
+            console.log('  📊 Final state - Markers on map:', markerCount);
+            console.log('🏁 COMPREHENSIVE TEST COMPLETE');
+            
+          } catch (error) {
+            console.error('  ❌ Complete reload failed:', error);
+          }
+        }, 2000);
+      };
+      
+    })();
+
+    // 🎯 ORIGIN FILTER FUNCTIONALITY
+    (function() {
+      let currentFilter = 'all';
+      let allEntries = [];
+
+      // Emoji fallback for filter button
+      function updateFilterButtonEmoji() {
+        const emojiBtn = document.querySelector('[data-filter="quick"] .emoji-test');
+        if (emojiBtn) {
+          // Test emoji support
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = canvas.height = 1;
+          ctx.fillText('5️⃣', 0, 0);
+          const supportsEmoji = ctx.getImageData(0, 0, 1, 1).data[3] > 0;
+          
+          emojiBtn.textContent = supportsEmoji ? 'Hi5️⃣' : 'Hi5';
+        }
+      }
+
+      // Apply filter to visible entries
+      function applyOriginFilter(filter) {
+        currentFilter = filter;
+        const cards = document.querySelectorAll('#sec-general .card');
+        
+        cards.forEach(card => {
+          const originChip = card.querySelector('.pill.origin-quick, .pill.origin-guided');
+          let shouldShow = true;
+          
+          if (filter !== 'all' && originChip) {
+            const isQuick = originChip.classList.contains('origin-quick');
+            const isGuided = originChip.classList.contains('origin-guided');
+            
+            shouldShow = (filter === 'quick' && isQuick) || 
+                        (filter === 'guided' && isGuided);
+          } else if (filter !== 'all' && !originChip) {
+            // No origin chip means it's a legacy entry, treat as 'quick'
+            shouldShow = filter === 'quick';
+          }
+          
+          card.style.display = shouldShow ? 'block' : 'none';
+        });
+
+        // Update button states
+        document.querySelectorAll('.origin-filter-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.filter === filter);
+        });
+      }
+
+      // Initialize filter controls
+      function initOriginFilters() {
+        console.log('🎯 Setting up origin filters...');
+        const filterBtns = document.querySelectorAll('.origin-filter-btn');
+        console.log('🔘 Found filter buttons:', filterBtns.length, filterBtns);
+        
+        if (filterBtns.length === 0) {
+          console.error('❌ No filter buttons found! DOM might not be ready.');
+          return;
+        }
+        
+        filterBtns.forEach((btn, index) => {
+          console.log(`🔘 Adding click listener to button ${index + 1}:`, btn.textContent, btn.dataset.filter);
+          btn.addEventListener('click', (e) => {
+            console.log('🔘 Filter button clicked:', btn.dataset.filter);
+            applyOriginFilter(btn.dataset.filter);
+          });
+        });
+
+        // Initial emoji fallback setup
+        updateFilterButtonEmoji();
+        console.log('✅ Origin filters initialized');
+      }
+
+      // Initialize when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initOriginFilters);
+      } else {
+        initOriginFilters();
+      }
+
+      // Expose for external use
+      window.HiIslandOriginFilter = {
+        applyFilter: applyOriginFilter,
+        getCurrentFilter: () => currentFilter
+      };
+    })();
+  </script>
+  <script src="assets/premium-ux.js"></script>
+  <style>
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .card {
+      animation: fadeInUp 0.6s ease-out;
+    }
+    
+    .card:nth-child(2) { animation-delay: 0.1s; }
+    .card:nth-child(3) { animation-delay: 0.2s; }
+    .card:nth-child(4) { animation-delay: 0.3s; }
+  </style>
+  <script>
+    // Global function for Hi composer
+    window.openHiComposer = function() {
+      if (window.HiComposer) {
+        window.HiComposer.open();
+      } else {
+        console.warn('Hi Composer not available');
+      }
+    };
+  </script>
+  <script src="js/modal-base.js"></script>
+  <script src="assets/hi-composer.js"></script>
+  <script src="assets/premium-footer.js" defer></script>
+</body>
+</html>
