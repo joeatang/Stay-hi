@@ -269,7 +269,11 @@
       currentEmoji: r.current_emoji,
       desiredEmoji: r.desired_emoji,
       journalEntry: r.journal,
+      text: r.text || r.journal,              // Feed uses 'text'
       location: r.location || "",
+      origin: r.origin || 'hi5',
+      type: r.type || 'self_hi5',
+      userName: r.user_name || null,          // Add userName for consistency
       createdAt: r.created_at,
     };
   }
@@ -279,7 +283,11 @@
       currentEmoji: row.current_emoji,
       desiredEmoji: row.desired_emoji,
       journalEntry: row.journal,
+      text: row.text || row.journal,          // Feed uses 'text'
       location: row.location || "",
+      origin: row.origin || 'hi5',
+      type: row.type || 'self_hi5',
+      userName: null,                          // Local entries don't have userName yet
       createdAt: new Date().toISOString(),
     };
   }
