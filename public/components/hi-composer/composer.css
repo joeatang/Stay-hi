@@ -1,0 +1,381 @@
+/* ===================================================================
+   🎨 HI COMPOSER COMPONENT STYLES
+   Tesla-grade floating composer for creating Hi shares
+   All classes prefixed with .hi-composer- to prevent bleeding.
+=================================================================== */
+
+/* Container must not interfere with fixed positioning */
+.hi-composer-container {
+  position: relative;
+  pointer-events: none;
+}
+
+.hi-composer-container * {
+  pointer-events: auto;
+}
+
+/* Floating Action Button (Tesla-style) */
+.hi-composer-fab {
+  position: fixed;
+  bottom: var(--space-xl);
+  right: var(--space-xl);
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 50%;
+  box-shadow: var(--shadow-floating);
+  cursor: pointer;
+  z-index: var(--z-fab);
+  transition: var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.hi-composer-fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.5);
+}
+
+.hi-composer-fab:active {
+  transform: scale(0.95);
+}
+
+/* Modal Overlay */
+.hi-composer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+  opacity: 0;
+  visibility: hidden;
+  transition: var(--transition-normal);
+}
+
+.hi-composer-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Modal Container */
+.hi-composer-modal {
+  background: var(--hi-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-elevated);
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  transform: translateY(20px) scale(0.95);
+  transition: var(--transition-normal);
+}
+
+.hi-composer-overlay.active .hi-composer-modal {
+  transform: translateY(0) scale(1);
+}
+
+/* Modal Header */
+.hi-composer-header {
+  padding: var(--space-lg);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.hi-composer-title {
+  font-size: var(--font-xl);
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.hi-composer-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 20px;
+  transition: var(--transition-fast);
+}
+
+.hi-composer-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Modal Body */
+.hi-composer-body {
+  padding: var(--space-lg);
+  overflow-y: auto;
+  max-height: calc(90vh - 180px);
+  background: var(--hi-bg);
+}
+
+/* Form Groups */
+.hi-composer-group {
+  margin-bottom: var(--space-lg);
+}
+
+.hi-composer-label {
+  display: block;
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: var(--space-xs);
+}
+
+.hi-composer-helper {
+  display: block;
+  font-size: var(--font-xs);
+  font-weight: 400;
+  color: #666;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* Emoji Selector */
+.hi-composer-emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+}
+
+.hi-composer-emoji-btn {
+  width: 48px;
+  height: 48px;
+  background: #f5f5f5;
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: 24px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hi-composer-emoji-btn:hover {
+  background: #e8e8e8;
+  transform: scale(1.1);
+}
+
+.hi-composer-emoji-btn.selected {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+  transform: scale(1.05);
+}
+
+/* Text Area */
+.hi-composer-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: var(--space-md);
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: var(--font-md);
+  color: #1a1a1a;
+  background: #fff;
+  resize: vertical;
+  transition: var(--transition-fast);
+}
+
+.hi-composer-textarea::placeholder {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+/* Checkbox */
+.hi-composer-privacy-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-sm);
+}
+
+.hi-composer-privacy-option {
+  cursor: pointer;
+}
+
+.hi-composer-privacy-option input[type="radio"] {
+  display: none;
+}
+
+.hi-composer-privacy-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-md);
+  background: #f5f5f5;
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  transition: var(--transition-fast);
+  text-align: center;
+}
+
+.hi-composer-privacy-option input:checked + .hi-composer-privacy-card {
+  background: rgba(102, 126, 234, 0.1);
+  border-color: #667eea;
+}
+
+.hi-composer-privacy-icon {
+  font-size: 24px;
+  margin-bottom: var(--space-xs);
+}
+
+.hi-composer-privacy-label {
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 2px;
+}
+
+.hi-composer-privacy-desc {
+  font-size: var(--font-xs);
+  color: #666;
+}
+
+/* Footer */
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+/* Footer */
+.hi-composer-footer {
+  padding: var(--space-lg);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.hi-composer-btn {
+  flex: 1;
+  padding: var(--space-md);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.hi-composer-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.hi-composer-btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.hi-composer-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hi-composer-btn-secondary {
+  background: #f5f5f5;
+  color: #1a1a1a;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+}
+
+.hi-composer-btn-secondary:hover {
+  background: #e8e8e8;
+  border-color: rgba(0, 0, 0, 0.25);
+}
+
+/* Loading State */
+.hi-composer-loading {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: hi-composer-spin 0.6s linear infinite;
+}
+
+@keyframes hi-composer-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 🎉 Celebration Animation */
+.hi-composer-confetti {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.confetti {
+  position: absolute;
+  font-size: 32px;
+  animation: confetti-burst 1.2s ease-out forwards;
+}
+
+.confetti:nth-child(1) { animation-delay: 0s; left: -20px; }
+.confetti:nth-child(2) { animation-delay: 0.1s; left: 20px; }
+.confetti:nth-child(3) { animation-delay: 0.2s; left: -40px; }
+.confetti:nth-child(4) { animation-delay: 0.15s; left: 40px; }
+.confetti:nth-child(5) { animation-delay: 0.25s; left: 0; }
+.confetti:nth-child(6) { animation-delay: 0.05s; left: -10px; }
+
+@keyframes confetti-burst {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(0) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-80px) scale(1.5) rotate(180deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-150px) scale(1) rotate(360deg);
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .hi-composer-fab {
+    bottom: var(--space-lg);
+    right: var(--space-lg);
+    width: 56px;
+    height: 56px;
+    font-size: 24px;
+  }
+  
+  .hi-composer-modal {
+    max-height: 95vh;
+  }
+  
+  .hi-composer-emoji-grid {
+    grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  }
+  
+  .hi-composer-emoji-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+  }
+}

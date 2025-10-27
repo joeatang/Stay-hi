@@ -92,6 +92,9 @@ export class HiShareSheet {
     `;
 
     document.body.appendChild(container);
+    
+    // Store reference to root container
+    this.root = container;
   }
 
   // Attach event listeners
@@ -155,7 +158,7 @@ export class HiShareSheet {
   
   // Preload location in background
   async preloadLocation() {
-    const locationStatus = this.root.querySelector('.hi-share-location-status');
+    const locationStatus = document.querySelector('.hi-share-location-status');
     if (!locationStatus) return;
     
     try {
@@ -388,7 +391,7 @@ export class HiShareSheet {
   
   // Update location display in UI
   updateLocationDisplay() {
-    const locationStatus = this.root.querySelector('.hi-share-location-status');
+    const locationStatus = document.querySelector('.hi-share-location-status');
     if (locationStatus && this.currentLocation) {
       const emoji = this.locationSource === 'updated' ? '✈️' : '📍';
       locationStatus.innerHTML = `
