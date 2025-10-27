@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Migrate HiGYM Origins - Data Fix</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #0f1024;
+      color: #fff;
+    }
+    .container {
+      background: #1a1d35;
+      border-radius: 12px;
+      padding: 30px;
+      border: 1px solid #2a2e55;
+    }
+    h1 {
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+    .status {
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .info { background: rgba(102, 126, 234, 0.1); border-left: 4px solid #667eea; }
+    .success { background: rgba(78, 205, 196, 0.1); border-left: 4px solid #4ecdc4; }
+    .warning { background: rgba(255, 157, 77, 0.1); border-left: 4px solid #ff9d4d; }
+    .error { background: rgba(255, 107, 107, 0.1); border-left: 4px solid #ff6b6b; }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    pre {
+      background: #0f1024;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 HiGYM Origin Migration Tool</h1>
+    <p>This tool will fix origin tags for HiGYM entries in both archives and public shares.</p>
+    
+    <div class="status info">
+      <strong>What this fixes:</strong><br>
+      • Archives: Sets origin='higym' and type='higym' for entries with emotional journeys (currentEmoji → desiredEmoji)<br>
+      • Public Shares: Updates origin from 'HI GYM' to 'higym' for consistency<br>
+      • Ensures filter buttons work correctly (💪 HiGYM filter)<br>
+      • Fixes badge display (purple HiGYM badge instead of orange Hi5)
+    </div>
+
+    <button id="btnMigrate" onclick="runMigration()">Run Migration</button>
+
+    <div id="output"></div>
+  </div>
+
+  <script src="assets/supabase-init.js"></script>
+  <script>
+    function log(message, type = 'info') {
+      const output = document.getElementById('output');
+      const div = document.createElement('div');
+      div.className = `status ${type}`;
+      div.innerHTML = message;
+      output.appendChild(div);
+    }
+
+    async function runMigration() {
+      const btn = document.getElementById('btnMigrate');
+      btn.disabled = true;
+      btn.textContent = 'Running...';
+      
+      document.getElementById('output').innerHTML = '';
+
+      try {
+        // Wait for Supabase client
+        let supabase = window.supabaseClient;
+        if (!supabase) {
+          if (window.sbReady) {
+            supabase = await window.sbReady;
+          } else {
+            throw new Error('Supabase client not available');
+          }
+        }
+
+        log('🔍 Checking authentication...', 'info');
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError || !user) {
+          log('❌ Not authenticated. Please sign in first.', 'error');
+          btn.disabled = false;
+          btn.textContent = 'Run Migration';
+          return;
+        }
+
+        log(`✅ Authenticated as: ${user.email}`, 'success');
+
+        // STEP 1: Fix hi_archives
+        log('<br>📦 <strong>STEP 1: Migrating hi_archives</strong>', 'info');
+        
+        // Query archives that need fixing
+        const { data: archivesToFix, error: archiveQueryError } = await supabase
+          .from('hi_archives')
+          .select('*')
+          .eq('user_id', user.id)
+          .or('origin.is.null,origin.neq.higym');
+
+        if (archiveQueryError) {
+          log(`❌ Error querying archives: ${archiveQueryError.message}`, 'error');
+        } else {
+          log(`Found ${archivesToFix.length} archive entries to check`, 'info');
+
+          let archiveFixed = 0;
+          for (const archive of archivesToFix) {
+            // If it has currentEmoji and desiredEmoji, it's a HiGYM entry
+            if (archive.current_emoji && archive.desired_emoji) {
+              const { error: updateError } = await supabase
+                .from('hi_archives')
+                .update({
+                  origin: 'higym',
+                  type: 'higym'
+                })
+                .eq('id', archive.id);
+
+              if (updateError) {
+                log(`❌ Failed to update archive ${archive.id}: ${updateError.message}`, 'error');
+              } else {
+                archiveFixed++;
+              }
+            }
+          }
+
+          log(`✅ Fixed ${archiveFixed} archive entries with origin='higym'`, 'success');
+        }
+
+        // STEP 2: Fix public_shares
+        log('<br>🌍 <strong>STEP 2: Migrating public_shares</strong>', 'info');
+        
+        // Query public shares that need fixing
+        const { data: sharesToFix, error: shareQueryError } = await supabase
+          .from('public_shares')
+          .select('*')
+          .eq('user_id', user.id)
+          .or('origin.eq.HI GYM,origin.eq.guided,origin.is.null');
+
+        if (shareQueryError) {
+          log(`❌ Error querying public shares: ${shareQueryError.message}`, 'error');
+        } else {
+          log(`Found ${sharesToFix.length} public share entries to check`, 'info');
+
+          let sharesFixed = 0;
+          for (const share of sharesToFix) {
+            // If it has currentEmoji and desiredEmoji, or origin is 'HI GYM'/'guided', it's a HiGYM entry
+            if ((share.current_emoji && share.desired_emoji) || share.origin === 'HI GYM' || share.origin === 'guided') {
+              const { error: updateError } = await supabase
+                .from('public_shares')
+                .update({
+                  origin: 'higym'
+                })
+                .eq('id', share.id);
+
+              if (updateError) {
+                log(`❌ Failed to update share ${share.id}: ${updateError.message}`, 'error');
+              } else {
+                sharesFixed++;
+              }
+            }
+          }
+
+          log(`✅ Fixed ${sharesFixed} public share entries with origin='higym'`, 'success');
+        }
+
+        // SUMMARY
+        log('<br>🎉 <strong>Migration Complete!</strong>', 'success');
+        log(`
+          <strong>What was fixed:</strong><br>
+          • Archive entries now have origin='higym' and type='higym'<br>
+          • Public shares now have origin='higym' (lowercase, consistent)<br>
+          • Filter buttons will now work correctly<br>
+          • Badges will display as 💪 HiGYM (purple)<br>
+          <br>
+          <strong>Next steps:</strong><br>
+          1. Refresh hi-island page (Cmd+Shift+R to clear cache)<br>
+          2. Click "💪 HiGYM" filter - should now show entries<br>
+          3. Check "My Archive" tab - badges should be purple
+        `, 'success');
+
+      } catch (error) {
+        log(`❌ Migration failed: ${error.message}`, 'error');
+        console.error('Migration error:', error);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Run Migration Again';
+      }
+    }
+  </script>
+</body>
+</html>
