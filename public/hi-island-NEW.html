@@ -15,11 +15,11 @@
   <!-- Shared UI -->
   <link rel="stylesheet" href="assets/theme.css"/>
   <link rel="stylesheet" href="assets/premium-ux.css"/>
+  <link rel="stylesheet" href="assets/premium-calendar.css"/>
 
   <!-- Component Styles -->
   <link rel="stylesheet" href="components/hi-island-map/map.css"/>
   <link rel="stylesheet" href="components/hi-island-feed/feed.css"/>
-  <link rel="stylesheet" href="components/hi-calendar/calendar.css"/>
   <link rel="stylesheet" href="components/hi-share-sheet/share-sheet.css"/>
 
   <!-- Leaflet (for map) -->
@@ -107,21 +107,25 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <!-- ===================================================================
-       SCRIPTS (Load Order Matters)
+       SCRIPTS (Load Order Matters - Tesla-Grade Timing)
   =================================================================== -->
   
-  <!-- Core Dependencies -->
+  <!-- Core Dependencies (Load First) -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
   <script src="assets/supabase-init.js"></script>
   <script src="assets/db.js"></script>
   <script src="assets/geocoding-service.js"></script>
-  <script src="assets/header.js"></script>
-
+  
   <!-- Component Scripts -->
+  <script src="components/hi-share-sheet/share-sheet.js" type="module"></script>
   <script src="components/hi-island-map/map.js" type="module"></script>
   <script src="components/hi-island-feed/feed.js" type="module"></script>
-  <script src="components/hi-calendar/calendar.js" type="module"></script>
-  <script src="components/hi-share-sheet/share-sheet.js" type="module"></script>
+  
+  <!-- Header (Load synchronously - no defer) -->
+  <script src="assets/header.js"></script>
+  
+  <!-- Premium Calendar (Flagship - matches index.html) -->
+  <script src="assets/premium-calendar.js"></script>
 
   <!-- Page Orchestrator -->
   <script type="module">
@@ -146,15 +150,8 @@
         }
       });
 
-      // Wire calendar button
-      const btnCal = document.getElementById('btnCal');
-      if (btnCal) {
-        btnCal.addEventListener('click', () => {
-          if (window.openHiCalendar) {
-            window.openHiCalendar();
-          }
-        });
-      }
+      // Calendar and menu are handled by header.js (flagship pattern)
+      // No need to duplicate wiring here
 
       // Initialize components (they handle their own rendering)
       console.log('✅ Hi Island ready');
