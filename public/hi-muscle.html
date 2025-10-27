@@ -444,7 +444,7 @@
     </div>
 
     <div style="display:flex;gap:12px;justify-content:center;margin-top:16px;flex-wrap:wrap">
-      <a class="hi-btn hi-btn--ghost" href="hi-island.html" style="min-height:48px;padding:12px 16px;display:flex;align-items:center">Go to Hi Island</a>
+      <a class="hi-btn hi-btn--ghost" href="hi-island-NEW.html" style="min-height:48px;padding:12px 16px;display:flex;align-items:center">Go to Hi Island</a>
       <a class="hi-btn hi-btn--ghost" href="index.html" style="min-height:48px;padding:12px 16px;display:flex;align-items:center">Back to Home</a>
     </div>
   </div>
@@ -712,8 +712,11 @@
           currentEmoji: state.current.emoji,
           desiredEmoji: state.desired.emoji,
           journal: text,
+          text: text, // Gold standard: include text field for archive display
           location: loc,
-          journeyType: pattern?.journeyType || 'exploration'
+          journeyType: pattern?.journeyType || 'exploration',
+          origin: 'higym', // Gold standard: lowercase origin tag
+          type: 'higym' // Gold standard: type tag for filtering
         });
 
         // Share to Hi Island if requested
@@ -728,9 +731,9 @@
             isAnonymous: isAnon, 
             location: loc || null, // Clean pipe: null for no location
             isPublic: true,
-            origin: 'HI GYM', // 🚀 Clean pipeline tag
+            origin: 'higym', // Gold standard: lowercase origin tag
             journeyType: pattern?.journeyType || 'exploration',
-            tags: ['emotional-journey', 'hi-gym'] // Additional tags for filtering
+            tags: ['emotional-journey', 'higym'] // Gold standard: lowercase tags
           });
         }
 
@@ -752,7 +755,7 @@
         localStorage.removeItem('hi-gym-draft');
         
         // Navigate to Hi Island to see the result
-        setTimeout(() => window.location.href='hi-island.html', 2500);
+        setTimeout(() => window.location.href='hi-island-NEW.html', 2500);
         
       } catch (error) {
         console.error('Hi Gym submission error:', error);
