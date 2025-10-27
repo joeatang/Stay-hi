@@ -753,6 +753,78 @@
     </div>
     
     <!-- Debug/Test Controls (HIDDEN FOR CLEAN UI) -->
+    <div style="display: none; padding: 12px; background: rgba(102, 126, 234, 0.1); border-radius: 8px; margin: 16px 0; text-align: center;">
+      <button onclick="instantMapTest()" style="
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+        color: white; 
+        border: none; 
+        padding: 8px 16px; 
+        border-radius: 6px; 
+        cursor: pointer;
+        margin-right: 8px;
+        font-weight: 500;
+      " title="Run comprehensive test to add Hi-5 entries and verify they appear on map">
+        🧪 Test Map System
+      </button>
+      <button onclick="debugHiData()" style="
+        background: #666; 
+        color: white; 
+        border: none; 
+        padding: 8px 16px; 
+        border-radius: 6px; 
+        cursor: pointer;
+        font-weight: 500;
+      " title="Show localStorage data in console">
+        🔍 Debug Data
+      </button>
+      <button onclick="quickDiagnostic()" style="
+        background: #e74c3c; 
+        color: white; 
+        border: none; 
+        padding: 8px 16px; 
+        border-radius: 6px; 
+        cursor: pointer;
+        font-weight: 500;
+      " title="Quick diagnostic of map system">
+        🩺 Quick Diagnostic
+      </button>
+      <button onclick="forceMapInit()" style="
+        background: #27ae60; 
+        color: white; 
+        border: none; 
+        padding: 8px 16px; 
+        border-radius: 6px; 
+        cursor: pointer;
+        font-weight: 500;
+      " title="Force map initialization">
+        🗺️ Force Map Init
+      </button>
+    </div>
+
+    <!-- Content sections -->
+    <section id="sec-general" class="section" aria-hidden="false" aria-labelledby="tab-general">
+      <div class="row" style="margin:8px 0 12px">
+        <div class="muted">Public feed (latest first). Anonymous posts show as “Hi Friend”.</div>
+        <a class="hi-btn hi-btn--ghost" href="hi-muscle.html">Write a Hi Thought</a>
+      </div>
+      <div id="generalList" class="list" aria-live="polite" aria-busy="true"></div>
+    </section>
+
+    <section id="sec-archive" class="section" aria-hidden="true" aria-labelledby="tab-archive">
+      <div class="row" style="margin:8px 0 12px">
+        <div class="muted">Private to you. Only you can see these entries.</div>
+        <a class="hi-btn hi-btn--ghost" href="hi-muscle.html">Write a Hi Thought</a>
+      </div>
+      <div id="archiveList" class="list" aria-live="polite" aria-busy="true"></div>
+    </section>
+
+    <!-- Placeholders for future steps -->
+    <section id="sec-trends" class="section" aria-hidden="true" aria-labelledby="tab-trends">
+      <div class="card muted">Emotional Trends coming soon.</div>
+    </section>
+
+    <section id="sec-milestones" class="section" aria-hidden="true" aria-labelledby="tab-milestones">
+      <div class="card muted">Points & Milestones coming soon.</div>
     </section>
 
     <section id="sec-show" class="section" aria-hidden="true" aria-labelledby="tab-show">

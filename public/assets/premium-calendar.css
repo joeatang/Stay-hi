@@ -1,0 +1,591 @@
+/* ==========================================================================
+   Stay Hi — Premium Calendar Modal Styles
+   Tesla-inspired calendar with glassmorphism and premium animations
+   ========================================================================== */
+
+/* -------------------------
+   Calendar Modal Container
+   ------------------------- */
+.premium-calendar-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.premium-calendar-modal.show {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+}
+
+.calendar-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* -------------------------
+   Calendar Container
+   ------------------------- */
+.calendar-container {
+  position: relative;
+  width: min(480px, 90vw);
+  max-height: 90vh;
+  background: var(--glass-bg);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  box-shadow: var(--shadow-premium);
+  padding: 24px;
+  animation: modalSlideIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  color: white;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* -------------------------
+   Calendar Header
+   ------------------------- */
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+
+.calendar-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  text-align: center;
+  flex: 1;
+}
+
+.calendar-nav-btn,
+.calendar-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  backdrop-filter: blur(10px);
+}
+
+.calendar-nav-btn:hover,
+.calendar-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.calendar-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+}
+
+/* -------------------------
+   Calendar Stats - Tesla Enhanced
+   ------------------------- */
+.calendar-stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 28px;
+  justify-content: center;
+}
+
+.stat-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.1) 0%, 
+    rgba(255, 255, 255, 0.05) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  backdrop-filter: blur(15px);
+  min-width: 80px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  cursor: pointer;
+}
+
+.stat-pill::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.1), 
+    transparent);
+  transition: left 0.6s ease;
+}
+
+.stat-pill:hover {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.15) 0%, 
+    rgba(255, 255, 255, 0.08) 100%);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.stat-pill:hover::before {
+  left: 100%;
+}
+
+.stat-number {
+  font-size: 28px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #4ECDC4 0%, #44B7AA 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+  margin-bottom: 6px;
+  transition: all 0.3s ease;
+}
+
+.stat-pill:hover .stat-number {
+  background: linear-gradient(135deg, #4ECDC4 0%, #FFD93D 50%, #FF6B6B 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transform: scale(1.05);
+}
+
+.stat-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Special styling for streak */
+.stat-pill.streak-stat .stat-number {
+  background: linear-gradient(135deg, #FF6B6B 0%, #FFD93D 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.stat-pill.streak-stat:hover .stat-number {
+  animation: streak-flame 0.6s ease-in-out;
+}
+
+@keyframes streak-flame {
+  0%, 100% {
+    transform: scale(1.05);
+  }
+  50% {
+    transform: scale(1.1) rotate(2deg);
+  }
+}
+
+/* -------------------------
+   Calendar Grid
+   ------------------------- */
+.calendar-grid {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.weekday {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 8px 4px;
+}
+
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+/* -------------------------
+   Calendar Day Cells - Tesla Enhanced
+   ------------------------- */
+.calendar-day {
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(5px);
+  overflow: hidden;
+}
+
+.calendar-day::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.1) 0%, 
+    transparent 50%, 
+    rgba(0, 0, 0, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.calendar-day:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.calendar-day:hover::before {
+  opacity: 1;
+}
+
+.calendar-day.other-month {
+  opacity: 0.25;
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.03);
+}
+
+.calendar-day.today {
+  background: linear-gradient(135deg, 
+    rgba(59, 130, 246, 0.3) 0%, 
+    rgba(59, 130, 246, 0.15) 100%);
+  border-color: #3B82F6;
+  box-shadow: 
+    0 0 20px rgba(59, 130, 246, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  animation: today-pulse 3s ease-in-out infinite;
+}
+
+@keyframes today-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(59, 130, 246, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 
+      0 0 30px rgba(59, 130, 246, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+}
+
+.calendar-day.has-hi-moments {
+  background: linear-gradient(135deg, 
+    rgba(78, 205, 196, 0.25) 0%, 
+    rgba(78, 205, 196, 0.15) 100%);
+  border-color: #4ECDC4;
+  box-shadow: 
+    0 0 15px rgba(78, 205, 196, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.calendar-day.has-hi-moments:hover {
+  background: linear-gradient(135deg, 
+    rgba(78, 205, 196, 0.35) 0%, 
+    rgba(78, 205, 196, 0.25) 100%);
+  box-shadow: 
+    0 8px 30px rgba(78, 205, 196, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(-3px) scale(1.05);
+}
+
+/* Streak indicator for consecutive days */
+.calendar-day.streak-day {
+  position: relative;
+}
+
+.calendar-day.streak-day::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  background: linear-gradient(45deg, #FF6B6B, #FFD93D);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+  animation: streak-glow 2s ease-in-out infinite;
+}
+
+@keyframes streak-glow {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+  }
+  50% {
+    transform: scale(1.2);
+    box-shadow: 0 0 15px rgba(255, 107, 107, 0.8);
+  }
+}
+
+.day-number {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  z-index: 1;
+}
+
+.calendar-day.other-month .day-number {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* -------------------------
+   Hi Moment Indicators - Tesla Enhanced
+   ------------------------- */
+.hi-indicator {
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  width: 18px;
+  height: 18px;
+  background: linear-gradient(135deg, #4ECDC4 0%, #44B7AA 100%);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 4px 12px rgba(78, 205, 196, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  animation: hi-moment-pulse 3s ease-in-out infinite;
+  backdrop-filter: blur(5px);
+}
+
+.hi-count {
+  font-size: 11px;
+  font-weight: 800;
+  color: white;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced multiple Hi moments */
+.calendar-day.multiple-hi-moments .hi-indicator {
+  background: linear-gradient(135deg, #FFD93D 0%, #FF6B6B 50%, #4ECDC4 100%);
+  animation: rainbow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes hi-moment-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 
+      0 4px 12px rgba(78, 205, 196, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 
+      0 6px 20px rgba(78, 205, 196, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+}
+
+@keyframes rainbow-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 
+      0 4px 15px rgba(255, 217, 61, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  33% {
+    box-shadow: 
+      0 6px 20px rgba(255, 107, 107, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+  66% {
+    box-shadow: 
+      0 6px 20px rgba(78, 205, 196, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+}
+
+/* Premium progress indicator for incomplete days */
+.calendar-day.partial-complete {
+  background: linear-gradient(135deg, 
+    rgba(255, 193, 7, 0.2) 0%, 
+    rgba(255, 193, 7, 0.1) 100%);
+  border-color: rgba(255, 193, 7, 0.4);
+}
+
+.calendar-day.partial-complete::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 193, 7, 0.6);
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: partial-spin 2s linear infinite;
+}
+
+@keyframes partial-spin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* -------------------------
+   Mobile Responsiveness
+   ------------------------- */
+@media (max-width: 540px) {
+  .calendar-container {
+    width: 95vw;
+    padding: 20px;
+    border-radius: 20px;
+  }
+  
+  .calendar-stats {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .stat-pill {
+    flex: 1;
+    min-width: 60px;
+    padding: 10px 12px;
+  }
+  
+  .stat-number {
+    font-size: 20px;
+  }
+  
+  .calendar-day {
+    border-radius: 8px;
+  }
+  
+  .day-number {
+    font-size: 12px;
+  }
+  
+  .hi-indicator {
+    width: 14px;
+    height: 14px;
+    bottom: 1px;
+    right: 1px;
+  }
+  
+  .hi-count {
+    font-size: 9px;
+  }
+}
+
+/* -------------------------
+   Accessibility Enhancements
+   ------------------------- */
+.calendar-nav-btn:focus-visible,
+.calendar-close-btn:focus-visible,
+.calendar-day:focus-visible {
+  outline: 2px solid #4ECDC4;
+  outline-offset: 2px;
+}
+
+/* -------------------------
+   Dark Mode Specific
+   ------------------------- */
+@media (prefers-color-scheme: dark) {
+  .calendar-container {
+    background: rgba(0, 0, 0, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* -------------------------
+   Calendar Grid Animations
+   ------------------------- */
+@keyframes dayFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* -------------------------
+   Animation Performance
+   ------------------------- */
+.calendar-day,
+.stat-pill,
+.calendar-nav-btn,
+.calendar-close-btn {
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calendar-day,
+  .stat-pill,
+  .calendar-nav-btn,
+  .calendar-close-btn,
+  .hi-indicator {
+    will-change: auto;
+    animation: none;
+    transition-duration: 0.01ms;
+  }
+  
+  .premium-calendar-modal {
+    transition-duration: 0.01ms;
+  }
+  
+  .calendar-container {
+    animation: none;
+  }
+}

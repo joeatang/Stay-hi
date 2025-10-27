@@ -1,0 +1,162 @@
+/* ==========================================================================
+   Stay Hi — Premium Footer Navigation
+   Tesla-inspired bottom navigation with premium touches
+   ========================================================================== */
+
+.premium-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(15, 16, 34, 0.95);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 0 env(safe-area-inset-bottom, 8px);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.footer-nav {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 16px;
+  gap: 4px;
+}
+
+.footer-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  min-height: 52px;
+  position: relative;
+  overflow: hidden;
+}
+
+.footer-tab::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.footer-tab:hover::before {
+  opacity: 1;
+}
+
+.footer-tab.active {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.footer-tab.active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 2px;
+  background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+  border-radius: 0 0 2px 2px;
+  animation: tabIndicator 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+@keyframes tabIndicator {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  to {
+    width: 24px;
+    opacity: 1;
+  }
+}
+
+.footer-icon {
+  font-size: 20px;
+  line-height: 1;
+  margin-bottom: 4px;
+  transition: transform 0.3s ease;
+}
+
+.footer-tab.active .footer-icon {
+  transform: translateY(-1px);
+}
+
+.footer-label {
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.2px;
+  text-align: center;
+}
+
+/* Mobile optimization */
+@media (max-width: 375px) {
+  .footer-nav {
+    padding: 0 8px;
+    gap: 2px;
+  }
+  
+  .footer-tab {
+    padding: 6px 2px;
+    min-height: 48px;
+  }
+  
+  .footer-icon {
+    font-size: 18px;
+  }
+  
+  .footer-label {
+    font-size: 9px;
+  }
+}
+
+/* Large screen adjustments */
+@media (min-width: 768px) {
+  .premium-footer {
+    padding: 12px 0 12px;
+  }
+  
+  .footer-nav {
+    max-width: 520px;
+    gap: 8px;
+  }
+  
+  .footer-tab {
+    padding: 12px 8px;
+    min-height: 60px;
+  }
+  
+  .footer-icon {
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+  
+  .footer-label {
+    font-size: 12px;
+  }
+}
+
+/* Ensure content doesn't get hidden behind footer */
+body {
+  padding-bottom: 80px;
+}
+
+@media (min-width: 768px) {
+  body {
+    padding-bottom: 84px;
+  }
+}

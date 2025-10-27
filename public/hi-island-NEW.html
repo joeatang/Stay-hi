@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>Hi Island — Stay Hi</title>
+
+  <!-- Auth guard -->
+  <script src="assets/auth-guard.js"></script>
+
+  <!-- Design System -->
+  <link rel="stylesheet" href="styles/tokens.css"/>
+  <link rel="stylesheet" href="styles/base.css"/>
+  
+  <!-- Shared UI -->
+  <link rel="stylesheet" href="assets/theme.css"/>
+  <link rel="stylesheet" href="assets/premium-ux.css"/>
+
+  <!-- Component Styles -->
+  <link rel="stylesheet" href="components/hi-island-map/map.css"/>
+  <link rel="stylesheet" href="components/hi-island-feed/feed.css"/>
+
+  <!-- Leaflet (for map) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+  
+  <style>
+    /* ===================================================================
+       🎨 HI ISLAND PAGE STYLES (Scoped to this page only)
+    =================================================================== */
+    
+    body {
+      background: var(--gradient-island);
+      background-attachment: fixed;
+      min-height: 100vh;
+    }
+
+    .hi-island-container {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: var(--space-md);
+    }
+  </style>
+</head>
+<body data-page="hi-island">
+  <!-- Header (shared component) -->
+  <header id="app-header" class="premium-header-container"></header>
+
+  <!-- Main Content -->
+  <main class="hi-island-container">
+    <!-- Map Component (will be injected) -->
+    <div id="hi-island-map-root"></div>
+
+    <!-- Feed Component (will be injected) -->
+    <div id="hi-island-feed-root"></div>
+  </main>
+
+  <!-- Toast Notifications -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- ===================================================================
+       SCRIPTS (Load Order Matters)
+  =================================================================== -->
+  
+  <!-- Core Dependencies -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+  <script src="assets/supabase-init.js"></script>
+  <script src="assets/db.js"></script>
+  <script src="assets/header.js" defer></script>
+
+  <!-- Component Scripts -->
+  <script src="components/hi-island-map/map.js" type="module"></script>
+  <script src="components/hi-island-feed/feed.js" type="module"></script>
+
+  <!-- Page Orchestrator -->
+  <script type="module">
+    // ===================================================================
+    // 🎯 HI ISLAND ORCHESTRATOR (Clean, minimal coordination)
+    // ===================================================================
+    
+    async function initHiIsland() {
+      console.log('🏝️ Hi Island initializing...');
+      
+      // Wait for hiDB
+      await new Promise(resolve => {
+        if (window.hiDB) {
+          resolve();
+        } else {
+          const check = setInterval(() => {
+            if (window.hiDB) {
+              clearInterval(check);
+              resolve();
+            }
+          }, 100);
+        }
+      });
+
+      // Initialize components (they handle their own rendering)
+      console.log('✅ Hi Island ready');
+    }
+
+    // Start when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initHiIsland);
+    } else {
+      initHiIsland();
+    }
+  </script>
+</body>
+</html>

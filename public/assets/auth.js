@@ -1,4 +1,4 @@
-// public/assets/auth.js
+º))// public/assets/auth.js
 // Unified auth helper utilities
 
 (function() {
@@ -32,7 +32,12 @@
     // Sign in with email (magic link)
     async signInWithEmail(email, options = {}) {
       const sb = await waitForSupabase();
-      return sb.auth.signInWithOtp({ email, options });
+      return sb.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/post-auth.html`
+        }
+      });
     },
 
     // Sign out

@@ -3,92 +3,405 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <title>Build Your Hi Muscle — Stay Hi</title>
+  <title>Hi Gym — Stay Hi</title>
 
-  <!-- Global brand -->
+  <!-- Auth guard - must be first -->
+  <script src="assets/auth-guard.js"></script>
+
+  <!-- Global brand & Tesla performance -->
   <link rel="stylesheet" href="assets/theme.css"/>
   <link rel="stylesheet" href="assets/create-parity.css"/>
+  <link rel="stylesheet" href="assets/premium-footer.css"/>
+  <link rel="stylesheet" href="styles/modal-base.css">
 
   <style>
-    body{background:radial-gradient(1200px 600px at 50% -220px, rgba(255,210,140,.25) 0%, rgba(255,210,140,0) 60%), #0f1024; color:#e8ebff}
-    .wrap{max-width:980px;margin:0 auto;padding:16px}
+    /* Tesla-Grade Hi Gym Styling - Mobile First */
+    * { box-sizing: border-box; }
+    
+    body {
+      background: radial-gradient(1200px 600px at 50% -220px, rgba(78, 205, 196, 0.15) 0%, rgba(78, 205, 196, 0) 60%), #0f1024;
+      color: #e8ebff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      -webkit-text-size-adjust: 100%;
+    }
 
-    .title{font-weight:900;text-align:center;margin:8px 0 6px;font-size:var(--fs-h1)}
-    .subtitle{color:#cfd2ea;text-align:center;margin:0 0 16px;font-size:.98rem}
+    .wrap {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 16px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
 
-    /* stepper */
-    .stepper{display:flex;align-items:center;justify-content:center;gap:10px;margin:10px auto 16px}
-    .dot{width:12px;height:12px;border-radius:50%;background:#2a2f56;border:2px solid #20264b}
-    .dot.active{background:#10b981;border-color:#10b981}
-    .pipe{height:2px;width:44px;background:#2a2f56}
+    /* Mobile-first responsive scaling */
+    @media (min-width: 768px) {
+      .wrap { padding: 24px; }
+    }
+
+    @media (min-width: 1024px) {
+      .wrap { padding: 32px; }
+    }
+
+    .title{font-weight:900;text-align:center;margin:16px 0 8px;font-size:clamp(1.5rem, 4vw, 2.5rem);line-height:1.2}
+    .subtitle{color:#cfd2ea;text-align:center;margin:0 0 24px;font-size:clamp(0.9rem, 2.5vw, 1.1rem);line-height:1.4;padding:0 8px}
+
+    /* Mobile-first guidance card */
+    .guidance-card {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 16px;
+      padding: 20px;
+      margin: 0 0 24px;
+      text-align: center;
+    }
+    
+    .guidance-title {
+      font-weight: 800;
+      font-size: 1.1rem;
+      margin: 0 0 8px;
+      color: #10b981;
+    }
+    
+    .guidance-steps {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #e8ebff;
+    }
+    
+    .guidance-steps strong {
+      color: #10b981;
+      font-weight: 700;
+    }
+
+    /* stepper - mobile optimized */
+    .stepper{display:flex;align-items:center;justify-content:center;gap:12px;margin:20px auto 24px;padding:0 16px}
+    .dot{width:16px;height:16px;border-radius:50%;background:#2a2f56;border:3px solid #20264b;transition:all 0.3s ease}
+    .dot.active{background:#10b981;border-color:#10b981;transform:scale(1.1)}
+    .pipe{height:3px;width:32px;background:#2a2f56;transition:background 0.3s ease}
     .pipe.filled{background:#10b981}
 
-    /* tabs */
-    .tabs{display:flex;gap:8px;overflow:auto;border-bottom:1px solid #23264d;padding:10px 0;margin-bottom:10px}
-    .tab{
-      white-space:nowrap;padding:10px 14px;border-radius:999px;border:1px solid #2f335e;
-      background:#fff;color:#111;font-weight:800;cursor:pointer;box-shadow:0 6px 14px rgba(0,0,0,.12)
+    @media (min-width: 768px) {
+      .stepper { gap: 16px; }
+      .dot { width: 18px; height: 18px; }
+      .pipe { width: 44px; }
     }
+
+    /* tabs - mobile touch friendly */
+    .tabs{display:flex;gap:8px;overflow-x:auto;border-bottom:1px solid #23264d;padding:12px 0;margin-bottom:16px;-webkit-overflow-scrolling:touch}
+    .tab{
+      white-space:nowrap;padding:12px 16px;border-radius:12px;border:2px solid #2f335e;
+      background:#fff;color:#111;font-weight:800;cursor:pointer;
+      box-shadow:0 6px 14px rgba(0,0,0,.12);
+      min-height:48px;display:flex;align-items:center;
+      transition:all 0.2s ease;
+      font-size:0.95rem;
+    }
+    .tab:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(0,0,0,.18)}
     .tab[aria-selected="true"]{
       color:#1b0f02;border-color:transparent;background:var(--grad-ember);
+      transform:translateY(-1px);
     }
 
-    /* search */
-    .search{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid var(--hi-border);border-radius:12px;padding:10px}
-    .search input{border:0;outline:0;width:100%;font-size:16px}
+    @media (min-width: 768px) {
+      .tab { 
+        padding: 14px 18px; 
+        font-size: 1rem;
+        min-height: 52px;
+      }
+    }
 
-    /* grid */
-    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
-    @media (max-width:720px){ .grid{grid-template-columns:repeat(2,1fr);} }
+    /* search - mobile optimized */
+    .search{display:flex;gap:10px;align-items:center;background:#fff;border:2px solid var(--hi-border);border-radius:16px;padding:12px;margin-bottom:16px}
+    .search input{border:0;outline:0;width:100%;font-size:16px;color:#111;background:transparent}
+    .search input::placeholder{color:#6b7280}
+
+    /* grid - responsive */
+    .grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:16px}
+    
+    @media (min-width: 480px) { 
+      .grid{grid-template-columns:repeat(2,1fr);} 
+    }
+    
+    @media (min-width: 768px) { 
+      .grid{grid-template-columns:repeat(3,1fr);gap:14px;} 
+    }
+    
     .chip{
-      display:flex;gap:8px;align-items:center;
-      background:#fff; border:1px solid var(--hi-border); border-radius:14px;
-      padding:10px 12px; cursor:pointer; text-align:left;
-      transition:transform .08s ease, box-shadow .12s ease, border-color .12s ease, background .12s ease;
+      display:flex;gap:12px;align-items:center;
+      background:#fff; border:2px solid var(--hi-border); border-radius:16px;
+      padding:16px; cursor:pointer; text-align:left;
+      transition:all .15s ease;
+      min-height:72px;
+      box-shadow:0 2px 8px rgba(0,0,0,.1);
     }
-    .chip:hover{transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.15)}
-    .chip .emo{font-size:20px}
-    .chip .name{font-weight:900;color:#111}
-    .chip .desc{font-size:12px;color:#6b7280;line-height:1.2}
-    .chip.selected{outline:3px solid var(--ring); border-color:#ffefc7; background:#fffaf0}
+    .chip:hover{transform:translateY(-2px); box-shadow:0 12px 24px rgba(0,0,0,.2)}
+    .chip:active{transform:translateY(0);transition:transform 0.1s ease}
+    .chip .emo{font-size:24px;min-width:24px}
+    .chip .name{font-weight:900;color:#111;font-size:1rem;line-height:1.2}
+    .chip .desc{font-size:13px;color:#6b7280;line-height:1.3;margin-top:2px}
+    .chip.selected{outline:3px solid var(--ring); border-color:#ffefc7; background:#fffaf0;transform:translateY(-2px)}
 
-    .badges{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:8px 0}
-    .pickTitle{font-weight:900;color:#fff;margin:14px 0 6px}
+    @media (min-width: 768px) {
+      .chip { 
+        padding: 18px;
+        min-height: 80px;
+      }
+      .chip .emo { font-size: 26px; }
+      .chip .name { font-size: 1.1rem; }
+      .chip .desc { font-size: 14px; }
+    }
 
-    .actions{display:flex;gap:12px;justify-content:center;margin:16px 0;flex-wrap:wrap}
+    .badges{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:16px 0}
+    .pickTitle{font-weight:900;color:#fff;margin:20px 0 8px;font-size:1.1rem}
 
-    textarea{width:100%;border:1px solid var(--hi-border);border-radius:12px;min-height:120px;padding:12px;font:inherit;background:#fff;color:#111}
-    .hi-hint{color:#cfd2ea}
+    /* Mobile-first action buttons */
+    .actions{display:flex;gap:12px;justify-content:center;margin:24px 0;flex-wrap:wrap}
+    .actions .hi-btn {
+      min-height: 48px;
+      padding: 12px 20px;
+      font-size: 1rem;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 2px solid transparent;
+      min-width: 120px;
+    }
+    
+    .actions .hi-btn--primary {
+      background: #10b981;
+      color: white;
+      border-color: #10b981;
+    }
+    
+    .actions .hi-btn--primary:hover {
+      background: #059669;
+      border-color: #059669;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+    }
+    
+    .actions .hi-btn--primary:disabled {
+      background: #6b7280;
+      border-color: #6b7280;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .actions .hi-btn--ghost {
+      background: transparent;
+      color: #e8ebff;
+      border-color: #2f335e;
+    }
+    
+    .actions .hi-btn--ghost:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: #4f46e5;
+      transform: translateY(-1px);
+    }
 
-    /* sheet */
+    @media (min-width: 768px) {
+      .actions .hi-btn {
+        min-height: 52px;
+        padding: 14px 24px;
+        font-size: 1.1rem;
+        min-width: 140px;
+      }
+    }
+
+    textarea{width:100%;border:2px solid var(--hi-border);border-radius:16px;min-height:140px;padding:16px;font:inherit;background:#fff;color:#111;font-size:16px;line-height:1.5;resize:vertical}
+    .hi-hint{color:#cfd2ea;font-size:0.9rem}
+
+    /* sheet - mobile-first with desktop scaling */
     .sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;z-index:50}
-    .sheet{position:fixed;left:0;right:0;bottom:-100%;background:#0f1024;border-radius:18px 18px 0 0;border:1px solid #23264d;padding:16px 14px;z-index:60;box-shadow:0 -10px 30px rgba(0,0,0,.35);color:#e8ebff}
+    .sheet{
+      position:fixed;left:0;right:0;bottom:-100%;background:#0f1024;
+      border-radius:18px 18px 0 0;border:1px solid #23264d;
+      padding:24px 20px 32px;z-index:60;
+      box-shadow:0 -10px 30px rgba(0,0,0,.35);color:#e8ebff;
+      max-height:85vh;overflow-y:auto;
+      min-height:300px;
+    }
+    
+    /* Desktop optimizations */
+    @media (min-width: 768px) {
+      .sheet {
+        left:50%;right:auto;bottom:-100%;
+        transform:translateX(-50%);
+        width:500px;max-width:90vw;
+        border-radius:18px;
+        padding:32px 28px 40px;
+        min-height:350px;
+      }
+      .sheet.show{animation:sheetInDesktop .25s ease-out forwards}
+      .sheet.hide{animation:sheetOutDesktop .2s ease-in forwards}
+    }
+    
+    @keyframes sheetInDesktop{from{bottom:-100%;opacity:0}to{bottom:40px;opacity:1}}
+    @keyframes sheetOutDesktop{from{bottom:40px;opacity:1}to{bottom:-100%;opacity:0}}
+    
     .sheet.show + .sheet-backdrop{display:block}
     .sheet.show{animation:sheetIn .25s ease-out forwards}
     .sheet.hide{animation:sheetOut .2s ease-in forwards}
     @keyframes sheetIn{from{bottom:-100%}to{bottom:0}}
     @keyframes sheetOut{from{bottom:0}to{bottom:-100%}}
-    .row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;flex-wrap:wrap}
-    .switch{position:relative;width:44px;height:26px;background:#2f335e;border-radius:999px;cursor:pointer;border:1px solid #23264d}
-    .knob{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:left .15s}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 0;flex-wrap:wrap;min-height:60px}
+    
+    /* Mobile-first button styling */
+    .sheet .hi-btn {
+      min-height:52px;
+      padding:14px 20px;
+      font-weight:700;
+      border-radius:12px;
+      font-size:16px;
+      cursor:pointer;
+      transition:all 0.2s ease;
+      border:2px solid transparent;
+      flex:1;
+      max-width:160px;
+    }
+    
+    .sheet .hi-btn--ghost {
+      background:transparent;
+      color:#e8ebff;
+      border-color:#4f46e5;
+    }
+    
+    .sheet .hi-btn--ghost:hover {
+      background:rgba(79,70,229,0.1);
+      border-color:#6366f1;
+      transform:translateY(-1px);
+    }
+    
+    .sheet .hi-btn--primary {
+      background:#10b981;
+      color:white;
+      border-color:#10b981;
+      box-shadow:0 4px 12px rgba(16,185,129,0.3);
+    }
+    
+    .sheet .hi-btn--primary:hover {
+      background:#059669;
+      border-color:#059669;
+      transform:translateY(-1px);
+      box-shadow:0 6px 16px rgba(16,185,129,0.4);
+    }
+    
+    .sheet .hi-btn--primary:disabled {
+      background:#6b7280;
+      border-color:#6b7280;
+      cursor:not-allowed;
+      transform:none;
+      box-shadow:none;
+    }
+    
+    /* Desktop button enhancements */
+    @media (min-width: 768px) {
+      .sheet .hi-btn {
+        min-height:56px;
+        padding:16px 24px;
+        font-size:17px;
+        max-width:180px;
+      }
+      
+      .row {
+        padding:20px 0;
+        gap:16px;
+      }
+    }
+    .switch{position:relative;width:54px;height:32px;background:#2f335e;border-radius:999px;cursor:pointer;border:1px solid #23264d;transition:all 0.2s ease}
+    .knob{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.2);transition:left .2s ease}
     .switch.on{background:#0a8a3a;border-color:#0a8a3a}
-    .switch.on .knob{left:22px}
-    .sheet h3{margin:4px 0 2px;font-size:16px}
-    .sheet .muted{font-size:13px;color:#cfd2ea}
-    .hr{height:1px;background:#23264d;margin:8px 0}
-    .field{display:flex;gap:8px;align-items:center;border:1px solid var(--hi-border);border-radius:12px;padding:8px 10px;background:#fff;color:#111}
-    .field input{border:0;outline:0;width:100%;font:inherit}
+    .switch.on .knob{left:27px}
+    .sheet h3{margin:8px 0 6px;font-size:20px;font-weight:700;line-height:1.3}
+    .sheet .muted{font-size:15px;color:#cfd2ea;line-height:1.4;margin-bottom:4px}
+    .hr{height:1px;background:#23264d;margin:16px 0}
+    .field{display:flex;gap:12px;align-items:center;border:2px solid var(--hi-border);border-radius:14px;padding:14px;background:#fff;color:#111;margin-top:8px}
+    .field input{border:0;outline:0;width:100%;font:inherit;font-size:16px}
 
-    .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#000;color:#fff;padding:10px 14px;border-radius:12px;opacity:0;pointer-events:none;z-index:1000}
-    .toast.show{opacity:1;transition:opacity .2s}
+    /* Desktop switch and field improvements */
+    @media (min-width: 768px) {
+      .switch{width:58px;height:34px}
+      .knob{width:26px;height:26px}
+      .switch.on .knob{left:29px}
+      .sheet h3{font-size:22px;margin:12px 0 8px}
+      .sheet .muted{font-size:16px}
+      .field{padding:16px;font-size:17px}
+      .field input{font-size:17px}
+    }
+
+    /* Enhanced celebratory toast */
+    .toast{
+      position:fixed;left:50%;bottom:30px;transform:translateX(-50%);
+      background:linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color:#fff;padding:16px 24px;border-radius:16px;
+      opacity:0;pointer-events:none;z-index:1000;
+      font-weight:700;font-size:1rem;
+      box-shadow:0 10px 30px rgba(16, 185, 129, 0.4);
+      border:1px solid rgba(255,255,255,0.2);
+      backdrop-filter:blur(10px);
+      max-width:90vw;text-align:center;
+    }
+    .toast.show{
+      opacity:1;
+      animation:toastIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    .toast.hide{
+      animation:toastOut 0.3s ease-in-out forwards;
+    }
+    @keyframes toastIn{
+      0%{opacity:0;transform:translateX(-50%) translateY(20px) scale(0.9)}
+      100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+    }
+    @keyframes toastOut{
+      0%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+      100%{opacity:0;transform:translateX(-50%) translateY(-20px) scale(0.95)}
+    }
   </style>
 </head>
 <body data-tab="muscle">
-  <header id="app-header" class="header"></header>
+  <!-- Premium Enhanced Header -->
+  <header id="app-header" class="premium-header-container"></header>
 
   <div class="wrap">
-    <h1 class="title">Build Your Hi Muscle</h1>
-    <p class="subtitle">Pick your <b>current vibe</b>, then your <b>desired vibe</b>. Reflect for 1–2 lines. Drop your Hi.</p>
+    <h1 class="title">Hi Gym</h1>
+    <p class="subtitle">Your guided emotional fitness journey in 3 thoughtful steps</p>
+
+    <!-- Enhanced guidance with step-by-step thinking -->
+    <div class="guidance-card" id="guidanceCard">
+      <div class="guidance-title">🧠 Welcome to Your Emotional Journey</div>
+      <div class="guidance-steps">
+        <strong>Step 1: Where Are You Now?</strong><br>
+        Take a moment to honestly check in with yourself. What emotion best describes how you're feeling right now? Don't judge it—just notice it.<br><br>
+        
+        <strong>Step 2: Where Do You Want to Be?</strong><br>
+        Think about what emotional state would serve you best today. What feeling would help you handle what's ahead?<br><br>
+        
+        <strong>Step 3: Bridge the Gap</strong><br>
+        Reflect on why this shift matters to you right now. What will be different when you embody this new emotional state?
+      </div>
+    </div>
+
+    <!-- Step-specific guidance -->
+    <div class="step-guidance" id="stepGuidance" style="display:none;">
+      <div id="step1Guide" class="step-guide" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:16px;margin:0 0 16px;text-align:center;">
+        <strong style="color:#10b981;">Step 1: How are you feeling right now?</strong><br>
+        <span style="color:#e8ebff;font-size:0.9rem;">Be honest with yourself. There's no wrong answer—just awareness.</span>
+      </div>
+      <div id="step2Guide" class="step-guide" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:16px;margin:0 0 16px;text-align:center;display:none;">
+        <strong style="color:#10b981;">Step 2: Where do you want to be emotionally?</strong><br>
+        <span style="color:#e8ebff;font-size:0.9rem;">Choose an emotion that would better serve you in this moment.</span>
+      </div>
+      <div id="step3Guide" class="step-guide" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:16px;margin:0 0 16px;text-align:center;display:none;">
+        <strong style="color:#10b981;">Step 3: Why does this shift matter to you?</strong><br>
+        <span style="color:#e8ebff;font-size:0.9rem;">Write 1-2 honest lines about why moving to <span id="desiredEmotionHint">this feeling</span> would help you today.</span>
+      </div>
+    </div>
 
     <div class="stepper" aria-label="Progress">
       <div class="dot" id="s1"></div><div class="pipe" id="p1"></div><div class="dot" id="s2"></div><div class="pipe" id="p2"></div><div class="dot" id="s3"></div>
@@ -130,43 +443,52 @@
       <button id="next" class="hi-btn hi-btn--primary">Continue</button>
     </div>
 
-    <div style="display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap">
-      <a class="hi-btn hi-btn--ghost" href="hi-island.html">Go to Hi Island</a>
-      <a class="hi-btn hi-btn--ghost" href="index.html">Back to Home</a>
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:16px;flex-wrap:wrap">
+      <a class="hi-btn hi-btn--ghost" href="hi-island.html" style="min-height:48px;padding:12px 16px;display:flex;align-items:center">Go to Hi Island</a>
+      <a class="hi-btn hi-btn--ghost" href="index.html" style="min-height:48px;padding:12px 16px;display:flex;align-items:center">Back to Home</a>
     </div>
   </div>
 
   <!-- Share Sheet -->
-  <div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" aria-hidden="true">
-    <h3 id="sheetTitle">How do you want to drop your Hi?</h3>
-    <p class="muted">We’ll always save a private copy in <b>My Archive</b>.</p>
+      <!-- Share Sheet with streamlined location -->
+    <div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" aria-hidden="true">
+      <h3 id="sheetTitle">How do you want to share your journey?</h3>
+      <p class="muted">We'll always save a private copy in <b>My Archive</b>.</p>
 
-    <div class="row" style="margin-top:6px">
-      <div>
-        <div style="font-weight:800">Show on Hi Island</div>
-        <div class="muted">Appear in the global General Shares feed</div>
+      <div class="row" style="margin-top:6px">
+        <div>
+          <div style="font-weight:800">Show on Hi Island</div>
+          <div class="muted">Appear in the global General Shares feed</div>
+        </div>
+        <div id="togglePublic" class="switch on" role="switch" aria-checked="true" tabindex="0"><div class="knob" aria-hidden="true"></div></div>
       </div>
-      <div id="togglePublic" class="switch on" role="switch" aria-checked="true" tabindex="0"><div class="knob" aria-hidden="true"></div></div>
-    </div>
 
-    <div class="row">
-      <div>
-        <div style="font-weight:800">Post as Anonymous</div>
-        <div class="muted">Your name becomes “Hi Friend”</div>
+      <div class="row">
+        <div>
+          <div style="font-weight:800">Post as Anonymous</div>
+          <div class="muted">Your name becomes "Hi Friend"</div>
+        </div>
+        <div id="toggleAnon" class="switch" role="switch" aria-checked="false" tabindex="0"><div class="knob" aria-hidden="true"></div></div>
       </div>
-      <div id="toggleAnon" class="switch" role="switch" aria-checked="false" tabindex="0"><div class="knob" aria-hidden="true"></div></div>
-    </div>
 
-    <div class="hr"></div>
-    <div class="field" aria-label="Optional location">
-      <span>📍</span><input id="locationInput" placeholder="City, State (optional)"/>
-    </div>
+      <div class="hr"></div>
+      
+      <!-- Enhanced location field with education -->
+      <div style="margin-bottom:12px;">
+        <div style="font-weight:700;margin-bottom:4px;color:#e8ebff;">📍 Location (Optional)</div>
+        <div class="muted" style="margin-bottom:8px;">
+          <span id="locationEducation">Add your city and state to connect with others nearby. We never store your exact location.</span>
+        </div>
+        <div class="field" aria-label="Optional location">
+          <span>📍</span><input id="locationInput" placeholder="e.g., Austin, TX or London, UK"/>
+        </div>
+      </div>
 
-    <div class="row" style="justify-content:flex-end">
-      <button id="cancelShare" class="hi-btn hi-btn--ghost">Cancel</button>
-      <button id="confirmShare" class="hi-btn hi-btn--primary">Drop Hi</button>
+      <div class="row" style="justify-content:space-between;margin-top:24px;padding-top:20px;border-top:1px solid #23264d">
+        <button id="cancelShare" class="hi-btn hi-btn--ghost">Cancel</button>
+        <button id="confirmShare" class="hi-btn hi-btn--primary">Share Journey</button>
+      </div>
     </div>
-  </div>
   <div id="backdrop" class="sheet-backdrop" aria-hidden="true"></div>
 
   <div id="toast" class="toast">Saved</div>
@@ -177,6 +499,7 @@
   <script src="assets/db.js"></script>
   <script src="assets/header.js" defer></script>
   <script src="assets/emotions.js"></script>
+  <script src="assets/hi-gym.js"></script>
 
   <script>
   (async function(){
@@ -264,15 +587,52 @@
       descs.forEach(d => d.style.display = compact ? 'none' : '');
     });
 
-    // Nav
+    // Nav with enhanced validation
     backBtn.addEventListener('click', ()=>{
       if (state.step === 1) { window.location.href='index.html'; return; }
       if (state.step === 2) { setStep(1); return; }
       if (state.step === 3) { setStep(2); return; }
     });
-    nextBtn.addEventListener('click', ()=>{
-      if (state.step < 3) { setStep(state.step+1); return; }
-      openSheet();
+    
+    nextBtn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      console.log('Next button clicked, step:', state.step, 'current:', state.current, 'desired:', state.desired);
+      
+      if (state.step === 1) {
+        if (!state.current) {
+          toast('Please choose how you feel right now');
+          return;
+        }
+        setStep(2);
+        return;
+      }
+      
+      if (state.step === 2) {
+        if (!state.desired) {
+          toast('Please choose where you want to be emotionally');
+          return;
+        }
+        setStep(3);
+        return;
+      }
+      
+      if (state.step === 3) {
+        const journalText = journal.value.trim();
+        console.log('Journal text length:', journalText.length);
+        if (journalText.length < 10) {
+          toast('Please write at least 10 characters in your reflection');
+          journal.focus();
+          return;
+        }
+        console.log('Opening share sheet...');
+        try {
+          openSheet();
+        } catch (error) {
+          console.error('Error opening sheet:', error);
+          toast('Something went wrong. Please try again.', 'warning');
+        }
+        return;
+      }
     });
 
     // Switch helpers
@@ -284,40 +644,145 @@
     });
     backdrop.addEventListener('click', closeSheet);
     cancelShare.addEventListener('click', closeSheet);
-    function openSheet(){ sheet.classList.remove('hide'); sheet.classList.add('show'); sheet.setAttribute('aria-hidden','false'); backdrop.style.display='block'; }
-    function closeSheet(){ sheet.classList.remove('show'); sheet.classList.add('hide'); sheet.setAttribute('aria-hidden','true'); setTimeout(()=>backdrop.style.display='none',180); }
+    
+    function openSheet(){ 
+      console.log('openSheet called, sheet element:', sheet, 'backdrop element:', backdrop);
+      if (!sheet || !backdrop) {
+        console.error('Sheet or backdrop element not found!');
+        return;
+      }
+      sheet.classList.remove('hide'); 
+      sheet.classList.add('show'); 
+      sheet.setAttribute('aria-hidden','false'); 
+      backdrop.style.display='block';
+      console.log('Sheet opened, classes:', sheet.classList.toString());
+    }
+    
+    function closeSheet(){ 
+      console.log('closeSheet called');
+      sheet.classList.remove('show'); 
+      sheet.classList.add('hide'); 
+      sheet.setAttribute('aria-hidden','true'); 
+      setTimeout(()=>backdrop.style.display='none',180); 
+    }
 
     // Writes
-    confirmShare.addEventListener('click', async ()=>{
-      const text = journal.value.trim();
-      const isAnon = getSwitch(toggleAnon) || document.getElementById('anon').checked;
-      const toIsland = getSwitch(togglePublic);
-      const loc = (locationInput.value||'').trim();
+    confirmShare.addEventListener('click', async (e)=>{
+      e.preventDefault();
+      console.log('Share Journey button clicked');
+      
+      // Disable button to prevent double-clicks
+      confirmShare.disabled = true;
+      confirmShare.textContent = 'Sharing...';
+      
+      try {
+        const text = journal.value.trim();
+        const isAnon = getSwitch(toggleAnon);
+        const toIsland = getSwitch(togglePublic);
+        const loc = (locationInput.value||'').trim();
 
-      await window.hiDB.insertArchive({
-        currentEmoji: state.current.emoji,
-        desiredEmoji: state.desired.emoji,
-        journal: text,
-        location: loc
-      });
-
-      if (toIsland){
-        await window.hiDB.insertPublicShare({
-          currentEmoji: state.current.emoji, currentName: state.current.name,
-          desiredEmoji: state.desired.emoji, desiredName: state.desired.name,
-          text, isAnonymous:isAnon, location:loc, isPublic:true
+        console.log('Submitting Hi Gym journey:', { 
+          current: state.current?.name, 
+          desired: state.desired?.name, 
+          textLength: text.length,
+          isAnon,
+          toIsland,
+          location: loc
         });
-      }
 
-      closeSheet();
-      toast('Hi dropped ✨');
-      setTimeout(()=> window.location.href='hi-island.html', 650);
+        // Tesla-grade journey analytics
+        const sessionData = {
+          current: state.current,
+          desired: state.desired,
+          journal: text,
+          duration: Date.now() - (state.startTime || Date.now()),
+          timestamp: Date.now()
+        };
+
+        // Track emotional pattern
+        const pattern = window.HiGym?.trackEmotionalPattern(sessionData);
+        
+        // Create celebration message
+        const celebration = window.HiGym?.createJourneyCelebration(sessionData);
+
+        // Always save to personal archive
+        console.log('Saving to archive...');
+        await window.hiDB.insertArchive({
+          currentEmoji: state.current.emoji,
+          desiredEmoji: state.desired.emoji,
+          journal: text,
+          location: loc,
+          journeyType: pattern?.journeyType || 'exploration'
+        });
+
+        // Share to Hi Island if requested
+        if (toIsland){
+          console.log('Sharing to Hi Island...');
+          await window.hiDB.insertPublicShare({
+            currentEmoji: state.current.emoji, 
+            currentName: state.current.name,
+            desiredEmoji: state.desired.emoji, 
+            desiredName: state.desired.name,
+            text, 
+            isAnonymous: isAnon, 
+            location: loc || null, // Clean pipe: null for no location
+            isPublic: true,
+            origin: 'HI GYM', // 🚀 Clean pipeline tag
+            journeyType: pattern?.journeyType || 'exploration',
+            tags: ['emotional-journey', 'hi-gym'] // Additional tags for filtering
+          });
+        }
+
+        closeSheet();
+        
+        // Tesla-grade celebration with animation
+        const celebrationMsg = celebration?.message || '🌟 Amazing emotional journey completed!';
+        toast(celebrationMsg, 'celebration');
+        
+        // Add success animation
+        setTimeout(() => {
+          document.body.style.background = 'radial-gradient(1200px 600px at 50% -220px, rgba(78, 205, 196, 0.25) 0%, rgba(78, 205, 196, 0) 60%), #0f1024';
+          setTimeout(() => {
+            document.body.style.background = 'radial-gradient(1200px 600px at 50% -220px, rgba(78, 205, 196, 0.15) 0%, rgba(78, 205, 196, 0) 60%), #0f1024';
+          }, 1000);
+        }, 200);
+        
+        // Clear draft after successful submission
+        localStorage.removeItem('hi-gym-draft');
+        
+        // Navigate to Hi Island to see the result
+        setTimeout(() => window.location.href='hi-island.html', 2500);
+        
+      } catch (error) {
+        console.error('Hi Gym submission error:', error);
+        toast('Something went wrong. Please try again.', 'warning');
+        
+        // Re-enable button
+        confirmShare.disabled = false;
+        confirmShare.textContent = 'Share Journey';
+      }
     });
 
     // Renderers
     function currentList(){
       const cat = (CATALOG.categories||[]).find(c=>c.id===state.cat) || (CATALOG.categories||[])[0] || {items:[]};
       let list = cat.items || [];
+      
+      // SMART FILTERING: If step 2 and current emotion is from Hi Opportunity, don't show Hi Opportunity emotions
+      if (state.step === 2 && state.current) {
+        const currentCat = findEmotionCategory(state.current.name);
+        if (currentCat === 'opportunity' && state.cat === 'opportunity') {
+          // Force switch to Hi Energy tab
+          setTimeout(() => {
+            const hiTab = document.querySelector('.tab[data-cat="hi"]');
+            if (hiTab && !hiTab.getAttribute('aria-selected')) {
+              hiTab.click();
+            }
+          }, 100);
+          return []; // Return empty list for opportunity emotions
+        }
+      }
+      
       if (state.q){
         const q = state.q.toLowerCase();
         list = list.filter(x => x.name?.toLowerCase().includes(q) || (x.desc||'').toLowerCase().includes(q));
@@ -351,9 +816,36 @@
         if (isSelected) div.classList.add('selected');
 
         div.addEventListener('click', ()=>{
-          if (state.step===1){ state.current=item; setStep(2); }
-          else if (state.step===2){ state.desired=item; setStep(3); }
-          else { state.current=item; state.desired=null; setStep(2); }
+          let targetEmotion = item;
+          
+          if (state.step === 1) {
+            state.current = targetEmotion;
+            setStep(2);
+          } else if (state.step === 2) {
+            // Tesla-grade smart validation
+            const validation = window.HiGym.validateEmotionalSelection(state.current, targetEmotion);
+            if (!validation.valid) {
+              toast(validation.reason);
+              if (validation.suggestion) {
+                // Auto-suggest better emotions
+                setTimeout(() => {
+                  state.q = validation.suggestion[0];
+                  search.value = state.q;
+                  renderGrid();
+                }, 1000);
+              }
+              return;
+            }
+            
+            state.desired = targetEmotion;
+            setStep(3);
+          } else {
+            // Step 3: Allow changing current emotion
+            state.current = targetEmotion;
+            state.desired = null;
+            setStep(2);
+          }
+          
           saveDraft();
         });
 
@@ -376,5 +868,215 @@
     }
 
     function setStep(n){
-      state.step=n;
-      s1.classList.toggle('a
+      state.step = Math.max(1, Math.min(3, n));
+      
+      // Update stepper dots and pipes
+      s1.classList.toggle('active', state.step >= 1);
+      s2.classList.toggle('active', state.step >= 2);
+      s3.classList.toggle('active', state.step >= 3);
+      p1.classList.toggle('filled', state.step >= 2);
+      p2.classList.toggle('filled', state.step >= 3);
+
+      // Show/hide guidance cards
+      const guidanceCard = document.getElementById('guidanceCard');
+      const stepGuidance = document.getElementById('stepGuidance');
+      const step1Guide = document.getElementById('step1Guide');
+      const step2Guide = document.getElementById('step2Guide');
+      const step3Guide = document.getElementById('step3Guide');
+      const desiredEmotionHint = document.getElementById('desiredEmotionHint');
+
+      // Hide main guidance once user starts engaging
+      if (state.step > 1 || state.current) {
+        guidanceCard.style.display = 'none';
+        stepGuidance.style.display = '';
+      } else {
+        guidanceCard.style.display = '';
+        stepGuidance.style.display = 'none';
+      }
+
+      // Show step-specific guidance
+      step1Guide.style.display = (state.step === 1) ? '' : 'none';
+      step2Guide.style.display = (state.step === 2) ? '' : 'none';
+      step3Guide.style.display = (state.step === 3) ? '' : 'none';
+
+      // Smart filtering: no double-low selections
+      if (state.step === 2 && state.current) {
+        const currentCat = findEmotionCategory(state.current.name);
+        if (currentCat === 'opportunity') {
+          // Switch to Hi Energy tab if coming from opportunity emotion
+          document.querySelector('.tab[data-cat="hi"]').click();
+        }
+      }
+
+      // Update desired emotion hint in step 3
+      if (state.step === 3 && state.desired && desiredEmotionHint) {
+        desiredEmotionHint.textContent = state.desired.name.toLowerCase();
+      }
+
+      renderBadges();
+      renderGrid();
+      
+      // Show/hide journal card
+      journalCard.style.display = (state.step === 3) ? '' : 'none';
+      if (state.step === 3 && state.desired) {
+        desiredLabel.textContent = state.desired.name;
+      }
+
+      validate();
+      saveDraft();
+    }
+
+    function findEmotionCategory(emotionName) {
+      for (const cat of CATALOG.categories) {
+        if (cat.items.some(item => item.name === emotionName)) {
+          return cat.id;
+        }
+      }
+      return 'hi'; // default
+    }
+
+    function validate(){
+      const step = state.step;
+      let canContinue = false;
+
+      if (step === 1) {
+        canContinue = !!state.current;
+        nextBtn.textContent = 'Continue to Step 2';
+      } else if (step === 2) {
+        canContinue = !!state.current && !!state.desired;
+        nextBtn.textContent = 'Continue to Reflection';
+      } else if (step === 3) {
+        const journalText = journal.value.trim();
+        canContinue = !!state.current && !!state.desired && journalText.length >= 10;
+        nextBtn.textContent = 'Share Your Journey';
+      }
+
+      nextBtn.disabled = !canContinue;
+      nextBtn.style.opacity = canContinue ? '1' : '0.6';
+      nextBtn.style.cursor = canContinue ? 'pointer' : 'not-allowed';
+      
+      backBtn.textContent = (step === 1) ? 'Exit' : 'Back';
+    }
+
+    function saveDraft(){
+      try {
+        localStorage.setItem('hi-gym-draft', JSON.stringify({
+          step: state.step,
+          current: state.current,
+          desired: state.desired,
+          journal: journal.value,
+          timestamp: Date.now()
+        }));
+      } catch {}
+    }
+
+    function loadDraft(){
+      try {
+        const saved = localStorage.getItem('hi-gym-draft');
+        if (!saved) return;
+        
+        const draft = JSON.parse(saved);
+        const age = Date.now() - (draft.timestamp || 0);
+        
+        // Clear old drafts (24 hours)
+        if (age > 24 * 60 * 60 * 1000) {
+          localStorage.removeItem('hi-gym-draft');
+          return;
+        }
+
+        state.current = draft.current;
+        state.desired = draft.desired;
+        journal.value = draft.journal || '';
+        setStep(draft.step || 1);
+        updateCharCount();
+      } catch {}
+    }
+
+    function updateCharCount(){
+      const len = journal.value.length;
+      count.textContent = `${len}/600`;
+      count.style.color = len > 580 ? '#ef4444' : '';
+    }
+
+    function toast(msg, type = 'default'){
+      console.log('Toast:', msg);
+      toastEl.textContent = msg;
+      
+      // Style based on type
+      if (type === 'celebration') {
+        toastEl.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+        toastEl.style.boxShadow = '0 10px 30px rgba(16, 185, 129, 0.4)';
+      } else if (type === 'warning') {
+        toastEl.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+        toastEl.style.boxShadow = '0 10px 30px rgba(245, 158, 11, 0.4)';
+      } else {
+        toastEl.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+        toastEl.style.boxShadow = '0 10px 30px rgba(16, 185, 129, 0.4)';
+      }
+      
+      toastEl.classList.remove('hide');
+      toastEl.classList.add('show');
+      
+      setTimeout(() => {
+        toastEl.classList.remove('show');
+        toastEl.classList.add('hide');
+      }, type === 'celebration' ? 3000 : 2000);
+    }
+
+    // Journal character counting
+    journal.addEventListener('input', () => {
+      updateCharCount();
+      validate();
+      saveDraft();
+    });
+
+    // Enhanced location management with smart strategy
+    async function loadUserLocation() {
+      try {
+        const userProfile = await window.hiDB.getUserProfile();
+        const locationEducation = document.getElementById('locationEducation');
+        
+        if (userProfile?.location) {
+          // User has set location - auto-populate with encouragement
+          locationInput.value = userProfile.location;
+          locationEducation.innerHTML = `<strong>Great!</strong> Using your saved location: <strong>${userProfile.location}</strong>. This helps build your local Hi community.`;
+        } else {
+          // New user - emphasize community benefits, but keep optional
+          locationEducation.innerHTML = `<strong>Optional but powerful:</strong> Adding your city/state helps you connect with others nearby and see how your community feels. Posts without location appear as "Global Community" shares.`;
+        }
+        
+        // Show how many local vs global shares exist (if we have stats)
+        // This encourages participation by showing community size
+        
+      } catch (error) {
+        console.log('Could not load user location:', error);
+        const locationEducation = document.getElementById('locationEducation');
+        if (locationEducation) {
+          locationEducation.innerHTML = `<strong>Connect locally:</strong> Add your city and state to find others nearby. Leave blank to share with the global community.`;
+        }
+      }
+    }
+
+    // Initialize
+    state.startTime = Date.now(); // Track session duration
+    loadDraft();
+    loadUserLocation();
+    setStep(state.step || 1);
+    validate();
+
+    // Tesla-grade smart suggestions on load
+    window.addEventListener('load', () => {
+      if (state.current && !state.desired && window.HiGym) {
+        const suggestions = window.HiGym.suggestOptimalEmotions(state.current);
+        if (suggestions.length > 0) {
+          // Subtle suggestion in search placeholder
+          search.placeholder = `Try: ${suggestions.slice(0, 2).join(', ')}...`;
+        }
+      }
+    });
+
+    })();
+  </script>
+  <script src="assets/premium-footer.js" defer></script>
+</body>
+</html>

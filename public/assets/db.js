@@ -1,5 +1,3 @@
-<!-- public/assets/db.js -->
-<script>
 /**
  * hiDB — super small Supabase wrapper with localStorage fallback.
  * Requires:
@@ -21,7 +19,7 @@
   const LS_ARCHIVE = "hi_my_archive";
   const LS_PENDING = "hi_pending_queue";
 
-  const supa = window.supabase;
+  const supa = window.supabaseClient || window.sb;
 
   function readLS(key, def = []) {
     try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(def)); }
@@ -51,16 +49,27 @@
   async function insertPublicShare(entry) {
     // entry = { currentEmoji, currentName?, desiredEmoji, desiredName?, text, isAnonymous, location, isPublic(true/false) }
     const user_id = await getUserId();
+    
+    // 🆕 ENHANCED: Add origin detection for Quick vs Guided
+    const enhancedEntry = {
+      ...entry,
+      origin: entry.origin || detectOrigin(), // Auto-detect if not provided
+      type: entry.type || 'self_hi5' // Keep unified type for all self hi-5s
+    };
+    
     const row = {
       user_id,
-      current_emoji: entry.currentEmoji,
-      current_name: entry.currentName || null,
-      desired_emoji: entry.desiredEmoji,
-      desired_name: entry.desiredName || null,
-      text: entry.text,
-      is_anonymous: !!entry.isAnonymous,
-      location: entry.location || null,
-      is_public: entry.isPublic !== false, // default true
+      current_emoji: enhancedEntry.currentEmoji,
+      current_name: enhancedEntry.currentName || null,
+      desired_emoji: enhancedEntry.desiredEmoji,
+      desired_name: enhancedEntry.desiredName || null,
+      text: enhancedEntry.text,
+      is_anonymous: !!enhancedEntry.isAnonymous,
+      location: enhancedEntry.location || null,
+      is_public: enhancedEntry.isPublic !== false, // default true
+      // 🆕 Add origin and type to database
+      origin: enhancedEntry.origin,
+      type: enhancedEntry.type
     };
 
     // Try DB first
@@ -68,7 +77,7 @@
       const { data, error } = await supa.from("public_shares").insert(row).select().single();
       if (error) throw error;
 
-      // Normalize shape for UI
+      // Normalize shape for UI (enhanced with origin)
       const ui = normalizePublicRow(data);
       // Also mirror to LS general (so island renders if offline later)
       pushLS(LS_GENERAL, ui);
@@ -160,6 +169,17 @@
     return out;
   }
 
+  // 🆕 DETECT ORIGIN: Auto-detect Quick vs Guided based on current page
+  function detectOrigin() {
+    const path = window.location.pathname;
+    if (path.includes('index.html') || path === '/' || path === '') {
+      return 'quick';
+    } else if (path.includes('hi-muscle.html')) {
+      return 'guided';
+    }
+    return 'quick'; // Default fallback for Quick Hi-5s
+  }
+
   function pushPending(item) {
     const q = readLS(LS_PENDING);
     q.unshift({ ...item, queuedAt: new Date().toISOString() });
@@ -207,6 +227,8 @@
       userName: r.is_anonymous ? "Hi Friend" : "You",
       location: r.location || "",
       createdAt: r.created_at,
+      origin: r.origin || 'quick', // 🚀 Include origin for Quick/Guided chips
+      type: r.type || 'self_hi5'   // 🚀 Include type for consistency
     };
   }
   function normalizePublicRowFromClient(row) {
@@ -221,6 +243,8 @@
       userName: row.is_anonymous ? "Hi Friend" : "You",
       location: row.location || "",
       createdAt: new Date().toISOString(),
+      origin: row.origin || 'quick', // 🚀 Include origin for local entries
+      type: row.type || 'self_hi5'   // 🚀 Include type for local entries
     };
   }
 
@@ -245,6 +269,12 @@
     };
   }
 
+  // Stub for map updates (handled by island.js)
+  async function updateMap(payload) {
+    // This is handled by the map system, just return success
+    return { ok: true };
+  }
+
   // Public API
   window.hiDB = {
     isOnline,
@@ -253,6 +283,7 @@
     fetchPublicShares,
     fetchMyArchive,
     syncPending,
+    updateMap,
   };
 
   // Optional: auto-sync after auth (tiny delay to allow session)
@@ -261,4 +292,3 @@
     window.addEventListener("online", () => { syncPending(); });
   });
 })();
-</script>

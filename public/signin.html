@@ -1,28 +1,233 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <script>
+    // Magic link redirect guard - must run immediately
+    (function() {
+      if (location.hash && location.hash.includes('access_token') && location.hash.includes('refresh_token')) {
+        const next = new URLSearchParams(location.search).get('next') || 'index.html';
+        const redirectUrl = `/public/post-auth.html?next=${encodeURIComponent(next)}${location.hash}`;
+        location.replace(redirectUrl);
+      }
+    })();
+  </script>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Sign in — Stay Hi</title>
   <link rel="stylesheet" href="assets/theme.css"/>
   <link rel="stylesheet" href="assets/create-parity.css"/>
+  <link rel="stylesheet" href="assets/premium-ux.css"/>
   <style>
-    .wrap{max-width:520px;margin:6vh auto;padding:16px}
-    .brand{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:10px}
-    .brand .logo{width:38px;height:38px;border-radius:12px;background:var(--grad-ember)}
-    .card{background:#fff;border:1px solid var(--hi-border);border-radius:16px;box-shadow:var(--shadow);padding:16px}
-    .row{display:flex;gap:8px;align-items:center}
-    .muted{color:var(--hi-muted)}
-    .success{display:none;margin-top:10px}
-    .error{display:none;margin-top:10px;color:#b91c1c}
+    /* Premium Tesla-inspired layout */
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .wrap{
+      max-width:520px;
+      margin:6vh auto;
+      padding:16px;
+      position:relative;
+    }
+    
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      justify-content:center;
+      margin-bottom:24px;
+      animation: fadeInUp 0.8s ease-out;
+    }
+    
+    .brand .logo{
+      width:44px;
+      height:44px;
+      border-radius:12px;
+      background:var(--grad-ember);
+      box-shadow: 0 8px 25px rgba(255, 122, 24, 0.3);
+      transition: transform 0.3s ease;
+    }
+    
+    .brand .logo:hover {
+      transform: scale(1.05) rotate(2deg);
+    }
+    
+    .brand h1 {
+      color: white;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      font-weight: 800;
+    }
+    
+    .card{
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      box-shadow: var(--shadow-premium);
+      padding: 32px;
+      animation: fadeInUp 0.8s ease-out 0.2s both;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left 0.6s;
+    }
+    
+    .card:hover::before {
+      left: 100%;
+    }
+    
+    .row{display:flex;gap:12px;align-items:center;justify-content:flex-end;margin-top:20px}
+    .muted{color:rgba(255, 255, 255, 0.8) !important}
+    .error{
+      display:none;
+      margin-top:16px;
+      padding:12px 16px;
+      background:rgba(239, 68, 68, 0.1);
+      border:1px solid rgba(239, 68, 68, 0.3);
+      border-radius:12px;
+      color:#ef4444;
+      backdrop-filter:blur(10px);
+    }
+    
+    .hi-input{
+      color:white !important;
+      background:rgba(255, 255, 255, 0.1) !important;
+      border:1px solid rgba(255, 255, 255, 0.2) !important;
+      width:100%;
+      box-sizing:border-box;
+      backdrop-filter:blur(10px);
+      transition: all 0.3s ease;
+    }
+    
+    .hi-input:focus {
+      background:rgba(255, 255, 255, 0.15) !important;
+      border-color:rgba(255, 255, 255, 0.4) !important;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card h2, .card p, .card label{color:white !important}
+    .card h2 { margin-top: 0; margin-bottom: 8px; }
+    .card p { margin-top: 0; margin-bottom: 20px; }
+    .card label { display: block; margin-bottom: 8px; font-weight: 500; }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Tesla-inspired success confirmation */
+    .tesla-success{
+      display:none;
+      margin-top:24px;
+      padding:24px;
+      background:linear-gradient(135deg, #f8fffe 0%, #f0fdf9 100%);
+      border:1px solid #d1fae5;
+      border-radius:16px;
+      box-shadow:0 4px 12px rgba(16, 185, 129, 0.15), 0 2px 4px rgba(16, 185, 129, 0.1);
+      opacity:0;
+      transform:translateY(8px) scale(0.98);
+      transition:all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .tesla-success.show{
+      opacity:1;
+      transform:translateY(0) scale(1);
+    }
+
+    .tesla-success-content{
+      display:flex;
+      align-items:flex-start;
+      gap:16px;
+    }
+
+    .tesla-icon{
+      width:48px;
+      height:48px;
+      flex-shrink:0;
+    }
+
+    .check-animation{
+      width:100%;
+      height:100%;
+    }
+
+    .circle-bg{
+      opacity:0.3;
+    }
+
+    .circle-progress{
+      stroke-dasharray:125.6;
+      stroke-dashoffset:125.6;
+      transform-origin:center;
+      animation:circle-fill 0.8s ease-out forwards;
+    }
+
+    .checkmark{
+      stroke-dasharray:24;
+      stroke-dashoffset:24;
+      animation:checkmark-draw 0.5s ease-out 0.6s forwards;
+    }
+
+    @keyframes circle-fill{
+      to{
+        stroke-dashoffset:0;
+      }
+    }
+
+    @keyframes checkmark-draw{
+      to{
+        stroke-dashoffset:0;
+      }
+    }
+
+    .tesla-text{
+      flex:1;
+      padding-top:2px;
+    }
+
+    .tesla-title{
+      font-size:18px;
+      font-weight:700;
+      color:#065f46;
+      margin:0 0 4px;
+      letter-spacing:-0.01em;
+    }
+
+    .tesla-subtitle{
+      font-size:14px;
+      color:#047857;
+      margin:0;
+      line-height:1.4;
+      opacity:0.9;
+    }
   </style>
 </head>
 <body>
-  <header id="app-header"></header>
+  <!-- Clean signin page - no navigation header -->
 
   <main class="wrap">
     <div class="brand">
-      <div class="logo"></div>
+      <img class="logo" src="assets/brand/hi-logo-light.png" alt="Stay Hi Logo" />
       <h1 class="h1" style="margin:0">Stay Hi</h1>
     </div>
 
@@ -33,33 +238,72 @@
       <label for="email" class="hint">Email</label>
       <input id="email" type="email" class="hi-input" placeholder="you@example.com" autocomplete="email" required />
 
-      <div class="row" style="justify-content:flex-end;margin-top:12px">
-        <a href="index.html" class="hi-btn hi-btn--ghost">Cancel</a>
-        <button id="send" class="hi-btn hi-btn--primary">Send magic link</button>
+      <div class="row">
+        <a href="index.html" class="hi-btn hi-btn--ghost premium-hover focus-premium" style="background:rgba(255,255,255,0.1);color:white;border-color:rgba(255,255,255,0.2)">Cancel</a>
+        <button id="send" class="btn-premium btn-primary-premium celebration-trigger focus-premium">
+          <span>Send magic link</span>
+          <div class="loading-dots" style="display:none">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </button>
       </div>
 
-      <div id="success" class="success hi-card">✅ Check your inbox for a link. Open it on this device to finish signing in.</div>
+      <div id="success" class="tesla-success">
+        <div class="tesla-success-content">
+          <div class="tesla-icon">
+            <svg class="check-animation" viewBox="0 0 50 50">
+              <circle class="circle-bg" cx="25" cy="25" r="20" fill="none" stroke="#f0f0f0" stroke-width="2"/>
+              <circle class="circle-progress" cx="25" cy="25" r="20" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
+              <path class="checkmark" d="M16 25l6 6 12-12" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="tesla-text">
+            <h3 class="tesla-title">Magic link sent</h3>
+            <p class="tesla-subtitle">Check your inbox and tap the link to continue</p>
+          </div>
+        </div>
+      </div>
       <div id="err" class="error"></div>
     </div>
 
-    <p class="hint" style="text-align:center;margin-top:14px">
-      After signing in, you can <b>Drop Hi</b> and it will save to the database (and still work offline).
+    <p class="hint" style="text-align:center;margin-top:24px;color:rgba(255,255,255,0.7);animation:fadeInUp 0.8s ease-out 0.4s both">
+      After signing in, you can <b style="color:white">Drop Hi</b> and it will save to the database (and still work offline).
     </p>
   </main>
 
   <script src="assets/supabase-init.js"></script>
   <script src="assets/auth.js"></script>
+  <script src="assets/premium-ux.js"></script>
   <script>
     (function(){
-      const sb = window.sb; // from supabase-init.js
       const email = document.getElementById('email');
       const sendBtn = document.getElementById('send');
       const ok = document.getElementById('success');
       const err = document.getElementById('err');
 
+      // Wait for Supabase to be ready
+      async function waitForSupabase() {
+        if (window.sb) return window.sb;
+        if (window.sbReady) return await window.sbReady;
+        
+        // Fallback: wait for supabase-ready event
+        return new Promise((resolve) => {
+          if (window.sb) {
+            resolve(window.sb);
+          } else {
+            window.addEventListener('supabase-ready', (event) => {
+              resolve(event.detail.client || window.sb);
+            });
+          }
+        });
+      }
+
       // If returning from a magic link, Supabase will set the session — bounce back to app
       (async () => {
         try {
+          const sb = await waitForSupabase();
           const { data: { session } } = await sb.auth.getSession();
           if (session) {
             const next = new URLSearchParams(location.search).get('next') || 'index.html';
@@ -72,24 +316,71 @@
         err.style.display = 'none'; ok.style.display = 'none';
 
         const emailVal = (email.value || '').trim();
-        if (!emailVal) { err.textContent = 'Enter a valid email.'; err.style.display = 'block'; return; }
+        if (!emailVal) { 
+          err.textContent = 'Enter a valid email.'; 
+          err.style.display = 'block'; 
+          email.focus();
+          window.PremiumUX.glow(email, '#ef4444');
+          return; 
+        }
 
-        sendBtn.disabled = true; sendBtn.textContent = 'Sending…';
+        // Premium loading state
+        sendBtn.disabled = true;
+        const buttonText = sendBtn.querySelector('span');
+        const loadingDots = sendBtn.querySelector('.loading-dots');
+        buttonText.style.display = 'none';
+        loadingDots.style.display = 'inline-flex';
+        
+        // Create ripple effect
+        window.PremiumUX.createRipple(sendBtn, { clientX: sendBtn.offsetLeft + sendBtn.offsetWidth/2, clientY: sendBtn.offsetTop + sendBtn.offsetHeight/2 });
+        
         try {
+          // Wait for Supabase client before using it
+          const sb = await waitForSupabase();
           // Use current URL as redirect so it lands back in app domain
           const redirectTo = `${location.origin}/signin.html?next=${encodeURIComponent(new URLSearchParams(location.search).get('next') || 'index.html')}`;
           const { error } = await sb.auth.signInWithOtp({ email: emailVal, options: { emailRedirectTo: redirectTo }});
           if (error) throw error;
+          
+          // Premium success celebration
+          window.PremiumUX.celebrate(sendBtn, '🎉 Magic link sent!');
+          window.PremiumUX.confetti({ count: 30, colors: ['#25F4EE', '#FE2C55', '#FFD700'] });
+          
+          // Show Tesla-style success confirmation
           ok.style.display = 'block';
+          setTimeout(() => ok.classList.add('show'), 10);
+          
+          // Add floating hearts
+          setTimeout(() => {
+            window.PremiumUX.hearts(ok, 2);
+          }, 500);
+          
         } catch (e) {
-          err.textContent = e.message || 'Could not send link.'; err.style.display = 'block';
+          err.textContent = e.message || 'Could not send link.'; 
+          err.style.display = 'block';
+          window.PremiumUX.glow(err, '#ef4444');
+          
+          // Shake animation for error
+          sendBtn.style.animation = 'shake 0.5s ease-in-out';
+          setTimeout(() => sendBtn.style.animation = '', 500);
         } finally {
-          sendBtn.disabled = false; sendBtn.textContent = 'Send magic link';
+          sendBtn.disabled = false;
+          buttonText.style.display = 'inline';
+          loadingDots.style.display = 'none';
         }
       });
+
+      // Add shake keyframes
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-5px); }
+          75% { transform: translateX(5px); }
+        }
+      `;
+      document.head.appendChild(style);
     })();
   </script>
-
-  <script src="assets/header.js" defer></script>
 </body>
 </html>

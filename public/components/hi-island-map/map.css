@@ -1,0 +1,152 @@
+/* ===================================================================
+   🎨 HI ISLAND MAP COMPONENT STYLES
+   Isolated styles for the interactive Leaflet map with glassmorphism.
+   All classes prefixed with .hi-map- to prevent bleeding.
+=================================================================== */
+
+/* Map Container (glassmorphism card) */
+.hi-map {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--shadow-glass);
+  overflow: hidden;
+  margin-bottom: var(--space-lg);
+}
+
+/* Hero Header */
+.hi-map-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-lg);
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--glass-border);
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.hi-map-hero-text {
+  flex: 1;
+  min-width: 200px;
+}
+
+.hi-map-title {
+  font-size: var(--font-xl);
+  font-weight: 700;
+  color: var(--glass-text);
+  margin-bottom: var(--space-xs);
+  letter-spacing: -0.02em;
+}
+
+.hi-map-subtitle {
+  font-size: var(--font-sm);
+  color: var(--glass-text-muted);
+  line-height: 1.5;
+}
+
+/* Drop a Hi Button */
+.hi-map-drop-btn {
+  padding: var(--space-sm) var(--space-lg);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--hi-ink);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+}
+
+.hi-map-drop-btn:hover {
+  background: #fff;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.hi-map-drop-btn:active {
+  transform: translateY(0);
+}
+
+/* Map Canvas */
+.hi-map-canvas {
+  width: 100%;
+  height: 300px;
+  min-height: 300px;
+  background: #1a1a2e;
+  border-radius: 0;
+  position: relative;
+}
+
+/* Custom Leaflet Marker */
+.hi-location-marker {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  width: 32px !important;
+  height: 32px !important;
+  margin: -16px 0 0 -16px !important;
+  transition: transform 0.2s ease;
+}
+
+.hi-location-marker:hover {
+  transform: scale(1.2);
+  z-index: 1000;
+}
+
+/* Leaflet Popup Customization (scoped) */
+.hi-map .leaflet-popup-content-wrapper {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 0;
+}
+
+.hi-map .leaflet-popup-content {
+  margin: var(--space-md);
+  font-size: var(--font-sm);
+  line-height: 1.5;
+  color: var(--hi-ink);
+}
+
+.hi-map .leaflet-popup-tip-container {
+  display: none;
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+  .hi-map-canvas {
+    height: 400px;
+    min-height: 400px;
+  }
+  
+  .hi-map-hero {
+    flex-wrap: nowrap;
+  }
+}
+
+@media (max-width: 767px) {
+  .hi-map-hero {
+    padding: var(--space-md);
+  }
+  
+  .hi-map-title {
+    font-size: var(--font-lg);
+  }
+  
+  .hi-map-subtitle {
+    font-size: var(--font-xs);
+  }
+  
+  .hi-map-drop-btn {
+    width: 100%;
+  }
+}

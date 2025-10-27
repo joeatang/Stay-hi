@@ -1,0 +1,165 @@
+/* ==========================================================================
+   🎨 STAY HI — DESIGN SYSTEM TOKENS (Gold Standard)
+   Tesla-grade design tokens for consistent, beautiful UX across all pages
+   ========================================================================== */
+
+:root {
+  /* ============================================================================
+     COLOR PALETTE
+  ============================================================================ */
+  
+  /* Brand Core */
+  --hi-bg: #FFFDF9;              /* Paper white */
+  --hi-ink: #0F172A;             /* Text black */
+  --hi-muted: #6B7280;           /* Muted gray */
+  --hi-border: #E5E7EB;          /* Border gray */
+  
+  /* Brand Accents */
+  --hi-green: #0a8a3a;           /* Primary green */
+  --hi-green-2: #059669;         /* Dark green */
+  --hi-orange-1: #FF7A18;        /* Tangerine */
+  --hi-orange-2: #FFD166;        /* Amber */
+  --hi-orange-3: #FFB347;        /* Cantaloupe */
+  
+  /* Tesla Premium Colors */
+  --tesla-black: #1A1A1A;
+  --tesla-dark: #212121;
+  --tesla-charcoal: #2A2A2A;
+  --tesla-silver: #E8E8E8;
+  
+  /* ============================================================================
+     GRADIENTS
+  ============================================================================ */
+  
+  /* Primary Gradients */
+  --gradient-island: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-muscle: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  --gradient-premium: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-neural: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  
+  /* Accent Gradients */
+  --gradient-sunrise: linear-gradient(135deg, #FFD166 0%, #FF7A18 45%, #ff4d00 100%);
+  --gradient-ember: linear-gradient(135deg, #FFB347 0%, #FF7A18 60%, #FF4D00 100%);
+  --gradient-green: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --gradient-energy: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  
+  /* ============================================================================
+     GLASSMORPHISM (Tesla-grade)
+  ============================================================================ */
+  
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-bg-strong: rgba(255, 255, 255, 0.12);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-text: rgba(255, 255, 255, 0.95);
+  --glass-text-muted: rgba(255, 255, 255, 0.7);
+  --glass-blur: blur(20px);
+  
+  /* ============================================================================
+     SHADOWS (Layered depth)
+  ============================================================================ */
+  
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.2);
+  --shadow-premium: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-elevated: 0 35px 60px -12px rgba(0, 0, 0, 0.35);
+  --shadow-floating: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  
+  /* ============================================================================
+     SPACING SCALE (8px base)
+  ============================================================================ */
+  
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+  
+  /* ============================================================================
+     TYPOGRAPHY
+  ============================================================================ */
+  
+  /* Font Families */
+  --font-system: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-inter: 'Inter', var(--font-system);
+  --font-sans: var(--font-inter);
+  
+  /* Font Sizes */
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 24px;
+  --font-size-2xl: 32px;
+  --font-size-3xl: 48px;
+  --font-size-hero: clamp(1.6rem, 2vw + 1rem, 2.2rem);
+  --font-size-h1: clamp(1.4rem, 1.6vw + 1rem, 1.9rem);
+  --font-size-h2: clamp(1.2rem, 1.2vw + 1rem, 1.4rem);
+  
+  /* Line Heights */
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  
+  /* Font Weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-black: 900;
+  
+  /* ============================================================================
+     BORDER RADIUS
+  ============================================================================ */
+  
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+  --radius-chip: 14px;
+  --radius-card: 16px;
+  --radius-btn: 14px;
+  
+  /* ============================================================================
+     TRANSITIONS & ANIMATIONS
+  ============================================================================ */
+  
+  --transition-fast: 150ms ease;
+  --transition-normal: 300ms ease;
+  --transition-slow: 500ms ease;
+  --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: cubic-bezier(0.25, 0.8, 0.25, 1);
+  
+  /* ============================================================================
+     Z-INDEX SCALE
+  ============================================================================ */
+  
+  --z-base: 1;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal: 400;
+  --z-popover: 500;
+  --z-tooltip: 600;
+}
+
+/* ============================================================================
+   DARK MODE (Optional - Future)
+============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --hi-bg: #0E0E12;
+    --hi-ink: #F5F7FF;
+    --hi-muted: #9CA3AF;
+    --hi-border: #1F2431;
+    --shadow-premium: 0 14px 34px rgba(0, 0, 0, 0.45);
+  }
+}

@@ -1,143 +1,3946 @@
-<link rel="stylesheet" href="assets/theme.css"/>
-
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Profile — Stay Hi</title>
+  
+  <!-- Auth guard temporarily disabled for demo mode -->
+  <!-- <script src="assets/auth-guard.js"></script> -->
+  
+  <!-- Tesla-Grade Performance Optimization -->
+  <script src="assets/performance-manager.js"></script>
+  <script src="assets/image-optimizer.js"></script>
+  <script src="assets/upload-tester.js"></script>
+  
+  <!-- Critical CSS will be bundled by performance manager -->
+  <link rel="preload" href="assets/theme.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="assets/theme.css"></noscript>
+  
+  <!-- Non-critical CSS lazy loaded -->
+  <link rel="preload" href="assets/premium-ux.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="assets/premium-stats.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="assets/premium-calendar.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="assets/premium-footer.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="assets/premium-ux.css">
+    <link rel="stylesheet" href="assets/premium-stats.css">
+    <link rel="stylesheet" href="assets/premium-calendar.css">
+    <link rel="stylesheet" href="assets/premium-footer.css">
+  </noscript>
+  
   <style>
-    :root{--hi-green:#006400}
-    body{font-family:system-ui;background:#FFFDF9;margin:0}
-    .wrap{max-width:960px;margin:0 auto;padding:24px}
-    .card{background:#fff;border:1px solid #eee;border-radius:16px;padding:20px;box-shadow:0 8px 18px rgba(0,0,0,.05)}
-    .row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
-    .avatar{width:72px;height:72px;border-radius:50%;object-fit:cover;border:1px solid #ddd;background:#fff}
-    label{display:block;font-size:14px;margin-top:12px}
-    input[type="text"]{width:100%;padding:12px;border:1px solid #ddd;border-radius:12px;margin-top:6px}
-    input[type="file"]{margin-top:6px}
-    button.btn{padding:12px 16px;border:0;border-radius:12px;background:var(--hi-green);color:#fff;font-weight:800;cursor:pointer}
-    .ghost{background:#fff;color:#111;border:1px solid #ddd}
-    .err{color:#b00020;margin-top:10px}
-    .ok{color:#006400;margin-top:10px}
-    /* header with menu (app page) */
-    header.slim{position:sticky;top:0;backdrop-filter:saturate(1.2) blur(6px);-webkit-backdrop-filter:saturate(1.2) blur(6px);background:rgba(255,255,255,.85);border-bottom:1px solid rgba(0,0,0,.06);z-index:10}
-    .bar{height:56px;max-width:960px;margin:0 auto;padding:0 12px;display:flex;align-items:center;justify-content:space-between}
-    .brand{display:flex;align-items:center;gap:8px;margin:0 auto}
-    .brand img{width:20px;height:20px}
-    details.menu{position:relative}
-    details.menu>summary{list-style:none;width:40px;height:40px;display:grid;place-items:center;border-radius:999px;border:1px solid #e5e5e5;background:#fff;cursor:pointer;font-size:22px}
-    details.menu[open] > div{display:block}
-    details.menu>div{display:none;position:absolute;right:0;top:48px;width:220px;background:#fff;border:1px solid #e5e5e5;border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.08);overflow:hidden}
-    .menu a,.menu button{display:block;width:100%;text-align:left;padding:10px 14px;font-size:14px;color:#111;text-decoration:none;background:#fff;border:0}
-    .menu a:hover,.menu button:hover{background:#f6f6f6}
+    /* Tesla-Inspired Gold Standard Profile */
+    :root {
+      --profile-accent: #4ECDC4;
+      --profile-secondary: #FFD93D;
+      --profile-danger: #FF6B6B;
+      --profile-success: #4ECDC4;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui;
+      background: linear-gradient(135deg, #0F0F23 0%, #1A1A2E 50%, #16213E 100%);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+    
+    /* Force profile content to display */
+    .profile-container {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+    
+    /* Header overrides removed to match index.html gold standard */
+    
+    /* Ensure profile container starts below header */
+    .profile-container {
+      margin-top: 0;
+      padding-top: 0;
+    }
+    
+    /* Ensure no stray elements appear */
+    body::before, body::after {
+      display: none !important;
+    }
+    
+    /* Ensure profile loads properly */
+    .profile-hero, .profile-header, .profile-info, .profile-stats, .achievements {
+      display: block !important;
+      visibility: visible !important;
+    }
+    
+    /* Hide any index.html elements that might appear */
+    .hi-medal, .weekstrip, .announce, .center, .spaced {
+      display: none !important;
+    }
+    
+    /* Hide edit controls for shared profiles */
+    body.viewing-shared-profile .avatar-upload-overlay,
+    body.viewing-shared-profile .btn-tesla:not(.btn-secondary),
+    body.viewing-shared-profile #editSection,
+    body.viewing-shared-profile input[type="file"] {
+      display: none !important;
+    }
+    
+    /* Show public view indicator for shared profiles */
+    body.viewing-shared-profile .profile-title::after {
+      content: " (Public View)";
+      font-size: 18px;
+      opacity: 0.7;
+      font-weight: 400;
+    }
+    
+    /* Image Cropping Modal */
+    .crop-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(20px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    
+    .crop-modal.show {
+      display: flex;
+    }
+    
+    .crop-content {
+      background: var(--glass-bg);
+      backdrop-filter: blur(30px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 32px;
+      max-width: 600px;
+      width: 100%;
+      color: white;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+    }
+    
+    .crop-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    
+    .crop-header h3 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #4ECDC4 0%, #FFD93D 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .close-crop {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 24px;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+    
+    .close-crop:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+    
+    .crop-container {
+      display: flex;
+      gap: 32px;
+      align-items: flex-start;
+    }
+    
+    .crop-preview {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    #cropCanvas {
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+      display: block;
+    }
+    
+    #cropCanvas:active {
+      cursor: grabbing;
+    }
+    
+    .crop-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    
+    .crop-circle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 200px;
+      height: 200px;
+      border: 3px solid #4ECDC4;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 
+        0 0 0 1000px rgba(0, 0, 0, 0.5),
+        inset 0 0 0 3px rgba(78, 205, 196, 0.3);
+    }
+    
+    .crop-controls {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .control-label {
+      font-weight: 600;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .position-hint {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.6);
+      font-style: italic;
+    }
+    
+    /* Tesla-style slider */
+    .tesla-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    
+    .tesla-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: linear-gradient(135deg, #4ECDC4, #FFD93D);
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+    
+    .tesla-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 15px rgba(78, 205, 196, 0.4);
+    }
+    
+    .tesla-slider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: linear-gradient(135deg, #4ECDC4, #FFD93D);
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    .crop-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: auto;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .crop-controls {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      min-height: 300px;
+    }
+
+    @media (max-width: 640px) {
+      .crop-container {
+        flex-direction: column;
+        gap: 24px;
+      }
+      
+      .crop-preview {
+        width: 100%;
+        height: 300px;
+        max-width: 300px;
+        margin: 0 auto;
+      }
+
+      .crop-controls {
+        min-height: auto;
+      }
+
+      .crop-actions {
+        justify-content: center;
+        margin-top: 20px;
+      }
+    }
+    
+    /* Form note styling */
+    .form-note {
+      padding: 16px;
+      background: rgba(78, 205, 196, 0.05);
+      border: 1px solid rgba(78, 205, 196, 0.15);
+      border-radius: 12px;
+      margin: 16px 0;
+    }
+    
+    /* Tesla-Style Toast Notifications */
+    .tesla-toast {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(25px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      transform: translateX(calc(100% + 24px));
+      transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+      z-index: 10000;
+      max-width: 320px;
+    }
+    
+    .tesla-toast.show {
+      transform: translateX(0);
+    }
+    
+    .tesla-toast-error {
+      border-color: rgba(255, 107, 107, 0.3);
+      background: linear-gradient(135deg, 
+        rgba(255, 107, 107, 0.1), 
+        rgba(0, 0, 0, 0.8)
+      );
+    }
+    
+    .tesla-toast-success {
+      border-color: rgba(78, 205, 196, 0.3);
+      background: linear-gradient(135deg, 
+        rgba(78, 205, 196, 0.1), 
+        rgba(0, 0, 0, 0.8)
+      );
+    }
+    
+    .tesla-toast-info {
+      border-color: rgba(255, 217, 61, 0.3);
+      background: linear-gradient(135deg, 
+        rgba(255, 217, 61, 0.1), 
+        rgba(0, 0, 0, 0.8)
+      );
+    }
+    
+    .toast-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    
+    .toast-message {
+      flex: 1;
+      line-height: 1.4;
+    }
+    
+    @media (max-width: 480px) {
+      .tesla-toast {
+        right: 12px;
+        left: 12px;
+        max-width: none;
+        transform: translateY(-100px);
+      }
+      
+      .tesla-toast.show {
+        transform: translateY(0);
+      }
+    }
+
+    /* Tesla-Grade Floating Location Interface */
+    .tesla-location-float {
+      position: fixed;
+      top: 120px;
+      right: 24px;
+      z-index: 900;
+      animation: teslaLocationSlideIn 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    @keyframes teslaLocationSlideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes teslaLocationSlideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
+
+    .tesla-location-card {
+      background: rgba(15, 15, 35, 0.95);
+      backdrop-filter: blur(30px);
+      border: 1px solid rgba(78, 205, 196, 0.2);
+      border-radius: 20px;
+      padding: 24px;
+      min-width: 320px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      color: white;
+    }
+
+    .tesla-location-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .tesla-location-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #4ECDC4 0%, #3A9F98 100%);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .tesla-location-text {
+      flex: 1;
+    }
+
+    .tesla-location-text h3 {
+      margin: 0 0 4px 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #4ECDC4;
+    }
+
+    .tesla-location-text p {
+      margin: 0;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.7);
+      line-height: 1.4;
+    }
+
+    .tesla-close-btn {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .tesla-close-btn:hover {
+      color: rgba(255, 255, 255, 0.8);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .tesla-location-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .tesla-btn {
+      background: none;
+      border: 2px solid;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: center;
+      text-decoration: none;
+    }
+
+    .tesla-btn-primary {
+      border-color: #4ECDC4;
+      color: #4ECDC4;
+      background: rgba(78, 205, 196, 0.1);
+    }
+
+    .tesla-btn-primary:hover {
+      background: #4ECDC4;
+      color: #0F0F23;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(78, 205, 196, 0.3);
+    }
+
+    .tesla-btn-secondary {
+      border-color: rgba(255, 255, 255, 0.3);
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .tesla-btn-secondary:hover {
+      border-color: rgba(255, 255, 255, 0.6);
+      color: white;
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .tesla-location-privacy {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.6);
+      padding: 12px 16px;
+      background: rgba(78, 205, 196, 0.05);
+      border-radius: 12px;
+      border: 1px solid rgba(78, 205, 196, 0.1);
+    }
+
+    @media (max-width: 768px) {
+      .tesla-location-float {
+        right: 12px;
+        top: 100px;
+      }
+
+      .tesla-location-card {
+        min-width: 280px;
+        padding: 20px;
+      }
+    }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 30% 30%, rgba(78, 205, 196, 0.1) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 70%, rgba(255, 217, 61, 0.08) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .profile-container {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px 24px 24px 24px;
+      animation: profileFadeIn 1.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    
+    /* Clean Back Navigation */
+    .back-navigation {
+      margin-bottom: 32px;
+      padding-top: 16px;
+    }
+    
+    .back-to-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 24px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(25px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .back-to-home:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(78, 205, 196, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 35px rgba(78, 205, 196, 0.2);
+    }
+    
+    .back-to-home svg {
+      transition: transform 0.3s ease;
+    }
+    
+    .back-to-home:hover svg {
+      transform: translateX(-2px);
+    }
+    
+    /* Clean Profile Header */
+    .profile-header {
+      margin-bottom: 40px;
+      padding: 24px 8px;
+    }
+    
+    .profile-title-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    
+    .profile-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #4ECDC4 0%, #FFD93D 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
+    }
+    
+    .share-profile-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+    
+    .share-profile-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(78, 205, 196, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(78, 205, 196, 0.2);
+    }
+    
+    .nav-back {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 24px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(25px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 15px;
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .nav-back::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .nav-back:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    }
+    
+    .nav-back:hover::before {
+      opacity: 1;
+    }
+    
+    .quick-stats {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+    }
+    
+    .stat-badge {
+      background: var(--glass-bg);
+      backdrop-filter: blur(25px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 12px 20px;
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .stat-badge:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(78, 205, 196, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(78, 205, 196, 0.15);
+    }
+    
+    .quick-stats {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    
+    .stat-badge {
+      padding: 12px 20px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(15px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .stat-badge:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+    
+    /* Hero Profile Section */
+    .profile-hero {
+      background: var(--glass-bg);
+      backdrop-filter: blur(30px);
+      border: 1px solid var(--glass-border);
+      border-radius: 32px;
+      padding: 48px;
+      margin-bottom: 32px;
+      box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      color: white;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .profile-hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+      transition: left 0.8s ease;
+    }
+    
+    .profile-hero:hover::before {
+      left: 100%;
+    }
+    
+    .avatar-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+    
+    .profile-avatar-container {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .profile-avatar {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid rgba(255, 255, 255, 0.2);
+      background: var(--gradient-premium);
+      box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 0 40px rgba(78, 205, 196, 0.2);
+      transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+      cursor: pointer;
+      /* Ensure proper text centering for placeholder/alt text */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    
+    /* Hide alt text when image is loaded */
+    .profile-avatar[src]:not([src=""]) {
+      color: transparent;
+      text-indent: -9999px;
+    }
+    
+    /* Tesla-Grade Avatar Placeholder */
+    .avatar-placeholder {
+      position: absolute;
+      inset: 4px; /* Account for border */
+      border-radius: 50%;
+      background: linear-gradient(135deg, 
+        rgba(78, 205, 196, 0.1), 
+        rgba(255, 217, 61, 0.1));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+    
+    .avatar-placeholder.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+    
+    .placeholder-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255, 255, 255, 0.7);
+      text-align: center;
+    }
+    
+    .placeholder-text {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    
+    /* Tesla-Grade Toast Notifications */
+    .tesla-toast {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui;
+    }
+    
+    .tesla-toast .toast-content {
+      display: flex !important;
+      align-items: center !important;
+      gap: 12px !important;
+      padding: 16px 20px !important;
+      position: relative !important;
+    }
+    
+    .tesla-toast .toast-icon {
+      flex-shrink: 0 !important;
+    }
+    
+    .tesla-toast-success .toast-icon {
+      color: #4ECDC4 !important;
+    }
+    
+    .tesla-toast-error .toast-icon {
+      color: #FF6B6B !important;
+    }
+    
+    .tesla-toast-warning .toast-icon {
+      color: #FFD93D !important;
+    }
+    
+    .tesla-toast-info .toast-icon {
+      color: #6C7CE7 !important;
+    }
+    
+    .tesla-toast .toast-message {
+      flex: 1 !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      line-height: 1.4 !important;
+    }
+    
+    .tesla-toast .toast-close {
+      background: none !important;
+      border: none !important;
+      color: rgba(255, 255, 255, 0.6) !important;
+      cursor: pointer !important;
+      padding: 4px !important;
+      border-radius: 6px !important;
+      transition: all 0.2s ease !important;
+      flex-shrink: 0 !important;
+    }
+    
+    .tesla-toast .toast-close:hover {
+      background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    .tesla-toast .toast-progress {
+      position: absolute !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      height: 3px !important;
+      transition: width 4000ms linear !important;
+    }
+    
+    .tesla-toast-success .toast-progress {
+      background: #4ECDC4 !important;
+    }
+    
+    .tesla-toast-error .toast-progress {
+      background: #FF6B6B !important;
+    }
+    
+    .tesla-toast-warning .toast-progress {
+      background: #FFD93D !important;
+    }
+    
+    .tesla-toast-info .toast-progress {
+      background: #6C7CE7 !important;
+    }
+    
+    .profile-avatar:hover {
+      transform: scale(1.08) rotate(2deg);
+      box-shadow: 
+        0 35px 70px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 0 60px rgba(78, 205, 196, 0.4);
+    }
+    
+    /* Tesla-Grade Avatar Upload */
+    .avatar-upload-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6));
+      backdrop-filter: blur(20px);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+      cursor: pointer;
+      border: 2px solid transparent;
+      overflow: hidden;
+    }
+    
+    .avatar-upload-overlay::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      background: linear-gradient(45deg, #4ECDC4, #FFD93D, #4ECDC4);
+      border-radius: 50%;
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+    
+    .profile-avatar-container:hover .avatar-upload-overlay {
+      opacity: 1;
+      transform: scale(1.05);
+      border-color: rgba(78, 205, 196, 0.6);
+    }
+    
+    .profile-avatar-container:hover .avatar-upload-overlay::before {
+      opacity: 0.7;
+    }
+    
+    .upload-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      color: white;
+      text-align: center;
+      transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+      z-index: 2;
+    }
+    
+    .upload-icon {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    
+    .upload-icon svg {
+      transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    
+    .upload-text {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+      opacity: 0.95;
+      transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    
+    .avatar-upload-overlay:hover .upload-content {
+      transform: translateY(-2px);
+    }
+    
+    .avatar-upload-overlay:hover .upload-icon {
+      background: rgba(78, 205, 196, 0.2);
+      transform: scale(1.1);
+    }
+    
+    .avatar-upload-overlay:hover .upload-icon svg {
+      transform: scale(1.1);
+      stroke: #4ECDC4;
+    }
+    
+    .avatar-upload-overlay:hover .upload-text {
+      opacity: 1;
+      color: #4ECDC4;
+    }
+    
+    /* Processing State */
+    .avatar-upload-overlay.processing {
+      opacity: 1 !important;
+      background: linear-gradient(135deg, rgba(78, 205, 196, 0.3), rgba(255, 217, 61, 0.2));
+      transform: scale(1.05) !important;
+      cursor: wait;
+    }
+    
+    .avatar-upload-overlay.processing::before {
+      opacity: 1;
+      animation: rotate 2s linear infinite;
+    }
+    
+    .avatar-upload-overlay.processing .upload-content {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    
+    .upload-progress {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      z-index: 3;
+    }
+    
+    .avatar-upload-overlay.processing .upload-progress {
+      opacity: 1;
+    }
+    
+    .progress-ring {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .progress-circle {
+      transition: stroke-dashoffset 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+      transform-origin: center;
+      animation: progress-spin 2s linear infinite;
+    }
+    
+    .progress-text {
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    @keyframes progress-spin {
+      from { transform: rotate(-90deg); }
+      to { transform: rotate(270deg); }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
+    
+    .profile-info {
+      text-align: center;
+    }
+    
+    .profile-username {
+      font-size: 28px;
+      font-weight: 800;
+      color: white;
+      margin: 0 0 8px 0;
+      background: linear-gradient(135deg, #4ECDC4 0%, #FFD93D 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    /* Email display removed for privacy */
+    
+    .profile-joined {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.5);
+      margin: 0;
+    }
+    
+    .profile-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 32px;
+    }
+    
+    /* Tesla-Style Buttons */
+    .btn-tesla {
+      position: relative;
+      padding: 16px 32px;
+      border: none;
+      border-radius: 16px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+      backdrop-filter: blur(15px);
+      overflow: hidden;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn-tesla::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.6s ease;
+    }
+    
+    .btn-tesla:hover::before {
+      left: 100%;
+    }
+    
+    .btn-primary {
+      background: var(--gradient-premium);
+      color: white;
+      box-shadow: 0 8px 25px rgba(78, 205, 196, 0.3);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(78, 205, 196, 0.4);
+    }
+    
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Dashboard Grid */
+    .profile-dashboard {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-bottom: 32px;
+    }
+    
+    .dashboard-section {
+      background: var(--glass-bg);
+      backdrop-filter: blur(25px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      color: white;
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    
+    .dashboard-section:hover {
+      transform: translateY(-4px);
+      box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+    
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    
+    .section-icon {
+      font-size: 24px;
+    }
+    
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: white;
+      margin: 0;
+    }
+    
+    /* Statistics Display */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 16px;
+    }
+    
+    .stat-item {
+      text-align: center;
+      padding: 20px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .stat-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-2px);
+    }
+    
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #4ECDC4 0%, #FFD93D 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    
+    .stat-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.7);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    /* Achievements */
+    .achievements-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 16px;
+    }
+    
+    .achievement-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .achievement-badge.unlocked {
+      border-color: rgba(255, 215, 0, 0.5);
+      background: rgba(255, 215, 0, 0.1);
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+    }
+    
+    .achievement-badge.unlocked::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(45deg, transparent 30%, rgba(255, 215, 0, 0.1) 50%, transparent 70%);
+      animation: achievement-shine 3s ease-in-out infinite;
+    }
+    
+    @keyframes achievement-shine {
+      0%, 100% { transform: translateX(-100%); }
+      50% { transform: translateX(100%); }
+    }
+    
+    .achievement-badge:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .achievement-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+      transition: transform 0.3s ease;
+    }
+    
+    .achievement-badge:hover .achievement-icon {
+      transform: scale(1.1) rotate(5deg);
+    }
+    
+    .achievement-name {
+      font-size: 12px;
+      font-weight: 600;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.8);
+      line-height: 1.3;
+    }
+    
+    .achievement-progress {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 4px;
+    }
+    
+    /* Edit Profile Form */
+    .edit-form {
+      background: var(--glass-bg);
+      backdrop-filter: blur(25px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: var(--shadow-premium);
+      color: white;
+      margin-top: 32px;
+    }
+    
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+    
+    .form-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 4px;
+    }
+    
+    .form-input {
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 14px;
+      color: white;
+      font-size: 16px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      resize: vertical;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: #4ECDC4;
+      background: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.2);
+      transform: translateY(-1px);
+    }
+    
+    .form-input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+    
+    /* Location Input with Geo-tagging */
+    .location-input-container {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .location-input-container .form-input {
+      flex: 1;
+    }
+    
+    .location-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: rgba(78, 205, 196, 0.1);
+      border: 1px solid rgba(78, 205, 196, 0.3);
+      border-radius: 12px;
+      color: #4ECDC4;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+    
+    .location-btn:hover {
+      background: rgba(78, 205, 196, 0.2);
+      border-color: rgba(78, 205, 196, 0.5);
+      transform: translateY(-1px);
+    }
+    
+    .location-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .location-privacy {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      margin: 8px 0 0 0;
+      font-style: italic;
+    }
+    
+    .file-upload-area {
+      position: relative;
+      padding: 32px;
+      border: 2px dashed rgba(255, 255, 255, 0.3);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .file-upload-area:hover {
+      border-color: #4ECDC4;
+      background: rgba(78, 205, 196, 0.1);
+    }
+    
+    .file-upload-area.dragover {
+      border-color: #4ECDC4;
+      background: rgba(78, 205, 196, 0.15);
+      transform: scale(1.02);
+    }
+    
+    .upload-text {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+    }
+    
+    .file-input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    
+    /* Status Messages */
+    .status-message {
+      padding: 16px 20px;
+      border-radius: 14px;
+      margin: 20px 0;
+      font-weight: 600;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      animation: statusSlideIn 0.4s ease-out;
+    }
+    
+    @keyframes statusSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .status-success {
+      background: rgba(76, 175, 80, 0.15);
+      border: 1px solid rgba(76, 175, 80, 0.3);
+      color: #81C784;
+    }
+    
+    .status-error {
+      background: rgba(244, 67, 54, 0.15);
+      border: 1px solid rgba(244, 67, 54, 0.3);
+      color: #EF5350;
+    }
+    
+    .status-info {
+      background: rgba(33, 150, 243, 0.15);
+      border: 1px solid rgba(33, 150, 243, 0.3);
+      color: #64B5F6;
+    }
+    
+    /* Loading States */
+    .loading-spinner {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .loading-dots {
+      display: inline-flex;
+      gap: 4px;
+    }
+    
+    .loading-dots span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: loadingPulse 1.4s ease-in-out infinite both;
+    }
+    
+    .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+    
+    @keyframes loadingPulse {
+      0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+      40% { transform: scale(1.2); opacity: 1; }
+    }
+    
+    /* Share modal removed for cleaner interface */
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+    
+    /* Mobile Responsiveness */
+    @media (max-width: 1024px) {
+      .profile-dashboard {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+      
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .profile-container {
+        padding: 16px;
+      }
+      
+      .profile-title-section {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+      }
+      
+      .profile-title {
+        font-size: 2rem;
+      }
+      
+      .quick-stats {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      
+      /* Header padding override removed to use default gold standard */
+      
+      .profile-hero {
+        padding: 32px 24px;
+      }
+      
+      .profile-avatar {
+        width: 120px;
+        height: 120px;
+      }
+      
+      .profile-actions {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+      
+      .btn-tesla {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .achievements-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      
+      .quick-stats {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      
+      .edit-form {
+        padding: 24px;
+      }
+    }
+    
+    /* Animations */
+    @keyframes profileFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+    
+    .shake-animation {
+      animation: shake 0.5s ease-in-out;
+    }
+    
+    /* Tesla Processing Animations */
+    .tesla-processing {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .tesla-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top: 2px solid #ffffff;
+      border-radius: 50%;
+      animation: tesla-spin 0.8s linear infinite;
+    }
+    
+    .tesla-checkmark {
+      width: 16px;
+      height: 16px;
+      background: linear-gradient(135deg, #4ECDC4, #44B3A8);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 10px;
+      font-weight: bold;
+      animation: tesla-checkmark-pop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    
+    @keyframes tesla-spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes tesla-checkmark-pop {
+      0% { 
+        transform: scale(0) rotate(-45deg);
+        opacity: 0;
+      }
+      50% { 
+        transform: scale(1.2) rotate(0deg);
+        opacity: 1;
+      }
+      100% { 
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+      }
+    }
+    
+    /* Enhanced Upload Processing States */
+    .upload-step.processing {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      animation: tesla-processing-pulse 1.5s ease-in-out infinite;
+    }
+    
+    .upload-step.complete {
+      background: linear-gradient(135deg, #4ECDC4 0%, #44B3A8 100%);
+      color: white;
+      animation: tesla-success-glow 0.6s ease-out;
+    }
+    
+    @keyframes tesla-processing-pulse {
+      0%, 100% { 
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
+        transform: scale(1);
+      }
+      50% { 
+        box-shadow: 0 0 30px rgba(102, 126, 234, 0.6);
+        transform: scale(1.02);
+      }
+    }
+    
+    @keyframes tesla-success-glow {
+      0% { 
+        box-shadow: 0 0 0 rgba(78, 205, 196, 0);
+        transform: scale(1);
+      }
+      50% { 
+        box-shadow: 0 0 25px rgba(78, 205, 196, 0.6);
+        transform: scale(1.05);
+      }
+      100% { 
+        box-shadow: 0 0 15px rgba(78, 205, 196, 0.3);
+        transform: scale(1);
+      }
+    }
   </style>
 </head>
-<body>
-  <header class="slim">
-    <div class="bar">
-      <div style="width:40px"></div>
-      <a class="brand" href="index.html">
-        <img src="https://ucarecdn.com/4233fafa-2eee-45bf-bee2-eb6578070c5b/-/format/auto/" alt="Stay Hi" />
-        <strong>Stay Hi</strong>
+<body data-tab="profile">
+  <!-- Header removed for clean profile focus -->
+  
+  <div class="profile-container">
+    <!-- Clean Back Navigation -->
+    <div class="back-navigation">
+      <a href="index.html" class="back-to-home">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M19 12H5"/>
+          <path d="M12 19l-7-7 7-7"/>
+        </svg>
+        Back to Home
       </a>
-      <details class="menu" id="menu">
-        <summary aria-label="Menu">⋯</summary>
-        <div>
-          <a href="index.html">Home</a>
-          <a href="hi-island.html">Hi Island</a>
-          <a href="profile.html">Profile</a>
-          <a id="menuSignin" href="signin.html">Sign in</a>
-          <button id="menuLogout" type="button" style="display:none">Logout</button>
-        </div>
-      </details>
     </div>
-  </header>
-
-  <div class="wrap">
-    <div class="card">
-      <div class="row">
-        <img id="av" class="avatar" src="https://ucarecdn.com/4233fafa-2eee-45bf-bee2-eb6578070c5b/-/format/auto/" alt="avatar">
-        <div>
-          <div id="e" style="font-weight:800"></div>
-          <div id="u" style="color:#666"></div>
+    
+    <!-- Clean Profile Header -->
+    <header class="profile-header">
+      <div class="profile-title-section">
+        <h1 class="profile-title">Your Profile</h1>
+      </div>
+    </header>
+    
+    <!-- Profile Hero Section -->
+    <section class="profile-hero">
+      <div class="avatar-section">
+        <div class="profile-avatar-container" id="avatarContainer">
+          <img id="profileAvatar" class="profile-avatar" src="" alt="" />
+          <div class="avatar-placeholder" id="avatarPlaceholder">
+            <div class="placeholder-content">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <span class="placeholder-text">Add Photo</span>
+            </div>
+          </div>
+          <div class="avatar-upload-overlay" id="avatarUploadOverlay">
+            <div class="upload-content">
+              <div class="upload-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+                  <circle cx="12" cy="13" r="3"/>
+                </svg>
+              </div>
+              <span class="upload-text">Update Photo</span>
+            </div>
+            <div class="upload-progress" id="uploadProgress">
+              <div class="progress-ring">
+                <svg width="60" height="60" viewBox="0 0 60 60">
+                  <circle cx="30" cy="30" r="25" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                  <circle cx="30" cy="30" r="25" fill="none" stroke="#4ECDC4" stroke-width="3" 
+                          stroke-linecap="round" stroke-dasharray="157" stroke-dashoffset="157" 
+                          class="progress-circle"/>
+                </svg>
+                <div class="progress-text">Processing...</div>
+              </div>
+            </div>
+          </div>
+          <input type="file" id="avatarFileInput" accept="image/jpeg,image/jpg,image/png,image/webp,image/avif" style="display: none;" />
+        </div>
+        
+        <div class="profile-info">
+          <h2 id="profileUsername" class="profile-username">@username</h2>
+          <p id="profileJoined" class="profile-joined">Member since October 2025</p>
+          <div id="locationStatus" class="location-status"></div>
         </div>
       </div>
-
-      <form id="f" style="margin-top:12px">
-        <label>Username
-          <input type="text" id="username" placeholder="yourname">
-        </label>
-        <label>Avatar (PNG/JPEG/WEBP up to 8MB)
-          <input type="file" id="file" accept="image/png,image/jpeg,image/webp">
-        </label>
-        <div class="row" style="margin-top:16px">
-          <button class="btn" type="submit" id="save">Save changes</button>
-          <button class="btn ghost" id="home">Home</button>
+      
+      <div class="profile-actions">
+        <button class="btn-tesla btn-primary" onclick="editProfile()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          Edit Profile
+        </button>
+        
+        <button class="btn-tesla btn-secondary" onclick="shareProfile()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+          Share Profile
+        </button>
+        
+        <button class="btn-tesla btn-secondary" onclick="openCalendar()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          View Calendar
+        </button>
+      </div>
+    </section>
+    
+    <!-- Dashboard Grid -->
+    <div class="profile-dashboard">
+      <!-- Statistics Section -->
+      <section class="dashboard-section">
+        <div class="section-header">
+          <span class="section-icon">�</span>
+          <h3 class="section-title">Hi Statistics</h3>
         </div>
-        <div class="err" id="err"></div>
-        <div class="ok" id="ok"></div>
+        <div class="stats-grid" id="statsGrid">
+          <!-- Stats populated by JavaScript -->
+        </div>
+      </section>
+      
+      <!-- Achievements Section -->
+      <section class="dashboard-section">
+        <div class="section-header">
+          <span class="section-icon">🏆</span>
+          <h3 class="section-title">Achievements</h3>
+        </div>
+        <div class="achievements-grid" id="achievementsGrid">
+          <!-- Achievements populated by JavaScript -->
+        </div>
+      </section>
+    </div>
+    
+    <!-- Edit Profile Form -->
+    <section class="edit-form" id="editSection" style="display: none;">
+      <div class="section-header">
+        <span class="section-icon">✏️</span>
+        <h3 class="section-title">Edit Your Profile</h3>
+      </div>
+      
+      <form id="profileForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="usernameInput">Username</label>
+            <input type="text" id="usernameInput" class="form-input" placeholder="Choose your username" maxlength="30" />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="displayNameInput">Display Name</label>
+            <input type="text" id="displayNameInput" class="form-input" placeholder="Your display name" maxlength="50" />
+          </div>
+          
+          <div class="form-group full-width">
+            <label class="form-label" for="bioInput">Bio</label>
+            <textarea id="bioInput" class="form-input" placeholder="Tell us about yourself..." maxlength="200" rows="3"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="locationInput">Location</label>
+            <div class="location-input-container">
+              <input type="text" id="locationInput" class="form-input" placeholder="City, State" maxlength="100" readonly />
+            </div>
+            <p class="location-privacy">🔒 Only city and state are shared for privacy</p>
+          </div>
+          
+          <!-- Profile picture upload is handled via avatar overlay above -->
+          <div class="form-note">
+            <p style="color: rgba(255, 255, 255, 0.6); font-size: 14px; margin: 0;">
+              💡 Click on your profile picture above to change it
+            </p>
+          </div>
+        </div>
+        
+        <div style="display: flex; gap: 16px; justify-content: flex-end;">
+          <button type="button" class="btn-tesla btn-secondary" onclick="cancelEdit()">Cancel</button>
+          <button type="submit" class="btn-tesla btn-primary" id="saveButton">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17,21 17,13 7,13 7,21"></polyline>
+              <polyline points="7,3 7,8 15,8"></polyline>
+            </svg>
+            Save Changes
+          </button>
+        </div>
       </form>
+      
+      <div id="statusMessage"></div>
+    </section>
+  </div>
+
+  <!-- Tesla-Grade Floating Location Setup Interface -->
+  <div id="teslaLocationFloat" class="tesla-location-float" style="display: none;">
+    <div class="tesla-location-card">
+      <div class="tesla-location-header">
+        <div class="tesla-location-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+        </div>
+        <div class="tesla-location-text">
+          <h3>Set Your Location</h3>
+          <p>Help others find you in your area</p>
+        </div>
+        <button id="closeLocationFloat" class="tesla-close-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="tesla-location-actions">
+        <button id="detectLocationBtn" class="tesla-btn tesla-btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="8"/>
+            <path d="M12 2v4"/>
+            <path d="M12 18v4"/>
+            <path d="M4.93 4.93l2.83 2.83"/>
+            <path d="M16.24 16.24l2.83 2.83"/>
+            <path d="M2 12h4"/>
+            <path d="M18 12h4"/>
+            <path d="M4.93 19.07l2.83-2.83"/>
+            <path d="M16.24 7.76l2.83-2.83"/>
+          </svg>
+          Auto-Detect Location
+        </button>
+        
+        <button id="manualLocationBtn" class="tesla-btn tesla-btn-secondary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"/>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+          Set Manually
+        </button>
+      </div>
+      
+      <div class="tesla-location-privacy">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <circle cx="12" cy="16" r="1"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <span>Your exact location stays private</span>
+      </div>
     </div>
   </div>
 
-<script>
-  // Shared helpers
-  function fileToDataURL(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=rej;fr.readAsDataURL(file);});}
-  async function downscale(dataUrl, max=512){
-    try{
-      const img=new Image(); img.crossOrigin='anonymous';
-      await new Promise((r,j)=>{img.onload=r; img.onerror=j; img.src=dataUrl;});
-      const scale=Math.min(1, max/Math.max(img.width,img.height));
-      if(scale>=1) return dataUrl;
-      const c=document.createElement('canvas'); c.width=Math.round(img.width*scale); c.height=Math.round(img.height*scale);
-      const ctx=c.getContext('2d'); ctx.drawImage(img,0,0,c.width,c.height);
-      const mime=(dataUrl.split(';')[0]||'image/png').replace('data:','');
-      return c.toDataURL(mime,0.92);
-    }catch{ return dataUrl; }
-  }
+  <!-- Removed share modal for cleaner Tesla-grade experience -->
 
-  // Init header session state
-  (async ()=>{
-    const me = await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'me'})}).then(r=>r.json()).catch(()=>({}));
-    const signed = !!me?.user;
-    if(!signed){ location.href='signin.html'; return; }
-    // header toggle
-    document.getElementById('menuSignin').style.display = signed ? 'none':'block';
-    document.getElementById('menuLogout').style.display = signed ? 'block':'none';
-    document.getElementById('menuLogout').onclick = async ()=>{
-      await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'logout'})});
-      location.href='index.html';
-    };
-    // fill profile
-    e.textContent = me.user.email||'';
-    u.textContent = me.user.username ? ('@'+me.user.username) : 'No username yet';
-    username.value = me.user.username||'';
-    if(me.user.avatar_url) av.src = me.user.avatar_url;
-  })();
+  <!-- Image Cropping Modal -->
+  <div id="imageCropModal" class="crop-modal">
+    <div class="crop-content">
+      <div class="crop-header">
+        <h3>Crop Your Profile Picture</h3>
+        <button class="close-crop" onclick="closeCropModal()">✕</button>
+      </div>
+      
+      <div class="crop-container">
+        <div class="crop-preview">
+          <canvas id="cropCanvas" width="400" height="400"></canvas>
+          <div class="crop-overlay">
+            <div class="crop-circle"></div>
+          </div>
+        </div>
+        
+        <div class="crop-controls">
+          <div class="control-group">
+            <label class="control-label">Zoom</label>
+            <input type="range" id="zoomSlider" min="1" max="3" step="0.1" value="1" class="tesla-slider">
+          </div>
+          
+          <div class="control-group">
+            <label class="control-label">Position</label>
+            <div class="position-hint">Drag image to reposition</div>
+          </div>
+          
+          <div class="crop-actions">
+            <button class="btn-tesla btn-secondary" onclick="closeCropModal()">Cancel</button>
+            <button class="btn-tesla btn-primary" onclick="applyCrop()">Apply</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  home.onclick=(ev)=>{ev.preventDefault();location.href='index.html';};
-
-  f.onsubmit = async (ev)=>{
-    ev.preventDefault(); err.textContent=''; ok.textContent=''; save.disabled=true;
-    let avatarDataUrl=null;
-    const fEl=document.getElementById('file');
-    if(fEl.files && fEl.files[0]){
-      const data = await fileToDataURL(fEl.files[0]);
-      avatarDataUrl = await downscale(data,512);
-      av.src = avatarDataUrl; // local preview
+  <!-- JavaScript -->
+  <script>
+    // Profile data state
+    let currentUser = null;
+    let currentProfile = null;
+    let userStats = null;
+    let isEditing = false;
+    let isViewingSharedProfile = false;
+    let sharedProfileUsername = null;
+    
+    // Helper function to safely get current user
+    async function getCurrentUser() {
+      if (currentUser) return currentUser;
+      
+      // Try to get from Supabase session
+      if (window.supabaseClient) {
+        try {
+          const { data: { user } } = await window.supabaseClient.auth.getUser();
+          if (user) {
+            currentUser = user;
+            return user;
+          }
+        } catch (error) {
+          console.warn('Failed to get Supabase user:', error);
+        }
+      }
+      
+      // Fallback to localStorage
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          currentUser = JSON.parse(storedUser);
+          return currentUser;
+        } catch (error) {
+          console.warn('Failed to parse stored user:', error);
+        }
+      }
+      
+      return null;
     }
-    const r = await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'profile.update', username:username.value||null, avatarDataUrl})});
-    const x = await r.json().catch(()=>({}));
-    save.disabled=false;
-    if(r.ok && x?.ok){
-      ok.textContent='Saved!';
-      if(x.user?.username) u.textContent='@'+x.user.username;
-      if(x.user?.avatar_url) av.src = x.user.avatar_url;
-    } else {
-      err.textContent = x?.error || 'Save failed';
+    
+    // Initialize profile on page load
+    document.addEventListener('DOMContentLoaded', async () => {
+      checkIfSharedProfile();
+      await initializeProfile();
+      setupEventListeners();
+      setupLocationDetection();
+      
+      // Only load demo data if no real profile exists
+      if (!currentProfile || (!currentProfile.username && !currentProfile.display_name)) {
+        loadDemoProfile();
+      }
+    });
+    
+    // Load profile from localStorage for persistence
+    async function loadFromLocalStorage() {
+      try {
+        const savedProfile = localStorage.getItem('stayhi_profile');
+        if (savedProfile) {
+          const profileData = JSON.parse(savedProfile);
+          // Merge saved data with current profile
+          currentProfile = { ...currentProfile, ...profileData };
+          console.log('Loaded profile from localStorage:', currentProfile);
+        }
+      } catch (error) {
+        console.warn('Failed to load from localStorage:', error);
+      }
     }
-  };
-</script>
+    
+    // Save profile to localStorage for persistence
+    function saveToLocalStorage(profileData) {
+      try {
+        localStorage.setItem('stayhi_profile', JSON.stringify(profileData));
+        console.log('Saved profile to localStorage:', profileData);
+      } catch (error) {
+        console.warn('Failed to save to localStorage:', error);
+      }
+    }
+    
+    // Check if we're viewing a shared profile
+    function checkIfSharedProfile() {
+      const urlParams = new URLSearchParams(window.location.search);
+      sharedProfileUsername = urlParams.get('username');
+      isViewingSharedProfile = !!sharedProfileUsername;
+      
+      if (isViewingSharedProfile) {
+        console.log(`Viewing shared profile: ${sharedProfileUsername}`);
+        // Hide edit-only elements for shared profiles
+        document.body.classList.add('viewing-shared-profile');
+      }
+    }
+    
+    // Tesla-Grade Location Detection with Floating Interface
+    function setupLocationDetection() {
+      const detectBtn = document.getElementById('detectLocationBtn');
+      const manualLocationBtn = document.getElementById('manualLocationBtn');
+      const closeLocationFloat = document.getElementById('closeLocationFloat');
+      const teslaLocationFloat = document.getElementById('teslaLocationFloat');
+      const locationInput = document.getElementById('locationInput');
+      
+      // Show Tesla location float if no location is set
+      if (!locationInput.value && !isViewingSharedProfile) {
+        setTimeout(() => {
+          teslaLocationFloat.style.display = 'block';
+        }, 1500);
+      }
+      
+      // Event listeners
+      detectBtn.addEventListener('click', async () => {
+        await detectUserLocation();
+      });
+      
+      manualLocationBtn.addEventListener('click', () => {
+        if (window.TeslaLocationSystem && window.TeslaLocationSystem.showManualSetup) {
+          window.TeslaLocationSystem.showManualSetup();
+        }
+        hideTeslaLocationFloat();
+      });
+      
+      closeLocationFloat.addEventListener('click', hideTeslaLocationFloat);
+      
+      // Auto-detect on page load if no location is set
+      if (!locationInput.value && !isViewingSharedProfile) {
+        setTimeout(() => detectUserLocation(), 2000);
+      }
+    }
+    
+    function hideTeslaLocationFloat() {
+      const teslaLocationFloat = document.getElementById('teslaLocationFloat');
+      teslaLocationFloat.style.animation = 'teslaLocationSlideOut 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
+      setTimeout(() => {
+        teslaLocationFloat.style.display = 'none';
+      }, 400);
+    }
+    
+    async function detectUserLocation() {
+      const detectBtn = document.getElementById('detectLocationBtn');
+      const locationInput = document.getElementById('locationInput');
+      
+      try {
+        detectBtn.disabled = true;
+        detectBtn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          Detecting...
+        `;
+        
+        // Check if geolocation is available
+        if (!navigator.geolocation) {
+          throw new Error('Geolocation not supported');
+        }
+        
+        // Get position with privacy-focused options
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: false, // Lower accuracy for privacy
+            timeout: 10000,
+            maximumAge: 300000 // 5 minutes cache
+          });
+        });
+        
+        // Get city/state only (no precise coordinates stored)
+        const location = await getCityStateFromCoords(
+          position.coords.latitude, 
+          position.coords.longitude
+        );
+        
+        locationInput.value = location;
+        showTeslaToast('Location detected successfully', 'success');
+        
+        // Hide Tesla location float after successful detection
+        hideTeslaLocationFloat();
+        
+        // Auto-save profile with new location
+        setTimeout(() => saveProfile(false), 500);
+        
+      } catch (error) {
+        console.warn('Location detection failed:', error);
+        locationInput.removeAttribute('readonly');
+        locationInput.placeholder = 'Enter your city, state manually';
+        showTeslaToast('Please enter your location manually', 'info');
+      } finally {
+        detectBtn.disabled = false;
+        detectBtn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6h6"/>
+          </svg>
+          Detect Location
+        `;
+      }
+    }
+    
+    // Privacy-focused reverse geocoding - only gets city/state
+    async function getCityStateFromCoords(lat, lng) {
+      try {
+        // Using a privacy-focused approach - no API keys or tracking
+        const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`);
+        const data = await response.json();
+        
+        const city = data.city || data.locality || '';
+        const state = data.principalSubdivision || '';
+        
+        if (city && state) {
+          return `${city}, ${state}`;
+        } else {
+          throw new Error('Unable to determine city/state');
+        }
+      } catch (error) {
+        console.warn('Reverse geocoding failed:', error);
+        return 'Location unavailable';
+      }
+    }
+
+    // Demo profile data for gold standard display
+    function loadDemoProfile() {
+      currentProfile = {
+        id: 'demo-user',
+        username: 'demo_user',
+        display_name: 'Demo User',
+        created_at: '2025-01-01T00:00:00Z',
+        avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+        location: 'Austin, TX'
+      };
+      
+      userStats = {
+        total_hi_moments: 127,
+        current_streak: 12,
+        longest_streak: 45,
+        avg_daily_moments: 3.2,
+        total_points: 2850,
+        achievements_unlocked: 8
+      };
+      
+      updateProfileDisplay();
+      renderStats(userStats);
+      renderAchievements([
+        { id: 'first_hi', name: 'First Hi', icon: '👋', unlocked: true, progress: '1/1', description: 'Share your first Hi moment' },
+        { id: 'streak_7', name: '7 Day Streak', icon: '🔥', unlocked: true, progress: '7/7', description: 'Maintain a 7-day Hi streak' },
+        { id: 'early_bird', name: 'Early Bird', icon: '🌅', unlocked: true, progress: '10/10', description: 'Share 10 morning Hi moments' },
+        { id: 'consistent', name: 'Consistent', icon: '📅', unlocked: false, progress: '12/30', description: 'Share Hi moments for 30 days' },
+        { id: 'social', name: 'Social Butterfly', icon: '🦋', unlocked: false, progress: '5/25', description: 'Share 25 public Hi moments' },
+        { id: 'mindful', name: 'Mindful Master', icon: '🧘', unlocked: false, progress: '3/50', description: 'Complete 50 mindfulness sessions' }
+      ]);
+    }
+
+    // Initialize everything
+    async function initializeProfile() {
+      try {
+        if (isViewingSharedProfile) {
+          await loadSharedProfile();
+        } else {
+          // Load from localStorage first, then try Supabase
+          await loadCurrentUser();
+          await loadUserProfile();
+          await loadFromLocalStorage();
+        }
+        await loadUserStats();
+        await loadAchievements();
+        updateAllDisplays();
+      } catch (error) {
+        console.error('Failed to initialize profile:', error);
+        showStatus('Failed to load profile data', 'error');
+      }
+    }
+    
+    // Load authenticated user (for own profile)
+    async function loadCurrentUser() {
+      try {
+        if (window.supabaseClient) {
+          const { data: { user }, error } = await window.supabaseClient.auth.getUser();
+          if (error) throw error;
+          if (!user) {
+            window.location.href = 'signin.html';
+            return;
+          }
+          currentUser = user;
+        } else {
+          // Fallback for when Supabase isn't available
+          console.warn('Supabase client not available');
+        }
+      } catch (error) {
+        console.error('Auth error:', error);
+        window.location.href = 'signin.html';
+      }
+    }
+    
+    // Load shared profile (public viewing)
+    async function loadSharedProfile() {
+      try {
+        if (!window.supabaseClient) {
+          showStatus('Unable to load shared profile - database unavailable', 'error');
+          return;
+        }
+        
+        // Look up user by username
+        const { data: profileData, error } = await window.supabaseClient
+          .from('profiles')
+          .select('*')
+          .eq('username', sharedProfileUsername)
+          .eq('is_public', true) // Only show public profiles
+          .single();
+        
+        if (error || !profileData) {
+          showStatus('Profile not found or private', 'error');
+          // Show fallback content
+          document.querySelector('.profile-title').textContent = 'Profile Not Found';
+          return;
+        }
+        
+        currentProfile = profileData;
+        
+        // Create a fake user object for display purposes
+        currentUser = {
+          id: profileData.id,
+          email: null, // Don't show email for shared profiles
+          created_at: profileData.created_at
+        };
+        
+        // Update page title
+        document.title = `${profileData.display_name || profileData.username || 'User'}'s Profile — Stay Hi`;
+        
+      } catch (error) {
+        console.error('Failed to load shared profile:', error);
+        showStatus('Failed to load shared profile', 'error');
+      }
+    }
+    
+    // Load user profile from database
+    async function loadUserProfile() {
+      if (!currentUser || !window.supabaseClient) return;
+      
+      try {
+        const { data, error } = await window.supabaseClient
+          .from('profiles')
+          .select('*')
+          .eq('id', currentUser.id)
+          .single();
+        
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
+        
+        currentProfile = data || {
+          id: currentUser.id,
+          username: null,
+          display_name: null,
+          avatar_url: null,
+          bio: null,
+          location: null
+        };
+      } catch (error) {
+        console.error('Failed to load profile:', error);
+        // Create default profile
+        currentProfile = {
+          id: currentUser.id,
+          username: null,
+          display_name: null,
+          avatar_url: null,
+          bio: null,
+          location: null
+        };
+      }
+    }
+    
+    // Load user statistics
+    async function loadUserStats() {
+      try {
+        // For shared profiles, only load from database
+        if (isViewingSharedProfile) {
+          if (currentUser && window.supabaseClient) {
+            const { data, error } = await window.supabaseClient
+              .from('user_stats')
+              .select('*')
+              .eq('user_id', currentUser.id)
+              .single();
+            
+            userStats = data || {
+              total_hi_moments: 0,
+              current_streak: 0,
+              total_waves: 0,
+              total_starts: 0,
+              days_active: 0,
+              level: 1,
+              experience_points: 0
+            };
+          }
+          return;
+        }
+        
+        // For own profile - try Supabase first, then localStorage
+        if (currentUser && window.supabaseClient) {
+          const { data, error } = await window.supabaseClient
+            .from('user_stats')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .single();
+          
+          if (data) {
+            userStats = data;
+            return;
+          }
+        }
+        
+        // Fallback to localStorage (own profile only)
+        const localStats = {
+          total_hi_moments: parseInt(localStorage.getItem('hi5.total') || '0'),
+          current_streak: parseInt(localStorage.getItem('hi5.streak') || '0'),
+          total_waves: parseInt(localStorage.getItem('hi.waves') || '0'),
+          total_starts: parseInt(localStorage.getItem('hi.starts') || '0'),
+          days_active: Object.keys(JSON.parse(localStorage.getItem('hi5.history') || '{}')).length,
+          level: Math.floor(parseInt(localStorage.getItem('hi5.total') || '0') / 10) + 1,
+          experience_points: parseInt(localStorage.getItem('hi5.total') || '0') * 10
+        };
+        
+        userStats = localStats;
+        
+        // Try to sync to database
+        if (currentUser && window.supabaseClient && !isViewingSharedProfile) {
+          await syncStatsToDatabase(localStats);
+        }
+      } catch (error) {
+        console.error('Failed to load stats:', error);
+        userStats = {
+          total_hi_moments: 0,
+          current_streak: 0,
+          total_waves: 0,
+          total_starts: 0,
+          days_active: 0,
+          level: 1,
+          experience_points: 0
+        };
+      }
+    }
+    
+    // Sync local stats to database
+    async function syncStatsToDatabase(stats) {
+      try {
+        const { error } = await window.supabaseClient
+          .from('user_stats')
+          .upsert({
+            user_id: currentUser.id,
+            ...stats,
+            updated_at: new Date().toISOString()
+          });
+        
+        if (error) throw error;
+      } catch (error) {
+        console.error('Failed to sync stats:', error);
+      }
+    }
+    
+    // Load achievements
+    async function loadAchievements() {
+      try {
+        let achievements = [];
+        let userAchievements = [];
+        
+        if (window.supabaseClient && currentUser) {
+          // Load achievements from database
+          const { data: achievementsData } = await window.supabaseClient
+            .from('achievements')
+            .select('*')
+            .eq('is_active', true);
+          
+          const { data: userAchievementsData } = await window.supabaseClient
+            .from('user_achievements')
+            .select('*')
+            .eq('user_id', currentUser.id);
+          
+          achievements = achievementsData || [];
+          userAchievements = userAchievementsData || [];
+        }
+        
+        // Fallback achievements if database is empty
+        if (achievements.length === 0) {
+          achievements = [
+            { id: 'first_hi', name: 'First Hi', icon: '🎉', description: 'Complete your first Hi Moment' },
+            { id: 'streak_7', name: '7 Day Streak', icon: '🔥', description: 'Maintain a 7-day Hi streak' },
+            { id: 'hi_100', name: '100 Hi Moments', icon: '💯', description: 'Complete 100 Hi Moments' },
+            { id: 'wave_master', name: 'Wave Master', icon: '🌊', description: 'Send 50 Hi Waves' },
+            { id: 'streak_30', name: '30 Day Streak', icon: '⚡', description: 'Maintain a 30-day Hi streak' },
+            { id: 'social_butterfly', name: 'Social Butterfly', icon: '🦋', description: 'Share 10 public Hi Moments' }
+          ];
+        }
+        
+        // Calculate progress and unlock status
+        const processedAchievements = achievements.map(achievement => {
+          const userAchievement = userAchievements.find(ua => ua.achievement_id === achievement.id);
+          const unlocked = !!userAchievement;
+          
+          let progress = '0/1';
+          if (achievement.id === 'first_hi') {
+            progress = `${Math.min(userStats.total_hi_moments, 1)}/1`;
+          } else if (achievement.id === 'streak_7') {
+            progress = `${Math.min(userStats.current_streak, 7)}/7`;
+          } else if (achievement.id === 'streak_30') {
+            progress = `${Math.min(userStats.current_streak, 30)}/30`;
+          } else if (achievement.id === 'hi_100') {
+            progress = `${Math.min(userStats.total_hi_moments, 100)}/100`;
+          } else if (achievement.id === 'wave_master') {
+            progress = `${Math.min(userStats.total_waves, 50)}/50`;
+          }
+          
+          return {
+            ...achievement,
+            unlocked,
+            progress
+          };
+        });
+        
+        renderAchievements(processedAchievements);
+      } catch (error) {
+        console.error('Failed to load achievements:', error);
+      }
+    }
+    
+    // Update all displays
+    function updateAllDisplays() {
+      updateProfileDisplay();
+      updateStatsDisplay();
+      // Clean interface without distracting quick stats
+    }
+    
+    // Update profile display
+    function updateProfileDisplay() {
+      if (!currentUser) return;
+      
+      // Update avatar with Tesla-grade placeholder handling
+      const avatar = document.getElementById('profileAvatar');
+      const placeholder = document.getElementById('avatarPlaceholder');
+      const avatarSeed = currentUser.email || currentProfile?.username || 'guest';
+      
+      const avatarUrl = currentProfile?.avatar_url || 
+                       currentUser.user_metadata?.avatar_url || 
+                       `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(avatarSeed)}`;
+      
+      // Handle avatar loading with placeholder
+      if (avatarUrl && avatarUrl !== '') {
+        avatar.onload = () => {
+          if (placeholder) {
+            placeholder.classList.add('hidden');
+          }
+        };
+        avatar.onerror = () => {
+          avatar.src = '';
+          if (placeholder) {
+            placeholder.classList.remove('hidden');
+          }
+        };
+        avatar.src = avatarUrl;
+      } else {
+        avatar.src = '';
+        if (placeholder) {
+          placeholder.classList.remove('hidden');
+        }
+      }
+      
+      // Update username
+      const username = document.getElementById('profileUsername');
+      if (isViewingSharedProfile) {
+        username.textContent = currentProfile?.username ? `@${currentProfile.username}` : 'Unknown User';
+      } else {
+        username.textContent = currentProfile?.username ? `@${currentProfile.username}` : 'Set your username';
+      }
+      
+      // Email display removed for privacy
+      
+      // Update joined date
+      const joined = document.getElementById('profileJoined');
+      const joinDate = new Date(currentUser.created_at || currentProfile?.created_at).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long'
+      });
+      joined.textContent = `Member since ${joinDate}`;
+      
+      // Update form inputs (only for own profile)
+      if (currentProfile && !isViewingSharedProfile) {
+        document.getElementById('usernameInput').value = currentProfile.username || '';
+        document.getElementById('displayNameInput').value = currentProfile.display_name || '';
+        document.getElementById('bioInput').value = currentProfile.bio || '';
+        document.getElementById('locationInput').value = currentProfile.location || '';
+      }
+      
+      // Update page title for shared profiles
+      if (isViewingSharedProfile) {
+        const displayName = currentProfile?.display_name || currentProfile?.username || 'Stay Hi User';
+        document.querySelector('.profile-title').textContent = `${displayName}'s Profile`;
+      }
+    }
+    
+    // Update stats display
+    function updateStatsDisplay() {
+      if (!userStats) return;
+      
+      const statsGrid = document.getElementById('statsGrid');
+      statsGrid.innerHTML = `
+        <div class="stat-item" onclick="openCalendar()" title="Click to view calendar">
+          <div class="stat-value">${userStats.total_hi_moments}</div>
+          <div class="stat-label">Hi Moments</div>
+        </div>
+        <div class="stat-item" title="Current consecutive days">
+          <div class="stat-value">${userStats.current_streak}</div>
+          <div class="stat-label">Day Streak</div>
+        </div>
+        <div class="stat-item" title="Total Hi Waves sent">
+          <div class="stat-value">${userStats.total_waves}</div>
+          <div class="stat-label">Hi Waves</div>
+        </div>
+        <div class="stat-item" title="Total Hi Starts initiated">
+          <div class="stat-value">${userStats.total_starts}</div>
+          <div class="stat-label">Hi Starts</div>
+        </div>
+        <div class="stat-item" title="Days with Hi activity">
+          <div class="stat-value">${userStats.days_active}</div>
+          <div class="stat-label">Days Active</div>
+        </div>
+        <div class="stat-item" title="Current level based on experience">
+          <div class="stat-value">${userStats.level}</div>
+          <div class="stat-label">Level</div>
+        </div>
+      `;
+    }
+    
+    // Quick stats removed for cleaner Tesla-grade interface
+    
+    // Render achievements
+    function renderAchievements(achievements) {
+      const achievementsGrid = document.getElementById('achievementsGrid');
+      achievementsGrid.innerHTML = achievements.map(achievement => `
+        <div class="achievement-badge ${achievement.unlocked ? 'unlocked' : ''}" 
+             title="${achievement.description}">
+          <div class="achievement-icon">${achievement.icon}</div>
+          <div class="achievement-name">${achievement.name}</div>
+          <div class="achievement-progress">${achievement.progress}</div>
+        </div>
+      `).join('');
+    }
+    
+    // Tesla-Grade Event Management
+    function setupEventListeners() {
+      // Avatar upload system
+      initializeAvatarUpload();
+      
+      // Profile form
+      const profileForm = document.getElementById('profileForm');
+      if (profileForm) {
+        profileForm.addEventListener('submit', handleProfileSave);
+      }
+      
+      // Modal systems
+      initializeModals();
+    }
+    
+    // Initialize avatar upload with Tesla precision
+    async function initializeAvatarUpload() {
+      try {
+        // Initialize Tesla Avatar Uploader
+        await window.teslaAvatarUploader.init();
+        console.log('✅ Tesla Avatar System initialized');
+        
+        const avatarInput = document.getElementById('avatarFileInput');
+        const avatarOverlay = document.getElementById('avatarUploadOverlay');
+        const avatarContainer = document.getElementById('avatarContainer');
+        
+        if (!avatarInput || !avatarOverlay || !avatarContainer) {
+          console.warn('⚠️ Avatar elements not found');
+          return;
+        }
+        
+        // File input handler with Tesla system
+        avatarInput.addEventListener('change', async (event) => {
+          const file = event.target.files[0];
+          if (!file) return;
+          
+          try {
+            const avatarPreview = avatarContainer.querySelector('.profile-avatar');
+            if (avatarPreview) {
+              await window.teslaAvatarUploader.handleFileSelect(file, avatarPreview, avatarContainer);
+            }
+          } catch (error) {
+            console.error('❌ Avatar upload failed:', error);
+          }
+        });
+        
+        // Click handler with smooth UX
+        avatarOverlay.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          if (avatarOverlay.classList.contains('processing')) {
+            return; // Prevent clicks during processing
+          }
+          
+          triggerAvatarUpload();
+        });
+        
+        // Hover effects
+        avatarContainer.addEventListener('mouseenter', () => {
+          if (!avatarOverlay.classList.contains('processing')) {
+            // Add subtle haptic feedback
+            if (window.PremiumUX) {
+              window.PremiumUX.triggerHapticFeedback('ultraLight');
+            }
+          }
+        });
+        
+      } catch (error) {
+        console.error('❌ Tesla Avatar System initialization failed:', error);
+        // Fallback to basic upload if needed
+        this.initializeBasicAvatarUpload();
+      }
+    }
+    
+    // Fallback basic avatar upload
+    function initializeBasicAvatarUpload() {
+      console.log('⚠️ Using fallback avatar upload system');
+      
+      const avatarInput = document.getElementById('avatarFileInput');
+      const avatarOverlay = document.getElementById('avatarUploadOverlay');
+      
+      if (avatarInput && avatarOverlay) {
+        avatarInput.addEventListener('change', handleAvatarUpload);
+        avatarOverlay.addEventListener('click', triggerAvatarUpload);
+      }
+    }
+    
+    // Initialize modal systems
+    function initializeModals() {
+      const cropModal = document.getElementById('imageCropModal');
+      
+      if (cropModal) {
+        cropModal.addEventListener('click', (e) => {
+          if (e.target === e.currentTarget) {
+            closeCropModal();
+          }
+        });
+        
+        // Escape key handler
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && cropModal.classList.contains('show')) {
+            closeCropModal();
+          }
+        });
+      }
+    }
+    
+    // Trigger file picker with smooth animation
+    function triggerAvatarUpload() {
+      const input = document.getElementById('avatarFileInput');
+      const overlay = document.getElementById('avatarUploadOverlay');
+      
+      if (!input || !overlay) return;
+      
+      // Add click animation
+      overlay.style.transform = 'scale(0.98)';
+      setTimeout(() => {
+        overlay.style.transform = '';
+      }, 150);
+      
+      // Reset and trigger
+      input.value = '';
+      input.click();
+      
+      // Haptic feedback
+      if (window.PremiumUX) {
+        window.PremiumUX.triggerHapticFeedback('light');
+      }
+    }
+    
+    // Image cropping variables
+    let cropImage = null;
+    let cropCanvas = null;
+    let cropCtx = null;
+    let imageScale = 1;
+    let imageX = 0;
+    let imageY = 0;
+    let isDragging = false;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+    
+    // Tesla-Grade Avatar Upload Handler
+    async function handleAvatarUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const overlay = document.getElementById('avatarUploadOverlay');
+      
+      try {
+        // Instant validation feedback
+        const validation = validateImageFile(file);
+        if (!validation.valid) {
+          showTeslaToast(validation.message, 'error');
+          if (window.PremiumUX) {
+            window.PremiumUX.triggerHapticFeedback('error');
+          }
+          return;
+        }
+        
+        // Start Tesla-style processing animation
+        await startProcessingAnimation(overlay);
+        
+        // Process with Tesla-grade optimization
+        await processImageWithOptimization(file, overlay);
+        
+      } catch (error) {
+        console.error('Avatar upload failed:', error);
+        await endProcessingAnimation(overlay, false);
+        showTeslaToast('Failed to process image', 'error');
+        
+        if (window.PremiumUX) {
+          window.PremiumUX.triggerHapticFeedback('error');
+        }
+      }
+    }
+    
+    // Advanced file validation
+    function validateImageFile(file) {
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif'];
+      const maxSize = 15 * 1024 * 1024; // 15MB for high-quality images
+      
+      if (!validTypes.includes(file.type)) {
+        return {
+          valid: false,
+          message: 'Please select a JPEG, PNG, WebP, or AVIF image'
+        };
+      }
+      
+      if (file.size > maxSize) {
+        return {
+          valid: false,
+          message: 'Image must be smaller than 15MB'
+        };
+      }
+      
+      if (file.size < 512) { // 512 bytes minimum
+        return {
+          valid: false,
+          message: 'Image file appears to be corrupted'
+        };
+      }
+      
+      return { valid: true };
+    }
+
+    // Tesla-Grade Image Processing with Optimization
+    async function processImageWithOptimization(file, overlay) {
+      try {
+        // Show processing feedback
+        updateProcessingProgress(overlay, 10, 'Processing image...');
+        
+        let optimizedResult;
+        let imageUrl;
+        
+        // Use image optimizer if available, otherwise fallback to direct processing
+        if (window.imageOptimizer) {
+          updateProcessingProgress(overlay, 20, 'Optimizing image...');
+          
+          optimizedResult = await window.imageOptimizer.optimizeImage(file, {
+            maxWidth: 800,
+            maxHeight: 800,
+            quality: 0.9,
+            generateThumbnail: true
+          });
+          
+          imageUrl = URL.createObjectURL(optimizedResult.optimized);
+          console.log(`[Avatar] Optimized: ${optimizedResult.compressionRatio}% smaller, ${optimizedResult.format}`);
+        } else {
+          // Fallback: Use original file
+          console.warn('[Avatar] Image optimizer not available, using original file');
+          imageUrl = URL.createObjectURL(file);
+          optimizedResult = {
+            original: file,
+            optimized: file,
+            originalSize: file.size,
+            optimizedSize: file.size,
+            compressionRatio: '0.0',
+            format: file.type
+          };
+        }
+        
+        updateProcessingProgress(overlay, 50, 'Preparing for crop...');
+        
+        updateProcessingProgress(overlay, 70, 'Opening crop editor...');
+        
+        // Open crop modal with processed image
+        await new Promise(resolve => setTimeout(resolve, 300)); // Smooth transition
+        openCropModal(imageUrl, optimizedResult);
+        
+        updateProcessingProgress(overlay, 100, 'Ready to crop!');
+        
+        // End processing animation
+        setTimeout(() => {
+          endProcessingAnimation(overlay, true);
+        }, 500);
+        
+      } catch (error) {
+        console.error('Image processing failed:', error);
+        throw error;
+      }
+    }
+
+    // Update processing progress with smooth animations
+    function updateProcessingProgress(overlay, percent, message) {
+      const progressText = overlay.querySelector('.upload-text');
+      const progressCircle = overlay.querySelector('.progress-circle');
+      
+      if (progressText) {
+        progressText.textContent = message;
+      }
+      
+      if (progressCircle) {
+        const circumference = 157; // 2πr where r=25
+        const offset = circumference - (percent / 100) * circumference;
+        progressCircle.style.strokeDashoffset = offset;
+      }
+    }
+    
+    // Tesla-style processing animation
+    async function startProcessingAnimation(overlay) {
+      return new Promise((resolve) => {
+        overlay.classList.add('processing');
+        
+        // Smooth transition
+        setTimeout(() => {
+          // Animate progress circle
+          const progressCircle = overlay.querySelector('.progress-circle');
+          if (progressCircle) {
+            progressCircle.style.strokeDashoffset = '78.5'; // 50% progress
+          }
+          resolve();
+        }, 300);
+      });
+    }
+    
+    // Process image with progress feedback
+    async function processImageWithProgress(file, overlay) {
+      // Update progress to 75%
+      const progressCircle = overlay.querySelector('.progress-circle');
+      if (progressCircle) {
+        progressCircle.style.strokeDashoffset = '39.25';
+      }
+      
+      // Show crop modal
+      await showImageCropModal(file);
+      
+      // Complete animation
+      await endProcessingAnimation(overlay, true);
+    }
+    
+    // End processing with success/error state
+    async function endProcessingAnimation(overlay, success = true) {
+      return new Promise((resolve) => {
+        const progressCircle = overlay.querySelector('.progress-circle');
+        
+        if (success && progressCircle) {
+          // Complete the circle
+          progressCircle.style.strokeDashoffset = '0';
+          progressCircle.style.stroke = '#4ECDC4';
+        }
+        
+        setTimeout(() => {
+          overlay.classList.remove('processing');
+          
+          if (progressCircle) {
+            // Reset for next time
+            progressCircle.style.strokeDashoffset = '157';
+            progressCircle.style.stroke = '#4ECDC4';
+          }
+          
+          resolve();
+        }, success ? 800 : 400);
+      });
+    }
+    
+    // Tesla-Grade Toast Notification System
+    function showTeslaToast(message, type = 'info', duration = 4000) {
+      // Remove any existing toasts
+      document.querySelectorAll('.tesla-toast').forEach(toast => toast.remove());
+      
+      const toast = document.createElement('div');
+      toast.className = `tesla-toast tesla-toast-${type}`;
+      
+      const iconMap = {
+        success: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20,6 9,17 4,12"></polyline>
+                  </svg>`,
+        error: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="15" y1="9" x2="9" y2="15"></line>
+                  <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>`,
+        warning: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="m21,12l-3-5l-4-3l-6,0l-4,3l-3,5l3,5l4,3l6,0l4,-3l3,-5z"></path>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>`,
+        info: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                 <circle cx="12" cy="12" r="10"></circle>
+                 <path d="m12,16l0,-4"></path>
+                 <path d="m12,8l.01,0"></path>
+               </svg>`
+      };
+      
+      toast.innerHTML = `
+        <div class="toast-content">
+          <div class="toast-icon">${iconMap[type]}</div>
+          <div class="toast-message">${message}</div>
+          <button class="toast-close" onclick="this.parentElement.parentElement.remove()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="toast-progress"></div>
+      `;
+      
+      // Add Tesla-grade styles
+      Object.assign(toast.style, {
+        position: 'fixed',
+        top: '24px',
+        right: '24px',
+        background: 'rgba(15, 16, 34, 0.95)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        borderRadius: '16px',
+        color: 'white',
+        padding: '0',
+        margin: '0',
+        zIndex: '10000',
+        transform: 'translateX(100%)',
+        transition: 'all 0.4s cubic-bezier(0.23, 1, 0.32, 1)',
+        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
+        maxWidth: '400px',
+        minWidth: '300px',
+        overflow: 'hidden'
+      });
+      
+      document.body.appendChild(toast);
+      
+      // Animate in
+      setTimeout(() => {
+        toast.style.transform = 'translateX(0)';
+      }, 100);
+      
+      // Auto remove
+      setTimeout(() => {
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 400);
+      }, duration);
+      
+      return toast;
+    }
+
+    // Bridge function to open crop modal with optimized image
+    async function openCropModal(imageUrl, optimizedResult) {
+      try {
+        console.log('[Avatar] Opening crop modal with optimized image');
+        
+        // Store optimization result for later use
+        window.currentOptimizedResult = optimizedResult;
+        
+        // Convert URL to File-like object for existing crop system
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        const file = new File([blob], 'avatar.jpg', { type: blob.type });
+        
+        // Use existing crop modal system
+        await showImageCropModal(file);
+        
+      } catch (error) {
+        console.error('[Avatar] Failed to open crop modal:', error);
+        showTeslaToast('Failed to open image editor', 'error');
+        throw error;
+      }
+    }
+    
+    // Tesla-Grade Image Crop Modal
+    async function showImageCropModal(file) {
+      try {
+        const dataUrl = await fileToDataURL(file);
+        
+        // Initialize crop system
+        await initializeCropSystem();
+        
+        // Load image with Tesla-style loading
+        await loadImageForCropping(dataUrl);
+        
+        // Show modal with premium animation
+        await showCropModalWithAnimation();
+        
+      } catch (error) {
+        console.error('Failed to show crop modal:', error);
+        showTeslaToast('Failed to process image', 'error');
+        throw error;
+      }
+    }
+    
+    // Initialize crop system with error handling
+    async function initializeCropSystem() {
+      cropCanvas = document.getElementById('cropCanvas');
+      if (!cropCanvas) {
+        throw new Error('Crop canvas not found');
+      }
+      
+      cropCtx = cropCanvas.getContext('2d');
+      if (!cropCtx) {
+        throw new Error('Failed to get canvas context');
+      }
+      
+      // Reset variables
+      imageScale = 1;
+      imageX = 0;
+      imageY = 0;
+      isDragging = false;
+    }
+    
+    // Load image with smooth feedback
+    async function loadImageForCropping(dataUrl) {
+      return new Promise((resolve, reject) => {
+        cropImage = new Image();
+        
+        cropImage.onerror = () => {
+          reject(new Error('Failed to load image'));
+        };
+        
+        cropImage.onload = () => {
+          try {
+            // Calculate optimal initial scale and position
+            const canvasSize = 300;
+            const cropSize = 200;
+            
+            // Smart scaling for optimal crop area
+            const scaleW = cropSize / cropImage.width;
+            const scaleH = cropSize / cropImage.height;
+            const optimalScale = Math.max(scaleW, scaleH) * 1.1;
+            
+            imageScale = optimalScale;
+            imageX = (canvasSize - cropImage.width * optimalScale) / 2;
+            imageY = (canvasSize - cropImage.height * optimalScale) / 2;
+            
+            // Setup zoom slider with smart bounds
+            const zoomSlider = document.getElementById('zoomSlider');
+            if (zoomSlider) {
+              const minScale = Math.max(scaleW, scaleH);
+              zoomSlider.min = minScale;
+              zoomSlider.max = minScale * 4;
+              zoomSlider.value = optimalScale;
+              zoomSlider.step = 0.05;
+            }
+            
+            drawCropPreview();
+            setupTeslaCropInteractions();
+            
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
+        };
+        
+        cropImage.src = dataUrl;
+      });
+    }
+    
+    // Show modal with Tesla animation
+    async function showCropModalWithAnimation() {
+      return new Promise((resolve) => {
+        const modal = document.getElementById('imageCropModal');
+        
+        // Initial state
+        modal.style.opacity = '0';
+        modal.style.transform = 'scale(0.9)';
+        modal.classList.add('show');
+        
+        // Smooth entrance animation
+        setTimeout(() => {
+          modal.style.transition = 'all 0.4s cubic-bezier(0.23, 1, 0.32, 1)';
+          modal.style.opacity = '1';
+          modal.style.transform = 'scale(1)';
+          
+          // Focus management
+          modal.setAttribute('tabindex', '-1');
+          modal.focus();
+          
+          // Haptic feedback
+          if (window.PremiumUX) {
+            window.PremiumUX.triggerHapticFeedback('medium');
+          }
+          
+          resolve();
+        }, 50);
+      });
+    }
+    
+    // Draw the crop preview - keep it simple and precise
+    function drawCropPreview() {
+      if (!cropImage || !cropCtx) return;
+      
+      // Clear canvas
+      cropCtx.clearRect(0, 0, 300, 300);
+      
+      // Draw image exactly as positioned
+      cropCtx.drawImage(
+        cropImage,
+        imageX, imageY,
+        cropImage.width * imageScale,
+        cropImage.height * imageScale
+      );
+    }
+    
+    // Tesla-Grade Crop Interactions with premium touch and zoom
+    function setupTeslaCropInteractions() {
+      const canvas = cropCanvas;
+      const zoomSlider = document.getElementById('zoomSlider');
+      
+      // Initialize variables
+      let startX, startY;
+      let initialScale = imageScale;
+      let pinchDistance = 0;
+      let lastTouchTime = 0;
+      
+      // Clean slate - remove existing listeners
+      const newCanvas = canvas.cloneNode(true);
+      canvas.parentNode.replaceChild(newCanvas, canvas);
+      cropCanvas = newCanvas;
+      cropCtx = cropCanvas.getContext('2d');
+      
+      // Re-draw after canvas replacement
+      drawCropPreview();
+      
+      // Premium zoom slider with haptic feedback
+      if (zoomSlider) {
+        zoomSlider.addEventListener('input', (e) => {
+          imageScale = parseFloat(e.target.value);
+          drawCropPreview();
+        });
+        
+        zoomSlider.addEventListener('change', () => {
+          if (window.PremiumUX) {
+            window.PremiumUX.triggerHapticFeedback('light');
+          }
+        });
+      }
+      
+      // Enhanced mouse interactions
+      cropCanvas.addEventListener('mousedown', handleInteractionStart);
+      cropCanvas.addEventListener('mousemove', handleInteractionMove);
+      cropCanvas.addEventListener('mouseup', handleInteractionEnd);
+      cropCanvas.addEventListener('mouseleave', handleInteractionEnd);
+      cropCanvas.addEventListener('wheel', handleWheelZoom, { passive: false });
+      
+      // Premium touch interactions
+      cropCanvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+      cropCanvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+      cropCanvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+      
+      // Initial styling
+      cropCanvas.style.cursor = 'grab';
+      cropCanvas.style.touchAction = 'none';
+      cropCanvas.style.userSelect = 'none';
+      
+      function handleInteractionStart(e) {
+        e.preventDefault();
+        isDragging = true;
+        
+        const rect = cropCanvas.getBoundingClientRect();
+        startX = e.clientX - rect.left;
+        startY = e.clientY - rect.top;
+        
+        cropCanvas.style.cursor = 'grabbing';
+        cropCanvas.style.transition = 'none';
+        
+        // Haptic feedback for interaction start
+        if (window.PremiumUX) {
+          window.PremiumUX.triggerHapticFeedback('light');
+        }
+      }
+      
+      function handleInteractionMove(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+        
+        const rect = cropCanvas.getBoundingClientRect();
+        const currentX = e.clientX - rect.left;
+        const currentY = e.clientY - rect.top;
+        
+        const deltaX = currentX - startX;
+        const deltaY = currentY - startY;
+        
+        imageX += deltaX;
+        imageY += deltaY;
+        
+        startX = currentX;
+        startY = currentY;
+        
+        drawCropPreview();
+      }
+      
+      function handleInteractionEnd(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+        
+        isDragging = false;
+        cropCanvas.style.cursor = 'grab';
+        cropCanvas.style.transition = 'transform 0.2s cubic-bezier(0.23, 1, 0.32, 1)';
+      }
+      
+      function handleWheelZoom(e) {
+        e.preventDefault();
+        
+        const rect = cropCanvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        
+        // Smooth zoom intensity
+        const zoomIntensity = 0.08;
+        const direction = e.deltaY > 0 ? -1 : 1;
+        const zoomFactor = 1 + (zoomIntensity * direction);
+        
+        const newScale = Math.max(0.3, Math.min(5, imageScale * zoomFactor));
+        
+        // Zoom towards mouse position
+        const scaleChange = newScale / imageScale;
+        imageX = mouseX - (mouseX - imageX) * scaleChange;
+        imageY = mouseY - (mouseY - imageY) * scaleChange;
+        imageScale = newScale;
+        
+        // Update slider smoothly
+        if (zoomSlider) {
+          zoomSlider.value = newScale;
+        }
+        
+        drawCropPreview();
+        
+        // Subtle haptic feedback
+        if (window.PremiumUX) {
+          window.PremiumUX.triggerHapticFeedback('light');
+        }
+      }
+      
+      function handleTouchStart(e) {
+        e.preventDefault();
+        const currentTime = Date.now();
+        
+        if (e.touches.length === 1) {
+          // Single touch - drag
+          isDragging = true;
+          const touch = e.touches[0];
+          const rect = cropCanvas.getBoundingClientRect();
+          startX = touch.clientX - rect.left;
+          startY = touch.clientY - rect.top;
+          
+          // Double tap to reset zoom/position
+          if (currentTime - lastTouchTime < 300) {
+            resetImagePosition();
+          }
+          lastTouchTime = currentTime;
+          
+        } else if (e.touches.length === 2) {
+          // Pinch zoom start
+          isDragging = false;
+          const touch1 = e.touches[0];
+          const touch2 = e.touches[1];
+          pinchDistance = Math.hypot(
+            touch2.clientX - touch1.clientX,
+            touch2.clientY - touch1.clientY
+          );
+          initialScale = imageScale;
+        }
+      }
+      
+      function handleTouchMove(e) {
+        e.preventDefault();
+        
+        if (e.touches.length === 1 && isDragging) {
+          // Single touch drag
+          const touch = e.touches[0];
+          const rect = cropCanvas.getBoundingClientRect();
+          const currentX = touch.clientX - rect.left;
+          const currentY = touch.clientY - rect.top;
+          
+          const deltaX = currentX - startX;
+          const deltaY = currentY - startY;
+          
+          imageX += deltaX;
+          imageY += deltaY;
+          
+          startX = currentX;
+          startY = currentY;
+          
+          drawCropPreview();
+          
+        } else if (e.touches.length === 2) {
+          // Pinch zoom
+          const touch1 = e.touches[0];
+          const touch2 = e.touches[1];
+          const newDistance = Math.hypot(
+            touch2.clientX - touch1.clientX,
+            touch2.clientY - touch1.clientY
+          );
+          
+          const scaleMultiplier = newDistance / pinchDistance;
+          const newScale = Math.max(0.3, Math.min(5, initialScale * scaleMultiplier));
+          
+          imageScale = newScale;
+          
+          // Update slider
+          if (zoomSlider) {
+            zoomSlider.value = newScale;
+          }
+          
+          drawCropPreview();
+        }
+      }
+      
+      function handleTouchEnd(e) {
+        e.preventDefault();
+        isDragging = false;
+        
+        // Haptic feedback on interaction end
+        if (window.PremiumUX) {
+          window.PremiumUX.triggerHapticFeedback('medium');
+        }
+      }
+      
+      function resetImagePosition() {
+        // Smart reset to optimal position
+        const canvasSize = 300;
+        const cropSize = 200;
+        
+        const scaleW = cropSize / cropImage.width;
+        const scaleH = cropSize / cropImage.height;
+        const optimalScale = Math.max(scaleW, scaleH) * 1.1;
+        
+        imageScale = optimalScale;
+        imageX = (canvasSize - cropImage.width * optimalScale) / 2;
+        imageY = (canvasSize - cropImage.height * optimalScale) / 2;
+        
+        if (zoomSlider) {
+          zoomSlider.value = optimalScale;
+        }
+        
+        drawCropPreview();
+        
+        // Celebration haptic
+        if (window.PremiumUX) {
+          window.PremiumUX.triggerHapticFeedback('success');
+        }
+      }
+    }
+    
+    // Tesla-Style Modal Close with Animation
+    function closeCropModal() {
+      return new Promise((resolve) => {
+        const modal = document.getElementById('imageCropModal');
+        
+        // Smooth exit animation
+        modal.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        modal.style.opacity = '0';
+        modal.style.transform = 'scale(0.95)';
+        
+        setTimeout(() => {
+          modal.classList.remove('show');
+          modal.style.transform = '';
+          modal.style.opacity = '';
+          modal.style.transition = '';
+          
+          // Clean up variables
+          cropImage = null;
+          cropCanvas = null;
+          cropCtx = null;
+          imageScale = 1;
+          imageX = 0;
+          imageY = 0;
+          isDragging = false;
+          
+          // Reset file input
+          const input = document.getElementById('avatarFileInput');
+          if (input) {
+            input.value = '';
+          }
+          
+          if (window.PremiumUX) {
+            window.PremiumUX.triggerHapticFeedback('light');
+          }
+          
+          resolve();
+        }, 300);
+      });
+    }
+    
+    // Tesla-Grade Apply Crop with Progress Animation
+    async function applyCrop() {
+      const applyButton = document.querySelector('#imageCropModal .primary-btn');
+      const originalButtonText = applyButton?.innerHTML;
+      
+      try {
+        // Start processing animation
+        if (applyButton) {
+          applyButton.disabled = true;
+          applyButton.innerHTML = `
+            <div class="tesla-processing">
+              <div class="tesla-spinner"></div>
+              <span>Processing...</span>
+            </div>
+          `;
+        }
+        
+        // Haptic feedback for process start
+        if (window.PremiumUX) {
+          window.PremiumUX.triggerHapticFeedback('medium');
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 200)); // Smooth visual feedback
+        
+        // Create high-quality output canvas
+        const outputCanvas = document.createElement('canvas');
+        const outputCtx = outputCanvas.getContext('2d');
+        const cropSize = 512; // Final output size
+        
+        outputCanvas.width = cropSize;
+        outputCanvas.height = cropSize;
+        
+        // Enable image smoothing for quality
+        outputCtx.imageSmoothingEnabled = true;
+        outputCtx.imageSmoothingQuality = 'high';
+        
+        // Calculate crop area (200px circle in 300px canvas)
+        const cropAreaSize = 200;
+        const canvasSize = 300;
+        const cropX = (canvasSize - cropAreaSize) / 2;
+        const cropY = (canvasSize - cropAreaSize) / 2;
+        
+        // Use the exact same approach as drawCropPreview for consistency
+        // Create a temporary canvas with the exact same dimensions as the crop canvas
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCanvas.width = canvasSize;
+        tempCanvas.height = canvasSize;
+        
+        // Enable high quality rendering
+        tempCtx.imageSmoothingEnabled = true;
+        tempCtx.imageSmoothingQuality = 'high';
+        
+        // Draw the positioned image EXACTLY as shown in preview
+        tempCtx.drawImage(
+          cropImage,
+          imageX, imageY,
+          cropImage.width * imageScale,
+          cropImage.height * imageScale
+        );
+        
+        // Extract the crop area using the same coordinates as the visual circle
+        outputCtx.drawImage(
+          tempCanvas,
+          cropX, cropY, cropAreaSize, cropAreaSize,
+          0, 0, cropSize, cropSize
+        );
+        
+        // Create perfect circular mask
+        outputCtx.globalCompositeOperation = 'destination-in';
+        outputCtx.beginPath();
+        outputCtx.arc(cropSize / 2, cropSize / 2, cropSize / 2, 0, 2 * Math.PI);
+        outputCtx.fill();
+        
+        // Convert to high-quality data URL
+        const croppedDataUrl = outputCanvas.toDataURL('image/jpeg', 0.92);
+        
+        // Update button to completion state
+        if (applyButton) {
+          applyButton.innerHTML = `
+            <div class="tesla-processing">
+              <div class="tesla-checkmark">✓</div>
+              <span>Complete!</span>
+            </div>
+          `;
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 400)); // Show completion
+        
+        // Update avatar with smooth transition
+        const avatar = document.getElementById('profileAvatar');
+        const oldSrc = avatar.src;
+        
+        // Pre-load new image for smooth transition
+        const newImg = new Image();
+        await new Promise((resolve, reject) => {
+          newImg.onload = resolve;
+          newImg.onerror = reject;
+          newImg.src = croppedDataUrl;
+        });
+        
+        // Smooth avatar transition
+        avatar.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        avatar.style.opacity = '0.7';
+        avatar.style.transform = 'scale(0.95)';
+        
+        setTimeout(() => {
+          avatar.src = croppedDataUrl;
+          avatar.style.opacity = '1';
+          avatar.style.transform = 'scale(1)';
+          
+          // Premium success effects
+          if (window.PremiumUX) {
+            setTimeout(() => {
+              window.PremiumUX.glow(avatar, '#4ECDC4');
+              window.PremiumUX.triggerHapticFeedback('success');
+              window.PremiumUX.confetti({ 
+                count: 30,
+                origin: { 
+                  x: avatar.getBoundingClientRect().left / window.innerWidth + 0.05, 
+                  y: avatar.getBoundingClientRect().top / window.innerHeight + 0.05 
+                }
+              });
+            }, 150);
+          }
+        }, 150);
+        
+        // Save to profile
+        if (currentProfile) {
+          currentProfile.avatar_url = croppedDataUrl;
+          await saveProfile(false); // Save silently
+        }
+        
+        // Close modal with animation
+        await closeCropModal();
+        
+        // Success notification
+        showTeslaToast('Profile picture updated!', 'success');
+        
+      } catch (error) {
+        console.error('Crop failed:', error);
+        
+        // Reset button on error
+        if (applyButton && originalButtonText) {
+          applyButton.disabled = false;
+          applyButton.innerHTML = originalButtonText;
+        }
+        
+        showTeslaToast('Failed to update profile picture', 'error');
+        
+        if (window.PremiumUX) {
+          window.PremiumUX.triggerHapticFeedback('error');
+        }
+      }
+    }
+    
+    // Removed conflicting file upload system - using avatar-only upload for consistency
+    
+    // Profile form submission
+    async function handleProfileSave(e) {
+      e.preventDefault();
+      await saveProfile(true);
+    }
+    
+    // Save profile
+    async function saveProfile(showFeedback = true) {
+      const saveButton = document.getElementById('saveButton');
+      const originalText = saveButton?.innerHTML;
+      
+      try {
+        if (showFeedback && saveButton) {
+          saveButton.innerHTML = `
+            <div class="loading-spinner">
+              <div class="loading-dots">
+                <span></span><span></span><span></span>
+              </div>
+              <span style="margin-left: 8px;">Saving...</span>
+            </div>
+          `;
+          saveButton.disabled = true;
+        }
+        
+        const username = document.getElementById('usernameInput').value.trim();
+        const displayName = document.getElementById('displayNameInput').value.trim();
+        const bio = document.getElementById('bioInput').value.trim();
+        const location = document.getElementById('locationInput').value.trim();
+        
+        // Get avatar URL from Tesla avatar system or current profile
+        let avatarUrl = currentProfile?.avatar_url;
+        
+        // Check if there's a new avatar from Tesla avatar cropper
+        if (window.TeslaAvatarUploader && window.TeslaAvatarUploader.getLastUploadedUrl) {
+          const newAvatarUrl = window.TeslaAvatarUploader.getLastUploadedUrl();
+          if (newAvatarUrl) {
+            avatarUrl = newAvatarUrl;
+          }
+        }
+        
+        // Get current user ID safely
+        const userId = currentUser?.id || (await getCurrentUser())?.id;
+        if (!userId) {
+          throw new Error('User not authenticated');
+        }
+
+        // Get location data from Tesla location system
+        const locationData = window.TeslaLocationSystem ? 
+          await window.TeslaLocationSystem.getCurrentLocationData() : {};
+
+        // Update profile data
+        const profileData = {
+          id: userId,
+          username: username || null,
+          display_name: displayName || null,
+          bio: bio || null,
+          location: locationData.location || location || null,
+          location_city: locationData.city || null,
+          location_state: locationData.state || null,
+          location_country: locationData.country || null,
+          location_country_code: locationData.countryCode || null,
+          location_timezone: locationData.timezone || null,
+          location_source: locationData.source || 'manual',
+          avatar_url: avatarUrl || null,
+          updated_at: new Date().toISOString()
+        };
+        
+        // Save to localStorage for persistence
+        saveToLocalStorage(profileData);
+        
+        // Save to Supabase
+        if (window.supabaseClient) {
+          try {
+            const { data, error } = await window.supabaseClient
+              .from('profiles')
+              .upsert(profileData)
+              .select()
+              .single();
+            
+            if (error) throw error;
+            
+            currentProfile = data;
+            console.log('Profile saved to Supabase:', data);
+          } catch (supabaseError) {
+            console.warn('Supabase save failed, using localStorage:', supabaseError);
+            currentProfile = profileData;
+          }
+        } else {
+          console.log('No Supabase client, using localStorage only');
+          currentProfile = profileData;
+        }
+        
+        updateProfileDisplay();
+        
+        if (showFeedback) {
+          showStatus('Profile updated successfully!', 'success');
+          
+          if (window.PremiumUX) {
+            window.PremiumUX.celebrate(saveButton, '✨ Profile Updated!');
+            window.PremiumUX.confetti({ 
+              count: 30, 
+              colors: ['#4ECDC4', '#FFD93D', '#FF6B6B'] 
+            });
+            window.PremiumUX.triggerHapticFeedback('success');
+          }
+          
+          setTimeout(() => {
+            cancelEdit();
+          }, 2000);
+        }
+      } catch (error) {
+        console.error('Save failed:', error);
+        if (showFeedback) {
+          showStatus(error.message || 'Failed to save profile', 'error');
+          
+          if (window.PremiumUX && saveButton) {
+            window.PremiumUX.glow(saveButton, '#FF6B6B');
+          }
+          
+          if (saveButton) {
+            saveButton.classList.add('shake-animation');
+            setTimeout(() => saveButton.classList.remove('shake-animation'), 500);
+          }
+        }
+      } finally {
+        if (showFeedback && saveButton) {
+          saveButton.innerHTML = originalText;
+          saveButton.disabled = false;
+        }
+      }
+    }
+    
+    // Edit profile functions
+    function editProfile() {
+      isEditing = true;
+      document.getElementById('editSection').style.display = 'block';
+      document.getElementById('editSection').scrollIntoView({ behavior: 'smooth' });
+      
+      if (window.PremiumUX) {
+        window.PremiumUX.triggerHapticFeedback('light');
+      }
+    }
+    
+    function cancelEdit() {
+      isEditing = false;
+      document.getElementById('editSection').style.display = 'none';
+      
+      // Reset form
+      document.getElementById('profileForm').reset();
+      updateProfileDisplay();
+    }
+    
+    // Share functions removed for cleaner Tesla-grade interface
+    
+    // Utility functions
+    function openCalendar() {
+      if (window.PremiumCalendar) {
+        window.PremiumCalendar.show();
+      }
+      
+      if (window.PremiumUX) {
+        window.PremiumUX.triggerHapticFeedback('light');
+      }
+    }
+    
+    function showStatus(message, type = 'info') {
+      const statusEl = document.getElementById('statusMessage');
+      statusEl.innerHTML = `<div class="status-message status-${type}">${message}</div>`;
+      
+      setTimeout(() => {
+        statusEl.innerHTML = '';
+      }, 5000);
+    }
+    
+    function fileToDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+    
+    function resizeImage(dataUrl, maxSize) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          let { width, height } = img;
+          const scale = Math.min(maxSize / width, maxSize / height);
+          
+          if (scale < 1) {
+            width *= scale;
+            height *= scale;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          resolve(canvas.toDataURL('image/jpeg', 0.8));
+        };
+        img.src = dataUrl;
+      });
+    }
+  </script>
+
+  <!-- Load Premium Systems -->
+  <script src="assets/supabase-init.js"></script>
+  <script src="assets/auth.js"></script>
+  <script src="assets/db.js"></script>
+  <script src="assets/premium-ux.js"></script>
+  <script src="assets/premium-calendar.js"></script>
+  <script src="assets/global-stats.js"></script>
+  
+  <!-- Tesla-Grade Avatar System -->
+  <script src="assets/tesla-avatar-cropper.js"></script>
+  <script src="assets/storage-bucket-utility.js"></script>
+  <script src="assets/bucket-debug.js"></script>
+  <script src="assets/bucket-diagnostic.js"></script>
+  
+  <!-- Tesla-Grade Location System -->
+  <script src="assets/tesla-location-system.js"></script>
+  <script src="assets/tesla-location-privacy.js"></script>
+  
+  <!-- Debug Tools for Development -->
+  <script src="assets/supabase-debug.js"></script>
+  
+  <!-- Initialize Tesla Systems -->
+  <script>
+    // Initialize Tesla Avatar System with profile integration
+    document.addEventListener('DOMContentLoaded', () => {
+      // Set up avatar system callback for profile updates
+      if (window.TeslaAvatarUploader) {
+        window.TeslaAvatarUploader.onUploadSuccess = (avatarUrl) => {
+          // Update current profile with new avatar
+          if (currentProfile) {
+            currentProfile.avatar_url = avatarUrl;
+          }
+          // Update avatar display
+          updateAvatarDisplay();
+          // Auto-save profile with new avatar
+          setTimeout(() => saveProfile(false), 100);
+        };
+      }
+    });
+  </script>
+  
+  <!-- Footer disabled for clean Tesla profile experience -->
 </body>
 </html>

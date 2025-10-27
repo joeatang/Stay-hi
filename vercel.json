@@ -11,6 +11,7 @@
   ],
   "rewrites": [
     { "source": "/calendar",  "destination": "/calendar.html" },
-    { "source": "/hi-island", "destination": "/hi-island.html" }
+    { "source": "/hi-island", "destination": "/hi-island.html" },
+    { "source": "/profile/:username", "destination": "/profile.html?username=:username" }
   ]
 }

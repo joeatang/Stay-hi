@@ -1,0 +1,73 @@
+/* Modal Base Styles - Shared between composers */
+/* Handles centering, focus trap, scroll lock, z-index, and animations */
+
+/* Backdrop */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .6);
+  display: none;
+  z-index: 50;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Modal container */
+.modal-sheet {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  width: min(480px, 95vw);
+  background: var(--glass-bg);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  padding: 24px;
+  z-index: 60;
+  box-shadow: var(--shadow-premium);
+  color: white;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  will-change: transform, opacity;
+}
+
+.modal-sheet.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.modal-sheet.hide {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.9);
+}
+
+/* Body scroll lock */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* Focus trap styles */
+.modal-sheet:focus {
+  outline: none;
+}
+
+/* Focus trap helpers */
+.modal-focus-trap {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .modal-sheet {
+    width: 95vw;
+    padding: 20px;
+  }
+}

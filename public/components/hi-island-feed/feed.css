@@ -1,0 +1,231 @@
+/* ===================================================================
+   🎨 HI ISLAND FEED COMPONENT STYLES
+   Isolated, scoped styles for the feed container with tabs, filters, and cards.
+   All classes prefixed with .hi-feed- to prevent bleeding.
+=================================================================== */
+
+/* Feed Container (glassmorphism card) */
+.hi-feed {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--shadow-glass);
+  overflow: hidden;
+}
+
+/* Tab Navigation */
+.hi-feed-tabs {
+  display: flex;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--glass-border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.hi-feed-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.hi-feed-tab {
+  padding: var(--space-sm) var(--space-md);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-md);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: var(--font-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: var(--transition-normal);
+  pointer-events: auto;
+  position: relative;
+}
+
+.hi-feed-tab:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.hi-feed-tab[aria-selected="true"] {
+  background: rgba(255, 255, 255, 0.95);
+  color: #5B21B6;
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: var(--shadow-md);
+}
+
+/* Filter Controls */
+.hi-feed-filters {
+  display: flex;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-md);
+  margin: var(--space-md);
+  flex-wrap: wrap;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.hi-feed-filter-btn {
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-full);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: var(--font-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-normal);
+  pointer-events: auto;
+  position: relative;
+}
+
+.hi-feed-filter-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.hi-feed-filter-btn.active {
+  background: rgba(255, 255, 255, 0.95);
+  color: #5B21B6;
+  box-shadow: var(--shadow-md);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Section Content */
+.hi-feed-section {
+  padding: var(--space-lg);
+  background: var(--hi-bg);
+  min-height: 400px;
+}
+
+.hi-feed-section[aria-hidden="true"] {
+  display: none;
+}
+
+.hi-feed-section-header {
+  margin-bottom: var(--space-md);
+  color: var(--hi-ink);
+  opacity: 0.6;
+  font-size: var(--font-sm);
+}
+
+/* Feed List */
+.hi-feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.hi-feed-list:empty::before {
+  content: 'Loading...';
+  display: block;
+  text-align: center;
+  padding: var(--space-xl);
+  color: var(--hi-ink);
+  opacity: 0.5;
+}
+
+/* Feed Cards */
+.hi-feed-card {
+  padding: var(--space-md);
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-md);
+  transition: var(--transition-normal);
+  cursor: pointer;
+}
+
+.hi-feed-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.hi-feed-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: var(--space-sm);
+}
+
+.hi-feed-card-user {
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: var(--hi-ink);
+}
+
+.hi-feed-card-time {
+  font-size: var(--font-xs);
+  color: var(--hi-ink);
+  opacity: 0.5;
+}
+
+.hi-feed-card-message {
+  color: var(--hi-ink);
+  line-height: 1.6;
+  margin-bottom: var(--space-sm);
+}
+
+.hi-feed-card-meta {
+  display: flex;
+  gap: var(--space-md);
+  padding-top: var(--space-sm);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  font-size: var(--font-xs);
+  color: var(--hi-ink);
+  opacity: 0.6;
+}
+
+.hi-feed-card-badge {
+  padding: 2px 8px;
+  background: var(--gradient-island);
+  border-radius: var(--radius-full);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Empty State */
+.hi-feed-empty {
+  text-align: center;
+  padding: var(--space-3xl) var(--space-md);
+  color: var(--hi-ink);
+  opacity: 0.5;
+}
+
+.hi-feed-empty-icon {
+  font-size: 48px;
+  margin-bottom: var(--space-md);
+}
+
+/* Loading State */
+.hi-feed-loading {
+  text-align: center;
+  padding: var(--space-xl);
+  color: var(--hi-ink);
+  opacity: 0.5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hi-feed-tabs {
+    gap: var(--space-xs);
+  }
+  
+  .hi-feed-tab {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-xs);
+  }
+  
+  .hi-feed-section {
+    padding: var(--space-md);
+  }
+}
