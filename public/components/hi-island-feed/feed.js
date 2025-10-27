@@ -130,11 +130,13 @@ class HiIslandFeed {
     });
 
     // Show/hide filters (only for General and Archive)
-    const filterControls = this.root.querySelector('#hi-feed-filter-controls');
-    if (tabName === 'general' || tabName === 'archive') {
-      filterControls.style.display = 'flex';
-    } else {
-      filterControls.style.display = 'none';
+    const filterControls = this.root.querySelector('.hi-feed-filters');
+    if (filterControls) {
+      if (tabName === 'general' || tabName === 'archive') {
+        filterControls.style.display = 'flex';
+      } else {
+        filterControls.style.display = 'none';
+      }
     }
 
     console.log(`🔄 Switched to tab: ${tabName}`);

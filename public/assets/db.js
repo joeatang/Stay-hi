@@ -19,7 +19,10 @@
   const LS_ARCHIVE = "hi_my_archive";
   const LS_PENDING = "hi_pending_queue";
 
-  const supa = window.supabaseClient || window.sb;
+  // Helper to get fresh Supabase client reference (timing-safe)
+  function getSupabase() {
+    return window.supabaseClient || window.sb || null;
+  }
 
   function readLS(key, def = []) {
     try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(def)); }
@@ -89,6 +92,9 @@
 
     // Try DB first
     try {
+      const supa = getSupabase();
+      if (!supa) throw new Error('No Supabase client');
+      
       const { data, error } = await supa.from("public_shares").insert(row).select().single();
       if (error) throw error;
 
@@ -122,6 +128,9 @@
     };
 
     try {
+      const supa = getSupabase();
+      if (!supa) throw new Error('No Supabase client');
+      
       const { data, error } = await supa.from("hi_archives").insert(row).select().single();
       if (error) throw error;
 
@@ -140,6 +149,9 @@
     // Try DB first, then merge + de-dupe with local
     let dbList = [];
     try {
+      const supa = getSupabase();
+      if (!supa) throw new Error('No Supabase client');
+      
       const { data, error } = await supa
         .from("public_shares")
         .select("*")
@@ -222,6 +234,9 @@
   async function syncPending() {
     const q = readLS(LS_PENDING);
     if (!q.length || !isOnline()) return { ok: true, synced: 0 };
+
+    const supa = getSupabase();
+    if (!supa) return { ok: false, error: 'No Supabase client', synced: 0 };
 
     let success = 0;
     let remain = [];
