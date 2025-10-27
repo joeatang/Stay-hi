@@ -42,7 +42,7 @@
         <div id="menuSheet" class="menu-sheet" role="menu" aria-hidden="true" style="display: none;">
           <a href="index.html" role="menuitem">🏠 Hi Today</a>
           <a href="hi-muscle.html" role="menuitem">💪 Hi Gym</a>
-          <a href="hi-island.html" role="menuitem">🏝️ Hi Island</a>
+          <a href="hi-island-NEW.html" role="menuitem">🏝️ Hi Island</a>
           <a href="profile.html" role="menuitem">👤 Profile</a>
           <div class="sep"></div>
           <button id="btnSignOut" class="menu-item-btn" role="menuitem">🚪 Sign Out</button>

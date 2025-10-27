@@ -5,7 +5,7 @@
   // Footer navigation configuration
   const footerTabs = [
     { id: 'today', label: 'Hi Today', icon: '⭘', href: 'index.html', pages: ['index.html', ''] },
-    { id: 'explore', label: 'Hi-island', icon: '🧭', href: 'hi-island.html', pages: ['hi-island.html'] },
+    { id: 'explore', label: 'Hi-island', icon: '🧭', href: 'hi-island-NEW.html', pages: ['hi-island-NEW.html'] },
     { id: 'me', label: 'Me', href: 'profile.html', icon: '👤', pages: ['profile.html'] },
     { id: 'plus', label: 'Hi Gym', icon: '✨', href: 'hi-muscle.html', pages: ['hi-muscle.html', 'calendar.html'] }
   ];
