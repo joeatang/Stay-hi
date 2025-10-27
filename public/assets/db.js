@@ -93,7 +93,7 @@
   }
 
   async function insertArchive(entry) {
-    // entry = { currentEmoji, desiredEmoji, journal, location }
+    // entry = { currentEmoji, desiredEmoji, journal, location, origin, type }
     const user_id = await getUserId();
     const row = {
       user_id,
@@ -101,6 +101,9 @@
       desired_emoji: entry.desiredEmoji,
       journal: entry.journal,
       location: entry.location || null,
+      origin: entry.origin || 'hi5',           // 'hi5' or 'higym'
+      type: entry.type || 'self_hi5',           // 'self_hi5', 'higym', etc.
+      text: entry.journal,                       // Mirror journal to text for consistency
     };
 
     try {
