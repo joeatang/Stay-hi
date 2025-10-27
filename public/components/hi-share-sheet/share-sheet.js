@@ -215,10 +215,26 @@ export class HiShareSheet {
     console.log('📊 Global Hi5 counter incremented:', { total, gStarts });
   }
 
-  // Get user location (city/state only)
+    // Get user's location (Gold Standard)
   async getUserLocation() {
-    // Placeholder - implement geolocation API
-    return 'San Francisco, CA';
+    try {
+      // Use geocoding service if available
+      if (window.GeocodingService) {
+        const location = await window.GeocodingService.getUserLocation();
+        if (location) {
+          console.log('📍 Location captured:', location);
+          return location;
+        }
+      }
+      
+      // Fallback if service not loaded
+      console.warn('⚠️ GeocodingService not available, using fallback');
+      return 'Location unavailable';
+      
+    } catch (error) {
+      console.warn('⚠️ Location capture failed:', error);
+      return 'Location unavailable';
+    }
   }
 
   // Persist data to Supabase
