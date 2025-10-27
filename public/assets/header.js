@@ -1,7 +1,11 @@
 // public/assets/header.js
 (function () {
+  console.log('[header.js] Script loaded');
+  
   // Ensure immediate rendering by checking DOM state
   function initHeader() {
+    console.log('[header.js] initHeader() called, readyState:', document.readyState);
+    
     const mount = document.getElementById("app-header");
     if (!mount) {
       if (document.readyState === 'loading') {
@@ -11,6 +15,8 @@
       console.warn('Header mount point not found');
       return;
     }
+    
+    console.log('[header.js] Mount point found:', mount);
     
     // Clear any placeholder content
     mount.innerHTML = '';
@@ -122,12 +128,31 @@
   const sheet = document.getElementById("menuSheet");
   const btnMore = document.getElementById("btnMore");
   const btnSignOut = document.getElementById("btnSignOut");
+  
+  console.log('[header.js] Element query results:', {
+    sheet: sheet,
+    btnMore: btnMore,
+    btnSignOut: btnSignOut,
+    sheetExists: !!sheet,
+    btnMoreExists: !!btnMore
+  });
+  
   // Calendar functionality is now handled by the top calendar icon only
   
   // Enhanced menu functionality
   btnMore?.addEventListener("click", (e) => {
+    console.log('[header.js] btnMore clicked!', e);
     e.stopPropagation();
     const isOpen = sheet.classList.contains("open");
+    
+    console.log('[header.js] Menu state:', { isOpen, sheet });
+    
+    if (isOpen) {
+      closeMenu();
+    } else {
+      openMenu();
+    }
+  });
     
     if (isOpen) {
       closeMenu();
@@ -137,6 +162,7 @@
   });
 
   function openMenu() {
+    console.log('[header.js] openMenu() called');
     sheet.classList.add("open");
     sheet.setAttribute("aria-hidden", "false");
     btnMore.setAttribute("aria-expanded", "true");
@@ -148,6 +174,7 @@
   }
 
   function closeMenu() {
+    console.log('[header.js] closeMenu() called');
     sheet.classList.remove("open");
     sheet.setAttribute("aria-hidden", "true");
     btnMore.setAttribute("aria-expanded", "false");
