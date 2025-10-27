@@ -19,6 +19,8 @@
   <!-- Component Styles -->
   <link rel="stylesheet" href="components/hi-island-map/map.css"/>
   <link rel="stylesheet" href="components/hi-island-feed/feed.css"/>
+  <link rel="stylesheet" href="components/hi-calendar/calendar.css"/>
+  <link rel="stylesheet" href="components/hi-share-sheet/share-sheet.css"/>
 
   <!-- Leaflet (for map) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
@@ -32,6 +34,53 @@
       background: var(--gradient-island);
       background-attachment: fixed;
       min-height: 100vh;
+    }
+
+    /* Tesla-grade header on hi-island: clean minimal layout */
+    body[data-page="hi-island"] header {
+      padding: var(--space-md) !important;
+      backdrop-filter: blur(20px) !important;
+      background: rgba(255, 255, 255, 0.95) !important;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+    }
+
+    body[data-page="hi-island"] .appbar {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      max-width: 100% !important;
+    }
+
+    body[data-page="hi-island"] .appbar .brand {
+      position: absolute !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+    }
+
+    body[data-page="hi-island"] .logo {
+      max-height: 32px !important;
+      width: auto !important;
+      filter: invert(1) brightness(0) !important;
+    }
+
+    body[data-page="hi-island"] .brand-name {
+      color: #000 !important;
+      font-weight: 600 !important;
+    }
+
+    body[data-page="hi-island"] #btnMore {
+      background: rgba(0, 0, 0, 0.08) !important;
+      border-radius: 20px !important;
+      padding: 8px 16px !important;
+      transition: background 0.2s ease !important;
+    }
+
+    body[data-page="hi-island"] #btnMore:hover {
+      background: rgba(0, 0, 0, 0.12) !important;
+    }
+
+    body[data-page="hi-island"] #btnMore svg {
+      color: #333 !important;
     }
 
     .hi-island-container {
@@ -70,6 +119,8 @@
   <!-- Component Scripts -->
   <script src="components/hi-island-map/map.js" type="module"></script>
   <script src="components/hi-island-feed/feed.js" type="module"></script>
+  <script src="components/hi-calendar/calendar.js" type="module"></script>
+  <script src="components/hi-share-sheet/share-sheet.js" type="module"></script>
 
   <!-- Page Orchestrator -->
   <script type="module">
@@ -93,6 +144,16 @@
           }, 100);
         }
       });
+
+      // Wire calendar button
+      const btnCal = document.getElementById('btnCal');
+      if (btnCal) {
+        btnCal.addEventListener('click', () => {
+          if (window.openHiCalendar) {
+            window.openHiCalendar();
+          }
+        });
+      }
 
       // Initialize components (they handle their own rendering)
       console.log('✅ Hi Island ready');

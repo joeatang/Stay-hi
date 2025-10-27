@@ -47,7 +47,12 @@ class HiIslandMap {
     const dropBtn = this.root.querySelector('#hi-map-drop-btn');
     if (dropBtn) {
       dropBtn.addEventListener('click', () => {
-        this.openComposer();
+        // Open share sheet with hi5 origin
+        if (window.openHiShareSheet) {
+          window.openHiShareSheet('hi5');
+        } else {
+          console.warn('Share sheet not initialized');
+        }
       });
     }
   }
@@ -189,16 +194,6 @@ class HiIslandMap {
   clearMarkers() {
     this.markers.forEach(marker => marker.remove());
     this.markers = [];
-  }
-
-  // Open Hi composer modal
-  openComposer() {
-    if (typeof window.openHiComposer === 'function') {
-      window.openHiComposer();
-    } else {
-      console.warn('⚠️ Hi Composer not available yet');
-      alert('Hi Composer coming soon! 🚀');
-    }
   }
 
   // Format timestamp to relative time

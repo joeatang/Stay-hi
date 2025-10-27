@@ -15,60 +15,68 @@
   margin-bottom: var(--space-lg);
 }
 
-/* Hero Header */
+/* Hero Header - Tesla-grade styling */
 .hi-map-hero {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space-lg);
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom: 1px solid var(--glass-border);
-  gap: var(--space-md);
+  padding: var(--space-xl) var(--space-lg);
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  gap: var(--space-lg);
   flex-wrap: wrap;
 }
 
 .hi-map-hero-text {
   flex: 1;
-  min-width: 200px;
+  min-width: 240px;
 }
 
 .hi-map-title {
-  font-size: var(--font-xl);
-  font-weight: 700;
-  color: var(--glass-text);
-  margin-bottom: var(--space-xs);
-  letter-spacing: -0.02em;
+  font-size: 40px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.04em;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
 }
 
 .hi-map-subtitle {
-  font-size: var(--font-sm);
-  color: var(--glass-text-muted);
+  font-size: 16px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.7);
   line-height: 1.5;
+  margin: 0;
+  letter-spacing: -0.015em;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
 }
 
-/* Drop a Hi Button */
+/* Drop a Hi Button - Tesla solid orange */
 .hi-map-drop-btn {
-  padding: var(--space-sm) var(--space-lg);
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--hi-ink);
+  padding: 14px 32px;
+  background: linear-gradient(180deg, #ff9d4d 0%, #ff8533 100%);
+  color: #fff;
   border: none;
-  border-radius: var(--radius-md);
-  font-size: var(--font-md);
+  border-radius: 28px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: var(--transition-normal);
-  box-shadow: var(--shadow-sm);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   white-space: nowrap;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  letter-spacing: -0.02em;
 }
 
 .hi-map-drop-btn:hover {
-  background: #fff;
+  background: linear-gradient(180deg, #ffab66 0%, #ff944d 100%);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .hi-map-drop-btn:active {
   transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
 /* Map Canvas */

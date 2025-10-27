@@ -284,7 +284,141 @@
     fetchMyArchive,
     syncPending,
     updateMap,
+    fetchMonthActivity,
   };
+
+  // Fetch month activity for calendar (days with Hi counts, streaks, milestones)
+  async function fetchMonthActivity(year, month) {
+    const user_id = await getUserId();
+    if (!user_id) return { days: {}, monthCount: 0, currentStreak: 0, bestStreak: 0 };
+
+    // Date range for the month
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59);
+
+    try {
+      // Fetch both public and private entries for the user in this month
+      const [publicRes, archiveRes] = await Promise.all([
+        supa
+          .from("public_shares")
+          .select("created_at")
+          .eq("user_id", user_id)
+          .gte("created_at", startDate.toISOString())
+          .lte("created_at", endDate.toISOString()),
+        supa
+          .from("hi_archives")
+          .select("created_at")
+          .eq("user_id", user_id)
+          .gte("created_at", startDate.toISOString())
+          .lte("created_at", endDate.toISOString())
+      ]);
+
+      // Combine all entries
+      const allEntries = [
+        ...(publicRes.data || []),
+        ...(archiveRes.data || [])
+      ];
+
+      // Group by day
+      const days = {};
+      allEntries.forEach(entry => {
+        const date = new Date(entry.created_at);
+        const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        
+        if (!days[dateKey]) {
+          days[dateKey] = { count: 0, hasStreak: false, hasMilestone: false };
+        }
+        days[dateKey].count++;
+      });
+
+      // Calculate streaks
+      const { currentStreak, bestStreak } = calculateStreaks(allEntries, user_id);
+      
+      // Mark days with streaks
+      Object.keys(days).forEach(dateKey => {
+        if (days[dateKey].count >= 3) days[dateKey].hasStreak = true;
+      });
+
+      // Mark milestone days (7, 30, 100 day streaks)
+      if (currentStreak >= 7 || bestStreak >= 7) {
+        const today = new Date();
+        const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        if (days[todayKey]) days[todayKey].hasMilestone = true;
+      }
+
+      return {
+        days,
+        monthCount: allEntries.length,
+        currentStreak,
+        bestStreak,
+        source: 'db'
+      };
+
+    } catch (error) {
+      console.error('Failed to fetch month activity:', error);
+      
+      // Fallback to localStorage
+      const general = readLS(LS_GENERAL);
+      const archive = readLS(LS_ARCHIVE);
+      const allLocal = [...general, ...archive];
+      
+      const days = {};
+      allLocal.forEach(entry => {
+        if (!entry.created_at) return;
+        const date = new Date(entry.created_at);
+        if (date.getFullYear() === year && date.getMonth() === month - 1) {
+          const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+          if (!days[dateKey]) days[dateKey] = { count: 0 };
+          days[dateKey].count++;
+        }
+      });
+
+      return { days, monthCount: Object.keys(days).length, currentStreak: 0, bestStreak: 0, source: 'local' };
+    }
+  }
+
+  // Calculate current and best streaks
+  function calculateStreaks(entries, userId) {
+    if (!entries.length) return { currentStreak: 0, bestStreak: 0 };
+
+    // Get unique days with activity
+    const activeDays = [...new Set(
+      entries.map(e => {
+        const d = new Date(e.created_at);
+        return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      })
+    )].sort();
+
+    let currentStreak = 0;
+    let bestStreak = 0;
+    let streak = 1;
+
+    for (let i = 1; i < activeDays.length; i++) {
+      const prev = new Date(activeDays[i - 1]);
+      const curr = new Date(activeDays[i]);
+      const diffDays = Math.floor((curr - prev) / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 1) {
+        streak++;
+      } else {
+        bestStreak = Math.max(bestStreak, streak);
+        streak = 1;
+      }
+    }
+
+    bestStreak = Math.max(bestStreak, streak);
+
+    // Check if streak is current (last activity was today or yesterday)
+    const lastDay = new Date(activeDays[activeDays.length - 1]);
+    const today = new Date();
+    const daysSinceLastActivity = Math.floor((today - lastDay) / (1000 * 60 * 60 * 24));
+
+    if (daysSinceLastActivity <= 1) {
+      currentStreak = streak;
+    }
+
+    return { currentStreak, bestStreak };
+  }
 
   // Optional: auto-sync after auth (tiny delay to allow session)
   document.addEventListener("DOMContentLoaded", () => {

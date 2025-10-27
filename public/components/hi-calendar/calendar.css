@@ -1,0 +1,259 @@
+/* ===================================================================
+   📅 HI CALENDAR COMPONENT STYLES
+   Tesla-grade bottom sheet calendar with activity tracking
+   Shows monthly view with Hi moments, streaks, and milestones
+=================================================================== */
+
+/* Bottom Sheet Overlay */
+.hi-calendar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px);
+  z-index: var(--z-modal);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.hi-calendar-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Bottom Sheet Container - Glassmorphic floating */
+.hi-calendar-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12),
+              0 -2px 8px rgba(0, 0, 0, 0.08),
+              inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  z-index: var(--z-modal);
+  max-height: 85vh;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.hi-calendar-overlay.active .hi-calendar-sheet {
+  transform: translateY(0);
+}
+
+/* Drag Handle */
+.hi-calendar-handle {
+  width: 40px;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 2px;
+  margin: 12px auto 8px;
+  flex-shrink: 0;
+}
+
+/* Calendar Header - Glassmorphic */
+.hi-calendar-header {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.hi-calendar-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.hi-calendar-nav {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.hi-calendar-nav-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  transition: all 0.2s ease;
+}
+
+.hi-calendar-nav-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+}
+
+.hi-calendar-nav-btn:active {
+  transform: scale(0.95);
+}
+
+/* Calendar Body */
+.hi-calendar-body {
+  padding: var(--space-md) var(--space-lg);
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Day Grid Header (Sun-Sat) */
+.hi-calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+}
+
+.hi-calendar-weekday {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  padding: var(--space-xs) 0;
+}
+
+/* Days Grid */
+.hi-calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-xs);
+}
+
+/* Day Cell */
+.hi-calendar-day {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.2s ease;
+  padding: var(--space-xs);
+}
+
+.hi-calendar-day:hover {
+  background: rgba(102, 126, 234, 0.08);
+}
+
+.hi-calendar-day.other-month {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.hi-calendar-day.today {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.hi-calendar-day.today .hi-calendar-day-number {
+  color: #fff;
+}
+
+/* Day Number */
+.hi-calendar-day-number {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 2px;
+}
+
+/* Activity Indicators */
+.hi-calendar-indicators {
+  display: flex;
+  gap: 2px;
+  min-height: 16px;
+}
+
+.hi-calendar-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--gradient-island);
+}
+
+.hi-calendar-day.has-activity .hi-calendar-dot {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.hi-calendar-day.has-streak::after {
+  content: '🔥';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 10px;
+}
+
+.hi-calendar-day.has-milestone::before {
+  content: '⭐';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  font-size: 10px;
+}
+
+/* Stats Footer - Glassmorphic */
+.hi-calendar-stats {
+  padding: var(--space-md) var(--space-lg);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  justify-content: space-around;
+  gap: var(--space-md);
+  flex-shrink: 0;
+  background: rgba(102, 126, 234, 0.05);
+  backdrop-filter: blur(20px);
+}
+
+.hi-calendar-stat {
+  text-align: center;
+}
+
+.hi-calendar-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #667eea;
+  display: block;
+}
+
+.hi-calendar-stat-label {
+  font-size: 12px;
+  color: #666;
+  display: block;
+  margin-top: 4px;
+}
+
+/* Responsive - Desktop floating card */
+@media (min-width: 768px) {
+  .hi-calendar-sheet {
+    left: 50%;
+    transform: translateX(-50%) translateY(100%);
+    max-width: 500px;
+    border-radius: 24px;
+    bottom: var(--space-xl);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15),
+                0 8px 24px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .hi-calendar-overlay.active .hi-calendar-sheet {
+    transform: translateX(-50%) translateY(0);
+  }
+}

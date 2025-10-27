@@ -47,10 +47,10 @@ class HiIslandFeed {
         </nav>
 
         <!-- Filter Controls (visible only on General/Archive tabs) -->
-        <div class="hi-feed-filters" id="hi-feed-filter-controls">
+                <div class="hi-feed-filters">
           <button class="hi-feed-filter-btn active" data-filter="all">All</button>
-          <button class="hi-feed-filter-btn" data-filter="quick">Hi5️⃣</button>
-          <button class="hi-feed-filter-btn" data-filter="guided">HiGYM</button>
+          <button class="hi-feed-filter-btn" data-filter="quick">👋 Hi5</button>
+          <button class="hi-feed-filter-btn" data-filter="guided">💪 HiGYM</button>
         </div>
 
         <!-- Sections -->
@@ -219,7 +219,16 @@ class HiIslandFeed {
   // Filter data based on origin type
   filterData(data, filter) {
     if (filter === 'all') return data;
-    return data.filter(share => share.origin === filter);
+    
+    // Map filter to origin values (support both old and new)
+    return data.filter(share => {
+      if (filter === 'quick') {
+        return share.origin === 'hi5' || share.origin === 'quick';
+      } else if (filter === 'guided') {
+        return share.origin === 'higym' || share.origin === 'guided';
+      }
+      return share.origin === filter;
+    });
   }
 
   // Create card element
@@ -229,21 +238,33 @@ class HiIslandFeed {
     card.dataset.shareId = share.id;
 
     const timeAgo = this.formatTimeAgo(share.createdAt);
-    const originBadge = share.origin === 'quick' ? 'Hi5️⃣' : share.origin === 'guided' ? 'HiGYM' : '';
+    
+    // Map origin to badge with emoji
+    let originBadge = '';
+    let badgeClass = '';
+    if (share.origin === 'hi5' || share.origin === 'quick') {
+      originBadge = '👋 Hi5';
+      badgeClass = 'badge-hi5';
+    } else if (share.origin === 'higym' || share.origin === 'guided') {
+      originBadge = '💪 HiGYM';
+      badgeClass = 'badge-higym';
+    }
+
+    // For HiGYM, show emotional journey prominently
+    const isHiGym = share.origin === 'higym' || share.origin === 'guided';
+    const emotionalJourney = isHiGym && share.currentEmoji && share.desiredEmoji
+      ? `<div class="hi-feed-card-journey">${share.currentEmoji} → ${share.desiredEmoji}</div>`
+      : '';
 
     card.innerHTML = `
       <div class="hi-feed-card-header">
         <div class="hi-feed-card-user">${share.userName || 'Hi Friend'}</div>
         <div class="hi-feed-card-time">${timeAgo}</div>
       </div>
-      <div class="hi-feed-card-message">
-        ${share.currentEmoji} → ${share.desiredEmoji} 
-        ${share.text ? `<br><br>${this.escapeHtml(share.text)}` : ''}
-      </div>
+      ${emotionalJourney}
+      ${share.text ? `<div class="hi-feed-card-message">${this.escapeHtml(share.text)}</div>` : ''}
       <div class="hi-feed-card-meta">
-        ${originBadge ? `<span class="hi-feed-card-badge">${originBadge}</span>` : ''}
-        ${share.currentName ? `<span>${share.currentEmoji} ${share.currentName}</span>` : ''}
-        ${share.desiredName ? `<span>${share.desiredEmoji} ${share.desiredName}</span>` : ''}
+        ${originBadge ? `<span class="hi-feed-card-badge ${badgeClass}">${originBadge}</span>` : ''}
         ${share.location ? `<span>📍 ${share.location}</span>` : ''}
       </div>
     `;
