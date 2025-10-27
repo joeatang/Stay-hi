@@ -117,36 +117,100 @@ class HiIslandMap {
       // Clear existing markers
       this.clearMarkers();
 
-      // For now, just show count - geocoding locations requires more setup
-      // TODO: Implement geocoding service for location strings
-      const locationsCount = shares.filter(s => s.location && s.location.trim()).length;
-      console.log(`✅ Loaded ${locationsCount} shares with locations (geocoding coming soon)`);
+      console.log(`🗺️ Loading ${shares.length} shares onto map...`);
       
-      // Placeholder: Add a few demo markers at known coordinates
-      // Once geocoding is set up, this will map actual share locations
-      this.addDemoMarkers(shares.slice(0, 5));
+      // Filter shares with valid locations
+      const sharesWithLocation = shares.filter(s => s.location && s.location.trim());
+      console.log(`📍 ${sharesWithLocation.length} shares have location data`);
+      
+      // Get unique locations to batch geocode
+      const uniqueLocations = [...new Set(sharesWithLocation.map(s => s.location))];
+      console.log(`🌍 ${uniqueLocations.length} unique locations to geocode`);
+      
+      // Geocode each unique location (with caching)
+      const locationCache = {};
+      for (const location of uniqueLocations) {
+        const coords = await this.geocodeLocation(location);
+        if (coords) {
+          locationCache[location] = coords;
+        }
+      }
+      
+      // Add markers for all shares with valid coordinates
+      let markersAdded = 0;
+      for (const share of sharesWithLocation) {
+        const coords = locationCache[share.location];
+        if (coords) {
+          this.addMarkerAt(coords.lat, coords.lng, share);
+          markersAdded++;
+        }
+      }
+      
+      console.log(`✅ Added ${markersAdded} markers to map`);
+      
+      // If no markers added, show helpful message
+      if (markersAdded === 0) {
+        console.log('💡 No shares with geocoded locations yet. Create some shares to see them on the map!');
+      }
 
     } catch (error) {
       console.error('❌ Error loading map markers:', error);
     }
   }
-
-  // Add demo markers (temporary until geocoding is implemented)
-  addDemoMarkers(shares) {
-    const demoLocations = [
-      { lat: 40.7128, lng: -74.0060 }, // New York
-      { lat: 51.5074, lng: -0.1278 },  // London
-      { lat: 35.6762, lng: 139.6503 }, // Tokyo
-      { lat: -33.8688, lng: 151.2093 },// Sydney
-      { lat: 48.8566, lng: 2.3522 }    // Paris
-    ];
-
-    shares.forEach((share, i) => {
-      if (i < demoLocations.length) {
-        const loc = demoLocations[i];
-        this.addMarkerAt(loc.lat, loc.lng, share);
+  
+  // Geocode a location string to coordinates
+  async geocodeLocation(location) {
+    if (!location || !location.trim()) return null;
+    
+    try {
+      // Use island.js getCityCoordinates if available
+      if (window.HiIsland?.getCityCoordinates) {
+        const coords = await window.HiIsland.getCityCoordinates(location);
+        console.log(`📍 Geocoded "${location}" → ${coords.lat}, ${coords.lng}`);
+        return coords;
       }
-    });
+      
+      // Fallback: basic location parsing (US format "City, ST")
+      // This ensures map doesn't break if island.js not loaded
+      console.warn('⚠️ island.js not loaded, using fallback');
+      return this.fallbackGeocode(location);
+      
+    } catch (error) {
+      console.error(`❌ Failed to geocode "${location}":`, error);
+      return null;
+    }
+  }
+  
+  // Fallback geocoding (simple state-based)
+  fallbackGeocode(location) {
+    const stateCenters = {
+      'CA': { lat: 36.78, lng: -119.42 },
+      'NY': { lat: 42.17, lng: -74.95 },
+      'TX': { lat: 31.97, lng: -99.90 },
+      'FL': { lat: 27.77, lng: -82.64 },
+      'WA': { lat: 47.75, lng: -120.74 },
+      'Australia': { lat: -25.27, lng: 133.78 },
+      'UK': { lat: 52.37, lng: -1.46 },
+      'Canada': { lat: 56.13, lng: -106.35 }
+    };
+    
+    // Try to extract state/country from "City, ST" format
+    const parts = location.split(',').map(p => p.trim());
+    if (parts.length >= 2) {
+      const state = parts[parts.length - 1];
+      if (stateCenters[state]) {
+        return stateCenters[state];
+      }
+      // Check if country name in location
+      for (const [key, coords] of Object.entries(stateCenters)) {
+        if (location.includes(key)) {
+          return coords;
+        }
+      }
+    }
+    
+    // Default to world center
+    return { lat: 20, lng: 0 };
   }
 
   // Add marker at specific coordinates
