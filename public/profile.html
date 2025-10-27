@@ -3761,8 +3761,22 @@
         // Save to localStorage for persistence
         saveToLocalStorage(profileData);
         
-        // Save to Supabase
-        if (window.supabaseClient) {
+        // Use centralized hiDB.updateProfile() for consistency
+        // This ensures cache is properly updated across all components
+        if (window.hiDB?.updateProfile) {
+          try {
+            const result = await window.hiDB.updateProfile(profileData);
+            console.log('✅ Profile saved via hiDB:', result);
+            
+            // Fetch fresh profile to get any server-side updates
+            const freshProfile = await window.hiDB.fetchUserProfile();
+            currentProfile = freshProfile || profileData;
+          } catch (hidbError) {
+            console.warn('⚠️ hiDB update failed, using localStorage fallback:', hidbError);
+            currentProfile = profileData;
+          }
+        } else if (window.supabaseClient) {
+          // Fallback to direct Supabase if hiDB not available
           try {
             const { data, error } = await window.supabaseClient
               .from('profiles')
