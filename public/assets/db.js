@@ -275,6 +275,101 @@
     return { ok: true };
   }
 
+  // 🌍 Fetch user profile (for location and other profile data)
+  async function fetchUserProfile() {
+    const user_id = await getUserId();
+    if (!user_id) {
+      console.warn('⚠️ No user ID, using localStorage fallback');
+      return readLS('stayhi_profile', null);
+    }
+
+    try {
+      if (!supa) {
+        console.warn('⚠️ No Supabase client, using localStorage');
+        return readLS('stayhi_profile', null);
+      }
+
+      const { data, error } = await supa
+        .from('profiles')
+        .select('*')
+        .eq('id', user_id)
+        .single();
+
+      if (error) {
+        // Profile doesn't exist yet (new user)
+        if (error.code === 'PGRST116') {
+          console.log('📝 No profile found, will create on first update');
+          return null;
+        }
+        throw error;
+      }
+
+      // Cache to localStorage
+      if (data) {
+        writeLS('stayhi_profile', data);
+      }
+
+      console.log('✅ Profile loaded:', data);
+      return data;
+
+    } catch (error) {
+      console.error('❌ Failed to fetch profile:', error);
+      // Fallback to localStorage
+      return readLS('stayhi_profile', null);
+    }
+  }
+
+  // 🌍 Update user profile (for location and other profile data)
+  async function updateProfile(updates) {
+    const user_id = await getUserId();
+    if (!user_id) {
+      console.warn('⚠️ No user ID, saving to localStorage only');
+      const current = readLS('stayhi_profile', {});
+      writeLS('stayhi_profile', { ...current, ...updates });
+      return { ok: true, offline: true };
+    }
+
+    try {
+      if (!supa) {
+        console.warn('⚠️ No Supabase client, using localStorage');
+        const current = readLS('stayhi_profile', {});
+        writeLS('stayhi_profile', { ...current, ...updates });
+        return { ok: true, offline: true };
+      }
+
+      const profileData = {
+        id: user_id,
+        ...updates,
+        updated_at: new Date().toISOString()
+      };
+
+      const { data, error } = await supa
+        .from('profiles')
+        .upsert(profileData)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Cache to localStorage
+      if (data) {
+        writeLS('stayhi_profile', data);
+      }
+
+      console.log('✅ Profile updated:', data);
+      return { ok: true, data };
+
+    } catch (error) {
+      console.error('❌ Failed to update profile:', error);
+      
+      // Fallback to localStorage
+      const current = readLS('stayhi_profile', {});
+      writeLS('stayhi_profile', { ...current, ...updates });
+      
+      return { ok: false, error: error.message, offline: true };
+    }
+  }
+
   // Public API
   window.hiDB = {
     isOnline,
@@ -285,6 +380,8 @@
     syncPending,
     updateMap,
     fetchMonthActivity,
+    fetchUserProfile,
+    updateProfile,
   };
 
   // Fetch month activity for calendar (days with Hi counts, streaks, milestones)

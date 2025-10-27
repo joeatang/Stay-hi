@@ -52,6 +52,11 @@ export class HiShareSheet {
           <div class="character-count"><span id="hi-share-char-count">0</span>/500</div>
         </div>
         
+        <!-- Location Status (Gold Standard) -->
+        <div class="hi-share-location-status">
+          <span class="location-loading">📍 Checking location...</span>
+        </div>
+        
         <div class="share-options">
           <button id="hi-save-private" class="share-option private-option">
             <div class="option-icon">🔒</div>
@@ -115,14 +120,22 @@ export class HiShareSheet {
       }
     });
 
-    // Share option handlers
+    // Privacy option handlers
     savePrivateBtn.addEventListener('click', (e) => this.handleSavePrivate(e));
     shareAnonBtn.addEventListener('click', (e) => this.handleShareAnonymous(e));
     sharePublicBtn.addEventListener('click', (e) => this.handleSharePublic(e));
+    
+    // Location update handler (delegated event)
+    this.root.addEventListener('click', (e) => {
+      if (e.target.closest('[data-action="update-location"]')) {
+        e.preventDefault();
+        this.forceUpdateLocation();
+      }
+    });
   }
 
   // Open share sheet
-  open() {
+  async open() {
     const backdrop = document.getElementById('hi-share-backdrop');
     const sheet = document.getElementById('hi-share-sheet');
     
@@ -135,6 +148,43 @@ export class HiShareSheet {
     setTimeout(() => {
       document.getElementById('hi-share-journal').focus();
     }, 100);
+    
+    // Preload location (profile-first, instant if cached)
+    this.preloadLocation();
+  }
+  
+  // Preload location in background
+  async preloadLocation() {
+    const locationStatus = this.root.querySelector('.hi-share-location-status');
+    if (!locationStatus) return;
+    
+    try {
+      // This will use profile if available (instant) or detect if needed
+      const location = await this.getUserLocation();
+      
+      if (location && location !== 'Location unavailable') {
+        const emoji = this.locationSource === 'profile' ? '📍' : '🌍';
+        const sourceLabel = this.locationSource === 'profile' ? 'from profile' : 'detected';
+        
+        locationStatus.innerHTML = `
+          <span class="location-text">${emoji} ${location}</span>
+          <span class="location-source">(${sourceLabel})</span>
+          <button class="location-update-btn" data-action="update-location" title="Update location">
+            ✈️ Traveling?
+          </button>
+        `;
+      } else {
+        locationStatus.innerHTML = `
+          <span class="location-text">📍 Location unavailable</span>
+          <button class="location-update-btn" data-action="update-location">
+            Try again
+          </button>
+        `;
+      }
+    } catch (error) {
+      console.error('❌ Location preload failed:', error);
+      locationStatus.innerHTML = `<span class="location-text">📍 Location unavailable</span>`;
+    }
   }
 
   // Close share sheet
@@ -215,25 +265,136 @@ export class HiShareSheet {
     console.log('📊 Global Hi5 counter incremented:', { total, gStarts });
   }
 
-    // Get user's location (Gold Standard)
+  // Get user's location (Gold Standard: Profile-First Architecture)
   async getUserLocation() {
     try {
-      // Use geocoding service if available
-      if (window.GeocodingService) {
-        const location = await window.GeocodingService.getUserLocation();
-        if (location) {
-          console.log('📍 Location captured:', location);
-          return location;
-        }
+      // STEP 1: Check if user has profile location (home base)
+      const profile = await this.getProfileLocation();
+      
+      if (profile?.location) {
+        console.log('📍 Using profile location (cached):', profile.location);
+        
+        // Store in instance for UI display
+        this.currentLocation = profile.location;
+        this.locationSource = 'profile';
+        
+        return profile.location;
       }
       
-      // Fallback if service not loaded
-      console.warn('⚠️ GeocodingService not available, using fallback');
+      // STEP 2: No profile location → detect via GPS and save to profile
+      console.log('🌍 No profile location found, detecting...');
+      
+      if (!window.GeocodingService) {
+        console.warn('⚠️ GeocodingService not available');
+        return 'Location unavailable';
+      }
+      
+      const detected = await window.GeocodingService.getUserLocation();
+      
+      if (detected && detected !== 'Location unavailable') {
+        console.log('📍 Location detected:', detected);
+        
+        // Save to profile for future shares (gold standard)
+        await this.saveLocationToProfile(detected);
+        
+        this.currentLocation = detected;
+        this.locationSource = 'detected';
+        
+        return detected;
+      }
+      
+      // STEP 3: GPS failed, return unavailable
+      console.warn('⚠️ Location detection failed');
       return 'Location unavailable';
       
     } catch (error) {
-      console.warn('⚠️ Location capture failed:', error);
+      console.error('❌ Location capture failed:', error);
       return 'Location unavailable';
+    }
+  }
+  
+  // Get user profile (for location check)
+  async getProfileLocation() {
+    try {
+      if (!window.hiDB?.fetchUserProfile) {
+        console.warn('⚠️ hiDB.fetchUserProfile not available');
+        return null;
+      }
+      
+      const profile = await window.hiDB.fetchUserProfile();
+      return profile;
+      
+    } catch (error) {
+      console.warn('⚠️ Failed to fetch profile:', error);
+      return null;
+    }
+  }
+  
+  // Save location to user profile (for future shares)
+  async saveLocationToProfile(location) {
+    try {
+      if (!window.hiDB?.updateProfile) {
+        console.warn('⚠️ hiDB.updateProfile not available');
+        return;
+      }
+      
+      console.log('💾 Saving location to profile:', location);
+      
+      await window.hiDB.updateProfile({ location });
+      
+      console.log('✅ Location saved to profile');
+      
+    } catch (error) {
+      console.warn('⚠️ Failed to save location to profile:', error);
+    }
+  }
+  
+  // Force update location (for travelers)
+  async forceUpdateLocation() {
+    try {
+      console.log('🔄 Force updating location...');
+      
+      if (!window.GeocodingService) {
+        console.warn('⚠️ GeocodingService not available');
+        return;
+      }
+      
+      // Clear geocoding cache to force fresh detection
+      if (window.GeocodingService.clearCache) {
+        window.GeocodingService.clearCache();
+      }
+      
+      const detected = await window.GeocodingService.getUserLocation();
+      
+      if (detected && detected !== 'Location unavailable') {
+        console.log('📍 New location detected:', detected);
+        
+        // Update profile with new location
+        await this.saveLocationToProfile(detected);
+        
+        this.currentLocation = detected;
+        this.locationSource = 'updated';
+        
+        // Update UI to show new location
+        this.updateLocationDisplay();
+        
+        return detected;
+      }
+      
+    } catch (error) {
+      console.error('❌ Force update failed:', error);
+    }
+  }
+  
+  // Update location display in UI
+  updateLocationDisplay() {
+    const locationStatus = this.root.querySelector('.hi-share-location-status');
+    if (locationStatus && this.currentLocation) {
+      const emoji = this.locationSource === 'updated' ? '✈️' : '📍';
+      locationStatus.innerHTML = `
+        <span class="location-text">${emoji} ${this.currentLocation}</span>
+        <button class="location-update-btn" data-action="update-location">Update</button>
+      `;
     }
   }
 

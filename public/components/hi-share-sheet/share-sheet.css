@@ -229,6 +229,82 @@
   color: #555;
 }
 
+/* ===================================================================
+   🌍 LOCATION STATUS (GOLD STANDARD)
+=================================================================== */
+
+.hi-share-location-status {
+  margin: 0 0 24px 0;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.hi-share-location-status:hover {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.location-text {
+  font-size: 13px;
+  color: #333;
+  font-weight: 500;
+  flex: 1;
+}
+
+.location-source {
+  font-size: 11px;
+  color: #888;
+  font-weight: 400;
+  margin-left: 8px;
+}
+
+.location-loading {
+  font-size: 13px;
+  color: #888;
+  font-style: italic;
+}
+
+.location-update-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.location-update-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.location-update-btn:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .hi-share-location-status {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .location-update-btn {
+    align-self: flex-end;
+  }
+}
+
 /* Primary Option Highlight */
 .primary-option {
   background: rgba(255, 255, 255, 0.6);
