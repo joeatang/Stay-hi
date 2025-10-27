@@ -189,12 +189,17 @@ class HiIslandFeed {
   // Render list for specific tab
   renderList(tabName) {
     const listContainer = this.root.querySelector(`#list-${tabName}`);
-    if (!listContainer) return;
+    if (!listContainer) {
+      console.error(`❌ List container not found for tab: ${tabName}`);
+      return;
+    }
 
     const data = this.feedData[tabName] || [];
+    console.log(`📋 Rendering ${tabName} list with ${data.length} items`);
     
     // Apply filter
     const filteredData = this.filterData(data, this.currentFilter);
+    console.log(`🔍 After filter '${this.currentFilter}': ${filteredData.length} items`);
 
     // Clear container
     listContainer.innerHTML = '';
