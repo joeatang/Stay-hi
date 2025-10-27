@@ -263,7 +263,10 @@ class HiIslandFeed {
     // For HiGYM, show emotional journey prominently
     const isHiGym = share.origin === 'higym' || share.origin === 'guided';
     const emotionalJourney = isHiGym && share.currentEmoji && share.desiredEmoji
-      ? `<div class="hi-feed-card-journey">${share.currentEmoji} → ${share.desiredEmoji}</div>`
+      ? `<div class="hi-feed-card-journey">
+           <div class="hi-feed-card-journey-label">Emotional Journey</div>
+           <div class="hi-feed-card-journey-emojis">${share.currentEmoji} → ${share.desiredEmoji}</div>
+         </div>`
       : '';
 
     card.innerHTML = `

@@ -168,10 +168,23 @@
 }
 
 .hi-feed-card-journey {
-  font-size: 32px;
   text-align: center;
   padding: var(--space-sm) 0;
   margin-bottom: var(--space-xs);
+}
+
+.hi-feed-card-journey-label {
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  opacity: 0.7;
+}
+
+.hi-feed-card-journey-emojis {
+  font-size: 32px;
   letter-spacing: 4px;
 }
 
