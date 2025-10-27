@@ -39,9 +39,24 @@
   }
   async function getUserId() {
     try {
-      const { data } = await supa.auth.getUser();
-      return data?.user?.id || null;
-    } catch {
+      // Always get fresh reference to avoid timing issues
+      const supaClient = window.supabaseClient || window.sb;
+      if (!supaClient) {
+        console.warn('⚠️ getUserId: No Supabase client available');
+        return null;
+      }
+      
+      const { data, error } = await supaClient.auth.getUser();
+      if (error) {
+        console.error('❌ getUserId failed:', error);
+        return null;
+      }
+      
+      const userId = data?.user?.id || null;
+      console.log('🔑 getUserId:', userId ? userId.slice(0, 8) + '...' : 'null');
+      return userId;
+    } catch (err) {
+      console.error('❌ getUserId exception:', err);
       return null;
     }
   }
@@ -147,8 +162,11 @@
     
     let dbList = [];
     try {
-      if (user_id && supa) {
-        const { data, error } = await supa
+      // Always get fresh reference to avoid timing issues
+      const supaClient = window.supabaseClient || window.sb;
+      
+      if (user_id && supaClient) {
+        const { data, error } = await supaClient
           .from("hi_archives")
           .select("*")
           .eq("user_id", user_id)  // CRITICAL: Filter by current user
