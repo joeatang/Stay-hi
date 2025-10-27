@@ -143,20 +143,32 @@
   }
 
   async function fetchMyArchive({ limit = 200 } = {}) {
+    const user_id = await getUserId();
+    
     let dbList = [];
     try {
-      const { data, error } = await supa
-        .from("hi_archives")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(limit);
-      if (error) throw error;
-      dbList = (data || []).map(normalizeArchiveRow);
-    } catch {
+      if (user_id && supa) {
+        const { data, error } = await supa
+          .from("hi_archives")
+          .select("*")
+          .eq("user_id", user_id)  // CRITICAL: Filter by current user
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        
+        if (error) throw error;
+        dbList = (data || []).map(normalizeArchiveRow);
+        console.log(`✅ Fetched ${dbList.length} archive entries from Supabase`);
+      } else {
+        console.log('⚠️ No user_id or Supabase, using localStorage only');
+      }
+    } catch (error) {
+      console.error('❌ Archive fetch failed:', error);
       // ignore, rely on local
     }
+    
     const lsList = readLS(LS_ARCHIVE);
     const all = dedupeById([...dbList, ...lsList]).slice(0, limit);
+    console.log(`📦 Total archive entries: ${all.length} (DB: ${dbList.length}, localStorage: ${lsList.length})`);
     return all;
   }
 
