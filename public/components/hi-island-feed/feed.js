@@ -139,6 +139,9 @@ class HiIslandFeed {
       }
     }
 
+    // CRITICAL: Render the list for the new tab
+    this.renderList(tabName);
+
     console.log(`🔄 Switched to tab: ${tabName}`);
   }
 
