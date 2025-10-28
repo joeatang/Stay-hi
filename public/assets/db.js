@@ -58,7 +58,6 @@
       }
       
       const userId = data?.user?.id || null;
-      console.log('🔑 getUserId:', userId ? userId.slice(0, 8) + '...' : 'null');
       return userId;
     } catch (err) {
       console.error('❌ getUserId exception:', err);
@@ -98,10 +97,10 @@
       if (!supa) throw new Error('No Supabase client');
       
       const { data, error } = await supa.from("public_shares").insert(row).select().single();
-      if (error) throw error;
-
-      // Note: Global stats increment is now handled by database trigger on insert
-      console.log('📊 Public share inserted - stats will be incremented by DB trigger');
+      if (error) {
+        console.error('Insert to public_shares failed:', error);
+        throw error;
+      }
 
       // Normalize shape for UI (enhanced with origin)
       const ui = normalizePublicRow(data);
@@ -137,7 +136,10 @@
       if (!supa) throw new Error('No Supabase client');
       
       const { data, error } = await supa.from("hi_archives").insert(row).select().single();
-      if (error) throw error;
+      if (error) {
+        console.error('Insert to hi_archives failed:', error);
+        throw error;
+      }
 
       const ui = normalizeArchiveRow(data);
       pushLS(LS_ARCHIVE, ui);
@@ -192,9 +194,6 @@
         
         if (error) throw error;
         dbList = (data || []).map(normalizeArchiveRow);
-        console.log(`✅ Fetched ${dbList.length} archive entries from Supabase`);
-      } else {
-        console.log('⚠️ No user_id or Supabase, using localStorage only');
       }
     } catch (error) {
       console.error('❌ Archive fetch failed:', error);
@@ -203,7 +202,6 @@
     
     const lsList = readLS(LS_ARCHIVE);
     const all = dedupeById([...dbList, ...lsList]).slice(0, limit);
-    console.log(`📦 Total archive entries: ${all.length} (DB: ${dbList.length}, localStorage: ${lsList.length})`);
     return all;
   }
 
@@ -359,7 +357,6 @@
       if (error) {
         // Profile doesn't exist yet (new user)
         if (error.code === 'PGRST116') {
-          console.log('📝 No profile found, will create on first update');
           return null;
         }
         throw error;
@@ -370,7 +367,6 @@
         writeLS('stayhi_profile', data);
       }
 
-      console.log('✅ Profile loaded:', data);
       return data;
 
     } catch (error) {
@@ -417,7 +413,6 @@
         writeLS('stayhi_profile', data);
       }
 
-      console.log('✅ Profile updated:', data);
       return { ok: true, data };
 
     } catch (error) {
@@ -437,12 +432,9 @@
       const supa = getSupabase();
       if (!supa) throw new Error('No Supabase client');
       
-      console.log('🔄 Calling increment_hi_wave RPC');
       const { error } = await supa.rpc('increment_hi_wave');
-      console.log('🔄 increment_hi_wave RPC result:', { error });
       if (error) throw error;
       
-      console.log('✅ Hi Wave incremented in DB');
       return { ok: true };
     } catch (e) {
       console.error('❌ Failed to increment Hi Wave:', e);
@@ -456,12 +448,9 @@
       const supa = getSupabase();
       if (!supa) throw new Error('No Supabase client');
       
-      console.log('🔄 Calling increment_total_hi RPC');
       const { error } = await supa.rpc('increment_total_hi');
-      console.log('🔄 increment_total_hi RPC result:', { error });
       if (error) throw error;
       
-      console.log('✅ Total Hi incremented in DB');
       return { ok: true };
     } catch (e) {
       console.error('❌ Failed to increment Total Hi:', e);

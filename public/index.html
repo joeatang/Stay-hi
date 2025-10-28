@@ -6,8 +6,8 @@
   <title>Stay Hi — Today</title>
 
   <!-- Preload Supabase CDN for instant client init -->
-  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" as="script">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
   <!-- Auth guard - must be first -->
   <script src="assets/auth-guard.js"></script>
@@ -524,7 +524,7 @@
     const journal    = document.getElementById('journal');
     const charCount  = document.getElementById('charCount');
     
-    // DEBUG: Test hover functionality
+  // Test hover functionality
     if (hiMedal) {
       hiMedal.addEventListener('mouseenter', () => {
         console.log('🎯 Hi medallion hovered!');
@@ -533,7 +533,7 @@
         console.log('👋 Hi medallion hover ended');
       });
       
-      // Debug click event
+  // click event
       hiMedal.addEventListener('click', (e) => {
         console.log('🎯 MEDALLION CLICKED - Event details:', {
           target: e.target,
@@ -577,7 +577,6 @@
     // Add close button event listener
     if (sheetClose) {
       sheetClose.addEventListener('click', (e) => {
-        console.log('❌ Close button clicked'); // DEBUG
         closeSheet();
       });
     }
@@ -585,7 +584,6 @@
     // Add click outside to close
     if (backdrop) {
       backdrop.addEventListener('click', (e) => {
-        console.log('🖱️ Backdrop clicked - closing modal'); // DEBUG
         closeSheet();
       });
     }
@@ -684,7 +682,7 @@
       setTimeout(()=>toastEl.classList.remove('show'), ttl); 
     }
     function openSheet(){ 
-      console.log('📱 Opening share sheet modal - checking elements', { sheet, backdrop, journal }); // DEBUG
+  // Opening share sheet modal
       
       if (!sheet) {
         console.error('❌ Sheet element not found!');
@@ -697,7 +695,7 @@
         transform: getComputedStyle(sheet).transform,
         zIndex: getComputedStyle(sheet).zIndex,
         classes: sheet.className
-      }); // DEBUG
+  });
       
       // Gold standard modal opening - let CSS handle positioning
       document.body.classList.add('modal-open');
@@ -712,21 +710,21 @@
         transform: getComputedStyle(sheet).transform,
         zIndex: getComputedStyle(sheet).zIndex,
         classes: sheet.className
-      }); // DEBUG
+  });
       
       if (backdrop) {
         backdrop.style.display='block'; 
-        console.log('✅ Backdrop displayed'); // DEBUG
+  // Backdrop displayed
       } else {
-        console.warn('⚠️ Backdrop element not found'); // DEBUG
+  console.warn('⚠️ Backdrop element not found');
       }
       
       try{ 
         if (journal) {
           journal.focus(); 
-          console.log('✅ Journal focused'); // DEBUG
+          // Journal focused
         } else {
-          console.warn('⚠️ Journal element not found'); // DEBUG
+          console.warn('⚠️ Journal element not found');
         }
         
         // Premium entrance effect
@@ -734,7 +732,7 @@
           window.PremiumUX.triggerHapticFeedback('light');
         }
       }catch(err) {
-        console.error('❌ Error opening sheet:', err); // DEBUG
+  console.error('❌ Error opening sheet:', err);
       } 
     }
     
@@ -794,7 +792,6 @@
       try {
         let supa = getSupabase();
         if (!supa) {
-          console.log('⏳ Waiting for Supabase client...');
           await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => reject(new Error('Supabase client init timeout')), 5000);
             window.addEventListener('supabase-ready', () => {
@@ -804,16 +801,13 @@
             }, { once: true });
           });
         }
-        console.log('🔄 Calling get_global_stats RPC');
         const { data, error } = await supa.rpc('get_global_stats');
-        console.log('🔄 get_global_stats RPC result:', { data, error });
         if (error || !data) throw error || new Error('No data');
         const stats = data;
         gWaves = Number(stats.hi_waves) || 0;
         gStarts = Number(stats.total_his) || 0;
-        console.log('📊 Fetched global stats:', { gWaves, gStarts });
       } catch (e) {
-        console.error('❌ Failed to fetch global stats:', e);
+        console.error('Failed to fetch global stats:', e);
         gWaves = 0;
         gStarts = 0;
       }
@@ -988,7 +982,7 @@
     // Tap logo → Hi Wave (cosmetic global, no UI shift) - OPTIMIZED PREMIUM VERSION
     let clickAnimationFrame;
     hiMedal.addEventListener('click', async (e)=>{
-      console.log('🎯 Hi medallion clicked!'); // DEBUG
+  // Hi medallion clicked
       
       // Cancel any pending animation
       if (clickAnimationFrame) {
@@ -1007,14 +1001,14 @@
       
       // OPTIMIZED: Use requestAnimationFrame for smooth animation
       clickAnimationFrame = requestAnimationFrame(() => {
-        console.log('🚀 Triggering medallion animations'); // DEBUG
+  // Triggering medallion animations
         
         // Add immediate visual feedback
         hiMedal.style.transform = 'translateY(-5px) scale(0.98) translateZ(0)';
         
         // PREMIUM: TikTok-style particle burst
         if (window.PremiumUX) {
-          console.log('✨ PremiumUX available, creating burst'); // DEBUG
+          // PremiumUX available, creating burst
           window.PremiumUX.burst(hiMedal, { 
             count: 16, 
             colors: ['#FFD700', '#FE2C55', '#25F4EE', '#8A2BE2'],
@@ -1035,13 +1029,13 @@
           hiMedal.style.transform = '';
         }, 150);
       } else {
-        console.warn('⚠️ PremiumUX not available'); // DEBUG
+  console.warn('⚠️ PremiumUX not available');
       }
       });
       
       // OPTIMIZED: emoji burst with better performance
       requestAnimationFrame(() => {
-        console.log('👋 Creating emoji wave burst'); // DEBUG
+  // Creating emoji wave burst
         for(let i=0;i<12;i++){
           const s=document.createElement('span');
           const x=50+(Math.random()-0.5)*12, y=48+(Math.random()-0.5)*8;
@@ -1055,21 +1049,21 @@
         }
         
         // OPTIMIZED: halo + logo animations (no position change)
-        console.log('🎭 Triggering medallion CSS animations'); // DEBUG
+  // Triggering medallion CSS animations
         hiMedal.classList.remove('pulse'); 
         void hiMedal.offsetWidth; // Force reflow 
         hiMedal.classList.add('pulse');
-        console.log('✨ Pulse class added:', hiMedal.classList.contains('pulse')); // DEBUG
+  // Pulse class toggled
         
         hiLogo.classList.remove('logo-pop'); 
         void hiLogo.offsetWidth; // Force reflow
         hiLogo.classList.add('logo-pop');
-        console.log('🚀 Logo-pop class added:', hiLogo.classList.contains('logo-pop')); // DEBUG
+  // Logo-pop class toggled
         
         hiMark.classList.remove('glow'); 
         void hiMark.offsetWidth; // Force reflow
         hiMark.classList.add('glow');
-        console.log('✨ Glow class added:', hiMark.classList.contains('glow')); // DEBUG
+  // Glow class toggled
       });
       
       renderCounters();
@@ -1086,7 +1080,7 @@
 
     // Main CTA → Self Hi-5 - PREMIUM VERSION WITH HI MOMENT TRACKING
     hiBtn.addEventListener('click', (e)=>{
-      console.log('🎯 Self Hi-5 button clicked!'); // DEBUG
+  // Self Hi-5 button clicked
       
       const key = todayKey();
       history[key] = (history[key]||0) + 1;
@@ -1118,7 +1112,7 @@
       
       // PREMIUM: Tesla x TikTok celebration effects
       if (window.PremiumUX) {
-        console.log('✨ PremiumUX available for Hi-5 celebration'); // DEBUG
+  // PremiumUX available for Hi-5 celebration
         
         // Disable floating messages to prevent conflicts
         const originalCelebrate = window.PremiumUX.celebrate;
@@ -1155,7 +1149,7 @@
         // Haptic feedback
         window.PremiumUX.triggerHapticFeedback('medium');
       } else {
-        console.warn('⚠️ PremiumUX not available for Hi-5'); // DEBUG
+  console.warn('⚠️ PremiumUX not available for Hi-5');
         // Fallback to simple toast
         toast('✨ Self Hi-5!');
       }
@@ -1168,7 +1162,7 @@
       }, 200); // Small delay to sync with celebration toast
 
       // Clear, bright prompt for sharing options
-      console.log('📱 Opening share sheet modal'); // DEBUG
+  // Opening share sheet modal
       setTimeout(() => {
         openSheet();
       }, 800); // Delay to let celebration complete
