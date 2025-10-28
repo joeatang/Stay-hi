@@ -12,6 +12,7 @@
   <script src="assets/performance-manager.js"></script>
   <script src="assets/image-optimizer.js"></script>
   <script src="assets/upload-tester.js"></script>
+  <script src="assets/avatar-utils.js"></script>
   
   <!-- Critical CSS will be bundled by performance manager -->
   <link rel="preload" href="assets/theme.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -2569,16 +2570,15 @@
     function updateProfileDisplay() {
       if (!currentUser) return;
       
-      // Update avatar with Tesla-grade placeholder handling
+      // Update avatar with initials fallback (no Dicebear)
       const avatar = document.getElementById('profileAvatar');
       const placeholder = document.getElementById('avatarPlaceholder');
-      const avatarSeed = currentUser.email || currentProfile?.username || 'guest';
       
+      // Get avatar URL from profile or user metadata
       const avatarUrl = currentProfile?.avatar_url || 
-                       currentUser.user_metadata?.avatar_url || 
-                       `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(avatarSeed)}`;
+                       currentUser.user_metadata?.avatar_url;
       
-      // Handle avatar loading with placeholder
+      // Handle avatar loading with initials fallback
       if (avatarUrl && avatarUrl !== '') {
         avatar.onload = () => {
           if (placeholder) {
@@ -2586,15 +2586,20 @@
           }
         };
         avatar.onerror = () => {
-          avatar.src = '';
+          // Fallback to initials on error
+          avatar.style.display = 'none';
           if (placeholder) {
+            updatePlaceholderWithInitials(placeholder);
             placeholder.classList.remove('hidden');
           }
         };
         avatar.src = avatarUrl;
+        avatar.style.display = 'block';
       } else {
-        avatar.src = '';
+        // No avatar, show initials
+        avatar.style.display = 'none';
         if (placeholder) {
+          updatePlaceholderWithInitials(placeholder);
           placeholder.classList.remove('hidden');
         }
       }
@@ -2630,6 +2635,34 @@
         const displayName = currentProfile?.display_name || currentProfile?.username || 'Stay Hi User';
         document.querySelector('.profile-title').textContent = `${displayName}'s Profile`;
       }
+    }
+    
+    // Update placeholder with user initials
+    function updatePlaceholderWithInitials(placeholder) {
+      if (!window.AvatarUtils) {
+        console.warn('AvatarUtils not loaded, using generic placeholder');
+        return;
+      }
+      
+      const initials = window.AvatarUtils.getInitials(
+        currentProfile?.display_name,
+        currentProfile?.username,
+        currentUser?.email
+      );
+      
+      const colors = window.AvatarUtils.getColorFromString(
+        currentUser?.email || currentProfile?.username || 'default'
+      );
+      
+      placeholder.style.background = colors.background;
+      placeholder.innerHTML = `
+        <div style="
+          color: ${colors.text};
+          font-size: 48px;
+          font-weight: 700;
+          letter-spacing: 1px;
+        ">${initials}</div>
+      `;
     }
     
     // Update stats display

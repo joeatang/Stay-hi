@@ -154,6 +154,18 @@
   justify-content: space-between;
   align-items: start;
   margin-bottom: var(--space-sm);
+  gap: var(--space-sm);
+}
+
+.hi-feed-card-user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex: 1;
+}
+
+.hi-feed-card-avatar {
+  flex-shrink: 0;
 }
 
 .hi-feed-card-user {

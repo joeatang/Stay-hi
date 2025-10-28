@@ -269,9 +269,52 @@ class HiIslandFeed {
          </div>`
       : '';
 
+    // Create avatar HTML (will be replaced by actual avatar element)
+    const avatarPlaceholder = document.createElement('div');
+    avatarPlaceholder.className = 'hi-feed-card-avatar';
+    
+    // Use AvatarUtils if available to create proper avatar
+    if (window.AvatarUtils) {
+      const userObj = {
+        avatar_url: share.userAvatar,
+        display_name: share.userName,
+        username: share.userName,
+        email: null // We don't have email in public shares
+      };
+      
+      const avatarElement = window.AvatarUtils.createAvatar(userObj, {
+        size: '40px',
+        className: 'hi-feed-avatar',
+        showInitials: true,
+        isAnonymous: share.isAnonymous
+      });
+      
+      avatarPlaceholder.appendChild(avatarElement);
+    } else {
+      // Fallback: simple initials div
+      const initials = (share.userName || 'HI').substring(0, 2).toUpperCase();
+      avatarPlaceholder.innerHTML = `
+        <div style="
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #4ECDC4, #FFD93D);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: 700;
+          font-size: 14px;
+        ">${initials}</div>
+      `;
+    }
+
     card.innerHTML = `
       <div class="hi-feed-card-header">
-        <div class="hi-feed-card-user">${share.userName || 'Hi Friend'}</div>
+        <div class="hi-feed-card-user-info">
+          ${avatarPlaceholder.outerHTML}
+          <div class="hi-feed-card-user">${share.userName || 'Hi Friend'}</div>
+        </div>
         <div class="hi-feed-card-time">${timeAgo}</div>
       </div>
       ${emotionalJourney}

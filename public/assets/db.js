@@ -161,13 +161,29 @@
       
       const { data, error } = await supa
         .from("public_shares")
-        .select("*")
+        .select(`
+          *,
+          profiles!public_shares_user_id_fkey (
+            username,
+            display_name,
+            avatar_url
+          )
+        `)
         .eq("is_public", true)
         .order("created_at", { ascending: false })
         .limit(limit);
       if (error) throw error;
-      dbList = (data || []).map(normalizePublicRow);
-    } catch {
+      dbList = (data || []).map(row => {
+        const normalized = normalizePublicRow(row);
+        // Add profile data if available
+        if (row.profiles) {
+          normalized.userName = row.profiles.display_name || row.profiles.username || normalized.userName;
+          normalized.userAvatar = row.profiles.avatar_url || null;
+        }
+        return normalized;
+      });
+    } catch (err) {
+      console.warn('Public shares fetch failed, using local cache:', err);
       // ignore, rely on local
     }
 
