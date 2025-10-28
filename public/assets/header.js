@@ -83,60 +83,75 @@
   // Add scroll listener with passive flag for performance
   window.addEventListener('scroll', onScroll, { passive: true });
 
-  document.getElementById("btnCal")?.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Function to open premium calendar
-    const openPremiumCalendar = () => {
-      if (window.PremiumCalendar && typeof window.PremiumCalendar.show === 'function') {
-        window.PremiumCalendar.show();
-        return true;
-      }
-      return false;
-    };
-    
-    // Try to open premium calendar immediately
-    if (openPremiumCalendar()) {
-      // Success - add haptic feedback
-      if (window.PremiumUX?.triggerHapticFeedback) {
-        window.PremiumUX.triggerHapticFeedback('light');
-      }
-      return;
-    }
-    
-    // If not immediately available, wait a bit and try again
-    setTimeout(() => {
-      if (!openPremiumCalendar()) {
-        // Final fallback to event dispatch
+  // Calendar button - handle both immediate and delayed availability
+  const btnCal = document.getElementById("btnCal");
+  if (btnCal) {
+    btnCal.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Try multiple calendar interfaces (compatibility layer)
+      const openCalendar = () => {
+        // Try window.openHiCalendar (module components)
+        if (window.openHiCalendar && typeof window.openHiCalendar === 'function') {
+          window.openHiCalendar();
+          return true;
+        }
+        
+        // Try window.PremiumCalendar (legacy)
+        if (window.PremiumCalendar && typeof window.PremiumCalendar.show === 'function') {
+          window.PremiumCalendar.show();
+          return true;
+        }
+        
+        // Try event dispatch fallback
         window.dispatchEvent(new CustomEvent("open-calendar"));
-      } else {
-        // Add haptic feedback for delayed success
+        return false;
+      };
+      
+      // Try immediately
+      if (openCalendar()) {
         if (window.PremiumUX?.triggerHapticFeedback) {
           window.PremiumUX.triggerHapticFeedback('light');
         }
+        return;
       }
-    }, 100);
-  });
+      
+      // If not available, wait for modules to load
+      setTimeout(() => {
+        if (openCalendar()) {
+          if (window.PremiumUX?.triggerHapticFeedback) {
+            window.PremiumUX.triggerHapticFeedback('light');
+          }
+        } else {
+          console.warn('⚠️ Calendar component not available');
+        }
+      }, 100);
+    });
+  }
 
   const sheet = document.getElementById("menuSheet");
   const btnMore = document.getElementById("btnMore");
   const btnSignOut = document.getElementById("btnSignOut");
-  // Calendar functionality is now handled by the top calendar icon only
   
-  // Enhanced menu functionality
-  btnMore?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    const isOpen = sheet.classList.contains("open");
-    
-    if (isOpen) {
-      closeMenu();
-    } else {
-      openMenu();
-    }
-  });
+  // Menu button - ensure elements exist
+  if (btnMore && sheet) {
+    btnMore.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isOpen = sheet.classList.contains("open");
+      
+      if (isOpen) {
+        closeMenu();
+      } else {
+        openMenu();
+      }
+    });
+  } else {
+    console.warn('⚠️ Menu elements not found:', { btnMore: !!btnMore, sheet: !!sheet });
+  }
 
   function openMenu() {
+    if (!sheet || !btnMore) return;
     sheet.classList.add("open");
     sheet.setAttribute("aria-hidden", "false");
     btnMore.setAttribute("aria-expanded", "true");
@@ -148,6 +163,7 @@
   }
 
   function closeMenu() {
+    if (!sheet || !btnMore) return;
     sheet.classList.remove("open");
     sheet.setAttribute("aria-hidden", "true");
     btnMore.setAttribute("aria-expanded", "false");

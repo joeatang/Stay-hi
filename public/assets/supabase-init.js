@@ -2,15 +2,8 @@
 // Supabase client initialization - load CDN script first, then initialize
 
 (function() {
-  // Load Supabase CDN if not already loaded
-  if (!window.supabase) {
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';
-    script.onload = initializeSupabase;
-    document.head.appendChild(script);
-  } else {
-    initializeSupabase();
-  }
+  // Supabase script is loaded in HTML head, so initialize directly
+  initializeSupabase();
 
   function initializeSupabase() {
     // 🔁 paste your values from Supabase → Project Settings → API

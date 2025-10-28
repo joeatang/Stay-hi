@@ -79,14 +79,20 @@
 
   // Main auth guard logic
   async function authGuard() {
-    if (!needsAuth()) return; // Public pages don't need protection
+    console.log('[auth-guard] Running for:', location.pathname);
+    if (!needsAuth()) {
+      console.log('[auth-guard] Public page, skipping');
+      return; // Public pages don't need protection
+    }
 
     const authenticated = await isAuthenticated();
+    console.log('[auth-guard] Authenticated:', authenticated);
     
     if (!authenticated) {
       // Special cases: these pages get full features with demo fallback
       if (location.pathname.endsWith('hi-island.html') || 
           location.pathname.endsWith('index.html') || 
+          location.pathname.endsWith('invite-admin.html') || // TEMP: Testing admin page
           location.pathname === '/') {
         console.log('🌐 Enabling full features with Supabase + localStorage hybrid mode');
         // Don't force demo mode - let the app try Supabase first

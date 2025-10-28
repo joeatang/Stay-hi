@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>Welcome — Stay Hi</title>
+
+  <!-- Preload Supabase CDN for instant client init -->
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" as="script">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+
+  <link rel="stylesheet" href="assets/theme.css"/>
+  <link rel="stylesheet" href="assets/create-parity.css"/>
+  <style>
+    body {
+      background: var(--grad-sunrise), var(--hi-bg);
+      min-height: 100vh;
+      margin: 0;
+      font-family: var(--f-sans);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+    }
+    .welcome-panel {
+      background: #0f1022cc;
+      border-radius: 24px;
+      box-shadow: 0 22px 60px rgba(0,0,0,.35), 0 1.5px 8px var(--ring);
+      padding: 2.5rem 2rem 2rem 2rem;
+      max-width: 420px;
+      width: 100%;
+      backdrop-filter: blur(20px) saturate(1.2);
+      -webkit-backdrop-filter: blur(20px) saturate(1.2);
+      border: 1.5px solid var(--hi-border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+    .welcome-logo {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      margin-bottom: 0.8rem;
+      filter: drop-shadow(0 8px 22px rgba(255,210,102,.55));
+    }
+    .welcome-title {
+      font-size: var(--fs-h1);
+      font-weight: 800;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 2px 12px #0008;
+      letter-spacing: -0.5px;
+    }
+    .welcome-lead {
+      color: #f7f8ff;
+      text-align: center;
+      font-size: 1.05rem;
+      margin-bottom: 1.5rem;
+      font-weight: 500;
+      text-shadow: 0 1px 8px #0006;
+    }
+    .welcome-actions {
+      display: flex;
+      gap: 1.2rem;
+      width: 100%;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+    .welcome-btn {
+      flex: 1;
+      background: linear-gradient(90deg,#FFD166,#FF7A18);
+      color: #111;
+      font-weight: 800;
+      border: none;
+      border-radius: 16px;
+      padding: 1rem 0;
+      font-size: 1.1rem;
+      box-shadow: 0 10px 24px #ff7a1812,0 2px 8px #ffd16622;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+      text-align: center;
+    }
+    .welcome-btn:hover {
+      background: linear-gradient(90deg,#FFB347,#FF7A18);
+      box-shadow: 0 14px 34px #ff7a1833;
+    }
+    .welcome-stats {
+      width: 100%;
+      background: rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 1.2rem 1rem;
+      margin-bottom: 0.5rem;
+      box-shadow: 0 2px 8px #ffd16622;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      align-items: center;
+    }
+    .stat-label {
+      color: #FFD166;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.01em;
+    }
+    .stat-value {
+      color: #fff;
+      font-size: 1.3rem;
+      font-weight: 800;
+      text-shadow: 0 2px 12px #0008;
+    }
+    @media (max-width: 500px) {
+      .welcome-panel { padding: 1.2rem 0.5rem; margin: 1.5rem 0.5rem; }
+      .welcome-title { font-size: 1.2rem; }
+      .welcome-logo { width: 56px; height: 56px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="welcome-panel">
+    <img src="assets/brand/hi-logo-light.png" alt="Stay Hi" class="welcome-logo" />
+    <div class="welcome-title">Welcome to Stay Hi</div>
+    <div class="welcome-lead">Choose your path. Join the Hi movement or sign in to continue. See how the world is Hi-ing today!</div>
+    <div class="welcome-actions">
+      <a href="signup.html" class="welcome-btn">Sign Up</a>
+      <a href="signin.html" class="welcome-btn">Sign In</a>
+    </div>
+    <div class="welcome-stats" id="welcomeStats">
+      <div><span class="stat-label">Global Hi Waves</span>: <span class="stat-value" id="statWaves">...</span></div>
+      <div><span class="stat-label">Total Hi's</span>: <span class="stat-value" id="statHis">...</span></div>
+    </div>
+  </main>
+  <script src="assets/supabase-init.js"></script>
+  <script src="assets/db.js"></script>
+  <script>
+    // Tesla-grade: Pull global stats from Supabase RPC
+    async function fetchStats() {
+      try {
+        let supa = getSupabase();
+        if (!supa) {
+          console.log('⏳ Waiting for Supabase client...');
+          await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Supabase client init timeout')), 5000);
+            window.addEventListener('supabase-ready', () => {
+              clearTimeout(timeout);
+              supa = getSupabase();
+              resolve();
+            }, { once: true });
+          });
+        }
+        console.log('🔄 Calling get_global_stats RPC');
+        const { data, error } = await supa.rpc('get_global_stats');
+        console.log('🔄 get_global_stats RPC result:', { data, error });
+        if (error || !data) throw error || new Error('No data');
+        const stats = data;
+        const hiWaves = Number(stats.hi_waves) || 0;
+        const totalHis = Number(stats.total_his) || 0;
+        console.log('📊 Fetched stats:', { hiWaves, totalHis });
+        document.getElementById('statWaves').textContent = hiWaves.toLocaleString();
+        document.getElementById('statHis').textContent = totalHis.toLocaleString();
+      } catch (e) {
+        console.error('❌ Welcome fetch failed:', e);
+        document.getElementById('statWaves').textContent = 'N/A';
+        document.getElementById('statHis').textContent = 'N/A';
+      }
+    }
+    fetchStats();
+  </script>
+</body>
+</html>

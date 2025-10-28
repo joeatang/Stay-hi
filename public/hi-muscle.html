@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Hi Gym — Stay Hi</title>
 
+  <!-- Preload Supabase CDN for instant client init -->
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" as="script">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+
   <!-- Auth guard - must be first -->
   <script src="assets/auth-guard.js"></script>
 
@@ -679,7 +683,6 @@
       try {
         const text = journal.value.trim();
         const isAnon = getSwitch(toggleAnon);
-        const toIsland = getSwitch(togglePublic);
         const loc = (locationInput.value||'').trim();
 
         console.log('Submitting Hi Gym journey:', { 
@@ -687,7 +690,7 @@
           desired: state.desired?.name, 
           textLength: text.length,
           isAnon,
-          toIsland,
+          toIsland: true,  // Always share to island
           location: loc
         });
 
@@ -719,23 +722,21 @@
           type: 'higym' // Gold standard: type tag for filtering
         });
 
-        // Share to Hi Island if requested
-        if (toIsland){
-          console.log('Sharing to Hi Island...');
-          await window.hiDB.insertPublicShare({
-            currentEmoji: state.current.emoji, 
-            currentName: state.current.name,
-            desiredEmoji: state.desired.emoji, 
-            desiredName: state.desired.name,
-            text, 
-            isAnonymous: isAnon, 
-            location: loc || null, // Clean pipe: null for no location
-            isPublic: true,
-            origin: 'higym', // Gold standard: lowercase origin tag
-            journeyType: pattern?.journeyType || 'exploration',
-            tags: ['emotional-journey', 'higym'] // Gold standard: lowercase tags
-          });
-        }
+        // Always share to Hi Island as part of the flow
+        console.log('Sharing to Hi Island...');
+        await window.hiDB.insertPublicShare({
+          currentEmoji: state.current.emoji, 
+          currentName: state.current.name,
+          desiredEmoji: state.desired.emoji, 
+          desiredName: state.desired.name,
+          text, 
+          isAnonymous: isAnon, 
+          location: loc || null, // Clean pipe: null for no location
+          isPublic: true,
+          origin: 'higym', // Gold standard: lowercase origin tag
+          journeyType: pattern?.journeyType || 'exploration',
+          tags: ['emotional-journey', 'higym'] // Gold standard: lowercase tags
+        });
 
         closeSheet();
         

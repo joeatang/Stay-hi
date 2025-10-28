@@ -1,4 +1,4 @@
-º))// public/assets/auth.js
+// public/assets/auth.js
 // Unified auth helper utilities
 
 (function() {

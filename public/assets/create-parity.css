@@ -179,7 +179,7 @@ body.sunrise::before{
 /* --- Week strip (just under header) --- */
 .weekstrip{display:flex;justify-content:space-between;gap:8px;padding:8px 14px 0;max-width:520px;margin:0 auto}
 .weekdot{display:flex;flex-direction:column;align-items:center;width:13%}
-.weekdot .lbl{font-size:10px;color:#041016b0;font-weight:800}
+.weekdot .lbl{font-size:10px;color:white;font-weight:800}
 .weekdot .c{margin-top:4px;width:24px;height:24px;border-radius:999px;display:grid;place-items:center;border:1px solid #00000016;background:#fff}
 .weekdot .c.met{background:#0aa15a;border-color:#0aa15a;color:#fff}
 

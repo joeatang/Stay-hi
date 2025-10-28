@@ -23,6 +23,8 @@
   function getSupabase() {
     return window.supabaseClient || window.sb || null;
   }
+  // Expose globally for other scripts
+  window.getSupabase = getSupabase;
 
   function readLS(key, def = []) {
     try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(def)); }
@@ -97,6 +99,9 @@
       
       const { data, error } = await supa.from("public_shares").insert(row).select().single();
       if (error) throw error;
+
+      // Note: Global stats increment is now handled by database trigger on insert
+      console.log('📊 Public share inserted - stats will be incremented by DB trigger');
 
       // Normalize shape for UI (enhanced with origin)
       const ui = normalizePublicRow(data);
@@ -426,6 +431,44 @@
     }
   }
 
+    // 🌍 Increment global Hi Wave counter
+  async function incrementHiWave() {
+    try {
+      const supa = getSupabase();
+      if (!supa) throw new Error('No Supabase client');
+      
+      console.log('🔄 Calling increment_hi_wave RPC');
+      const { error } = await supa.rpc('increment_hi_wave');
+      console.log('🔄 increment_hi_wave RPC result:', { error });
+      if (error) throw error;
+      
+      console.log('✅ Hi Wave incremented in DB');
+      return { ok: true };
+    } catch (e) {
+      console.error('❌ Failed to increment Hi Wave:', e);
+      return { ok: false, error: e.message };
+    }
+  }
+
+  // 🌍 Increment global Total Hi counter
+  async function incrementTotalHi() {
+    try {
+      const supa = getSupabase();
+      if (!supa) throw new Error('No Supabase client');
+      
+      console.log('🔄 Calling increment_total_hi RPC');
+      const { error } = await supa.rpc('increment_total_hi');
+      console.log('🔄 increment_total_hi RPC result:', { error });
+      if (error) throw error;
+      
+      console.log('✅ Total Hi incremented in DB');
+      return { ok: true };
+    } catch (e) {
+      console.error('❌ Failed to increment Total Hi:', e);
+      return { ok: false, error: e.message };
+    }
+  }
+
   // Public API
   window.hiDB = {
     isOnline,
@@ -438,6 +481,8 @@
     fetchMonthActivity,
     fetchUserProfile,
     updateProfile,
+    incrementHiWave,
+    incrementTotalHi,
   };
 
   // Fetch month activity for calendar (days with Hi counts, streaks, milestones)

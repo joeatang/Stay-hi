@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Invite Management — Stay Hi</title>
 
-  <!-- Auth guard - must be first -->
-  <script src="assets/auth-guard.js"></script>
+  <!-- DISABLED ALL SCRIPTS FOR DEBUGGING -->
+  <!-- <script src="assets/auth-guard.js"></script> -->
 
   <!-- Brand + shared styles -->
   <link rel="stylesheet" href="assets/theme.css"/>
@@ -20,6 +20,23 @@
       padding: 0;
       margin: 0;
     }
+    
+    /* VERSION CHECK - If you see this, file is latest */
+    body::before {
+      content: '🔧 DEBUG MODE - v2024-10-27-02';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #ff0000;
+      color: white;
+      text-align: center;
+      padding: 4px;
+      z-index: 9999;
+      font-weight: bold;
+      font-size: 12px;
+    }
+    
     
     .invite-container {
       max-width: 1200px;
@@ -550,12 +567,19 @@
     </div>
   </div>
 
-  <!-- Scripts -->
+  <!-- Scripts - ALL DISABLED FOR DEBUGGING -->
+  <!--
   <script src="assets/header.js"></script>
   <script src="assets/supabase-init.js"></script>
   <script src="assets/auth.js"></script>
   <script src="assets/premium-ux.js"></script>
+  -->
   
+  <script>
+    console.log('🔧 PAGE LOADED - ALL SCRIPTS DISABLED - NO REDIRECT SHOULD HAPPEN');
+    alert('PAGE LOADED! If you see this and then redirect, it is NOT JavaScript causing it.');
+  </script>
+  <!--
   <script>
     // Invite Code Management System
     class InviteManager {
@@ -570,10 +594,36 @@
       }
 
       async init() {
-        if (!window.currentUser || !window.supabaseClient) {
-          window.location.href = 'signin.html';
+        console.log('🔍 [invite-admin] init() started');
+        
+        // Ensure Supabase is ready
+        console.log('🔍 [invite-admin] window.supabaseClient:', !!window.supabaseClient);
+        console.log('🔍 [invite-admin] window.sb:', !!window.sb);
+        
+        if (!window.supabaseClient && !window.sb) {
+          console.error('❌ Supabase not initialized');
+          // DISABLED: window.location.href = 'signin.html';
           return;
         }
+
+        const client = window.supabaseClient || window.sb;
+        console.log('🔍 [invite-admin] Using client:', !!client);
+
+        // Get current user
+        console.log('🔍 [invite-admin] Calling auth.getUser()...');
+        const { data: { user }, error } = await client.auth.getUser();
+        console.log('🔍 [invite-admin] User result:', user);
+        console.log('🔍 [invite-admin] Error:', error);
+        
+        if (!user || error) {
+          console.error('❌ Not authenticated:', error);
+          // DISABLED: window.location.href = 'signin.html';
+          return;
+        }
+
+        // Set global currentUser for other functions to use
+        window.currentUser = user;
+        console.log('✅ [invite-admin] User authenticated:', user.email);
 
         await this.loadCodes();
         await this.updateStats();
@@ -963,9 +1013,11 @@
       }
     }
 
-    // Initialize
-    window.inviteManager = new InviteManager();
+    // Initialize - DISABLED FOR DEBUGGING
+    // window.inviteManager = new InviteManager();
     
+    console.log('🔧 Invite Manager initialization DISABLED');
+    /*
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => window.inviteManager.init(), 1000);
@@ -973,6 +1025,8 @@
     } else {
       setTimeout(() => window.inviteManager.init(), 1000);
     }
+    */
   </script>
+  -->
 </body>
 </html>

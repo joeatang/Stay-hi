@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Stay Hi — Today</title>
 
+  <!-- Preload Supabase CDN for instant client init -->
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" as="script">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+
   <!-- Auth guard - must be first -->
   <script src="assets/auth-guard.js"></script>
 
@@ -35,6 +39,12 @@
   </noscript>
 
   <style>
+    body {
+      background: linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #ffd166 100%);
+      min-height: 100vh;
+      margin: 0;
+      font-family: var(--f-sans);
+    }
     /* Layout */
     .wrap{max-width:980px;margin:0 auto;padding:16px}
     .center{display:grid;place-items:center}
@@ -43,12 +53,12 @@
     /* 7-day strip */
     .weekstrip{display:flex;gap:10px;justify-content:center;margin:10px 0 14px}
     .weekdot{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:40px}
-    .weekdot .lbl{font-size:11px;opacity:.85;color:#cfd2ea}
+    .weekdot .lbl{font-size:11px;opacity:.85;color:white}
     .weekdot .c{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;border:1px solid #2a2e55;color:#cfd2ea}
     .weekdot .c.met{background:linear-gradient(135deg, #ffd166, #ff7a18); color:#111; border-color:#0000}
 
     /* Card shell */
-    .panel{background:#0f1022;border:1px solid #23264d;border-radius:22px;box-shadow:0 22px 60px rgba(0,0,0,.35)}
+    .panel{background:#0f1022cc;border:1px solid #23264d;border-radius:22px;box-shadow:0 22px 60px rgba(0,0,0,.35)}
 
     /* OPTIMIZED: Hi medallion - Premium Tesla style with GPU acceleration */
     .hi-medal{
@@ -473,7 +483,13 @@
   <script src="assets/header.js"></script>
 
   <script>
+
   (async function(){
+    // Helper to get Supabase client
+    function getSupabase() {
+      return window.supabaseClient || window.sb || null;
+    }
+    
     try { await hiAuth.ensureSessionMaybe?.(); } catch {}
 
     /* ---------- config ---------- */
@@ -488,8 +504,8 @@
 
     /* ---------- state ---------- */
     let history = read(LS.hist, {}), total = Number(read(LS.total,0))||0, streak = Number(read(LS.streak,0))||0, lastDay = read(LS.last,'');
-    let gWaves  = Number(localStorage.getItem(LS.gFive)||0)||0;
-    let gStarts = Number(localStorage.getItem(LS.gStart)||0)||0;
+    let gWaves  = 0;
+    let gStarts = 0;
 
     /* ---------- els ---------- */
     const todayCount = document.getElementById('todayCount');
@@ -772,7 +788,37 @@
       totalCount.textContent = total;
     }
 
+
     /* ---------- rotator ---------- */
+    async function fetchGlobalStats() {
+      try {
+        let supa = getSupabase();
+        if (!supa) {
+          console.log('⏳ Waiting for Supabase client...');
+          await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Supabase client init timeout')), 5000);
+            window.addEventListener('supabase-ready', () => {
+              clearTimeout(timeout);
+              supa = getSupabase();
+              resolve();
+            }, { once: true });
+          });
+        }
+        console.log('🔄 Calling get_global_stats RPC');
+        const { data, error } = await supa.rpc('get_global_stats');
+        console.log('🔄 get_global_stats RPC result:', { data, error });
+        if (error || !data) throw error || new Error('No data');
+        const stats = data;
+        gWaves = Number(stats.hi_waves) || 0;
+        gStarts = Number(stats.total_his) || 0;
+        console.log('📊 Fetched global stats:', { gWaves, gStarts });
+      } catch (e) {
+        console.error('❌ Failed to fetch global stats:', e);
+        gWaves = 0;
+        gStarts = 0;
+      }
+    }
+
     function dailyHiNote(date=new Date()){
       const key=`${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`; let h=0;
       for(let i=0;i<key.length;i++) h=(h*31+key.charCodeAt(i))|0;
@@ -786,23 +832,29 @@
       if(!notes.length){ announceWrap.style.display='none'; return; }
       rotIdx = i % notes.length; const n = notes[rotIdx];
       announceWrap.style.display='flex'; clearTimeout(rotTimer);
-      if(n.type==='hiffirmations'){
-        const text=n.text; const dur = Math.min(22, Math.max(10, Math.ceil(text.length/7)));
-        announceTxt.innerHTML = `<span class="badge">HIFFIRMATIONS</span><div class="marquee" style="--dur:${dur}s"><span>${text}&nbsp;&nbsp;&nbsp;</span></div>`;
-        rotTimer = setTimeout(()=> setRot((rotIdx+1)%notes.length), dur*1000 + 600);
+        if(n.type==='hiffirmations'){
+          const text=n.text; const dur = Math.min(22, Math.max(10, Math.ceil(text.length/7)));
+          announceTxt.innerHTML = `<span class="badge">HIFFIRMATIONS</span><div class="marquee" style="--dur:${dur}s"><span>${text}&nbsp;&nbsp;&nbsp;</span></div>`;
+          rotTimer = setTimeout(()=> setRot((rotIdx+1)%notes.length), dur*1000 + 600);
       }else{
         const label = n.type==='starts' ? 'STARTS' : 'WAVES';
         announceTxt.innerHTML = `<span class="badge">${label}</span><span class="announce-text">${n.text}</span>`;
         rotTimer = setTimeout(()=> setRot((rotIdx+1)%notes.length), 5200);
       }
     }
-    function updateRotator(){
+    async function updateRotator(){
+      await fetchGlobalStats();
       notes = [
         {type:'waves',  text:`🌊 Hi Waves: ${gWaves.toLocaleString()}`},
         {type:'starts', text:`🏁 Hi Starts: ${gStarts.toLocaleString()}`},
         {type:'hiffirmations',   text:`💡 ${dailyHiNote()}`}
       ];
       setRot(rotIdx);
+      // Gold standard: If stats updated and not currently showing waves, show waves for 3 seconds
+      if (gWaves > 0 && notes[rotIdx].type !== 'waves') {
+        setRot(0); // Show updated waves
+        setTimeout(() => setRot(rotIdx), 3000); // Resume cycle
+      }
     }
 
     /* ---------- streak logic ---------- */
@@ -944,12 +996,14 @@
       }
       
       try{ navigator?.vibrate?.(25) }catch{}
-      gWaves += 1; localStorage.setItem(LS.gFive,String(gWaves));
       
       // Track Hi Wave in global stats
       if (window.GlobalStatsTracker) {
         window.GlobalStatsTracker.trackHiWave();
       }
+      
+      // Increment global Hi Wave in database
+      try{ await window.hiDB?.incrementHiWave?.(); }catch{}
       
       // OPTIMIZED: Use requestAnimationFrame for smooth animation
       clickAnimationFrame = requestAnimationFrame(() => {
@@ -1023,11 +1077,11 @@
       // Continue with database operations
       enqueue({type:'wave',delta:1}); 
       try{ 
-        await window.hiDB?.incrementCounters?.({wavesDelta:1}); 
+        await window.hiDB?.incrementHiWave?.(); 
       } catch{}
       
       toast('✨ Hi Wave'); 
-      updateRotator();
+      await updateRotator();
     }, { passive: true });
 
     // Main CTA → Self Hi-5 - PREMIUM VERSION WITH HI MOMENT TRACKING
@@ -1269,7 +1323,7 @@
       persist({toIsland:false});
     });
     
-    shareAnon.addEventListener('click',(e)=>{
+    shareAnon.addEventListener('click', async (e)=>{
       // Prevent multiple rapid clicks during animation
       if (shareAnon.dataset.animating === 'true') return;
       shareAnon.dataset.animating = 'true';
@@ -1280,15 +1334,16 @@
       }
       
       // Increment counters for actual submission to feed
-      gStarts += 1; 
       total += 1;
-      localStorage.setItem(LS.gStart, String(gStarts));
       localStorage.setItem(LS.total, String(total));
-      console.log('📊 Global share counter incremented:', gStarts);
       console.log('📊 Total Hi-5s incremented:', total);
       renderCounters(); // Update display
       
-      persist({toIsland:true,anon:true});
+      // Increment global total in database
+      try { await window.hiDB?.incrementTotalHi?.(); } catch {}
+      
+      await persist({toIsland:true,anon:true});
+      await updateRotator();
       
       // Reset animation lock after effects complete
       setTimeout(() => {
@@ -1296,7 +1351,7 @@
       }, 500);
     });
     
-    sharePublic.addEventListener('click',(e)=>{
+    sharePublic.addEventListener('click', async (e)=>{
       // Prevent multiple rapid clicks during animation
       if (sharePublic.dataset.animating === 'true') return;
       sharePublic.dataset.animating = 'true';
@@ -1311,15 +1366,16 @@
       }
       
       // Increment counters for actual submission to feed
-      gStarts += 1; 
       total += 1;
-      localStorage.setItem(LS.gStart, String(gStarts));
       localStorage.setItem(LS.total, String(total));
-      console.log('📊 Global share counter incremented:', gStarts);
       console.log('📊 Total Hi-5s incremented:', total);
       renderCounters(); // Update display
       
-      persist({toIsland:true,anon:false});
+      // Increment global total in database
+      try { await window.hiDB?.incrementTotalHi?.(); } catch {}
+      
+      await persist({toIsland:true,anon:false});
+      await updateRotator();
       
       // Reset animation lock after effects complete
       setTimeout(() => {
@@ -1443,8 +1499,8 @@
       }
     });;
 
-    /* ---------- boot ---------- */
-    renderCounters(); renderWeekStrip(); updateRotator(); flushQueue();
+  /* ---------- boot ---------- */
+  renderCounters(); renderWeekStrip(); await updateRotator(); flushQueue();
   })();
   </script>
   <script src="assets/premium-ux.js"></script>
