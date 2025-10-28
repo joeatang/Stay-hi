@@ -96,6 +96,117 @@
       font-weight: 400;
     }
     
+    /* Tesla-Grade Edit Profile Sheet Modal */
+    .edit-sheet-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      z-index: 2000;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .edit-sheet-overlay.show {
+      display: flex;
+    }
+    
+    .edit-sheet {
+      background: var(--glass-bg);
+      backdrop-filter: blur(30px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px 24px 0 0;
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      color: white;
+      box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.5);
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    
+    .edit-sheet-overlay.show .edit-sheet {
+      transform: translateY(0);
+    }
+    
+    .edit-sheet-header {
+      position: sticky;
+      top: 0;
+      background: rgba(15, 15, 35, 0.95);
+      backdrop-filter: blur(20px);
+      padding: 20px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+    }
+    
+    .edit-sheet-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0;
+    }
+    
+    .edit-sheet-close {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .edit-sheet-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
+    }
+    
+    .edit-sheet-body {
+      padding: 24px;
+    }
+    
+    .edit-sheet-footer {
+      position: sticky;
+      bottom: 0;
+      background: rgba(15, 15, 35, 0.95);
+      backdrop-filter: blur(20px);
+      padding: 20px 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    
+    @media (min-width: 768px) {
+      .edit-sheet-overlay {
+        align-items: center;
+        padding: 20px;
+      }
+      
+      .edit-sheet {
+        border-radius: 24px;
+        max-height: 85vh;
+      }
+    }
+    
+    /* Hide old edit section */
+    #editSection {
+      display: none !important;
+    }
+    
     /* Image Cropping Modal */
     .crop-modal {
       position: fixed;
@@ -1945,6 +2056,71 @@
     </section>
   </div>
 
+  <!-- Tesla-Grade Edit Profile Sheet Modal -->
+  <div class="edit-sheet-overlay" id="editSheetOverlay">
+    <div class="edit-sheet">
+      <div class="edit-sheet-header">
+        <h2 class="edit-sheet-title">
+          <span>✏️</span>
+          <span>Edit Profile</span>
+        </h2>
+        <button class="edit-sheet-close" onclick="closeEditSheet()" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="edit-sheet-body">
+        <form id="profileSheetForm">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="sheetUsernameInput">Username</label>
+              <input type="text" id="sheetUsernameInput" class="form-input" placeholder="Choose your username" maxlength="30" />
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="sheetDisplayNameInput">Display Name</label>
+              <input type="text" id="sheetDisplayNameInput" class="form-input" placeholder="Your display name" maxlength="50" />
+            </div>
+            
+            <div class="form-group full-width">
+              <label class="form-label" for="sheetBioInput">Bio</label>
+              <textarea id="sheetBioInput" class="form-input" placeholder="Tell us about yourself..." maxlength="200" rows="3"></textarea>
+            </div>
+            
+            <div class="form-group full-width">
+              <label class="form-label" for="sheetLocationInput">Location</label>
+              <div class="location-input-container">
+                <input type="text" id="sheetLocationInput" class="form-input" placeholder="City, State" maxlength="100" readonly />
+              </div>
+              <p class="location-privacy">🔒 Only city and state are shared for privacy</p>
+            </div>
+            
+            <div class="form-note full-width">
+              <p style="color: rgba(255, 255, 255, 0.6); font-size: 14px; margin: 0;">
+                💡 Close this sheet and click on your profile picture to change it
+              </p>
+            </div>
+          </div>
+        </form>
+      </div>
+      
+      <div class="edit-sheet-footer">
+        <button type="button" class="btn-tesla btn-secondary" onclick="closeEditSheet()">Cancel</button>
+        <button type="button" class="btn-tesla btn-primary" id="sheetSaveButton" onclick="saveProfileFromSheet()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17,21 17,13 7,13 7,21"></polyline>
+            <polyline points="7,3 7,8 15,8"></polyline>
+          </svg>
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Tesla-Grade Floating Location Setup Interface -->
   <div id="teslaLocationFloat" class="tesla-location-float" style="display: none;">
     <div class="tesla-location-card">
@@ -2804,6 +2980,7 @@
     // Initialize modal systems
     function initializeModals() {
       const cropModal = document.getElementById('imageCropModal');
+      const editSheet = document.getElementById('editSheetOverlay');
       
       if (cropModal) {
         cropModal.addEventListener('click', (e) => {
@@ -2811,14 +2988,26 @@
             closeCropModal();
           }
         });
-        
-        // Escape key handler
-        document.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape' && cropModal.classList.contains('show')) {
-            closeCropModal();
+      }
+      
+      if (editSheet) {
+        editSheet.addEventListener('click', (e) => {
+          if (e.target === e.currentTarget) {
+            closeEditSheet();
           }
         });
       }
+      
+      // Escape key handler
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          if (cropModal && cropModal.classList.contains('show')) {
+            closeCropModal();
+          } else if (editSheet && editSheet.classList.contains('show')) {
+            closeEditSheet();
+          }
+        }
+      });
     }
     
     // Trigger file picker with smooth animation
@@ -3921,22 +4110,172 @@
     
     // Edit profile functions
     function editProfile() {
-      isEditing = true;
-      document.getElementById('editSection').style.display = 'block';
-      document.getElementById('editSection').scrollIntoView({ behavior: 'smooth' });
+      // Open edit sheet modal instead of scrolling
+      const overlay = document.getElementById('editSheetOverlay');
+      
+      // Populate form with current values
+      if (currentProfile) {
+        document.getElementById('sheetUsernameInput').value = currentProfile.username || '';
+        document.getElementById('sheetDisplayNameInput').value = currentProfile.display_name || '';
+        document.getElementById('sheetBioInput').value = currentProfile.bio || '';
+        document.getElementById('sheetLocationInput').value = currentProfile.location || '';
+      }
+      
+      // Show modal
+      overlay.classList.add('show');
+      
+      // Haptic feedback
+      if (window.PremiumUX) {
+        window.PremiumUX.triggerHapticFeedback('medium');
+      }
+      
+      // Focus first input
+      setTimeout(() => {
+        document.getElementById('sheetUsernameInput')?.focus();
+      }, 300);
+    }
+    
+    function closeEditSheet() {
+      const overlay = document.getElementById('editSheetOverlay');
+      overlay.classList.remove('show');
       
       if (window.PremiumUX) {
         window.PremiumUX.triggerHapticFeedback('light');
       }
     }
     
-    function cancelEdit() {
-      isEditing = false;
-      document.getElementById('editSection').style.display = 'none';
+    async function saveProfileFromSheet() {
+      const saveButton = document.getElementById('sheetSaveButton');
+      const originalText = saveButton?.innerHTML;
       
-      // Reset form
-      document.getElementById('profileForm').reset();
-      updateProfileDisplay();
+      try {
+        if (saveButton) {
+          saveButton.innerHTML = `
+            <div class="loading-spinner">
+              <div class="loading-dots">
+                <span></span><span></span><span></span>
+              </div>
+              <span style="margin-left: 8px;">Saving...</span>
+            </div>
+          `;
+          saveButton.disabled = true;
+        }
+        
+        const username = document.getElementById('sheetUsernameInput').value.trim();
+        const displayName = document.getElementById('sheetDisplayNameInput').value.trim();
+        const bio = document.getElementById('sheetBioInput').value.trim();
+        const location = document.getElementById('sheetLocationInput').value.trim();
+        
+        // Get avatar URL from current profile (already saved when cropped)
+        let avatarUrl = currentProfile?.avatar_url;
+        
+        // Get current user ID safely
+        const userId = currentUser?.id || (await getCurrentUser())?.id;
+        if (!userId) {
+          throw new Error('User not authenticated');
+        }
+
+        // Get location data from Tesla location system
+        const locationData = window.TeslaLocationSystem ? 
+          await window.TeslaLocationSystem.getCurrentLocationData() : {};
+
+        // Update profile data
+        const profileData = {
+          id: userId,
+          username: username || null,
+          display_name: displayName || null,
+          bio: bio || null,
+          location: locationData.location || location || null,
+          location_city: locationData.city || null,
+          location_state: locationData.state || null,
+          location_country: locationData.country || null,
+          location_country_code: locationData.countryCode || null,
+          location_timezone: locationData.timezone || null,
+          location_source: locationData.source || 'manual',
+          avatar_url: avatarUrl || null,
+          updated_at: new Date().toISOString()
+        };
+        
+        // Save to localStorage for persistence
+        saveToLocalStorage(profileData);
+        
+        // Use centralized hiDB.updateProfile() for consistency
+        if (window.hiDB?.updateProfile) {
+          try {
+            const result = await window.hiDB.updateProfile(profileData);
+            console.log('✅ Profile saved via hiDB:', result);
+            
+            // Fetch fresh profile to get any server-side updates
+            const freshProfile = await window.hiDB.fetchUserProfile();
+            currentProfile = freshProfile || profileData;
+          } catch (hidbError) {
+            console.warn('⚠️ hiDB update failed, using localStorage fallback:', hidbError);
+            currentProfile = profileData;
+          }
+        } else if (window.supabaseClient) {
+          // Fallback to direct Supabase if hiDB not available
+          try {
+            const { data, error } = await window.supabaseClient
+              .from('profiles')
+              .upsert(profileData)
+              .select()
+              .single();
+            
+            if (error) throw error;
+            
+            currentProfile = data;
+            console.log('Profile saved to Supabase:', data);
+          } catch (supabaseError) {
+            console.warn('Supabase save failed, using localStorage:', supabaseError);
+            currentProfile = profileData;
+          }
+        } else {
+          console.log('No Supabase client, using localStorage only');
+          currentProfile = profileData;
+        }
+        
+        updateProfileDisplay();
+        
+        // Success feedback
+        showTeslaToast('Profile updated successfully!', 'success');
+        
+        if (window.PremiumUX) {
+          window.PremiumUX.celebrate(saveButton, '✨ Profile Updated!');
+          window.PremiumUX.confetti({ 
+            count: 30, 
+            colors: ['#4ECDC4', '#FFD93D', '#FF6B6B'] 
+          });
+          window.PremiumUX.triggerHapticFeedback('success');
+        }
+        
+        // Close sheet after brief celebration
+        setTimeout(() => {
+          closeEditSheet();
+        }, 1500);
+        
+      } catch (error) {
+        console.error('Save failed:', error);
+        showTeslaToast(error.message || 'Failed to save profile', 'error');
+        
+        if (window.PremiumUX && saveButton) {
+          window.PremiumUX.glow(saveButton, '#FF6B6B');
+        }
+        
+        if (saveButton) {
+          saveButton.classList.add('shake-animation');
+          setTimeout(() => saveButton.classList.remove('shake-animation'), 500);
+        }
+      } finally {
+        if (saveButton) {
+          saveButton.innerHTML = originalText;
+          saveButton.disabled = false;
+        }
+      }
+    }
+    
+    function cancelEdit() {
+      // Legacy function - now just closes the sheet
+      closeEditSheet();
     }
     
     // Share functions removed for cleaner Tesla-grade interface
