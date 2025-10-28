@@ -1,0 +1,210 @@
+/* Tesla-Grade Onboarding Styles */
+
+.onboarding-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.onboarding-overlay.onboarding-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.onboarding-overlay.onboarding-closing {
+  opacity: 0;
+}
+
+.onboarding-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 16, 34, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.onboarding-modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 440px;
+  background: linear-gradient(135deg, #1a1d35 0%, #0f1024 100%);
+  border-radius: 24px;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  padding: 0;
+  overflow: hidden;
+}
+
+.onboarding-content {
+  padding: 2.5rem 2rem;
+}
+
+.onboarding-step {
+  text-align: center;
+  animation: fadeInUp 0.4s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.onboarding-icon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.onboarding-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 1rem 0;
+  letter-spacing: -0.5px;
+}
+
+.onboarding-text {
+  font-size: 1.05rem;
+  color: #cfd2ea;
+  line-height: 1.6;
+  margin: 0 0 2rem 0;
+  opacity: 0.9;
+}
+
+.onboarding-progress {
+  font-size: 0.85rem;
+  color: #FFD166;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 1.5rem;
+  opacity: 0.8;
+}
+
+.onboarding-btn {
+  display: inline-block;
+  width: 100%;
+  padding: 1rem 2rem;
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  text-align: center;
+}
+
+.onboarding-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);
+}
+
+.onboarding-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.onboarding-btn-primary:active {
+  transform: translateY(0);
+}
+
+.onboarding-btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #cfd2ea;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.onboarding-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.onboarding-btn-skip {
+  background: transparent;
+  color: #888;
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 0.75rem 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.onboarding-btn-skip:hover {
+  color: #aaa;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+  .onboarding-modal {
+    width: 95%;
+    max-width: none;
+  }
+
+  .onboarding-content {
+    padding: 2rem 1.5rem;
+  }
+
+  .onboarding-icon {
+    font-size: 3rem;
+  }
+
+  .onboarding-title {
+    font-size: 1.5rem;
+  }
+
+  .onboarding-text {
+    font-size: 1rem;
+  }
+
+  .onboarding-btn {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Tablet */
+@media (min-width: 768px) {
+  .onboarding-modal {
+    max-width: 480px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-step,
+  .onboarding-icon {
+    animation: none;
+  }
+
+  .onboarding-overlay,
+  .onboarding-btn {
+    transition: none;
+  }
+}
