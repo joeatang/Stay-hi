@@ -40,35 +40,62 @@
         <div class="onboarding-content">
           <div class="onboarding-step" data-step="1">
             <div class="onboarding-icon">👋</div>
-            <h2 class="onboarding-title">Welcome to Stay Hi</h2>
-            <p class="onboarding-text">A simple way to check in with yourself and track your emotional journey.</p>
+            <h2 class="onboarding-title">Welcome to Hi 👋</h2>
+            <p class="onboarding-text">Hi...Welcome. Hi helps you stay highly inspired by checking in with yourself daily. Each tap, share, or moment is your way of saying 'I'm here.' Let's begin.</p>
             <button class="onboarding-btn onboarding-btn-primary" data-action="next">Get Started</button>
             <button class="onboarding-btn onboarding-btn-skip" data-action="skip">Skip Tour</button>
           </div>
 
           <div class="onboarding-step" data-step="2" style="display: none;">
             <div class="onboarding-icon">🎯</div>
-            <h2 class="onboarding-title">Tap the Hi Medallion</h2>
-            <p class="onboarding-text">Start your journey by tapping the center medallion to give yourself a hi-5.</p>
-            <div class="onboarding-progress">Step 1 of 3</div>
+            <h2 class="onboarding-title">The Medallion</h2>
+            <p class="onboarding-text">This is your center. Tap it anytime to stay present and say Hi to the world. It's a symbol of presence — your reminder that you showed up today.</p>
+            <div class="onboarding-progress">Step 1 of 6</div>
             <button class="onboarding-btn onboarding-btn-primary" data-action="next">Next</button>
             <button class="onboarding-btn onboarding-btn-secondary" data-action="back">Back</button>
           </div>
 
           <div class="onboarding-step" data-step="3" style="display: none;">
-            <div class="onboarding-icon">😊</div>
-            <h2 class="onboarding-title">Choose Your Emotions</h2>
-            <p class="onboarding-text">Select how you're feeling now and where you'd like to be. It's that simple.</p>
-            <div class="onboarding-progress">Step 2 of 3</div>
+            <div class="onboarding-icon">🙌</div>
+            <h2 class="onboarding-title">Self Hi-5</h2>
+            <p class="onboarding-text">Finished a workout? Stayed calm? Made a good choice? That's a Hi Moment. Tap Self Hi-5 to celebrate yourself and share it with the world.</p>
+            <div class="onboarding-progress">Step 2 of 6</div>
             <button class="onboarding-btn onboarding-btn-primary" data-action="next">Next</button>
             <button class="onboarding-btn onboarding-btn-secondary" data-action="back">Back</button>
           </div>
 
           <div class="onboarding-step" data-step="4" style="display: none;">
+            <div class="onboarding-icon">�</div>
+            <h2 class="onboarding-title">Hi Gym</h2>
+            <p class="onboarding-text">Need a little guidance? The Hi Gym walks you through your emotions — step by step — until you find your Hi again. Think of it as an emotional workout.</p>
+            <div class="onboarding-progress">Step 3 of 6</div>
+            <button class="onboarding-btn onboarding-btn-primary" data-action="next">Next</button>
+            <button class="onboarding-btn onboarding-btn-secondary" data-action="back">Back</button>
+          </div>
+
+          <div class="onboarding-step" data-step="5" style="display: none;">
+            <div class="onboarding-icon">🏝️</div>
+            <h2 class="onboarding-title">Hi Island</h2>
+            <p class="onboarding-text">This is your global feed — where Hi Moments from all over the world appear. See how others are staying inspired and send them a Hi-Five for support.</p>
+            <div class="onboarding-progress">Step 4 of 6</div>
+            <button class="onboarding-btn onboarding-btn-primary" data-action="next">Next</button>
+            <button class="onboarding-btn onboarding-btn-secondary" data-action="back">Back</button>
+          </div>
+
+          <div class="onboarding-step" data-step="6" style="display: none;">
+            <div class="onboarding-icon">📅</div>
+            <h2 class="onboarding-title">Profile & Calendar</h2>
+            <p class="onboarding-text">Your Profile shows your streaks and stats. Your Calendar lets you see your progress — every Hi-5, every inspired day.</p>
+            <div class="onboarding-progress">Step 5 of 6</div>
+            <button class="onboarding-btn onboarding-btn-primary" data-action="next">Next</button>
+            <button class="onboarding-btn onboarding-btn-secondary" data-action="back">Back</button>
+          </div>
+
+          <div class="onboarding-step" data-step="7" style="display: none;">
             <div class="onboarding-icon">✨</div>
-            <h2 class="onboarding-title">You're All Set!</h2>
-            <p class="onboarding-text">Share your journey publicly, privately, or keep it anonymous. The choice is yours.</p>
-            <div class="onboarding-progress">Step 3 of 3</div>
+            <h2 class="onboarding-title">Ready? ✨</h2>
+            <p class="onboarding-text">Tap the Medallion and start your first Hi-5. You just joined a world of people choosing to stay highly inspired — one Hi at a time.</p>
+            <div class="onboarding-progress">Step 6 of 6</div>
             <button class="onboarding-btn onboarding-btn-primary" data-action="complete">Start Your Journey</button>
             <button class="onboarding-btn onboarding-btn-secondary" data-action="back">Back</button>
           </div>
@@ -91,7 +118,7 @@
   // Handle navigation
   function setupNavigation(overlay) {
     let currentStep = 1;
-    const maxSteps = 4;
+    const maxSteps = 7;
 
     overlay.addEventListener('click', (e) => {
       const action = e.target.dataset.action;
