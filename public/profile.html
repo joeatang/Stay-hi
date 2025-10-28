@@ -1499,10 +1499,10 @@
     
     .form-input {
       padding: 16px 20px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(0, 0, 0, 0.15);
       border-radius: 14px;
-      color: white;
+      color: #1a1a1a;
       font-size: 16px;
       backdrop-filter: blur(10px);
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -1512,13 +1512,13 @@
     .form-input:focus {
       outline: none;
       border-color: #4ECDC4;
-      background: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 1);
       box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.2);
       transform: translateY(-1px);
     }
     
     .form-input::placeholder {
-      color: rgba(255, 255, 255, 0.5);
+      color: rgba(26, 26, 26, 0.5);
     }
     
     /* Location Input with Geo-tagging */
@@ -1937,6 +1937,15 @@
         
         <div class="profile-info">
           <h2 id="profileUsername" class="profile-username">@username</h2>
+          <p id="profileBio" class="profile-bio" style="
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.8);
+            margin: 8px 0 0 0;
+            line-height: 1.5;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+          "></p>
           <p id="profileJoined" class="profile-joined">Member since October 2025</p>
           <div id="locationStatus" class="location-status"></div>
         </div>
@@ -2786,6 +2795,15 @@
         username.textContent = currentProfile?.username ? `@${currentProfile.username}` : 'Unknown User';
       } else {
         username.textContent = currentProfile?.username ? `@${currentProfile.username}` : 'Set your username';
+      }
+      
+      // Update bio
+      const bioEl = document.getElementById('profileBio');
+      if (bioEl && currentProfile?.bio) {
+        bioEl.textContent = currentProfile.bio;
+        bioEl.style.display = 'block';
+      } else if (bioEl) {
+        bioEl.style.display = 'none';
       }
       
       // Email display removed for privacy
@@ -3779,57 +3797,58 @@
         
         await new Promise(resolve => setTimeout(resolve, 200)); // Smooth visual feedback
         
-        // Create high-quality output canvas
-        const outputCanvas = document.createElement('canvas');
-        const outputCtx = outputCanvas.getContext('2d');
-        const cropSize = 512; // Final output size
+        // CRITICAL: Use EXACT same rendering as preview
+        // The preview canvas is 300x300, circle overlay is 200x200 centered
+        const previewCanvasSize = 300;
+        const circleSize = 200;
+        const circleOffsetX = (previewCanvasSize - circleSize) / 2; // 50px
+        const circleOffsetY = (previewCanvasSize - circleSize) / 2; // 50px
         
-        outputCanvas.width = cropSize;
-        outputCanvas.height = cropSize;
-        
-        // Enable image smoothing for quality
-        outputCtx.imageSmoothingEnabled = true;
-        outputCtx.imageSmoothingQuality = 'high';
-        
-        // Calculate crop area (200px circle in 300px canvas)
-        const cropAreaSize = 200;
-        const canvasSize = 300;
-        const cropX = (canvasSize - cropAreaSize) / 2;
-        const cropY = (canvasSize - cropAreaSize) / 2;
-        
-        // Use the exact same approach as drawCropPreview for consistency
-        // Create a temporary canvas with the exact same dimensions as the crop canvas
+        // Step 1: Create temp canvas matching preview EXACTLY
         const tempCanvas = document.createElement('canvas');
         const tempCtx = tempCanvas.getContext('2d');
-        tempCanvas.width = canvasSize;
-        tempCanvas.height = canvasSize;
+        tempCanvas.width = previewCanvasSize;
+        tempCanvas.height = previewCanvasSize;
         
         // Enable high quality rendering
         tempCtx.imageSmoothingEnabled = true;
         tempCtx.imageSmoothingQuality = 'high';
         
-        // Draw the positioned image EXACTLY as shown in preview
+        // Step 2: Draw image with EXACT same position/scale as preview
         tempCtx.drawImage(
           cropImage,
-          imageX, imageY,
+          imageX,
+          imageY,
           cropImage.width * imageScale,
           cropImage.height * imageScale
         );
         
-        // Extract the crop area using the same coordinates as the visual circle
+        // Step 3: Extract the circle area (200x200 from center of 300x300)
+        const finalSize = 512; // High-quality output
+        const outputCanvas = document.createElement('canvas');
+        const outputCtx = outputCanvas.getContext('2d');
+        outputCanvas.width = finalSize;
+        outputCanvas.height = finalSize;
+        
+        outputCtx.imageSmoothingEnabled = true;
+        outputCtx.imageSmoothingQuality = 'high';
+        
+        // Draw the circle area from temp canvas to output canvas
         outputCtx.drawImage(
           tempCanvas,
-          cropX, cropY, cropAreaSize, cropAreaSize,
-          0, 0, cropSize, cropSize
+          circleOffsetX, circleOffsetY, // Source: circle position in preview
+          circleSize, circleSize,        // Source: circle size
+          0, 0,                          // Dest: top-left of output
+          finalSize, finalSize           // Dest: scale to final size
         );
         
-        // Create perfect circular mask
+        // Step 4: Apply circular mask
         outputCtx.globalCompositeOperation = 'destination-in';
         outputCtx.beginPath();
-        outputCtx.arc(cropSize / 2, cropSize / 2, cropSize / 2, 0, 2 * Math.PI);
+        outputCtx.arc(finalSize / 2, finalSize / 2, finalSize / 2, 0, 2 * Math.PI);
         outputCtx.fill();
         
-        // Convert to high-quality data URL
+        // Step 5: Convert to high-quality JPEG
         const croppedDataUrl = outputCanvas.toDataURL('image/jpeg', 0.92);
         
         // Update button to completion state
@@ -4169,10 +4188,23 @@
         // Get avatar URL from current profile (already saved when cropped)
         let avatarUrl = currentProfile?.avatar_url;
         
-        // Get current user ID safely
-        const userId = currentUser?.id || (await getCurrentUser())?.id;
-        if (!userId) {
-          throw new Error('User not authenticated');
+        // Get current user ID safely with better fallbacks
+        let userId = null;
+        
+        // Try currentUser first
+        if (currentUser?.id) {
+          userId = currentUser.id;
+        } else {
+          // Try to get fresh user
+          const user = await getCurrentUser();
+          if (user?.id) {
+            userId = user.id;
+            currentUser = user;
+          } else {
+            // Last resort: use profile ID or generate one
+            userId = currentProfile?.id || `local_${Date.now()}`;
+            console.warn('Using fallback user ID:', userId);
+          }
         }
 
         // Get location data from Tesla location system
