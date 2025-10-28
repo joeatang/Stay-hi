@@ -178,6 +178,24 @@
       padding: 24px;
     }
     
+    /* Edit sheet specific input styles */
+    .edit-sheet .form-input {
+      background: #ffffff !important;
+      color: #000000 !important;
+      -webkit-text-fill-color: #000000 !important;
+      font-weight: 500;
+    }
+    
+    .edit-sheet .form-input::placeholder {
+      color: rgba(0, 0, 0, 0.4) !important;
+      -webkit-text-fill-color: rgba(0, 0, 0, 0.4) !important;
+    }
+    
+    .edit-sheet .form-input:-webkit-autofill {
+      -webkit-box-shadow: 0 0 0 30px #ffffff inset !important;
+      -webkit-text-fill-color: #000000 !important;
+    }
+    
     .edit-sheet-footer {
       position: sticky;
       bottom: 0;
@@ -1502,11 +1520,23 @@
       background: rgba(255, 255, 255, 0.95);
       border: 1px solid rgba(0, 0, 0, 0.15);
       border-radius: 14px;
-      color: #1a1a1a;
+      color: #1a1a1a !important;
       font-size: 16px;
+      font-weight: 500;
       backdrop-filter: blur(10px);
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
       resize: vertical;
+      -webkit-text-fill-color: #1a1a1a !important;
+    }
+    
+    /* Override autofill styles */
+    .form-input:-webkit-autofill,
+    .form-input:-webkit-autofill:hover,
+    .form-input:-webkit-autofill:focus,
+    .form-input:-webkit-autofill:active {
+      -webkit-box-shadow: 0 0 0 30px rgba(255, 255, 255, 0.95) inset !important;
+      -webkit-text-fill-color: #1a1a1a !important;
+      color: #1a1a1a !important;
     }
     
     .form-input:focus {
@@ -1518,7 +1548,8 @@
     }
     
     .form-input::placeholder {
-      color: rgba(26, 26, 26, 0.5);
+      color: rgba(26, 26, 26, 0.5) !important;
+      -webkit-text-fill-color: rgba(26, 26, 26, 0.5) !important;
     }
     
     /* Location Input with Geo-tagging */
