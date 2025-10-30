@@ -520,8 +520,8 @@
 
     /* ---------- state ---------- */
     let history = read(LS.hist, {}), total = Number(read(LS.total,0))||0, streak = Number(read(LS.streak,0))||0, lastDay = read(LS.last,'');
-    let gWaves  = 0;
-    let gStarts = 0;
+    let gWaves  = Number(localStorage.getItem(LS.gFive)||0)||0;
+    let gStarts = Number(localStorage.getItem(LS.gStart)||0)||0;
 
     /* ---------- els ---------- */
     const todayCount = document.getElementById('todayCount');
