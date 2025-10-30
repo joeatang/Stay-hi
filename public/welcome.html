@@ -318,6 +318,43 @@
   </main>
   <script src="assets/supabase-init.js"></script>
   <script src="assets/db.js"></script>
+  
+  <!-- Authentication Redirect Logic -->
+  <script>
+    // Check if user is already authenticated and redirect to main app
+    async function checkAuthAndRedirect() {
+      try {
+        const supa = getSupabase();
+        if (!supa) return; // Supabase not available, stay on welcome
+        
+        const { data: { session }, error } = await supa.auth.getSession();
+        if (error) {
+          console.log('Welcome: Auth check error:', error);
+          return;
+        }
+        
+        if (session) {
+          console.log('Welcome: User already authenticated, redirecting to main app');
+          // Use Tesla smooth redirect if available
+          if (window.teslaRedirect) {
+            await window.teslaRedirect.redirectToMainApp();
+          } else {
+            window.location.replace('index.html');
+          }
+        }
+      } catch (error) {
+        console.log('Welcome: Auth check failed:', error);
+        // Stay on welcome page if auth check fails
+      }
+    }
+    
+    // Run auth check when Supabase is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      // Wait a bit for supabase to initialize
+      setTimeout(checkAuthAndRedirect, 500);
+    });
+  </script>
+  
   <script>
     // TESLA-GRADE: Fetch REAL stats first, fallback to placeholders
     async function fetchStats() {

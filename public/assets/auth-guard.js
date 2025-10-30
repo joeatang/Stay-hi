@@ -10,16 +10,15 @@
     document.head.appendChild(script);
   }
 
-  // Pages that don't need auth guards
+  // Pages that don't need auth guards - TESLA FORTRESS MODE
   const PUBLIC_PAGES = [
-    '/signin.html',
+    '/welcome.html',
+    '/signin.html', 
     '/signup.html',
     '/post-auth.html',
-    '/session-nuke.html',
-    '/tesla-auth-test.html',
-    '/auth-debug.html',
-    '/welcome.html' // Welcome page should always be public
-    // 🚀 PRODUCTION: tesla-admin-dashboard.html REMOVED - now requires authentication
+    '/auth-callback.html'
+    // 🚀 TESLA FORTRESS: Only these 5 pages accessible to unauthenticated users
+    // All other pages require authentication
   ];
 
   // Check if current page needs protection
@@ -182,17 +181,16 @@
       console.error('[auth-guard] Error checking auth:', error);
       return false;
     }
-  }  // Redirect to signin with current page as next parameter - Tesla-grade smooth
-  async function redirectToSignin() {
-    const currentPath = location.pathname + location.search;
+  }  // Redirect to welcome page - Tesla Fortress Mode
+  async function redirectToWelcome() {
+    console.log('[auth-guard] 🚀 Redirecting unauthenticated user to welcome page');
     
     // Use Tesla smooth redirect if available, fallback to instant
     if (window.teslaRedirect) {
-      await window.teslaRedirect.redirectToSignin(currentPath);
+      await window.teslaRedirect.redirectToWelcome();
     } else {
-      // Fallback for immediate redirect
-      const signinUrl = `signin.html?next=${encodeURIComponent(currentPath)}`;
-      location.replace(signinUrl);
+      // Direct redirect to welcome page
+      location.replace('welcome.html');
     }
   }
 
@@ -271,8 +269,8 @@
     console.log('[auth-guard] Authenticated:', authenticated);
     
     if (!authenticated) {
-      console.log('[auth-guard] ❌ Auth required but not authenticated - redirecting');
-      redirectToSignin();
+      console.log('[auth-guard] ❌ Auth required but not authenticated - redirecting to welcome');
+      redirectToWelcome();
       return;
     }
 

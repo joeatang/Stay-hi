@@ -3,11 +3,308 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Stay Hi</title>
-  <meta http-equiv="refresh" content="0; url=/welcome">
-  <script>window.location.replace('/welcome')</script>
+  <title>Stay Hi - Your Island Community</title>
+  
+  <!-- Tesla-Grade Security Headers -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https:">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  
+  <!-- Modern CSS Reset & Tesla Styling -->
+  <link rel="stylesheet" href="assets/tesla-styles.css">
+  
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 15px 30px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      color: #667eea;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .welcome-section {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 40px;
+      border-radius: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .welcome-title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .welcome-subtitle {
+      font-size: 18px;
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    .onboarding-tiles {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .tile {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    .tile:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+      border-color: #667eea;
+    }
+
+    .tile-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+
+    .tile-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .tile-description {
+      color: #666;
+      line-height: 1.5;
+    }
+
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 200px;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
+
 <body>
-  <p>Redirecting to <a href="/welcome">Welcome</a>...</p>
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+  </div>
+
+  <div id="app" class="main-container hidden">
+    <header class="header">
+      <div class="logo">
+        🏝️ Stay Hi
+      </div>
+      <div class="user-menu">
+        <div id="userAvatar" class="user-avatar">?</div>
+        <button onclick="signOut()" style="
+          background: transparent;
+          border: 1px solid #ccc;
+          color: #666;
+          padding: 8px 16px;
+          border-radius: 8px;
+          cursor: pointer;
+        ">Sign Out</button>
+      </div>
+    </header>
+
+    <section class="welcome-section">
+      <h1 class="welcome-title">Welcome to Your Island! 🏝️</h1>
+      <p class="welcome-subtitle" id="welcomeText">Let's get you started with Stay Hi</p>
+    </section>
+
+    <div class="onboarding-tiles">
+      <div class="tile" onclick="window.open('profile.html', '_blank')">
+        <div class="tile-icon">👤</div>
+        <h3 class="tile-title">Complete Your Profile</h3>
+        <p class="tile-description">Add your photo, location, and interests to connect with your island community</p>
+      </div>
+
+      <div class="tile" onclick="window.open('hi-island.html', '_blank')">
+        <div class="tile-icon">🗺️</div>
+        <h3 class="tile-title">Explore Your Island</h3>
+        <p class="tile-description">Discover people, places, and connections near you on the interactive island map</p>
+      </div>
+
+      <div class="tile" onclick="window.open('calendar.html', '_blank')">
+        <div class="tile-icon">📅</div>
+        <h3 class="tile-title">Plan Activities</h3>
+        <p class="tile-description">Create events, meetups, and activities to bring your community together</p>
+      </div>
+
+      <div class="tile" onclick="showComingSoon('Chat & Messaging')">
+        <div class="tile-icon">💬</div>
+        <h3 class="tile-title">Connect & Chat</h3>
+        <p class="tile-description">Send messages and connect with friends and neighbors in your area</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase & Auth -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="assets/supabase-config.js"></script>
+  <script src="assets/auth-guard.js"></script>
+
+  <script>
+    let supabaseClient = null;
+    let currentUser = null;
+
+    async function initializeApp() {
+      try {
+        // Wait for Supabase to be ready
+        supabaseClient = window.supabaseClient || window.sb;
+        if (!supabaseClient) {
+          throw new Error('Supabase client not available');
+        }
+
+        // Get current session
+        const { data: { session }, error } = await supabaseClient.auth.getSession();
+        if (error) throw error;
+
+        if (!session) {
+          // Auth guard will handle redirect
+          return;
+        }
+
+        currentUser = session.user;
+        setupUserInterface();
+        
+        // Hide loading, show app
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('app').classList.remove('hidden');
+
+      } catch (error) {
+        console.error('Error initializing app:', error);
+        // Auth guard will handle redirect
+      }
+    }
+
+    function setupUserInterface() {
+      if (!currentUser) return;
+
+      // Set user avatar
+      const avatar = document.getElementById('userAvatar');
+      const initial = currentUser.email?.charAt(0).toUpperCase() || '?';
+      avatar.textContent = initial;
+
+      // Personalize welcome message
+      const welcomeText = document.getElementById('welcomeText');
+      const firstName = currentUser.user_metadata?.first_name || 
+                       currentUser.email?.split('@')[0] || 'Friend';
+      welcomeText.textContent = `Welcome back, ${firstName}! Ready to explore your island?`;
+    }
+
+    async function signOut() {
+      try {
+        await supabaseClient.auth.signOut();
+        window.location.replace('welcome.html');
+      } catch (error) {
+        console.error('Error signing out:', error);
+        window.location.replace('welcome.html');
+      }
+    }
+
+    function showComingSoon(feature) {
+      alert(`${feature} is coming soon! 🚀\n\nStay tuned for this exciting new feature.`);
+    }
+
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeApp);
+    } else {
+      initializeApp();
+    }
+
+    // Handle auth state changes
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.supabaseClient) {
+        window.supabaseClient.auth.onAuthStateChange((event, session) => {
+          if (event === 'SIGNED_OUT' || !session) {
+            window.location.replace('welcome.html');
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>
