@@ -26,7 +26,7 @@
     }
   ],
   "rewrites": [
-    { "source": "/", "destination": "/public/index.html" },
+    { "source": "/", "destination": "/public/welcome.html" },
     { "source": "/calendar", "destination": "/public/calendar.html" },
     { "source": "/hi-island", "destination": "/public/hi-island.html" },
     { "source": "/hi-muscle", "destination": "/public/hi-muscle.html" },

@@ -376,8 +376,8 @@
       $('#working').style.display = 'none';
       $('#done').style.display = 'block';
       
-      // Check for 'next' parameter and use it, otherwise default to profile.html for authenticated users
-      const nextPage = new URLSearchParams(location.search).get('next') || 'profile.html';
+      // Check for 'next' parameter and use it, otherwise default to index.html (main app) for authenticated users
+      const nextPage = new URLSearchParams(location.search).get('next') || 'index.html';
       console.log('🔄 Redirecting to:', nextPage);
       setTimeout(()=>go(nextPage), 900);
     } catch (err) {
