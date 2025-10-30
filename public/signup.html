@@ -15,6 +15,7 @@
   <!-- Tesla-Grade CDN Loading (Fixed ERR_FAILED) -->
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
 <style>
   body {
     font-family: var(--f-sans);
@@ -49,147 +50,203 @@
       0 8px 32px rgba(255, 215, 0, 0.1),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
     padding: 3rem 2.5rem 2.5rem 2.5rem;
-    backdrop-filter: blur(25px) saturate(1.4);
-    -webkit-backdrop-filter: blur(25px) saturate(1.4);
-    border: 2px solid rgba(255, 215, 0, 0.2);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     position: relative;
-    z-index: 2;
-    animation: welcomeFloat 0.8s ease-out;
+    z-index: 10;
+    animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  
-  @keyframes welcomeFloat {
-    from { 
-      opacity: 0; 
-      transform: translateY(30px) scale(0.95); 
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(32px) scale(0.96);
     }
-    to { 
-      opacity: 1; 
-      transform: translateY(0) scale(1); 
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
     }
   }
-  .signup-glass::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    pointer-events: none;
-    background: linear-gradient(135deg, #fff2 0%, #ffd16622 100%);
-    z-index: 1;
+
+  .logo-section {
+    text-align: center;
+    margin-bottom: 2.5rem;
   }
-  .signup-title {
-    font-size: clamp(1.8rem, 4vw, 2.5rem);
-    font-weight: 900;
-    background: linear-gradient(135deg, #FFD166, #FF7B24);
+
+  .logo-section img {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 4px 20px rgba(255, 215, 0, 0.3));
+  }
+
+  .logo-section h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #FFD166, #FF7A18);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+
+  .welcome-text {
     text-align: center;
-    margin: 0 0 0.8rem 0;
-    line-height: 1.1;
-    text-shadow: 0 4px 16px rgba(255, 123, 24, 0.3);
-    position: relative;
-    z-index: 2;
+    margin-bottom: 2rem;
   }
-  .signup-lead {
-    color: rgba(255, 255, 255, 0.9);
-    text-align: center;
-    font-size: clamp(1rem, 2.5vw, 1.1rem);
-    margin-bottom: 1.2rem;
-    position: relative;
-    z-index: 2;
-    font-weight: 500;
-  }
-  form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem;
-    position: relative;
-    z-index: 2;
-  }
-  label {
-    font-weight: 600;
-    margin-bottom: 0.3rem;
-    color: #111;
-    font-size: 1rem;
-    letter-spacing: 0.01em;
-  }
-  input[type="text"], input[type="email"], input[type="password"] {
-    padding: 0.85rem 1rem;
-    border: 1.5px solid var(--hi-border);
-    border-radius: var(--r-btn);
-    font-size: 1.05rem;
-    background: rgba(255,255,255,0.12);
-    color: #111;
-    box-shadow: 0 2px 8px #ffd16622;
-    outline: none;
-    transition: border 0.2s, box-shadow 0.2s;
-  }
-  input:focus {
-    border-color: var(--ring);
-    box-shadow: 0 0 0 2px var(--ring);
-  }
-  button[type="submit"] {
-    background: var(--grad-sunrise);
+
+  .welcome-text h2 {
     color: #fff;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  .welcome-text p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1rem;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  label {
+    display: block;
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
+  }
+
+  .input {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    background: rgba(24, 26, 34, 0.8);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.15);
+    backdrop-filter: blur(12px);
+    box-sizing: border-box;
+  }
+
+  .input:focus {
+    outline: none;
+    border-color: rgba(255, 215, 0, 0.6);
+    background: rgba(24, 26, 34, 0.9);
+    box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.1), 0 8px 32px rgba(255, 215, 0, 0.2);
+    transform: translateY(-2px);
+  }
+
+  .input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .btn {
+    width: 100%;
+    padding: 1.25rem;
     border: none;
-    border-radius: var(--r-btn);
-    padding: 1rem;
+    border-radius: 16px;
+    background: linear-gradient(90deg, #FFD166, #FF7A18);
+    color: #111;
     font-size: 1.1rem;
     font-weight: 800;
-    box-shadow: 0 10px 24px #ff7a1812;
     cursor: pointer;
-    transition: background 0.2s, box-shadow 0.2s;
-    margin-top: 0.5rem;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 10px 24px rgba(255, 122, 24, 0.15), 0 2px 8px rgba(255, 215, 0, 0.15);
+    letter-spacing: -0.01em;
+    text-transform: none;
   }
-  button[type="submit"]:hover {
-    background: var(--grad-ember);
-    box-shadow: 0 14px 34px #ff7a1833;
+
+  .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 40px rgba(255, 122, 24, 0.25), 0 4px 16px rgba(255, 215, 0, 0.2);
   }
-  .error {
-    color: #ff4d00;
-    font-size: 0.98rem;
-    margin-top: -0.5rem;
-    margin-bottom: 0.5rem;
+
+  .btn:active {
+    transform: translateY(-1px);
+  }
+
+  .error, .success {
+    padding: 1rem;
+    border-radius: 12px;
+    margin-top: 1rem;
     text-align: center;
     font-weight: 600;
-    letter-spacing: 0.01em;
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
   }
+
+  .error {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ff4d4d;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
   .success {
-    color: #F5A623;
-    font-size: 1.05rem;
-    text-align: center;
-    margin-top: 1rem;
-    font-weight: 700;
-    letter-spacing: 0.01em;
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.3);
   }
-  @media (max-width: 500px) {
-    .signup-glass { padding: 1.2rem 0.5rem; margin: 1.5rem 0.5rem; }
-    .signup-title { font-size: 1.2rem; }
+
+  .back-link {
+    display: block;
+    text-align: center;
+    margin-top: 2rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+  }
+
+  .back-link:hover {
+    color: #FFD166;
   }
 </style>
 </head>
-
 <body>
+
 <div class="signup-glass">
-  <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;margin-bottom:1.2rem;">
-    <img src="assets/brand/hi-logo-light.png" alt="Stay Hi" style="width:72px;height:72px;object-fit:contain;filter:drop-shadow(0 8px 22px rgba(255,210,102,.55));margin-bottom:0.2rem;" />
-    <div class="signup-title" style="color:#fff;text-shadow:0 2px 12px #0008;">Sign Up for Stay Hi</div>
+  <div class="logo-section">
+    <img src="assets/brand/hi-logo-light.png" alt="Stay Hi Logo" />
+    <h1>Stay Hi</h1>
   </div>
-  <div class="signup-lead" style="color:#f7f8ff;text-align:center;font-size:1rem;margin-bottom:1.2rem;font-weight:500;text-shadow:0 1px 8px #0006;">Enter your invite code to join the Hi experience.</div>
-  <form id="signup-form" autocomplete="off">
-    <label for="email" style="color:#fff;text-shadow:0 1px 8px #0006;">Email</label>
-    <input type="email" id="email" name="email" required placeholder="you@email.com" class="input" style="background:#181a22cc;color:#fff;border:1.5px solid var(--hi-border);box-shadow:0 2px 8px #ffd16622;" />
+  
+  <div class="welcome-text">
+    <h2>Sign Up for Stay Hi</h2>
+    <p>Enter your invite code to join the Hi experience.</p>
+  </div>
 
-    <label for="password" style="color:#fff;text-shadow:0 1px 8px #0006;">Password</label>
-    <input type="password" id="password" name="password" required minlength="8" placeholder="Create a password" class="input" style="background:#181a22cc;color:#fff;border:1.5px solid var(--hi-border);box-shadow:0 2px 8px #ffd16622;" />
+  <form id="signup-form">
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required placeholder="you@email.com" class="input" />
+    </div>
 
-    <label for="invite" style="color:#fff;text-shadow:0 1px 8px #0006;">Invite Code</label>
-    <input type="text" id="invite" name="invite" required placeholder="Enter invite code" class="input" style="background:#181a22cc;color:#fff;border:1.5px solid var(--hi-border);box-shadow:0 2px 8px #ffd16622;" />
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required minlength="8" placeholder="Create a password" class="input" />
+    </div>
 
-    <button type="submit" class="btn" style="background:linear-gradient(90deg,#FFD166,#FF7A18);color:#111;font-weight:800;box-shadow:0 10px 24px #ff7a1812,0 2px 8px #ffd16622;">Create Account</button>
-    <div id="form-error" class="error" style="display:none;color:#ff4d00;text-align:center;font-weight:600;text-shadow:0 1px 8px #0006;"></div>
-    <div id="form-success" class="success" style="display:none;color:#FFD166;text-align:center;font-weight:700;text-shadow:0 1px 8px #0006;"></div>
+    <div class="form-group">
+      <label for="invite">Invite Code</label>
+      <input type="text" id="invite" name="invite" required placeholder="Enter invite code" class="input" />
+    </div>
+
+    <button type="submit" class="btn">Create Account</button>
+    <div id="form-error" class="error" style="display:none;"></div>
+    <div id="form-success" class="success" style="display:none;"></div>
   </form>
+
+  <a href="welcome.html" class="back-link">← Back to Welcome</a>
 </div>
 
 <script>
@@ -203,14 +260,8 @@ async function initializeSupabase() {
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g';
     
     supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true
-      }
+      auth: { persistSession: true, autoRefreshToken: true }
     });
-    
-    // Expose as sb for compatibility
-    window.sb = supabaseClient;
     
     return supabaseClient;
   } catch (error) {
@@ -219,98 +270,113 @@ async function initializeSupabase() {
   }
 }
 
-// Modular sign up logic with invite code validation
-const form = document.getElementById('signup-form');
-const errorDiv = document.getElementById('form-error');
-const successDiv = document.getElementById('form-success');
-
-function showError(msg) {
-  errorDiv.textContent = msg;
-  errorDiv.style.display = 'block';
-  successDiv.style.display = 'none';
+// UI helpers
+function showError(message) {
+  const errorEl = document.getElementById('form-error');
+  const successEl = document.getElementById('form-success');
+  
+  successEl.style.display = 'none';
+  errorEl.textContent = message;
+  errorEl.style.display = 'block';
+  
+  // Auto-hide after 5 seconds
+  setTimeout(() => {
+    errorEl.style.display = 'none';
+  }, 5000);
 }
-function showSuccess(msg) {
-  successDiv.textContent = msg;
-  successDiv.style.display = 'block';
-  errorDiv.style.display = 'none';
+
+function showSuccess(message) {
+  const errorEl = document.getElementById('form-error');
+  const successEl = document.getElementById('form-success');
+  
+  errorEl.style.display = 'none';
+  successEl.textContent = message;
+  successEl.style.display = 'block';
 }
 
-form.addEventListener('submit', async (e) => {
+// Handle form submission
+document.getElementById('signup-form').addEventListener('submit', async (e) => {
   e.preventDefault();
-  errorDiv.style.display = 'none';
-  successDiv.style.display = 'none';
-
-  const email = form.email.value.trim();
-  const password = form.password.value;
-  const invite = form.invite.value.trim();
-
+  
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const invite = document.getElementById('invite').value.trim();
+  
   if (!email || !password || !invite) {
-    showError('All fields are required.');
+    showError('Please fill in all fields.');
     return;
   }
+  
   if (password.length < 8) {
-    showError('Password must be at least 8 characters.');
+    showError('Password must be at least 8 characters long.');
     return;
   }
 
-  // Ensure Supabase is initialized
-  if (!supabaseClient) {
-    showError('Authentication system not ready. Please refresh the page.');
-    return;
-  }
+  // Disable form during processing
+  const submitBtn = document.querySelector('.btn');
+  const originalText = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Creating Account...';
 
-  // 1. Validate invite code via Supabase RPC
-  let validCode = false;
-  let codeId = null;
   try {
-    const { data, error } = await supabaseClient.rpc('validate_invite_code', { code: invite });
-    if (error || !data || !data.is_valid) {
-      showError('Invalid or expired invite code.');
+    // 1. Validate invite code via Supabase RPC
+    let validCode = false;
+    let codeId = null;
+    try {
+      const { data, error } = await supabaseClient.rpc('validate_invite_code', { code: invite });
+      if (error || !data || !data.is_valid) {
+        showError('Invalid or expired invite code.');
+        return;
+      }
+      validCode = true;
+      codeId = data.code_id;
+    } catch (err) {
+      showError('Error validating invite code.');
       return;
     }
-    validCode = true;
-    codeId = data.code_id;
-  } catch (err) {
-    showError('Error validating invite code.');
-    return;
-  }
 
-  // 2. Create user in Supabase auth
-  let userId = null;
-  try {
-    const { data, error } = await supabaseClient.auth.signUp({ email, password });
-    if (error) {
-      showError(error.message || 'Sign up failed.');
+    // 2. Create user in Supabase auth
+    let userId = null;
+    try {
+      const { data, error } = await supabaseClient.auth.signUp({ email, password });
+      if (error) {
+        showError(error.message || 'Sign up failed.');
+        return;
+      }
+      userId = data.user?.id;
+    } catch (err) {
+      showError('Error creating account.');
       return;
     }
-    userId = data.user?.id;
-  } catch (err) {
-    showError('Error creating account.');
-    return;
-  }
 
-  // 3. Mark invite code as used (track usage)
-  try {
-    const { error } = await supabaseClient.rpc('use_invite_code', { code: invite, user_id: userId });
-    if (error) {
+    // 3. Mark invite code as used (track usage)
+    try {
+      const { error } = await supabaseClient.rpc('use_invite_code', { code: invite, user_id: userId });
+      if (error) {
+        showError('Error tracking invite code usage.');
+        return;
+      }
+    } catch (err) {
       showError('Error tracking invite code usage.');
       return;
     }
-  } catch (err) {
-    showError('Error tracking invite code usage.');
-    return;
+
+    // 4. Success: show message and redirect with smooth transition
+    showSuccess('🎉 Account created! Check your email to verify and sign in.');
+    
+    // Smooth redirect to signin page
+    setTimeout(() => {
+      window.location.href = 'signin.html';
+    }, 2500);
+
+  } catch (error) {
+    console.error('Signup error:', error);
+    showError('An unexpected error occurred. Please try again.');
+  } finally {
+    // Re-enable form
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
   }
-
-  // 4. Success: show message and redirect with smooth transition
-  showSuccess('🎉 Account created! Check your email to verify and sign in.');
-  
-  // Smooth redirect to signin page
-  setTimeout(() => {
-    window.location.href = 'signin.html';
-  }, 2500);
-});
-</script>
-
 });
 
 // Initialize when page loads
@@ -344,139 +410,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     
   } catch (error) {
     console.error('❌ Signup initialization failed:', error);
-    showError('Failed to initialize signup system. Please refresh the page.');
   }
 });
-
-<!-- Tesla-Grade Auth Integration -->
-<script>
-/* Tesla-Grade Auth System */
-(function () {
-  // Wait for Supabase client to be initialized
-  function waitForSupabase() {
-    return new Promise((resolve) => {
-      const check = () => {
-        if (window.sb || supabaseClient) {
-          resolve(window.sb || supabaseClient);
-        } else {
-          setTimeout(check, 100);
-        }
-      };
-      check();
-    });
-  }
-
-  // Local-dev bypass: lets you preview UI without a real session when using file:// or localhost
-  const DEV_BYPASS = (location.protocol === 'file:' || location.hostname === 'localhost');
-
-  async function getSession() {
-    try {
-      const client = await waitForSupabase();
-      const { data: { session } } = await client.auth.getSession();
-      return session || null;
-    } catch {
-      return null;
-    }
-  }
-
-  async function getUser() {
-    try {
-      const client = await waitForSupabase();
-      const { data: { user } } = await client.auth.getUser();
-      return user || null;
-    } catch {
-      return null;
-    }
-  }
-
-  async function getMembership() {
-    try {
-      const { data, error } = await sb.rpc('get_my_membership');
-      if (error) return { is_member: false };
-      const row = Array.isArray(data) ? data[0] : data;
-      return row || { is_member: false };
-    } catch {
-      return { is_member: false };
-    }
-  }
-
-  async function requireAuth(opts = {}) {
-    const { redirectTo = 'signin.html', allowDevBypass = true } = opts;
-    const session = await getSession();
-    if (session) return true;
-    if (allowDevBypass && DEV_BYPASS && localStorage.getItem('hi_dev_user')) return true;
-    window.location.href = redirectTo;
-    return false;
-  }
-
-  async function requireMember(opts = {}) {
-    const { redirectTo = 'membership-required.html', soft = false } = opts;
-    const m = await getMembership();
-    const ok = !!m.is_member;
-    if (ok) return true;
-    if (soft) return false;
-    window.location.href = redirectTo;
-    return false;
-  }
-
-  async function signOut() {
-    try {
-      const client = await waitForSupabase();
-      await client.auth.signOut();
-    } catch {}
-    try {
-      localStorage.removeItem('hi_dev_user');
-      localStorage.removeItem('hi_member');
-    } catch {}
-    window.location.href = 'welcome.html';
-  }
-
-  // UI helpers: show/hide elements with data-show-auth / data-show-member
-  async function applyAuthVisibility() {
-    const session = await getSession();
-    const authed = !!session || (DEV_BYPASS && localStorage.getItem('hi_dev_user'));
-    const mem = authed ? await getMembership() : { is_member: false };
-
-    document.querySelectorAll('[data-show-auth]')
-      .forEach(el => {
-        const want = el.getAttribute('data-show-auth'); // "in" | "out"
-        const show = (want === 'in') ? authed : !authed;
-        el.style.display = show ? '' : 'none';
-      });
-
-    document.querySelectorAll('[data-show-member]')
-      .forEach(el => {
-        const want = el.getAttribute('data-show-member'); // "yes" | "no"
-        const show = (want === 'yes') ? !!mem.is_member : !mem.is_member;
-        el.style.display = show ? '' : 'none';
-      });
-
-    // Wire logout buttons/links
-    document.querySelectorAll('[data-action="logout"]').forEach(el => {
-      el.onclick = (e) => { e.preventDefault(); signOut(); };
-    });
-  }
-
-  // Expose a tiny API
-  window.hiAuth = {
-    requireAuth,
-    requireMember,
-    getUser,
-    getMembership,
-    signOut,
-    applyAuthVisibility
-  };
-
-  // Keep visibility in sync on auth changes
-  waitForSupabase().then((client) => {
-    client.auth.onAuthStateChange((_event, _session) => {
-      applyAuthVisibility();
-    });
-  });
-
-  // Initial pass
-  document.addEventListener('DOMContentLoaded', applyAuthVisibility);
-})();
 </script>
+
 </body>
 </html>
