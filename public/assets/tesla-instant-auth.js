@@ -24,7 +24,7 @@
       
       // Get intended destination
       const urlParams = new URLSearchParams(location.search);
-      const next = urlParams.get('next') || '/app';
+      const next = urlParams.get('next') || 'index.html';
       
       // Instant redirect without visible page load
       const redirectUrl = `post-auth.html?next=${encodeURIComponent(next)}${hash}`;
@@ -37,8 +37,8 @@
       const authSession = localStorage.getItem('sb-auth-token') || 
                          sessionStorage.getItem('supabase.auth.token');
       if (authSession) {
-        console.log('🔐 Existing session - redirect to app');
-        location.replace('/app');
+        console.log('🔐 Existing session - redirect to main app');
+        location.replace('index.html');
         return true;
       }
     } catch (e) {
