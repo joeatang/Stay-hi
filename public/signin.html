@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Sign in — Stay Hi</title>
   
-  <!-- Supabase CDN - must load before supabase-init.js -->
-  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <!-- Direct Supabase Loading -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   
   <link rel="stylesheet" href="assets/theme.css"/>
   <link rel="stylesheet" href="assets/create-parity.css"/>
@@ -287,8 +286,30 @@
     </p>
   </main>
 
-  <script src="assets/supabase-init.js"></script>
   <script>
+    // Tesla-Grade Direct Supabase Initialization
+    let supabaseClient = null;
+    
+    async function initializeSupabase() {
+      try {
+        const SUPABASE_URL = 'https://gfcubvroxgfvjhacinic.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g';
+        
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+          auth: { persistSession: true, autoRefreshToken: true }
+        });
+        
+        // Compatibility aliases
+        window.supabaseClient = supabaseClient;
+        window.sb = supabaseClient;
+        
+        return supabaseClient;
+      } catch (error) {
+        console.error('❌ Supabase initialization failed:', error);
+        throw error;
+      }
+    }
+
     // DEV MODE: Press Ctrl+Shift+D to bypass email and sign in directly
     window.addEventListener('keydown', async (e) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'D') {
@@ -316,18 +337,19 @@
 
       // Wait for Supabase to be ready
       async function waitForSupabase() {
+        if (supabaseClient) return supabaseClient;
         if (window.sb) return window.sb;
-        if (window.sbReady) return await window.sbReady;
         
-        // Fallback: wait for supabase-ready event
+        // Wait for initialization
         return new Promise((resolve) => {
-          if (window.sb) {
-            resolve(window.sb);
-          } else {
-            window.addEventListener('supabase-ready', (event) => {
-              resolve(event.detail.client || window.sb);
-            });
-          }
+          const check = () => {
+            if (supabaseClient || window.sb) {
+              resolve(supabaseClient || window.sb);
+            } else {
+              setTimeout(check, 100);
+            }
+          };
+          check();
         });
       }
 
@@ -452,6 +474,31 @@
       `;
       document.head.appendChild(style);
     })();
+
+    // Initialize Supabase when page loads
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        // Wait for Supabase library to be available
+        if (!window.supabase) {
+          await new Promise(resolve => {
+            const checkSupabase = () => {
+              if (window.supabase) {
+                resolve();
+              } else {
+                setTimeout(checkSupabase, 100);
+              }
+            };
+            checkSupabase();
+          });
+        }
+        
+        await initializeSupabase();
+        console.log('✅ Signin page initialized successfully');
+        
+      } catch (error) {
+        console.error('❌ Signin initialization failed:', error);
+      }
+    });
   </script>
 </body>
 </html>
