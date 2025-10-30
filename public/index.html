@@ -219,27 +219,39 @@
     }
     
     .premium-share-sheet{
-      /* NUCLEAR SOLUTION: No transform positioning - use absolute positioning with calc() */
-      position:fixed;
-      top: calc(50vh - 250px);  /* Approximate half height of modal */
-      left: calc(50vw - 240px); /* Approximate half width of modal */
-      width:min(480px, 95vw);
+      /* Tesla-grade mobile-first sheet positioning (proven working approach) */
+      position:fixed;left:0;right:0;bottom:-100%;
       background:var(--glass-bg);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);
-      border:1px solid var(--glass-border);border-radius:24px;
-      padding:24px;z-index:101;box-shadow:var(--shadow-premium);
-      color:white;opacity:0;
-      transition:opacity .3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      /* Remove ALL transform properties */
-      contain: layout style;
-      isolation: isolate;
-      will-change:opacity;
-      backface-visibility:hidden;
-      -webkit-backface-visibility:hidden;
+      border:1px solid var(--glass-border);border-radius:20px 20px 0 0;
+      padding:24px 20px 32px;z-index:101;box-shadow:var(--shadow-premium);
+      color:white;
+      max-height:85vh;overflow-y:auto;
+      min-height:400px;
+      transition:all .3s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
     
+    /* Desktop centering - matches proven working hi-muscle approach */
+    @media (min-width: 768px) {
+      .premium-share-sheet {
+        left:50%;right:auto;bottom:-100%;
+        transform:translateX(-50%);
+        width:min(500px, 90vw);
+        border-radius:20px;
+        padding:32px 28px 40px;
+        min-height:450px;
+      }
+      .premium-share-sheet.show{animation:sheetInDesktop .25s ease-out forwards}
+      .premium-share-sheet.hide{animation:sheetOutDesktop .2s ease-in forwards}
+    }
+    
+    @keyframes sheetInDesktop{from{bottom:-100%;opacity:0}to{bottom:40px;opacity:1}}
+    @keyframes sheetOutDesktop{from{bottom:40px;opacity:1}to{bottom:-100%;opacity:0}}
+    
     .premium-share-sheet.show + .premium-share-backdrop{display:block}
-    .premium-share-sheet.show{opacity:1;}
-    .premium-share-sheet.hide{opacity:0;}
+    .premium-share-sheet.show{animation:sheetIn .25s ease-out forwards}
+    .premium-share-sheet.hide{animation:sheetOut .2s ease-in forwards}
+    @keyframes sheetIn{from{bottom:-100%}to{bottom:0}}
+    @keyframes sheetOut{from{bottom:0}to{bottom:-100%}}
     
     /* Body scroll lock */
     body.modal-open{overflow:hidden;}
@@ -300,10 +312,8 @@
     
     @media (max-width:540px){
       .premium-share-sheet{
-        width:95vw;padding:20px;
-        /* Mobile positioning - center with viewport calc */
-        top: calc(50vh - 200px);
-        left: calc(50vw - 47.5vw); /* Center 95vw width */
+        padding:20px 18px 28px;
+        min-height:350px;
       }
       .share-options{gap:10px;}
       .share-option{padding:14px;gap:12px;}
