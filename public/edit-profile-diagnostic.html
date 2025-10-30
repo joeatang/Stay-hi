@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔧 Edit Profile Button Diagnostic</title>
+    <style>
+        body { font-family: system-ui; background: #1a1a2e; color: white; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .section { background: rgba(255,255,255,0.05); padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .btn { background: #00d4ff; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; margin: 5px; }
+        .btn:hover { background: #0099cc; }
+        .log-entry { background: #2a2a3e; padding: 10px; margin: 5px 0; border-radius: 4px; font-family: monospace; font-size: 13px; }
+        .success { border-left: 4px solid #00ff88; }
+        .error { border-left: 4px solid #ff4444; }
+        .warning { border-left: 4px solid #ffaa00; }
+        .info { border-left: 4px solid #00d4ff; }
+        .test-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 9999; }
+        .test-modal-content { background: #2a2a3e; padding: 30px; border-radius: 12px; max-width: 400px; text-align: center; }
+        .test-modal.show { display: flex; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Edit Profile Button Diagnostic</h1>
+        <p>Let's find out what's wrong with the edit profile button on your profile page</p>
+        
+        <div class="section">
+            <h3>🎯 Edit Profile Tests</h3>
+            <button class="btn" onclick="testEditProfileFunction()">🧪 Test editProfile() Function</button>
+            <button class="btn" onclick="checkModalElements()">🔍 Check Modal Elements</button>
+            <button class="btn" onclick="simulateEditProfile()">⚡ Simulate Edit Profile Click</button>
+            <button class="btn" onclick="openProfileAndTest()">🚀 Open Profile & Auto-Test</button>
+        </div>
+        
+        <div class="section">
+            <h3>🛠️ Quick Fixes</h3>
+            <button class="btn" onclick="fixEditProfileButton()">🔧 Fix Edit Profile Button</button>
+            <button class="btn" onclick="testModalShow()">👁️ Test Modal Show/Hide</button>
+        </div>
+        
+        <div class="section">
+            <h3>📊 Diagnostic Log</h3>
+            <div id="diagnosticLog"></div>
+        </div>
+    </div>
+    
+    <!-- Test Modal -->
+    <div class="test-modal" id="testModal">
+        <div class="test-modal-content">
+            <h3>🎉 Modal Test Successful!</h3>
+            <p>This modal appeared correctly, so modal functionality works.</p>
+            <button class="btn" onclick="closeTestModal()">Close</button>
+        </div>
+    </div>
+    
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('diagnosticLog');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        function testEditProfileFunction() {
+            log('🧪 Testing editProfile() function availability...', 'info');
+            
+            // Try to access the profile window
+            const profileWindow = window.open('/profile.html', 'profileTest', 'width=1200,height=800');
+            
+            setTimeout(() => {
+                try {
+                    // Test if editProfile function exists
+                    if (typeof profileWindow.editProfile === 'function') {
+                        log('✅ editProfile() function found in profile page', 'success');
+                        
+                        // Test calling the function
+                        log('🎯 Attempting to call editProfile()...', 'info');
+                        profileWindow.editProfile();
+                        
+                        setTimeout(() => {
+                            // Check if modal is visible
+                            const overlay = profileWindow.document.getElementById('editSheetOverlay');
+                            if (overlay) {
+                                const isVisible = overlay.classList.contains('show') || 
+                                                overlay.style.display === 'flex';
+                                
+                                if (isVisible) {
+                                    log('🎉 SUCCESS: Edit modal opened correctly!', 'success');
+                                } else {
+                                    log('❌ ISSUE: Modal exists but not showing', 'error');
+                                    log('Modal classes: ' + overlay.className, 'info');
+                                    log('Modal display: ' + overlay.style.display, 'info');
+                                }
+                            } else {
+                                log('❌ ISSUE: Edit modal overlay not found', 'error');
+                            }
+                        }, 500);
+                        
+                    } else {
+                        log('❌ editProfile() function not found', 'error');
+                        log('Available functions: ' + Object.getOwnPropertyNames(profileWindow).filter(name => typeof profileWindow[name] === 'function').slice(0, 10).join(', '), 'info');
+                    }
+                } catch (error) {
+                    log(`❌ Error testing editProfile(): ${error.message}`, 'error');
+                }
+            }, 2000);
+        }
+        
+        function checkModalElements() {
+            log('🔍 Checking modal elements in profile page...', 'info');
+            
+            const profileWindow = window.open('/profile.html', 'profileCheck', 'width=1200,height=800');
+            
+            setTimeout(() => {
+                try {
+                    const elementsToCheck = [
+                        'editSheetOverlay',
+                        'sheetUsernameInput', 
+                        'sheetDisplayNameInput',
+                        'sheetBioInput',
+                        'sheetLocationInput'
+                    ];
+                    
+                    let allFound = true;
+                    
+                    elementsToCheck.forEach(elementId => {
+                        const element = profileWindow.document.getElementById(elementId);
+                        if (element) {
+                            log(`✅ Found element: ${elementId}`, 'success');
+                        } else {
+                            log(`❌ Missing element: ${elementId}`, 'error');
+                            allFound = false;
+                        }
+                    });
+                    
+                    if (allFound) {
+                        log('🎉 All modal elements found!', 'success');
+                    } else {
+                        log('⚠️ Some modal elements are missing', 'warning');
+                    }
+                    
+                } catch (error) {
+                    log(`❌ Error checking elements: ${error.message}`, 'error');
+                }
+            }, 2000);
+        }
+        
+        function simulateEditProfile() {
+            log('⚡ Simulating edit profile button click...', 'info');
+            
+            const profileWindow = window.open('/profile.html', 'profileSim', 'width=1200,height=800');
+            
+            setTimeout(() => {
+                try {
+                    // Find the edit profile button
+                    const editButtons = profileWindow.document.querySelectorAll('button');
+                    let editButton = null;
+                    
+                    editButtons.forEach(btn => {
+                        if (btn.textContent.includes('Edit Profile')) {
+                            editButton = btn;
+                        }
+                    });
+                    
+                    if (editButton) {
+                        log('✅ Found Edit Profile button', 'success');
+                        log('🖱️ Clicking Edit Profile button...', 'info');
+                        
+                        editButton.click();
+                        
+                        setTimeout(() => {
+                            const overlay = profileWindow.document.getElementById('editSheetOverlay');
+                            if (overlay && overlay.classList.contains('show')) {
+                                log('🎉 SUCCESS: Button click opened modal!', 'success');
+                            } else {
+                                log('❌ ISSUE: Button click did not open modal', 'error');
+                            }
+                        }, 500);
+                        
+                    } else {
+                        log('❌ Edit Profile button not found', 'error');
+                    }
+                    
+                } catch (error) {
+                    log(`❌ Error simulating click: ${error.message}`, 'error');
+                }
+            }, 2000);
+        }
+        
+        function testModalShow() {
+            log('👁️ Testing modal show/hide functionality...', 'info');
+            
+            const testModal = document.getElementById('testModal');
+            testModal.classList.add('show');
+            
+            log('✅ Test modal should be visible now', 'success');
+        }
+        
+        function closeTestModal() {
+            document.getElementById('testModal').classList.remove('show');
+        }
+        
+        function fixEditProfileButton() {
+            log('🔧 Attempting to fix edit profile button...', 'info');
+            
+            const profileWindow = window.open('/profile.html', 'profileFix', 'width=1200,height=800');
+            
+            setTimeout(() => {
+                try {
+                    // Inject a fixed editProfile function
+                    const fixScript = `
+                        window.fixedEditProfile = function() {
+                            console.log('🔧 Fixed editProfile function called');
+                            
+                            const overlay = document.getElementById('editSheetOverlay');
+                            if (!overlay) {
+                                alert('❌ Edit modal overlay not found');
+                                return;
+                            }
+                            
+                            // Force show the modal
+                            overlay.style.display = 'flex';
+                            overlay.classList.add('show');
+                            
+                            // Populate with current profile data if available
+                            if (window.currentProfile) {
+                                const fields = {
+                                    'sheetUsernameInput': window.currentProfile.username || '',
+                                    'sheetDisplayNameInput': window.currentProfile.display_name || '',
+                                    'sheetBioInput': window.currentProfile.bio || '',
+                                    'sheetLocationInput': window.currentProfile.location || ''
+                                };
+                                
+                                Object.entries(fields).forEach(([id, value]) => {
+                                    const element = document.getElementById(id);
+                                    if (element) {
+                                        element.value = value;
+                                    }
+                                });
+                            }
+                            
+                            alert('✅ Edit modal opened successfully!');
+                        };
+                        
+                        // Replace the original function
+                        window.editProfile = window.fixedEditProfile;
+                        
+                        // Also fix the button onclick
+                        const editButtons = document.querySelectorAll('button');
+                        editButtons.forEach(btn => {
+                            if (btn.textContent.includes('Edit Profile')) {
+                                btn.onclick = window.fixedEditProfile;
+                            }
+                        });
+                    `;
+                    
+                    const script = profileWindow.document.createElement('script');
+                    script.textContent = fixScript;
+                    profileWindow.document.head.appendChild(script);
+                    
+                    log('✅ Injected fixed editProfile function', 'success');
+                    log('🎯 Try clicking the Edit Profile button now!', 'info');
+                    
+                } catch (error) {
+                    log(`❌ Error injecting fix: ${error.message}`, 'error');
+                }
+            }, 2000);
+        }
+        
+        function openProfileAndTest() {
+            log('🚀 Opening profile page with auto-diagnostic...', 'info');
+            
+            const profileWindow = window.open('/profile.html', 'profileAuto', 'width=1200,height=800');
+            
+            setTimeout(() => {
+                // Auto-run all tests
+                testEditProfileFunction();
+                
+                setTimeout(() => {
+                    checkModalElements();
+                }, 3000);
+                
+                setTimeout(() => {
+                    simulateEditProfile();
+                }, 6000);
+                
+            }, 1000);
+        }
+        
+        // Initialize
+        window.addEventListener('load', () => {
+            log('🔧 Edit Profile Button Diagnostic ready', 'success');
+            log('Click "Test editProfile() Function" to start diagnosis', 'info');
+        });
+    </script>
+</body>
+</html>

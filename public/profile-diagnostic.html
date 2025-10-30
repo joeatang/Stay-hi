@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔍 Profile Loading Diagnostic</title>
+    <style>
+        body { font-family: system-ui; background: #1a1a2e; color: white; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .section { background: rgba(255,255,255,0.05); padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .btn { background: #00d4ff; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; margin: 5px; }
+        .btn:hover { background: #0099cc; }
+        .log-entry { background: #2a2a3e; padding: 10px; margin: 5px 0; border-radius: 4px; font-family: monospace; font-size: 13px; }
+        .success { border-left: 4px solid #00ff88; }
+        .error { border-left: 4px solid #ff4444; }
+        .warning { border-left: 4px solid #ffaa00; }
+        .info { border-left: 4px solid #00d4ff; }
+        .data-display { background: #000; padding: 15px; border-radius: 4px; white-space: pre-wrap; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Profile Loading Diagnostic</h1>
+        <p>Let's trace exactly what happens when profile.html loads your data</p>
+        
+        <div class="section">
+            <h3>🎯 Real-Time Profile Loading Test</h3>
+            <button class="btn" onclick="testProfileLoading()">🚀 Test Profile Loading</button>
+            <button class="btn" onclick="simulateProfileFlow()">🔄 Simulate Profile Flow</button>
+            <button class="btn" onclick="debugDataMismatch()">🔍 Debug Data Mismatch</button>
+        </div>
+        
+        <div class="section">
+            <h3>📊 Loading Log</h3>
+            <div id="loadingLog"></div>
+        </div>
+        
+        <div class="section">
+            <h3>💾 Current Data State</h3>
+            <div id="dataState"></div>
+        </div>
+    </div>
+    
+    <script src="assets/config.js"></script>
+    <script>
+        let supabase;
+        
+        async function initSupabase() {
+            if (!supabase && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+                const { createClient } = supabase;
+                supabase = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+            }
+        }
+        
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('loadingLog');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        function displayData(data, title) {
+            const dataDiv = document.getElementById('dataState');
+            const section = document.createElement('div');
+            section.innerHTML = `
+                <h4>${title}</h4>
+                <div class="data-display">${JSON.stringify(data, null, 2)}</div>
+            `;
+            dataDiv.appendChild(section);
+        }
+        
+        async function testProfileLoading() {
+            log('🚀 Starting Tesla-grade profile loading diagnostic...', 'info');
+            
+            try {
+                // Step 1: Initialize Supabase
+                log('1️⃣ Initializing Supabase client...', 'info');
+                await initSupabase();
+                
+                if (!supabase) {
+                    log('❌ Supabase initialization failed', 'error');
+                    return;
+                }
+                
+                log('✅ Supabase client ready', 'success');
+                
+                // Step 2: Check session
+                log('2️⃣ Checking authentication session...', 'info');
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                
+                if (sessionError) {
+                    log(`❌ Session error: ${sessionError.message}`, 'error');
+                    return;
+                }
+                
+                if (!session) {
+                    log('❌ No active session found', 'error');
+                    return;
+                }
+                
+                log(`✅ Session found for: ${session.user.email}`, 'success');
+                displayData(session.user, 'Current User (from session)');
+                
+                // Step 3: Get user details
+                log('3️⃣ Getting detailed user info...', 'info');
+                const { data: { user }, error: userError } = await supabase.auth.getUser();
+                
+                if (userError) {
+                    log(`❌ User fetch error: ${userError.message}`, 'error');
+                } else {
+                    log('✅ User details fetched', 'success');
+                    displayData(user, 'User Details');
+                }
+                
+                // Step 4: Fetch profile from database
+                log('4️⃣ Fetching profile from database...', 'info');
+                const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+                    
+                if (profileError) {
+                    log(`❌ Profile fetch error: ${profileError.message}`, 'error');
+                    if (profileError.code === 'PGRST116') {
+                        log('ℹ️ No profile found in database (new user)', 'warning');
+                    }
+                } else {
+                    log('✅ Profile found in database!', 'success');
+                    displayData(profile, 'Database Profile');
+                    
+                    // Step 5: Check what profile.html would show
+                    log('5️⃣ Simulating profile.html display logic...', 'info');
+                    simulateProfileDisplay(profile, user);
+                }
+                
+                // Step 6: Check localStorage
+                log('6️⃣ Checking localStorage data...', 'info');
+                const keys = ['stayhi_profile', 'user', 'currentUser'];
+                keys.forEach(key => {
+                    const value = localStorage.getItem(key);
+                    if (value) {
+                        try {
+                            const parsed = JSON.parse(value);
+                            log(`✅ Found ${key} in localStorage`, 'success');
+                            displayData(parsed, `localStorage: ${key}`);
+                        } catch (e) {
+                            log(`⚠️ Invalid JSON in ${key}`, 'warning');
+                        }
+                    } else {
+                        log(`❌ Missing ${key} in localStorage`, 'error');
+                    }
+                });
+                
+            } catch (error) {
+                log(`💥 Diagnostic failed: ${error.message}`, 'error');
+            }
+        }
+        
+        function simulateProfileDisplay(profile, user) {
+            log('🎭 Simulating what profile.html would display...', 'info');
+            
+            const displayData = {
+                username: profile?.username ? `@${profile.username}` : '@username',
+                displayName: profile?.display_name || profile?.username || 'Stay Hi User',
+                bio: profile?.bio || 'No bio set',
+                location: profile?.location || 'Location not set',
+                avatarUrl: profile?.avatar_url || user?.user_metadata?.avatar_url || null,
+                memberSince: profile?.created_at || user?.created_at || new Date().toISOString()
+            };
+            
+            log('👤 Profile display would show:', 'info');
+            Object.entries(displayData).forEach(([key, value]) => {
+                const displayValue = value === null ? 'NULL' : value;
+                log(`   ${key}: ${displayValue}`, 'info');
+            });
+            
+            displayData(displayData, 'Simulated Profile Display');
+            
+            // Check for issues
+            if (!profile?.username) {
+                log('🚨 ISSUE: No username set - will show @username placeholder', 'warning');
+            }
+            if (!profile?.display_name) {
+                log('🚨 ISSUE: No display name set - will show default', 'warning');
+            }
+            if (!profile?.bio) {
+                log('🚨 ISSUE: No bio set - will show empty', 'warning');
+            }
+        }
+        
+        async function simulateProfileFlow() {
+            log('🔄 Simulating complete profile.html initialization flow...', 'info');
+            
+            // This mimics the actual profile.html loading sequence
+            await testProfileLoading();
+            
+            log('📋 Profile.html loading sequence complete', 'info');
+            log('💡 If your data shows as NULL/empty, your profile needs to be set up', 'warning');
+        }
+        
+        async function debugDataMismatch() {
+            log('🔍 Debugging hi-island vs profile.html data mismatch...', 'info');
+            
+            // Check what hi-island might be using
+            log('🏝️ Checking potential hi-island data sources...', 'info');
+            
+            await initSupabase();
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (session) {
+                // Check if hi-island uses different data or caching
+                const possibleSources = [
+                    'stayhi_profile',
+                    'user_profile',
+                    'profile',
+                    'currentUser',
+                    'demo-profile'
+                ];
+                
+                possibleSources.forEach(source => {
+                    const data = localStorage.getItem(source);
+                    if (data) {
+                        try {
+                            const parsed = JSON.parse(data);
+                            log(`🔍 Found data in ${source}:`, 'info');
+                            if (parsed.display_name || parsed.username) {
+                                log(`   Name: ${parsed.display_name || parsed.username}`, 'success');
+                                log(`   This might be what hi-island is showing!`, 'warning');
+                            }
+                        } catch (e) {
+                            log(`⚠️ Invalid data in ${source}`, 'warning');
+                        }
+                    }
+                });
+                
+                // Check if there's a mismatch between session user and profile
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+                    
+                if (profile && session.user) {
+                    log('🔄 Comparing session vs profile data...', 'info');
+                    
+                    const sessionName = session.user.user_metadata?.full_name || session.user.email;
+                    const profileName = profile.display_name || profile.username;
+                    
+                    if (sessionName !== profileName) {
+                        log(`⚠️ Mismatch detected:`, 'warning');
+                        log(`   Session shows: ${sessionName}`, 'warning');
+                        log(`   Profile shows: ${profileName}`, 'warning');
+                        log(`   Hi-island might use session, profile.html uses profile!`, 'error');
+                    }
+                }
+            }
+        }
+        
+        // Auto-run diagnostic
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                log('🔥 Tesla-grade profile diagnostic ready', 'success');
+                log('Click "Test Profile Loading" to see what profile.html should display', 'info');
+            }, 500);
+        });
+    </script>
+</body>
+</html>

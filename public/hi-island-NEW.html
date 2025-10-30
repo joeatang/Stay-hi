@@ -26,9 +26,16 @@
   <link rel="stylesheet" href="components/hi-island-map/map.css"/>
   <link rel="stylesheet" href="components/hi-island-feed/feed.css"/>
   <link rel="stylesheet" href="components/hi-share-sheet/share-sheet.css"/>
+  
+  <!-- Hi Feature Flags & Rewards -->
+  <link rel="stylesheet" href="assets/hi-rewards-styles.css"/>
 
   <!-- Leaflet (for map) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+  
+  <!-- Leaflet MarkerCluster Plugin -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
   
   <style>
     /* ===================================================================
@@ -117,10 +124,15 @@
   
   <!-- Core Dependencies (Load First) -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
   <script src="assets/supabase-init.js"></script>
   <script src="assets/db.js"></script>
   <script src="assets/avatar-utils.js"></script>
   <script src="assets/geocoding-service.js"></script>
+  
+  <!-- Feature Flags & Rewards System -->
+  <script src="assets/feature-flags.js"></script>
+  <script src="assets/hi-rewards-controller.js"></script>
   
   <!-- Component Scripts -->
   <script src="components/hi-share-sheet/share-sheet.js" type="module"></script>

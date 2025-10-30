@@ -3,26 +3,50 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <title>Stay Hi — Calendar</title>
+  <title>Stay Hi — Calendar (Redirecting...)</title>
   
   <!-- Auth guard - must be first -->
-  <script src="assets/auth-guard.js"></script>
+  <script src="assets/auth-health-monitor.js"></script>
+  <script src="assets/auth-guard.js?v=enhanced-logging"></script>
+  
+  <!-- Auto-redirect to main app with premium calendar modal -->
+  <script>
+    // This standalone calendar page is deprecated in favor of the premium modal system
+    // Redirect to main app which has the modern calendar modal
+    console.log('📅 Redirecting to premium calendar system...');
+    setTimeout(() => {
+      window.location.href = 'index.html?showCalendar=true';
+    }, 1500);
+  </script>
   
   <link rel="stylesheet" href="assets/theme.css"/>
   <link rel="stylesheet" href="assets/create-parity.css"/>
   <style>
-    body{min-height:100dvh}
-    .wrap{max-width:980px;margin:0 auto;padding:16px}
-    h1{font-size:22px;margin:16px 0}
-    .hint{color:var(--hi-muted)}
-    .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-top:14px}
-    .day{border:1px solid var(--hi-border);border-radius:12px;padding:10px;background:#0f1022}
-    .day.done{background:linear-gradient(135deg,#ffd166,#ff7a18);color:#111;border-color:transparent}
+    body{min-height:100dvh;background:linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #ffd166 100%);}
+    .wrap{max-width:600px;margin:0 auto;padding:40px 16px;text-align:center}
+    .deprecation-notice{
+      background:rgba(255,255,255,0.1);
+      backdrop-filter:blur(20px);
+      border:1px solid rgba(255,255,255,0.2);
+      border-radius:20px;
+      padding:32px;
+      color:#fff;
+      box-shadow:0 8px 32px rgba(0,0,0,0.1);
+    }
+    .spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,0.3);border-top:3px solid #ff7a18;border-radius:50%;animation:spin 1s linear infinite;margin:20px auto}
+    @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+    h1{font-size:24px;margin:0 0 16px 0;font-weight:600}
+    p{margin:16px 0;opacity:0.9;line-height:1.6}
   </style>
 </head>
 <body class="sunrise" data-tab="calendar">
-  <header id="app-header" class="header"></header>
   <main class="wrap">
+    <div class="deprecation-notice">
+      <h1>📅 Upgraded Calendar System</h1>
+      <p>This standalone calendar page has been replaced with our premium calendar modal system for a better user experience.</p>
+      <div class="spinner"></div>
+      <p><strong>Redirecting to the main app...</strong></p>
+    </div>
     <h1>Calendar</h1>
     <p class="hint">Shows which days you marked a <b>Self Hi-5</b> and your streak.</p>
     <div id="cal" class="grid" aria-label="This week"></div>
@@ -33,7 +57,16 @@
   <script src="assets/db.js"></script>
   <script src="assets/header.js" defer></script>
   <script>
-  (function(){
+  // Check if we have auth tokens in the URL hash and redirect to post-auth for processing
+  if (location.hash && location.hash.includes('access_token')) {
+    console.log('🔐 Found auth tokens, redirecting to post-auth for processing...');
+    location.href = `post-auth.html${location.hash}`;
+  } else {
+    // Continue with normal initialization
+    initCalendar();
+  }
+
+  function initCalendar(){
     const cal = document.getElementById('cal');
     const LS = { hist:'hi5.history' };
     function read(k,def){ try{ const v=localStorage.getItem(k); return v==null?def:JSON.parse(v) }catch{ return def } }
@@ -51,7 +84,7 @@
                       <div style="opacity:.85">${d.getMonth()+1}/${d.getDate()}</div>`;
       cal.appendChild(el);
     }
-  })();
+  } // Close initCalendar function
   </script>
 </body>
 </html>

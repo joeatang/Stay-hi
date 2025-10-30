@@ -1,32 +1,19 @@
-::1 - - [25/Oct/2025 19:47:39] "GET / HTTP/1.1" 200 -
-::1 - - [25/Oct/2025 19:54:16] "GET /hi-island.html HTTP/1.1" 200 -
-::1 - - [25/Oct/2025 19:54:16] "GET /assets/auth-guard.js HTTP/1.1" 200 -
-::1 - - [25/Oct/2025 19:54:16] "GET /assets/auth.js HTTP/1.1" 200 -
-::1 - - [25/Oct/2025 19:54:16] "GET /assets/hi-composer.js HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 19:54:16] "GET /assets/header.js HTTP/1.1" 200 -
-::1 - - [25/Oct/2025 19:54:17] "GET /favicon.ico HTTP/1.1" 200 -
-::1 - - [25/Oct/2025 19:57:05] "GET /hi-island.html HTTP/1.1" 200 -
-::1 - - [25/Oct/2025 19:57:05] "GET /assets/auth-guard.js HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 19:57:05] "GET /assets/auth.js HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 19:57:05] "GET /assets/header.js HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 19:57:05] "GET /favicon.ico HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 19:58:18] "GET /hi-island.html HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 19:58:18] "GET /assets/auth-guard.js HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 19:58:18] "GET /assets/auth.js HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 19:58:18] "GET /assets/header.js HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 19:58:18] "GET /favicon.ico HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 20:37:01] "GET /hi-island.html HTTP/1.1" 200 -
-::1 - - [25/Oct/2025 20:37:01] "GET /styles/modal-base.css HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 20:37:01] "GET /assets/auth-guard.js HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 20:37:01] "GET /assets/auth.js HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 20:37:02] "GET /js/modal-base.js HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 20:37:02] "GET /assets/hi-composer.js HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 20:37:02] "GET /assets/header.js HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 20:37:02] "GET /favicon.ico HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 21:15:16] "GET /hi-island.html HTTP/1.1" 200 -
-::1 - - [25/Oct/2025 21:15:16] "GET /assets/auth-guard.js HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 21:15:16] "GET /assets/auth.js HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 21:15:16] "GET /assets/header.js HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 21:15:16] "GET /assets/hi-composer.js HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 21:15:16] "GET /favicon.ico HTTP/1.1" 304 -
-::1 - - [25/Oct/2025 21:33:43] "GET /favicon.ico HTTP/1.1" 304 -
+Traceback (most recent call last):
+  File "/usr/local/Cellar/pytho::1 - - [30/Oct/2025 00:23:56] "GET /welcome.html HTTP/1.1" 200 -
+n3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/usr/local/Cellar/python@3.10/3.10.10/Frameworks/Python.framework/Versions/3.10/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/usr/local/Cellar/python@3.10/3.10.10/Frameworks/Python.framework/Versions/3.10/lib/python3.10/http/server.py", line 1307, in <module>
+    test(
+  File "/usr/local/Cellar/python@3.10/3.10.10/Frameworks/Python.framework/Versions/3.10/lib/python3.10/http/server.py", line 1258, in test
+    with ServerClass(addr, HandlerClass) as httpd:
+  File "/usr/local/Cellar/python@3.10/3.10.10/Frameworks/Python.framework/Versions/3.10/lib/python3.10/socketserver.py", line 452, in __init__
+    self.server_bind()
+  File "/usr/local/Cellar/python@3.10/3.10.10/Frameworks/Python.framework/Versions/3.10/lib/python3.10/http/server.py", line 1301, in server_bind
+    return super().server_bind()
+  File "/usr/local/Cellar/python@3.10/3.10.10/Frameworks/Python.framework/Versions/3.10/lib/python3.10/http/server.py", line 137, in server_bind
+    socketserver.TCPServer.server_bind(self)
+  File "/usr/local/Cellar/python@3.10/3.10.10/Frameworks/Python.framework/Versions/3.10/lib/python3.10/socketserver.py", line 466, in server_bind
+    self.socket.bind(self.server_address)
+OSError: [Errno 48] Address already in use

@@ -1,0 +1,8 @@
+{
+    "liveServer.settings.port": 3000,
+    "liveServer.settings.root": "/public",
+    "liveServer.settings.CustomBrowser": "chrome",
+    "liveServer.settings.donotShowInfoMsg": true,
+    "liveServer.settings.donotVerifyTags": true,
+    "liveServer.settings.mount": [["/", "./public"]]
+}

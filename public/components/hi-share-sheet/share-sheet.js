@@ -6,7 +6,7 @@
 
 export class HiShareSheet {
   constructor(options = {}) {
-    this.origin = options.origin || 'hi5'; // 'hi5' or 'higym'
+    this.origin = options.origin || 'hi5'; // 'hi5', 'higym', or 'hi-island'
     this.onSuccess = options.onSuccess || (() => {});
     this.isOpen = false;
   }
@@ -14,11 +14,15 @@ export class HiShareSheet {
   // Initialize component
   init() {
     this.render();
-    this.attachEventListeners();
+    // 🔧 TESLA-GRADE FIX: Attach event listeners after DOM elements are rendered
+    setTimeout(() => {
+      this.attachEventListeners();
+    }, 0);
     
-    // Expose to global for easy access
-    window.openHiShareSheet = (origin = 'hi5') => {
+    // Expose to global for easy access with enhanced options
+    window.openHiShareSheet = (origin = 'hi5', options = {}) => {
       this.origin = origin;
+      this.prefilledData = options; // Store prefilled data for Hi Muscle integration
       this.open();
     };
   }
@@ -33,7 +37,8 @@ export class HiShareSheet {
 
     const container = document.createElement('div');
     container.className = 'hi-share-sheet-container';
-    container.style.cssText = 'position: fixed; inset: 0; pointer-events: none; z-index: 9997;';
+    // � TESLA-GRADE: CSS handles positioning, JS only manages pointer-events
+    // No inline positioning styles - CSS handles the foundation
     container.innerHTML = `
       <!-- Backdrop -->
       <div class="premium-share-backdrop" id="hi-share-backdrop"></div>
@@ -44,7 +49,20 @@ export class HiShareSheet {
           <div class="share-icon">✨</div>
           <h3 id="sheetTitle" class="text-gradient">Capture this Hi Moment</h3>
           <p class="share-subtitle">Choose how you want to share your moment</p>
-          <button id="hi-sheet-close" class="btn-premium-icon" style="position:absolute;top:16px;right:16px;" aria-label="Close">✕</button>
+          <!-- Tesla-Grade Close Button with Maximum Z-Index Priority -->
+          <button id="hi-sheet-close" class="btn-premium-icon" 
+                  style="position:absolute;top:16px;right:16px;z-index:10000;" 
+                  aria-label="Close">✕</button>
+        </div>
+
+        <!-- Emotional Journey Display (HiGYM) -->
+        <div id="hi-emotional-journey" class="hi-emotional-journey" style="display:none;">
+          <div class="journey-label">EMOTIONAL JOURNEY</div>
+          <div class="journey-flow">
+            <span class="journey-current"></span>
+            <span class="journey-arrow">→</span>
+            <span class="journey-desired"></span>
+          </div>
         </div>
         
         <div class="share-input-container">
@@ -107,14 +125,44 @@ export class HiShareSheet {
     const shareAnonBtn = document.getElementById('hi-share-anon');
     const sharePublicBtn = document.getElementById('hi-share-public');
 
+    // 🔧 DEBUG: Log which elements are found
+    console.log('🧪 Share Sheet Event Listeners:', {
+      backdrop: !!backdrop,
+      closeBtn: !!closeBtn,
+      journal: !!journal,
+      charCount: !!charCount,
+      savePrivateBtn: !!savePrivateBtn,
+      shareAnonBtn: !!shareAnonBtn,
+      sharePublicBtn: !!sharePublicBtn
+    });
+
+    // 🔧 SAFETY CHECK: Ensure all elements exist before attaching listeners
+    if (!savePrivateBtn || !shareAnonBtn || !sharePublicBtn) {
+      console.error('❌ Critical share buttons not found! Retrying in 100ms...');
+      setTimeout(() => this.attachEventListeners(), 100);
+      return;
+    }
+
     // Character counter
     journal.addEventListener('input', () => {
       charCount.textContent = journal.value.length;
     });
 
-    // Close handlers
-    backdrop.addEventListener('click', () => this.close());
-    closeBtn.addEventListener('click', () => this.close());
+    // Tesla-Grade Close Handlers with Event Prevention
+    backdrop.addEventListener('click', (e) => {
+      // Only close if clicking backdrop directly, not child elements
+      if (e.target === backdrop) {
+        this.close();
+      }
+    });
+    
+    closeBtn.addEventListener('click', (e) => {
+      // Prevent event bubbling to ensure close button always works
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      this.close();
+    });
 
     // ESC key to close
     document.addEventListener('keydown', (e) => {
@@ -142,18 +190,58 @@ export class HiShareSheet {
     const backdrop = document.getElementById('hi-share-backdrop');
     const sheet = document.getElementById('hi-share-sheet');
     
+    // 🔧 TESLA-GRADE FIX: Enable container pointer events ONLY when opening
+    if (this.root) {
+      this.root.style.pointerEvents = 'auto';
+    }
+    
     backdrop.classList.add('active');
     sheet.classList.add('active');
     this.isOpen = true;
     document.body.style.overflow = 'hidden';
 
+    // 🌟 TESLA-GRADE: Handle prefilled data from Hi Muscle
+    const textarea = document.getElementById('hi-share-journal');
+    if (this.prefilledData?.prefilledText) {
+      textarea.value = this.prefilledData.prefilledText;
+      this.updateCharCount();
+    }
+    
+    // Store emotional journey for Hi Muscle shares
+    if (this.prefilledData?.currentEmoji && this.prefilledData?.desiredEmoji) {
+      this.emotionalJourney = {
+        current: this.prefilledData.currentEmoji,
+        desired: this.prefilledData.desiredEmoji
+      };
+      
+      // 🌟 TESLA-GRADE: Display emotional journey prominently
+      const journeyDisplay = document.getElementById('hi-emotional-journey');
+      const currentSpan = document.querySelector('.journey-current');
+      const desiredSpan = document.querySelector('.journey-desired');
+      
+      if (journeyDisplay && currentSpan && desiredSpan) {
+        currentSpan.textContent = this.prefilledData.currentEmoji;
+        desiredSpan.textContent = this.prefilledData.desiredEmoji;
+        journeyDisplay.style.display = 'block';
+      }
+    }
+    
     // Focus textarea
     setTimeout(() => {
-      document.getElementById('hi-share-journal').focus();
+      textarea.focus();
     }, 100);
     
     // Preload location (profile-first, instant if cached)
     this.preloadLocation();
+  }
+
+  // Update character count display
+  updateCharCount() {
+    const journal = document.getElementById('hi-share-journal');
+    const charCount = document.getElementById('hi-share-char-count');
+    if (journal && charCount) {
+      charCount.textContent = journal.value.length;
+    }
   }
   
   // Preload location in background
@@ -168,9 +256,10 @@ export class HiShareSheet {
       if (location && location !== 'Location unavailable') {
         const emoji = this.locationSource === 'profile' ? '📍' : '🌍';
         const sourceLabel = this.locationSource === 'profile' ? 'from profile' : 'detected';
+        const cleanLocation = this.normalizeLocation(location);
         
         locationStatus.innerHTML = `
-          <span class="location-text">${emoji} ${location}</span>
+          <span class="location-text">${emoji} ${cleanLocation}</span>
           <span class="location-source">(${sourceLabel})</span>
           <button class="location-update-btn" data-action="update-location" title="Update location">
             ✈️ Traveling?
@@ -196,6 +285,11 @@ export class HiShareSheet {
     const sheet = document.getElementById('hi-share-sheet');
     const journal = document.getElementById('hi-share-journal');
     
+    // 🔧 TESLA-GRADE FIX: Disable container pointer events when closing
+    if (this.root) {
+      this.root.style.pointerEvents = 'none';
+    }
+    
     backdrop.classList.remove('active');
     sheet.classList.remove('active');
     this.isOpen = false;
@@ -209,7 +303,14 @@ export class HiShareSheet {
   // Handle Save Privately
   async handleSavePrivate(e) {
     if (e.target.closest('button').dataset.animating === 'true') return;
-    e.target.closest('button').dataset.animating = 'true';
+    const button = e.target.closest('button');
+    button.dataset.animating = 'true';
+
+    // 🎉 TESLA-GRADE: Premium celebration for private save
+    if (window.PremiumUX) {
+      window.PremiumUX.glow(button, '#4ECDC4');
+      window.PremiumUX.triggerHapticFeedback('medium');
+    }
 
     // Increment global Hi5 counter
     this.incrementGlobalCounter();
@@ -217,14 +318,21 @@ export class HiShareSheet {
     await this.persist({ toIsland: false, anon: false });
 
     setTimeout(() => {
-      e.target.closest('button').dataset.animating = 'false';
+      button.dataset.animating = 'false';
     }, 500);
   }
 
   // Handle Share Anonymously
   async handleShareAnonymous(e) {
     if (e.target.closest('button').dataset.animating === 'true') return;
-    e.target.closest('button').dataset.animating = 'true';
+    const button = e.target.closest('button');
+    button.dataset.animating = 'true';
+
+    // 🎉 TESLA-GRADE: Premium celebration for anonymous share
+    if (window.PremiumUX) {
+      window.PremiumUX.burst(button, { count: 8, colors: ['#8A2BE2', '#FFD700'] });
+      window.PremiumUX.triggerHapticFeedback('medium');
+    }
 
     // Increment global Hi5 counter
     this.incrementGlobalCounter();
@@ -232,14 +340,25 @@ export class HiShareSheet {
     await this.persist({ toIsland: true, anon: true });
 
     setTimeout(() => {
-      e.target.closest('button').dataset.animating = 'false';
+      button.dataset.animating = 'false';
     }, 500);
   }
 
   // Handle Share Publicly
   async handleSharePublic(e) {
     if (e.target.closest('button').dataset.animating === 'true') return;
-    e.target.closest('button').dataset.animating = 'true';
+    const button = e.target.closest('button');
+    button.dataset.animating = 'true';
+
+    // 🎉 TESLA-GRADE: Premium celebration for public share
+    if (window.PremiumUX) {
+      // Sequence animations to prevent overlap
+      window.PremiumUX.celebrate(button, '🌟 Shared publicly!');
+      setTimeout(() => {
+        window.PremiumUX.confetti({ count: 20, colors: ['#4ECDC4', '#FFD700', '#FF6B6B'] });
+      }, 100);
+      window.PremiumUX.triggerHapticFeedback('celebration');
+    }
 
     // Increment global Hi5 counter
     this.incrementGlobalCounter();
@@ -247,7 +366,7 @@ export class HiShareSheet {
     await this.persist({ toIsland: true, anon: false });
 
     setTimeout(() => {
-      e.target.closest('button').dataset.animating = 'false';
+      button.dataset.animating = 'false';
     }, 800);
   }
 
@@ -341,9 +460,11 @@ export class HiShareSheet {
         return;
       }
       
-      console.log('💾 Saving location to profile:', location);
+      // Tesla-Grade: Normalize location to prevent duplication
+      const cleanLocation = this.normalizeLocation(location);
+      console.log('💾 Saving location to profile:', cleanLocation);
       
-      await window.hiDB.updateProfile({ location });
+      await window.hiDB.updateProfile({ location: cleanLocation });
       
       console.log('✅ Location saved to profile');
       
@@ -389,13 +510,39 @@ export class HiShareSheet {
     }
   }
   
+  // Tesla-Grade: Normalize location string to prevent duplication
+  normalizeLocation(location) {
+    if (!location || typeof location !== 'string') return location;
+    
+    // Remove any duplicate words (e.g., "Tokyo, Tokyo, Japan" → "Tokyo, Japan")
+    const parts = location.split(',').map(part => part.trim());
+    const uniqueParts = [];
+    
+    parts.forEach(part => {
+      // Only add if it's not already in the array (case-insensitive)
+      if (!uniqueParts.find(existing => existing.toLowerCase() === part.toLowerCase())) {
+        uniqueParts.push(part);
+      }
+    });
+    
+    const normalized = uniqueParts.join(', ');
+    
+    // Debug log if normalization occurred
+    if (normalized !== location) {
+      console.log('🔧 Location normalized:', location, '→', normalized);
+    }
+    
+    return normalized;
+  }
+
   // Update location display in UI
   updateLocationDisplay() {
     const locationStatus = document.querySelector('.hi-share-location-status');
     if (locationStatus && this.currentLocation) {
       const emoji = this.locationSource === 'updated' ? '✈️' : '📍';
+      const cleanLocation = this.normalizeLocation(this.currentLocation);
       locationStatus.innerHTML = `
-        <span class="location-text">${emoji} ${this.currentLocation}</span>
+        <span class="location-text">${emoji} ${cleanLocation}</span>
         <button class="location-update-btn" data-action="update-location">Update</button>
       `;
     }
@@ -413,13 +560,17 @@ export class HiShareSheet {
 
     try {
       // ALWAYS write to My Archive (private storage)
+      // 🌟 TESLA-GRADE: Use emotional journey data if available (Hi Muscle integration)
+      const currentEmoji = this.emotionalJourney?.current || '👋';
+      const desiredEmoji = this.emotionalJourney?.desired || '👋';
+      
       const archivePayload = {
-        currentEmoji: '👋',
-        desiredEmoji: '👋',
+        currentEmoji,
+        desiredEmoji,
         journal: text,
         location,
-        origin: this.origin, // 'hi5' or 'higym'
-        type: this.origin === 'higym' ? 'higym' : 'self_hi5'
+        origin: this.origin, // 'hi5', 'higym', or 'hi-island'
+        type: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : 'self_hi5')
       };
       
       const archiveResult = await window.hiDB?.insertArchive?.(archivePayload);
@@ -428,16 +579,16 @@ export class HiShareSheet {
       // If sharing to island (public or anon), ALSO write to public_shares
       if (toIsland) {
         const publicPayload = {
-          currentEmoji: '👋',
-          currentName: this.origin === 'higym' ? 'Hi GYM' : 'Hi-5',
-          desiredEmoji: '👋',
-          desiredName: this.origin === 'higym' ? 'Hi GYM' : 'Hi-5',
+          currentEmoji,
+          currentName: this.origin === 'higym' ? 'Hi GYM' : (this.origin === 'hi-island' ? 'Hi Island' : 'Hi-5'),
+          desiredEmoji,
+          desiredName: this.origin === 'higym' ? 'Hi GYM' : (this.origin === 'hi-island' ? 'Hi Island' : 'Hi-5'),
           text,
           isAnonymous: anon,
           location,
           isPublic: true,
           origin: this.origin,
-          type: this.origin === 'higym' ? 'higym' : 'self_hi5'
+          type: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : 'self_hi5')
         };
         
         const publicResult = await window.hiDB?.insertPublicShare?.(publicPayload);
@@ -473,18 +624,71 @@ export class HiShareSheet {
     }
   }
 
-  // Show toast notification
-  showToast(message) {
+  // 🎉 TESLA-GRADE: Premium celebration toast system
+  showToast(message, type = 'info') {
     const toast = document.getElementById('toast');
     if (toast) {
-      toast.textContent = message;
-      toast.classList.add('show');
-      setTimeout(() => {
-        toast.classList.remove('show');
-      }, 3000);
+      // Enhanced success celebration for shares
+      if (message.includes('Shared') || message.includes('✨') || message.includes('🌟')) {
+        this.showCelebrationToast(message);
+      } else {
+        // Standard toast
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => {
+          toast.classList.remove('show');
+        }, 3000);
+      }
     } else {
       console.log('📢', message);
     }
+  }
+
+  // Premium celebration toast with Tesla-grade animation
+  showCelebrationToast(message) {
+    // Remove any existing celebration toasts
+    const existing = document.querySelector('.celebration-toast');
+    if (existing) existing.remove();
+    
+    const toast = document.createElement('div');
+    toast.className = 'celebration-toast';
+    toast.textContent = message;
+    toast.style.cssText = `
+      position: fixed;
+      bottom: 120px;
+      left: 50%;
+      transform: translateX(-50%) translateY(30px) scale(0.8);
+      background: linear-gradient(135deg, #4ECDC4 0%, #FFD93D 100%);
+      color: #111;
+      padding: 16px 28px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 16px;
+      z-index: 12000;
+      pointer-events: none;
+      opacity: 0;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      max-width: calc(100vw - 40px);
+      text-align: center;
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Tesla-grade slide-up animation
+    requestAnimationFrame(() => {
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateX(-50%) translateY(0) scale(1)';
+    });
+    
+    // Gentle exit animation
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(-50%) translateY(20px) scale(0.95)';
+      setTimeout(() => toast.remove(), 400);
+    }, 2500);
   }
 }
 
@@ -495,11 +699,42 @@ if (document.readyState === 'loading') {
   init();
 }
 
+// 🔧 BACKUP INITIALIZATION: Force init after a delay if not already done
+setTimeout(() => {
+  if (!window.openHiShareSheet) {
+    console.warn('⚠️ Share sheet not initialized, forcing backup initialization...');
+    
+    // Detect page type from URL or title
+    const url = window.location.pathname;
+    const title = document.title;
+    let origin = 'hi5'; // default
+    
+    if (url.includes('hi-muscle') || title.includes('Hi Gym')) {
+      origin = 'higym';
+    } else if (url.includes('hi-island')) {
+      origin = 'hi-island';
+    }
+    
+    console.log('🔄 Backup init with origin:', origin);
+    const shareSheet = new HiShareSheet({ origin });
+    shareSheet.init();
+    console.log('✅ Backup Hi Share Sheet initialized');
+  }
+}, 2000); // 2 second delay
+
 function init() {
   const page = document.body.dataset.page;
+  console.log('🔧 Hi Share Sheet init check:', { 
+    page, 
+    bodyElement: !!document.body,
+    shouldInit: page === 'hi-island' || page === 'index' || page === 'hi-muscle'
+  });
+  
   if (page === 'hi-island' || page === 'index' || page === 'hi-muscle') {
     const shareSheet = new HiShareSheet({ origin: page === 'hi-muscle' ? 'higym' : 'hi5' });
     shareSheet.init();
-    console.log('✅ Hi Share Sheet component initialized');
+    console.log('✅ Hi Share Sheet component initialized for page:', page);
+  } else {
+    console.warn('❌ Hi Share Sheet NOT initialized - unsupported page:', page);
   }
 }

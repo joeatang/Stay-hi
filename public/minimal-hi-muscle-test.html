@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Minimal Hi-Muscle Test</title>
+</head>
+<body>
+  <h1>Minimal Hi-Muscle Auth Test</h1>
+  <p>Testing if this page stays without redirect...</p>
+  
+  <div id="status">Loading...</div>
+  
+  <script>
+    console.log('📍 Pathname:', location.pathname);
+    console.log('🔍 EndsWith hi-muscle.html:', location.pathname.endsWith('hi-muscle.html'));
+    
+    // Simple test without any auth-guard
+    document.getElementById('status').innerHTML = `
+      <p>✅ Page loaded successfully!</p>
+      <p>Path: ${location.pathname}</p>
+      <p>EndsWith test: ${location.pathname.endsWith('hi-muscle.html')}</p>
+    `;
+    
+    // Monitor for any redirects
+    let originalReplace = location.replace;
+    location.replace = function(url) {
+      console.log('🚨 REDIRECT DETECTED:', url);
+      document.getElementById('status').innerHTML += `<p style="color:red">🚨 REDIRECT: ${url}</p>`;
+      return originalReplace.call(location, url);
+    };
+    
+    setTimeout(() => {
+      document.getElementById('status').innerHTML += `<p>✅ 3 seconds passed - no redirects!</p>`;
+    }, 3000);
+  </script>
+</body>
+</html>

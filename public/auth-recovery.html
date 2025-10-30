@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔥 Auth Recovery Tool</title>
+    <style>
+        body { font-family: system-ui; background: #1a1a2e; color: white; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .section { background: rgba(255,255,255,0.05); padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .btn { background: #00d4ff; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; margin: 5px; display: block; width: 100%; }
+        .btn:hover { background: #0099cc; }
+        .btn-success { background: #00ff88; }
+        .btn-warning { background: #ffaa00; }
+        .btn-danger { background: #ff4444; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; font-family: monospace; }
+        .success { background: rgba(0,255,0,0.2); }
+        .warning { background: rgba(255,165,0,0.2); }
+        .error { background: rgba(255,0,0,0.2); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Auth Recovery Tool</h1>
+        <p><strong>Mission:</strong> Get you back to your real profile data</p>
+        
+        <div class="section">
+            <h3>🚀 Quick Recovery Options</h3>
+            
+            <button class="btn btn-success" onclick="magicLinkReauth()">
+                ✨ Magic Link Re-Authentication
+            </button>
+            <p style="font-size: 14px; opacity: 0.8;">Best option - will re-authenticate you properly</p>
+            
+            <button class="btn btn-warning" onclick="forceProfileLoad()">
+                ⚡ Force Load Real Profile Data
+            </button>
+            <p style="font-size: 14px; opacity: 0.8;">Bypasses auth to show your real data</p>
+            
+            <button class="btn" onclick="openProfileWithBypass()">
+                🎯 Open Profile with Auth Bypass
+            </button>
+            <p style="font-size: 14px; opacity: 0.8;">Opens profile.html with real data loading enabled</p>
+        </div>
+        
+        <div class="section">
+            <h3>📧 Sign In Options</h3>
+            <input type="email" id="emailInput" placeholder="Enter your email" style="width: 100%; padding: 12px; margin: 10px 0; background: #2a2a3e; border: 1px solid #444; color: white; border-radius: 6px;">
+            
+            <button class="btn btn-success" onclick="sendMagicLink()">
+                📧 Send Magic Link to Email
+            </button>
+        </div>
+        
+        <div id="status"></div>
+    </div>
+    
+    <script src="assets/config.js"></script>
+    <script>
+        let supabase;
+        
+        async function initSupabase() {
+            if (!supabase && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+                const { createClient } = supabase;
+                supabase = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+            }
+            return !!supabase;
+        }
+        
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+        }
+        
+        async function magicLinkReauth() {
+            showStatus('🔄 Setting up magic link authentication...', 'info');
+            
+            const email = document.getElementById('emailInput').value;
+            if (!email) {
+                showStatus('❌ Please enter your email address', 'error');
+                return;
+            }
+            
+            try {
+                await initSupabase();
+                
+                const { error } = await supabase.auth.signInWithOtp({
+                    email: email,
+                    options: {
+                        emailRedirectTo: `${window.location.origin}/profile.html`
+                    }
+                });
+                
+                if (error) {
+                    showStatus(`❌ Failed to send magic link: ${error.message}`, 'error');
+                } else {
+                    showStatus('✅ Magic link sent! Check your email and click the link.', 'success');
+                }
+                
+            } catch (authError) {
+                showStatus(`❌ Authentication failed: ${authError.message}`, 'error');
+            }
+        }
+        
+        async function sendMagicLink() {
+            await magicLinkReauth();
+        }
+        
+        async function forceProfileLoad() {
+            showStatus('⚡ Attempting to force load your real profile data...', 'info');
+            
+            // Set a flag for profile.html to bypass auth requirements
+            localStorage.setItem('force_profile_load', 'true');
+            localStorage.setItem('bypass_demo_mode', 'true');
+            
+            showStatus('✅ Bypass enabled. Opening profile...', 'success');
+            
+            setTimeout(() => {
+                window.open('/profile.html?bypass=true', '_blank');
+            }, 1000);
+        }
+        
+        function openProfileWithBypass() {
+            showStatus('🎯 Opening profile with authentication bypass...', 'info');
+            
+            // Set bypass flags
+            localStorage.setItem('force_profile_load', 'true');
+            localStorage.setItem('bypass_demo_mode', 'true');
+            
+            window.open('/profile.html?bypass=true', '_blank');
+        }
+        
+        // Auto-detect user email from any existing auth data
+        window.addEventListener('load', async () => {
+            try {
+                await initSupabase();
+                
+                // Try to get email from any existing session
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session?.user?.email) {
+                    document.getElementById('emailInput').value = session.user.email;
+                    showStatus(`📧 Found your email: ${session.user.email}`, 'success');
+                } else {
+                    // Try to extract from localStorage
+                    const authKeys = Object.keys(localStorage).filter(key => 
+                        key.includes('supabase') || key.includes('sb-')
+                    );
+                    
+                    for (const key of authKeys) {
+                        try {
+                            const authData = JSON.parse(localStorage.getItem(key));
+                            if (authData.user?.email) {
+                                document.getElementById('emailInput').value = authData.user.email;
+                                showStatus(`📧 Found cached email: ${authData.user.email}`, 'warning');
+                                break;
+                            }
+                        } catch (e) {
+                            // Continue
+                        }
+                    }
+                }
+            } catch (e) {
+                showStatus('⚠️ Could not auto-detect email. Please enter it manually.', 'warning');
+            }
+        });
+    </script>
+</body>
+</html>

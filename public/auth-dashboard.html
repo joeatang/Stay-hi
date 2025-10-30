@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🚀 Tesla-Grade Auth Developer Dashboard</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            border-bottom: 2px solid #333;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00d4ff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .card h3 {
+            margin-bottom: 15px;
+            color: #00d4ff;
+            font-size: 1.2rem;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-healthy { background: #00ff88; }
+        .status-warning { background: #ffaa00; }
+        .status-critical { background: #ff4444; }
+        .status-unknown { background: #888; }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .metric:last-child {
+            border-bottom: none;
+        }
+        
+        .metric-label {
+            color: #ccc;
+        }
+        
+        .metric-value {
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 212, 255, 0.3);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ff4444, #cc0000);
+        }
+        
+        .btn-danger:hover {
+            box-shadow: 0 10px 20px rgba(255, 68, 68, 0.3);
+        }
+        
+        .console {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        
+        .console-line {
+            margin: 2px 0;
+            word-wrap: break-word;
+        }
+        
+        .log-info { color: #00ff88; }
+        .log-warn { color: #ffaa00; }
+        .log-error { color: #ff4444; }
+        
+        .pages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .page-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .page-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .page-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .page-status {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="assets/auth-health-monitor.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Tesla-Grade Auth Developer Dashboard</h1>
+            <p>Real-time authentication health monitoring and diagnostics</p>
+        </div>
+
+        <div class="grid">
+            <!-- System Health Overview -->
+            <div class="card">
+                <h3>🏥 System Health</h3>
+                <div id="health-metrics">
+                    <div class="metric">
+                        <span class="metric-label">Overall Status</span>
+                        <span class="metric-value" id="overall-status">
+                            <span class="status-indicator status-unknown"></span>Initializing...
+                        </span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Session Corruption Signals</span>
+                        <span class="metric-value" id="corruption-count">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Recovery Attempts</span>
+                        <span class="metric-value" id="recovery-attempts">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Last Health Check</span>
+                        <span class="metric-value" id="last-check">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Authentication Status -->
+            <div class="card">
+                <h3>🔐 Authentication Status</h3>
+                <div id="auth-metrics">
+                    <div class="metric">
+                        <span class="metric-label">User Session</span>
+                        <span class="metric-value" id="session-status">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">User Email</span>
+                        <span class="metric-value" id="user-email">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Token Valid</span>
+                        <span class="metric-value" id="token-status">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Supabase Client</span>
+                        <span class="metric-value" id="client-status">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Metrics -->
+            <div class="card">
+                <h3>⚡ Performance Metrics</h3>
+                <div id="performance-metrics">
+                    <div class="metric">
+                        <span class="metric-label">Page Load Time</span>
+                        <span class="metric-value" id="load-time">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Auth Check Time</span>
+                        <span class="metric-value" id="auth-time">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">LocalStorage Size</span>
+                        <span class="metric-value" id="storage-size">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Monitoring Active</span>
+                        <span class="metric-value" id="monitoring-status">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <h3>🛠️ Quick Actions</h3>
+                <div style="text-align: center;">
+                    <button class="btn" onclick="runHealthCheck()">🔍 Run Health Check</button>
+                    <button class="btn" onclick="testAllPages()">🧪 Test All Pages</button>
+                    <button class="btn" onclick="exportDiagnostics()">📊 Export Report</button>
+                    <button class="btn btn-danger" onclick="emergencyReset()">🚨 Emergency Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Testing Grid -->
+        <div class="card">
+            <h3>📋 Page Authentication Testing</h3>
+            <div class="pages-grid" id="pages-grid">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+
+        <!-- Real-time Console -->
+        <div class="card">
+            <h3>📟 Real-time Console</h3>
+            <div class="console" id="console">
+                <div class="console-line log-info">Tesla-grade auth dashboard initialized...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class AuthDashboard {
+            constructor() {
+                this.startTime = Date.now();
+                this.pages = [
+                    { name: 'Hi-Island', path: '/hi-island-NEW.html', type: 'hybrid' },
+                    { name: 'Hi-Muscle', path: '/hi-muscle.html', type: 'hybrid' },
+                    { name: 'Profile', path: '/profile.html', type: 'hybrid' },
+                    { name: 'Calendar', path: '/calendar.html', type: 'hybrid' },
+                    { name: 'Index', path: '/index.html', type: 'hybrid' },
+                    { name: 'Sign In', path: '/signin.html', type: 'public' },
+                    { name: 'Post Auth', path: '/post-auth.html', type: 'public' }
+                ];
+                
+                this.initSupabase();
+                this.setupConsole();
+                this.renderPagesGrid();
+                this.startDashboard();
+            }
+
+            async initSupabase() {
+                try {
+                    const { createClient } = supabase;
+                    this.supabaseClient = createClient(
+                        'https://ikmobwqxxulzrknzgwzj.supabase.co',
+                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrbW9id3F4eHVsenJrbnpnd3pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjY0NDg3MjYsImV4cCI6MjA0MjAyNDcyNn0.eqRHJVtS4gj4n1PB7l_u9U_B76hOlGgSg7OhDbTRS6g'
+                    );
+                    this.log('Supabase client initialized', 'info');
+                } catch (error) {
+                    this.log(`Supabase initialization error: ${error.message}`, 'error');
+                }
+            }
+
+            setupConsole() {
+                // Intercept console methods
+                const originalLog = console.log;
+                const originalWarn = console.warn;
+                const originalError = console.error;
+
+                console.log = (...args) => {
+                    originalLog.apply(console, args);
+                    this.log(args.join(' '), 'info');
+                };
+
+                console.warn = (...args) => {
+                    originalWarn.apply(console, args);
+                    this.log(args.join(' '), 'warn');
+                };
+
+                console.error = (...args) => {
+                    originalError.apply(console, args);
+                    this.log(args.join(' '), 'error');
+                };
+            }
+
+            log(message, type = 'info') {
+                const console = document.getElementById('console');
+                const line = document.createElement('div');
+                line.className = `console-line log-${type}`;
+                line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+                console.appendChild(line);
+                console.scrollTop = console.scrollHeight;
+
+                // Limit console lines
+                while (console.children.length > 100) {
+                    console.removeChild(console.firstChild);
+                }
+            }
+
+            renderPagesGrid() {
+                const grid = document.getElementById('pages-grid');
+                grid.innerHTML = this.pages.map(page => `
+                    <div class="page-card" onclick="dashboard.testPage('${page.path}')">
+                        <div class="page-name">${page.name}</div>
+                        <div class="page-status">
+                            <span class="status-indicator status-unknown"></span>
+                            ${page.type}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            async startDashboard() {
+                this.log('Starting Tesla-grade auth dashboard...', 'info');
+                
+                // Initial health check
+                await this.runHealthCheck();
+                
+                // Start periodic updates
+                setInterval(() => this.updateMetrics(), 5000);
+                setInterval(() => this.runHealthCheck(), 30000);
+                
+                this.log('Dashboard fully operational', 'info');
+            }
+
+            async runHealthCheck() {
+                try {
+                    const startTime = Date.now();
+                    
+                    if (!window.AuthHealthMonitor) {
+                        this.log('Health monitor not available', 'warn');
+                        return;
+                    }
+
+                    const healthReport = await window.AuthHealthMonitor.validateSessionHealth();
+                    const authTime = Date.now() - startTime;
+
+                    this.updateHealthMetrics(healthReport, authTime);
+                    this.updateAuthMetrics(healthReport);
+                    this.updatePerformanceMetrics(authTime);
+
+                    this.log(`Health check completed in ${authTime}ms`, 'info');
+                    
+                } catch (error) {
+                    this.log(`Health check failed: ${error.message}`, 'error');
+                }
+            }
+
+            updateHealthMetrics(healthReport, authTime) {
+                const corruptionCount = healthReport.corruptionSignals.length;
+                const statusEl = document.getElementById('overall-status');
+                const statusIndicator = statusEl.querySelector('.status-indicator');
+
+                if (corruptionCount === 0) {
+                    statusIndicator.className = 'status-indicator status-healthy';
+                    statusEl.innerHTML = '<span class="status-indicator status-healthy"></span>Healthy';
+                } else if (corruptionCount < 3) {
+                    statusIndicator.className = 'status-indicator status-warning';
+                    statusEl.innerHTML = '<span class="status-indicator status-warning"></span>Warning';
+                } else {
+                    statusIndicator.className = 'status-indicator status-critical';
+                    statusEl.innerHTML = '<span class="status-indicator status-critical"></span>Critical';
+                }
+
+                document.getElementById('corruption-count').textContent = corruptionCount;
+                document.getElementById('recovery-attempts').textContent = 
+                    window.AuthHealthMonitor?.getHealthStatus().recoveryAttempts || 0;
+                document.getElementById('last-check').textContent = new Date().toLocaleTimeString();
+            }
+
+            updateAuthMetrics(healthReport) {
+                document.getElementById('session-status').textContent = 
+                    healthReport.sessionExists ? '✅ Active' : '❌ None';
+                document.getElementById('user-email').textContent = 
+                    healthReport.userEmail || 'Not signed in';
+                document.getElementById('token-status').textContent = 
+                    healthReport.tokenValid ? '✅ Valid' : '❌ Invalid';
+                document.getElementById('client-status').textContent = 
+                    healthReport.supabaseClientHealthy ? '✅ Connected' : '❌ Failed';
+            }
+
+            updatePerformanceMetrics(authTime) {
+                const loadTime = Date.now() - this.startTime;
+                document.getElementById('load-time').textContent = `${loadTime}ms`;
+                document.getElementById('auth-time').textContent = `${authTime}ms`;
+                
+                const storageSize = new Blob(Object.values(localStorage)).size;
+                document.getElementById('storage-size').textContent = `${(storageSize / 1024).toFixed(1)}KB`;
+                
+                const monitoring = window.AuthHealthMonitor?.getHealthStatus().monitoring;
+                document.getElementById('monitoring-status').textContent = monitoring ? '✅ Active' : '❌ Stopped';
+            }
+
+            updateMetrics() {
+                // Update performance metrics that change frequently
+                this.updatePerformanceMetrics(0);
+            }
+
+            async testPage(path) {
+                this.log(`Testing page: ${path}`, 'info');
+                
+                try {
+                    // Test if page loads without redirect
+                    const testWindow = window.open(path, '_blank');
+                    
+                    setTimeout(() => {
+                        if (testWindow && !testWindow.closed) {
+                            this.log(`✅ ${path} loaded successfully`, 'info');
+                            testWindow.close();
+                        } else {
+                            this.log(`⚠️ ${path} may have redirected`, 'warn');
+                        }
+                    }, 2000);
+                    
+                } catch (error) {
+                    this.log(`❌ Error testing ${path}: ${error.message}`, 'error');
+                }
+            }
+
+            async testAllPages() {
+                this.log('🧪 Testing all pages...', 'info');
+                
+                for (const page of this.pages) {
+                    await new Promise(resolve => {
+                        setTimeout(() => {
+                            this.testPage(page.path);
+                            resolve();
+                        }, 1000);
+                    });
+                }
+                
+                this.log('✅ All page tests completed', 'info');
+            }
+
+            async exportDiagnostics() {
+                try {
+                    const diagnostics = {
+                        timestamp: new Date().toISOString(),
+                        url: window.location.href,
+                        userAgent: navigator.userAgent,
+                        healthReport: window.AuthHealthMonitor ? 
+                            await window.AuthHealthMonitor.validateSessionHealth() : null,
+                        localStorage: { ...localStorage },
+                        sessionStorage: { ...sessionStorage },
+                        cookies: document.cookie,
+                        performance: {
+                            loadTime: Date.now() - this.startTime,
+                            memoryUsage: performance.memory ? {
+                                used: performance.memory.usedJSHeapSize,
+                                total: performance.memory.totalJSHeapSize,
+                                limit: performance.memory.jsHeapSizeLimit
+                            } : null
+                        }
+                    };
+
+                    const blob = new Blob([JSON.stringify(diagnostics, null, 2)], 
+                        { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `auth-diagnostics-${Date.now()}.json`;
+                    a.click();
+                    
+                    URL.revokeObjectURL(url);
+                    this.log('📊 Diagnostics exported', 'info');
+                    
+                } catch (error) {
+                    this.log(`Export failed: ${error.message}`, 'error');
+                }
+            }
+
+            async emergencyReset() {
+                if (!confirm('⚠️ This will clear ALL browser data. Continue?')) {
+                    return;
+                }
+
+                this.log('🚨 Emergency reset initiated...', 'warn');
+                
+                try {
+                    // Sign out from Supabase
+                    if (this.supabaseClient) {
+                        await this.supabaseClient.auth.signOut({ scope: 'global' });
+                    }
+
+                    // Clear all storage
+                    localStorage.clear();
+                    sessionStorage.clear();
+
+                    // Clear cookies
+                    document.cookie.split(";").forEach(cookie => {
+                        const eqPos = cookie.indexOf("=");
+                        const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+                    });
+
+                    this.log('✅ Emergency reset completed', 'info');
+                    
+                    setTimeout(() => window.location.reload(), 2000);
+                    
+                } catch (error) {
+                    this.log(`Emergency reset failed: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // Global functions
+        function runHealthCheck() {
+            dashboard.runHealthCheck();
+        }
+
+        function testAllPages() {
+            dashboard.testAllPages();
+        }
+
+        function exportDiagnostics() {
+            dashboard.exportDiagnostics();
+        }
+
+        function emergencyReset() {
+            dashboard.emergencyReset();
+        }
+
+        // Initialize dashboard
+        let dashboard;
+        window.addEventListener('load', () => {
+            dashboard = new AuthDashboard();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Redirect Debug</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="assets/url-path-fixer.js"></script>
+    <script src="assets/auth-guard.js?v=enhanced-logging"></script>
+</head>
+<body>
+    <h1>Debug Redirect Issue</h1>
+    <div id="status"></div>
+    <button onclick="testHiMuscle()">Test Hi-Muscle Access</button>
+    <button onclick="checkAuth()">Check Auth Status</button>
+    <button onclick="clearSession()">Clear Session</button>
+    
+    <script>
+        async function checkAuth() {
+            const status = document.getElementById('status');
+            try {
+                const client = window.supabaseClient || supabase;
+                const { data: { session } } = await client.auth.getSession();
+                status.innerHTML = `
+                    <h3>Auth Status:</h3>
+                    <p>Session exists: ${!!session}</p>
+                    <p>User ID: ${session?.user?.id || 'None'}</p>
+                    <p>Email: ${session?.user?.email || 'None'}</p>
+                    <p>Current URL: ${window.location.href}</p>
+                    <p>Pathname: ${window.location.pathname}</p>
+                `;
+            } catch (error) {
+                status.innerHTML = `<p>Error checking auth: ${error.message}</p>`;
+            }
+        }
+        
+        async function testHiMuscle() {
+            window.location.href = '/hi-muscle.html';
+        }
+        
+        async function clearSession() {
+            try {
+                const client = window.supabaseClient || supabase;
+                await client.auth.signOut();
+                alert('Session cleared');
+            } catch (error) {
+                alert('Error clearing session: ' + error.message);
+            }
+        }
+        
+        // Auto-check auth on load
+        window.addEventListener('load', checkAuth);
+    </script>
+</body>
+</html>

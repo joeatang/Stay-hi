@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>Tesla Admin Dashboard — Stay Hi</title>
+
+  <!-- Preload Supabase CDN for instant client init -->
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+  <!-- Tesla-Grade Auth System -->
+  <script src="assets/auth-health-monitor.js"></script>
+  <script src="assets/auth-guard.js"></script>
+  
+  <!-- Feature Flags & Core Systems -->
+  <script src="assets/feature-flags.js"></script>
+  <script src="assets/tesla-auth-controller.js"></script>
+
+  <!-- Brand + shared styles -->
+  <link rel="stylesheet" href="assets/theme.css"/>
+  <link rel="stylesheet" href="assets/create-parity.css"/>
+  <link rel="stylesheet" href="assets/premium-ux.css"/>
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #0f1419 0%, #2d1e4f 50%, #1a1f3a 100%);
+      min-height: 100vh;
+      padding: 0;
+      margin: 0;
+      font-family: var(--f-sans);
+      color: white;
+    }
+    
+    /* Tesla-Grade Header */
+    .admin-header {
+      background: rgba(15, 20, 25, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .admin-title {
+      font-size: 1.5rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #FFD166, #FF7B24);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .admin-user-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    
+    .admin-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+      display: grid;
+      gap: 2rem;
+    }
+    
+    /* Dashboard Grid */
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+    
+    .admin-panel {
+      background: rgba(15, 16, 34, 0.85);
+      border-radius: 24px;
+      border: 2px solid rgba(255, 215, 0, 0.2);
+      padding: 2rem;
+      backdrop-filter: blur(25px);
+    }
+    
+    .panel-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin: 0 0 1.5rem 0;
+      color: #FFD166;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    /* Stats Dashboard */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+      background: rgba(45, 30, 79, 0.4);
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-align: center;
+      border: 1px solid rgba(255, 215, 0, 0.1);
+    }
+    
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: #FFD166;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    
+    .stat-label {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    
+    /* Membership Management */
+    .membership-controls {
+      display: grid;
+      gap: 1rem;
+    }
+    
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .control-group label {
+      font-weight: 600;
+      color: #FFD166;
+      font-size: 0.9rem;
+    }
+    
+    .control-input {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      border-radius: 12px;
+      padding: 0.8rem;
+      color: white;
+      font-size: 1rem;
+    }
+    
+    .control-input:focus {
+      outline: none;
+      border-color: #FFD166;
+      box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+    }
+    
+    .control-select {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      border-radius: 12px;
+      padding: 0.8rem;
+      color: white;
+      font-size: 1rem;
+    }
+    
+    /* Action Buttons */
+    .action-btn {
+      background: linear-gradient(135deg, #FFD166, #FF7B24);
+      border: none;
+      border-radius: 16px;
+      padding: 1rem 2rem;
+      color: #000;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+    }
+    
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
+    }
+    
+    .action-btn.danger {
+      background: linear-gradient(135deg, #FF6B6B, #E74C3C);
+      color: white;
+    }
+    
+    .action-btn.secondary {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+    }
+    
+    /* User Search and Management */
+    .user-search {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+    
+    .user-list {
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid rgba(255, 215, 0, 0.2);
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    
+    .user-item {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .user-info {
+      flex: 1;
+    }
+    
+    .user-email {
+      font-weight: 600;
+      color: #FFD166;
+    }
+    
+    .user-status {
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+    
+    .user-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .user-action-btn {
+      background: rgba(255, 215, 0, 0.2);
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      color: #FFD166;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .user-action-btn:hover {
+      background: rgba(255, 215, 0, 0.3);
+    }
+    
+    /* Feature Flag Controls */
+    .feature-flags {
+      display: grid;
+      gap: 1rem;
+    }
+    
+    .flag-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 215, 0, 0.1);
+    }
+    
+    .flag-info {
+      flex: 1;
+    }
+    
+    .flag-name {
+      font-weight: 600;
+      color: #FFD166;
+      margin-bottom: 0.25rem;
+    }
+    
+    .flag-description {
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+    
+    .flag-toggle {
+      position: relative;
+      width: 60px;
+      height: 30px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .flag-toggle.active {
+      background: #FFD166;
+    }
+    
+    .flag-toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 24px;
+      height: 24px;
+      background: white;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+    
+    .flag-toggle.active::after {
+      left: calc(100% - 27px);
+      background: #000;
+    }
+    
+    /* Analytics Charts Placeholder */
+    .analytics-chart {
+      height: 300px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px dashed rgba(255, 215, 0, 0.3);
+      color: rgba(255, 255, 255, 0.5);
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+      .admin-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .admin-header {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .admin-container {
+        padding: 1rem;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Tesla-Grade Admin Header -->
+  <header class="admin-header">
+    <div class="admin-title">🚀 Tesla Admin Dashboard</div>
+    <div class="admin-user-info">
+      <span id="adminUserEmail">Loading...</span>
+      <button id="signOutBtn" class="user-action-btn">Sign Out</button>
+    </div>
+  </header>
+
+  <!-- Main Dashboard -->
+  <div class="admin-container">
+    
+    <!-- Stats Overview -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-number" id="totalUsers">-</span>
+        <div class="stat-label">Total Users</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number" id="activeMembers">-</span>
+        <div class="stat-label">Active Members</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number" id="betaTesters">-</span>
+        <div class="stat-label">Beta Testers</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number" id="trialUsers">-</span>
+        <div class="stat-label">Trial Users</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number" id="totalShares">-</span>
+        <div class="stat-label">Total Shares</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number" id="totalWaves">-</span>
+        <div class="stat-label">Hi Waves</div>
+      </div>
+    </div>
+
+    <!-- Admin Grid -->
+    <div class="admin-grid">
+      
+      <!-- Membership Management -->
+      <div class="admin-panel">
+        <div class="panel-title">
+          👥 Membership Management
+        </div>
+        
+        <div class="membership-controls">
+          <div class="control-group">
+            <label>Search User by Email</label>
+            <input type="email" class="control-input" id="userSearchInput" placeholder="user@example.com">
+          </div>
+          
+          <div class="control-group">
+            <label>Membership Tier</label>
+            <select class="control-select" id="membershipTier">
+              <option value="trial">Trial (7 days)</option>
+              <option value="beta">Beta (30 days)</option>
+              <option value="standard">Standard</option>
+              <option value="premium">Premium</option>
+              <option value="lifetime">Lifetime</option>
+            </select>
+          </div>
+          
+          <div class="control-group">
+            <label>Action Reason</label>
+            <input type="text" class="control-input" id="actionReason" placeholder="Admin action reason...">
+          </div>
+          
+          <button class="action-btn" id="updateMembershipBtn">Update Membership</button>
+          <button class="action-btn danger" id="suspendUserBtn">Suspend User</button>
+        </div>
+        
+        <div id="userSearchResults" class="user-list" style="margin-top: 1rem; display: none;">
+          <!-- Dynamic user results -->
+        </div>
+      </div>
+      
+      <!-- Feature Flag Management -->
+      <div class="admin-panel">
+        <div class="panel-title">
+          🎛️ Feature Flag Controls
+        </div>
+        
+        <div class="feature-flags" id="featureFlagsList">
+          <!-- Dynamic feature flags -->
+        </div>
+        
+        <button class="action-btn secondary" id="refreshFlagsBtn">Refresh Flags</button>
+      </div>
+      
+      <!-- Invitation Code Generator -->
+      <div class="admin-panel">
+        <div class="panel-title">
+          🎫 Invitation Codes
+        </div>
+        
+        <div class="membership-controls">
+          <div class="control-group">
+            <label>Code Type</label>
+            <select class="control-select" id="codeType">
+              <option value="trial">Trial (7 days)</option>
+              <option value="beta">Beta (30 days)</option>
+              <option value="premium">Premium (30 days)</option>
+              <option value="lifetime">Lifetime Access</option>
+            </select>
+          </div>
+          
+          <div class="control-group">
+            <label>Max Uses</label>
+            <input type="number" class="control-input" id="maxUses" value="1" min="1" max="1000">
+          </div>
+          
+          <div class="control-group">
+            <label>Description</label>
+            <input type="text" class="control-input" id="codeDescription" placeholder="Beta tester batch #1">
+          </div>
+          
+          <button class="action-btn" id="generateCodeBtn">Generate Code</button>
+        </div>
+        
+        <div id="generatedCode" style="margin-top: 1rem; display: none;">
+          <div style="background: rgba(0,255,0,0.1); padding: 1rem; border-radius: 12px; border: 1px solid rgba(0,255,0,0.3);">
+            <div style="font-weight: 600; color: #00ff00; margin-bottom: 0.5rem;">Generated Code:</div>
+            <div style="font-size: 1.2rem; font-family: monospace; color: #FFD166; margin-bottom: 1rem;" id="newCodeText"></div>
+            <button class="action-btn secondary" id="copyCodeBtn">Copy Code</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Analytics Dashboard -->
+      <div class="admin-panel">
+        <div class="panel-title">
+          📊 Analytics
+        </div>
+        
+        <div class="analytics-chart">
+          📈 User Growth Chart<br>
+          <small>(Chart.js integration ready)</small>
+        </div>
+        
+        <button class="action-btn secondary" id="exportDataBtn">Export Data</button>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- Core Scripts -->
+  <script src="assets/supabase-init.js"></script>
+  <script src="assets/db.js"></script>
+  
+  <script>
+    class TeslaAdminDashboard {
+      constructor() {
+        this.initialized = false;
+        this.currentUser = null;
+        this.stats = {};
+        this.featureFlags = [];
+        
+        this.init();
+      }
+      
+      async init() {
+        console.log('🚀 Initializing Tesla Admin Dashboard...');
+        
+        // Wait for auth system
+        if (window.TeslaAuth) {
+          await this.waitForAuth();
+        } else {
+          window.addEventListener('tesla-auth-ready', () => this.waitForAuth());
+        }
+        
+        // Set up event listeners
+        this.setupEventListeners();
+        
+        // Load initial data
+        await this.loadDashboardData();
+        
+        this.initialized = true;
+        console.log('✅ Tesla Admin Dashboard ready');
+      }
+      
+      async waitForAuth() {
+        // TEMPORARILY DISABLED FOR BETA TESTING
+        // Authentication will be enabled when ready for production
+        console.log('🔧 BETA MODE: Auth protection disabled for development');
+        
+        // Mock user for testing
+        this.currentUser = { email: 'beta-admin@stayhi.com' };
+        
+        // Update UI with mock user info
+        document.getElementById('adminUserEmail').textContent = 'Beta Admin Mode';
+        
+        /* PRODUCTION CODE (ENABLE WHEN READY):
+        if (!window.TeslaAuth.isAuthenticated()) {
+          console.log('🔒 Not authenticated, redirecting to signin...');
+          window.location.href = '/signin.html';
+          return;
+        }
+        
+        this.currentUser = window.TeslaAuth.getCurrentUser();
+        document.getElementById('adminUserEmail').textContent = this.currentUser.email;
+        */
+      }
+      
+      setupEventListeners() {
+        // Sign out
+        document.getElementById('signOutBtn').addEventListener('click', () => {
+          window.TeslaAuth.signOut();
+        });
+        
+        // User search
+        document.getElementById('userSearchInput').addEventListener('input', 
+          this.debounce((e) => this.searchUsers(e.target.value), 500));
+        
+        // Membership management
+        document.getElementById('updateMembershipBtn').addEventListener('click', 
+          () => this.updateMembership());
+        
+        document.getElementById('suspendUserBtn').addEventListener('click', 
+          () => this.suspendUser());
+        
+        // Feature flags
+        document.getElementById('refreshFlagsBtn').addEventListener('click', 
+          () => this.loadFeatureFlags());
+        
+        // Invitation codes
+        document.getElementById('generateCodeBtn').addEventListener('click', 
+          () => this.generateInvitationCode());
+        
+        document.getElementById('copyCodeBtn').addEventListener('click', 
+          () => this.copyGeneratedCode());
+        
+        // Analytics
+        document.getElementById('exportDataBtn').addEventListener('click', 
+          () => this.exportAnalyticsData());
+      }
+      
+      async loadDashboardData() {
+        console.log('📊 Loading dashboard data...');
+        
+        try {
+          // Load stats in parallel
+          await Promise.all([
+            this.loadUserStats(),
+            this.loadFeatureFlags(),
+            this.loadRecentActivity()
+          ]);
+          
+        } catch (error) {
+          console.error('❌ Failed to load dashboard data:', error);
+          this.showError('Failed to load dashboard data');
+        }
+      }
+      
+      async loadUserStats() {
+        // Mock stats for now - replace with actual Supabase queries
+        const stats = {
+          totalUsers: 1247,
+          activeMembers: 892,
+          betaTesters: 45,
+          trialUsers: 203,
+          totalShares: 15684,
+          totalWaves: 89432
+        };
+        
+        // Update UI
+        Object.entries(stats).forEach(([key, value]) => {
+          const element = document.getElementById(key);
+          if (element) {
+            this.animateNumber(element, 0, value, 1000);
+          }
+        });
+        
+        this.stats = stats;
+      }
+      
+      async loadFeatureFlags() {
+        // Mock feature flags - integrate with actual feature flag system
+        const flags = [
+          { id: 'rewards_enabled', name: 'Hi Rewards System', description: 'Enable rewards and points system', enabled: false },
+          { id: 'beta_features', name: 'Beta Features', description: 'Enable beta testing features', enabled: true },
+          { id: 'premium_animations', name: 'Premium Animations', description: 'Enhanced UI animations', enabled: true },
+          { id: 'analytics_tracking', name: 'Analytics Tracking', description: 'User behavior analytics', enabled: true },
+          { id: 'debug_mode', name: 'Debug Mode', description: 'Development debugging tools', enabled: false }
+        ];
+        
+        this.featureFlags = flags;
+        this.renderFeatureFlags();
+      }
+      
+      renderFeatureFlags() {
+        const container = document.getElementById('featureFlagsList');
+        
+        container.innerHTML = this.featureFlags.map(flag => `
+          <div class="flag-item">
+            <div class="flag-info">
+              <div class="flag-name">${flag.name}</div>
+              <div class="flag-description">${flag.description}</div>
+            </div>
+            <div class="flag-toggle ${flag.enabled ? 'active' : ''}" 
+                 data-flag-id="${flag.id}" 
+                 onclick="dashboard.toggleFeatureFlag('${flag.id}')">
+            </div>
+          </div>
+        `).join('');
+      }
+      
+      async toggleFeatureFlag(flagId) {
+        console.log('🎛️ Toggling feature flag:', flagId);
+        
+        // Find and update flag
+        const flag = this.featureFlags.find(f => f.id === flagId);
+        if (!flag) return;
+        
+        flag.enabled = !flag.enabled;
+        
+        // Update UI
+        const toggle = document.querySelector(`[data-flag-id="${flagId}"]`);
+        toggle.classList.toggle('active', flag.enabled);
+        
+        // Here you would sync with your feature flag system
+        console.log(`✅ Feature flag ${flagId} ${flag.enabled ? 'enabled' : 'disabled'}`);
+        
+        this.showSuccess(`Feature flag "${flag.name}" ${flag.enabled ? 'enabled' : 'disabled'}`);
+      }
+      
+      async generateInvitationCode() {
+        const codeType = document.getElementById('codeType').value;
+        const maxUses = document.getElementById('maxUses').value;
+        const description = document.getElementById('codeDescription').value;
+        
+        // Generate random code
+        const code = this.generateRandomCode(codeType);
+        
+        console.log('🎫 Generated invitation code:', { code, codeType, maxUses, description });
+        
+        // Show generated code
+        document.getElementById('newCodeText').textContent = code;
+        document.getElementById('generatedCode').style.display = 'block';
+        
+        // Here you would save to database
+        this.showSuccess('Invitation code generated successfully!');
+      }
+      
+      generateRandomCode(type) {
+        const prefix = {
+          'trial': 'TRIAL',
+          'beta': 'BETA',
+          'premium': 'PREM',
+          'lifetime': 'LIFE'
+        }[type] || 'CODE';
+        
+        const suffix = Math.random().toString(36).substr(2, 8).toUpperCase();
+        return `${prefix}${suffix}`;
+      }
+      
+      copyGeneratedCode() {
+        const codeText = document.getElementById('newCodeText').textContent;
+        
+        navigator.clipboard.writeText(codeText).then(() => {
+          this.showSuccess('Code copied to clipboard!');
+        }).catch(() => {
+          this.showError('Failed to copy code');
+        });
+      }
+      
+      async searchUsers(query) {
+        if (!query || query.length < 3) {
+          document.getElementById('userSearchResults').style.display = 'none';
+          return;
+        }
+        
+        console.log('🔍 Searching users:', query);
+        
+        // Mock search results - replace with actual Supabase query
+        const results = [
+          { email: query, tier: 'trial', status: 'active', created: '2025-01-01' },
+          { email: 'test@example.com', tier: 'premium', status: 'active', created: '2024-12-15' }
+        ];
+        
+        this.renderUserResults(results);
+      }
+      
+      renderUserResults(users) {
+        const container = document.getElementById('userSearchResults');
+        
+        container.innerHTML = users.map(user => `
+          <div class="user-item">
+            <div class="user-info">
+              <div class="user-email">${user.email}</div>
+              <div class="user-status">${user.tier} • ${user.status} • ${user.created}</div>
+            </div>
+            <div class="user-actions">
+              <button class="user-action-btn" onclick="dashboard.viewUser('${user.email}')">View</button>
+              <button class="user-action-btn" onclick="dashboard.editUser('${user.email}')">Edit</button>
+            </div>
+          </div>
+        `).join('');
+        
+        container.style.display = 'block';
+      }
+      
+      // Utility functions
+      animateNumber(element, start, end, duration) {
+        const startTime = performance.now();
+        
+        const animate = (currentTime) => {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          
+          const current = Math.floor(start + (end - start) * progress);
+          element.textContent = current.toLocaleString();
+          
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          }
+        };
+        
+        requestAnimationFrame(animate);
+      }
+      
+      debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+      
+      showSuccess(message) {
+        console.log('✅', message);
+        // Integrate with your notification system
+      }
+      
+      showError(message) {
+        console.error('❌', message);
+        // Integrate with your notification system
+      }
+      
+      // Placeholder methods
+      async loadRecentActivity() {}
+      async updateMembership() { this.showSuccess('Membership updated!'); }
+      async suspendUser() { this.showSuccess('User suspended!'); }
+      async exportAnalyticsData() { this.showSuccess('Data export started!'); }
+      async viewUser(email) { console.log('View user:', email); }
+      async editUser(email) { console.log('Edit user:', email); }
+    }
+    
+    // Initialize dashboard
+    const dashboard = new TeslaAdminDashboard();
+    window.dashboard = dashboard; // For console debugging
+  </script>
+</body>
+</html>

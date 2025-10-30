@@ -164,7 +164,10 @@ class GeocodingService {
       const stateAbbr = this.getStateAbbreviation(state);
       return `${city}, ${stateAbbr || state}`;
     } else if (addr.country) {
-      // International: Use country
+      // Tesla-Grade Fix: Prevent city duplication (e.g., "Tokyo, Tokyo" → "Tokyo, Japan")
+      if (city.toLowerCase() === addr.country.toLowerCase()) {
+        return city; // Just return city if it's the same as country
+      }
       return `${city}, ${addr.country}`;
     }
     
@@ -197,7 +200,12 @@ class GeocodingService {
     if (state && country === 'US') {
       return `${city}, ${state}`;
     } else if (data.countryName) {
-      return `${city}, ${data.countryName}`;
+      // Tesla-Grade Fix: Prevent city duplication (e.g., "Tokyo, Tokyo" → "Tokyo, Japan")
+      const countryName = data.countryName;
+      if (city.toLowerCase() === countryName.toLowerCase()) {
+        return city; // Just return city if it's the same as country
+      }
+      return `${city}, ${countryName}`;
     }
     
     return city;
@@ -226,6 +234,10 @@ class GeocodingService {
       if (state && country === 'US') {
         return `${city}, ${state}`;
       } else if (data.country_name) {
+        // Tesla-Grade Fix: Prevent city duplication 
+        if (city.toLowerCase() === data.country_name.toLowerCase()) {
+          return city; // Just return city if it's the same as country
+        }
         return `${city}, ${data.country_name}`;
       }
       

@@ -1,0 +1,78 @@
+#!/bin/bash
+
+# Stay-Hi Development Server Controller
+SERVER_PORT=3002
+SERVER_URL="http://localhost:$SERVER_PORT"
+
+case "${1:-status}" in
+    "start")
+        echo "🚀 Starting Stay-Hi development server..."
+        lsof -ti:$SERVER_PORT | xargs kill -9 2>/dev/null || true
+        sleep 1
+        cd /Users/joeatang/Documents/GitHub/Stay-hi/public
+        nohup python3 -m http.server $SERVER_PORT > /dev/null 2>&1 &
+        echo $! > /tmp/stay-hi-server.pid
+        sleep 2
+        if curl -s -I $SERVER_URL >/dev/null 2>&1; then
+            echo "✅ Server running at $SERVER_URL"
+            echo "📄 Available pages:"
+            echo "   • $SERVER_URL/profile.html (main profile)"
+            echo "   • $SERVER_URL/profile-working.html (working demo)"
+            echo "   • $SERVER_URL/hi-island-NEW.html (feed page)"
+        else
+            echo "❌ Server failed to start"
+        fi
+        ;;
+        
+    "stop")
+        echo "🛑 Stopping Stay-Hi server..."
+        if [ -f /tmp/stay-hi-server.pid ]; then
+            kill $(cat /tmp/stay-hi-server.pid) 2>/dev/null || true
+            rm -f /tmp/stay-hi-server.pid
+        fi
+        lsof -ti:$SERVER_PORT | xargs kill -9 2>/dev/null || true
+        echo "✅ Server stopped"
+        ;;
+        
+    "restart")
+        $0 stop
+        sleep 1
+        $0 start
+        ;;
+        
+    "open")
+        page=${2:-profile-working.html}
+        if curl -s -I $SERVER_URL >/dev/null 2>&1; then
+            echo "🌐 Opening $page..."
+            open "$SERVER_URL/$page"
+        else
+            echo "❌ Server not running. Starting server..."
+            $0 start
+            sleep 2
+            open "$SERVER_URL/$page"
+        fi
+        ;;
+        
+    "status"|"")
+        if curl -s -I $SERVER_URL >/dev/null 2>&1; then
+            echo "✅ Server running at $SERVER_URL"
+            echo "🔗 Quick links:"
+            echo "   Working Profile: $SERVER_URL/profile-working.html"
+            echo "   Main Profile: $SERVER_URL/profile.html"
+            echo "   Hi-Island: $SERVER_URL/hi-island-NEW.html"
+        else
+            echo "❌ Server not running"
+            echo "💡 Run: $0 start"
+        fi
+        ;;
+        
+    *)
+        echo "Stay-Hi Development Server"
+        echo "Usage: $0 {start|stop|restart|status|open [page]}"
+        echo ""
+        echo "Examples:"
+        echo "  $0 start                    # Start server"
+        echo "  $0 open profile-working.html # Open working profile"
+        echo "  $0 status                   # Check server status"
+        ;;
+esac

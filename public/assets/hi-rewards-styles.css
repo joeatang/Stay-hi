@@ -1,0 +1,176 @@
+/* ===============================================
+   🏆 HI REWARDS SYSTEM STYLES
+   =============================================== */
+
+/* Rewards Button */
+.hi-rewards-button {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #000;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+  transition: all 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 80px;
+}
+
+.hi-rewards-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+  background: linear-gradient(135deg, #FFA500, #FFD700);
+}
+
+.hi-rewards-button:active {
+  transform: translateY(0);
+}
+
+#points-display {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+/* Points Toast Notification */
+.hi-points-toast {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 25px;
+  font-weight: bold;
+  font-size: 14px;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+  z-index: 1001;
+  transform: translateX(400px);
+  opacity: 0;
+  animation: slideInToast 0.5s ease forwards, fadeOutToast 0.5s ease 2.5s forwards;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@keyframes slideInToast {
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOutToast {
+  to {
+    opacity: 0;
+    transform: translateX(400px);
+  }
+}
+
+/* Fade animations */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.fade-out {
+  animation: fadeOut 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.8); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hi-rewards-button {
+    top: 15px;
+    right: 15px;
+    padding: 10px 16px;
+    font-size: 14px;
+    min-width: 70px;
+  }
+  
+  #points-display {
+    font-size: 16px;
+  }
+  
+  .hi-points-toast {
+    top: 70px;
+    right: 15px;
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .hi-rewards-button {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000; /* Keep gold readable */
+  }
+  
+  .hi-points-toast {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .hi-rewards-button {
+    border: 2px solid #000;
+    background: #FFD700;
+  }
+  
+  .hi-points-toast {
+    border: 2px solid #fff;
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .hi-rewards-button,
+  .hi-points-toast {
+    animation: none;
+    transition: none;
+  }
+  
+  .hi-rewards-button:hover {
+    transform: none;
+  }
+}
+
+/* Feature flag disabled state */
+.hi-rewards-disabled .hi-rewards-button {
+  display: none;
+}
+
+/* Loading state */
+.hi-rewards-button.loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.hi-rewards-button.loading #points-display::after {
+  content: "...";
+  animation: dots 1s infinite;
+}
+
+@keyframes dots {
+  0%, 20% { content: ""; }
+  40% { content: "."; }
+  60% { content: ".."; }
+  80%, 100% { content: "..."; }
+}

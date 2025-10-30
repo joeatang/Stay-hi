@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏥 Regression Fix Verification</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background: #0f1024;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            margin: 0;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            border-left: 4px solid #4ECDC4;
+        }
+        .test-btn {
+            background: #4ECDC4;
+            color: #111;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 5px;
+            display: inline-block;
+        }
+        .status { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: rgba(78, 205, 196, 0.2); color: #4ecdc4; }
+        .error { background: rgba(255, 107, 107, 0.2); color: #ff6b6b; }
+        .warning { background: rgba(255, 217, 61, 0.2); color: #ffd93d; }
+        #log { 
+            max-height: 200px; 
+            overflow-y: auto; 
+            background: rgba(0,0,0,0.3); 
+            padding: 15px; 
+            border-radius: 5px; 
+            font-family: monospace; 
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏥 Regression Fix Verification</h1>
+    
+    <div class="test-section">
+        <h3>🎯 Original Issues (Should be Fixed)</h3>
+        <p><strong>Issue 1:</strong> Share sheet buttons not clickable</p>
+        <p><strong>Issue 2:</strong> Hi-Island "Drop a Hi" button not clickable</p>
+        <p><strong>Issue 3:</strong> Hi-Muscle "Share Journey" button not clickable</p>
+    </div>
+
+    <div class="test-section">
+        <h3>🧪 Quick Tests</h3>
+        <a class="test-btn" href="http://localhost:8080/hi-muscle.html" target="_blank">Test Hi-Muscle</a>
+        <a class="test-btn" href="http://localhost:8080/hi-island-NEW.html" target="_blank">Test Hi-Island</a>
+        <a class="test-btn" href="http://localhost:8080/index.html" target="_blank">Test Index (Regression Check)</a>
+        <button class="test-btn" onclick="testShareSheet()">Test Share Sheet Here</button>
+    </div>
+
+    <div class="test-section">
+        <h3>🔬 Container Pointer-Events Test</h3>
+        <button class="test-btn" onclick="testContainerState()">Check Container State</button>
+        <div id="container-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📊 Test Results</h3>
+        <div id="results"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📋 Log</h3>
+        <div id="log"></div>
+    </div>
+
+    <!-- Load share sheet -->
+    <script src="components/hi-share-sheet/share-sheet.js" type="module"></script>
+    <link rel="stylesheet" href="components/hi-share-sheet/share-sheet.css">
+
+    <script>
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type;
+            
+            logEl.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(`[FIX-TEST] ${message}`);
+        }
+
+        function showResult(test, result, details = '') {
+            const resultsEl = document.getElementById('results');
+            const statusClass = result ? 'success' : 'error';
+            const icon = result ? '✅' : '❌';
+            
+            resultsEl.innerHTML += `
+                <div class="status ${statusClass}">
+                    ${icon} ${test}: ${result ? 'PASS' : 'FAIL'}${details ? ' - ' + details : ''}
+                </div>
+            `;
+        }
+
+        function testShareSheet() {
+            log('🧪 Testing share sheet functionality...', 'info');
+            
+            if (window.openHiShareSheet) {
+                try {
+                    window.openHiShareSheet('test', { prefilledText: 'Regression fix test' });
+                    
+                    setTimeout(() => {
+                        const buttons = [
+                            document.getElementById('hi-save-private'),
+                            document.getElementById('hi-share-anon'),
+                            document.getElementById('hi-share-public')
+                        ];
+                        
+                        const clickableButtons = buttons.filter(btn => {
+                            if (!btn) return false;
+                            const style = getComputedStyle(btn);
+                            return style.pointerEvents !== 'none' && style.display !== 'none';
+                        });
+                        
+                        showResult('Share Sheet Buttons', clickableButtons.length === 3, 
+                            `${clickableButtons.length}/3 buttons clickable`);
+                        
+                        log(`Share sheet buttons: ${clickableButtons.length}/3 clickable`, 
+                            clickableButtons.length === 3 ? 'success' : 'error');
+                    }, 500);
+                    
+                } catch (e) {
+                    showResult('Share Sheet Opening', false, e.message);
+                    log(`Share sheet error: ${e.message}`, 'error');
+                }
+            } else {
+                showResult('Share Sheet Function', false, 'openHiShareSheet not available');
+                log('Share sheet function not available', 'error');
+            }
+        }
+
+        function testContainerState() {
+            log('🔍 Testing container pointer-events state...', 'info');
+            
+            const container = document.querySelector('.hi-share-sheet-container');
+            const statusEl = document.getElementById('container-status');
+            
+            if (container) {
+                const style = getComputedStyle(container);
+                const pointerEvents = style.pointerEvents;
+                const zIndex = style.zIndex;
+                const position = style.position;
+                
+                log(`Container state: pointer-events=${pointerEvents}, z-index=${zIndex}`, 'info');
+                
+                statusEl.innerHTML = `
+                    <div class="status ${pointerEvents === 'none' ? 'success' : 'warning'}">
+                        <strong>Container State:</strong><br>
+                        Pointer Events: ${pointerEvents} ${pointerEvents === 'none' ? '(Correct - not blocking)' : '(Warning - may block interactions)'}<br>
+                        Z-Index: ${zIndex}<br>
+                        Position: ${position}<br>
+                        Display: ${style.display}
+                    </div>
+                `;
+                
+                showResult('Container Blocking State', pointerEvents === 'none', 
+                    `pointer-events: ${pointerEvents}`);
+                
+            } else {
+                statusEl.innerHTML = `<div class="status warning">Share sheet container not found (not initialized yet)</div>`;
+                showResult('Container Exists', false, 'Container not found');
+            }
+        }
+
+        // Auto-run basic tests
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                log('🔬 Auto-starting regression tests...', 'info');
+                testContainerState();
+                
+                setTimeout(() => {
+                    testShareSheet();
+                }, 1000);
+            }, 2000);
+        });
+
+        log('🏥 Regression fix verification initialized', 'success');
+    </script>
+</body>
+</html>

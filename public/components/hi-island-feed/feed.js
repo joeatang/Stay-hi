@@ -109,6 +109,33 @@ class HiIslandFeed {
         this.switchFilter(targetFilter);
       });
     });
+
+    // Username clicks (event delegation for dynamically created elements)
+    this.root.addEventListener('click', (e) => {
+      const usernameEl = e.target.closest('.hi-feed-card-user-clickable');
+      if (usernameEl) {
+        const userId = usernameEl.dataset.userId;
+        // Only open modal if user ID exists (not anonymous)
+        if (userId && userId.trim() && window.openProfileModal) {
+          window.openProfileModal(userId);
+        }
+      }
+    });
+
+    // Keyboard accessibility for username clicks
+    this.root.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        const usernameEl = e.target.closest('.hi-feed-card-user-clickable');
+        if (usernameEl) {
+          e.preventDefault();
+          const userId = usernameEl.dataset.userId;
+          // Only open modal if user ID exists (not anonymous)
+          if (userId && userId.trim() && window.openProfileModal) {
+            window.openProfileModal(userId);
+          }
+        }
+      }
+    });
   }
 
   // Switch active tab
@@ -247,12 +274,22 @@ class HiIslandFeed {
     card.className = 'hi-feed-card';
     card.dataset.shareId = share.id;
 
+    // 🔍 DEBUG: Log share data to verify userId
+    console.log('📋 Creating card for share:', {
+      id: share.id,
+      userName: share.userName,
+      userId: share.userId,
+      isAnonymous: share.isAnonymous,
+      hasAvatar: !!share.userAvatar
+    });
+
     const timeAgo = this.formatTimeAgo(share.createdAt);
     
     // Map origin to badge with emoji
     let originBadge = '';
     let badgeClass = '';
-    if (share.origin === 'hi5' || share.origin === 'quick') {
+    if (share.origin === 'hi5' || share.origin === 'quick' || share.origin === 'hi-island') {
+      // 🚀 TESLA-GRADE FIX: Hi-Island shares should be tagged as Hi5
       originBadge = '👋 Hi5';
       badgeClass = 'badge-hi5';
     } else if (share.origin === 'higym' || share.origin === 'guided') {
@@ -309,11 +346,20 @@ class HiIslandFeed {
       `;
     }
 
+    // 🌟 TESLA-GRADE: ALL users have clickable profiles (including anonymous)
+    // Anonymous users show public anonymous profile with engagement stats
+    const isClickable = share.userId && share.userId.trim();
+    const userNameClass = isClickable ? 'hi-feed-card-user hi-feed-card-user-clickable' : 'hi-feed-card-user';
+    const profileLabel = share.isAnonymous ? 'View anonymous user profile' : `View ${share.userName || 'Hi Friend'}'s profile`;
+    const userNameAttrs = isClickable 
+      ? `data-user-id="${share.userId}" role="button" tabindex="0" aria-label="${profileLabel}"`
+      : '';
+
     card.innerHTML = `
       <div class="hi-feed-card-header">
         <div class="hi-feed-card-user-info">
           ${avatarPlaceholder.outerHTML}
-          <div class="hi-feed-card-user">${share.userName || 'Hi Friend'}</div>
+          <div class="${userNameClass}" ${userNameAttrs}>${share.userName || 'Hi Friend'}</div>
         </div>
         <div class="hi-feed-card-time">${timeAgo}</div>
       </div>

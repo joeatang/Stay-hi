@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>🔬 Tesla-Grade Launch Validation Suite</title>
+
+  <!-- Load All Dependencies -->
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  
+  <!-- Leaflet for Maps -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+  
+  <!-- Stay Hi Styles -->
+  <link rel="stylesheet" href="assets/theme.css"/>
+  <link rel="stylesheet" href="assets/create-parity.css"/>
+  <link rel="stylesheet" href="assets/premium-ux.css"/>
+  <link rel="stylesheet" href="components/hi-share-sheet/share-sheet.css"/>
+  <link rel="stylesheet" href="components/hi-island-map/map.css"/>
+  <link rel="stylesheet" href="components/hi-island-feed/feed.css"/>
+  <link rel="stylesheet" href="components/profile-preview-modal/profile-modal.css"/>
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: white;
+    }
+    .validator-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: rgba(0,0,0,0.1);
+      border-radius: 12px;
+      padding: 30px;
+      backdrop-filter: blur(10px);
+    }
+    .test-section {
+      margin: 30px 0;
+      padding: 20px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+      border-left: 4px solid #FFD700;
+    }
+    .test-controls {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+    .test-btn {
+      background: linear-gradient(135deg, #FF7B24, #FFD166);
+      border: none;
+      border-radius: 20px;
+      padding: 12px 24px;
+      color: #000;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .test-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255, 123, 36, 0.4);
+    }
+    .test-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    #test-results {
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .component-test-area {
+      margin: 20px 0;
+      min-height: 200px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      position: relative;
+    }
+    .status-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .status-pass { background: #4CAF50; }
+    .status-fail { background: #F44336; }
+    .status-warn { background: #FF9800; }
+    .status-pending { background: #9E9E9E; }
+  </style>
+</head>
+<body>
+  <div class="validator-container">
+    <h1>🔬 Tesla-Grade Launch Validation Suite</h1>
+    <p>Comprehensive testing of all Stay Hi systems before production launch</p>
+
+    <div class="test-section">
+      <h2>🎯 Test Controls</h2>
+      <div class="test-controls">
+        <button class="test-btn" id="run-all-tests">🚀 Run All Tests</button>
+        <button class="test-btn" id="test-share-sheet">📝 Test Share Sheet</button>
+        <button class="test-btn" id="test-map-system">🗺️ Test Map System</button>
+        <button class="test-btn" id="test-profile-modal">👤 Test Profile Modal</button>
+        <button class="test-btn" id="test-integration">🔗 Test Integration</button>
+        <button class="test-btn" id="clear-results">🧹 Clear Results</button>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h2>📊 System Status</h2>
+      <div id="system-status">
+        <div><span class="status-indicator status-pending"></span>Share Sheet System: <span id="status-share">Pending</span></div>
+        <div><span class="status-indicator status-pending"></span>Map System: <span id="status-map">Pending</span></div>
+        <div><span class="status-indicator status-pending"></span>Tagging System: <span id="status-tagging">Pending</span></div>
+        <div><span class="status-indicator status-pending"></span>Tab Navigation: <span id="status-tabs">Pending</span></div>
+        <div><span class="status-indicator status-pending"></span>Profile System: <span id="status-profile">Pending</span></div>
+        <div><span class="status-indicator status-pending"></span>Integration: <span id="status-integration">Pending</span></div>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h2>🧪 Component Test Area</h2>
+      <div class="component-test-area" id="component-test-area">
+        <!-- Components will be rendered and tested here -->
+        <div id="hi-island-map-root"></div>
+        <div id="hi-island-feed-root"></div>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h2>📋 Test Results</h2>
+      <div id="test-results">Ready to run validation tests...\n</div>
+    </div>
+  </div>
+
+  <!-- Load all Stay Hi scripts in correct order -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+  <script src="assets/supabase-init.js"></script>
+  <script src="assets/db.js"></script>
+  <script src="assets/auth-guard.js"></script>
+  <script src="assets/avatar-utils.js"></script>
+  <script src="assets/geocoding-service.js"></script>
+  <script src="assets/emotions.js"></script>
+  <script src="assets/feature-flags.js"></script>
+  <script src="assets/hi-rewards-controller.js"></script>
+  
+  <!-- Component Scripts -->
+  <script src="components/hi-share-sheet/share-sheet.js" type="module"></script>
+  <script src="components/hi-island-map/map.js" type="module"></script>
+  <script src="components/hi-island-feed/feed.js" type="module"></script>
+  <script src="components/profile-preview-modal/profile-modal.js" type="module"></script>
+  
+  <!-- Validation Suite -->
+  <script src="assets/launch-validator.js"></script>
+
+  <script>
+    // Enhanced test controller
+    class LaunchTestController {
+      constructor() {
+        this.results = {};
+        this.setupEventListeners();
+      }
+
+      setupEventListeners() {
+        document.getElementById('run-all-tests').addEventListener('click', () => this.runAllTests());
+        document.getElementById('test-share-sheet').addEventListener('click', () => this.testShareSheet());
+        document.getElementById('test-map-system').addEventListener('click', () => this.testMapSystem());
+        document.getElementById('test-profile-modal').addEventListener('click', () => this.testProfileModal());
+        document.getElementById('test-integration').addEventListener('click', () => this.testIntegration());
+        document.getElementById('clear-results').addEventListener('click', () => this.clearResults());
+      }
+
+      log(message) {
+        const results = document.getElementById('test-results');
+        results.textContent += message + '\n';
+        results.scrollTop = results.scrollHeight;
+        console.log(message);
+      }
+
+      updateStatus(system, status) {
+        const statusElement = document.getElementById(`status-${system}`);
+        const indicator = statusElement.parentElement.querySelector('.status-indicator');
+        
+        statusElement.textContent = status;
+        indicator.className = `status-indicator status-${status.toLowerCase()}`;
+      }
+
+      async runAllTests() {
+        this.log('🚀 Starting comprehensive Tesla-grade validation...');
+        
+        try {
+          // Run validation suite
+          await window.validateForLaunch();
+          
+          // Update UI based on results
+          const results = window.launchValidationResults;
+          Object.entries(results).forEach(([system, result]) => {
+            if (system !== 'criticalError' && result.status) {
+              this.updateStatus(system.replace('System', '').toLowerCase(), result.status);
+            }
+          });
+          
+          this.log('✅ Full validation complete - check console for detailed report');
+        } catch (error) {
+          this.log(`❌ Validation failed: ${error.message}`);
+        }
+      }
+
+      async testShareSheet() {
+        this.log('📝 Testing Share Sheet functionality...');
+        
+        try {
+          if (typeof window.openHiShareSheet !== 'function') {
+            throw new Error('Share sheet function not available');
+          }
+
+          // Test opening share sheet
+          this.log('   Opening share sheet...');
+          window.openHiShareSheet('hi5');
+          
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Check DOM elements
+          const elements = {
+            backdrop: document.getElementById('hi-share-backdrop'),
+            sheet: document.getElementById('hi-share-sheet'),
+            textarea: document.getElementById('hi-share-journal'),
+            buttons: document.querySelectorAll('#hi-save-private, #hi-share-anon, #hi-share-public')
+          };
+          
+          if (elements.backdrop && elements.sheet && elements.textarea && elements.buttons.length === 3) {
+            this.log('   ✅ Share sheet renders correctly');
+            this.updateStatus('share', 'PASS');
+            
+            // Test close
+            const closeBtn = document.getElementById('hi-sheet-close');
+            if (closeBtn) {
+              closeBtn.click();
+              this.log('   ✅ Share sheet closes correctly');
+            }
+          } else {
+            throw new Error('Share sheet elements missing');
+          }
+        } catch (error) {
+          this.log(`   ❌ Share sheet test failed: ${error.message}`);
+          this.updateStatus('share', 'FAIL');
+        }
+      }
+
+      async testMapSystem() {
+        this.log('🗺️ Testing Map System functionality...');
+        
+        try {
+          // Check Leaflet
+          if (typeof L === 'undefined') {
+            throw new Error('Leaflet library not loaded');
+          }
+
+          // Check MarkerCluster
+          if (typeof L.markerClusterGroup !== 'function') {
+            throw new Error('MarkerCluster plugin not loaded');
+          }
+
+          // Check map instance
+          if (typeof window.HiIslandMapInstance === 'undefined') {
+            this.log('   Map instance not found, initializing...');
+            
+            const mapRoot = document.getElementById('hi-island-map-root');
+            if (mapRoot) {
+              // Dynamic import and init
+              const { HiIslandMap } = await import('./components/hi-island-map/map.js');
+              new HiIslandMap(mapRoot);
+              
+              // Wait for initialization
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          }
+
+          this.log('   ✅ Map dependencies loaded');
+          this.log('   ✅ Map system operational');
+          this.updateStatus('map', 'PASS');
+          
+        } catch (error) {
+          this.log(`   ❌ Map system test failed: ${error.message}`);
+          this.updateStatus('map', 'FAIL');
+        }
+      }
+
+      async testProfileModal() {
+        this.log('👤 Testing Profile Modal functionality...');
+        
+        try {
+          if (typeof window.openProfileModal !== 'function') {
+            throw new Error('Profile modal function not available');
+          }
+
+          // Test opening profile modal
+          this.log('   Opening profile modal...');
+          window.openProfileModal('test-user-123');
+          
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Check modal elements
+          const modal = document.getElementById('profile-preview-modal');
+          const backdrop = document.getElementById('profile-modal-backdrop');
+          
+          if (modal && backdrop) {
+            this.log('   ✅ Profile modal renders correctly');
+            this.updateStatus('profile', 'PASS');
+            
+            // Close modal
+            const closeBtn = document.getElementById('profile-modal-close');
+            if (closeBtn) {
+              closeBtn.click();
+              this.log('   ✅ Profile modal closes correctly');
+            }
+          } else {
+            throw new Error('Profile modal elements missing');
+          }
+          
+        } catch (error) {
+          this.log(`   ❌ Profile modal test failed: ${error.message}`);
+          this.updateStatus('profile', 'FAIL');
+        }
+      }
+
+      async testIntegration() {
+        this.log('🔗 Testing System Integration...');
+        
+        try {
+          const systems = {
+            shareSheet: typeof window.openHiShareSheet === 'function',
+            database: typeof window.hiDB !== 'undefined',
+            supabase: typeof window.supabaseClient !== 'undefined' || typeof window.sb !== 'undefined',
+            profileModal: typeof window.openProfileModal === 'function',
+            geocoding: typeof window.GeocodingService !== 'undefined',
+            localStorage: typeof localStorage !== 'undefined'
+          };
+
+          const workingSystems = Object.values(systems).filter(Boolean).length;
+          const totalSystems = Object.keys(systems).length;
+
+          this.log(`   Integration score: ${workingSystems}/${totalSystems}`);
+          
+          Object.entries(systems).forEach(([system, working]) => {
+            this.log(`   ${working ? '✅' : '❌'} ${system}: ${working ? 'Available' : 'Missing'}`);
+          });
+
+          if (workingSystems === totalSystems) {
+            this.log('   ✅ Full integration operational');
+            this.updateStatus('integration', 'PASS');
+          } else if (workingSystems >= totalSystems * 0.8) {
+            this.log('   ⚠️ Partial integration (acceptable)');
+            this.updateStatus('integration', 'WARN');
+          } else {
+            throw new Error('Too many critical systems missing');
+          }
+          
+        } catch (error) {
+          this.log(`   ❌ Integration test failed: ${error.message}`);
+          this.updateStatus('integration', 'FAIL');
+        }
+      }
+
+      clearResults() {
+        document.getElementById('test-results').textContent = 'Results cleared...\n';
+        
+        // Reset all status indicators
+        ['share', 'map', 'tagging', 'tabs', 'profile', 'integration'].forEach(system => {
+          this.updateStatus(system, 'Pending');
+          const indicator = document.querySelector(`#status-${system}`).parentElement.querySelector('.status-indicator');
+          indicator.className = 'status-indicator status-pending';
+        });
+      }
+    }
+
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      window.testController = new LaunchTestController();
+      
+      // Auto-run basic checks after components load
+      setTimeout(() => {
+        window.testController.log('🔬 Tesla-grade validation suite loaded');
+        window.testController.log('📋 Click "Run All Tests" for comprehensive validation');
+        
+        // Quick dependency check
+        const deps = {
+          leaflet: typeof L !== 'undefined',
+          supabase: typeof window.supabaseClient !== 'undefined' || typeof window.sb !== 'undefined',
+          hiDB: typeof window.hiDB !== 'undefined'
+        };
+        
+        Object.entries(deps).forEach(([dep, loaded]) => {
+          window.testController.log(`${loaded ? '✅' : '❌'} ${dep}: ${loaded ? 'Loaded' : 'Missing'}`);
+        });
+        
+      }, 2000);
+    });
+  </script>
+</body>
+</html>

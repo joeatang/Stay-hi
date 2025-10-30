@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Path Detection Debug</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+    <h1>Tesla-Grade Path Detection Debug</h1>
+    <div id="debug-output"></div>
+    
+    <script>
+        // Replicate the exact hybrid detection logic from auth-guard.js
+        function debugHybridDetection() {
+            const output = document.getElementById('debug-output');
+            
+            const pathname = location.pathname;
+            console.log('Current pathname:', pathname);
+            
+            // Exact logic from auth-guard.js
+            const isHybridPage = location.pathname.endsWith('hi-island.html') || 
+                                 location.pathname.endsWith('hi-island-NEW.html') ||
+                                 location.pathname.endsWith('index.html') || 
+                                 location.pathname.endsWith('hi-muscle.html') ||
+                                 location.pathname.endsWith('profile.html') ||
+                                 location.pathname.endsWith('calendar.html') ||
+                                 location.pathname.endsWith('invite-admin.html') ||
+                                 location.pathname === '/';
+            
+            // Individual checks for debugging
+            const checks = {
+                'hi-island.html': location.pathname.endsWith('hi-island.html'),
+                'hi-island-NEW.html': location.pathname.endsWith('hi-island-NEW.html'),
+                'index.html': location.pathname.endsWith('index.html'),
+                'hi-muscle.html': location.pathname.endsWith('hi-muscle.html'),
+                'profile.html': location.pathname.endsWith('profile.html'),
+                'calendar.html': location.pathname.endsWith('calendar.html'),
+                'invite-admin.html': location.pathname.endsWith('invite-admin.html'),
+                'root path': location.pathname === '/'
+            };
+            
+            output.innerHTML = `
+                <h3>Tesla-Grade Path Analysis:</h3>
+                <p><strong>Full URL:</strong> ${window.location.href}</p>
+                <p><strong>Pathname:</strong> ${pathname}</p>
+                <p><strong>Pathname Length:</strong> ${pathname.length}</p>
+                <p><strong>Final Hybrid Result:</strong> ${isHybridPage}</p>
+                <h4>Individual Checks:</h4>
+                <ul>
+                    ${Object.entries(checks).map(([key, value]) => 
+                        `<li>${key}: ${value}</li>`
+                    ).join('')}
+                </ul>
+                <p><strong>Test hi-muscle specifically:</strong> ${pathname.endsWith('hi-muscle.html')}</p>
+            `;
+        }
+        
+        // Run on load
+        window.addEventListener('load', debugHybridDetection);
+        debugHybridDetection(); // Run immediately too
+    </script>
+</body>
+</html>

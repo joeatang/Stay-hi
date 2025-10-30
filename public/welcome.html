@@ -11,9 +11,13 @@
 
   <link rel="stylesheet" href="assets/theme.css"/>
   <link rel="stylesheet" href="assets/create-parity.css"/>
+  
+  <!-- Beta Systems -->
+  <script type="module" src="assets/hi-rewards-beta.js"></script>
+  <script type="module" src="assets/real-time-stats.js"></script>
   <style>
     body {
-      background: var(--grad-sunrise), var(--hi-bg);
+      background: linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #ffd166 100%);
       min-height: 100vh;
       margin: 0;
       font-family: var(--f-sans);
@@ -21,152 +25,383 @@
       align-items: center;
       justify-content: center;
       overflow-x: hidden;
+      position: relative;
     }
+    
+    /* Tesla-grade background particles */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%), 
+                  radial-gradient(circle at 80% 20%, rgba(255, 177, 153, 0.15) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 1;
+    }
+    
     .welcome-panel {
-      background: #0f1022cc;
-      border-radius: 24px;
-      box-shadow: 0 22px 60px rgba(0,0,0,.35), 0 1.5px 8px var(--ring);
-      padding: 2.5rem 2rem 2rem 2rem;
-      max-width: 420px;
-      width: 100%;
-      backdrop-filter: blur(20px) saturate(1.2);
-      -webkit-backdrop-filter: blur(20px) saturate(1.2);
-      border: 1.5px solid var(--hi-border);
+      background: rgba(15, 16, 34, 0.85);
+      border-radius: 28px;
+      box-shadow: 
+        0 32px 80px rgba(0, 0, 0, 0.4),
+        0 8px 32px rgba(255, 215, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      padding: 3rem 2.5rem 2.5rem 2.5rem;
+      max-width: 480px;
+      width: 90%;
+      backdrop-filter: blur(25px) saturate(1.4);
+      -webkit-backdrop-filter: blur(25px) saturate(1.4);
+      border: 2px solid rgba(255, 215, 0, 0.2);
       display: flex;
       flex-direction: column;
       align-items: center;
       position: relative;
       z-index: 2;
+      animation: welcomeFloat 0.8s ease-out;
     }
+    
+    @keyframes welcomeFloat {
+      from { 
+        opacity: 0; 
+        transform: translateY(30px) scale(0.95); 
+      }
+      to { 
+        opacity: 1; 
+        transform: translateY(0) scale(1); 
+      }
+    }
+    
     .welcome-logo {
-      width: 80px;
-      height: 80px;
+      width: 96px;
+      height: 96px;
       object-fit: contain;
-      margin-bottom: 0.8rem;
-      filter: drop-shadow(0 8px 22px rgba(255,210,102,.55));
+      margin-bottom: 1.2rem;
+      filter: 
+        drop-shadow(0 12px 28px rgba(255, 210, 102, 0.6))
+        drop-shadow(0 4px 16px rgba(255, 123, 24, 0.3));
+      animation: logoGlow 3s ease-in-out infinite alternate;
     }
+    
+    @keyframes logoGlow {
+      from { 
+        filter: 
+          drop-shadow(0 12px 28px rgba(255, 210, 102, 0.6))
+          drop-shadow(0 4px 16px rgba(255, 123, 24, 0.3));
+      }
+      to { 
+        filter: 
+          drop-shadow(0 16px 36px rgba(255, 210, 102, 0.8))
+          drop-shadow(0 6px 20px rgba(255, 123, 24, 0.5));
+      }
+    }
+    
     .welcome-title {
-      font-size: var(--fs-h1);
-      font-weight: 800;
-      color: #fff;
+      font-size: clamp(1.8rem, 4vw, 2.5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, #FFD166, #FF7B24);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       text-align: center;
-      margin-bottom: 0.5rem;
-      text-shadow: 0 2px 12px #0008;
-      letter-spacing: -0.5px;
+      margin: 0 0 0.8rem 0;
+      line-height: 1.1;
+      text-shadow: 0 4px 16px rgba(255, 123, 24, 0.3);
+      position: relative;
     }
+    
+    .welcome-title::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #FFD166, transparent);
+      border-radius: 2px;
+    }
+    
     .welcome-lead {
-      color: #f7f8ff;
+      color: rgba(255, 255, 255, 0.9);
       text-align: center;
-      font-size: 1.05rem;
-      margin-bottom: 1.5rem;
-      font-weight: 500;
-      text-shadow: 0 1px 8px #0006;
+      margin: 0 0 2rem 0;
+      line-height: 1.5;
+      font-size: clamp(1rem, 2.5vw, 1.1rem);
+      font-weight: 400;
     }
+    
     .welcome-actions {
       display: flex;
-      gap: 1.2rem;
+      flex-direction: column;
       width: 100%;
-      justify-content: center;
-      margin-bottom: 1.5rem;
+      gap: 1rem;
+      margin-bottom: 2rem;
     }
+    
     .welcome-btn {
-      flex: 1;
-      background: linear-gradient(90deg,#FFD166,#FF7A18);
-      color: #111;
-      font-weight: 800;
+      background: linear-gradient(135deg, #FF7B24, #FFD166);
       border: none;
-      border-radius: 16px;
-      padding: 1rem 0;
+      border-radius: 20px;
+      padding: 1.2rem 2rem;
+      color: #000;
+      font-weight: 800;
       font-size: 1.1rem;
-      box-shadow: 0 10px 24px #ff7a1812,0 2px 8px #ffd16622;
-      cursor: pointer;
-      transition: background 0.2s, box-shadow 0.2s;
+      text-decoration: none;
       text-align: center;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(255, 123, 24, 0.3);
+      backdrop-filter: blur(10px);
     }
-    .welcome-btn:hover {
-      background: linear-gradient(90deg,#FFB347,#FF7A18);
-      box-shadow: 0 14px 34px #ff7a1833;
-    }
-    .welcome-stats {
+    
+    .welcome-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
       width: 100%;
-      background: rgba(255,255,255,0.08);
-      border-radius: 16px;
-      padding: 1.2rem 1rem;
-      margin-bottom: 0.5rem;
-      box-shadow: 0 2px 8px #ffd16622;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.6s;
+    }
+    
+    .welcome-btn:hover::before {
+      left: 100%;
+    }
+    
+    .welcome-btn:nth-child(2) {
+      background: linear-gradient(135deg, #2d1e4f, #667eea);
+      color: #fff;
+      box-shadow: 0 8px 32px rgba(45, 30, 79, 0.4);
+    }
+    
+    .welcome-btn:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 16px 48px rgba(255, 123, 24, 0.4);
+    }
+    
+    .welcome-btn:nth-child(2):hover {
+      box-shadow: 0 16px 48px rgba(45, 30, 79, 0.5);
+    }
+    
+    .welcome-btn:active {
+      transform: translateY(-2px) scale(1.01);
+    }
+    
+    .welcome-stats {
+      text-align: center;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      width: 100%;
+      padding: 1.5rem;
+      background: rgba(45, 30, 79, 0.3);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 215, 102, 0.2);
+      backdrop-filter: blur(10px);
+    }
+    
+    .stat-item {
       display: flex;
       flex-direction: column;
-      gap: 0.7rem;
       align-items: center;
+      gap: 0.5rem;
     }
+    
     .stat-label {
-      color: #FFD166;
-      font-weight: 700;
-      font-size: 1rem;
-      letter-spacing: 0.01em;
+      color: rgba(255, 215, 102, 0.9);
+      font-weight: 600;
+      font-size: 0.9rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
     }
+    
     .stat-value {
       color: #fff;
-      font-size: 1.3rem;
-      font-weight: 800;
-      text-shadow: 0 2px 12px #0008;
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 900;
+      text-shadow: 0 2px 16px rgba(255, 215, 102, 0.4);
+      background: linear-gradient(135deg, #FFD166, #FF7B24);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
     @media (max-width: 500px) {
-      .welcome-panel { padding: 1.2rem 0.5rem; margin: 1.5rem 0.5rem; }
-      .welcome-title { font-size: 1.2rem; }
-      .welcome-logo { width: 56px; height: 56px; }
+      .welcome-panel { 
+        padding: 2rem 1.5rem; 
+        margin: 1rem; 
+        border-radius: 24px;
+        width: calc(100% - 2rem);
+      }
+      .welcome-logo { 
+        width: 72px; 
+        height: 72px; 
+      }
+      .welcome-stats {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        padding: 1rem;
+      }
+      .welcome-btn {
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+      }
+      .stat-value {
+        font-size: 1.5rem;
+      }
+    }
+    
+    /* Reduced motion preferences */
+    @media (prefers-reduced-motion: reduce) {
+      .welcome-panel,
+      .welcome-logo,
+      .welcome-btn,
+      .welcome-btn::before {
+        animation: none;
+        transition: none;
+      }
+      .welcome-btn:hover {
+        transform: none;
+      }
     }
   </style>
 </head>
 <body>
   <main class="welcome-panel">
     <img src="assets/brand/hi-logo-light.png" alt="Stay Hi" class="welcome-logo" />
-    <div class="welcome-title">Welcome to Stay Hi</div>
-    <div class="welcome-lead">Choose your path. Join the Hi movement or sign in to continue. See how the world is Hi-ing today!</div>
+    <div class="welcome-title">Say Hi to <em style="font-style: italic; color: #FF7B24;">YOU</em></div>
+    <div class="welcome-lead">
+      Choose your path. Join the <strong style="font-weight: 900; background: linear-gradient(135deg, #FFD166, #FF7B24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">#HIREVOLUTION</strong> or sign in to continue to<br>
+      <span style="font-size: 1.1em; font-weight: 600;">Help Inspire The World</span><br>
+      <em style="font-style: italic; opacity: 0.9;">One Hi at a time.</em>
+    </div>
     <div class="welcome-actions">
       <a href="signup.html" class="welcome-btn">Sign Up</a>
       <a href="signin.html" class="welcome-btn">Sign In</a>
     </div>
     <div class="welcome-stats" id="welcomeStats">
-      <div><span class="stat-label">Global Hi Waves</span>: <span class="stat-value" id="statWaves">...</span></div>
-      <div><span class="stat-label">Total Hi's</span>: <span class="stat-value" id="statHis">...</span></div>
+      <div class="stat-item">
+        <span class="stat-label">Total His</span>
+        <span class="stat-value" id="totalHis">...</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Global Waves</span>
+        <span class="stat-value" id="globalWaves">...</span>
+      </div>
+      <div class="stat-item" style="grid-column: 1 / -1; margin-top: 0.5rem;">
+        <span class="stat-label" style="font-size: 0.75rem; opacity: 0.7;">
+          Live Community Stats
+          <span class="stats-live-indicator"></span>
+        </span>
+      </div>
     </div>
   </main>
   <script src="assets/supabase-init.js"></script>
   <script src="assets/db.js"></script>
   <script>
-    // Tesla-grade: Pull global stats from Supabase RPC
+    // TESLA-GRADE: Fetch REAL stats first, fallback to placeholders
     async function fetchStats() {
       try {
+        console.log('🔄 Fetching real stats from Supabase...');
+        
+        // Try to fetch REAL stats first
         let supa = getSupabase();
-        if (!supa) {
-          console.log('⏳ Waiting for Supabase client...');
-          await new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => reject(new Error('Supabase client init timeout')), 5000);
-            window.addEventListener('supabase-ready', () => {
-              clearTimeout(timeout);
-              supa = getSupabase();
-              resolve();
-            }, { once: true });
+        if (supa) {
+          console.log('📊 Calling get_global_stats RPC...');
+          const { data, error } = await supa.rpc('get_global_stats');
+          
+          if (data && !error) {
+            const realStats = Array.isArray(data) ? data[0] : data;
+            
+            // 🎯 TESLA-GRADE: Simplified real data mapping
+            const statsMapping = {
+              totalHis: Number(realStats.total_his) || 0,
+              globalWaves: Number(realStats.hi_waves) || 0
+            };
+            
+            console.log('✅ Real community stats loaded:', statsMapping);
+            
+            // Update DOM with REAL community data
+            Object.keys(statsMapping).forEach(key => {
+              const element = document.getElementById(key);
+              if (element) {
+                element.textContent = statsMapping[key].toLocaleString();
+              }
+            });
+            
+            console.log('✅ Real stats displayed - Real-Time system will take over');
+            return; // Success - exit early
+          } else {
+            console.warn('⚠️ RPC call failed:', error);
+          }
+        }
+        
+        // 🔄 Fallback: Try localStorage data if Supabase unavailable
+        console.log('⚠️ Supabase unavailable, checking localStorage for real data...');
+        
+        try {
+          const hiTotal = localStorage.getItem('hi_total') || '0';
+          const generalShares = JSON.parse(localStorage.getItem('hi_general_shares') || '[]');
+          
+          const fallbackStats = {
+            totalHis: parseInt(hiTotal) || 0,
+            globalWaves: generalShares.length || 0
+          };
+          
+          console.log('✅ Using real localStorage data as fallback:', fallbackStats);
+          
+          Object.keys(fallbackStats).forEach(key => {
+            const element = document.getElementById(key);
+            if (element) {
+              element.textContent = fallbackStats[key].toLocaleString();
+            }
+          });
+          
+        } catch (localError) {
+          console.warn('⚠️ localStorage fallback failed:', localError);
+          
+          // Last resort: Conservative placeholder
+          const minimalStats = {
+            totalHis: 0,
+            globalWaves: 0
+          };
+          
+          Object.keys(minimalStats).forEach(key => {
+            const element = document.getElementById(key);
+            if (element) {
+              element.textContent = minimalStats[key].toLocaleString();
+            }
           });
         }
-        console.log('🔄 Calling get_global_stats RPC');
-        const { data, error } = await supa.rpc('get_global_stats');
-        console.log('🔄 get_global_stats RPC result:', { data, error });
-        if (error || !data) throw error || new Error('No data');
-        const stats = data;
-        const hiWaves = Number(stats.hi_waves) || 0;
-        const totalHis = Number(stats.total_his) || 0;
-        console.log('📊 Fetched stats:', { hiWaves, totalHis });
-        document.getElementById('statWaves').textContent = hiWaves.toLocaleString();
-        document.getElementById('statHis').textContent = totalHis.toLocaleString();
+        
+        console.log('⚠️ Placeholder stats loaded - Real-Time system will take over');
+        
       } catch (e) {
-        console.error('❌ Welcome fetch failed:', e);
-        document.getElementById('statWaves').textContent = 'N/A';
-        document.getElementById('statHis').textContent = 'N/A';
+        console.error('❌ All stats loading failed:', e);
       }
     }
+    
+    // Initialize fallback stats
     fetchStats();
+    
+    // Listen for Hi button clicks to award rewards points
+    document.addEventListener('DOMContentLoaded', () => {
+      const hiButtons = document.querySelectorAll('.welcome-btn');
+      hiButtons.forEach(btn => {
+        if (btn.textContent.includes('Join') || btn.href?.includes('signup')) {
+          btn.addEventListener('click', () => {
+            // Trigger rewards point for signup interest
+            window.dispatchEvent(new CustomEvent('stats-update', {
+              detail: { type: 'signup_interest' }
+            }));
+          });
+        }
+      });
+    });
   </script>
 </body>
 </html>

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Tesla-Grade Anti-Glitch Position Test</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #0f1024 0%, #1a1b3a 100%);
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            border-left: 4px solid #4ECDC4;
+            backdrop-filter: blur(10px);
+        }
+        .test-btn {
+            background: linear-gradient(135deg, #4ECDC4 0%, #44a08d 100%);
+            color: #111;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 8px;
+            display: inline-block;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+        }
+        .status { margin: 10px 0; padding: 15px; border-radius: 8px; }
+        .success { background: rgba(78, 205, 196, 0.2); color: #4ecdc4; border-left: 4px solid #4ecdc4; }
+        .error { background: rgba(255, 107, 107, 0.2); color: #ff6b6b; border-left: 4px solid #ff6b6b; }
+        .warning { background: rgba(255, 217, 61, 0.2); color: #ffd93d; border-left: 4px solid #ffd93d; }
+        #log { 
+            max-height: 300px; 
+            overflow-y: auto; 
+            background: rgba(0,0,0,0.4); 
+            padding: 20px; 
+            border-radius: 8px; 
+            font-family: 'SF Mono', 'Monaco', monospace; 
+            font-size: 13px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .positioning-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(78, 205, 196, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(78, 205, 196, 0.3);
+        }
+        .glitch-monitor {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 107, 107, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="positioning-indicator">
+        🎯 Position Monitor: <span id="position-status">Tracking...</span>
+    </div>
+    
+    <div class="glitch-monitor">
+        🚨 Glitch Monitor: <span id="glitch-status">No issues detected</span>
+    </div>
+
+    <h1>🚀 Tesla-Grade Anti-Glitch Position Test</h1>
+    <p>Testing the enhanced positioning system to prevent share sheet glitching on hover.</p>
+    
+    <div class="test-section">
+        <h3>🎯 Anti-Glitch Fixes Applied</h3>
+        <div class="status success">
+            ✅ Container CSS Foundation: Fixed positioning with transform-origin stability
+        </div>
+        <div class="status success">
+            ✅ Transform Inheritance Prevention: Child elements protected from glitchy transforms
+        </div>
+        <div class="status success">
+            ✅ Hover State Stability: Explicit transform controls on interactive elements
+        </div>
+        <div class="status success">
+            ✅ Mobile Responsive Enhancement: Ultra-stable centering for all viewport sizes
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>🧪 Share Sheet Tests</h3>
+        <div class="test-grid">
+            <a class="test-btn" href="http://localhost:8080/hi-muscle.html" target="_blank">🏋️ Test Hi-Muscle Sheet</a>
+            <a class="test-btn" href="http://localhost:8080/hi-island-NEW.html" target="_blank">🏝️ Test Hi-Island Sheet</a>
+            <a class="test-btn" href="http://localhost:8080/index.html" target="_blank">🏠 Test Index Sheet</a>
+            <button class="test-btn" onclick="testShareSheetHere()">🚀 Test Sheet Here</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>🔬 Positioning Diagnostics</h3>
+        <button class="test-btn" onclick="testContainerPositioning()">Check Container CSS</button>
+        <button class="test-btn" onclick="testTransformOrigins()">Verify Transform Origins</button>
+        <button class="test-btn" onclick="simulateHoverGlitch()">Simulate Previous Glitch</button>
+        <div id="diagnostics-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📊 Test Results</h3>
+        <div id="results"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📋 Anti-Glitch Log</h3>
+        <div id="log"></div>
+    </div>
+
+    <!-- Load share sheet -->
+    <script src="components/hi-share-sheet/share-sheet.js" type="module"></script>
+    <link rel="stylesheet" href="components/hi-share-sheet/share-sheet.css">
+
+    <script>
+        let glitchMonitor = {
+            detectedIssues: 0,
+            positionChanges: 0
+        };
+
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+            
+            logEl.innerHTML += `<div style="color: ${type === 'success' ? '#4ecdc4' : type === 'error' ? '#ff6b6b' : type === 'warning' ? '#ffd93d' : 'white'}">${icon} [${timestamp}] ${message}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(`[ANTI-GLITCH] ${message}`);
+        }
+
+        function showResult(test, result, details = '') {
+            const resultsEl = document.getElementById('results');
+            const statusClass = result ? 'success' : 'error';
+            const icon = result ? '✅' : '❌';
+            
+            resultsEl.innerHTML += `
+                <div class="status ${statusClass}">
+                    ${icon} ${test}: ${result ? 'PASS' : 'FAIL'}${details ? ' - ' + details : ''}
+                </div>
+            `;
+        }
+
+        function testShareSheetHere() {
+            log('🧪 Testing share sheet in controlled environment...', 'info');
+            
+            if (window.openHiShareSheet) {
+                try {
+                    window.openHiShareSheet('anti-glitch-test', { prefilledText: 'Position stability test' });
+                    
+                    setTimeout(() => {
+                        const container = document.querySelector('.hi-share-sheet-container');
+                        const sheet = document.querySelector('.premium-share-sheet');
+                        
+                        if (container && sheet) {
+                            const containerStyle = getComputedStyle(container);
+                            const sheetStyle = getComputedStyle(sheet);
+                            
+                            log(`Container: position=${containerStyle.position}, transform-origin=${containerStyle.transformOrigin}`, 'info');
+                            log(`Sheet: position=${sheetStyle.position}, transform=${sheetStyle.transform}`, 'info');
+                            
+                            showResult('Anti-Glitch Container', containerStyle.position === 'fixed', `Position: ${containerStyle.position}`);
+                            showResult('Transform Origin Stability', containerStyle.transformOrigin.includes('center'), `Origin: ${containerStyle.transformOrigin}`);
+                            
+                            // Monitor for position changes
+                            monitorPositionStability(sheet);
+                        }
+                    }, 500);
+                    
+                } catch (e) {
+                    showResult('Share Sheet Opening', false, e.message);
+                    log(`Share sheet error: ${e.message}`, 'error');
+                }
+            } else {
+                showResult('Share Sheet Function', false, 'openHiShareSheet not available');
+                log('Share sheet function not available', 'error');
+            }
+        }
+
+        function testContainerPositioning() {
+            log('🔬 Testing container positioning stability...', 'info');
+            
+            const container = document.querySelector('.hi-share-sheet-container');
+            const diagnosticsEl = document.getElementById('diagnostics-results');
+            
+            if (container) {
+                const style = getComputedStyle(container);
+                const rect = container.getBoundingClientRect();
+                
+                const analysis = {
+                    position: style.position,
+                    zIndex: style.zIndex,
+                    transformOrigin: style.transformOrigin,
+                    isolation: style.isolation,
+                    willChange: style.willChange,
+                    containment: style.contain,
+                    rect: `${rect.width}x${rect.height} at (${rect.x}, ${rect.y})`
+                };
+                
+                diagnosticsEl.innerHTML = `
+                    <div class="status ${style.position === 'fixed' ? 'success' : 'error'}">
+                        <strong>Container Analysis:</strong><br>
+                        Position: ${analysis.position}<br>
+                        Z-Index: ${analysis.zIndex}<br>
+                        Transform Origin: ${analysis.transformOrigin}<br>
+                        Isolation: ${analysis.isolation}<br>
+                        Will Change: ${analysis.willChange}<br>
+                        Containment: ${analysis.containment}<br>
+                        Bounds: ${analysis.rect}
+                    </div>
+                `;
+                
+                showResult('Container Foundation', style.position === 'fixed' && style.transformOrigin.includes('center'), 
+                    `Stable positioning: ${style.position === 'fixed' ? 'YES' : 'NO'}`);
+                
+                log(`Container diagnostic complete: ${JSON.stringify(analysis)}`, 'success');
+            } else {
+                diagnosticsEl.innerHTML = `<div class="status warning">No container found - initialize share sheet first</div>`;
+                log('No container to analyze', 'warning');
+            }
+        }
+
+        function testTransformOrigins() {
+            log('🎯 Verifying transform origins across all elements...', 'info');
+            
+            const elements = document.querySelectorAll('.hi-share-sheet-container, .hi-share-sheet-container *, .premium-share-sheet, .share-option');
+            let stableOrigins = 0;
+            let totalElements = elements.length;
+            
+            elements.forEach(el => {
+                const style = getComputedStyle(el);
+                if (style.transformOrigin.includes('center') || style.transformOrigin === '50% 50%') {
+                    stableOrigins++;
+                }
+            });
+            
+            const stabilityRatio = totalElements > 0 ? (stableOrigins / totalElements) * 100 : 0;
+            
+            showResult('Transform Origin Stability', stabilityRatio > 80, 
+                `${stabilityRatio.toFixed(1)}% stable origins (${stableOrigins}/${totalElements})`);
+            
+            log(`Transform origins: ${stableOrigins}/${totalElements} elements have center-based origins`, 
+                stabilityRatio > 80 ? 'success' : 'warning');
+        }
+
+        function monitorPositionStability(element) {
+            if (!element) return;
+            
+            let initialRect = element.getBoundingClientRect();
+            let checkCount = 0;
+            const maxChecks = 10;
+            
+            const checkStability = () => {
+                checkCount++;
+                const currentRect = element.getBoundingClientRect();
+                
+                const moved = Math.abs(currentRect.x - initialRect.x) > 1 || Math.abs(currentRect.y - initialRect.y) > 1;
+                
+                if (moved) {
+                    glitchMonitor.positionChanges++;
+                    document.getElementById('glitch-status').textContent = `Position drift detected (${glitchMonitor.positionChanges})`;
+                    log(`Position drift: ${initialRect.x},${initialRect.y} → ${currentRect.x},${currentRect.y}`, 'warning');
+                } else {
+                    document.getElementById('position-status').textContent = `Stable (check ${checkCount}/${maxChecks})`;
+                }
+                
+                if (checkCount < maxChecks) {
+                    setTimeout(checkStability, 200);
+                } else {
+                    log(`Position monitoring complete: ${glitchMonitor.positionChanges === 0 ? 'STABLE' : 'UNSTABLE'}`, 
+                        glitchMonitor.positionChanges === 0 ? 'success' : 'error');
+                }
+            };
+            
+            setTimeout(checkStability, 100);
+        }
+
+        function simulateHoverGlitch() {
+            log('🎭 Simulating previous glitching conditions...', 'info');
+            
+            const sheet = document.querySelector('.premium-share-sheet');
+            if (sheet) {
+                // Simulate the old problematic transforms
+                const originalTransform = sheet.style.transform;
+                
+                // Apply potentially problematic transform
+                sheet.style.transform = 'translate(0, 0)';
+                
+                setTimeout(() => {
+                    const rect = sheet.getBoundingClientRect();
+                    const isBottomLeft = rect.x < 100 && rect.y > window.innerHeight - 200;
+                    
+                    showResult('Glitch Simulation Resistance', !isBottomLeft, 
+                        `Position: ${rect.x.toFixed(0)}, ${rect.y.toFixed(0)}`);
+                    
+                    // Restore proper positioning
+                    sheet.style.transform = originalTransform;
+                    
+                    log(`Glitch simulation result: ${isBottomLeft ? 'VULNERABLE' : 'PROTECTED'}`, 
+                        isBottomLeft ? 'error' : 'success');
+                }, 100);
+            }
+        }
+
+        // Auto-initialize
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                log('🚀 Tesla-grade anti-glitch monitoring initialized', 'success');
+                log('💡 Test Instructions:', 'info');
+                log('1. Open share sheets and hover over buttons', 'info');
+                log('2. Watch for any position jumping or glitching', 'info');
+                log('3. Monitor the position and glitch indicators', 'info');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

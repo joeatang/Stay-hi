@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🧹 Tesla-Grade Session Cleaner</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body style="font-family: system-ui; max-width: 600px; margin: 40px auto; padding: 20px;">
+    <h1>🧹 Tesla-Grade Session Cleaner</h1>
+    <p>Use this tool to completely reset authentication state across all browsers.</p>
+    
+    <div style="background: #f0f0f0; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <button onclick="nukeBrowserState()" style="background: #ff4444; color: white; padding: 15px 30px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+            🚀 NUKE ALL AUTH DATA
+        </button>
+        <p style="margin-top: 15px; font-size: 14px; color: #666;">
+            This will clear: Supabase session, localStorage, sessionStorage, and all cookies.
+        </p>
+    </div>
+    
+    <div id="status"></div>
+    
+    <script>
+        async function nukeBrowserState() {
+            const status = document.getElementById('status');
+            status.innerHTML = '<p>🔥 Starting nuclear cleanup...</p>';
+            
+            try {
+                // 1. Clear Supabase session
+                const { createClient } = supabase;
+                const client = createClient(
+                    'https://ikmobwqxxulzrknzgwzj.supabase.co',
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrbW9id3F4eHVsenJrbnpnd3pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjY0NDg3MjYsImV4cCI6MjA0MjAyNDcyNn0.eqRHJVtS4gj4n1PB7l_u9U_B76hOlGgSg7OhDbTRS6g'
+                );
+                
+                await client.auth.signOut({ scope: 'global' });
+                status.innerHTML += '<p>✅ Supabase session cleared</p>';
+                
+                // 2. Clear localStorage
+                localStorage.clear();
+                status.innerHTML += '<p>✅ localStorage cleared</p>';
+                
+                // 3. Clear sessionStorage
+                sessionStorage.clear();
+                status.innerHTML += '<p>✅ sessionStorage cleared</p>';
+                
+                // 4. Nuclear cookie clearance
+                const cookies = document.cookie.split(";");
+                for (let cookie of cookies) {
+                    const eqPos = cookie.indexOf("=");
+                    const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                    // Clear for multiple domains and paths
+                    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+                    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=localhost";
+                    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.localhost";
+                }
+                status.innerHTML += '<p>✅ All cookies nuked</p>';
+                
+                // 5. Clear any auth-related caches
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(cacheNames.map(name => caches.delete(name)));
+                    status.innerHTML += '<p>✅ Service Worker caches cleared</p>';
+                }
+                
+                status.innerHTML += '<p style="color: green; font-weight: bold;">🚀 NUCLEAR CLEANUP COMPLETE!</p>';
+                status.innerHTML += '<p>Browser state is now pristine. You can now test like a fresh user.</p>';
+                
+            } catch (error) {
+                status.innerHTML += `<p style="color: red;">❌ Error during cleanup: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

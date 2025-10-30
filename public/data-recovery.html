@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔧 Data Recovery & Debug Cleanup</title>
+    <style>
+        body { font-family: system-ui; background: #1a1a2e; color: white; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .section { background: rgba(255,255,255,0.05); padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .btn { background: #00d4ff; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; margin: 5px; }
+        .btn:hover { background: #0099cc; }
+        .btn-danger { background: #ff4444; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .status-success { background: rgba(0,255,0,0.2); }
+        .status-warning { background: rgba(255,165,0,0.2); }
+        .status-error { background: rgba(255,0,0,0.2); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Tesla-Grade Data Recovery & Debug Cleanup</h1>
+        
+        <div class="section">
+            <h3>🔍 Current Data Status</h3>
+            <div id="data-status">Checking your data...</div>
+        </div>
+        
+        <div class="section">
+            <h3>💾 Data Recovery Actions</h3>
+            <p>These actions will restore your user data that may have been cleared during auth cleanup:</p>
+            <button class="btn" onclick="checkDataIntegrity()">🔍 Check Data Integrity</button>
+            <button class="btn" onclick="restoreFromBackup()">📥 Restore from Backup</button>
+            <button class="btn" onclick="createSampleData()">🎯 Create Sample Data</button>
+        </div>
+        
+        <div class="section">
+            <h3>🧹 Debug Output Cleanup</h3>
+            <p>Remove any debug code appearing at the bottom of pages:</p>
+            <button class="btn" onclick="cleanupDebugOutput()">🧹 Clean Debug Output</button>
+            <button class="btn" onclick="fixConsoleOutput()">🔧 Fix Console Issues</button>
+        </div>
+        
+        <div class="section">
+            <h3>⚡ Quick Fixes</h3>
+            <button class="btn" onclick="fullSystemRepair()">🚀 Full System Repair</button>
+            <button class="btn btn-danger" onclick="emergencyDataReset()">🚨 Emergency Reset (Last Resort)</button>
+        </div>
+        
+        <div class="section">
+            <h3>📊 Recovery Log</h3>
+            <div id="recovery-log" style="background: #000; padding: 15px; border-radius: 4px; font-family: monospace; max-height: 300px; overflow-y: auto;">
+                <div style="color: #00ff88;">[RECOVERY] Data recovery system initialized</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('recovery-log');
+            const colors = { info: '#00d4ff', success: '#00ff88', warning: '#ffaa00', error: '#ff4444' };
+            const line = document.createElement('div');
+            line.style.color = colors[type];
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(line);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('data-status');
+            statusDiv.className = `status status-${type}`;
+            statusDiv.innerHTML = message;
+        }
+        
+        async function checkDataIntegrity() {
+            log('🔍 Checking data integrity...', 'info');
+            
+            const userData = {
+                profile: localStorage.getItem('stayhi_profile'),
+                hiTotal: localStorage.getItem('hi5.total'),
+                streak: localStorage.getItem('hi5.streak'),
+                waves: localStorage.getItem('hi.waves'),
+                starts: localStorage.getItem('hi.starts'),
+                history: localStorage.getItem('hi5.history')
+            };
+            
+            let dataIntact = 0;
+            let totalChecks = Object.keys(userData).length;
+            
+            Object.entries(userData).forEach(([key, value]) => {
+                if (value && value !== 'null' && value !== '0') {
+                    dataIntact++;
+                    log(`✅ ${key}: Data found`, 'success');
+                } else {
+                    log(`❌ ${key}: Missing or empty`, 'warning');
+                }
+            });
+            
+            if (dataIntact === 0) {
+                updateStatus('❌ All user data has been cleared. Data recovery needed.', 'error');
+                log('💥 Critical: All user data lost - recovery required', 'error');
+            } else if (dataIntact < totalChecks / 2) {
+                updateStatus('⚠️ Partial data loss detected. Recovery recommended.', 'warning');
+                log(`⚠️ Warning: ${dataIntact}/${totalChecks} data items intact`, 'warning');
+            } else {
+                updateStatus('✅ Most data intact. Minor cleanup may be needed.', 'success');
+                log(`✅ Good: ${dataIntact}/${totalChecks} data items intact`, 'success');
+            }
+        }
+        
+        function restoreFromBackup() {
+            log('📥 Attempting data restoration...', 'info');
+            
+            // Check if we have any backup data in memory or other storage
+            const possibleBackups = [
+                'stayhi_profile_backup',
+                'user_data_backup',
+                'demo-profile'
+            ];
+            
+            let restored = 0;
+            possibleBackups.forEach(backupKey => {
+                const backup = localStorage.getItem(backupKey);
+                if (backup) {
+                    log(`📦 Found backup: ${backupKey}`, 'success');
+                    restored++;
+                }
+            });
+            
+            if (restored === 0) {
+                log('❌ No automatic backups found', 'warning');
+                updateStatus('❌ No backups available. Consider creating sample data.', 'warning');
+            } else {
+                log(`✅ ${restored} backup(s) available for restoration`, 'success');
+                updateStatus('✅ Backup data found. Restoration possible.', 'success');
+            }
+        }
+        
+        function createSampleData() {
+            log('🎯 Creating sample data to get you started...', 'info');
+            
+            // Create sample profile
+            const sampleProfile = {
+                id: 'recovered-user-' + Date.now(),
+                username: 'recovered_user',
+                display_name: 'Recovered User',
+                bio: 'Data recovered by Tesla-grade recovery system',
+                location: 'Local Device',
+                avatar_url: null,
+                created_at: new Date().toISOString()
+            };
+            
+            // Create sample stats
+            const sampleStats = {
+                'hi5.total': '15',
+                'hi5.streak': '3',
+                'hi.waves': '8',
+                'hi.starts': '5',
+                'hi5.history': JSON.stringify({
+                    [new Date().toISOString().split('T')[0]]: { count: 3, timestamp: Date.now() }
+                })
+            };
+            
+            try {
+                localStorage.setItem('stayhi_profile', JSON.stringify(sampleProfile));
+                Object.entries(sampleStats).forEach(([key, value]) => {
+                    localStorage.setItem(key, value);
+                });
+                
+                log('✅ Sample data created successfully', 'success');
+                updateStatus('✅ Sample data created. Your profile is ready to use!', 'success');
+                
+                setTimeout(() => {
+                    log('🔄 Redirecting to profile page...', 'info');
+                    window.location.href = 'profile.html';
+                }, 2000);
+                
+            } catch (error) {
+                log(`❌ Failed to create sample data: ${error.message}`, 'error');
+                updateStatus('❌ Failed to create sample data', 'error');
+            }
+        }
+        
+        function cleanupDebugOutput() {
+            log('🧹 Cleaning up debug output...', 'info');
+            
+            // Remove any text nodes that might contain debug output
+            const bodyChildren = Array.from(document.body.childNodes);
+            let cleaned = 0;
+            
+            bodyChildren.forEach(node => {
+                if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+                    const text = node.textContent.trim();
+                    if (text.includes('function') || text.includes('addEventListener') || text.includes('console')) {
+                        node.remove();
+                        cleaned++;
+                        log(`🗑️ Removed debug text: ${text.substring(0, 50)}...`, 'success');
+                    }
+                }
+            });
+            
+            if (cleaned > 0) {
+                log(`✅ Cleaned ${cleaned} debug output items`, 'success');
+                updateStatus('✅ Debug output cleaned', 'success');
+            } else {
+                log('ℹ️ No debug output found to clean', 'info');
+                updateStatus('ℹ️ No debug output detected', 'info');
+            }
+        }
+        
+        function fixConsoleOutput() {
+            log('🔧 Fixing console output issues...', 'info');
+            
+            // Override any console methods that might be writing to DOM
+            const originalMethods = {
+                log: console.log,
+                warn: console.warn,
+                error: console.error
+            };
+            
+            // Ensure console methods stay in console
+            Object.keys(originalMethods).forEach(method => {
+                console[method] = function(...args) {
+                    originalMethods[method].apply(console, args);
+                    // Ensure output doesn't leak to DOM
+                    return undefined;
+                };
+            });
+            
+            log('✅ Console output routing fixed', 'success');
+            updateStatus('✅ Console issues resolved', 'success');
+        }
+        
+        async function fullSystemRepair() {
+            log('🚀 Starting full system repair...', 'info');
+            updateStatus('🔄 Running full system repair...', 'info');
+            
+            await checkDataIntegrity();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            cleanupDebugOutput();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            fixConsoleOutput();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // If no data found, create sample data
+            const hasData = localStorage.getItem('stayhi_profile') || localStorage.getItem('hi5.total');
+            if (!hasData) {
+                log('📝 No user data found - creating sample data...', 'info');
+                createSampleData();
+            } else {
+                log('✅ Full system repair completed', 'success');
+                updateStatus('✅ System repair complete. Profile should work normally now.', 'success');
+                
+                setTimeout(() => {
+                    log('🔄 Redirecting to profile page...', 'info');
+                    window.location.href = 'profile.html';
+                }, 2000);
+            }
+        }
+        
+        function emergencyDataReset() {
+            if (!confirm('⚠️ This will completely reset all data. Are you sure?')) return;
+            
+            log('🚨 Emergency reset initiated...', 'warning');
+            
+            // Clear everything except auth data
+            const keysToKeep = ['sb-', 'supabase'];
+            const allKeys = Object.keys(localStorage);
+            
+            allKeys.forEach(key => {
+                if (!keysToKeep.some(keep => key.startsWith(keep))) {
+                    localStorage.removeItem(key);
+                }
+            });
+            
+            log('🗑️ All user data cleared', 'warning');
+            createSampleData();
+        }
+        
+        // Auto-check data integrity on load
+        window.addEventListener('load', () => {
+            setTimeout(checkDataIntegrity, 1000);
+        });
+    </script>
+</body>
+</html>

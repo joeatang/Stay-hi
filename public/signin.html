@@ -2,28 +2,73 @@
 <html lang="en">
 <head>
   <script>
-    // Magic link redirect guard - must run immediately
+    // Tesla-grade Magic Link Handler 🚀
     (function() {
-      if (location.hash && location.hash.includes('access_token') && location.hash.includes('refresh_token')) {
-        const next = new URLSearchParams(location.search).get('next') || 'index.html';
-        const redirectUrl = `/public/post-auth.html?next=${encodeURIComponent(next)}${location.hash}`;
+      console.log('🔐 Signin page loading');
+      console.log('Current URL:', location.href);
+      
+      // Check for magic link auth tokens in URL hash
+      const hash = location.hash;
+      if (hash && hash.includes('access_token') && hash.includes('refresh_token')) {
+        console.log('✅ Magic link tokens detected!');
+        
+        // Get the intended destination page
+        const urlParams = new URLSearchParams(location.search);
+        const next = urlParams.get('next') || '/index.html';
+        
+        console.log('📍 Redirecting to post-auth with next:', next);
+        const redirectUrl = `post-auth.html?next=${encodeURIComponent(next)}${hash}`;
         location.replace(redirectUrl);
+        return;
       }
+      
+      // Handle /public/ prefix redirect issue
+      if (location.pathname.includes('/public/')) {
+        console.log('🔄 Fixing /public/ prefix redirect...');
+        const correctedPath = location.href.replace('/public/', '/');
+        console.log('Redirecting to:', correctedPath);
+        location.replace(correctedPath);
+        return;
+      }
+      
+      console.log('📝 Regular signin page load');
     })();
   </script>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Sign in — Stay Hi</title>
+  
+  <!-- URL Path Fixer - must run first -->
+  <script src="assets/url-path-fixer.js"></script>
+  
+  <!-- Supabase CDN - must load before supabase-init.js -->
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  
   <link rel="stylesheet" href="assets/theme.css"/>
   <link rel="stylesheet" href="assets/create-parity.css"/>
   <link rel="stylesheet" href="assets/premium-ux.css"/>
   <style>
     /* Premium Tesla-inspired layout */
     body {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #ffd166 100%);
       min-height: 100vh;
       padding: 0;
       margin: 0;
+    }
+    
+    /* Tesla-grade background particles */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%), 
+                  radial-gradient(circle at 80% 20%, rgba(255, 177, 153, 0.15) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 1;
     }
     
     .wrap{
@@ -62,11 +107,16 @@
     }
     
     .card{
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
+      background: rgba(15, 16, 34, 0.85);
+      backdrop-filter: blur(25px) saturate(1.4);
+      -webkit-backdrop-filter: blur(25px) saturate(1.4);
+      border: 2px solid rgba(255, 215, 0, 0.2);
+      border-radius: 28px;
+      box-shadow: 
+        0 32px 80px rgba(0, 0, 0, 0.4),
+        0 8px 32px rgba(255, 215, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      animation: welcomeFloat 0.8s ease-out;
       box-shadow: var(--shadow-premium);
       padding: 32px;
       animation: fadeInUp 0.8s ease-out 0.2s both;
@@ -277,6 +327,25 @@
   <script src="assets/auth.js"></script>
   <script src="assets/premium-ux.js"></script>
   <script>
+    // DEV MODE: Press Ctrl+Shift+D to bypass email and sign in directly
+    window.addEventListener('keydown', async (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+        console.log('🔧 DEV MODE: Bypassing email, signing in directly...');
+        const sb = await waitForSupabase();
+        // Use a test email or get from input
+        const devEmail = document.getElementById('email').value || 'test@stayhi.app';
+        try {
+          // Try to create a session directly (won't work without backend)
+          // Instead, let's log the magic link URL format
+          console.log('💡 TIP: Check Supabase Dashboard > Auth > Email Templates');
+          console.log('💡 Or use Supabase CLI to generate a dev session token');
+          alert('Check console for dev tips. You need to configure email in Supabase dashboard or use Supabase CLI for local dev.');
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    });
+    
     (function(){
       const email = document.getElementById('email');
       const sendBtn = document.getElementById('send');
@@ -337,13 +406,42 @@
         try {
           // Wait for Supabase client before using it
           const sb = await waitForSupabase();
-          // Use current URL as redirect so it lands back in app domain
+          
+          console.log('🔐 Attempting to send magic link to:', emailVal);
+          
+          // Use current URL as redirect so it lands back in app domain  
           const redirectTo = `${location.origin}/signin.html?next=${encodeURIComponent(new URLSearchParams(location.search).get('next') || 'index.html')}`;
-          const { error } = await sb.auth.signInWithOtp({ email: emailVal, options: { emailRedirectTo: redirectTo }});
-          if (error) throw error;
+          
+          // Add timeout to prevent infinite loading
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Request timed out after 15 seconds. Please check your internet connection and try again.')), 15000);
+          });
+          
+          const otpPromise = sb.auth.signInWithOtp({ 
+            email: emailVal, 
+            options: { emailRedirectTo: redirectTo }
+          });
+          
+          const result = await Promise.race([otpPromise, timeoutPromise]);
+          
+          console.log('📧 Supabase response:', result);
+          
+          if (result.error) {
+            console.error('❌ Magic link error:', result.error);
+            throw result.error;
+          }
+          
+          // Check if email was actually queued
+          if (result.data) {
+            console.log('✅ Magic link queued successfully:', result.data);
+          } else {
+            console.warn('⚠️ No data returned - email may not have been sent');
+          }
+          
+          console.log('✅ Magic link API call succeeded');
           
           // Premium success celebration
-          window.PremiumUX.celebrate(sendBtn, '🎉 Magic link sent!');
+          window.PremiumUX.celebrate(sendBtn, '🎉 Check your email!');
           window.PremiumUX.confetti({ count: 30, colors: ['#25F4EE', '#FE2C55', '#FFD700'] });
           
           // Show Tesla-style success confirmation
@@ -356,6 +454,7 @@
           }, 500);
           
         } catch (e) {
+          console.error('❌ Sign in error:', e);
           err.textContent = e.message || 'Could not send link.'; 
           err.style.display = 'block';
           window.PremiumUX.glow(err, '#ef4444');

@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+  <title>Session Cleaner — Stay Hi</title>
+  <style>body { font-family: system-ui; max-width: 600px; margin: 40px auto; padding: 20px; }</style>
+</head>
+<body>
+  <h1>🧹 Session Cleaner</h1>
+  <p>This will clear all stored authentication data.</p>
+  
+  <div id="output"></div>
+  
+  <button onclick="clearEverything()">Clear All Sessions & Storage</button>
+  <button onclick="location.href='auth-debug.html'">Go to Debug</button>
+
+  <script>
+    function clearEverything() {
+      const output = document.getElementById('output');
+      let log = '';
+      
+      // Clear localStorage
+      const localKeys = Object.keys(localStorage);
+      log += `📦 localStorage keys: ${localKeys.join(', ')}\n`;
+      localStorage.clear();
+      log += '✅ localStorage cleared\n';
+      
+      // Clear sessionStorage  
+      const sessionKeys = Object.keys(sessionStorage);
+      log += `🎯 sessionStorage keys: ${sessionKeys.join(', ')}\n`;
+      sessionStorage.clear();
+      log += '✅ sessionStorage cleared\n';
+      
+      // Clear cookies
+      document.cookie.split(";").forEach(function(c) { 
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+      });
+      log += '✅ Cookies cleared\n';
+      
+      output.innerHTML = '<pre>' + log + '</pre>';
+      
+      setTimeout(() => {
+        location.reload();
+      }, 2000);
+    }
+    
+    // Show current storage on load
+    window.onload = function() {
+      const output = document.getElementById('output');
+      let log = 'Current storage:\n';
+      log += `📦 localStorage: ${Object.keys(localStorage).join(', ') || 'empty'}\n`;
+      log += `🎯 sessionStorage: ${Object.keys(sessionStorage).join(', ') || 'empty'}\n`;
+      log += `🍪 cookies: ${document.cookie || 'empty'}\n`;
+      output.innerHTML = '<pre>' + log + '</pre>';
+    };
+  </script>
+</body>
+</html>

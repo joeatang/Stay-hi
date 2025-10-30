@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Hi-Muscle Auth Test</title>
+  <style>
+    body { font-family: system-ui; padding: 40px; max-width: 800px; margin: 0 auto; }
+    .log { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; white-space: pre-wrap; font-family: monospace; }
+    .btn { display: inline-block; padding: 8px 16px; margin: 8px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>🔬 Hi-Muscle Auth Test</h1>
+  <p>Testing why hi-muscle.html is redirecting to signin</p>
+  
+  <div class="log" id="log">Starting hi-muscle auth test...\n</div>
+  
+  <div>
+    <a href="hi-muscle.html" class="btn">Test Hi-Muscle</a>
+    <a href="index.html" class="btn">Go to Index</a>
+    <button onclick="testPathDetection()" class="btn">Test Path Detection</button>
+  </div>
+
+  <!-- URL Path Fixer -->
+  <script src="assets/url-path-fixer.js"></script>
+  
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  
+  <!-- Supabase Init -->
+  <script src="assets/supabase-init.js"></script>
+  
+  <!-- Auth Guard with logging -->
+  <script src="assets/auth-guard.js?v=5"></script>
+
+  <script>
+    const log = document.getElementById('log');
+    
+    // Capture console logs and display them
+    const originalLog = console.log;
+    console.log = function(...args) {
+      originalLog.apply(console, args);
+      log.textContent += args.join(' ') + '\n';
+      log.scrollTop = log.scrollHeight;
+    };
+    
+    const originalError = console.error;  
+    console.error = function(...args) {
+      originalError.apply(console, args);
+      log.textContent += '❌ ERROR: ' + args.join(' ') + '\n';
+      log.scrollTop = log.scrollHeight;
+    };
+    
+    // Test path detection function
+    function testPathDetection() {
+      console.log('🧪 Testing path detection logic...');
+      
+      const testPaths = [
+        '/hi-muscle.html',
+        'hi-muscle.html',
+        '/public/hi-muscle.html',
+        'http://localhost:5500/hi-muscle.html'
+      ];
+      
+      testPaths.forEach(path => {
+        const isHybrid = path.endsWith('hi-muscle.html');
+        console.log(`Path: ${path} -> Hybrid: ${isHybrid}`);
+      });
+      
+      console.log(`Current location.pathname: ${location.pathname}`);
+      console.log(`Current href: ${location.href}`);
+      console.log(`Hi-muscle detection: ${location.pathname.endsWith('hi-muscle.html')}`);
+    }
+    
+    console.log('🧪 Hi-muscle auth test page loaded');
+    console.log('📍 Current pathname:', location.pathname);
+    console.log('🔗 Current href:', location.href);
+    
+    // Monitor for redirects
+    let originalReplace = location.replace;
+    location.replace = function(url) {
+      console.log('🔄 REDIRECT ATTEMPT:', url);
+      log.textContent += '🔄 REDIRECT ATTEMPT: ' + url + '\n';
+      return originalReplace.call(location, url);
+    };
+    
+    // Test path detection immediately
+    setTimeout(testPathDetection, 1000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔍 Data Detective - Find Your Profile Data</title>
+    <style>
+        body { font-family: system-ui; background: #1a1a2e; color: white; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .section { background: rgba(255,255,255,0.05); padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .btn { background: #00d4ff; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; margin: 5px; }
+        .btn:hover { background: #0099cc; }
+        .data-item { background: #2a2a3e; padding: 10px; margin: 5px 0; border-radius: 4px; font-family: monospace; }
+        .found { border-left: 4px solid #00ff88; }
+        .missing { border-left: 4px solid #ff4444; }
+        .tab-buttons { margin-bottom: 20px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Data Detective - Where's Your Profile?</h1>
+        <p>Since your data shows in hi-island feed but not profile.html, let's find where it's hiding!</p>
+        
+        <div class="tab-buttons">
+            <button class="btn" onclick="showTab('localStorage')">📦 Local Storage</button>
+            <button class="btn" onclick="showTab('supabase')">☁️ Supabase Data</button>
+            <button class="btn" onclick="showTab('comparison')">🔄 Data Sources</button>
+            <button class="btn" onclick="showTab('fix')">🔧 Fix Connection</button>
+        </div>
+
+        <div id="localStorage" class="tab-content active">
+            <div class="section">
+                <h3>📦 Local Storage Investigation</h3>
+                <button class="btn" onclick="scanLocalStorage()">🔍 Scan All Data</button>
+                <button class="btn" onclick="findProfileKeys()">👤 Find Profile Keys</button>
+                <div id="localStorage-results"></div>
+            </div>
+        </div>
+
+        <div id="supabase" class="tab-content">
+            <div class="section">
+                <h3>☁️ Supabase Session Investigation</h3>
+                <button class="btn" onclick="checkSupabaseSession()">🔍 Check Session</button>
+                <button class="btn" onclick="fetchSupabaseProfile()">👤 Fetch Profile</button>
+                <div id="supabase-results"></div>
+            </div>
+        </div>
+
+        <div id="comparison" class="tab-content">
+            <div class="section">
+                <h3>🔄 Hi-Island vs Profile.html Data Sources</h3>
+                <button class="btn" onclick="compareDataSources()">🔍 Compare Methods</button>
+                <div id="comparison-results"></div>
+            </div>
+        </div>
+
+        <div id="fix" class="tab-content">
+            <div class="section">
+                <h3>🔧 Fix Data Connection</h3>
+                <button class="btn" onclick="syncDataSources()">🔄 Sync Data Sources</button>
+                <button class="btn" onclick="forceProfileReload()">⚡ Force Profile Reload</button>
+                <div id="fix-results"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        function log(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const colors = { info: '#00d4ff', found: '#00ff88', missing: '#ff4444', warning: '#ffaa00' };
+            const div = document.createElement('div');
+            div.className = `data-item ${type}`;
+            div.style.color = colors[type] || colors.info;
+            div.innerHTML = message;
+            container.appendChild(div);
+            console.log(message);
+        }
+
+        function scanLocalStorage() {
+            const container = document.getElementById('localStorage-results');
+            container.innerHTML = '<h4>🔍 Full LocalStorage Scan</h4>';
+            
+            const keys = Object.keys(localStorage);
+            log('localStorage-results', `📊 Total keys found: ${keys.length}`, 'info');
+            
+            const profileRelated = [];
+            const authRelated = [];
+            const appData = [];
+            
+            keys.forEach(key => {
+                const value = localStorage.getItem(key);
+                const preview = value ? value.substring(0, 100) : 'null';
+                
+                if (key.includes('profile') || key.includes('user') || key.includes('joe') || key.includes('atang')) {
+                    profileRelated.push({key, value, preview});
+                } else if (key.includes('supabase') || key.includes('sb-') || key.includes('auth')) {
+                    authRelated.push({key, value, preview});
+                } else if (key.includes('hi') || key.includes('stay') || key.includes('wave') || key.includes('streak')) {
+                    appData.push({key, value, preview});
+                }
+            });
+            
+            log('localStorage-results', `👤 Profile-related keys: ${profileRelated.length}`, profileRelated.length > 0 ? 'found' : 'missing');
+            profileRelated.forEach(item => {
+                log('localStorage-results', `🔑 ${item.key}: ${item.preview}...`, 'found');
+            });
+            
+            log('localStorage-results', `🔐 Auth-related keys: ${authRelated.length}`, authRelated.length > 0 ? 'found' : 'missing');
+            authRelated.forEach(item => {
+                log('localStorage-results', `🔑 ${item.key}: ${item.preview.includes('access_token') ? 'Has token' : item.preview}...`, 'found');
+            });
+            
+            log('localStorage-results', `📱 App data keys: ${appData.length}`, appData.length > 0 ? 'found' : 'missing');
+            appData.forEach(item => {
+                log('localStorage-results', `🔑 ${item.key}: ${item.preview}...`, 'found');
+            });
+        }
+
+        function findProfileKeys() {
+            const container = document.getElementById('localStorage-results');
+            container.innerHTML = '<h4>👤 Profile-Specific Key Search</h4>';
+            
+            const profileKeys = [
+                'stayhi_profile',
+                'user_profile', 
+                'profile',
+                'currentUser',
+                'user',
+                'joe_profile',
+                'demo-profile'
+            ];
+            
+            profileKeys.forEach(key => {
+                const value = localStorage.getItem(key);
+                if (value) {
+                    log('localStorage-results', `✅ Found: ${key}`, 'found');
+                    try {
+                        const parsed = JSON.parse(value);
+                        log('localStorage-results', `📄 Content: ${JSON.stringify(parsed, null, 2)}`, 'found');
+                    } catch(e) {
+                        log('localStorage-results', `📄 Raw content: ${value}`, 'found');
+                    }
+                } else {
+                    log('localStorage-results', `❌ Missing: ${key}`, 'missing');
+                }
+            });
+        }
+
+        async function checkSupabaseSession() {
+            const container = document.getElementById('supabase-results');
+            container.innerHTML = '<h4>☁️ Supabase Session Check</h4>';
+            
+            try {
+                // Check if supabase is available
+                if (typeof supabase === 'undefined') {
+                    // Try to load supabase client from config
+                    await loadSupabaseClient();
+                }
+                
+                const session = await supabase.auth.getSession();
+                
+                if (session?.data?.session) {
+                    log('supabase-results', '✅ Active Supabase session found', 'found');
+                    log('supabase-results', `👤 User ID: ${session.data.session.user.id}`, 'found');
+                    log('supabase-results', `📧 Email: ${session.data.session.user.email}`, 'found');
+                    
+                    // Check user metadata
+                    if (session.data.session.user.user_metadata) {
+                        log('supabase-results', `🏷️ Metadata: ${JSON.stringify(session.data.session.user.user_metadata)}`, 'found');
+                    }
+                } else {
+                    log('supabase-results', '❌ No active Supabase session', 'missing');
+                }
+                
+            } catch (error) {
+                log('supabase-results', `❌ Error checking session: ${error.message}`, 'missing');
+            }
+        }
+
+        async function fetchSupabaseProfile() {
+            const container = document.getElementById('supabase-results');
+            
+            try {
+                const session = await supabase.auth.getSession();
+                
+                if (session?.data?.session) {
+                    // Try to fetch from profiles table
+                    const { data: profile, error } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', session.data.session.user.id)
+                        .single();
+                        
+                    if (profile) {
+                        log('supabase-results', '✅ Profile found in Supabase database', 'found');
+                        log('supabase-results', `📄 Profile data: ${JSON.stringify(profile, null, 2)}`, 'found');
+                    } else {
+                        log('supabase-results', `❌ No profile in database: ${error?.message}`, 'missing');
+                    }
+                } else {
+                    log('supabase-results', '❌ No session for profile fetch', 'missing');
+                }
+                
+            } catch (error) {
+                log('supabase-results', `❌ Error fetching profile: ${error.message}`, 'missing');
+            }
+        }
+
+        async function loadSupabaseClient() {
+            // Try to load from config
+            const configScript = document.createElement('script');
+            configScript.src = '/assets/config.js';
+            document.head.appendChild(configScript);
+            
+            return new Promise((resolve, reject) => {
+                configScript.onload = async () => {
+                    try {
+                        const { createClient } = supabase;
+                        window.supabase = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+                        resolve();
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                configScript.onerror = reject;
+            });
+        }
+
+        function compareDataSources() {
+            const container = document.getElementById('comparison-results');
+            container.innerHTML = '<h4>🔄 Hi-Island vs Profile.html Data Loading</h4>';
+            
+            log('comparison-results', '🏝️ Hi-Island likely uses:', 'info');
+            log('comparison-results', '• Supabase real-time subscriptions', 'info');
+            log('comparison-results', '• Database queries for feed data', 'info');
+            log('comparison-results', '• Session-based user identification', 'info');
+            
+            log('comparison-results', '👤 Profile.html likely uses:', 'info');
+            log('comparison-results', '• localStorage for cached profile', 'info');
+            log('comparison-results', '• Direct profile queries', 'info');
+            log('comparison-results', '• Different data loading sequence', 'info');
+            
+            // Check what hi-island script uses
+            fetch('/hi-island-NEW.html')
+                .then(response => response.text())
+                .then(html => {
+                    const hasRealtimeSubscription = html.includes('supabase') && html.includes('subscribe');
+                    const hasLocalStorageProfile = html.includes('localStorage') && html.includes('profile');
+                    
+                    log('comparison-results', `🏝️ Hi-Island uses Supabase realtime: ${hasRealtimeSubscription}`, hasRealtimeSubscription ? 'found' : 'missing');
+                    log('comparison-results', `🏝️ Hi-Island uses localStorage profile: ${hasLocalStorageProfile}`, hasLocalStorageProfile ? 'found' : 'missing');
+                });
+        }
+
+        async function syncDataSources() {
+            const container = document.getElementById('fix-results');
+            container.innerHTML = '<h4>🔄 Syncing Data Sources</h4>';
+            
+            try {
+                // First check if we have Supabase session
+                await loadSupabaseClient();
+                const session = await supabase.auth.getSession();
+                
+                if (session?.data?.session) {
+                    // Fetch fresh profile from Supabase
+                    const { data: profile, error } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', session.data.session.user.id)
+                        .single();
+                        
+                    if (profile) {
+                        // Store in localStorage for profile.html to use
+                        localStorage.setItem('stayhi_profile', JSON.stringify(profile));
+                        localStorage.setItem('currentUser', JSON.stringify(profile));
+                        
+                        log('fix-results', '✅ Profile synced to localStorage', 'found');
+                        log('fix-results', `👤 Synced: ${profile.display_name || profile.username}`, 'found');
+                    } else {
+                        log('fix-results', '❌ No profile found in database', 'missing');
+                    }
+                } else {
+                    log('fix-results', '❌ No active session to sync from', 'missing');
+                }
+                
+            } catch (error) {
+                log('fix-results', `❌ Sync failed: ${error.message}`, 'missing');
+            }
+        }
+
+        function forceProfileReload() {
+            const container = document.getElementById('fix-results');
+            
+            log('fix-results', '⚡ Forcing profile page reload...', 'info');
+            
+            setTimeout(() => {
+                window.open('/profile.html', '_blank');
+            }, 1000);
+        }
+
+        // Auto-scan on load
+        window.addEventListener('load', () => {
+            setTimeout(scanLocalStorage, 500);
+        });
+    </script>
+</body>
+</html>

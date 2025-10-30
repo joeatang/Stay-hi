@@ -1,5 +1,17 @@
 // public/assets/header.js
 (function () {
+  // Tesla-Grade Navigation Helper
+  function getCurrentPageName() {
+    const path = window.location.pathname;
+    const fileName = path.split('/').pop() || 'index.html';
+    
+    // Normalize common variations
+    if (fileName === '' || fileName === '/') return 'index.html';
+    if (fileName === 'hi-island.html') return 'hi-island-NEW.html'; // Always use NEW version
+    
+    return fileName;
+  }
+
   // Ensure immediate rendering by checking DOM state
   function initHeader() {
     const mount = document.getElementById("app-header");
@@ -43,7 +55,7 @@
           <a href="index.html" role="menuitem">🏠 Hi Today</a>
           <a href="hi-muscle.html" role="menuitem">💪 Hi Gym</a>
           <a href="hi-island-NEW.html" role="menuitem">🏝️ Hi Island</a>
-          <a href="profile.html" role="menuitem">👤 Profile</a>
+          <a href="profile.html?from=${getCurrentPageName()}" role="menuitem">👤 Profile</a>
           <div class="sep"></div>
           <button id="btnSignOut" class="menu-item-btn" role="menuitem">🚪 Sign Out</button>
         </div>

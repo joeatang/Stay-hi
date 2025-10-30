@@ -1,0 +1,287 @@
+/* ===================================================================
+   👤 PROFILE PREVIEW MODAL - Tesla-Grade User Profile Viewer
+   Floating sheet modal for viewing user profiles from Hi Island
+   Features: Avatar, username, bio, location, smooth transitions
+=================================================================== */
+
+/* Backdrop */
+.profile-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  z-index: 9998;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.profile-modal-backdrop.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Modal Container - Mobile First */
+.profile-preview-modal {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(calc(100% + 10px));
+  width: calc(100% - 32px);
+  max-width: 460px;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15),
+              0 -2px 8px rgba(0, 0, 0, 0.1),
+              inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  z-index: 9999;
+  padding: var(--space-lg, 24px);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  margin: 0;
+  pointer-events: auto;
+  visibility: hidden;
+}
+
+.profile-preview-modal.active {
+  transform: translateX(-50%) translateY(0);
+  visibility: visible;
+}
+
+/* Desktop - Centered floating card */
+@media (min-width: 768px) {
+  .profile-preview-modal {
+    bottom: var(--space-xl, 40px);
+    border-radius: 24px;
+    width: auto;
+    min-width: 400px;
+    max-width: 480px;
+    transform: translateX(-50%) translateY(calc(100% + 60px));
+  }
+  
+  .profile-preview-modal.active {
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Close Button */
+.profile-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #666;
+  font-size: 18px;
+  z-index: 1;
+}
+
+.profile-modal-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+}
+
+.profile-modal-close:active {
+  transform: scale(0.95);
+}
+
+/* Profile Content */
+.profile-modal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md, 16px);
+  text-align: center;
+}
+
+/* Avatar */
+.profile-modal-avatar-wrapper {
+  position: relative;
+  margin-bottom: var(--space-sm, 8px);
+}
+
+.profile-modal-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #4ECDC4, #FFD93D);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 32px;
+  overflow: hidden;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.profile-modal-avatar:hover {
+  transform: scale(1.05);
+}
+
+.profile-modal-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Username & Display Name */
+.profile-modal-username {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  line-height: 1.2;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.profile-modal-handle {
+  font-size: 14px;
+  color: #666;
+  margin: -8px 0 0 0;
+  font-weight: 500;
+}
+
+/* Bio */
+.profile-modal-bio {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #444;
+  margin: var(--space-xs, 8px) 0;
+  max-width: 100%;
+  word-wrap: break-word;
+}
+
+/* Location */
+.profile-modal-location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #666;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 16px;
+  margin-top: var(--space-xs, 8px);
+}
+
+/* Divider */
+.profile-modal-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(0, 0, 0, 0.1) 50%, 
+    transparent 100%
+  );
+  margin: var(--space-sm, 12px) 0;
+}
+
+/* Stats/Info Section (future: membership tier) */
+.profile-modal-stats {
+  display: flex;
+  gap: var(--space-lg, 24px);
+  width: 100%;
+  justify-content: center;
+  margin-top: var(--space-sm, 12px);
+  opacity: 0.7;
+}
+
+.profile-modal-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.profile-modal-stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.profile-modal-stat-label {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Loading State */
+.profile-modal-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md, 16px);
+  padding: var(--space-xl, 32px);
+}
+
+.profile-modal-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(102, 126, 234, 0.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error State */
+.profile-modal-error {
+  text-align: center;
+  padding: var(--space-lg, 24px);
+  color: #e74c3c;
+}
+
+.profile-modal-error-icon {
+  font-size: 48px;
+  margin-bottom: var(--space-sm, 12px);
+}
+
+.profile-modal-error-text {
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* Empty State */
+.profile-modal-empty {
+  text-align: center;
+  padding: var(--space-lg, 24px);
+  color: #666;
+}
+
+.profile-modal-empty-icon {
+  font-size: 48px;
+  margin-bottom: var(--space-sm, 12px);
+  opacity: 0.5;
+}
+
+/* Smooth Transitions */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.profile-preview-modal * {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}

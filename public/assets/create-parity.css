@@ -151,7 +151,12 @@ body.sunrise::before{
 .appbar{position:sticky;top:0;z-index:250;display:grid;grid-template-columns:40px 1fr 40px;gap:8px;
   align-items:center; padding:10px 14px; backdrop-filter:blur(8px);
   background:color-mix(in srgb, #FFFDF9 80%, transparent); border-bottom:1px solid #00000010}
-.icon-btn{width:36px;height:36px;border-radius:999px;border:1px solid #00000010;background:#fff;box-shadow:0 2px 6px #0001}
+.icon-btn{width:36px;height:36px;border-radius:999px;border:1px solid #00000010;background:#fff;box-shadow:0 2px 6px #0001;
+  /* 🚀 TESLA-GRADE: Perfect centering for icons */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
 .brand{display:flex;align-items:center;gap:8px;justify-self:center;text-decoration:none}
 .logo{width:28px;height:28px;border-radius:50%;object-fit:cover}
 .brand-name{font-weight:800;color:#041016}
@@ -160,6 +165,9 @@ body.sunrise::before{
   position: relative; 
   display: flex; 
   align-items: center; 
+  /* 🚀 TESLA-GRADE: Perfect alignment foundation */
+  justify-content: center;
+  height: 36px; /* Match icon-btn height for consistent alignment */
 }
 .menu-sheet{
   position:absolute; right:0; top:110%; width:220px; background:#fff; 

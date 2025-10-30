@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signing In... — Stay Hi</title>
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="assets/config.js"></script>
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui;
+            background: linear-gradient(135deg, #0F0F23 0%, #1A1A2E 50%, #16213E 100%);
+            color: white;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .auth-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #4ECDC4 0%, #FFD93D 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            border-top-color: #4ECDC4;
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .status {
+            margin: 20px 0;
+            padding: 16px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        
+        .status.success {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: #00ff88;
+        }
+        
+        .status.error {
+            background: rgba(255, 68, 68, 0.2);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            color: #ff4444;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #4ECDC4 0%, #3AB8B0 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(78, 205, 196, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="logo">Stay Hi</div>
+        
+        <div id="loadingState">
+            <div class="spinner"></div>
+            <h2>Processing Magic Link...</h2>
+            <p>Please wait while we sign you in</p>
+        </div>
+        
+        <div id="status"></div>
+    </div>
+    
+    <script>
+        let supabase;
+        
+        function initSupabase() {
+            if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+                const { createClient } = supabase;
+                window.supabase = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+                return true;
+            }
+            return false;
+        }
+        
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = message;
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingState').style.display = 'none';
+        }
+        
+        async function processAuthCallback() {
+            console.log('🔗 Processing magic link callback...');
+            
+            if (!window.supabase) {
+                hideLoading();
+                showStatus('❌ Authentication service unavailable', 'error');
+                return;
+            }
+            
+            try {
+                // Get the session from the URL hash/params
+                const { data, error } = await window.supabase.auth.getSession();
+                
+                if (error) {
+                    throw error;
+                }
+                
+                if (data.session) {
+                    console.log('✅ Auth successful:', data.session.user.email);
+                    hideLoading();
+                    showStatus(
+                        `🎉 Successfully signed in as ${data.session.user.email}!<br><br>` +
+                        `🚀 Redirecting to your profile...`,
+                        'success'
+                    );
+                    
+                    // Clear any bypass flags since we have real auth now
+                    localStorage.removeItem('force_profile_load');
+                    localStorage.removeItem('bypass_demo_mode');
+                    
+                    // Store auth success flag
+                    localStorage.setItem('auth_success', 'true');
+                    
+                    setTimeout(() => {
+                        window.location.href = 'profile.html';
+                    }, 2000);
+                    
+                } else {
+                    // No session yet, might still be processing
+                    console.log('⏳ No session yet, waiting...');
+                    
+                    // Wait a bit and check again
+                    setTimeout(async () => {
+                        const { data: retryData } = await window.supabase.auth.getSession();
+                        if (retryData.session) {
+                            window.location.reload();
+                        } else {
+                            hideLoading();
+                            showStatus(
+                                `⚠️ Magic link processing...<br><br>` +
+                                `If this takes too long, try:<br>` +
+                                `• Clicking the magic link again<br>` +
+                                `• Requesting a new magic link<br><br>` +
+                                `<a href="signin-enhanced.html" class="btn">Get New Magic Link</a>`,
+                                'error'
+                            );
+                        }
+                    }, 3000);
+                }
+                
+            } catch (error) {
+                console.error('Auth callback error:', error);
+                hideLoading();
+                showStatus(
+                    `❌ Authentication failed: ${error.message}<br><br>` +
+                    `<a href="signin-enhanced.html" class="btn">Try Again</a>`,
+                    'error'
+                );
+            }
+        }
+        
+        // Handle auth state changes in real-time
+        function setupAuthListener() {
+            if (window.supabase) {
+                window.supabase.auth.onAuthStateChange(async (event, session) => {
+                    console.log('🔄 Auth state change:', event);
+                    
+                    if (event === 'SIGNED_IN' && session) {
+                        console.log('✅ Successfully signed in via listener');
+                        hideLoading();
+                        showStatus(
+                            `🎉 Welcome back, ${session.user.email}!<br><br>` +
+                            `🚀 Taking you to your profile...`,
+                            'success'
+                        );
+                        
+                        setTimeout(() => {
+                            window.location.href = 'profile.html';
+                        }, 1500);
+                    }
+                });
+            }
+        }
+        
+        // Initialize
+        window.addEventListener('load', async () => {
+            console.log('🔗 Magic link callback page loaded');
+            
+            if (initSupabase()) {
+                setupAuthListener();
+                await processAuthCallback();
+            } else {
+                hideLoading();
+                showStatus('❌ Authentication service unavailable', 'error');
+            }
+        });
+        
+        // Also try processing on hash change (some auth systems use this)
+        window.addEventListener('hashchange', () => {
+            console.log('🔄 Hash changed, reprocessing...');
+            setTimeout(() => window.location.reload(), 500);
+        });
+    </script>
+</body>
+</html>

@@ -148,14 +148,20 @@
       this.ctx.fillRect(x + size - handleSize/2, y + size - handleSize/2, handleSize, handleSize);
     }
 
-    // Add event listeners for cropping interaction
+    // Tesla-Grade Event Listeners with Touch Support
     addEventListeners() {
       let startX, startY, startCropX, startCropY, startCropSize;
+      let animationFrame = null;
       
-      this.canvas.addEventListener('mousedown', (e) => {
+      // Unified pointer event handler
+      const handlePointerStart = (e) => {
+        e.preventDefault();
         const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const clientX = e.clientX || (e.touches && e.touches[0]?.clientX);
+        const clientY = e.clientY || (e.touches && e.touches[0]?.clientY);
+        
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
         
         startX = x;
         startY = y;
@@ -163,78 +169,141 @@
         startCropY = this.cropArea.y;
         startCropSize = this.cropArea.size;
         
+        // Tesla-Grade Visual Feedback
+        this.canvas.style.transition = 'none';
+        
         // Check if clicking on resize handle
         if (this.isOnResizeHandle(x, y)) {
           this.isResizing = true;
           this.canvas.style.cursor = 'nw-resize';
+          this.canvas.style.filter = 'brightness(1.1)';
         } else if (this.isInsideCropArea(x, y)) {
           this.isDragging = true;
           this.canvas.style.cursor = 'move';
+          this.canvas.style.filter = 'brightness(1.05)';
         }
-      });
+      };
       
-      this.canvas.addEventListener('mousemove', (e) => {
+      // Mouse events
+      this.canvas.addEventListener('mousedown', handlePointerStart);
+      
+      // Touch events for mobile
+      this.canvas.addEventListener('touchstart', handlePointerStart, { passive: false });
+      
+      // Unified pointer move handler with smooth animation
+      const handlePointerMove = (e) => {
+        e.preventDefault();
         const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const clientX = e.clientX || (e.touches && e.touches[0]?.clientX);
+        const clientY = e.clientY || (e.touches && e.touches[0]?.clientY);
         
-        if (this.isResizing) {
-          // Resize crop area
-          const deltaX = x - startX;
-          const deltaY = y - startY;
-          const avgDelta = (deltaX + deltaY) / 2;
-          
-          let newSize = Math.max(50, startCropSize + avgDelta);
-          
-          // Keep within bounds
-          newSize = Math.min(
-            newSize,
-            this.canvas.width - this.cropArea.x,
-            this.canvas.height - this.cropArea.y
-          );
-          
-          this.cropArea.size = newSize;
-          this.drawCropArea();
-          
-        } else if (this.isDragging) {
-          // Move crop area
-          const deltaX = x - startX;
-          const deltaY = y - startY;
-          
-          this.cropArea.x = Math.max(0, Math.min(
-            startCropX + deltaX,
-            this.canvas.width - this.cropArea.size
-          ));
-          
-          this.cropArea.y = Math.max(0, Math.min(
-            startCropY + deltaY,
-            this.canvas.height - this.cropArea.size
-          ));
-          
-          this.drawCropArea();
-          
-        } else {
-          // Update cursor based on hover
-          if (this.isOnResizeHandle(x, y)) {
-            this.canvas.style.cursor = 'nw-resize';
-          } else if (this.isInsideCropArea(x, y)) {
-            this.canvas.style.cursor = 'move';
-          } else {
-            this.canvas.style.cursor = 'crosshair';
-          }
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
+        
+        // Cancel previous animation frame
+        if (animationFrame) {
+          cancelAnimationFrame(animationFrame);
         }
-      });
+        
+        // Tesla-Grade Smooth Animation
+        animationFrame = requestAnimationFrame(() => {
+          if (this.isResizing) {
+            // Smooth resize with momentum
+            const deltaX = x - startX;
+            const deltaY = y - startY;
+            const avgDelta = (deltaX + deltaY) / 2;
+            
+            let newSize = Math.max(50, startCropSize + avgDelta);
+            
+            // Keep within bounds with smooth clamping
+            newSize = Math.min(
+              newSize,
+              this.canvas.width - this.cropArea.x,
+              this.canvas.height - this.cropArea.y
+            );
+            
+            // Smooth size transition
+            const sizeDiff = newSize - this.cropArea.size;
+            this.cropArea.size += sizeDiff * 0.8; // Easing factor
+            
+            this.drawCropArea();
+            
+          } else if (this.isDragging) {
+            // Smooth movement with momentum
+            const deltaX = x - startX;
+            const deltaY = y - startY;
+            
+            const targetX = Math.max(0, Math.min(
+              startCropX + deltaX,
+              this.canvas.width - this.cropArea.size
+            ));
+            
+            const targetY = Math.max(0, Math.min(
+              startCropY + deltaY,
+              this.canvas.height - this.cropArea.size
+            ));
+            
+            // Smooth position transition
+            const xDiff = targetX - this.cropArea.x;
+            const yDiff = targetY - this.cropArea.y;
+            
+            this.cropArea.x += xDiff * 0.9; // Smooth easing
+            this.cropArea.y += yDiff * 0.9;
+            
+            this.drawCropArea();
+            
+          } else {
+            // Tesla-Grade Hover Effects
+            if (this.isOnResizeHandle(x, y)) {
+              this.canvas.style.cursor = 'nw-resize';
+              this.canvas.style.filter = 'brightness(1.02)';
+            } else if (this.isInsideCropArea(x, y)) {
+              this.canvas.style.cursor = 'move';
+              this.canvas.style.filter = 'brightness(1.02)';
+            } else {
+              this.canvas.style.cursor = 'crosshair';
+              this.canvas.style.filter = 'brightness(1)';
+            }
+          }
+        });
+      };
       
-      this.canvas.addEventListener('mouseup', () => {
+      // Mouse and touch move events
+      this.canvas.addEventListener('mousemove', handlePointerMove);
+      this.canvas.addEventListener('touchmove', handlePointerMove, { passive: false });
+      
+      // Unified pointer end handler
+      const handlePointerEnd = (e) => {
+        e.preventDefault();
+        
+        // Tesla-Grade Smooth Release Animation
+        this.canvas.style.transition = 'filter 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        this.canvas.style.filter = 'brightness(1)';
+        
+        // Clean up states
         this.isDragging = false;
         this.isResizing = false;
         this.canvas.style.cursor = 'crosshair';
-      });
+        
+        // Cancel any pending animation
+        if (animationFrame) {
+          cancelAnimationFrame(animationFrame);
+          animationFrame = null;
+        }
+        
+        // Haptic feedback for mobile
+        if ('vibrate' in navigator) {
+          navigator.vibrate(10);
+        }
+      };
       
-      this.canvas.addEventListener('mouseleave', () => {
-        this.isDragging = false;
-        this.isResizing = false;
-      });
+      // Mouse and touch end events
+      this.canvas.addEventListener('mouseup', handlePointerEnd);
+      this.canvas.addEventListener('touchend', handlePointerEnd, { passive: false });
+      
+      // Handle mouse leave and touch cancel
+      this.canvas.addEventListener('mouseleave', handlePointerEnd);
+      this.canvas.addEventListener('touchcancel', handlePointerEnd, { passive: false });
     }
 
     // Check if point is on resize handle
@@ -429,11 +498,22 @@
         // Update preview element
         previewElement.src = imageUrl;
         previewElement.onload = () => {
-          // Initialize cropper after image loads
-          this.cropper.initCropper(previewElement, containerElement);
+          // Instead of inline cropping, open the sheet modal!
+          console.log('🎯 Opening Tesla sheet modal for cropping...');
           
-          // Show crop controls
-          this.showCropControls(containerElement);
+          // Store the image data for the modal
+          window.currentCropImage = {
+            src: imageUrl,
+            file: file,
+            previewElement: previewElement
+          };
+          
+          // Open our sheet modal instead of inline cropper
+          if (typeof showCropModalWithAnimation === 'function') {
+            showCropModalWithAnimation();
+          } else {
+            console.error('❌ Sheet modal function not found');
+          }
         };
         
       } catch (error) {
@@ -482,8 +562,6 @@
       // Create controls
       const controls = document.createElement('div');
       controls.className = 'crop-controls';
-      controls.innerHTML = `
-              const controls = document.createElement('div');
       controls.id = 'teslaCropControls';
       controls.innerHTML = `
         <div style="
@@ -525,7 +603,6 @@
             box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
           ">❌ Cancel</button>
         </div>
-      `;
       `;
       
       container.appendChild(controls);

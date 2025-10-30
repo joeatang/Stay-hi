@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share Button Test</title>
+    <link rel="stylesheet" href="components/hi-share-sheet/share-sheet.css"/>
+    <style>
+        body {
+            background: #0f1024;
+            color: white;
+            font-family: system-ui;
+            padding: 20px;
+        }
+        .test-btn {
+            background: #4ECDC4;
+            color: #111;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Share Button Debug Test</h1>
+    <button class="test-btn" onclick="openTestSheet()">Open Share Sheet</button>
+    <div id="debug-log" style="margin-top: 20px; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+        <h3>Debug Log:</h3>
+        <div id="log-content"></div>
+    </div>
+
+    <script src="components/hi-share-sheet/share-sheet.js" type="module"></script>
+    <script>
+        function log(message) {
+            const content = document.getElementById('log-content');
+            content.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+            console.log(message);
+        }
+
+        function openTestSheet() {
+            log('🔴 Attempting to open share sheet...');
+            if (window.openHiShareSheet) {
+                log('✅ openHiShareSheet function found');
+                window.openHiShareSheet('test', { prefilledText: 'Test message for debugging' });
+                log('🟡 Share sheet opened');
+            } else {
+                log('❌ openHiShareSheet function not found');
+            }
+        }
+
+        // Log when script loads
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🟢 DOM loaded');
+        });
+
+        window.addEventListener('load', () => {
+            log('🟢 Window loaded');
+            setTimeout(() => {
+                log('🧪 Checking for share sheet functions...');
+                log(`openHiShareSheet: ${typeof window.openHiShareSheet}`);
+                
+                // Check again after 3 seconds (after backup init)
+                setTimeout(() => {
+                    log('🔄 Rechecking after backup init...');
+                    log(`openHiShareSheet: ${typeof window.openHiShareSheet}`);
+                }, 3000);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Debug Test</title>
+    <style>
+        body {
+            background: #0F0F23;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            padding: 20px;
+        }
+        .debug-section {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .test-button {
+            background: linear-gradient(135deg, #4ECDC4, #FFD93D);
+            color: black;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #4ECDC4;
+            background: rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Profile Debug Dashboard</h1>
+    
+    <div class="debug-section">
+        <h3>Quick Tests</h3>
+        <button class="test-button" onclick="testProfilePage()">Test Profile Page Loading</button>
+        <button class="test-button" onclick="testScripts()">Test Required Scripts</button>
+        <button class="test-button" onclick="forceInitProfile()">Force Initialize Profile</button>
+        <button class="test-button" onclick="testDemoProfile()">Test Demo Profile Setup</button>
+    </div>
+
+    <div class="debug-section">
+        <h3>Debug Log</h3>
+        <div id="debugLog"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const debugLog = document.getElementById('debugLog');
+            const color = type === 'success' ? '#4ECDC4' : type === 'error' ? '#FF6B6B' : '#FFD93D';
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.style.borderColor = color;
+            entry.innerHTML = `<strong style="color: ${color}">[${type.toUpperCase()}]</strong> ${message}`;
+            debugLog.appendChild(entry);
+            debugLog.scrollTop = debugLog.scrollHeight;
+        }
+
+        function testProfilePage() {
+            log('🔍 Testing profile.html page...');
+            
+            fetch('/profile.html')
+                .then(response => {
+                    if (response.ok) {
+                        log('✅ Profile page loads successfully', 'success');
+                        return response.text();
+                    } else {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                })
+                .then(html => {
+                    // Check for required elements
+                    const checks = [
+                        ['initializeProfile function', html.includes('initializeProfile')],
+                        ['setupDemoProfile function', html.includes('setupDemoProfile')],
+                        ['loadDemoProfile function', html.includes('loadDemoProfile')],
+                        ['TeslaAvatarCrop system', html.includes('TeslaAvatarCrop')],
+                        ['demo-auth.js script', html.includes('demo-auth.js')],
+                        ['supabase-init.js script', html.includes('supabase-init.js')]
+                    ];
+                    
+                    checks.forEach(([name, exists]) => {
+                        if (exists) {
+                            log(`✅ ${name} found`, 'success');
+                        } else {
+                            log(`❌ ${name} missing`, 'error');
+                        }
+                    });
+                })
+                .catch(error => {
+                    log(`❌ Failed to load profile page: ${error.message}`, 'error');
+                });
+        }
+
+        function testScripts() {
+            log('🔍 Testing required script files...');
+            
+            const scripts = [
+                '/assets/supabase-init.js',
+                '/assets/demo-auth.js',
+                '/assets/auth-guard.js',
+                '/assets/avatar-utils.js'
+            ];
+
+            Promise.all(scripts.map(script => 
+                fetch(script).then(res => ({ script, status: res.status, ok: res.ok }))
+            )).then(results => {
+                results.forEach(({ script, status, ok }) => {
+                    if (ok) {
+                        log(`✅ ${script} loads (${status})`, 'success');
+                    } else {
+                        log(`❌ ${script} failed (${status})`, 'error');
+                    }
+                });
+            });
+        }
+
+        function forceInitProfile() {
+            log('🚀 Opening profile page and testing initialization...');
+            
+            const testWindow = window.open('/profile.html?debug=true', 'profileTest', 'width=1000,height=800');
+            
+            setTimeout(() => {
+                try {
+                    // Check window variables
+                    const checks = [
+                        ['currentProfile', testWindow.currentProfile],
+                        ['userStats', testWindow.userStats],
+                        ['TeslaAvatarCrop', testWindow.TeslaAvatarCrop],
+                        ['supabase/supabaseClient', testWindow.supabase || testWindow.supabaseClient],
+                        ['demoMode', testWindow.demoMode]
+                    ];
+
+                    checks.forEach(([name, value]) => {
+                        if (value) {
+                            log(`✅ ${name} available`, 'success');
+                        } else {
+                            log(`❌ ${name} not available`, 'error');
+                        }
+                    });
+                    
+                } catch (error) {
+                    log(`❌ Cross-origin restriction: ${error.message}`, 'error');
+                    log('ℹ️ Open profile.html directly and check browser console', 'info');
+                }
+            }, 3000);
+        }
+
+        function testDemoProfile() {
+            log('🎭 Testing demo profile creation...');
+            
+            // Simulate demo profile setup
+            const demoProfile = {
+                id: 'demo-user-' + Date.now(),
+                username: 'test_demo_user',
+                display_name: 'Demo User',
+                avatar_url: null,
+                bio: 'Testing demo profile functionality',
+                location: 'Debug Environment',
+                created_at: new Date().toISOString()
+            };
+
+            const demoStats = {
+                total_hi_moments: 42,
+                current_streak: 7,
+                longest_streak: 15,
+                total_waves: 89,
+                total_starts: 23,
+                days_active: 12
+            };
+
+            log(`✅ Demo profile created: ${JSON.stringify(demoProfile, null, 2)}`, 'success');
+            log(`✅ Demo stats created: ${JSON.stringify(demoStats, null, 2)}`, 'success');
+            
+            // Test localStorage
+            try {
+                localStorage.setItem('test-demo-profile', JSON.stringify(demoProfile));
+                const retrieved = JSON.parse(localStorage.getItem('test-demo-profile'));
+                if (retrieved.username === demoProfile.username) {
+                    log('✅ localStorage working for demo profiles', 'success');
+                } else {
+                    log('❌ localStorage data corruption', 'error');
+                }
+                localStorage.removeItem('test-demo-profile');
+            } catch (error) {
+                log(`❌ localStorage error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run basic test
+        window.addEventListener('load', () => {
+            log('🚀 Profile Debug Dashboard Started', 'success');
+            testProfilePage();
+        });
+    </script>
+</body>
+</html>

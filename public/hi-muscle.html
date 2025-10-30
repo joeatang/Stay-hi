@@ -9,14 +9,22 @@
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
-  <!-- Auth guard - must be first -->
-  <script src="assets/auth-guard.js"></script>
+  <!-- Tesla-grade auth system - health monitor first -->
+  <script src="assets/url-path-fixer.js"></script>
+  <script src="assets/supabase-init.js"></script>
+  <script src="assets/auth-health-monitor.js"></script>
+  <script src="assets/auth-guard.js?v=enhanced-logging"></script>
 
   <!-- Global brand & Tesla performance -->
   <link rel="stylesheet" href="assets/theme.css"/>
   <link rel="stylesheet" href="assets/create-parity.css"/>
+  <link rel="stylesheet" href="assets/premium-ux.css"/>
   <link rel="stylesheet" href="assets/premium-footer.css"/>
   <link rel="stylesheet" href="styles/modal-base.css">
+  
+  <!-- 🌟 Unified Share Sheet System -->
+  <link rel="stylesheet" href="components/hi-share-sheet/share-sheet.css"/>
+  <script src="components/hi-share-sheet/share-sheet.js" type="module"></script>
 
   <style>
     /* Tesla-Grade Hi Gym Styling - Mobile First */
@@ -94,27 +102,158 @@
       .pipe { width: 44px; }
     }
 
-    /* tabs - mobile touch friendly */
-    .tabs{display:flex;gap:8px;overflow-x:auto;border-bottom:1px solid #23264d;padding:12px 0;margin-bottom:16px;-webkit-overflow-scrolling:touch}
-    .tab{
-      white-space:nowrap;padding:12px 16px;border-radius:12px;border:2px solid #2f335e;
-      background:#fff;color:#111;font-weight:800;cursor:pointer;
-      box-shadow:0 6px 14px rgba(0,0,0,.12);
-      min-height:48px;display:flex;align-items:center;
-      transition:all 0.2s ease;
-      font-size:0.95rem;
+    /* Tesla-Grade Emotion Category Tabs */
+    .tabs {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 16px 0 20px 0;
+      margin-bottom: 20px;
+      -webkit-overflow-scrolling: touch;
+      /* Remove the old border-bottom for cleaner look */
     }
-    .tab:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(0,0,0,.18)}
-    .tab[aria-selected="true"]{
-      color:#1b0f02;border-color:transparent;background:var(--grad-ember);
-      transform:translateY(-1px);
+    
+    .tab {
+      position: relative;
+      white-space: nowrap;
+      padding: 16px 24px;
+      border-radius: 20px;
+      border: none;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+      box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      letter-spacing: -0.02em;
     }
 
+    /* Category-specific styling */
+    .tab[data-cat="hi"] {
+      background: linear-gradient(135deg, 
+        rgba(255, 157, 77, 0.15) 0%, 
+        rgba(255, 133, 51, 0.25) 100%);
+      border: 1px solid rgba(255, 157, 77, 0.2);
+    }
+
+    .tab[data-cat="neutral"] {
+      background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.08) 0%, 
+        rgba(255, 255, 255, 0.12) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .tab[data-cat="opportunity"] {
+      background: linear-gradient(135deg, 
+        rgba(78, 205, 196, 0.15) 0%, 
+        rgba(78, 205, 196, 0.25) 100%);
+      border: 1px solid rgba(78, 205, 196, 0.2);
+    }
+
+    /* Hover states with Tesla-grade precision */
+    .tab:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .tab[data-cat="hi"]:hover {
+      background: linear-gradient(135deg, 
+        rgba(255, 157, 77, 0.25) 0%, 
+        rgba(255, 133, 51, 0.35) 100%);
+      box-shadow: 
+        0 8px 32px rgba(255, 133, 51, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .tab[data-cat="neutral"]:hover {
+      background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.15) 0%, 
+        rgba(255, 255, 255, 0.22) 100%);
+    }
+
+    .tab[data-cat="opportunity"]:hover {
+      background: linear-gradient(135deg, 
+        rgba(78, 205, 196, 0.25) 0%, 
+        rgba(78, 205, 196, 0.35) 100%);
+      box-shadow: 
+        0 8px 32px rgba(78, 205, 196, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    /* Active/Selected state with premium feel */
+    .tab[aria-selected="true"] {
+      transform: translateY(-1px);
+      color: #fff;
+      font-weight: 700;
+      box-shadow: 
+        0 8px 24px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .tab[data-cat="hi"][aria-selected="true"] {
+      background: linear-gradient(135deg, #ff9d4d 0%, #ff8533 100%);
+      border-color: #ff8533;
+      color: #1b0f02;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .tab[data-cat="neutral"][aria-selected="true"] {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border-color: #cbd5e1;
+      color: #334155;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .tab[data-cat="opportunity"][aria-selected="true"] {
+      background: linear-gradient(135deg, #4ecdc4 0%, #44b3ac 100%);
+      border-color: #44b3ac;
+      color: #0f2027;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Responsive scaling */
     @media (min-width: 768px) {
+      .tabs {
+        gap: 16px;
+        padding: 20px 0 24px 0;
+      }
+      
       .tab { 
-        padding: 14px 18px; 
+        padding: 18px 28px; 
         font-size: 1rem;
-        min-height: 52px;
+        min-height: 60px;
+        border-radius: 24px;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .tab {
+        padding: 20px 32px;
+        font-size: 1.05rem;
+        border-radius: 28px;
+      }
+    }
+
+    /* Touch device optimizations */
+    @media (hover: none) and (pointer: coarse) {
+      .tab:hover {
+        transform: none;
+      }
+      
+      .tab:active {
+        transform: translateY(1px) scale(0.98);
       }
     }
 
@@ -368,7 +507,7 @@
     }
   </style>
 </head>
-<body data-tab="muscle">
+<body data-tab="muscle" data-page="hi-muscle">
   <!-- Premium Enhanced Header -->
   <header id="app-header" class="premium-header-container"></header>
 
@@ -477,7 +616,7 @@
 
       <div class="hr"></div>
       
-      <!-- Enhanced location field with education -->
+      <!-- Profile-first location architecture -->
       <div style="margin-bottom:12px;">
         <div style="font-weight:700;margin-bottom:4px;color:#e8ebff;">📍 Location (Optional)</div>
         <div class="muted" style="margin-bottom:8px;">
@@ -485,6 +624,17 @@
         </div>
         <div class="field" aria-label="Optional location">
           <span>📍</span><input id="locationInput" placeholder="e.g., Austin, TX or London, UK"/>
+        </div>
+        
+        <!-- Enhanced profile-first traveling option -->
+        <div id="travelingContainer" style="display:none;margin-top:8px;">
+          <label class="switch-label" style="font-size:14px;color:#a6adc8;display:flex;align-items:center;gap:8px;">
+            <div class="switch">
+              <input type="checkbox" id="travelingToggle">
+              <span class="slider"></span>
+            </div>
+            ✈️ I'm traveling (share from home location)
+          </label>
         </div>
       </div>
 
@@ -508,6 +658,8 @@
 
   <script>
   (async function(){
+    console.log('� Hi-Muscle loading...');
+    
     try { await hiAuth.ensureSessionMaybe?.(); } catch {}
 
     // ---------- Emotion data adapter ----------
@@ -629,11 +781,24 @@
           journal.focus();
           return;
         }
-        console.log('Opening share sheet...');
+        console.log('Opening unified share sheet for Hi Muscle...');
         try {
-          openSheet();
+          // 🌟 TESLA-GRADE: Use unified share sheet with Hi Muscle journal data
+          const journalText = journal.value.trim();
+          
+          // Pre-populate the share sheet with the Hi Muscle reflection
+          if (window.openHiShareSheet) {
+            window.openHiShareSheet('higym', { 
+              prefilledText: journalText,
+              currentEmoji: state.current?.emoji,
+              desiredEmoji: state.desired?.emoji 
+            });
+          } else {
+            console.error('❌ CRITICAL: Unified share sheet failed to initialize. Check console for module loading errors.');
+            toast('Share system unavailable. Please refresh the page.', 'warning');
+          }
         } catch (error) {
-          console.error('Error opening sheet:', error);
+          console.error('Error opening share sheet:', error);
           toast('Something went wrong. Please try again.', 'warning');
         }
         return;
@@ -694,6 +859,21 @@
           location: loc
         });
 
+        // 🌟 TESLA-GRADE: Increment global Hi counter (same as unified share sheet)
+        const LS_TOTAL = 'hi_total_count';
+        const LS_GLOBAL = 'hi_global_shares';
+        
+        let total = parseInt(localStorage.getItem(LS_TOTAL) || '0', 10);
+        let gStarts = parseInt(localStorage.getItem(LS_GLOBAL) || '0', 10);
+        
+        total += 1;
+        gStarts += 1;
+        
+        localStorage.setItem(LS_TOTAL, String(total));
+        localStorage.setItem(LS_GLOBAL, String(gStarts));
+        
+        console.log('📊 Global Hi counter incremented (hiGYM):', { total, gStarts });
+
         // Tesla-grade journey analytics
         const sessionData = {
           current: state.current,
@@ -740,11 +920,23 @@
 
         closeSheet();
         
-        // Tesla-grade celebration with animation
+        // 🎉 TESLA-GRADE: Premium celebration for emotional journey completion
         const celebrationMsg = celebration?.message || '🌟 Amazing emotional journey completed!';
         toast(celebrationMsg, 'celebration');
         
-        // Add success animation
+        // Premium UX celebration integration
+        if (window.PremiumUX) {
+          // Center-screen celebration from share button
+          setTimeout(() => {
+            window.PremiumUX.confetti({ 
+              count: 25, 
+              colors: ['#4ECDC4', '#FFD93D', '#FF6B6B', '#8A2BE2'] 
+            });
+          }, 100);
+          window.PremiumUX.triggerHapticFeedback('celebration');
+        }
+        
+        // Add subtle background glow animation
         setTimeout(() => {
           document.body.style.background = 'radial-gradient(1200px 600px at 50% -220px, rgba(78, 205, 196, 0.25) 0%, rgba(78, 205, 196, 0) 60%), #0f1024';
           setTimeout(() => {
@@ -818,14 +1010,22 @@
           </div>`;
         const isSelected = (state.step===1 && state.current?.name===item.name) ||
                            (state.step===2 && state.desired?.name===item.name);
-        if (isSelected) div.classList.add('selected');
+        if (isSelected) {
+          div.classList.add('selected');
+          // Tesla-Grade Debug: Log selection state
+          console.log(`🎯 Selected: ${item.name} (Step ${state.step}, Current: ${state.current?.name}, Desired: ${state.desired?.name})`);
+        }
 
         div.addEventListener('click', ()=>{
           let targetEmotion = item;
           
           if (state.step === 1) {
             state.current = targetEmotion;
+            // Tesla-Grade Fix: Clear desired emotion when selecting new current emotion
+            state.desired = null;
             setStep(2);
+            // Ensure UI updates immediately
+            renderGrid();
           } else if (state.step === 2) {
             // Tesla-grade smart validation
             const validation = window.HiGym.validateEmotionalSelection(state.current, targetEmotion);
@@ -844,6 +1044,8 @@
             
             state.desired = targetEmotion;
             setStep(3);
+            // Ensure UI updates immediately
+            renderGrid();
           } else {
             // Step 3: Allow changing current emotion
             state.current = targetEmotion;
@@ -994,8 +1196,30 @@
         journal.value = draft.journal || '';
         setStep(draft.step || 1);
         updateCharCount();
+        
+        // 🌟 Show discrete "Start Fresh" option when draft loaded
+        console.log('💾 Draft restored. Press Ctrl+Shift+R to start fresh.');
       } catch {}
     }
+
+    function startFresh(){
+      localStorage.removeItem('hi-gym-draft');
+      state.current = null;
+      state.desired = null;
+      state.step = 1;
+      journal.value = '';
+      setStep(1);
+      updateCharCount();
+      toast('✨ Started fresh! Ready for your new emotional journey.', 'default');
+    }
+
+    // 🌟 TESLA-GRADE: Add keyboard shortcut for hard reset
+    window.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'R') {
+        e.preventDefault();
+        startFresh();
+      }
+    });
 
     function updateCharCount(){
       const len = journal.value.length;
@@ -1035,29 +1259,50 @@
       saveDraft();
     });
 
-    // Enhanced location management with smart strategy
+    // Enhanced profile-first location management with traveling support
     async function loadUserLocation() {
       try {
         const userProfile = await window.hiDB.getUserProfile();
         const locationEducation = document.getElementById('locationEducation');
+        const travelingContainer = document.getElementById('travelingContainer');
+        const travelingToggle = document.getElementById('travelingToggle');
         
         if (userProfile?.location) {
-          // User has set location - auto-populate with encouragement
+          // User has set location - show traveling option and auto-populate
           locationInput.value = userProfile.location;
+          travelingContainer.style.display = '';
           locationEducation.innerHTML = `<strong>Great!</strong> Using your saved location: <strong>${userProfile.location}</strong>. This helps build your local Hi community.`;
+          
+          // Handle traveling toggle
+          travelingToggle.addEventListener('change', function() {
+            if (this.checked) {
+              // Store original location and clear input for manual entry
+              this.dataset.homeLocation = userProfile.location;
+              locationInput.value = '';
+              locationInput.placeholder = 'Where are you traveling? (e.g., Paris, France)';
+              locationEducation.innerHTML = `✈️ <strong>Traveling mode:</strong> Will post from your travel location but keep <strong>${userProfile.location}</strong> as your home base.`;
+            } else {
+              // Restore home location
+              locationInput.value = userProfile.location;
+              locationInput.placeholder = 'e.g., Austin, TX or London, UK';
+              locationEducation.innerHTML = `<strong>Great!</strong> Using your saved location: <strong>${userProfile.location}</strong>. This helps build your local Hi community.`;
+            }
+          });
         } else {
-          // New user - emphasize community benefits, but keep optional
+          // New user - hide traveling option, emphasize community benefits
+          travelingContainer.style.display = 'none';
           locationEducation.innerHTML = `<strong>Optional but powerful:</strong> Adding your city/state helps you connect with others nearby and see how your community feels. Posts without location appear as "Global Community" shares.`;
         }
-        
-        // Show how many local vs global shares exist (if we have stats)
-        // This encourages participation by showing community size
         
       } catch (error) {
         console.log('Could not load user location:', error);
         const locationEducation = document.getElementById('locationEducation');
+        const travelingContainer = document.getElementById('travelingContainer');
         if (locationEducation) {
           locationEducation.innerHTML = `<strong>Connect locally:</strong> Add your city and state to find others nearby. Leave blank to share with the global community.`;
+        }
+        if (travelingContainer) {
+          travelingContainer.style.display = 'none';
         }
       }
     }
@@ -1082,6 +1327,7 @@
 
     })();
   </script>
+  <script src="assets/premium-ux.js"></script>
   <script src="assets/premium-footer.js" defer></script>
 </body>
 </html>

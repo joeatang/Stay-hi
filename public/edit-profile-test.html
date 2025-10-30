@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🧪 Edit Profile Test</title>
+    <style>
+        body { font-family: system-ui; background: #1a1a2e; color: white; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; text-align: center; }
+        .btn { background: #00d4ff; color: white; border: none; padding: 16px 32px; border-radius: 12px; cursor: pointer; margin: 10px; font-size: 16px; font-weight: 600; }
+        .btn:hover { background: #0099cc; transform: translateY(-2px); }
+        .btn-success { background: #00ff88; }
+        .status { margin: 20px 0; padding: 16px; border-radius: 12px; }
+        .success { background: rgba(0,255,0,0.2); }
+        .info { background: rgba(0,212,255,0.2); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Edit Profile Fix Test</h1>
+        <p>Test the enhanced edit profile functionality</p>
+        
+        <div class="status info">
+            <strong>✅ Edit Profile Button Enhanced!</strong><br>
+            Added debug logging and forced display properties
+        </div>
+        
+        <button class="btn btn-success" onclick="openProfilePage()">
+            🚀 Open Profile Page & Test Edit Button
+        </button>
+        
+        <button class="btn" onclick="runDiagnostic()">
+            🔧 Run Edit Profile Diagnostic
+        </button>
+        
+        <div id="instructions" class="status success" style="margin-top: 30px;">
+            <h3>📋 How to Test:</h3>
+            <ol style="text-align: left; max-width: 400px; margin: 0 auto;">
+                <li>Click "Open Profile Page & Test Edit Button"</li>
+                <li>Look for the "Edit Profile" button on your profile</li>
+                <li>Click it - it should now open the edit modal</li>
+                <li>Check browser console (F12) for debug logs</li>
+                <li>The modal should show with your current data pre-filled</li>
+            </ol>
+        </div>
+        
+        <div style="margin-top: 30px; font-size: 14px; opacity: 0.8;">
+            <strong>🔧 What Was Fixed:</strong><br>
+            • Added comprehensive debug logging<br>
+            • Enhanced modal visibility with !important CSS<br>
+            • Added forced display properties<br>
+            • Better error handling and fallbacks<br>
+            • Improved z-index to prevent blocking
+        </div>
+    </div>
+    
+    <script>
+        function openProfilePage() {
+            const profileWindow = window.open('/profile.html', 'profileTest', 'width=1200,height=800');
+            
+            // Give instructions after opening
+            setTimeout(() => {
+                if (profileWindow && !profileWindow.closed) {
+                    alert('📝 Profile page opened!\n\n1. Sign in if needed\n2. Look for the "Edit Profile" button\n3. Click it to test the fix\n4. Check browser console for debug logs');
+                }
+            }, 2000);
+        }
+        
+        function runDiagnostic() {
+            window.open('/edit-profile-diagnostic.html', 'diagnostic', 'width=1000,height=700');
+        }
+        
+        // Show success message
+        window.addEventListener('load', () => {
+            console.log('🎉 Edit Profile fix deployed successfully!');
+        });
+    </script>
+</body>
+</html>

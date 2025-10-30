@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Tesla Data Detective - Real Stats Extraction</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f23, #1a1a2e);
+            color: #e6e6fa;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .stats-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 16px 0;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .big-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #4ECDC4;
+            margin: 0;
+        }
+        .label {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            margin: 0;
+        }
+        .raw-data {
+            background: #0a0a0f;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Monaco', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .button {
+            background: linear-gradient(135deg, #4ECDC4, #FFD93D);
+            border: none;
+            color: #111;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 8px 4px;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .status.active { background: #22c55e; color: white; }
+        .status.inactive { background: #ef4444; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Tesla Data Detective</h1>
+        <p>Extracting real user statistics from Stay Hi localStorage...</p>
+        
+        <div id="statsDisplay">
+            <div class="stats-card">
+                <p class="big-number" id="loadingMsg">🔄 Loading...</p>
+                <p class="label">Analyzing your data...</p>
+            </div>
+        </div>
+        
+        <div class="stats-card">
+            <h3>🎯 Controls</h3>
+            <button class="button" onclick="extractRealStats()">🔍 Extract Real Stats</button>
+            <button class="button" onclick="compareWithWelcome()">📊 Compare With Welcome Page</button>
+            <button class="button" onclick="showRawData()">🗂️ Show Raw Data</button>
+        </div>
+        
+        <div id="rawDataContainer" style="display: none;">
+            <div class="stats-card">
+                <h3>🗂️ Raw localStorage Data</h3>
+                <div id="rawData" class="raw-data"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 🎯 TESLA-GRADE: Extract actual user statistics from localStorage
+        function extractRealStats() {
+            console.log('🔍 TESLA FORENSIC ANALYSIS: Extracting real user data...');
+            
+            try {
+                // Get actual stored Hi data
+                const myArchive = JSON.parse(localStorage.getItem('hi_my_archive') || '[]');
+                const generalShares = JSON.parse(localStorage.getItem('hi_general_shares') || '[]');
+                const pendingQueue = JSON.parse(localStorage.getItem('hi_pending_queue') || '[]');
+                const userLocation = JSON.parse(localStorage.getItem('hi_user_location') || '{}');
+                
+                // Get other potential data stores
+                const hiHistory = JSON.parse(localStorage.getItem('hi_history') || '{}');
+                const hiTotal = localStorage.getItem('hi_total') || '0';
+                const hiStreak = localStorage.getItem('hi_streak') || '0';
+                
+                // Calculate REAL statistics from user's actual activity
+                const totalHiMoments = myArchive.length;
+                const totalShares = generalShares.length;
+                const pendingActions = pendingQueue.length;
+                
+                // Analyze creation dates for activity patterns
+                const allActivity = [...myArchive, ...generalShares];
+                const uniqueDays = new Set(allActivity.map(item => {
+                    if (item.createdAt || item.timestamp || item.date) {
+                        const date = new Date(item.createdAt || item.timestamp || item.date);
+                        return date.toDateString();
+                    }
+                    return null;
+                }).filter(Boolean)).size;
+                
+                // Calculate from history object
+                const historyDates = Object.keys(hiHistory);
+                const totalFromHistory = Object.values(hiHistory).reduce((sum, count) => sum + count, 0);
+                
+                // Most recent activity
+                const sortedDates = allActivity
+                    .map(item => item.createdAt || item.timestamp || item.date)
+                    .filter(Boolean)
+                    .sort((a, b) => new Date(b) - new Date(a));
+                    
+                const mostRecentActivity = sortedDates.length > 0 ? new Date(sortedDates[0]) : null;
+                const isActive = mostRecentActivity && (Date.now() - mostRecentActivity.getTime()) < 24 * 60 * 60 * 1000;
+                
+                const realStats = {
+                    // REAL data from user's localStorage
+                    totalHiMoments: totalHiMoments,
+                    totalWaves: totalShares, 
+                    totalConnections: totalHiMoments + totalShares,
+                    activeDays: uniqueDays,
+                    pendingItems: pendingActions,
+                    lastActivity: mostRecentActivity,
+                    
+                    // From counters
+                    totalFromHistory: totalFromHistory,
+                    storedTotal: parseInt(hiTotal),
+                    storedStreak: parseInt(hiStreak),
+                    historyDays: historyDates.length,
+                    
+                    // Status
+                    isActive: isActive,
+                    averagePerDay: uniqueDays > 0 ? Math.round((totalHiMoments + totalShares) / uniqueDays) : 0,
+                    
+                    // Location data
+                    userLocation: userLocation.cityState || 'Not set',
+                    
+                    // Meta
+                    dataSource: 'localStorage',
+                    timestamp: new Date().toISOString()
+                };
+                
+                displayStats(realStats);
+                
+                console.log('📊 REAL USER STATS EXTRACTED:', realStats);
+                return realStats;
+                
+            } catch (error) {
+                console.error('❌ Error extracting stats:', error);
+                document.getElementById('statsDisplay').innerHTML = `
+                    <div class="stats-card">
+                        <p class="big-number" style="color: #ef4444;">❌ Error</p>
+                        <p class="label">Failed to extract data: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function displayStats(stats) {
+            const html = `
+                <div class="stats-card">
+                    <p class="big-number">${stats.totalHiMoments}</p>
+                    <p class="label">📝 Total Hi Moments (Archive)</p>
+                </div>
+                <div class="stats-card">
+                    <p class="big-number">${stats.totalWaves}</p>
+                    <p class="label">🌊 Total Waves (Shared)</p>
+                </div>
+                <div class="stats-card">
+                    <p class="big-number">${stats.totalConnections}</p>
+                    <p class="label">🔗 Total Connections</p>
+                </div>
+                <div class="stats-card">
+                    <p class="big-number">${stats.storedTotal}</p>
+                    <p class="label">📊 Total from Counter</p>
+                </div>
+                <div class="stats-card">
+                    <p class="big-number">${stats.storedStreak}</p>
+                    <p class="label">🔥 Current Streak</p>
+                </div>
+                <div class="stats-card">
+                    <p class="big-number">${stats.activeDays}</p>
+                    <p class="label">📅 Active Days</p>
+                </div>
+                <div class="stats-card">
+                    <p class="big-number">${stats.userLocation}</p>
+                    <p class="label">📍 Your Location</p>
+                </div>
+                <div class="stats-card">
+                    <p class="big-number">
+                        <span class="status ${stats.isActive ? 'active' : 'inactive'}">
+                            ${stats.isActive ? '🟢 Active' : '🔴 Inactive'}
+                        </span>
+                    </p>
+                    <p class="label">⚡ Activity Status</p>
+                </div>
+            `;
+            
+            document.getElementById('statsDisplay').innerHTML = html;
+        }
+        
+        function compareWithWelcome() {
+            // These are the hardcoded values from welcome page fallback
+            const welcomeStats = {
+                totalUsers: 1247,
+                activeNow: 23,
+                todayHis: 892,
+                totalConnections: 15640
+            };
+            
+            const realStats = extractRealStats();
+            
+            alert(`🎯 COMPARISON ANALYSIS:
+
+WELCOME PAGE (Simulated):
+👥 Total Users: ${welcomeStats.totalUsers}
+⚡ Active Now: ${welcomeStats.activeNow}
+📝 Today His: ${welcomeStats.todayHis}
+🔗 Total Connections: ${welcomeStats.totalConnections}
+
+YOUR REAL DATA:
+📝 Your Hi Moments: ${realStats.totalHiMoments}
+🌊 Your Waves: ${realStats.totalWaves}
+🔗 Your Connections: ${realStats.totalConnections}
+📊 Your Total: ${realStats.storedTotal}
+
+🎯 THE ISSUE: Welcome page shows hardcoded simulation data, not your real activity!`);
+        }
+        
+        function showRawData() {
+            const container = document.getElementById('rawDataContainer');
+            const rawDataDiv = document.getElementById('rawData');
+            
+            if (container.style.display === 'none') {
+                const myArchive = JSON.parse(localStorage.getItem('hi_my_archive') || '[]');
+                const generalShares = JSON.parse(localStorage.getItem('hi_general_shares') || '[]');
+                const pendingQueue = JSON.parse(localStorage.getItem('hi_pending_queue') || '[]');
+                const hiHistory = JSON.parse(localStorage.getItem('hi_history') || '{}');
+                
+                rawDataDiv.innerHTML = `
+<strong>hi_my_archive (${myArchive.length} items):</strong>
+${JSON.stringify(myArchive.slice(0, 3), null, 2)}
+${myArchive.length > 3 ? `... and ${myArchive.length - 3} more` : ''}
+
+<strong>hi_general_shares (${generalShares.length} items):</strong>
+${JSON.stringify(generalShares.slice(0, 3), null, 2)}
+${generalShares.length > 3 ? `... and ${generalShares.length - 3} more` : ''}
+
+<strong>hi_history:</strong>
+${JSON.stringify(hiHistory, null, 2)}
+
+<strong>hi_pending_queue (${pendingQueue.length} items):</strong>
+${JSON.stringify(pendingQueue, null, 2)}
+
+<strong>All localStorage keys related to Hi:</strong>
+${Object.keys(localStorage).filter(key => key.includes('hi')).map(key => 
+    `${key}: ${localStorage.getItem(key)?.substring(0, 100)}...`
+).join('\n')}
+                `;
+                
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+            }
+        }
+        
+        // Auto-extract on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                extractRealStats();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

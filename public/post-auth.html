@@ -7,44 +7,271 @@
   <meta name="robots" content="noindex" />
   <link rel="stylesheet" href="assets/create-parity.css" />
   <style>
-    body{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#F5A623 0%,#FFC107 100%)}
-    .box{max-width:560px;width:92vw;background:#FFFDF9;border:1px solid #eee;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.06);padding:22px}
-    .row{display:flex;align-items:center;gap:12px}
-    .spin{width:18px;height:18px;border:3px solid #eee;border-top-color:#006400;border-radius:50%;animation:sp 800ms linear infinite}
-    @keyframes sp{to{transform:rotate(1turn)}}
-    .muted{color:#666}
-    .ok{color:#0b6a2b}
-    .err{color:#8b0000}
-    .btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:10px;border:1px solid #e4e4e4;background:#fff;font-weight:700;cursor:pointer}
+    /* Tesla-Grade Gold Standard Auth Processing UI */
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #0F0F23 0%, #1A1A2E 25%, #16213E 50%, #2D1B69 75%, #4A1A40 100%);
+      background-size: 400% 400%;
+      animation: gradientFlow 15s ease infinite;
+      color: white;
+      overflow-x: hidden;
+    }
+    
+    @keyframes gradientFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    .box {
+      max-width: 480px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.3),
+        0 10px 25px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      padding: 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.8), transparent);
+      animation: shimmer 2s ease-in-out infinite;
+    }
+    
+    @keyframes shimmer {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 1; }
+    }
+    
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+    
+    .spin {
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(255, 255, 255, 0.2);
+      border-top-color: #FFD700;
+      border-right-color: #4ECDC4;
+      border-radius: 50%;
+      animation: teslaSpinner 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      position: relative;
+    }
+    
+    .spin::after {
+      content: '';
+      position: absolute;
+      top: -3px;
+      left: -3px;
+      right: -3px;
+      bottom: -3px;
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes teslaSpinner {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 0; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.1); }
+    }
+    
+    .brand-title {
+      font-size: 32px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #FFD700 0%, #4ECDC4 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 24px;
+      letter-spacing: -0.5px;
+    }
+    
+    .status-text {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: rgba(255, 255, 255, 0.95);
+    }
+    
+    .muted {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+    
+    .ok {
+      color: #4ECDC4;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    
+    .ok::before {
+      content: '✨';
+      font-size: 24px;
+      animation: bounce 0.6s ease-in-out infinite alternate;
+    }
+    
+    @keyframes bounce {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-4px); }
+    }
+    
+    .err {
+      color: #FF6B6B;
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 24px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      text-decoration: none;
+      margin: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 215, 0, 0.5);
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+    
+    .btn:hover::before {
+      left: 100%;
+    }
+    
+    .btn:active {
+      transform: translateY(0);
+    }
+    
+    .success-glow {
+      position: relative;
+    }
+    
+    .success-glow::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      background: linear-gradient(45deg, #4ECDC4, #FFD700, #4ECDC4);
+      border-radius: 26px;
+      z-index: -1;
+      opacity: 0.3;
+      animation: rotate 3s linear infinite;
+    }
+    
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Mobile responsive */
+    @media (max-width: 480px) {
+      .box {
+        padding: 32px 24px;
+        margin: 20px;
+      }
+      
+      .brand-title {
+        font-size: 28px;
+      }
+      
+      .status-text {
+        font-size: 16px;
+      }
+    }
   </style>
 </head>
 <body>
 
   <main class="box" role="main">
+    <div class="brand-title">Stay Hi</div>
+    
     <div id="working" class="row">
       <div class="spin" aria-hidden="true"></div>
       <div>
-        <div style="font-weight:800">Finishing sign-in…</div>
-        <div class="muted" id="sub">One moment while we set your session.</div>
+        <div class="status-text">Finishing sign-in…</div>
+        <div class="muted" id="sub">Securing your session with Tesla-grade encryption</div>
       </div>
     </div>
 
-    <div id="done" style="display:none">
-      <div style="font-weight:800" class="ok">Signed in ✔</div>
-      <p class="muted">Taking you back to Home…</p>
-      <button class="btn" onclick="go('/')">Go now</button>
+    <div id="done" style="display:none" class="success-glow">
+      <div class="ok">Authentication Complete</div>
+      <p class="muted">Redirecting to your personalized profile…</p>
+      <button class="btn" onclick="go('/')">Continue to App</button>
     </div>
 
     <div id="oops" style="display:none">
-      <div style="font-weight:800" class="err">Couldn’t complete sign-in</div>
-      <p class="muted" id="oopsMsg">The link may be expired. You can request a new one.</p>
-      <div class="row" style="gap:8px">
-        <button class="btn" onclick="go('signin.html')">Back to Sign in</button>
-        <button class="btn" onclick="go('/')">Home</button>
+      <div class="err">Authentication Failed</div>
+      <p class="muted" id="oopsMsg">Your magic link may have expired. Let's get you a fresh one.</p>
+      <div class="row" style="gap:12px; margin-top: 20px;">
+        <button class="btn" onclick="go('signin-enhanced.html')">Get New Magic Link</button>
+        <button class="btn" onclick="go('/')">Back to Home</button>
       </div>
     </div>
   </main>
 
+  <!-- Load Supabase CDN first -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <!-- Use unified Supabase client -->
   <script src="assets/supabase-init.js"></script>
   <script>
@@ -52,13 +279,24 @@
   let supabase;
   
   function waitForSupabase() {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       if (window.sb) {
         supabase = window.sb;
+        console.log('✅ Supabase client ready (immediate)');
         resolve();
       } else {
+        console.log('⏳ Waiting for Supabase client to initialize...');
+        
+        // Set up timeout to avoid infinite waiting
+        const timeout = setTimeout(() => {
+          console.error('❌ Supabase initialization timeout');
+          reject(new Error('Supabase client failed to initialize within 10 seconds'));
+        }, 10000);
+        
         window.addEventListener('supabase-ready', () => {
+          clearTimeout(timeout);
           supabase = window.sb;
+          console.log('✅ Supabase client ready (event-based)');
           resolve();
         });
       }
@@ -66,7 +304,14 @@
   }
 
   const $ = (s)=>document.querySelector(s);
-  const go = (p)=>{ window.location.href = p; };
+  const go = (p)=>{ 
+    // Navigate to page
+    if (!p.startsWith('http')) {
+      // Remove leading slash if present
+      p = p.replace(/^\/+/, '');
+    }
+    window.location.href = p; 
+  };
 
   // Utility: parse tokens from hash (older magic-link format)
   function tokensFromHash() {
@@ -80,20 +325,32 @@
 
   async function finishAuth() {
     try {
+      console.log('🔐 Starting authentication process...');
+      
       // 1) OAuth/code flow (safe to call even if no code present)
-      await supabase.auth.exchangeCodeForSession(window.location.href).catch(()=>{});
+      await supabase.auth.exchangeCodeForSession(window.location.href).catch((err) => {
+        console.log('OAuth flow not applicable:', err.message);
+      });
 
       // 2) Magic link with tokens in URL hash (older / email magic-link)
       const t = tokensFromHash();
+      console.log('🎟️ Tokens from hash:', t ? 'Found' : 'None');
+      
       if (t) {
+        console.log('📝 Setting session with tokens...');
         await supabase.auth.setSession(t);
         // scrub tokens from the URL
         history.replaceState({}, document.title, location.pathname);
       }
 
       // 3) Do we have a session now?
+      console.log('🔍 Checking for active session...');
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('No active session');
+      console.log('✅ Session check result:', session ? 'Active session found' : 'No session');
+      
+      if (!session) throw new Error('No active session after authentication');
+
+      console.log('👤 User authenticated:', session.user.email);
 
       // Optional: quick membership look (non-blocking). You set this table in Step 2.
       try {
@@ -108,17 +365,25 @@
             .maybeSingle();
           // cache a tiny flag for the UI; your app can read this.
           localStorage.setItem('hi_member', rows ? '1' : '0');
+          console.log('🎫 Membership status cached:', rows ? 'Active' : 'None');
         }
-      } catch(_) {}
+      } catch(memberErr) {
+        console.warn('⚠️ Membership check failed (non-critical):', memberErr.message);
+      }
 
       // Success UI + redirect
+      console.log('🎉 Authentication successful! Showing success UI...');
       $('#working').style.display = 'none';
       $('#done').style.display = 'block';
-      setTimeout(()=>go('index.html'), 900);
+      
+      // Check for 'next' parameter and use it, otherwise default to profile.html for authenticated users
+      const nextPage = new URLSearchParams(location.search).get('next') || 'profile.html';
+      console.log('🔄 Redirecting to:', nextPage);
+      setTimeout(()=>go(nextPage), 900);
     } catch (err) {
-      console.error(err);
+      console.error('❌ Authentication failed:', err);
       $('#working').style.display = 'none';
-      $('#oopsMsg').textContent = err.message || 'Something went wrong.';
+      $('#oopsMsg').textContent = err.message || 'Something went wrong during authentication.';
       $('#oops').style.display = 'block';
     }
   }
@@ -131,6 +396,11 @@
     // Wait for Supabase to be ready before finishing auth
     waitForSupabase().then(() => {
       finishAuth();
+    }).catch((err) => {
+      console.error('❌ Failed to initialize Supabase:', err);
+      $('#working').style.display = 'none';
+      $('#oopsMsg').textContent = 'Failed to load authentication system. Please try refreshing the page.';
+      $('#oops').style.display = 'block';
     });
   }
   </script>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tesla Avatar Crop Test</title>
+    <style>
+        body {
+            background: #0F0F23;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            padding: 20px;
+        }
+        .test-button {
+            background: linear-gradient(135deg, #4ECDC4, #FFD93D);
+            color: black;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .test-result {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Tesla Avatar Crop System Test</h1>
+    <p>Testing the avatar crop functionality in profile.html</p>
+    
+    <button class="test-button" onclick="testProfilePage()">Test Profile Page</button>
+    <button class="test-button" onclick="testTeslaAvatarCrop()">Test Tesla Crop System</button>
+    <button class="test-button" onclick="testFileInput()">Test File Input Connection</button>
+    
+    <div id="testResults" class="test-result">
+        <h3>Test Results:</h3>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function log(message, status = 'info') {
+            const results = document.getElementById('results');
+            const color = status === 'success' ? '#4ECDC4' : status === 'error' ? '#FF6B6B' : '#FFD93D';
+            results.innerHTML += `<div style="color: ${color}; margin: 5px 0;">${message}</div>`;
+        }
+
+        function testProfilePage() {
+            log('🔍 Testing profile.html page...');
+            
+            // Test if we can access the profile page
+            fetch('/profile.html')
+                .then(response => {
+                    if (response.ok) {
+                        log('✅ Profile page loads successfully', 'success');
+                        return response.text();
+                    } else {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                })
+                .then(html => {
+                    // Check if Tesla crop system is in the HTML
+                    if (html.includes('TeslaAvatarCrop')) {
+                        log('✅ TeslaAvatarCrop system found in HTML', 'success');
+                    } else {
+                        log('❌ TeslaAvatarCrop system NOT found', 'error');
+                    }
+                    
+                    if (html.includes('teslaAvatarCrop') && html.includes('tesla-sheet-modal')) {
+                        log('✅ Tesla crop modal HTML elements found', 'success');
+                    } else {
+                        log('❌ Tesla crop modal elements missing', 'error');
+                    }
+                })
+                .catch(error => {
+                    log(`❌ Failed to load profile page: ${error.message}`, 'error');
+                });
+        }
+
+        function testTeslaAvatarCrop() {
+            log('🔍 Testing Tesla Avatar Crop system in new window...');
+            
+            // Open profile page in new window and test
+            const testWindow = window.open('/profile.html', 'test', 'width=800,height=600');
+            
+            setTimeout(() => {
+                try {
+                    if (testWindow.TeslaAvatarCrop) {
+                        log('✅ TeslaAvatarCrop object available', 'success');
+                        
+                        if (typeof testWindow.TeslaAvatarCrop.show === 'function') {
+                            log('✅ TeslaAvatarCrop.show() method exists', 'success');
+                        } else {
+                            log('❌ TeslaAvatarCrop.show() method missing', 'error');
+                        }
+                        
+                        const canvas = testWindow.document.getElementById('teslaCanvas');
+                        if (canvas) {
+                            log('✅ Tesla canvas element found', 'success');
+                        } else {
+                            log('❌ Tesla canvas element missing', 'error');
+                        }
+                        
+                    } else {
+                        log('❌ TeslaAvatarCrop not available in window', 'error');
+                    }
+                } catch (error) {
+                    log(`❌ Cross-origin error (expected): ${error.message}`, 'info');
+                    log('ℹ️ Open profile.html directly to test functionality', 'info');
+                }
+            }, 2000);
+        }
+
+        function testFileInput() {
+            log('🔍 Testing file input connection...');
+            
+            // Create a test file
+            const canvas = document.createElement('canvas');
+            canvas.width = canvas.height = 200;
+            const ctx = canvas.getContext('2d');
+            
+            // Draw a simple test image
+            ctx.fillStyle = '#4ECDC4';
+            ctx.fillRect(0, 0, 200, 200);
+            ctx.fillStyle = '#FFD93D';
+            ctx.fillRect(50, 50, 100, 100);
+            
+            canvas.toBlob(blob => {
+                const file = new File([blob], 'test-avatar.png', { type: 'image/png' });
+                log(`✅ Created test file: ${file.name} (${file.size} bytes)`, 'success');
+                
+                log('ℹ️ File ready for testing with Tesla crop system', 'info');
+                log('ℹ️ Go to profile.html and click avatar to test with real file', 'info');
+            });
+        }
+
+        // Auto-run basic tests
+        window.addEventListener('load', () => {
+            log('🚀 Tesla Avatar Crop Test Suite Started', 'success');
+            testProfilePage();
+        });
+    </script>
+</body>
+</html>

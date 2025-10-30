@@ -1,0 +1,1034 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>Profile — Stay Hi</title>
+  
+  <!-- 🔥 Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  
+  <!-- Core Systems -->
+  <script src="assets/supabase-init.js"></script>
+  <script src="assets/demo-auth.js"></script>
+  <script src="assets/tesla-modal-system.js"></script>
+  <script src="assets/location-picker.js"></script>
+  
+  <style>
+    /* TESLA GOLD STANDARD CSS */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #0F0F23 0%, #1A1A2E 100%);
+      color: white;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 14px;
+      margin-bottom: 32px;
+      transition: color 0.2s;
+    }
+    
+    .back-button:hover { color: #4ECDC4; }
+    
+    .profile-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    
+    .profile-title {
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #4ECDC4 0%, #FFD93D 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    
+    /* AVATAR SECTION */
+    .avatar-section {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 24px;
+      cursor: pointer;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid rgba(78, 205, 196, 0.3);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .avatar-section:hover {
+      border-color: #4ECDC4;
+      transform: scale(1.05);
+    }
+    
+    .avatar-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      color: rgba(255,255,255,0.5);
+    }
+    
+    .avatar-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .avatar-section:hover .avatar-overlay {
+      opacity: 1;
+    }
+    
+    /* PROFILE INFO */
+    .profile-info {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    
+    .profile-username {
+      font-size: 24px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 8px;
+    }
+    
+    .profile-bio {
+      font-size: 16px;
+      color: rgba(255,255,255,0.8);
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+    
+    .profile-location {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    
+    /* STATS GRID */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+      margin-bottom: 48px;
+    }
+    
+    .stat-card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(78, 205, 196, 0.3);
+      transform: translateY(-2px);
+    }
+    
+    .stat-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+      display: block;
+    }
+    
+    .stat-title {
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #4ECDC4;
+    }
+    
+    /* ACHIEVEMENTS */
+    .achievements-section {
+      margin-bottom: 48px;
+    }
+    
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .achievements-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 16px;
+    }
+    
+    .achievement {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    
+    .achievement.unlocked {
+      background: rgba(78, 205, 196, 0.1);
+      border-color: rgba(78, 205, 196, 0.3);
+    }
+    
+    .achievement-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+      display: block;
+      filter: grayscale(1);
+      opacity: 0.5;
+    }
+    
+    .achievement.unlocked .achievement-icon {
+      filter: none;
+      opacity: 1;
+    }
+    
+    .achievement-name {
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.3;
+    }
+    
+    .achievement.unlocked .achievement-name {
+      color: #4ECDC4;
+      font-weight: 600;
+    }
+    
+    /* EDIT FORM */
+    .edit-section {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.9);
+      margin-bottom: 8px;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    
+    .form-input:focus {
+      border-color: #4ECDC4;
+      background: rgba(255,255,255,0.15);
+    }
+    
+    .form-textarea {
+      height: 80px;
+      resize: vertical;
+    }
+    
+    .location-input {
+      cursor: pointer;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #4ECDC4, #FFD93D);
+      color: #0F0F23;
+    }
+    
+    .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+    
+    /* TESLA MODAL */
+    .tesla-modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      z-index: 999999;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    
+    .tesla-modal.active { display: flex; }
+    
+    .tesla-modal-content {
+      background: rgba(15, 15, 35, 0.95);
+      backdrop-filter: blur(30px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px 24px 0 0;
+      width: 100%;
+      max-width: 450px;
+      max-height: 80vh;
+      color: white;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.25,0.8,0.25,1);
+    }
+    
+    .tesla-modal.active .tesla-modal-content {
+      transform: translateY(0);
+    }
+    
+    .tesla-modal-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .tesla-modal-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .tesla-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    
+    .tesla-close:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .tesla-modal-body {
+      padding: 20px;
+    }
+    
+    .tesla-crop-area {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    
+    .tesla-canvas {
+      width: 260px;
+      height: 260px;
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      cursor: grab;
+    }
+    
+    .tesla-canvas:active { cursor: grabbing; }
+    
+    .tesla-crop-circle {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 180px; height: 180px;
+      border: 3px solid #4ECDC4;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      box-shadow: 0 0 0 200px rgba(0,0,0,0.5);
+    }
+    
+    .tesla-controls {
+      margin-bottom: 20px;
+    }
+    
+    .tesla-label {
+      display: block;
+      font-size: 14px;
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 8px;
+    }
+    
+    .tesla-range {
+      width: 100%;
+      -webkit-appearance: none;
+      height: 6px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 3px;
+      outline: none;
+    }
+    
+    .tesla-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px; height: 18px;
+      background: #4ECDC4;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    
+    .tesla-modal-footer {
+      padding: 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    
+    .loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    
+    .hidden { display: none !important; }
+    
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      .container { padding: 20px 16px; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .achievements-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Back Navigation -->
+    <a href="/" class="back-button">
+      ← Back to Home
+    </a>
+    
+    <!-- Profile Header -->
+    <header class="profile-header">
+      <h1 class="profile-title">Your Profile</h1>
+    </header>
+    
+    <!-- Avatar Section -->
+    <div class="avatar-section" onclick="TeslaProfile.editAvatar()">
+      <div class="avatar-image" id="avatarImage">👤</div>
+      <div class="avatar-overlay">Update Photo</div>
+    </div>
+    
+    <!-- Profile Info -->
+    <div class="profile-info">
+      <h2 class="profile-username" id="profileUsername">Loading...</h2>
+      <p class="profile-bio" id="profileBio">Loading profile...</p>
+      <div class="profile-location" id="profileLocation">
+        <span>📍</span>
+        <span>Loading location...</span>
+      </div>
+    </div>
+    
+    <!-- Personal Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-icon">📊</span>
+        <div class="stat-title">Hi Messages</div>
+        <div class="stat-value" id="statMessages">0</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">🔥</span>
+        <div class="stat-title">Streak Days</div>
+        <div class="stat-value" id="statStreak">0</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">⭐</span>
+        <div class="stat-title">Achievements</div>
+        <div class="stat-value" id="statAchievements">0</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">👥</span>
+        <div class="stat-title">Connections</div>
+        <div class="stat-value" id="statConnections">0</div>
+      </div>
+    </div>
+    
+    <!-- Achievements -->
+    <section class="achievements-section">
+      <h3 class="section-title">🏆 Achievements</h3>
+      <div class="achievements-grid" id="achievementsGrid">
+        <!-- Achievements loaded dynamically -->
+      </div>
+    </section>
+    
+    <!-- Edit Profile Section -->
+    <section class="edit-section">
+      <h3 class="section-title">✏️ Edit Profile</h3>
+      <form id="profileForm">
+        <div class="form-group">
+          <label class="form-label" for="editUsername">Username</label>
+          <input type="text" id="editUsername" class="form-input" placeholder="@username" maxlength="30">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="editBio">Bio</label>
+          <textarea id="editBio" class="form-input form-textarea" placeholder="Tell us about yourself..." maxlength="160"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="editLocation">Location</label>
+          <input type="text" id="editLocation" class="form-input location-input" placeholder="Click to set location" readonly>
+        </div>
+        
+        <div class="button-group">
+          <button type="button" class="btn btn-secondary" onclick="TeslaProfile.cancelEdit()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </section>
+  </div>
+  
+  <!-- Avatar Crop Modal -->
+  <div id="avatarCropModal" class="tesla-modal">
+    <div class="tesla-modal-content">
+      <div class="tesla-modal-header">
+        <h3 class="tesla-modal-title">✂️ Crop Avatar</h3>
+        <button onclick="TeslaProfile.closeCrop()" class="tesla-close">×</button>
+      </div>
+      
+      <div class="tesla-modal-body">
+        <div class="tesla-crop-area">
+          <canvas id="cropCanvas" class="tesla-canvas" width="260" height="260"></canvas>
+          <div class="tesla-crop-circle"></div>
+        </div>
+        
+        <div class="tesla-controls">
+          <label class="tesla-label">Zoom</label>
+          <input type="range" id="zoomSlider" class="tesla-range" min="0.5" max="2.5" step="0.1" value="1">
+        </div>
+      </div>
+      
+      <div class="tesla-modal-footer">
+        <button onclick="TeslaProfile.closeCrop()" class="btn btn-secondary">Cancel</button>
+        <button onclick="TeslaProfile.saveAvatar()" class="btn btn-primary">Save Avatar</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Hidden file input -->
+  <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+  
+  <script>
+    // TESLA GOLD STANDARD PROFILE SYSTEM
+    window.TeslaProfile = {
+      // Core Data
+      user: null,
+      profile: null,
+      stats: null,
+      achievements: null,
+      
+      // Crop System
+      canvas: null,
+      ctx: null,
+      image: null,
+      scale: 1,
+      x: 0,
+      y: 0,
+      dragging: false,
+      
+      // Initialize Profile System
+      async init() {
+        console.log('🚀 Tesla Profile: Initializing...');
+        
+        try {
+          // Wait for Supabase to be ready
+          await this.waitForSupabase();
+          
+          // Load user and profile data
+          await this.loadUser();
+          await this.loadProfile();
+          await this.loadStats();
+          await this.loadAchievements();
+          
+          // Update UI
+          this.updateDisplay();
+          this.setupEventListeners();
+          
+          console.log('✅ Tesla Profile: Ready');
+        } catch (error) {
+          console.error('❌ Tesla Profile Init Error:', error);
+          this.showError('Failed to load profile');
+        }
+      },
+      
+      // Wait for Supabase client
+      async waitForSupabase() {
+        for (let i = 0; i < 50; i++) {
+          if (window.supabase || window.sb) {
+            return window.supabase || window.sb;
+          }
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        throw new Error('Supabase client not available');
+      },
+      
+      // Load current user
+      async loadUser() {
+        const supabase = window.supabase || window.sb;
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          // Redirect to login if no user
+          window.location.href = '/signin.html';
+          return;
+        }
+        
+        this.user = user;
+        console.log('👤 User loaded:', user.email);
+      },
+      
+      // Load user profile
+      async loadProfile() {
+        const supabase = window.supabase || window.sb;
+        
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', this.user.id)
+          .single();
+        
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
+        
+        // Create default profile if doesn't exist
+        if (!data) {
+          const defaultProfile = {
+            id: this.user.id,
+            username: this.user.email.split('@')[0],
+            display_name: this.user.user_metadata?.full_name || this.user.email.split('@')[0],
+            bio: `Hi! I'm ${this.user.user_metadata?.full_name || 'a Stay Hi user'}`,
+            avatar_url: this.user.user_metadata?.avatar_url,
+            location: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          
+          const { data: newProfile, error: createError } = await supabase
+            .from('profiles')
+            .insert(defaultProfile)
+            .select()
+            .single();
+          
+          if (createError) throw createError;
+          this.profile = newProfile;
+        } else {
+          this.profile = data;
+        }
+        
+        console.log('📄 Profile loaded:', this.profile.username);
+      },
+      
+      // Load user stats
+      async loadStats() {
+        // For now, generate mock stats
+        // In production, these would come from your database
+        this.stats = {
+          messages: Math.floor(Math.random() * 100) + 10,
+          streak: Math.floor(Math.random() * 30) + 1,
+          achievements: Math.floor(Math.random() * 8) + 2,
+          connections: Math.floor(Math.random() * 50) + 5
+        };
+      },
+      
+      // Load achievements
+      async loadAchievements() {
+        // Mock achievements - in production, load from database
+        this.achievements = [
+          { id: 1, name: 'First Hi', icon: '👋', unlocked: true },
+          { id: 2, name: 'Week Streak', icon: '🔥', unlocked: true },
+          { id: 3, name: 'Popular', icon: '⭐', unlocked: false },
+          { id: 4, name: 'Explorer', icon: '🌍', unlocked: true },
+          { id: 5, name: 'Social', icon: '👥', unlocked: false },
+          { id: 6, name: 'Veteran', icon: '🎖️', unlocked: false }
+        ];
+      },
+      
+      // Update display
+      updateDisplay() {
+        // Update profile info
+        document.getElementById('profileUsername').textContent = `@${this.profile.username}`;
+        document.getElementById('profileBio').textContent = this.profile.bio || 'No bio yet';
+        document.getElementById('profileLocation').innerHTML = 
+          `<span>📍</span><span>${this.profile.location || 'No location set'}</span>`;
+        
+        // Update avatar
+        const avatarImg = document.getElementById('avatarImage');
+        if (this.profile.avatar_url) {
+          avatarImg.innerHTML = `<img src="${this.profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;">`;
+        } else {
+          avatarImg.innerHTML = '👤';
+        }
+        
+        // Update stats
+        document.getElementById('statMessages').textContent = this.stats.messages;
+        document.getElementById('statStreak').textContent = this.stats.streak;
+        document.getElementById('statAchievements').textContent = this.stats.achievements;
+        document.getElementById('statConnections').textContent = this.stats.connections;
+        
+        // Update achievements
+        const achievementsGrid = document.getElementById('achievementsGrid');
+        achievementsGrid.innerHTML = this.achievements.map(achievement => `
+          <div class="achievement ${achievement.unlocked ? 'unlocked' : ''}">
+            <span class="achievement-icon">${achievement.icon}</span>
+            <div class="achievement-name">${achievement.name}</div>
+          </div>
+        `).join('');
+        
+        // Update form inputs
+        document.getElementById('editUsername').value = this.profile.username || '';
+        document.getElementById('editBio').value = this.profile.bio || '';
+        document.getElementById('editLocation').value = this.profile.location || '';
+      },
+      
+      // Setup event listeners
+      setupEventListeners() {
+        // Profile form submission
+        document.getElementById('profileForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          this.saveProfile();
+        });
+        
+        // Location picker
+        document.getElementById('editLocation').addEventListener('click', () => {
+          if (window.LocationPicker) {
+            window.LocationPicker.show((result) => {
+              document.getElementById('editLocation').value = result.formatted;
+            });
+          }
+        });
+        
+        // Avatar input
+        document.getElementById('avatarInput').addEventListener('change', (e) => {
+          if (e.target.files[0]) {
+            this.showCropModal(e.target.files[0]);
+          }
+        });
+      },
+      
+      // Edit avatar
+      editAvatar() {
+        document.getElementById('avatarInput').click();
+      },
+      
+      // Show crop modal
+      async showCropModal(file) {
+        const dataUrl = await this.fileToDataURL(file);
+        await this.loadImageForCrop(dataUrl);
+        
+        const modal = document.getElementById('avatarCropModal');
+        modal.classList.add('active');
+        
+        this.setupCropControls();
+      },
+      
+      // Close crop modal
+      closeCrop() {
+        document.getElementById('avatarCropModal').classList.remove('active');
+      },
+      
+      // Load image for cropping
+      async loadImageForCrop(dataUrl) {
+        return new Promise((resolve, reject) => {
+          this.canvas = document.getElementById('cropCanvas');
+          this.ctx = this.canvas.getContext('2d');
+          this.image = new Image();
+          
+          this.image.onload = () => {
+            this.autoFitImage();
+            this.drawCrop();
+            resolve();
+          };
+          
+          this.image.onerror = reject;
+          this.image.src = dataUrl;
+        });
+      },
+      
+      // Auto-fit image to crop circle
+      autoFitImage() {
+        const minScale = Math.max(180 / this.image.width, 180 / this.image.height);
+        this.scale = minScale * 1.1;
+        this.x = (260 - this.image.width * this.scale) / 2;
+        this.y = (260 - this.image.height * this.scale) / 2;
+        
+        document.getElementById('zoomSlider').value = this.scale;
+      },
+      
+      // Draw crop preview
+      drawCrop() {
+        this.ctx.clearRect(0, 0, 260, 260);
+        if (this.image) {
+          this.ctx.drawImage(
+            this.image,
+            this.x, this.y,
+            this.image.width * this.scale,
+            this.image.height * this.scale
+          );
+        }
+      },
+      
+      // Setup crop controls
+      setupCropControls() {
+        const canvas = this.canvas;
+        const zoomSlider = document.getElementById('zoomSlider');
+        
+        // Zoom control
+        zoomSlider.oninput = () => {
+          this.scale = parseFloat(zoomSlider.value);
+          this.drawCrop();
+        };
+        
+        // Drag controls
+        let lastX, lastY;
+        
+        canvas.onmousedown = (e) => {
+          this.dragging = true;
+          lastX = e.offsetX;
+          lastY = e.offsetY;
+        };
+        
+        canvas.onmousemove = (e) => {
+          if (!this.dragging) return;
+          
+          const dx = e.offsetX - lastX;
+          const dy = e.offsetY - lastY;
+          
+          this.x += dx;
+          this.y += dy;
+          
+          lastX = e.offsetX;
+          lastY = e.offsetY;
+          
+          this.drawCrop();
+        };
+        
+        canvas.onmouseup = () => {
+          this.dragging = false;
+        };
+      },
+      
+      // Save avatar
+      async saveAvatar() {
+        try {
+          const croppedCanvas = this.getCroppedImage();
+          const blob = await this.canvasToBlob(croppedCanvas);
+          
+          const supabase = window.supabase || window.sb;
+          const filename = `avatar_${this.user.id}_${Date.now()}.jpg`;
+          
+          // Upload to Supabase Storage
+          const { data, error } = await supabase.storage
+            .from('avatars')
+            .upload(filename, blob, { cacheControl: '3600', upsert: false });
+          
+          if (error) throw error;
+          
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(filename);
+          
+          // Update profile
+          await this.updateProfile({ avatar_url: publicUrl });
+          
+          this.closeCrop();
+          this.showSuccess('Avatar updated successfully!');
+          
+        } catch (error) {
+          console.error('Avatar save error:', error);
+          this.showError('Failed to save avatar');
+        }
+      },
+      
+      // Get cropped image
+      getCroppedImage() {
+        const cropCanvas = document.createElement('canvas');
+        cropCanvas.width = cropCanvas.height = 200;
+        const cropCtx = cropCanvas.getContext('2d');
+        
+        const centerX = 260 / 2;
+        const centerY = 260 / 2;
+        const radius = 90;
+        
+        cropCtx.drawImage(
+          this.canvas,
+          centerX - radius, centerY - radius, radius * 2, radius * 2,
+          0, 0, 200, 200
+        );
+        
+        return cropCanvas;
+      },
+      
+      // Save profile
+      async saveProfile() {
+        try {
+          const formData = {
+            username: document.getElementById('editUsername').value.trim(),
+            bio: document.getElementById('editBio').value.trim(),
+            location: document.getElementById('editLocation').value.trim(),
+            updated_at: new Date().toISOString()
+          };
+          
+          await this.updateProfile(formData);
+          this.showSuccess('Profile updated successfully!');
+          
+        } catch (error) {
+          console.error('Profile save error:', error);
+          this.showError('Failed to save profile');
+        }
+      },
+      
+      // Update profile in database
+      async updateProfile(updates) {
+        const supabase = window.supabase || window.sb;
+        
+        const { data, error } = await supabase
+          .from('profiles')
+          .update(updates)
+          .eq('id', this.user.id)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        
+        // Update local profile
+        this.profile = { ...this.profile, ...updates };
+        this.updateDisplay();
+        
+        return data;
+      },
+      
+      // Cancel edit
+      cancelEdit() {
+        this.updateDisplay(); // Reset form to current values
+      },
+      
+      // Utility functions
+      fileToDataURL(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = e => resolve(e.target.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      },
+      
+      canvasToBlob(canvas) {
+        return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+      },
+      
+      showSuccess(message) {
+        // Simple success feedback
+        const toast = document.createElement('div');
+        toast.textContent = message;
+        toast.style.cssText = `
+          position: fixed; top: 20px; right: 20px; z-index: 9999999;
+          background: #4ECDC4; color: #0F0F23; padding: 12px 20px;
+          border-radius: 8px; font-weight: 600; animation: slideIn 0.3s ease;
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+      },
+      
+      showError(message) {
+        // Simple error feedback
+        const toast = document.createElement('div');
+        toast.textContent = message;
+        toast.style.cssText = `
+          position: fixed; top: 20px; right: 20px; z-index: 9999999;
+          background: #FF6B6B; color: white; padding: 12px 20px;
+          border-radius: 8px; font-weight: 600; animation: slideIn 0.3s ease;
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+      }
+    };
+    
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      TeslaProfile.init();
+    });
+    
+    // Add slide animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from { transform: translateX(100%); }
+        to { transform: translateX(0); }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>

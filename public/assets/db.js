@@ -163,7 +163,7 @@
         .from("public_shares")
         .select(`
           *,
-          profiles!public_shares_user_id_fkey (
+          profiles (
             username,
             display_name,
             avatar_url
@@ -175,11 +175,33 @@
       if (error) throw error;
       dbList = (data || []).map(row => {
         const normalized = normalizePublicRow(row);
-        // Add profile data if available
+        
+        // 🌟 TESLA-GRADE: Always add user ID for profile access (even for anonymous)
+        normalized.userId = row.user_id;
+        
+        // Add profile data with intelligent defaults
         if (row.profiles) {
           normalized.userName = row.profiles.display_name || row.profiles.username || normalized.userName;
           normalized.userAvatar = row.profiles.avatar_url || null;
         }
+        
+        // 🎯 GOLD STANDARD: Ensure anonymous users still have profile access
+        // Anonymous users get "Hi Friend" display but can still be clicked to see their public profile
+        if (row.is_anonymous) {
+          normalized.userName = "Hi Friend";
+          normalized.isAnonymous = true;
+          // Keep userId for profile access - users can see public anonymous profile
+        }
+        
+        // DEBUG: Log profile data
+        console.log('Public share with profile:', {
+          id: normalized.id,
+          userName: normalized.userName,
+          userId: normalized.userId,
+          hasAvatar: !!normalized.userAvatar,
+          hasProfiles: !!row.profiles
+        });
+        
         return normalized;
       });
     } catch (err) {
@@ -188,7 +210,19 @@
     }
 
     const lsList = readLS(LS_GENERAL);
-    const all = dedupeById([...dbList, ...lsList]).slice(0, limit);
+    
+    console.log('Merging shares - DB:', dbList.length, 'LocalStorage:', lsList.length);
+    if (dbList[0]) {
+      console.log('Sample DB share:', {
+        id: dbList[0].id,
+        userId: dbList[0].userId,
+        userName: dbList[0].userName
+      });
+    }
+    
+    const all = dedupeById([...dbList, ...lsList])
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Sort by newest first
+      .slice(0, limit);
     return all;
   }
 
@@ -203,13 +237,29 @@
       if (user_id && supaClient) {
         const { data, error } = await supaClient
           .from("hi_archives")
-          .select("*")
-          .eq("user_id", user_id)  // CRITICAL: Filter by current user
+          .select(`
+            *,
+            profiles (
+              username,
+              display_name,
+              avatar_url
+            )
+          `)
+          .eq("user_id", user_id)
           .order("created_at", { ascending: false })
           .limit(limit);
         
         if (error) throw error;
-        dbList = (data || []).map(normalizeArchiveRow);
+        dbList = (data || []).map(row => {
+          const normalized = normalizeArchiveRow(row);
+          // Add profile data if available
+          if (row.profiles) {
+            normalized.userName = row.profiles.display_name || row.profiles.username || normalized.userName;
+            normalized.userAvatar = row.profiles.avatar_url || null;
+            normalized.userId = user_id;
+          }
+          return normalized;
+        });
       }
     } catch (error) {
       console.error('❌ Archive fetch failed:', error);
@@ -319,13 +369,16 @@
     return {
       id: r.id,
       currentEmoji: r.current_emoji,
+      currentName: r.current_name || "",      // 🌟 TESLA-GRADE: Match public schema
       desiredEmoji: r.desired_emoji,
+      desiredName: r.desired_name || "",      // 🌟 TESLA-GRADE: Match public schema
       journalEntry: r.journal,
       text: r.text || r.journal,              // Feed uses 'text'
+      isAnonymous: !!r.is_anonymous,          // 🌟 TESLA-GRADE: Match public schema
+      userName: r.is_anonymous ? "Hi Friend" : "You", // 🌟 TESLA-GRADE: Match public logic
       location: r.location || "",
       origin: r.origin || 'hi5',
       type: r.type || 'self_hi5',
-      userName: r.user_name || null,          // Add userName for consistency
       createdAt: r.created_at,
     };
   }
@@ -333,13 +386,16 @@
     return {
       id: "local_" + Date.now(),
       currentEmoji: row.current_emoji,
+      currentName: row.current_name || "",    // 🌟 TESLA-GRADE: Match public schema
       desiredEmoji: row.desired_emoji,
+      desiredName: row.desired_name || "",    // 🌟 TESLA-GRADE: Match public schema
       journalEntry: row.journal,
       text: row.text || row.journal,          // Feed uses 'text'
+      isAnonymous: !!row.is_anonymous,        // 🌟 TESLA-GRADE: Match public schema
+      userName: row.is_anonymous ? "Hi Friend" : "You", // 🌟 TESLA-GRADE: Match public logic
       location: row.location || "",
       origin: row.origin || 'hi5',
       type: row.type || 'self_hi5',
-      userName: null,                          // Local entries don't have userName yet
       createdAt: new Date().toISOString(),
     };
   }
@@ -351,14 +407,18 @@
   }
 
   // 🌍 Fetch user profile (for location and other profile data)
-  async function fetchUserProfile() {
-    const user_id = await getUserId();
+  async function fetchUserProfile(targetUserId = null) {
+    // If targetUserId is provided, fetch that user's profile
+    // Otherwise, fetch current user's profile
+    const user_id = targetUserId || await getUserId();
+    
     if (!user_id) {
       console.warn('⚠️ No user ID, using localStorage fallback');
       return readLS('stayhi_profile', null);
     }
 
     try {
+      const supa = getSupabase();
       if (!supa) {
         console.warn('⚠️ No Supabase client, using localStorage');
         return readLS('stayhi_profile', null);
@@ -378,8 +438,8 @@
         throw error;
       }
 
-      // Cache to localStorage
-      if (data) {
+      // Cache to localStorage only if fetching current user
+      if (data && !targetUserId) {
         writeLS('stayhi_profile', data);
       }
 
@@ -387,8 +447,11 @@
 
     } catch (error) {
       console.error('❌ Failed to fetch profile:', error);
-      // Fallback to localStorage
-      return readLS('stayhi_profile', null);
+      // Fallback to localStorage only if fetching current user
+      if (!targetUserId) {
+        return readLS('stayhi_profile', null);
+      }
+      return null;
     }
   }
 
@@ -403,6 +466,7 @@
     }
 
     try {
+      const supa = getSupabase();
       if (!supa) {
         console.warn('⚠️ No Supabase client, using localStorage');
         const current = readLS('stayhi_profile', {});
@@ -416,13 +480,35 @@
         updated_at: new Date().toISOString()
       };
 
+      console.log('💾 Attempting to save profile to Supabase:', {
+        username: profileData.username,
+        display_name: profileData.display_name,
+        bio: profileData.bio,
+        location: profileData.location
+      });
+
       const { data, error } = await supa
         .from('profiles')
         .upsert(profileData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Supabase UPSERT error:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
+
+      console.log('✅ Profile saved to Supabase successfully:', {
+        username: data.username,
+        display_name: data.display_name,
+        bio: data.bio,
+        location: data.location
+      });
 
       // Cache to localStorage
       if (data) {
@@ -448,12 +534,12 @@
       const supa = getSupabase();
       if (!supa) throw new Error('No Supabase client');
       
-      const { error } = await supa.rpc('increment_hi_wave');
+      const { data, error } = await supa.rpc('increment_hi_wave');
       if (error) throw error;
       
-      return { ok: true };
+      return { ok: true, data };
     } catch (e) {
-      console.error('❌ Failed to increment Hi Wave:', e);
+      console.warn('⚠️ Failed to increment Hi Wave:', e);
       return { ok: false, error: e.message };
     }
   }

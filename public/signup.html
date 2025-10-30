@@ -7,23 +7,52 @@
     font-family: var(--f-sans);
     margin: 0;
     padding: 0;
-    background: var(--grad-sunrise), var(--hi-bg);
+    background: linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #ffd166 100%);
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
   }
+  
+  /* Tesla-grade background particles */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%), 
+                radial-gradient(circle at 80% 20%, rgba(255, 177, 153, 0.15) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 1;
+  }
   .signup-glass {
-    max-width: 410px;
+    max-width: 480px;
     margin: 3.5rem auto 2rem auto;
-    background: #0f1022cc;
-    border-radius: 22px;
-    box-shadow: 0 22px 60px rgba(0,0,0,.35), 0 1.5px 8px var(--ring);
-    padding: 2.2rem 1.5rem 1.5rem 1.5rem;
-    backdrop-filter: blur(18px) saturate(1.2);
-    -webkit-backdrop-filter: blur(18px) saturate(1.2);
-    border: 1.5px solid var(--hi-border);
+    background: rgba(15, 16, 34, 0.85);
+    border-radius: 28px;
+    box-shadow: 
+      0 32px 80px rgba(0, 0, 0, 0.4),
+      0 8px 32px rgba(255, 215, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    padding: 3rem 2.5rem 2.5rem 2.5rem;
+    backdrop-filter: blur(25px) saturate(1.4);
+    -webkit-backdrop-filter: blur(25px) saturate(1.4);
+    border: 2px solid rgba(255, 215, 0, 0.2);
     position: relative;
     z-index: 2;
+    animation: welcomeFloat 0.8s ease-out;
+  }
+  
+  @keyframes welcomeFloat {
+    from { 
+      opacity: 0; 
+      transform: translateY(30px) scale(0.95); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0) scale(1); 
+    }
   }
   .signup-glass::before {
     content: "";
@@ -35,19 +64,23 @@
     z-index: 1;
   }
   .signup-title {
-    font-size: var(--fs-h1);
-    font-weight: 800;
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, #FFD166, #FF7B24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     text-align: center;
-    margin-bottom: 0.7rem;
-    color: #111;
-    letter-spacing: -0.5px;
+    margin: 0 0 0.8rem 0;
+    line-height: 1.1;
+    text-shadow: 0 4px 16px rgba(255, 123, 24, 0.3);
     position: relative;
     z-index: 2;
   }
   .signup-lead {
-    color: #111;
+    color: rgba(255, 255, 255, 0.9);
     text-align: center;
-    font-size: var(--fs-muted);
+    font-size: clamp(1rem, 2.5vw, 1.1rem);
     margin-bottom: 1.2rem;
     position: relative;
     z-index: 2;

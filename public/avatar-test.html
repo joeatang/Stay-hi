@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Grade Avatar Test</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            margin: 0;
+            padding: 20px; 
+            background: #000; 
+            color: white;
+        }
+        .demo-container {
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .avatar-display {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #333;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .avatar-display:hover {
+            background: #444;
+        }
+        .avatar-display img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .avatar-placeholder {
+            font-size: 48px;
+            color: #666;
+        }
+        .camera-overlay {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: #4ECDC4;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .social-btn {
+            background: #4ECDC4;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .social-btn:hover {
+            background: #45b7aa;
+        }
+        .demo-info {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 30px;
+            text-align: left;
+        }
+        .demo-info h3 {
+            color: #4ECDC4;
+            margin-top: 0;
+        }
+        .demo-info ul {
+            padding-left: 20px;
+        }
+        .demo-info li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1>📸 Social Media Grade Avatar</h1>
+        <p>Built like Instagram/Twitter - click, crop, save</p>
+        
+        <div class="avatar-display" id="avatarDisplay" onclick="avatarUploader.selectFile()">
+            <div class="avatar-placeholder">👤</div>
+            <div class="camera-overlay">📷</div>
+        </div>
+        
+        <button class="social-btn" onclick="avatarUploader.selectFile()">
+            Change Profile Photo
+        </button>
+        
+        <div class="demo-info">
+            <h3>🎯 How it works (like social media)</h3>
+            <ul>
+                <li><strong>Click avatar or button</strong> → File picker opens</li>
+                <li><strong>Select image</strong> → Instant crop overlay appears</li>
+                <li><strong>Drag to reposition</strong> → Real-time preview</li>
+                <li><strong>Click Save</strong> → Avatar updates immediately</li>
+            </ul>
+            
+            <h3>✨ Features</h3>
+            <ul>
+                <li>Zero dependencies - pure JavaScript</li>
+                <li>Mobile-first touch support</li>
+                <li>Instagram-style crop interface</li>
+                <li>Automatic image optimization</li>
+                <li>Error handling & validation</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="assets/social-avatar-uploader.js"></script>
+    <script>
+        // Initialize social media grade avatar uploader
+        const avatarUploader = new SocialAvatarUploader({
+            onSave: async (blob, originalFile) => {
+                console.log('� Avatar saved:', {
+                    size: blob.size,
+                    type: blob.type,
+                    originalName: originalFile.name
+                });
+                
+                // Convert to display URL
+                const url = URL.createObjectURL(blob);
+                
+                // Update avatar display
+                const avatarDisplay = document.getElementById('avatarDisplay');
+                avatarDisplay.innerHTML = `
+                    <img src="${url}" alt="Profile Avatar">
+                    <div class="camera-overlay">📷</div>
+                `;
+                
+                // In real app, this would upload to server/Supabase
+                console.log('🚀 In production: Upload blob to Supabase storage');
+                console.log('📝 In production: Update user profile with new avatar URL');
+                
+                // Clean up object URL after a delay
+                setTimeout(() => URL.revokeObjectURL(url), 5000);
+            }
+        });
+        
+        console.log('🎉 Social Avatar Uploader initialized');
+        console.log('👆 Click the avatar to test the upload flow');
+    </script>
+</body>
+</html>

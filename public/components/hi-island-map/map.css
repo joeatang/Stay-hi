@@ -15,25 +15,24 @@
   margin-bottom: var(--space-lg);
 }
 
-/* Hero Header - Tesla-grade styling */
+/* Hero Header - Tesla-grade styling (Mobile-first) */
 .hi-map-hero {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--space-xl) var(--space-lg);
+  flex-direction: column;
+  align-items: flex-start;
+  padding: var(--space-lg) var(--space-md);
   background: rgba(255, 255, 255, 0.02);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  gap: var(--space-lg);
-  flex-wrap: wrap;
+  gap: var(--space-md);
 }
 
 .hi-map-hero-text {
   flex: 1;
-  min-width: 240px;
+  width: 100%;
 }
 
 .hi-map-title {
-  font-size: 40px;
+  font-size: 24px;
   font-weight: 600;
   color: #fff;
   margin: 0 0 6px 0;
@@ -42,7 +41,7 @@
 }
 
 .hi-map-subtitle {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   color: rgba(255, 255, 255, 0.7);
   line-height: 1.5;
@@ -156,5 +155,195 @@
   
   .hi-map-drop-btn {
     width: 100%;
+  }
+}
+
+/* ===================================================================
+   🎯 MARKER CLUSTERING - Tesla-Grade Scaling
+   Custom cluster icons for multiple shares at same location
+=================================================================== */
+
+/* Cluster Marker Container */
+.hi-cluster-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Cluster Icon */
+.hi-cluster-icon {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(102, 126, 234, 0.95);
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3),
+              0 0 0 4px rgba(102, 126, 234, 0.2);
+  backdrop-filter: blur(10px);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hi-cluster-icon:hover {
+  transform: scale(1.1);
+}
+
+/* Cluster Count Badge */
+.hi-cluster-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #FF6B6B;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  min-width: 20px;
+  text-align: center;
+}
+
+/* Cluster Emoji */
+.hi-cluster-emoji {
+  font-size: 24px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+/* ===================================================================
+   📱 MOBILE-FIRST RESPONSIVE DESIGN
+   Scales from mobile up to desktop with Tesla-grade precision
+=================================================================== */
+
+/* Small phones (up to 480px) - Base mobile styles above */
+@media (max-width: 480px) {
+  .hi-map-canvas {
+    height: 250px;
+    min-height: 250px;
+  }
+  
+  .hi-map-drop-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 24px;
+    font-size: 15px;
+  }
+  
+  .hi-map-title {
+    font-size: 22px;
+  }
+  
+  .hi-map-subtitle {
+    font-size: 13px;
+  }
+}
+
+/* Large phones / small tablets (481px - 768px) */
+@media (min-width: 481px) {
+  .hi-map-canvas {
+    height: 350px;
+    min-height: 350px;
+  }
+  
+  .hi-map-title {
+    font-size: 28px;
+  }
+  
+  .hi-map-subtitle {
+    font-size: 15px;
+  }
+  
+  .hi-map-drop-btn {
+    padding: 13px 28px;
+    font-size: 15px;
+  }
+}
+
+/* Tablets (769px - 1024px) */
+@media (min-width: 769px) {
+  .hi-map-hero {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-xl) var(--space-lg);
+    gap: var(--space-lg);
+  }
+  
+  .hi-map-hero-text {
+    flex: 1;
+    min-width: 240px;
+    width: auto;
+  }
+  
+  .hi-map-canvas {
+    height: 400px;
+    min-height: 400px;
+  }
+  
+  .hi-map-title {
+    font-size: 32px;
+  }
+  
+  .hi-map-subtitle {
+    font-size: 16px;
+  }
+  
+  .hi-map-drop-btn {
+    padding: 14px 32px;
+    font-size: 16px;
+    width: auto;
+  }
+}
+
+/* Desktop (1025px+) */
+@media (min-width: 1025px) {
+  .hi-map-canvas {
+    height: 500px;
+    min-height: 500px;
+  }
+  
+  .hi-map-title {
+    font-size: 40px;
+  }
+  
+  .hi-map-subtitle {
+    font-size: 16px;
+  }
+}
+
+/* Large desktop (1441px+) */
+@media (min-width: 1441px) {
+  .hi-map-canvas {
+    height: 600px;
+    min-height: 600px;
+  }
+  
+  .hi-map-title {
+    font-size: 44px;
+  }
+}
+
+/* Tesla-grade hover states - Only on non-touch devices */
+@media (hover: hover) and (pointer: fine) {
+  .hi-cluster-icon:hover {
+    transform: scale(1.1);
+  }
+  
+  .hi-map-drop-btn:hover {
+    background: linear-gradient(180deg, #ffab66 0%, #ff944d 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .hi-map-drop-btn,
+  .hi-cluster-icon {
+    transition: none;
   }
 }

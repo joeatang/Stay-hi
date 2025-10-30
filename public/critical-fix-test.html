@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Critical Fix Test</title>
+    <style>
+        body {
+            background: #0f1024;
+            color: white;
+            font-family: system-ui;
+            padding: 20px;
+        }
+        .test-btn {
+            background: #4ECDC4;
+            color: #111;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 10px;
+        }
+        #status {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 Critical Pointer Events Fix Test</h1>
+    <button class="test-btn" onclick="testFix()">Test Share Sheet Fix</button>
+    <div id="status">Click the test button to verify the pointer-events fix...</div>
+
+    <script src="components/hi-share-sheet/share-sheet.js" type="module"></script>
+    <link rel="stylesheet" href="components/hi-share-sheet/share-sheet.css">
+
+    <script>
+        function updateStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            const color = type === 'success' ? '#4ecdc4' : type === 'error' ? '#ff6b6b' : '#ffd93d';
+            status.innerHTML = `<div style="color: ${color}">${message}</div>`;
+            console.log(message);
+        }
+
+        function testFix() {
+            updateStatus('🔧 Testing pointer-events fix...', 'info');
+            
+            setTimeout(() => {
+                if (window.openHiShareSheet) {
+                    updateStatus('✅ Share sheet function found, opening...', 'success');
+                    
+                    try {
+                        window.openHiShareSheet('test', { prefilledText: 'Critical fix test' });
+                        
+                        setTimeout(() => {
+                            // Test if buttons exist and are clickable
+                            const buttons = [
+                                document.getElementById('hi-save-private'),
+                                document.getElementById('hi-share-anon'),
+                                document.getElementById('hi-share-public')
+                            ];
+                            
+                            const clickableButtons = buttons.filter(btn => {
+                                if (!btn) return false;
+                                const style = getComputedStyle(btn);
+                                return style.pointerEvents !== 'none';
+                            });
+                            
+                            updateStatus(`🎯 Result: ${clickableButtons.length}/3 buttons are clickable. Try clicking them now!`, 
+                                clickableButtons.length === 3 ? 'success' : 'error');
+                            
+                        }, 500);
+                        
+                    } catch (e) {
+                        updateStatus(`❌ Error opening sheet: ${e.message}`, 'error');
+                    }
+                } else {
+                    updateStatus('❌ Share sheet function not available yet, retrying in 1 second...', 'error');
+                    setTimeout(testFix, 1000);
+                }
+            }, 100);
+        }
+
+        // Auto-test after load
+        window.addEventListener('load', () => {
+            setTimeout(testFix, 2000);
+        });
+    </script>
+</body>
+</html>

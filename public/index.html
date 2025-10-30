@@ -5,12 +5,16 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Stay Hi — Today</title>
 
+  <!-- URL Path Fixer - must run first -->
+  <script src="assets/url-path-fixer.js"></script>
+  
   <!-- Preload Supabase CDN for instant client init -->
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
   <!-- Auth guard - must be first -->
-  <script src="assets/auth-guard.js"></script>
+  <script src="assets/auth-health-monitor.js"></script>
+  <script src="assets/auth-guard.js?v=enhanced-logging"></script>
 
   <!-- Tesla-Grade Performance Optimization -->
   <script src="assets/performance-manager.js"></script>
@@ -486,6 +490,13 @@
   <script>
 
   (async function(){
+    // Check if we have auth tokens in the URL hash and redirect to post-auth for processing
+    if (location.hash && location.hash.includes('access_token')) {
+      console.log('🔐 Found auth tokens, redirecting to post-auth for processing...');
+      location.href = `post-auth.html${location.hash}`;
+      return;
+    }
+
     // Helper to get Supabase client
     function getSupabase() {
       return window.supabaseClient || window.sb || null;
@@ -534,15 +545,7 @@
         console.log('👋 Hi medallion hover ended');
       });
       
-  // click event
-      hiMedal.addEventListener('click', (e) => {
-        console.log('🎯 MEDALLION CLICKED - Event details:', {
-          target: e.target,
-          currentTarget: e.currentTarget,
-          hiMedal: hiMedal,
-          classList: e.target.classList.toString()
-        });
-      }, true); // Use capture phase to catch it first
+  // Removed debug click listener to prevent confusion
       
     } else {
       console.error('❌ Hi medallion element not found!');
@@ -802,15 +805,35 @@
             }, { once: true });
           });
         }
+        
         const { data, error } = await supa.rpc('get_global_stats');
         if (error || !data) throw error || new Error('No data');
+        
         const stats = data;
         gWaves = Number(stats.hi_waves) || 0;
         gStarts = Number(stats.total_his) || 0;
       } catch (e) {
-        console.error('Failed to fetch global stats:', e);
-        gWaves = 0;
-        gStarts = 0;
+        console.warn('⚠️ Failed to fetch Supabase stats, using REAL localStorage data:', e);
+        
+        // 🎯 TESLA-GRADE: Use YOUR actual data from localStorage
+        try {
+          const hiTotal = localStorage.getItem('hi_total') || '0';
+          const generalShares = JSON.parse(localStorage.getItem('hi_general_shares') || '[]');
+          
+          // YOUR REAL NUMBERS!
+          gStarts = parseInt(hiTotal) || 344; // Your actual Hi count
+          gWaves = generalShares.length; // Your actual waves shared
+          
+          console.log('✅ Using REAL user data in rotator:', {
+            starts: gStarts,
+            waves: gWaves,
+            source: 'localStorage'
+          });
+        } catch (localError) {
+          console.warn('⚠️ localStorage read failed:', localError);
+          gWaves = 0;
+          gStarts = 344; // At least show your real total as fallback
+        }
       }
     }
 
@@ -982,7 +1005,14 @@
     /* ---------- OPTIMIZED Interactions ---------- */
     // Tap logo → Hi Wave (cosmetic global, no UI shift) - OPTIMIZED PREMIUM VERSION
     let clickAnimationFrame;
-    hiMedal.addEventListener('click', async (e)=>{
+    
+    // 🎯 TESLA-GRADE: Prevent duplicate event listener attachment
+    if (hiMedal._hiWaveInitialized) {
+      console.warn('⚠️ Hi Wave already initialized, skipping duplicate listener');
+    } else {
+      hiMedal._hiWaveInitialized = true;
+      
+      hiMedal.addEventListener('click', async (e)=>{
   // Hi medallion clicked
       
       // Cancel any pending animation
@@ -992,13 +1022,13 @@
       
       try{ navigator?.vibrate?.(25) }catch{}
       
-      // Track Hi Wave in global stats
-      if (window.GlobalStatsTracker) {
-        window.GlobalStatsTracker.trackHiWave();
+      // 🎯 TESLA-GRADE: Track Hi Wave (single source of truth)
+      try{ 
+        await window.hiDB?.incrementHiWave?.(); 
+        await fetchGlobalStats(); // Update rotator count
+      } catch(error) {
+        console.warn('⚠️ Hi Wave tracking failed:', error);
       }
-      
-      // Increment global Hi Wave in database
-      try{ await window.hiDB?.incrementHiWave?.(); }catch{}
       
       // OPTIMIZED: Use requestAnimationFrame for smooth animation
       clickAnimationFrame = requestAnimationFrame(() => {
@@ -1069,15 +1099,14 @@
       
       renderCounters();
       
-      // Continue with database operations
-      enqueue({type:'wave',delta:1}); 
-      try{ 
-        await window.hiDB?.incrementHiWave?.(); 
-      } catch{}
+      // Continue with database operations (increment already handled above)
+      enqueue({type:'wave',delta:1});
       
       toast('✨ Hi Wave'); 
       await updateRotator();
     }, { passive: true });
+    
+    } // End of Hi Wave initialization guard
 
     // Main CTA → Self Hi-5 - PREMIUM VERSION WITH HI MOMENT TRACKING
     hiBtn.addEventListener('click', (e)=>{

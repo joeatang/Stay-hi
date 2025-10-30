@@ -40,8 +40,8 @@
         <div class="onboarding-content">
           <div class="onboarding-step" data-step="1">
             <div class="onboarding-icon">👋</div>
-            <h2 class="onboarding-title">Welcome to Hi 👋</h2>
-            <p class="onboarding-text">Hi...Welcome. Hi helps you stay highly inspired by checking in with yourself daily. Each tap, share, or moment is your way of saying 'I'm here.' Let's begin.</p>
+            <h2 class="onboarding-title">Welcome to the Stay Hi App 👋</h2>
+            <p class="onboarding-text">Stay Hi helps you stay highly inspired by checking in with yourself daily. Each tap, share, or moment is your way of saying 'I'm here.' Let's begin.</p>
             <button class="onboarding-btn onboarding-btn-primary" data-action="next">Get Started</button>
             <button class="onboarding-btn onboarding-btn-skip" data-action="skip">Skip Tour</button>
           </div>
@@ -65,7 +65,7 @@
           </div>
 
           <div class="onboarding-step" data-step="4" style="display: none;">
-            <div class="onboarding-icon">�</div>
+            <div class="onboarding-icon">💪</div>
             <h2 class="onboarding-title">Hi Gym</h2>
             <p class="onboarding-text">Need a little guidance? The Hi Gym walks you through your emotions — step by step — until you find your Hi again. Think of it as an emotional workout.</p>
             <div class="onboarding-progress">Step 3 of 6</div>

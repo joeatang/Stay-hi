@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔄 Data Sync Tester</title>
+    <style>
+        body { font-family: system-ui; background: #1a1a2e; color: white; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .section { background: rgba(255,255,255,0.05); padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .btn { background: #00d4ff; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; margin: 5px; }
+        .btn:hover { background: #0099cc; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; font-family: monospace; }
+        .success { background: rgba(0,255,0,0.2); border-left: 4px solid #00ff88; }
+        .error { background: rgba(255,0,0,0.2); border-left: 4px solid #ff4444; }
+        .info { background: rgba(0,212,255,0.2); border-left: 4px solid #00d4ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Data Sync Tester</h1>
+        <p>Test if profile.html and hi-island are using the same data source</p>
+        
+        <div class="section">
+            <h3>🔧 Quick Fixes</h3>
+            <button class="btn" onclick="syncProfileData()">🔄 Sync Profile Data</button>
+            <button class="btn" onclick="testDataConsistency()">🔍 Test Data Consistency</button>
+            <button class="btn" onclick="openBothPages()">🚀 Open Both Pages</button>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+    
+    <script src="assets/config.js"></script>
+    <script>
+        let supabase;
+        
+        async function initSupabase() {
+            if (!supabase && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+                const { createClient } = supabase;
+                supabase = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+            }
+        }
+        
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.textContent = message;
+            results.appendChild(div);
+            console.log(message);
+        }
+        
+        async function syncProfileData() {
+            log('🔄 Starting profile data sync...', 'info');
+            
+            try {
+                await initSupabase();
+                
+                if (!supabase) {
+                    log('❌ Supabase not available', 'error');
+                    return;
+                }
+                
+                // Get current session
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (!session) {
+                    log('❌ No active session found', 'error');
+                    return;
+                }
+                
+                log(`✅ Session found for: ${session.user.email}`, 'success');
+                
+                // Fetch profile from database
+                const { data: profile, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+                    
+                if (error) {
+                    log(`❌ Database error: ${error.message}`, 'error');
+                    return;
+                }
+                
+                if (profile) {
+                    // Store in all the places profile.html and hi-island might look
+                    localStorage.setItem('stayhi_profile', JSON.stringify(profile));
+                    localStorage.setItem('user', JSON.stringify(session.user));
+                    localStorage.setItem('currentUser', JSON.stringify(profile));
+                    
+                    log(`✅ Profile synced: ${profile.display_name}`, 'success');
+                    log(`📧 Email: ${session.user.email}`, 'info');
+                    log(`👤 Username: ${profile.username}`, 'info');
+                    log(`📍 Location: ${profile.location || 'Not set'}`, 'info');
+                } else {
+                    log('❌ No profile found in database', 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Sync failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testDataConsistency() {
+            log('🔍 Testing data consistency...', 'info');
+            
+            // Check what's in localStorage
+            const keys = ['stayhi_profile', 'user', 'currentUser'];
+            
+            keys.forEach(key => {
+                const value = localStorage.getItem(key);
+                if (value) {
+                    try {
+                        const parsed = JSON.parse(value);
+                        log(`✅ ${key}: ${parsed.display_name || parsed.email || 'Data exists'}`, 'success');
+                    } catch (e) {
+                        log(`⚠️ ${key}: Invalid JSON`, 'error');
+                    }
+                } else {
+                    log(`❌ ${key}: Not found`, 'error');
+                }
+            });
+        }
+        
+        function openBothPages() {
+            log('🚀 Opening both pages for comparison...', 'info');
+            
+            // Open profile page
+            const profileWindow = window.open('/profile.html', 'profile', 'width=800,height=600');
+            
+            setTimeout(() => {
+                // Open hi-island page
+                const islandWindow = window.open('/hi-island-NEW.html', 'island', 'width=800,height=600');
+                log('👀 Check if your data appears the same in both pages', 'info');
+            }, 1000);
+        }
+        
+        // Auto-sync on load
+        window.addEventListener('load', () => {
+            setTimeout(syncProfileData, 1000);
+        });
+    </script>
+</body>
+</html>

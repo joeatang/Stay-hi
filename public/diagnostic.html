@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔬 Tesla-Grade Share Sheet Diagnostic</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background: #0f1024;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            margin: 0;
+        }
+        .diagnostic-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            border-left: 4px solid #4ECDC4;
+        }
+        .test-btn {
+            background: #4ECDC4;
+            color: #111;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 5px;
+        }
+        .error { color: #ff6b6b; }
+        .success { color: #4ecdc4; }
+        .warning { color: #ffd93d; }
+        #log { 
+            max-height: 400px; 
+            overflow-y: auto; 
+            background: rgba(0,0,0,0.3); 
+            padding: 15px; 
+            border-radius: 5px; 
+            font-family: monospace; 
+        }
+        .diagnostic-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .diagnostic-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <h1>🔬 Tesla-Grade Share Sheet Diagnostic</h1>
+    
+    <div class="diagnostic-grid">
+        <div class="diagnostic-section">
+            <h3>🧪 Module Loading Tests</h3>
+            <button class="test-btn" onclick="testModuleLoading()">Test Module Loading</button>
+            <button class="test-btn" onclick="testDOMElements()">Test DOM Elements</button>
+            <button class="test-btn" onclick="testCSS()">Test CSS Loading</button>
+            <button class="test-btn" onclick="forceInitShare()">Force Init Share Sheet</button>
+        </div>
+
+        <div class="diagnostic-section">
+            <h3>🎯 Functional Tests</h3>
+            <button class="test-btn" onclick="testClickability()">Test Button Clickability</button>
+            <button class="test-btn" onclick="testEventListeners()">Test Event Listeners</button>
+            <button class="test-btn" onclick="openTestSheet()">Open Share Sheet</button>
+            <button class="test-btn" onclick="clearLog()">Clear Log</button>
+        </div>
+    </div>
+
+    <div class="diagnostic-section">
+        <h3>📊 Diagnostic Log</h3>
+        <div id="log"></div>
+    </div>
+
+    <!-- Load share sheet with explicit error handling -->
+    <script type="module" onerror="logError('Module script failed to load')" src="components/hi-share-sheet/share-sheet.js"></script>
+    <link rel="stylesheet" href="components/hi-share-sheet/share-sheet.css" onerror="logError('CSS failed to load')">
+
+    <script>
+        let logCount = 0;
+        
+        function log(message, type = 'info') {
+            logCount++;
+            const logEl = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : '';
+            
+            logEl.innerHTML += `<div class="${className}">[${logCount}] ${timestamp}: ${message}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(`[${logCount}] ${message}`);
+        }
+
+        function logError(message) {
+            log(`❌ ERROR: ${message}`, 'error');
+        }
+
+        function logSuccess(message) {
+            log(`✅ SUCCESS: ${message}`, 'success');
+        }
+
+        function logWarning(message) {
+            log(`⚠️ WARNING: ${message}`, 'warning');
+        }
+
+        // 🔬 DIAGNOSTIC FUNCTIONS
+
+        function testModuleLoading() {
+            log('🧪 Testing module loading...');
+            
+            // Check if module loaded
+            const moduleScript = document.querySelector('script[src*="share-sheet.js"]');
+            log(`Module script element: ${!!moduleScript}`);
+            
+            // Check global functions
+            log(`window.openHiShareSheet: ${typeof window.openHiShareSheet}`);
+            
+            // Check if class is available
+            try {
+                const testClass = window.HiShareSheet || eval('HiShareSheet');
+                log(`HiShareSheet class: ${typeof testClass}`);
+                logSuccess('Module loading test complete');
+            } catch (e) {
+                logError(`HiShareSheet class not accessible: ${e.message}`);
+            }
+        }
+
+        function testDOMElements() {
+            log('🧪 Testing DOM elements...');
+            
+            // Check if elements exist (they shouldn't yet)
+            const elements = [
+                'hi-share-backdrop',
+                'hi-share-sheet', 
+                'hi-save-private',
+                'hi-share-anon',
+                'hi-share-public'
+            ];
+            
+            elements.forEach(id => {
+                const el = document.getElementById(id);
+                log(`Element #${id}: ${!!el ? 'EXISTS' : 'NOT FOUND'}`);
+            });
+            
+            logSuccess('DOM elements test complete');
+        }
+
+        function testCSS() {
+            log('🧪 Testing CSS loading...');
+            
+            const cssLink = document.querySelector('link[href*="share-sheet.css"]');
+            log(`CSS link element: ${!!cssLink}`);
+            
+            if (cssLink) {
+                log(`CSS href: ${cssLink.href}`);
+                log(`CSS loaded: ${cssLink.sheet ? 'YES' : 'NO'}`);
+                if (cssLink.sheet) {
+                    log(`CSS rules count: ${cssLink.sheet.cssRules.length}`);
+                }
+            }
+            
+            logSuccess('CSS test complete');
+        }
+
+        function forceInitShare() {
+            log('🔧 Force initializing share sheet...');
+            
+            try {
+                // Try to create and init manually
+                if (window.HiShareSheet) {
+                    const shareSheet = new window.HiShareSheet({ origin: 'test' });
+                    shareSheet.init();
+                    logSuccess('Manual initialization successful');
+                } else {
+                    logError('HiShareSheet class not available for manual init');
+                }
+            } catch (e) {
+                logError(`Manual initialization failed: ${e.message}`);
+            }
+        }
+
+        function testClickability() {
+            log('🎯 Testing button clickability...');
+            
+            // First, try to open share sheet
+            if (window.openHiShareSheet) {
+                try {
+                    window.openHiShareSheet('test', { prefilledText: 'Clickability test' });
+                    log('Share sheet opened for clickability test');
+                    
+                    // Wait a moment, then test buttons
+                    setTimeout(() => {
+                        const buttons = [
+                            'hi-save-private',
+                            'hi-share-anon', 
+                            'hi-share-public'
+                        ];
+                        
+                        buttons.forEach(id => {
+                            const btn = document.getElementById(id);
+                            if (btn) {
+                                // Check if button is clickable
+                                const computedStyle = window.getComputedStyle(btn);
+                                log(`Button #${id}:`);
+                                log(`  - Display: ${computedStyle.display}`);
+                                log(`  - Visibility: ${computedStyle.visibility}`);
+                                log(`  - Pointer Events: ${computedStyle.pointerEvents}`);
+                                log(`  - Z-Index: ${computedStyle.zIndex}`);
+                                log(`  - Position: ${computedStyle.position}`);
+                                
+                                // Try to click programmatically
+                                try {
+                                    btn.click();
+                                    logSuccess(`Button #${id} is programmatically clickable`);
+                                } catch (e) {
+                                    logError(`Button #${id} click failed: ${e.message}`);
+                                }
+                            } else {
+                                logError(`Button #${id} not found in DOM`);
+                            }
+                        });
+                    }, 1000);
+                    
+                } catch (e) {
+                    logError(`Share sheet open failed: ${e.message}`);
+                }
+            } else {
+                logError('openHiShareSheet not available for clickability test');
+            }
+        }
+
+        function testEventListeners() {
+            log('🎧 Testing event listeners...');
+            
+            setTimeout(() => {
+                const buttons = document.querySelectorAll('[id^="hi-share-"], [id^="hi-save-"]');
+                log(`Found ${buttons.length} share buttons`);
+                
+                buttons.forEach((btn, index) => {
+                    const events = ['click', 'mousedown', 'mouseup', 'touchstart'];
+                    events.forEach(eventType => {
+                        const listeners = getEventListeners ? getEventListeners(btn)[eventType] : 'DevTools needed';
+                        log(`Button ${btn.id} ${eventType} listeners: ${listeners}`);
+                    });
+                });
+                
+                logSuccess('Event listener test complete');
+            }, 1000);
+        }
+
+        function openTestSheet() {
+            log('📋 Attempting to open share sheet...');
+            
+            if (window.openHiShareSheet) {
+                logSuccess('openHiShareSheet function found');
+                try {
+                    window.openHiShareSheet('test', { prefilledText: 'Test diagnostic message' });
+                    logSuccess('Share sheet opened successfully');
+                } catch (e) {
+                    logError(`Share sheet open failed: ${e.message}`);
+                }
+            } else {
+                logError('openHiShareSheet function not found');
+                
+                // Try alternative approaches
+                log('Trying alternative initialization...');
+                
+                setTimeout(() => {
+                    if (window.openHiShareSheet) {
+                        logSuccess('Function available after delay');
+                        window.openHiShareSheet('test');
+                    } else {
+                        logError('Function still not available after delay');
+                    }
+                }, 100);
+            }
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            logCount = 0;
+            logSuccess('Log cleared');
+        }
+
+        // 🚀 AUTO-RUN DIAGNOSTICS
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🟢 DOM loaded - starting diagnostics...');
+            
+            setTimeout(() => {
+                testModuleLoading();
+                testCSS();
+            }, 500);
+            
+            setTimeout(() => {
+                log('🔄 Running delayed tests...');
+                testModuleLoading(); // Recheck after delay
+            }, 3000);
+        });
+
+        // Global error handler
+        window.addEventListener('error', (e) => {
+            logError(`Global error: ${e.message} at ${e.filename}:${e.lineno}`);
+        });
+
+        // Module loading error handler
+        window.addEventListener('unhandledrejection', (e) => {
+            logError(`Unhandled promise rejection: ${e.reason}`);
+        });
+
+        logSuccess('Diagnostic system initialized');
+    </script>
+</body>
+</html>

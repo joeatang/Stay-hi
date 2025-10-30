@@ -1,0 +1,202 @@
+/**
+ * Location Picker Modal Styles
+ * Tesla-grade minimalist design
+ */
+
+.location-picker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999999; /* Higher than edit profile sheet modal */
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  padding: 20px;
+}
+
+.location-picker-overlay.show {
+  opacity: 1;
+}
+
+.location-picker-modal {
+  background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.98));
+  border-radius: 24px;
+  width: 100%;
+  max-width: 460px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  transform: scale(0.9);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.location-picker-overlay.show .location-picker-modal {
+  transform: scale(1);
+}
+
+.location-picker-header {
+  padding: 32px 32px 24px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.location-picker-header h3 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #000;
+}
+
+.location-picker-close {
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.location-picker-close:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.location-picker-body {
+  padding: 32px;
+}
+
+.location-picker-step {
+  margin-bottom: 24px;
+}
+
+.location-picker-step:last-of-type {
+  margin-bottom: 0;
+}
+
+.location-picker-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.location-picker-select {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 16px;
+  border: 2px solid rgba(0,0,0,0.1);
+  border-radius: 12px;
+  background: white;
+  color: #000;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23333' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 44px;
+}
+
+.location-picker-select:focus {
+  outline: none;
+  border-color: var(--hi-gold, #FFD700);
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+}
+
+.location-picker-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.location-picker-privacy {
+  font-size: 13px;
+  color: #666;
+  margin: 24px 0 0;
+  padding: 12px;
+  background: rgba(0,0,0,0.03);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.location-picker-footer {
+  padding: 24px 32px 32px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.location-picker-footer .btn-tesla {
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.location-picker-footer .btn-secondary {
+  background: rgba(0,0,0,0.05);
+  color: #333;
+}
+
+.location-picker-footer .btn-secondary:hover {
+  background: rgba(0,0,0,0.1);
+}
+
+.location-picker-footer .btn-primary {
+  background: linear-gradient(135deg, var(--hi-gold, #FFD700), #FFC700);
+  color: #000;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+}
+
+.location-picker-footer .btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(255, 215, 0, 0.4);
+}
+
+.location-picker-footer .btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+  .location-picker-modal {
+    max-width: 100%;
+    border-radius: 24px 24px 0 0;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+  
+  .location-picker-header {
+    padding: 24px 24px 20px;
+  }
+  
+  .location-picker-header h3 {
+    font-size: 20px;
+  }
+  
+  .location-picker-body {
+    padding: 24px;
+  }
+  
+  .location-picker-footer {
+    padding: 20px 24px 24px;
+  }
+}

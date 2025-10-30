@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Auth Debug — Stay Hi</title>
+  <style>
+    body { font-family: system-ui; max-width: 800px; margin: 40px auto; padding: 20px; }
+    .status { padding: 16px; margin: 16px 0; border-radius: 8px; }
+    .status.ok { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+    .status.warn { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+    .status.err { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+    pre { background: #f8f9fa; padding: 12px; border-radius: 4px; overflow: auto; }
+    .btn { display: inline-block; padding: 8px 16px; background: #007bff; color: white; border-radius: 4px; text-decoration: none; margin: 4px; }
+  </style>
+</head>
+<body>
+  <h1>🔐 Stay Hi Authentication Debug</h1>
+  
+  <div id="urlInfo" class="status warn">
+    <h3>URL Information</h3>
+    <pre id="urlData">Loading...</pre>
+  </div>
+
+  <div id="authStatus" class="status warn">
+    <h3>Authentication Status</h3>
+    <pre id="authData">Loading...</pre>
+  </div>
+
+  <div id="supabaseStatus" class="status warn">
+    <h3>Supabase Status</h3>
+    <pre id="supabaseData">Loading...</pre>
+  </div>
+
+  <div id="actions">
+    <h3>Actions</h3>
+    <a href="signin.html" class="btn">Go to Sign In</a>
+    <a href="hi-island-NEW.html" class="btn">Test Hi Island</a>
+    <a href="index.html" class="btn">Go to Home</a>
+    <a href="hi-island-NEW.html?test=direct" class="btn">Test Hi-Island Direct</a>
+    <button onclick="testMagicLink()" class="btn">Simulate Magic Link</button>
+    <button onclick="clearStorage()" class="btn">Clear Storage</button>
+    <button onclick="testPageAccess()" class="btn">Test Page Access</button>
+  </div>
+
+  <!-- URL Path Fixer -->
+  <script src="assets/url-path-fixer.js"></script>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="assets/supabase-init.js"></script>
+
+  <script>
+    // Debug utilities
+    function updateStatus(id, className, content) {
+      const el = document.getElementById(id);
+      el.className = `status ${className}`;
+      document.getElementById(id.replace('Status', 'Data')).textContent = content;
+    }
+
+    function showURLInfo() {
+      const info = {
+        href: location.href,
+        pathname: location.pathname,
+        search: location.search,
+        hash: location.hash,
+        origin: location.origin,
+        hasTokens: location.hash.includes('access_token')
+      };
+      
+      updateStatus('urlInfo', 'ok', JSON.stringify(info, null, 2));
+    }
+
+    async function checkSupabaseStatus() {
+      try {
+        if (!window.sb && !window.supabaseClient) {
+          updateStatus('supabaseStatus', 'err', 'Supabase client not initialized');
+          return null;
+        }
+
+        const client = window.sb || window.supabaseClient;
+        const { data: { session }, error } = await client.auth.getSession();
+        
+        const status = {
+          clientReady: !!client,
+          hasSession: !!session,
+          userId: session?.user?.id || 'None',
+          email: session?.user?.email || 'None',
+          error: error?.message || 'None'
+        };
+
+        updateStatus('supabaseStatus', session ? 'ok' : 'warn', JSON.stringify(status, null, 2));
+        return session;
+      } catch (err) {
+        updateStatus('supabaseStatus', 'err', `Error: ${err.message}`);
+        return null;
+      }
+    }
+
+    async function checkAuthStatus() {
+      const session = await checkSupabaseStatus();
+      
+      const authInfo = {
+        authenticated: !!session,
+        userAuthenticated: window.userAuthenticated || false,
+        demoMode: window.demoMode || false,
+        localStorage: {
+          hi_member: localStorage.getItem('hi_member'),
+          hi_dev_user: localStorage.getItem('hi_dev_user')
+        }
+      };
+
+      updateStatus('authStatus', session ? 'ok' : 'warn', JSON.stringify(authInfo, null, 2));
+    }
+
+    function testMagicLink() {
+      const fakeHash = '#access_token=fake_token&refresh_token=fake_refresh&expires_in=3600&token_type=bearer';
+      const testUrl = `${location.origin}/signin.html?next=${encodeURIComponent('/hi-island-NEW.html')}${fakeHash}`;
+      location.href = testUrl;
+    }
+
+    function clearStorage() {
+      localStorage.clear();
+      sessionStorage.clear();
+      location.reload();
+    }
+
+    // Initialize
+    showURLInfo();
+    
+    // Wait for Supabase to be ready
+    if (window.sb || window.supabaseClient) {
+      checkAuthStatus();
+    } else {
+      window.addEventListener('supabase-ready', checkAuthStatus);
+      setTimeout(() => {
+        if (!window.sb && !window.supabaseClient) {
+          updateStatus('supabaseStatus', 'err', 'Supabase failed to load within 5 seconds');
+        }
+      }, 5000);
+    }
+
+    // Test specific pages
+    function testPageAccess() {
+      console.log('Testing page access...');
+      
+      // Test hi-island access
+      const testFrame = document.createElement('iframe');
+      testFrame.style.width = '1px';
+      testFrame.style.height = '1px';
+      testFrame.style.opacity = '0';
+      testFrame.src = 'hi-island-NEW.html?test=debug';
+      document.body.appendChild(testFrame);
+      
+      setTimeout(() => {
+        const finalUrl = testFrame.contentWindow?.location?.href;
+        console.log('Hi-island test result:', finalUrl);
+        document.body.removeChild(testFrame);
+      }, 3000);
+    }
+
+    // Auto-test
+    setTimeout(testPageAccess, 2000);
+    
+    // Refresh every 5 seconds
+    setInterval(checkAuthStatus, 5000);
+  </script>
+</body>
+</html>

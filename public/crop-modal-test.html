@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Modal Diagnostic</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            color: white;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 20px;
+        }
+
+        .test-button {
+            background: #007AFF;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+
+        /* Tesla-Grade Image Cropping Sheet Modal */
+        .crop-modal {
+            position: fixed !important;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 999999 !important;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .crop-modal.show {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        .crop-content {
+            background: rgba(20, 20, 30, 0.95);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px 24px 0 0;
+            width: 100%;
+            max-width: 600px;
+            max-height: 85vh;
+            color: white;
+            box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.5);
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            padding: 32px;
+            margin: 0 !important;
+            align-self: flex-end !important;
+        }
+
+        .crop-modal.show .crop-content {
+            transform: translateY(0);
+        }
+
+        .diagnostic {
+            background: rgba(255, 0, 0, 0.2);
+            border: 2px solid red;
+            padding: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Crop Modal Diagnostic Test</h1>
+    
+    <button class="test-button" onclick="showTestModal()">Show Test Modal (Should be Sheet)</button>
+    <button class="test-button" onclick="showCenterModal()">Show Center Modal (For comparison)</button>
+    <button class="test-button" onclick="diagnoseCSS()">Diagnose CSS Properties</button>
+
+    <div class="diagnostic" id="diagnostics">
+        <h3>Diagnostics will appear here...</h3>
+    </div>
+
+    <!-- Test Sheet Modal -->
+    <div id="testCropModal" class="crop-modal">
+        <div class="crop-content">
+            <h2>🎯 This Should Slide From Bottom</h2>
+            <p>If this appears in the center of the screen, there's a CSS issue.</p>
+            <p>If this slides up from the bottom, the sheet modal is working!</p>
+            <button class="test-button" onclick="closeTestModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- Center Modal for comparison -->
+    <div id="centerModal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 999999;">
+        <div style="background: rgba(20,20,30,0.95); padding: 32px; border-radius: 12px; max-width: 500px;">
+            <h2>📍 Center Modal (Original Style)</h2>
+            <p>This is how the modal USED to appear - centered on screen.</p>
+            <button class="test-button" onclick="closeCenterModal()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        function showTestModal() {
+            const modal = document.getElementById('testCropModal');
+            console.log('🎬 Opening test modal...');
+            modal.style.display = 'flex';
+            modal.classList.add('show');
+            
+            // Log computed styles
+            setTimeout(() => {
+                const content = modal.querySelector('.crop-content');
+                const modalStyles = window.getComputedStyle(modal);
+                const contentStyles = window.getComputedStyle(content);
+                
+                console.log('Modal computed styles:', {
+                    display: modalStyles.display,
+                    alignItems: modalStyles.alignItems,
+                    justifyContent: modalStyles.justifyContent
+                });
+                
+                console.log('Content computed styles:', {
+                    transform: contentStyles.transform,
+                    alignSelf: contentStyles.alignSelf,
+                    position: contentStyles.position
+                });
+                
+                document.getElementById('diagnostics').innerHTML = `
+                    <h3>🔍 Diagnostic Results:</h3>
+                    <p><strong>Modal Display:</strong> ${modalStyles.display}</p>
+                    <p><strong>Modal Align Items:</strong> ${modalStyles.alignItems}</p>
+                    <p><strong>Content Transform:</strong> ${contentStyles.transform}</p>
+                    <p><strong>Content Align Self:</strong> ${contentStyles.alignSelf}</p>
+                `;
+            }, 100);
+        }
+
+        function closeTestModal() {
+            const modal = document.getElementById('testCropModal');
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 400);
+        }
+
+        function showCenterModal() {
+            document.getElementById('centerModal').style.display = 'flex';
+        }
+
+        function closeCenterModal() {
+            document.getElementById('centerModal').style.display = 'none';
+        }
+
+        function diagnoseCSS() {
+            const modal = document.getElementById('testCropModal');
+            const styles = window.getComputedStyle(modal);
+            
+            document.getElementById('diagnostics').innerHTML = `
+                <h3>🔍 CSS Diagnostic Report:</h3>
+                <p><strong>Position:</strong> ${styles.position}</p>
+                <p><strong>Display:</strong> ${styles.display}</p>
+                <p><strong>Align Items:</strong> ${styles.alignItems}</p>
+                <p><strong>Justify Content:</strong> ${styles.justifyContent}</p>
+                <p><strong>Z-Index:</strong> ${styles.zIndex}</p>
+            `;
+        }
+    </script>
+</body>
+</html>

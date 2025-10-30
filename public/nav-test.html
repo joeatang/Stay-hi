@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tesla Navigation Test - Stay Hi</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui;
+      background: linear-gradient(135deg, #0F0F23 0%, #1A1A2E 100%);
+      color: white;
+      margin: 0;
+      padding: 40px;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: #4ECDC4;
+      margin-bottom: 40px;
+    }
+    
+    .test-section {
+      background: rgba(255,255,255,0.05);
+      padding: 24px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .test-section h2 {
+      color: #FFD93D;
+      margin-bottom: 16px;
+    }
+    
+    .nav-test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    
+    .nav-test-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: rgba(78, 205, 196, 0.1);
+      border: 1px solid rgba(78, 205, 196, 0.3);
+      border-radius: 12px;
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    
+    .nav-test-btn:hover {
+      background: rgba(78, 205, 196, 0.2);
+      transform: translateY(-2px);
+    }
+    
+    .expected {
+      font-size: 12px;
+      opacity: 0.7;
+      margin-top: 8px;
+    }
+    
+    .code {
+      background: rgba(0,0,0,0.3);
+      padding: 12px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 14px;
+      margin: 12px 0;
+      border-left: 4px solid #4ECDC4;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧭 Tesla-Grade Dynamic Navigation Test</h1>
+    
+    <div class="test-section">
+      <h2>🎯 Test Navigation Context Detection</h2>
+      <p>Click any link below to open profile with different navigation contexts. The back button should automatically detect where you came from and show the appropriate destination.</p>
+      
+      <div class="nav-test-grid">
+        <a href="profile.html?from=hi-island-NEW.html" class="nav-test-btn" target="_blank">
+          🏝️ From Hi Island
+          <div class="expected">Expected: "🏝️ Back to Hi Island"</div>
+        </a>
+        
+        <a href="profile.html?from=index.html" class="nav-test-btn" target="_blank">
+          🏠 From Home
+          <div class="expected">Expected: "🏠 Back to Home"</div>
+        </a>
+        
+        <a href="profile.html?from=calendar.html" class="nav-test-btn" target="_blank">
+          📅 From Calendar
+          <div class="expected">Expected: "📅 Back to Calendar"</div>
+        </a>
+        
+        <a href="profile.html?from=hi-muscle.html" class="nav-test-btn" target="_blank">
+          💪 From Hi Muscle
+          <div class="expected">Expected: "💪 Back to Hi Muscle"</div>
+        </a>
+        
+        <a href="profile.html" class="nav-test-btn" target="_blank">
+          🤔 No Context
+          <div class="expected">Expected: "🏠 Back to Home" (fallback)</div>
+        </a>
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <h2>⚡ How It Works</h2>
+      <p><strong>Tesla-Grade Navigation System</strong> uses multiple detection methods:</p>
+      
+      <div class="code">
+1. URL Parameters (Highest Priority): ?from=hi-island-NEW.html<br>
+2. Document Referrer (Medium Priority): Automatic browser referrer<br>
+3. localStorage (Lowest Priority): Last visited page tracking<br>
+4. Fallback: Always defaults to Home (index.html)
+      </div>
+      
+      <p><strong>Navigation Mapping:</strong></p>
+      <ul>
+        <li>🏝️ Hi Island → Back to Hi Island</li>
+        <li>🏠 Home → Back to Home</li>
+        <li>📅 Calendar → Back to Calendar</li>
+        <li>💪 Hi Muscle → Back to Hi Muscle</li>
+        <li>🎉 Welcome → Back to Home (logical redirect)</li>
+      </ul>
+    </div>
+    
+    <div class="test-section">
+      <h2>🔗 Integration Points</h2>
+      <p>The system is automatically integrated into:</p>
+      <ul>
+        <li><strong>Header Menu:</strong> Profile links include navigation context</li>
+        <li><strong>Hi Island Modal:</strong> "View Full Profile" preserves context</li>
+        <li><strong>Authentication Flows:</strong> Post-login redirects maintain context</li>
+        <li><strong>Page Transitions:</strong> Natural user journey preservation</li>
+      </ul>
+    </div>
+    
+    <div class="test-section">
+      <h2>🏆 Tesla-Grade Benefits</h2>
+      <ul>
+        <li><strong>User-Centric:</strong> Navigation matches user mental model</li>
+        <li><strong>Context-Aware:</strong> Preserves natural app flow</li>
+        <li><strong>Fallback-Safe:</strong> Always provides logical navigation</li>
+        <li><strong>Performance-Optimized:</strong> Minimal JavaScript overhead</li>
+        <li><strong>Progressive Enhancement:</strong> Works with/without JavaScript</li>
+      </ul>
+    </div>
+    
+    <a href="index.html" style="color: #4ECDC4; text-decoration: none; font-weight: 600;">← Back to Home</a>
+  </div>
+</body>
+</html>

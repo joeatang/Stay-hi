@@ -1,17 +1,52 @@
 {
+  "public": true,
   "cleanUrls": true,
   "trailingSlash": false,
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "no-store" }
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "X-Hi-Environment", "value": "production" },
+        { "key": "X-Hi-Version", "value": "1.0.0" },
+        { 
+          "key": "Content-Security-Policy", 
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co; font-src 'self' data: https:;" 
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2))",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400" }
       ]
     }
   ],
   "rewrites": [
-    { "source": "/calendar",  "destination": "/calendar.html" },
-    { "source": "/hi-island", "destination": "/hi-island.html" },
-    { "source": "/profile/:username", "destination": "/profile.html?username=:username" }
+    { "source": "/", "destination": "/public/index.html" },
+    { "source": "/calendar", "destination": "/public/calendar.html" },
+    { "source": "/hi-island", "destination": "/public/hi-island.html" },
+    { "source": "/hi-muscle", "destination": "/public/hi-muscle.html" },
+    { "source": "/profile", "destination": "/public/profile.html" },
+    { "source": "/profile/:username", "destination": "/public/profile.html?username=:username" },
+    { "source": "/signin", "destination": "/public/signin.html" },
+    { "source": "/signup", "destination": "/public/signup.html" },
+    { "source": "/welcome", "destination": "/public/welcome.html" }
+  ],
+  "redirects": [
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    }
   ]
 }

@@ -66,14 +66,21 @@
 }
 
 /* -------------------------
-   Calendar Header
+   Calendar Header - Gold Standard Layout
    ------------------------- */
 .calendar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 20px;
-  gap: 16px;
+  gap: 12px;
+  position: relative;
+}
+
+.calendar-nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .calendar-title {
@@ -84,8 +91,7 @@
   flex: 1;
 }
 
-.calendar-nav-btn,
-.calendar-close-btn {
+.calendar-nav-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -100,19 +106,36 @@
   backdrop-filter: blur(10px);
 }
 
-.calendar-nav-btn:hover,
-.calendar-close-btn:hover {
+.calendar-nav-btn:hover {
   background: rgba(255, 255, 255, 0.2);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+/* Close button - positioned separately from navigation */
 .calendar-close-btn {
-  position: absolute;
-  top: 16px;
-  right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 36px;
   height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  backdrop-filter: blur(10px);
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  z-index: 10;
+}
+
+.calendar-close-btn:hover {
+  background: rgba(255, 0, 0, 0.2);
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
 }
 
 /* -------------------------
@@ -489,6 +512,27 @@
     width: 95vw;
     padding: 20px;
     border-radius: 20px;
+  }
+  
+  .calendar-header {
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .calendar-title {
+    font-size: 18px;
+  }
+  
+  .calendar-nav-btn {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .calendar-close-btn {
+    width: 32px;
+    height: 32px;
+    top: -2px;
+    right: -2px;
   }
   
   .calendar-stats {

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stats Explanation — Stay Hi</title>
+    <link rel="stylesheet" href="assets/theme.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #ffd166 100%);
+            min-height: 100vh;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            padding: 2rem;
+        }
+        
+        .explanation-panel {
+            background: rgba(15, 16, 34, 0.9);
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: white;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6);
+        }
+        
+        .stat-section {
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+        
+        .stat-title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #FFD166, #FF7B24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-description {
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+        
+        .technical-note {
+            background: rgba(76, 175, 80, 0.1);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+        
+        .critical-note {
+            background: rgba(255, 69, 58, 0.1);
+            border: 1px solid rgba(255, 69, 58, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            font-weight: 600;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #FFD166, #FF7B24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="explanation-panel">
+        <div class="header">
+            <div class="main-title">📊 Stay Hi Stats Explained</div>
+            <p style="opacity: 0.8;">Understanding Your Community Metrics</p>
+        </div>
+        
+        <div class="stat-section">
+            <div class="stat-title">👥 Total Users</div>
+            <div class="stat-description">
+                <strong>What it means:</strong> The total number of people who have ever signed up for Stay Hi.<br>
+                <strong>Data source:</strong> Count of all registered users in your Supabase auth.users table.<br>
+                <strong>Updates:</strong> Increases when someone completes signup, never decreases.
+            </div>
+            <div class="technical-note">
+                <strong>Technical:</strong> SELECT COUNT(*) FROM auth.users
+            </div>
+        </div>
+        
+        <div class="stat-section">
+            <div class="stat-title">🟢 Active Now</div>
+            <div class="stat-description">
+                <strong>What it means:</strong> Users who have been active in the last 24 hours.<br>
+                <strong>Data source:</strong> Count of unique users with recent session activity.<br>
+                <strong>Updates:</strong> Refreshes every few minutes, fluctuates throughout the day.
+            </div>
+            <div class="technical-note">
+                <strong>Technical:</strong> SELECT COUNT(DISTINCT user_id) FROM auth.sessions WHERE updated_at > NOW() - INTERVAL '24 hours'
+            </div>
+        </div>
+        
+        <div class="stat-section">
+            <div class="stat-title">💬 Today's Hi's</div>
+            <div class="stat-description">
+                <strong>What it means:</strong> Total number of "Hi" interactions sent today (Hi moments, messages, waves).<br>
+                <strong>Data source:</strong> Cumulative count of all Hi-related actions for current day.<br>
+                <strong>Updates:</strong> Increases throughout the day, resets at midnight.
+            </div>
+            <div class="technical-note">
+                <strong>Technical:</strong> Incremented by increment_total_hi() RPC when users interact
+            </div>
+        </div>
+        
+        <div class="stat-section">
+            <div class="stat-title">🤝 Total Connections</div>
+            <div class="stat-description">
+                <strong>What it means:</strong> All-time count of Hi Waves sent between users (handshake gestures).<br>
+                <strong>Data source:</strong> Global counter tracking every Hi Wave interaction ever made.<br>
+                <strong>Updates:</strong> Increases every time someone sends a Hi Wave, never resets.<br>
+                <strong>Why it matters:</strong> Shows the total social connections facilitated by your platform.
+            </div>
+            <div class="technical-note">
+                <strong>Technical:</strong> Incremented by increment_hi_wave() RPC when users send Hi Waves
+            </div>
+        </div>
+        
+        <div class="critical-note">
+            <strong>🚨 CRITICAL FINDINGS:</strong><br>
+            • Your welcome page WAS showing simulated/fake data<br>
+            • Real Supabase RPC functions were missing from your database<br>
+            • Created global_stats table and get_global_stats() function<br>
+            • Updated real-time stats to fetch actual data first, simulation as fallback<br>
+            • Stats now sync with your real user activity!
+        </div>
+        
+        <div class="stat-section">
+            <div class="stat-title">🔄 Real-Time Updates</div>
+            <div class="stat-description">
+                <strong>How it works:</strong> System tries to fetch real data from Supabase every 10-60 seconds.<br>
+                <strong>Fallback:</strong> If Supabase is unavailable, shows organic simulation to keep UI alive.<br>
+                <strong>Cache:</strong> Uses localStorage to show instant data on page load.<br>
+                <strong>Network aware:</strong> Pauses updates when offline, resumes when back online.
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255, 215, 0, 0.2);">
+            <a href="welcome.html" style="display: inline-block; background: linear-gradient(135deg, #FF7B24, #FFD166); color: #000; padding: 1rem 2rem; border-radius: 16px; text-decoration: none; font-weight: 800; margin: 0.5rem;">← Back to Welcome</a>
+            <a href="tesla-admin-dashboard.html" style="display: inline-block; background: linear-gradient(135deg, #4CAF50, #45a049); color: white; padding: 1rem 2rem; border-radius: 16px; text-decoration: none; font-weight: 800; margin: 0.5rem;">Admin Dashboard →</a>
+        </div>
+    </div>
+</body>
+</html>

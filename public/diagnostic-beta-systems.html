@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beta Systems Diagnostic</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+        .error {
+            border-left-color: #f44336;
+            background: rgba(244, 67, 54, 0.1);
+        }
+        .test-button {
+            background: linear-gradient(135deg, #FF7B24, #FFD166);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            color: black;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .stats-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-item {
+            background: rgba(255, 215, 0, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #FFD166;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔬 Beta Systems Diagnostic</h1>
+    
+    <div id="system-status"></div>
+    
+    <h2>📊 Real-Time Stats Test</h2>
+    <div class="stats-display">
+        <div class="stat-item">
+            <div class="stat-value" id="totalUsers">...</div>
+            <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="activeNow">...</div>
+            <div class="stat-label">Active Now</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="todayHis">...</div>
+            <div class="stat-label">Today's Hi's</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="totalConnections">...</div>
+            <div class="stat-label">Total Connections</div>
+        </div>
+    </div>
+    
+    <div>
+        <strong>Last Updated:</strong> <span id="lastUpdated">Loading...</span>
+        <span class="stats-live-indicator"></span>
+    </div>
+    
+    <h2>🏆 Hi Rewards Test</h2>
+    <button class="test-button" onclick="testRewards()">Trigger Test Hi Wave (+5 points)</button>
+    <button class="test-button" onclick="testShare()">Trigger Test Share (+10 points)</button>
+    <button class="test-button" onclick="showRewardsDashboard()">Open Rewards Dashboard</button>
+    <button class="test-button" onclick="resetRewardsData()">Reset Rewards Data</button>
+    
+    <!-- Load Beta Systems -->
+    <script type="module" src="assets/hi-rewards-beta.js"></script>
+    <script type="module" src="assets/real-time-stats.js"></script>
+    
+    <script>
+        // System diagnostic functions
+        function logStatus(message, isError = false) {
+            const statusDiv = document.getElementById('system-status');
+            const div = document.createElement('div');
+            div.className = isError ? 'status error' : 'status';
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            statusDiv.appendChild(div);
+        }
+        
+        // Test functions
+        function testRewards() {
+            logStatus('🏆 Testing Hi Rewards system...');
+            // Simulate a Hi wave click
+            const event = new Event('click');
+            const fakeBtn = { closest: () => ({ id: 'hiBtn' }) };
+            Object.defineProperty(event, 'target', { value: fakeBtn });
+            document.dispatchEvent(event);
+            logStatus('✅ Hi wave test triggered');
+        }
+        
+        function testShare() {
+            logStatus('📍 Testing location share rewards...');
+            window.dispatchEvent(new CustomEvent('location-shared'));
+            logStatus('✅ Location share test triggered');
+        }
+        
+        function showRewardsDashboard() {
+            if (window.HiRewardsBeta) {
+                window.HiRewardsBeta.showRewardsDashboard();
+                logStatus('✅ Rewards dashboard opened');
+            } else {
+                logStatus('❌ HiRewardsBeta system not loaded', true);
+            }
+        }
+        
+        function resetRewardsData() {
+            if (window.HiRewardsBeta) {
+                window.HiRewardsBeta.resetBetaData();
+                logStatus('🔄 Rewards data reset');
+            } else {
+                logStatus('❌ HiRewardsBeta system not loaded', true);
+            }
+        }
+        
+        // System initialization checks
+        document.addEventListener('DOMContentLoaded', () => {
+            logStatus('🚀 Diagnostic page loaded');
+            
+            // Check for systems loading
+            setTimeout(() => {
+                if (window.HiRewardsBeta) {
+                    logStatus('✅ Hi Rewards Beta system loaded successfully');
+                } else {
+                    logStatus('❌ Hi Rewards Beta system failed to load', true);
+                }
+                
+                if (window.RealTimeStats) {
+                    logStatus('✅ Real-Time Stats system loaded successfully');
+                } else {
+                    logStatus('❌ Real-Time Stats system failed to load', true);
+                }
+            }, 2000);
+            
+            // Check for DOM elements
+            const requiredElements = ['totalUsers', 'activeNow', 'todayHis', 'totalConnections', 'lastUpdated'];
+            requiredElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    logStatus(`✅ Element #${id} found`);
+                } else {
+                    logStatus(`❌ Element #${id} missing`, true);
+                }
+            });
+        });
+        
+        // Listen for system events
+        window.addEventListener('stats-update', (event) => {
+            logStatus(`📊 Stats update received: ${JSON.stringify(event.detail)}`);
+        });
+        
+        // Monitor console errors
+        window.addEventListener('error', (event) => {
+            logStatus(`❌ JavaScript Error: ${event.message} (${event.filename}:${event.lineno})`, true);
+        });
+        
+        // Log module loading attempts
+        console.log('🔬 Diagnostic: Attempting to load beta systems...');
+    </script>
+</body>
+</html>
