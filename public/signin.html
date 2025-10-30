@@ -493,6 +493,15 @@
         }
         
         await initializeSupabase();
+        
+        // Check if user is already authenticated
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session) {
+          console.log('🔄 User already authenticated, redirecting to main app');
+          window.location.replace('index.html');
+          return;
+        }
+        
         console.log('✅ Signin page initialized successfully');
         
       } catch (error) {
