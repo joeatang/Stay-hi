@@ -28,6 +28,8 @@
     { "source": "/welcome", "destination": "/public/welcome.html" },
     { "source": "/signin", "destination": "/public/signin.html" },
     { "source": "/signup", "destination": "/public/signup.html" },
+    { "source": "/app", "destination": "/public/index.html" },
+    { "source": "/profile", "destination": "/public/profile.html" },
     { "source": "/hi-island", "destination": "/public/hi-island-NEW.html" },
     { "source": "/hi-muscle", "destination": "/public/hi-muscle.html" }
   ],
@@ -36,21 +38,6 @@
     {
       "source": "/index.html",
       "destination": "/welcome",
-      "permanent": true
-    },
-    {
-      "source": "/profile.html", 
-      "destination": "/welcome",
-      "permanent": true
-    },
-    {
-      "source": "/app",
-      "destination": "/welcome",
-      "permanent": true
-    },
-    {
-      "source": "/profile",
-      "destination": "/welcome", 
       "permanent": true
     },
     {

@@ -332,8 +332,6 @@
     .marquee span{display:inline-block;animation:mar var(--dur,14s) linear infinite}
     @keyframes mar{from{transform:translateX(0)}to{transform:translateX(-50%)}}
   </style>
-  <link rel="stylesheet" href="assets/tesla-mobile-fixes.css">
-  <script src="assets/tesla-data-isolation.js"></script>
 </head>
 <body class="sunrise" data-tab="today">
   <!-- Premium Enhanced Header -->

@@ -170,8 +170,6 @@
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="assets/auth-health-monitor.js"></script>
-  <link rel="stylesheet" href="assets/tesla-mobile-fixes.css">
-  <script src="assets/tesla-data-isolation.js"></script>
 </head>
 <body>
     <div class="container">

@@ -82,8 +82,6 @@
             border: 1px solid rgba(255, 107, 107, 0.3);
         }
     </style>
-  <link rel="stylesheet" href="assets/tesla-mobile-fixes.css">
-  <script src="assets/tesla-data-isolation.js"></script>
 </head>
 <body>
     <div class="positioning-indicator">

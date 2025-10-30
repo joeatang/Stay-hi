@@ -93,8 +93,6 @@
             box-shadow: 0 8px 25px rgba(78, 205, 196, 0.3);
         }
     </style>
-  <link rel="stylesheet" href="assets/tesla-mobile-fixes.css">
-  <script src="assets/tesla-data-isolation.js"></script>
 </head>
 <body>
     <div class="auth-container">

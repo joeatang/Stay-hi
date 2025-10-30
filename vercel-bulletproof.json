@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "name": "stay-hi",
   "cleanUrls": true,
   "trailingSlash": false,
   
@@ -12,11 +13,15 @@
         { "key": "X-XSS-Protection", "value": "1; mode=block" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "X-Hi-Environment", "value": "production" },
-        { "key": "X-Hi-Version", "value": "2.1.0" }
+        { "key": "X-Hi-Version", "value": "2.0.0" },
+        { 
+          "key": "Content-Security-Policy", 
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co; font-src 'self' data: https:; media-src 'self' data: blob:; object-src 'none'; base-uri 'self';" 
+        }
       ]
     },
     {
-      "source": "/assets/(.*)",
+      "source": "/assets/**",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
@@ -28,6 +33,8 @@
     { "source": "/welcome", "destination": "/public/welcome.html" },
     { "source": "/signin", "destination": "/public/signin.html" },
     { "source": "/signup", "destination": "/public/signup.html" },
+    { "source": "/app", "destination": "/public/index.html" },
+    { "source": "/profile", "destination": "/public/profile.html" },
     { "source": "/hi-island", "destination": "/public/hi-island-NEW.html" },
     { "source": "/hi-muscle", "destination": "/public/hi-muscle.html" }
   ],
@@ -39,24 +46,33 @@
       "permanent": true
     },
     {
-      "source": "/profile.html", 
-      "destination": "/welcome",
-      "permanent": true
-    },
-    {
-      "source": "/app",
-      "destination": "/welcome",
-      "permanent": true
-    },
-    {
-      "source": "/profile",
-      "destination": "/welcome", 
-      "permanent": true
-    },
-    {
-      "source": "/hi-island.html", 
+      "source": "/hi-island.html",
       "destination": "/hi-island",
       "permanent": true
     }
-  ]
+  ],
+  
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "status": 404
+    },
+    {
+      "src": "/(.*)",
+      "headers": { "cache-control": "s-maxage=1, stale-while-revalidate" },
+      "dest": "/$1"
+    }
+  ],
+  
+  "functions": {
+    "public/**/*.html": {
+      "memory": 128,
+      "maxDuration": 10
+    }
+  },
+  
+  "github": {
+    "enabled": true,
+    "autoAlias": false
+  }
 }

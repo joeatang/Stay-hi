@@ -1,39 +1,8 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <script>
-    // Tesla-grade Magic Link Handler 🚀
-    (function() {
-      console.log('🔐 Signin page loading');
-      console.log('Current URL:', location.href);
-      
-      // Check for magic link auth tokens in URL hash
-      const hash = location.hash;
-      if (hash && hash.includes('access_token') && hash.includes('refresh_token')) {
-        console.log('✅ Magic link tokens detected!');
-        
-        // Get the intended destination page
-        const urlParams = new URLSearchParams(location.search);
-        const next = urlParams.get('next') || '/index.html';
-        
-        console.log('📍 Redirecting to post-auth with next:', next);
-        const redirectUrl = `post-auth.html?next=${encodeURIComponent(next)}${hash}`;
-        location.replace(redirectUrl);
-        return;
-      }
-      
-      // Handle /public/ prefix redirect issue
-      if (location.pathname.includes('/public/')) {
-        console.log('🔄 Fixing /public/ prefix redirect...');
-        const correctedPath = location.href.replace('/public/', '/');
-        console.log('Redirecting to:', correctedPath);
-        location.replace(correctedPath);
-        return;
-      }
-      
-      console.log('📝 Regular signin page load');
-    })();
-  </script>
+  <!-- 🚀 Tesla-Grade Instant Auth System -->
+  <script src="assets/tesla-instant-auth.js"></script>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Sign in — Stay Hi</title>
@@ -48,6 +17,8 @@
   <link rel="stylesheet" href="assets/theme.css"/>
   <link rel="stylesheet" href="assets/create-parity.css"/>
   <link rel="stylesheet" href="assets/premium-ux.css"/>
+  <link rel="stylesheet" href="assets/tesla-mobile-fixes.css">
+  <script src="assets/tesla-data-isolation.js"></script>
   <style>
     /* Premium Tesla-inspired layout */
     body {
@@ -409,8 +380,9 @@
           
           console.log('🔐 Attempting to send magic link to:', emailVal);
           
-          // Use current URL as redirect so it lands back in app domain  
-          const redirectTo = `${location.origin}/signin.html?next=${encodeURIComponent(new URLSearchParams(location.search).get('next') || 'index.html')}`;
+          // Redirect to post-auth for proper authentication processing
+          const nextPage = new URLSearchParams(location.search).get('next') || 'index.html';
+          const redirectTo = `${location.origin}/post-auth.html?next=${encodeURIComponent(nextPage)}`;
           
           // Add timeout to prevent infinite loading
           const timeoutPromise = new Promise((_, reject) => {

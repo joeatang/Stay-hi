@@ -171,15 +171,10 @@
       return; // Public pages don't need protection
     }
 
-    // Check if this is a hybrid mode page BEFORE checking authentication
+    // PRODUCTION AUTH: Only Hi-Island remains hybrid for public sharing
     const isHybridPage = location.pathname.endsWith('hi-island.html') || 
                          location.pathname.endsWith('hi-island-NEW.html') ||
-                         location.pathname.endsWith('index.html') || 
-                         location.pathname.endsWith('hi-muscle.html') ||
-                         location.pathname.endsWith('profile.html') ||
-                         location.pathname.endsWith('calendar.html') ||
-                         location.pathname.endsWith('invite-admin.html') ||
-                         location.pathname === '/';
+                         location.pathname.endsWith('hi-muscle.html');
     
     if (isHybridPage) {
       console.log('[auth-guard] ⭐ Hybrid mode page detected - allowing access regardless of auth');
@@ -195,6 +190,9 @@
       }
       return; // Always allow hybrid pages
     }
+
+    // PRODUCTION: index.html, profile.html now REQUIRE authentication
+    console.log('[auth-guard] 🔒 Protected page - authentication required');
 
     // For non-hybrid pages, require authentication
     const authenticated = await isAuthenticated();

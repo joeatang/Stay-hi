@@ -13,8 +13,6 @@
     pre { background: #f8f9fa; padding: 12px; border-radius: 4px; overflow: auto; }
     .btn { display: inline-block; padding: 8px 16px; background: #007bff; color: white; border-radius: 4px; text-decoration: none; margin: 4px; }
   </style>
-  <link rel="stylesheet" href="assets/tesla-mobile-fixes.css">
-  <script src="assets/tesla-data-isolation.js"></script>
 </head>
 <body>
   <h1>🔐 Stay Hi Authentication Debug</h1>
