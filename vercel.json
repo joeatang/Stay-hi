@@ -41,11 +41,6 @@
       "permanent": false
     },
     {
-      "source": "/index.html",
-      "destination": "/profile",
-      "permanent": true
-    },
-    {
       "source": "/hi-island.html", 
       "destination": "/hi-island",
       "permanent": true

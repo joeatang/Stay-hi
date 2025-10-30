@@ -1,10 +1,19 @@
-<link rel="stylesheet" href="assets/theme.css"/>
-<link rel="stylesheet" href="assets/create-parity.css"/>
-<link rel="stylesheet" href="assets/tesla-mobile-fixes.css">
-<script src="assets/tesla-instant-auth.js"></script>
-<script src="assets/tesla-data-isolation.js"></script>
-
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign Up - Stay Hi</title>
+  
+  <!-- Tesla-Grade Security Headers -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https:">
+  
+  <!-- Premium Styles -->
+  <link rel="stylesheet" href="assets/theme.css"/>
+  <link rel="stylesheet" href="assets/create-parity.css"/>
+  
+  <!-- Direct Supabase Loading -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <style>
   body {
     font-family: var(--f-sans);
@@ -157,7 +166,9 @@
     .signup-title { font-size: 1.2rem; }
   }
 </style>
+</head>
 
+<body>
 <div class="signup-glass">
   <div style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;margin-bottom:1.2rem;">
     <img src="assets/brand/hi-logo-light.png" alt="Stay Hi" style="width:72px;height:72px;object-fit:contain;filter:drop-shadow(0 8px 22px rgba(255,210,102,.55));margin-bottom:0.2rem;" />
@@ -180,8 +191,33 @@
   </form>
 </div>
 
-<script src="assets/supabase-init.js"></script>
 <script>
+// Tesla-Grade Signup with Supabase Integration
+let supabaseClient = null;
+
+// Initialize Supabase
+async function initializeSupabase() {
+  try {
+    const SUPABASE_URL = 'https://gfcubvroxgfvjhacinic.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g';
+    
+    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true
+      }
+    });
+    
+    // Expose as sb for compatibility
+    window.sb = supabaseClient;
+    
+    return supabaseClient;
+  } catch (error) {
+    console.error('❌ Supabase initialization failed:', error);
+    throw error;
+  }
+}
+
 // Modular sign up logic with invite code validation
 const form = document.getElementById('signup-form');
 const errorDiv = document.getElementById('form-error');
@@ -216,11 +252,17 @@ form.addEventListener('submit', async (e) => {
     return;
   }
 
+  // Ensure Supabase is initialized
+  if (!supabaseClient) {
+    showError('Authentication system not ready. Please refresh the page.');
+    return;
+  }
+
   // 1. Validate invite code via Supabase RPC
   let validCode = false;
   let codeId = null;
   try {
-    const { data, error } = await sb.rpc('validate_invite_code', { code: invite });
+    const { data, error } = await supabaseClient.rpc('validate_invite_code', { code: invite });
     if (error || !data || !data.is_valid) {
       showError('Invalid or expired invite code.');
       return;
@@ -235,7 +277,7 @@ form.addEventListener('submit', async (e) => {
   // 2. Create user in Supabase auth
   let userId = null;
   try {
-    const { data, error } = await sb.auth.signUp({ email, password });
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
     if (error) {
       showError(error.message || 'Sign up failed.');
       return;
@@ -248,7 +290,7 @@ form.addEventListener('submit', async (e) => {
 
   // 3. Mark invite code as used (track usage)
   try {
-    const { error } = await sb.rpc('use_invite_code', { code: invite, user_id: userId });
+    const { error } = await supabaseClient.rpc('use_invite_code', { code: invite, user_id: userId });
     if (error) {
       showError('Error tracking invite code usage.');
       return;
@@ -258,25 +300,60 @@ form.addEventListener('submit', async (e) => {
     return;
   }
 
-  // 4. Success: show message and redirect with Tesla smooth transition
-  showSuccess('Account created! Check your email to verify and sign in.');
-  setTimeout(async () => {
-    if (window.teslaRedirect) {
-      await window.teslaRedirect.redirectToSignin();
-    } else {
-      window.location.href = 'signin.html';
-    }
-  }, 2000);
+  // 4. Success: show message and redirect with smooth transition
+  showSuccess('🎉 Account created! Check your email to verify and sign in.');
+  
+  // Smooth redirect to signin page
+  setTimeout(() => {
+    window.location.href = 'signin.html';
+  }, 2500);
 });
 </script>
 
-<!-- public/assets/auth.js -->
+});
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    // Wait for Supabase library to be available
+    if (!window.supabase) {
+      await new Promise(resolve => {
+        const checkSupabase = () => {
+          if (window.supabase) {
+            resolve();
+          } else {
+            setTimeout(checkSupabase, 100);
+          }
+        };
+        checkSupabase();
+      });
+    }
+    
+    await initializeSupabase();
+    console.log('✅ Signup page initialized successfully');
+    
+  } catch (error) {
+    console.error('❌ Signup initialization failed:', error);
+    showError('Failed to initialize signup system. Please refresh the page.');
+  }
+});
+
+<!-- Tesla-Grade Auth Integration -->
 <script>
-/* Assumes window.sb (Supabase client) is created by assets/supabase-init.js */
+/* Tesla-Grade Auth System */
 (function () {
-  if (!window.sb) {
-    console.error('Supabase client (window.sb) not found. Include assets/supabase-init.js before auth.js');
-    return;
+  // Wait for Supabase client to be initialized
+  function waitForSupabase() {
+    return new Promise((resolve) => {
+      const check = () => {
+        if (window.sb || supabaseClient) {
+          resolve(window.sb || supabaseClient);
+        } else {
+          setTimeout(check, 100);
+        }
+      };
+      check();
+    });
   }
 
   // Local-dev bypass: lets you preview UI without a real session when using file:// or localhost
@@ -284,7 +361,8 @@ form.addEventListener('submit', async (e) => {
 
   async function getSession() {
     try {
-      const { data: { session } } = await sb.auth.getSession();
+      const client = await waitForSupabase();
+      const { data: { session } } = await client.auth.getSession();
       return session || null;
     } catch {
       return null;
@@ -293,7 +371,8 @@ form.addEventListener('submit', async (e) => {
 
   async function getUser() {
     try {
-      const { data: { user } } = await sb.auth.getUser();
+      const client = await waitForSupabase();
+      const { data: { user } } = await client.auth.getUser();
       return user || null;
     } catch {
       return null;
@@ -332,13 +411,14 @@ form.addEventListener('submit', async (e) => {
 
   async function signOut() {
     try {
-      await sb.auth.signOut();
+      const client = await waitForSupabase();
+      await client.auth.signOut();
     } catch {}
     try {
       localStorage.removeItem('hi_dev_user');
       localStorage.removeItem('hi_member');
     } catch {}
-    window.location.href = 'index.html';
+    window.location.href = 'welcome.html';
   }
 
   // UI helpers: show/hide elements with data-show-auth / data-show-member
@@ -378,11 +458,15 @@ form.addEventListener('submit', async (e) => {
   };
 
   // Keep visibility in sync on auth changes
-  sb.auth.onAuthStateChange((_event, _session) => {
-    applyAuthVisibility();
+  waitForSupabase().then((client) => {
+    client.auth.onAuthStateChange((_event, _session) => {
+      applyAuthVisibility();
+    });
   });
 
   // Initial pass
   document.addEventListener('DOMContentLoaded', applyAuthVisibility);
 })();
 </script>
+</body>
+</html>
