@@ -27,6 +27,8 @@
     { "source": "/welcome", "destination": "/welcome.html" },
     { "source": "/signin", "destination": "/signin.html" },
     { "source": "/signup", "destination": "/signup.html" },
+    { "source": "/post-auth", "destination": "/post-auth.html" },
+    { "source": "/profile", "destination": "/profile.html" },
     { "source": "/hi-island", "destination": "/hi-island-NEW.html" },
     { "source": "/hi-muscle", "destination": "/hi-muscle.html" },
     { "source": "/app", "destination": "/app.html" }
@@ -40,17 +42,7 @@
     },
     {
       "source": "/index.html",
-      "destination": "/welcome",
-      "permanent": true
-    },
-    {
-      "source": "/profile.html", 
-      "destination": "/welcome",
-      "permanent": true
-    },
-    {
-      "source": "/profile",
-      "destination": "/welcome", 
+      "destination": "/profile",
       "permanent": true
     },
     {

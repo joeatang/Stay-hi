@@ -350,7 +350,7 @@
           const sb = await waitForSupabase();
           const { data: { session } } = await sb.auth.getSession();
           if (session) {
-            const next = new URLSearchParams(location.search).get('next') || 'index.html';
+            const next = new URLSearchParams(location.search).get('next') || '/profile';
             
             // Use Tesla smooth redirect if available
             if (window.teslaRedirect) {
@@ -446,8 +446,8 @@
           // Step 3: Send magic link only to validated members
           console.log('✅ Membership validated. Sending magic link to verified member...');
           
-          const nextPage = new URLSearchParams(location.search).get('next') || 'index.html';
-          const redirectTo = `${location.origin}/post-auth.html?next=${encodeURIComponent(nextPage)}`;
+          const nextPage = new URLSearchParams(location.search).get('next') || '/profile';
+          const redirectTo = `${location.origin}/post-auth?next=${encodeURIComponent(nextPage)}`;
           
           // Add timeout to prevent infinite loading
           const timeoutPromise = new Promise((_, reject) => {

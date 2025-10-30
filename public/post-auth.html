@@ -376,8 +376,8 @@
       $('#working').style.display = 'none';
       $('#done').style.display = 'block';
       
-      // Check for 'next' parameter and use it, otherwise default to index.html (main app) for authenticated users
-      const nextPage = new URLSearchParams(location.search).get('next') || 'index.html';
+      // Check for 'next' parameter and use it, otherwise default to profile for authenticated users
+      const nextPage = new URLSearchParams(location.search).get('next') || '/profile';
       console.log('🔄 Redirecting to:', nextPage);
       setTimeout(()=>go(nextPage), 900);
     } catch (err) {
@@ -391,7 +391,7 @@
   // If opened as file:// during local build, allow you to pass through
   if (location.protocol === 'file:') {
     localStorage.setItem('hi_dev_user', 'dev@example.com');
-    go('index.html');
+    go('/profile');
   } else {
     // Wait for Supabase to be ready before finishing auth
     waitForSupabase().then(() => {

@@ -35,7 +35,7 @@
       return sb.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/post-auth.html`
+          emailRedirectTo: `${window.location.origin}/post-auth`
         }
       });
     },
