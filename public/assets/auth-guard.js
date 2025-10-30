@@ -77,26 +77,25 @@
     });
   }
 
-  // Check if user is authenticated
+  // Check if user is authenticated with Tesla-grade session validation + membership expiration
   async function isAuthenticated() {
     try {
-      console.log('[auth-guard] isAuthenticated() - starting check...');
       const sb = await waitForSupabase();
-      
       if (!sb) {
         console.error('[auth-guard] No Supabase client available');
         return false;
       }
       
-      console.log('[auth-guard] Got Supabase client, checking session...');
-      const sessionResult = await sb.auth.getSession();
-      console.log('[auth-guard] Raw session result:', sessionResult);
-      
-      const { data: { session }, error } = sessionResult;
+      console.log('[auth-guard] Getting session...');
+      const { data: { session }, error } = await sb.auth.getSession();
       
       if (error) {
-        console.error('[auth-guard] Session check error:', error);
-        console.log('[auth-guard] Returning false due to session error');
+        console.error('[auth-guard] Session error:', error);
+        return false;
+      }
+      
+      if (!session) {
+        console.log('[auth-guard] No active session found');
         return false;
       }
       
@@ -108,20 +107,93 @@
         expiresAt: session?.expires_at
       });
       
-      const isAuthenticated = !!session;
-      console.log('[auth-guard] Final authentication result:', isAuthenticated);
-      return isAuthenticated;
+      // 🚀 TESLA-GRADE MEMBERSHIP EXPIRATION CHECK
+      console.log('[auth-guard] 🔐 Validating membership access...');
+      try {
+        const membershipResult = await sb.rpc('get_my_membership');
+        
+        if (membershipResult.error) {
+          console.error('[auth-guard] Membership check failed:', membershipResult.error);
+          // Fallback to basic session validation for legacy users
+          return !!session;
+        }
+        
+        const membership = membershipResult.data;
+        console.log('[auth-guard] Membership status:', membership);
+        
+        // Check for expired trial without subscription
+        if (membership.status === 'expired' && membership.access_revoked) {
+          console.warn('[auth-guard] 🚫 Trial membership expired, logging out...');
+          
+          // Show expiration notice before logout
+          if (window.PremiumUX) {
+            window.PremiumUX.showNotice(`
+              <div style="text-align: center; padding: 20px;">
+                <h3 style="color: #ff6b6b; margin-bottom: 12px;">⏰ Trial Membership Expired</h3>
+                <p style="margin-bottom: 16px;">Your ${membership.tier} trial ended on ${new Date(membership.trial_ended_at).toLocaleDateString()}</p>
+                <button onclick="location.href='upgrade.html'" style="
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  border: none; color: white; padding: 12px 24px; border-radius: 8px;
+                  font-size: 16px; cursor: pointer; margin-right: 8px;
+                ">⬆️ Upgrade Membership</button>
+                <button onclick="location.href='signin.html'" style="
+                  background: transparent; border: 1px solid #ccc; color: #666;
+                  padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer;
+                ">Sign Out</button>
+              </div>
+            `, { duration: 0 });
+          }
+          
+          // Auto-logout expired users after showing notice
+          setTimeout(async () => {
+            await sb.auth.signOut();
+            location.replace('signin.html?expired=true');
+          }, 5000);
+          
+          return false;
+        }
+        
+        // Legacy users without membership get basic access
+        if (membership.status === 'legacy') {
+          console.log('[auth-guard] ✅ Legacy user validated');
+          return true;
+        }
+        
+        // Active membership validation
+        if (membership.status === 'active' || membership.status === 'subscribed') {
+          console.log('[auth-guard] ✅ Active membership validated');
+          
+          // Store membership info globally for features
+          window.userMembership = membership;
+          
+          return true;
+        }
+        
+        console.warn('[auth-guard] 🚫 Invalid membership status:', membership.status);
+        return false;
+        
+      } catch (membershipError) {
+        console.warn('[auth-guard] Membership validation failed, allowing basic session:', membershipError);
+        // Fallback to session-only validation for compatibility
+        return !!session;
+      }
+      
     } catch (error) {
       console.error('[auth-guard] Error checking auth:', error);
       return false;
     }
-  }
-
-  // Redirect to signin with current page as next parameter
-  function redirectToSignin() {
+  }  // Redirect to signin with current page as next parameter - Tesla-grade smooth
+  async function redirectToSignin() {
     const currentPath = location.pathname + location.search;
-    const signinUrl = `signin.html?next=${encodeURIComponent(currentPath)}`;
-    location.replace(signinUrl);
+    
+    // Use Tesla smooth redirect if available, fallback to instant
+    if (window.teslaRedirect) {
+      await window.teslaRedirect.redirectToSignin(currentPath);
+    } else {
+      // Fallback for immediate redirect
+      const signinUrl = `signin.html?next=${encodeURIComponent(currentPath)}`;
+      location.replace(signinUrl);
+    }
   }
 
   // Special handling for demo mode

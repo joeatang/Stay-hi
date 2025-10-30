@@ -3,6 +3,10 @@
 <head>
   <!-- 🚀 Tesla-Grade Instant Auth System -->
   <script src="assets/tesla-instant-auth.js"></script>
+  
+  <!-- 🌟 Tesla-Grade Smooth Redirects -->
+  <script src="assets/tesla-smooth-redirect.js"></script>
+  
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Sign in — Stay Hi</title>
@@ -281,8 +285,8 @@
             </svg>
           </div>
           <div class="tesla-text">
-            <h3 class="tesla-title">Magic link sent</h3>
-            <p class="tesla-subtitle">Check your inbox and tap the link to continue</p>
+            <h3 class="tesla-title">🔐 Secure link sent</h3>
+            <p class="tesla-subtitle">Hi Collective member verified ✅ Check your inbox and tap the link to continue</p>
           </div>
         </div>
       </div>
@@ -347,7 +351,13 @@
           const { data: { session } } = await sb.auth.getSession();
           if (session) {
             const next = new URLSearchParams(location.search).get('next') || 'index.html';
-            location.replace(next);
+            
+            // Use Tesla smooth redirect if available
+            if (window.teslaRedirect) {
+              await window.teslaRedirect.redirectAfterAuth(next);
+            } else {
+              location.replace(next);
+            }
           }
         } catch {}
       })();
@@ -378,9 +388,64 @@
           // Wait for Supabase client before using it
           const sb = await waitForSupabase();
           
-          console.log('🔐 Attempting to send magic link to:', emailVal);
+          console.log('🔐 Tesla-grade security: Validating membership access for:', emailVal);
           
-          // Redirect to post-auth for proper authentication processing
+          // 🚀 TESLA-GRADE INVITATION-ONLY AUTHENTICATION
+          // Step 1: Check if this email has valid membership access
+          const membershipCheck = await sb.rpc('check_membership_access', { p_email: emailVal });
+          
+          if (membershipCheck.error) {
+            throw new Error(`Membership validation failed: ${membershipCheck.error.message}`);
+          }
+          
+          const accessData = membershipCheck.data;
+          console.log('🔒 Membership check result:', accessData);
+          
+          // Step 2: Handle different access scenarios
+          if (!accessData.access_granted) {
+            let errorMessage = '';
+            let redirectAction = '';
+            
+            switch (accessData.action_required) {
+              case 'signup':
+                errorMessage = 'No Hi Collective membership found for this email. Please sign up with an invitation code.';
+                redirectAction = 'signup.html';
+                break;
+              case 'upgrade':
+                errorMessage = `Your trial period ended on ${new Date(accessData.trial_ended_at).toLocaleDateString()}. Please upgrade your membership to continue.`;
+                redirectAction = 'upgrade.html';
+                break;
+              case 'contact_admin':
+                errorMessage = 'Your membership status requires admin assistance. Please contact support.';
+                break;
+              default:
+                errorMessage = accessData.error || 'Access denied. Please contact support.';
+            }
+            
+            err.innerHTML = `
+              <div style="text-align: center;">
+                <div style="font-size: 16px; margin-bottom: 8px;">${errorMessage}</div>
+                ${redirectAction ? `
+                  <button onclick="location.href='${redirectAction}'" style="
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border: none;
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 6px;
+                    font-size: 14px;
+                    cursor: pointer;
+                    margin-top: 8px;
+                  ">${redirectAction.includes('signup') ? '📝 Sign Up' : '⬆️ Upgrade'}</button>
+                ` : ''}
+              </div>
+            `;
+            err.style.display = 'block';
+            return;
+          }
+          
+          // Step 3: Send magic link only to validated members
+          console.log('✅ Membership validated. Sending magic link to verified member...');
+          
           const nextPage = new URLSearchParams(location.search).get('next') || 'index.html';
           const redirectTo = `${location.origin}/post-auth.html?next=${encodeURIComponent(nextPage)}`;
           

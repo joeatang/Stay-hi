@@ -24,15 +24,20 @@
   ],
   
   "rewrites": [
-    { "source": "/", "destination": "/public/welcome.html" },
-    { "source": "/welcome", "destination": "/public/welcome.html" },
-    { "source": "/signin", "destination": "/public/signin.html" },
-    { "source": "/signup", "destination": "/public/signup.html" },
-    { "source": "/hi-island", "destination": "/public/hi-island-NEW.html" },
-    { "source": "/hi-muscle", "destination": "/public/hi-muscle.html" }
+    { "source": "/welcome", "destination": "/welcome.html" },
+    { "source": "/signin", "destination": "/signin.html" },
+    { "source": "/signup", "destination": "/signup.html" },
+    { "source": "/hi-island", "destination": "/hi-island-NEW.html" },
+    { "source": "/hi-muscle", "destination": "/hi-muscle.html" },
+    { "source": "/app", "destination": "/app.html" }
   ],
   
   "redirects": [
+    {
+      "source": "/",
+      "destination": "/welcome",
+      "permanent": false
+    },
     {
       "source": "/index.html",
       "destination": "/welcome",
@@ -40,11 +45,6 @@
     },
     {
       "source": "/profile.html", 
-      "destination": "/welcome",
-      "permanent": true
-    },
-    {
-      "source": "/app",
       "destination": "/welcome",
       "permanent": true
     },

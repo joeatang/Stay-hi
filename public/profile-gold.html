@@ -5,7 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Profile — Stay Hi</title>
   
-  <!-- 🔥 Supabase CDN -->
+  <!-- � PWA Configuration -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FFD166">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Hi Profile">
+  
+  <!-- �🔥 Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   
   <!-- Core Systems -->
@@ -1030,5 +1037,8 @@
     `;
     document.head.appendChild(style);
   </script>
+  
+  <!-- 🚀 PWA Manager -->
+  <script src="assets/pwa-manager.js"></script>
 </body>
 </html>

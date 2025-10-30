@@ -163,7 +163,7 @@
     <img src="assets/brand/hi-logo-light.png" alt="Stay Hi" style="width:72px;height:72px;object-fit:contain;filter:drop-shadow(0 8px 22px rgba(255,210,102,.55));margin-bottom:0.2rem;" />
     <div class="signup-title" style="color:#fff;text-shadow:0 2px 12px #0008;">Sign Up for Stay Hi</div>
   </div>
-  <div class="signup-lead" style="color:#f7f8ff;text-align:center;font-size:1rem;margin-bottom:1.2rem;font-weight:500;text-shadow:0 1px 8px #0006;">Unlock your 24hr beta pass. Enter your invite code to join the Hi experience.</div>
+  <div class="signup-lead" style="color:#f7f8ff;text-align:center;font-size:1rem;margin-bottom:1.2rem;font-weight:500;text-shadow:0 1px 8px #0006;">Enter your invite code to join the Hi experience.</div>
   <form id="signup-form" autocomplete="off">
     <label for="email" style="color:#fff;text-shadow:0 1px 8px #0006;">Email</label>
     <input type="email" id="email" name="email" required placeholder="you@email.com" class="input" style="background:#181a22cc;color:#fff;border:1.5px solid var(--hi-border);box-shadow:0 2px 8px #ffd16622;" />
@@ -258,10 +258,14 @@ form.addEventListener('submit', async (e) => {
     return;
   }
 
-  // 4. Success: show message and redirect
+  // 4. Success: show message and redirect with Tesla smooth transition
   showSuccess('Account created! Check your email to verify and sign in.');
-  setTimeout(() => {
-    window.location.href = 'signin.html';
+  setTimeout(async () => {
+    if (window.teslaRedirect) {
+      await window.teslaRedirect.redirectToSignin();
+    } else {
+      window.location.href = 'signin.html';
+    }
   }, 2000);
 });
 </script>

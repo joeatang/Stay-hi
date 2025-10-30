@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Hi Gym — Stay Hi</title>
 
+  <!-- 📱 PWA Configuration -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FFD166">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Hi Gym">
+
   <!-- Preload Supabase CDN for instant client init -->
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -363,36 +370,63 @@
     /* sheet - mobile-first with desktop scaling */
     .sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;z-index:50}
     .sheet{
-      position:fixed;left:0;right:0;bottom:-100%;background:#0f1024;
-      border-radius:18px 18px 0 0;border:1px solid #23264d;
+      /* Tesla-grade viewport centering - unified with index.html */
+      position:fixed;
+      top:50%;left:50%;
+      transform:translate(-50%, -50%);
+      width:min(500px, 90vw);
+      background:#0f1024;
+      border-radius:18px;border:1px solid #23264d;
       padding:24px 20px 32px;z-index:60;
       box-shadow:0 -10px 30px rgba(0,0,0,.35);color:#e8ebff;
       max-height:85vh;overflow-y:auto;
       min-height:300px;
+      opacity:0;visibility:hidden;
+      transition:all .3s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
     
     /* Desktop optimizations */
     @media (min-width: 768px) {
       .sheet {
-        left:50%;right:auto;bottom:-100%;
-        transform:translateX(-50%);
         width:500px;max-width:90vw;
-        border-radius:18px;
         padding:32px 28px 40px;
         min-height:350px;
       }
-      .sheet.show{animation:sheetInDesktop .25s ease-out forwards}
-      .sheet.hide{animation:sheetOutDesktop .2s ease-in forwards}
     }
     
-    @keyframes sheetInDesktop{from{bottom:-100%;opacity:0}to{bottom:40px;opacity:1}}
-    @keyframes sheetOutDesktop{from{bottom:40px;opacity:1}to{bottom:-100%;opacity:0}}
+    /* Tesla-grade show/hide animations for viewport-centered modal */
+    .sheet.show {
+      opacity:1;
+      visibility:visible;
+      animation:modalFadeIn .25s ease-out forwards;
+    }
+    .sheet.hide {
+      animation:modalFadeOut .2s ease-in forwards;
+    }
+    
+    @keyframes modalFadeIn{from{opacity:0;transform:translate(-50%, -50%) scale(0.95)}to{opacity:1;transform:translate(-50%, -50%) scale(1)}}
+    @keyframes modalFadeOut{from{opacity:1;transform:translate(-50%, -50%) scale(1)}to{opacity:0;transform:translate(-50%, -50%) scale(0.95)}}
     
     .sheet.show + .sheet-backdrop{display:block}
-    .sheet.show{animation:sheetIn .25s ease-out forwards}
-    .sheet.hide{animation:sheetOut .2s ease-in forwards}
-    @keyframes sheetIn{from{bottom:-100%}to{bottom:0}}
-    @keyframes sheetOut{from{bottom:0}to{bottom:-100%}}
+    
+    /* Tesla-grade mobile optimizations */
+    @media (max-width: 540px) {
+      .sheet {
+        width:90vw;
+        max-width:400px;
+        padding:20px 16px 24px;
+        min-height:300px;
+        max-height:80vh;
+      }
+    }
+    
+    @media (max-width: 380px) {
+      .sheet {
+        width:95vw;
+        padding:16px 12px 20px;
+        max-height:85vh;
+      }
+    }
     .row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 0;flex-wrap:wrap;min-height:60px}
     
     /* Mobile-first button styling */
@@ -1329,5 +1363,8 @@
   </script>
   <script src="assets/premium-ux.js"></script>
   <script src="assets/premium-footer.js" defer></script>
+  
+  <!-- 🚀 PWA Manager -->
+  <script src="assets/pwa-manager.js"></script>
 </body>
 </html>

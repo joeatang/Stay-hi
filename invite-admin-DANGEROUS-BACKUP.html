@@ -1,0 +1,1032 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>Invite Management — Stay Hi</title>
+
+  <!-- 🔒 CRITICAL SECURITY: Admin authentication required -->
+  <script src="assets/auth-guard.js"></script>
+
+  <!-- Brand + shared styles -->
+  <link rel="stylesheet" href="assets/theme.css"/>
+  <link rel="stylesheet" href="assets/create-parity.css"/>
+  <link rel="stylesheet" href="assets/premium-ux.css"/>
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 0;
+      margin: 0;
+    }
+    
+    /* VERSION CHECK - If you see this, file is latest */
+    body::before {
+      content: '🔧 DEBUG MODE - v2024-10-27-02';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #ff0000;
+      color: white;
+      text-align: center;
+      padding: 4px;
+      z-index: 9999;
+      font-weight: bold;
+      font-size: 12px;
+    }
+    
+    
+    .invite-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+      animation: fadeInUp 0.8s ease-out;
+    }
+    
+    .invite-header {
+      text-align: center;
+      margin-bottom: 40px;
+      color: white;
+    }
+    
+    .invite-header h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 900;
+      margin: 0 0 16px 0;
+      background: linear-gradient(135deg, #FFD93D, #4ECDC4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .invite-header p {
+      font-size: 1.2rem;
+      margin: 0;
+      opacity: 0.9;
+    }
+    
+    /* Enhanced Admin Stats */
+    .admin-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    
+    .stat-card {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 900;
+      color: #FFD93D;
+      margin-bottom: 8px;
+    }
+    
+    .stat-label {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.9rem;
+    }
+    
+    .invite-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+    
+    .invite-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(25px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 32px;
+      color: white;
+      box-shadow: var(--shadow-premium);
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    
+    .invite-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    .invite-card h3 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin: 0 0 16px 0;
+      color: #FFD93D;
+    }
+    
+    .invite-card p {
+      opacity: 0.9;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    
+    .code-generator {
+      margin-bottom: 24px;
+    }
+    
+    .code-input-group {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .code-input {
+      flex: 1;
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      color: white;
+      font-size: 16px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    
+    .code-input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .code-input:focus {
+      border-color: #4ECDC4;
+      box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.2);
+    }
+    
+    .generate-btn {
+      background: linear-gradient(135deg, #4ECDC4, #44B3A8);
+      border: none;
+      border-radius: 12px;
+      padding: 16px 24px;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: center;
+      min-height: 48px;
+    }
+    
+    .generate-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+    }
+    
+    .generate-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .btn-loader {
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .code-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .option-input {
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+    }
+    
+    .generated-code {
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid #4ECDC4;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 16px 0;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .generated-code::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -100%;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(78, 205, 196, 0.6), transparent);
+      animation: shimmer 2s infinite;
+    }
+    
+    @keyframes shimmer {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+    
+    .code-display {
+      font-size: 1.5rem;
+      font-weight: 900;
+      font-family: 'Monaco', 'Menlo', monospace;
+      color: #4ECDC4;
+      margin-bottom: 12px;
+      letter-spacing: 2px;
+    }
+    
+    .code-info {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    
+    .copy-code-btn {
+      background: linear-gradient(135deg, #FFD93D, #FFC107);
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      color: #1a1a1a;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+    
+    .copy-code-btn:hover {
+      transform: scale(1.05);
+    }
+    
+    .active-codes {
+      background: var(--glass-bg);
+      backdrop-filter: blur(25px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 32px;
+      color: white;
+    }
+    
+    .active-codes h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin: 0 0 24px 0;
+      color: #FFD93D;
+    }
+    
+    .codes-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+    
+    .codes-table th,
+    .codes-table td {
+      text-align: left;
+      padding: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .codes-table th {
+      background: rgba(255, 255, 255, 0.05);
+      font-weight: 700;
+      color: #4ECDC4;
+    }
+    
+    .code-status {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    
+    .code-status.active {
+      background: rgba(78, 205, 196, 0.2);
+      color: #4ECDC4;
+    }
+    
+    .code-status.expired {
+      background: rgba(255, 107, 107, 0.2);
+      color: #FF6B6B;
+    }
+    
+    .code-status.used {
+      background: rgba(255, 209, 61, 0.2);
+      color: #FFD93D;
+    }
+    
+    .code-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .action-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .action-btn.copy {
+      background: rgba(78, 205, 196, 0.2);
+      color: #4ECDC4;
+    }
+    
+    .action-btn.deactivate {
+      background: rgba(255, 107, 107, 0.2);
+      color: #FF6B6B;
+    }
+    
+    .action-btn:hover {
+      transform: scale(1.05);
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    
+    .stat-card {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+    }
+    
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: #4ECDC4;
+      margin-bottom: 8px;
+    }
+    
+    .stat-label {
+      opacity: 0.8;
+      font-weight: 600;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      opacity: 0.7;
+    }
+    
+    .empty-state h3 {
+      font-size: 1.5rem;
+      margin-bottom: 16px;
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Standard App Header -->
+  <div id="app-header"></div>
+  
+  <div class="invite-container">
+    <!-- Header -->
+        <div class="invite-header">
+      <h1>🎛️ Invite Management</h1>
+      <p>Generate and manage invite codes for Stay Hi access</p>
+    </div>
+
+    <!-- Admin Stats Dashboard -->
+    <div class="admin-stats">
+      <div class="stat-card">
+        <div class="stat-number" id="totalCodes">0</div>
+        <div class="stat-label">Total Codes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="activeCodes">0</div>
+        <div class="stat-label">Active Codes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="totalUses">0</div>
+        <div class="stat-label">Total Uses</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="newUsers">0</div>
+        <div class="stat-label">New Users Today</div>
+      </div>
+    </div>
+    
+    <!-- Stats Overview -->
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card">
+        <div class="stat-number" id="totalCodes">0</div>
+        <div class="stat-label">Total Codes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="activeCodes">0</div>
+        <div class="stat-label">Active Codes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="usedCodes">0</div>
+        <div class="stat-label">Used Codes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="totalUses">0</div>
+        <div class="stat-label">Total Uses</div>
+      </div>
+    </div>
+    
+    <!-- Code Generators -->
+    <div class="invite-grid">
+      <!-- 24 Hour Code -->
+      <div class="invite-card">
+        <h3>🕐 24-Hour Code</h3>
+        <p>Perfect for events, demos, or quick trials. Expires automatically after 24 hours.</p>
+        
+        <div class="code-generator">
+          <div class="code-input-group">
+            <input type="text" class="code-input" id="custom24h" placeholder="Custom code (optional)" />
+            <button class="generate-btn" onclick="generateCode('24h')" id="btn24h">
+              <span class="btn-icon">⚡</span>
+              <span class="btn-text">Generate 24h Code</span>
+              <span class="btn-loader" style="display:none">🔄</span>
+            </button>
+          </div>
+          <div class="code-options">
+            <input type="number" class="option-input" id="maxUses24h" placeholder="Max uses (default: 10)" />
+            <input type="text" class="option-input" id="notes24h" placeholder="Notes/description" />
+          </div>
+        </div>
+        
+        <div id="generated24h" class="generated-code" style="display: none;">
+          <div class="code-display" id="code24h"></div>
+          <div class="code-info">
+            <span>Expires: <span id="expires24h"></span></span>
+            <span>Uses: <span id="uses24h">0</span>/<span id="maxUsesDisplay24h">10</span></span>
+            <button class="copy-code-btn" onclick="copyCode('code24h')">Copy Code</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 1 Week Code -->
+      <div class="invite-card">
+        <h3>📅 1-Week Code</h3>
+        <p>Ideal for beta testing periods or extended trials. Valid for 7 full days.</p>
+        
+        <div class="code-generator">
+          <div class="code-input-group">
+            <input type="text" class="code-input" id="custom1week" placeholder="Custom code (optional)" />
+            <button class="generate-btn" onclick="generateCode('1week')" id="btn1week">
+              <span class="btn-icon">📅</span>
+              <span class="btn-text">Generate 1-Week Code</span>
+              <span class="btn-loader" style="display:none">🔄</span>
+            </button>
+          </div>
+          <div class="code-options">
+            <input type="number" class="option-input" id="maxUses1week" placeholder="Max uses (default: 50)" />
+            <input type="text" class="option-input" id="notes1week" placeholder="Notes/description" />
+          </div>
+        </div>
+        
+        <div id="generated1week" class="generated-code" style="display: none;">
+          <div class="code-display" id="code1week"></div>
+          <div class="code-info">
+            <span>Expires: <span id="expires1week"></span></span>
+            <span>Uses: <span id="uses1week">0</span>/<span id="maxUsesDisplay1week">50</span></span>
+            <button class="copy-code-btn" onclick="copyCode('code1week')">Copy Code</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Unique Code -->
+      <div class="invite-card">
+        <h3>🔑 Unique Code</h3>
+        <p>Single-use codes for VIP access or personal invites. Never expires, one-time use.</p>
+        
+        <div class="code-generator">
+          <div class="code-input-group">
+            <input type="text" class="code-input" id="customUnique" placeholder="Custom code (optional)" />
+            <button class="generate-btn" onclick="generateCode('unique')" id="btnUnique">
+              <span class="btn-icon">🔑</span>
+              <span class="btn-text">Generate Unique Code</span>
+              <span class="btn-loader" style="display:none">🔄</span>
+            </button>
+          </div>
+          <div class="code-options">
+            <input type="text" class="option-input" id="recipientUnique" placeholder="Recipient name/email" />
+            <input type="text" class="option-input" id="notesUnique" placeholder="Notes/description" />
+          </div>
+        </div>
+        
+        <div id="generatedUnique" class="generated-code" style="display: none;">
+          <div class="code-display" id="codeUnique"></div>
+          <div class="code-info">
+            <span>Type: One-time use</span>
+            <span>Status: <span id="statusUnique">Active</span></span>
+            <button class="copy-code-btn" onclick="copyCode('codeUnique')">Copy Code</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Active Codes Table -->
+    <div class="active-codes">
+      <h2>Active Invite Codes</h2>
+      <div id="codesTableContainer">
+        <div class="empty-state">
+          <h3>No invite codes yet</h3>
+          <p>Generate your first invite code using the cards above</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts - ALL DISABLED FOR DEBUGGING -->
+  <!--
+  <script src="assets/header.js"></script>
+  <script src="assets/supabase-init.js"></script>
+  <script src="assets/auth.js"></script>
+  <script src="assets/premium-ux.js"></script>
+  -->
+  
+  <script>
+    console.log('🔧 PAGE LOADED - ALL SCRIPTS DISABLED - NO REDIRECT SHOULD HAPPEN');
+    alert('PAGE LOADED! If you see this and then redirect, it is NOT JavaScript causing it.');
+  </script>
+  <!--
+  <script>
+    // Invite Code Management System
+    class InviteManager {
+      constructor() {
+        this.codes = [];
+        this.stats = {
+          total: 0,
+          active: 0,
+          used: 0,
+          totalUses: 0
+        };
+      }
+
+      async init() {
+        console.log('🔍 [invite-admin] init() started');
+        
+        // Ensure Supabase is ready
+        console.log('🔍 [invite-admin] window.supabaseClient:', !!window.supabaseClient);
+        console.log('🔍 [invite-admin] window.sb:', !!window.sb);
+        
+        if (!window.supabaseClient && !window.sb) {
+          console.error('❌ Supabase not initialized');
+          // DISABLED: window.location.href = 'signin.html';
+          return;
+        }
+
+        const client = window.supabaseClient || window.sb;
+        console.log('🔍 [invite-admin] Using client:', !!client);
+
+        // Get current user
+        console.log('🔍 [invite-admin] Calling auth.getUser()...');
+        const { data: { user }, error } = await client.auth.getUser();
+        console.log('🔍 [invite-admin] User result:', user);
+        console.log('🔍 [invite-admin] Error:', error);
+        
+        if (!user || error) {
+          console.error('❌ Not authenticated:', error);
+          // DISABLED: window.location.href = 'signin.html';
+          return;
+        }
+
+        // Set global currentUser for other functions to use
+        window.currentUser = user;
+        console.log('✅ [invite-admin] User authenticated:', user.email);
+
+        await this.loadCodes();
+        await this.updateStats();
+        this.renderCodesTable();
+      }
+
+      async generateCode(type) {
+        try {
+          let customCode = null;
+          let maxUses = 1;
+          let notes = '';
+
+          switch (type) {
+            case '24h':
+              customCode = document.getElementById('custom24h').value || null;
+              maxUses = parseInt(document.getElementById('maxUses24h').value) || 10;
+              notes = document.getElementById('notes24h').value || '';
+              break;
+            case '1week':
+              customCode = document.getElementById('custom1week').value || null;
+              maxUses = parseInt(document.getElementById('maxUses1week').value) || 50;
+              notes = document.getElementById('notes1week').value || '';
+              break;
+            case 'unique':
+              customCode = document.getElementById('customUnique').value || null;
+              maxUses = 1;
+              notes = document.getElementById('notesUnique').value || '';
+              const recipient = document.getElementById('recipientUnique').value;
+              if (recipient) notes = `For: ${recipient}. ${notes}`;
+              break;
+          }
+
+          // Generate code using Supabase function
+          const { data: code, error } = await window.supabaseClient
+            .rpc('create_invite_code', {
+              p_creator_id: window.currentUser.id,
+              p_code_type: type,
+              p_custom_code: customCode,
+              p_max_uses: maxUses
+            });
+
+          if (error) throw error;
+
+          // Store metadata
+          await window.supabaseClient
+            .from('invite_codes')
+            .update({
+              metadata: { notes, created_via: 'admin_panel' }
+            })
+            .eq('code', code);
+
+          // Show generated code
+          this.showGeneratedCode(type, code, maxUses);
+
+          // Refresh data
+          await this.loadCodes();
+          await this.updateStats();
+          this.renderCodesTable();
+
+          // Success feedback
+          if (window.PremiumUX) {
+            window.PremiumUX.triggerHapticFeedback('success');
+            window.PremiumUX.showToast(`${type} code generated! 🎉`, 'success');
+          }
+
+        } catch (error) {
+          console.error('Failed to generate code:', error);
+          if (window.PremiumUX) {
+            window.PremiumUX.showToast('Failed to generate code', 'error');
+          }
+        }
+      }
+
+      showGeneratedCode(type, code, maxUses) {
+        const container = document.getElementById(`generated${type}`);
+        const codeDisplay = document.getElementById(`code${type}`);
+        
+        container.style.display = 'block';
+        codeDisplay.textContent = code;
+
+        if (type === '24h') {
+          const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+          document.getElementById('expires24h').textContent = expires.toLocaleDateString();
+          document.getElementById('maxUsesDisplay24h').textContent = maxUses;
+        } else if (type === '1week') {
+          const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+          document.getElementById('expires1week').textContent = expires.toLocaleDateString();
+          document.getElementById('maxUsesDisplay1week').textContent = maxUses;
+        }
+
+        // Auto-hide after 10 seconds
+        setTimeout(() => {
+          container.style.display = 'none';
+        }, 10000);
+      }
+
+      async loadCodes() {
+        try {
+          const { data, error } = await window.supabaseClient
+            .from('invite_codes')
+            .select(`
+              *,
+              invite_code_usage (
+                id,
+                used_by,
+                used_at
+              )
+            `)
+            .eq('created_by', window.currentUser.id)
+            .order('created_at', { ascending: false });
+
+          if (error) throw error;
+          this.codes = data || [];
+        } catch (error) {
+          console.error('Failed to load codes:', error);
+        }
+      }
+
+      async updateStats() {
+        const now = new Date();
+        
+        this.stats = {
+          total: this.codes.length,
+          active: this.codes.filter(c => 
+            c.is_active && 
+            (c.expires_at === null || new Date(c.expires_at) > now) &&
+            c.current_uses < c.max_uses
+          ).length,
+          used: this.codes.filter(c => c.current_uses >= c.max_uses).length,
+          totalUses: this.codes.reduce((sum, c) => sum + c.current_uses, 0)
+        };
+
+        // Update UI
+        document.getElementById('totalCodes').textContent = this.stats.total;
+        document.getElementById('activeCodes').textContent = this.stats.active;
+        document.getElementById('usedCodes').textContent = this.stats.used;
+        document.getElementById('totalUses').textContent = this.stats.totalUses;
+      }
+
+      renderCodesTable() {
+        const container = document.getElementById('codesTableContainer');
+        
+        if (this.codes.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <h3>No invite codes yet</h3>
+              <p>Generate your first invite code using the cards above</p>
+            </div>
+          `;
+          return;
+        }
+
+        const now = new Date();
+        
+        container.innerHTML = `
+          <table class="codes-table">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Uses</th>
+                <th>Expires</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${this.codes.map(code => {
+                const isExpired = code.expires_at && new Date(code.expires_at) < now;
+                const isUsedUp = code.current_uses >= code.max_uses;
+                const isActive = code.is_active && !isExpired && !isUsedUp;
+                
+                let status = 'active';
+                let statusText = 'Active';
+                
+                if (isExpired) {
+                  status = 'expired';
+                  statusText = 'Expired';
+                } else if (isUsedUp) {
+                  status = 'used';
+                  statusText = 'Used Up';
+                } else if (!code.is_active) {
+                  status = 'expired';
+                  statusText = 'Deactivated';
+                }
+
+                return `
+                  <tr>
+                    <td>
+                      <code style="background: rgba(78, 205, 196, 0.1); padding: 4px 8px; border-radius: 4px; font-family: monospace;">
+                        ${code.code}
+                      </code>
+                    </td>
+                    <td>${code.code_type}</td>
+                    <td><span class="code-status ${status}">${statusText}</span></td>
+                    <td>${code.current_uses}/${code.max_uses}</td>
+                    <td>${code.expires_at ? new Date(code.expires_at).toLocaleDateString() : 'Never'}</td>
+                    <td>${new Date(code.created_at).toLocaleDateString()}</td>
+                    <td>
+                      <div class="code-actions">
+                        <button class="action-btn copy" onclick="copyCodeToClipboard('${code.code}')">Copy</button>
+                        ${isActive ? `<button class="action-btn deactivate" onclick="deactivateCode('${code.id}')">Deactivate</button>` : ''}
+                      </div>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+
+      async deactivateCode(codeId) {
+        try {
+          const { error } = await window.supabaseClient
+            .from('invite_codes')
+            .update({ is_active: false })
+            .eq('id', codeId);
+
+          if (error) throw error;
+
+          await this.loadCodes();
+          await this.updateStats();
+          this.renderCodesTable();
+
+          if (window.PremiumUX) {
+            window.PremiumUX.showToast('Code deactivated', 'success');
+          }
+        } catch (error) {
+          console.error('Failed to deactivate code:', error);
+        }
+      }
+    }
+
+    // Global functions
+    async function generateCode(type) {
+      console.log('🎛️ Generating code:', type);
+      
+      // Show loading state
+      const btn = document.getElementById(`btn${type === '24h' ? '24h' : type === '1week' ? '1week' : 'Unique'}`);
+      const btnText = btn.querySelector('.btn-text');
+      const btnLoader = btn.querySelector('.btn-loader');
+      const btnIcon = btn.querySelector('.btn-icon');
+      
+      btnText.style.display = 'none';
+      btnIcon.style.display = 'none';
+      btnLoader.style.display = 'inline';
+      btn.disabled = true;
+      
+      try {
+        await window.inviteManager.generateCode(type);
+        
+        // Update stats after successful generation
+        updateAdminStats();
+        
+        // Show success feedback
+        setTimeout(() => {
+          btnText.style.display = 'inline';
+          btnIcon.style.display = 'inline';
+          btnLoader.style.display = 'none';
+          btn.disabled = false;
+          
+          // Temporary success state
+          btnText.textContent = 'Code Generated! ✨';
+          setTimeout(() => {
+            btnText.textContent = `Generate ${type === '24h' ? '24h' : type === '1week' ? '1-Week' : 'Unique'} Code`;
+          }, 2000);
+        }, 800);
+        
+      } catch (error) {
+        console.error('Code generation failed:', error);
+        btnText.style.display = 'inline';
+        btnIcon.style.display = 'inline';
+        btnLoader.style.display = 'none';
+        btn.disabled = false;
+        
+        btnText.textContent = 'Failed - Try Again';
+        setTimeout(() => {
+          btnText.textContent = `Generate ${type === '24h' ? '24h' : type === '1week' ? '1-Week' : 'Unique'} Code`;
+        }, 3000);
+      }
+    }
+
+    // Update admin statistics
+    async function updateAdminStats() {
+      try {
+        const stats = await window.inviteManager.getStats();
+        document.getElementById('totalCodes').textContent = stats.totalCodes || 0;
+        document.getElementById('activeCodes').textContent = stats.activeCodes || 0;
+        document.getElementById('totalUses').textContent = stats.totalUses || 0;
+        document.getElementById('newUsers').textContent = stats.newUsersToday || 0;
+      } catch (error) {
+        console.log('Could not load stats:', error);
+      }
+    }
+
+    // Gold standard copy functionality
+    async function copyCode(elementId) {
+      const codeElement = document.getElementById(elementId);
+      const code = codeElement.textContent;
+      
+      try {
+        await navigator.clipboard.writeText(code);
+        
+        // Visual feedback
+        const originalBg = codeElement.style.background;
+        codeElement.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+        codeElement.style.transform = 'scale(1.02)';
+        
+        setTimeout(() => {
+          codeElement.style.background = originalBg;
+          codeElement.style.transform = 'scale(1)';
+        }, 600);
+        
+        // Toast notification
+        showToast('Code copied to clipboard! 📋');
+        
+      } catch (error) {
+        console.error('Copy failed:', error);
+        showToast('Copy failed - try selecting manually', 'error');
+      }
+    }
+
+    // Enhanced toast system
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `admin-toast ${type}`;
+      toast.textContent = message;
+      toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #ef4444, #dc2626)'};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        z-index: 1000;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+      `;
+      
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(0)';
+      }, 100);
+      
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => document.body.removeChild(toast), 300);
+      }, 3000);
+    }
+
+    // Initialize admin dashboard
+    document.addEventListener('DOMContentLoaded', () => {
+      updateAdminStats();
+      
+      // Refresh stats every 30 seconds
+      setInterval(updateAdminStats, 30000);
+    });
+
+    async function copyCode(elementId) {
+      const code = document.getElementById(elementId).textContent;
+      await copyCodeToClipboard(code);
+    }
+
+    async function copyCodeToClipboard(code) {
+      try {
+        await navigator.clipboard.writeText(code);
+        if (window.PremiumUX) {
+          window.PremiumUX.showToast('Code copied to clipboard! 📋', 'success');
+          window.PremiumUX.triggerHapticFeedback('medium');
+        }
+      } catch (error) {
+        console.error('Failed to copy code:', error);
+      }
+    }
+
+    async function deactivateCode(codeId) {
+      if (confirm('Are you sure you want to deactivate this code?')) {
+        await window.inviteManager.deactivateCode(codeId);
+      }
+    }
+
+    // Initialize - DISABLED FOR DEBUGGING
+    // window.inviteManager = new InviteManager();
+    
+    console.log('🔧 Invite Manager initialization DISABLED');
+    /*
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => window.inviteManager.init(), 1000);
+      });
+    } else {
+      setTimeout(() => window.inviteManager.init(), 1000);
+    }
+    */
+  </script>
+  -->
+</body>
+</html>

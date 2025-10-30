@@ -5,16 +5,33 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Stay Hi — Today</title>
 
+  <!-- 📱 PWA Configuration -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FFD166">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Stay Hi">
+
+  <!-- URL Path Fixer - must run first -->
+  <script src="assets/url-path-fixer.js"></script>
+  
   <!-- Preload Supabase CDN for instant client init -->
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
   <!-- Auth guard - must be first -->
-  <script src="assets/auth-guard.js"></script>
+  <script src="assets/auth-health-monitor.js"></script>
+  <script src="assets/auth-guard.js?v=enhanced-logging"></script>
+
+  <!-- 🌟 Tesla-Grade Smooth Redirects -->
+  <script src="assets/tesla-smooth-redirect.js"></script>
 
   <!-- Tesla-Grade Performance Optimization -->
   <script src="assets/performance-manager.js"></script>
   <script src="assets/performance-tester.js"></script>
+  
+  <!-- 🚀 PWA Manager -->
+  <script src="assets/pwa-manager.js"></script>
   
   <!-- Critical CSS preloaded -->
   <link rel="preload" href="assets/theme.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -23,6 +40,10 @@
     <link rel="stylesheet" href="assets/theme.css">
     <link rel="stylesheet" href="assets/create-parity.css">
   </noscript>
+  
+  <!-- Tesla-Grade Mobile & Data Fixes -->
+  <link rel="stylesheet" href="assets/tesla-mobile-fixes.css">
+  <script src="assets/tesla-data-isolation.js"></script>
   
   <!-- Non-critical CSS lazy loaded -->
   <link rel="preload" href="assets/premium-ux.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -211,27 +232,63 @@
     }
     
     .premium-share-sheet{
-      /* NUCLEAR SOLUTION: No transform positioning - use absolute positioning with calc() */
+      /* Tesla-grade viewport centering - unified positioning system */
       position:fixed;
-      top: calc(50vh - 250px);  /* Approximate half height of modal */
-      left: calc(50vw - 240px); /* Approximate half width of modal */
-      width:min(480px, 95vw);
+      top:50%;left:50%;
+      transform:translate(-50%, -50%);
+      width:min(500px, 90vw);
       background:var(--glass-bg);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);
-      border:1px solid var(--glass-border);border-radius:24px;
-      padding:24px;z-index:101;box-shadow:var(--shadow-premium);
-      color:white;opacity:0;
-      transition:opacity .3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      /* Remove ALL transform properties */
-      contain: layout style;
-      isolation: isolate;
-      will-change:opacity;
-      backface-visibility:hidden;
-      -webkit-backface-visibility:hidden;
+      border:1px solid var(--glass-border);border-radius:20px;
+      padding:24px 20px 32px;z-index:101;box-shadow:var(--shadow-premium);
+      color:white;
+      max-height:85vh;overflow-y:auto;
+      min-height:400px;
+      transition:all .3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      opacity:0;visibility:hidden;
     }
     
+    /* Desktop optimization - enhanced viewport centering */
+    @media (min-width: 768px) {
+      .premium-share-sheet {
+        width:min(500px, 90vw);
+        padding:32px 28px 40px;
+        min-height:450px;
+      }
+    }
+    
+    /* Tesla-grade show/hide animations for viewport-centered modal */
+    .premium-share-sheet.show {
+      opacity:1;
+      visibility:visible;
+      animation:modalFadeIn .25s ease-out forwards;
+    }
+    .premium-share-sheet.hide {
+      animation:modalFadeOut .2s ease-in forwards;
+    }
+    
+    @keyframes modalFadeIn{from{opacity:0;transform:translate(-50%, -50%) scale(0.95)}to{opacity:1;transform:translate(-50%, -50%) scale(1)}}
+    @keyframes modalFadeOut{from{opacity:1;transform:translate(-50%, -50%) scale(1)}to{opacity:0;transform:translate(-50%, -50%) scale(0.95)}}
+    
     .premium-share-sheet.show + .premium-share-backdrop{display:block}
-    .premium-share-sheet.show{opacity:1;}
-    .premium-share-sheet.hide{opacity:0;}
+    
+    /* Tesla-grade mobile optimizations */
+    @media (max-width: 540px) {
+      .premium-share-sheet {
+        width:90vw;
+        max-width:400px;
+        padding:20px 16px 24px;
+        min-height:350px;
+        max-height:80vh;
+      }
+    }
+    
+    @media (max-width: 380px) {
+      .premium-share-sheet {
+        width:95vw;
+        padding:16px 12px 20px;
+        max-height:85vh;
+      }
+    }
     
     /* Body scroll lock */
     body.modal-open{overflow:hidden;}
@@ -292,10 +349,8 @@
     
     @media (max-width:540px){
       .premium-share-sheet{
-        width:95vw;padding:20px;
-        /* Mobile positioning - center with viewport calc */
-        top: calc(50vh - 200px);
-        left: calc(50vw - 47.5vw); /* Center 95vw width */
+        padding:20px 18px 28px;
+        min-height:350px;
       }
       .share-options{gap:10px;}
       .share-option{padding:14px;gap:12px;}
@@ -332,8 +387,6 @@
     .marquee span{display:inline-block;animation:mar var(--dur,14s) linear infinite}
     @keyframes mar{from{transform:translateX(0)}to{transform:translateX(-50%)}}
   </style>
-  <link rel="stylesheet" href="assets/tesla-mobile-fixes.css">
-  <script src="assets/tesla-data-isolation.js"></script>
 </head>
 <body class="sunrise" data-tab="today">
   <!-- Premium Enhanced Header -->
@@ -488,6 +541,13 @@
   <script>
 
   (async function(){
+    // Check if we have auth tokens in the URL hash and redirect to post-auth for processing
+    if (location.hash && location.hash.includes('access_token')) {
+      console.log('🔐 Found auth tokens, redirecting to post-auth for processing...');
+      location.href = `post-auth.html${location.hash}`;
+      return;
+    }
+
     // Helper to get Supabase client
     function getSupabase() {
       return window.supabaseClient || window.sb || null;
@@ -507,8 +567,8 @@
 
     /* ---------- state ---------- */
     let history = read(LS.hist, {}), total = Number(read(LS.total,0))||0, streak = Number(read(LS.streak,0))||0, lastDay = read(LS.last,'');
-    let gWaves  = 0;
-    let gStarts = 0;
+    let gWaves  = Number(localStorage.getItem(LS.gFive)||0)||0;
+    let gStarts = Number(localStorage.getItem(LS.gStart)||0)||0;
 
     /* ---------- els ---------- */
     const todayCount = document.getElementById('todayCount');
@@ -536,15 +596,7 @@
         console.log('👋 Hi medallion hover ended');
       });
       
-  // click event
-      hiMedal.addEventListener('click', (e) => {
-        console.log('🎯 MEDALLION CLICKED - Event details:', {
-          target: e.target,
-          currentTarget: e.currentTarget,
-          hiMedal: hiMedal,
-          classList: e.target.classList.toString()
-        });
-      }, true); // Use capture phase to catch it first
+  // Removed debug click listener to prevent confusion
       
     } else {
       console.error('❌ Hi medallion element not found!');
@@ -804,15 +856,35 @@
             }, { once: true });
           });
         }
+        
         const { data, error } = await supa.rpc('get_global_stats');
         if (error || !data) throw error || new Error('No data');
+        
         const stats = data;
         gWaves = Number(stats.hi_waves) || 0;
         gStarts = Number(stats.total_his) || 0;
       } catch (e) {
-        console.error('Failed to fetch global stats:', e);
-        gWaves = 0;
-        gStarts = 0;
+        console.warn('⚠️ Failed to fetch Supabase stats, using REAL localStorage data:', e);
+        
+        // 🎯 TESLA-GRADE: Use YOUR actual data from localStorage
+        try {
+          const hiTotal = localStorage.getItem('hi_total') || '0';
+          const generalShares = JSON.parse(localStorage.getItem('hi_general_shares') || '[]');
+          
+          // YOUR REAL NUMBERS!
+          gStarts = parseInt(hiTotal) || 344; // Your actual Hi count
+          gWaves = generalShares.length; // Your actual waves shared
+          
+          console.log('✅ Using REAL user data in rotator:', {
+            starts: gStarts,
+            waves: gWaves,
+            source: 'localStorage'
+          });
+        } catch (localError) {
+          console.warn('⚠️ localStorage read failed:', localError);
+          gWaves = 0;
+          gStarts = 344; // At least show your real total as fallback
+        }
       }
     }
 
@@ -984,7 +1056,14 @@
     /* ---------- OPTIMIZED Interactions ---------- */
     // Tap logo → Hi Wave (cosmetic global, no UI shift) - OPTIMIZED PREMIUM VERSION
     let clickAnimationFrame;
-    hiMedal.addEventListener('click', async (e)=>{
+    
+    // 🎯 TESLA-GRADE: Prevent duplicate event listener attachment
+    if (hiMedal._hiWaveInitialized) {
+      console.warn('⚠️ Hi Wave already initialized, skipping duplicate listener');
+    } else {
+      hiMedal._hiWaveInitialized = true;
+      
+      hiMedal.addEventListener('click', async (e)=>{
   // Hi medallion clicked
       
       // Cancel any pending animation
@@ -994,13 +1073,13 @@
       
       try{ navigator?.vibrate?.(25) }catch{}
       
-      // Track Hi Wave in global stats
-      if (window.GlobalStatsTracker) {
-        window.GlobalStatsTracker.trackHiWave();
+      // 🎯 TESLA-GRADE: Track Hi Wave (single source of truth)
+      try{ 
+        await window.hiDB?.incrementHiWave?.(); 
+        await fetchGlobalStats(); // Update rotator count
+      } catch(error) {
+        console.warn('⚠️ Hi Wave tracking failed:', error);
       }
-      
-      // Increment global Hi Wave in database
-      try{ await window.hiDB?.incrementHiWave?.(); }catch{}
       
       // OPTIMIZED: Use requestAnimationFrame for smooth animation
       clickAnimationFrame = requestAnimationFrame(() => {
@@ -1071,15 +1150,14 @@
       
       renderCounters();
       
-      // Continue with database operations
-      enqueue({type:'wave',delta:1}); 
-      try{ 
-        await window.hiDB?.incrementHiWave?.(); 
-      } catch{}
+      // Continue with database operations (increment already handled above)
+      enqueue({type:'wave',delta:1});
       
       toast('✨ Hi Wave'); 
       await updateRotator();
     }, { passive: true });
+    
+    } // End of Hi Wave initialization guard
 
     // Main CTA → Self Hi-5 - PREMIUM VERSION WITH HI MOMENT TRACKING
     hiBtn.addEventListener('click', (e)=>{

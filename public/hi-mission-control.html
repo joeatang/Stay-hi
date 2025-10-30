@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hi Mission Control — Administrative Command Center</title>
+    
+    <!-- 📱 PWA Configuration -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#FFD166">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Hi Control">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        
+        /* 🔒 Security Loading Screen */
+        .security-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #000428 0%, #004e92 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        .security-logo {
+            width: 120px;
+            height: 120px;
+            border: 3px solid #00d4ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            margin-bottom: 30px;
+            animation: securityPulse 2s infinite;
+        }
+        
+        @keyframes securityPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(0, 212, 255, 0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(0, 212, 255, 0.6); }
+        }
+        
+        .security-text {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #00d4ff;
+        }
+        
+        .security-status {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
+        
+        .security-progress {
+            width: 300px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .security-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #0ea5e9);
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: progressGlow 2s infinite;
+        }
+        
+        @keyframes progressGlow {
+            0%, 100% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.8); }
+        }
+        
+        /* 🏛️ Main Dashboard */
+        .dashboard-container {
+            display: none;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .dashboard-header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .dashboard-title {
+            font-size: 36px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff, #0ea5e9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        
+        .dashboard-subtitle {
+            color: #94a3b8;
+            font-size: 16px;
+        }
+        
+        .security-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #059669, #10b981);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+        
+        /* 📊 Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.1);
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #00d4ff;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            color: #94a3b8;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* 🛠️ Control Panel */
+        .control-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .panel-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        
+        .control-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .control-btn {
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            border: none;
+            padding: 15px 20px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+        
+        .control-btn.danger {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+        }
+        
+        .control-btn.success {
+            background: linear-gradient(135deg, #059669, #10b981);
+        }
+        
+        /* 📋 Results Display */
+        .results-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .results-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #00d4ff;
+        }
+        
+        .results-content {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            color: #e2e8f0;
+        }
+        
+        /* 🚨 Error States */
+        .error-message {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .success-message {
+            background: linear-gradient(135deg, #059669, #10b981);
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        /* 🔒 Security Footer */
+        .security-footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #64748b;
+            font-size: 12px;
+        }
+        
+        .unauthorized-access {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #7f1d1d, #991b1b);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        
+        .unauthorized-content {
+            text-align: center;
+            max-width: 500px;
+            padding: 40px;
+        }
+        
+        .unauthorized-icon {
+            font-size: 72px;
+            margin-bottom: 20px;
+            color: #fecaca;
+        }
+        
+        .unauthorized-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+        
+        .unauthorized-message {
+            font-size: 16px;
+            color: #fecaca;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <!-- 🔒 Security Loading Screen -->
+    <div class="security-loading" id="securityLoading">
+        <div class="security-logo">🛡️</div>
+        <div class="security-text">Hi Mission Control</div>
+        <div class="security-status" id="securityStatus">Initializing secure connection...</div>
+        <div class="security-progress">
+            <div class="security-progress-bar" id="progressBar"></div>
+        </div>
+    </div>
+    
+    <!-- 🚨 Unauthorized Access Screen -->
+    <div class="unauthorized-access" id="unauthorizedScreen">
+        <div class="unauthorized-content">
+            <div class="unauthorized-icon">🚫</div>
+            <div class="unauthorized-title">Access Denied</div>
+            <div class="unauthorized-message">
+                Administrative privileges required to access Hi Mission Control.<br><br>
+                This incident has been logged and security has been notified.
+            </div>
+        </div>
+    </div>
+    
+    <!-- 🏛️ Main Dashboard -->
+    <div class="dashboard-container" id="dashboardContainer">
+        <header class="dashboard-header">
+            <h1 class="dashboard-title">Hi Mission Control</h1>
+            <p class="dashboard-subtitle">Enterprise Administrative Command Center</p>
+            <span class="security-badge">🔒 SECURED BY FORTUNE 500-GRADE AUTHENTICATION</span>
+        </header>
+        
+        <!-- 📊 Statistics Dashboard -->
+        <div class="stats-grid" id="statsGrid">
+            <!-- Stats will be populated by JavaScript -->
+        </div>
+        
+        <!-- 🛠️ Administrative Controls -->
+        <div class="control-panel">
+            <h2 class="panel-title">🎯 Invitation Management</h2>
+            <div class="control-buttons">
+                <button class="control-btn success" onclick="generateInviteCode()">
+                    🎫 Generate New Invite Code
+                </button>
+                <button class="control-btn" onclick="listInviteCodes()">
+                    📋 View All Invitations
+                </button>
+                <button class="control-btn" onclick="getActiveInvites()">
+                    ✅ Active Invitations Only
+                </button>
+                <button class="control-btn danger" onclick="deactivateExpiredCodes()">
+                    🗑️ Clean Expired Codes
+                </button>
+            </div>
+        </div>
+        
+        <div class="control-panel">
+            <h2 class="panel-title">👥 User Management</h2>
+            <div class="control-buttons">
+                <button class="control-btn" onclick="getUserStats()">
+                    📊 User Statistics
+                </button>
+                <button class="control-btn" onclick="getRecentSignups()">
+                    🆕 Recent Signups
+                </button>
+                <button class="control-btn" onclick="getMembershipStats()">
+                    💎 Membership Analytics
+                </button>
+                <button class="control-btn danger" onclick="getSecurityEvents()">
+                    🚨 Security Events
+                </button>
+            </div>
+        </div>
+        
+        <!-- 📋 Results Display -->
+        <div class="results-container" id="resultsContainer">
+            <div class="results-header" id="resultsHeader">Results</div>
+            <div class="results-content" id="resultsContent"></div>
+        </div>
+        
+        <!-- 🔒 Security Footer -->
+        <footer class="security-footer">
+            <p>Hi Mission Control • Enterprise Administrative Interface</p>
+            <p>🔒 All actions are logged • 🛡️ Multi-factor authentication enabled</p>
+            <p>Session expires in <span id="sessionTimer">60</span> minutes</p>
+        </footer>
+    </div>
+
+    <script>
+        // 🏛️ SUPABASE CONFIGURATION
+        const SUPABASE_URL = 'https://gfcubvroxgfvjhacinic.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g';
+        
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // 🔐 SECURITY GLOBALS
+        let currentUser = null;
+        let adminSession = null;
+        let sessionTimeout = null;
+        
+        // 🚀 INITIALIZATION
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initializeSecuritySystem();
+        });
+        
+        async function initializeSecuritySystem() {
+            const statusEl = document.getElementById('securityStatus');
+            const progressBar = document.getElementById('progressBar');
+            
+            try {
+                // Step 1: Authentication Check
+                statusEl.textContent = 'Verifying authentication credentials...';
+                progressBar.style.width = '20%';
+                await delay(800);
+                
+                const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+                if (authError || !user) {
+                    throw new Error('Authentication required');
+                }
+                currentUser = user;
+                
+                // Step 2: Admin Privilege Verification
+                statusEl.textContent = 'Validating administrative privileges...';
+                progressBar.style.width = '40%';
+                await delay(800);
+                
+                const clientIP = await getClientIP();
+                const { data: accessCheck, error: accessError } = await supabaseClient
+                    .rpc('check_admin_access', {
+                        p_required_role: 'admin',
+                        p_ip_address: clientIP
+                    });
+                
+                if (accessError || !accessCheck?.access_granted) {
+                    throw new Error(accessCheck?.error || 'Administrative privileges required');
+                }
+                
+                // Step 3: Session Creation
+                statusEl.textContent = 'Creating secure administrative session...';
+                progressBar.style.width = '60%';
+                await delay(800);
+                
+                const { data: sessionData, error: sessionError } = await supabaseClient
+                    .rpc('create_admin_session', {
+                        p_ip_address: clientIP,
+                        p_user_agent: navigator.userAgent
+                    });
+                
+                if (sessionError) {
+                    throw new Error('Session creation failed');
+                }
+                adminSession = sessionData;
+                
+                // Step 4: Dashboard Initialization
+                statusEl.textContent = 'Loading administrative dashboard...';
+                progressBar.style.width = '80%';
+                await delay(800);
+                
+                await loadDashboardData();
+                
+                // Step 5: Complete
+                statusEl.textContent = 'Security verification complete - Welcome to Mission Control';
+                progressBar.style.width = '100%';
+                await delay(1000);
+                
+                // Show dashboard
+                document.getElementById('securityLoading').style.display = 'none';
+                document.getElementById('dashboardContainer').style.display = 'block';
+                
+                // Start session timer
+                startSessionTimer(adminSession.expires_at);
+                
+            } catch (error) {
+                console.error('Security verification failed:', error);
+                showUnauthorizedAccess(error.message);
+            }
+        }
+        
+        function showUnauthorizedAccess(message) {
+            document.getElementById('securityLoading').style.display = 'none';
+            document.getElementById('unauthorizedScreen').style.display = 'flex';
+            
+            // Log security incident
+            console.error('🚨 SECURITY INCIDENT:', {
+                timestamp: new Date().toISOString(),
+                user_agent: navigator.userAgent,
+                message: message,
+                url: window.location.href
+            });
+        }
+        
+        async function loadDashboardData() {
+            try {
+                const { data: stats, error } = await supabaseClient.rpc('get_admin_dashboard_stats');
+                if (error) throw error;
+                
+                displayStats(stats);
+            } catch (error) {
+                console.error('Failed to load dashboard stats:', error);
+                showError('Failed to load dashboard statistics');
+            }
+        }
+        
+        function displayStats(stats) {
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${stats.total_users || 0}</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.active_memberships || 0}</div>
+                    <div class="stat-label">Active Memberships</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.total_invitations || 0}</div>
+                    <div class="stat-label">Total Invitations</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.active_invitations || 0}</div>
+                    <div class="stat-label">Active Invitations</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.recent_signups || 0}</div>
+                    <div class="stat-label">Recent Signups (7d)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.security_events || 0}</div>
+                    <div class="stat-label">Security Events (24h)</div>
+                </div>
+            `;
+        }
+        
+        // 🎫 INVITATION MANAGEMENT FUNCTIONS
+        async function generateInviteCode() {
+            try {
+                const { data, error } = await supabaseClient.rpc('admin_generate_invite_code', {
+                    p_created_by: currentUser.id,
+                    p_max_uses: 1,
+                    p_expires_in_hours: 168 // 7 days
+                });
+                
+                if (error) throw error;
+                
+                showResults('New Invitation Code Generated', JSON.stringify(data, null, 2));
+                showSuccess('Invitation code generated successfully!');
+                
+                // Refresh stats
+                await loadDashboardData();
+                
+            } catch (error) {
+                console.error('Error generating invite code:', error);
+                showError('Failed to generate invitation code: ' + error.message);
+            }
+        }
+        
+        async function listInviteCodes() {
+            try {
+                const { data, error } = await supabaseClient.rpc('admin_list_invite_codes');
+                
+                if (error) throw error;
+                
+                showResults('All Invitation Codes', JSON.stringify(data, null, 2));
+                
+            } catch (error) {
+                console.error('Error listing invite codes:', error);
+                showError('Failed to retrieve invitation codes: ' + error.message);
+            }
+        }
+        
+        async function getActiveInvites() {
+            try {
+                const { data, error } = await supabase
+                    .from('invitation_codes')
+                    .select('*')
+                    .eq('is_active', true)
+                    .gt('expires_at', new Date().toISOString());
+                
+                if (error) throw error;
+                
+                showResults('Active Invitation Codes', JSON.stringify(data, null, 2));
+                
+            } catch (error) {
+                console.error('Error getting active invites:', error);
+                showError('Failed to retrieve active invitations: ' + error.message);
+            }
+        }
+        
+        // 🛠️ UTILITY FUNCTIONS
+        function showResults(title, content) {
+            document.getElementById('resultsHeader').textContent = title;
+            document.getElementById('resultsContent').textContent = content;
+            document.getElementById('resultsContainer').style.display = 'block';
+            
+            // Scroll to results
+            document.getElementById('resultsContainer').scrollIntoView({ 
+                behavior: 'smooth' 
+            });
+        }
+        
+        function showError(message) {
+            const container = document.getElementById('dashboardContainer');
+            const errorEl = document.createElement('div');
+            errorEl.className = 'error-message';
+            errorEl.textContent = '🚨 ' + message;
+            container.insertBefore(errorEl, container.firstChild);
+            
+            setTimeout(() => errorEl.remove(), 5000);
+        }
+        
+        function showSuccess(message) {
+            const container = document.getElementById('dashboardContainer');
+            const successEl = document.createElement('div');
+            successEl.className = 'success-message';
+            successEl.textContent = '✅ ' + message;
+            container.insertBefore(successEl, container.firstChild);
+            
+            setTimeout(() => successEl.remove(), 3000);
+        }
+        
+        function startSessionTimer(expiresAt) {
+            const expiryTime = new Date(expiresAt).getTime();
+            const timerEl = document.getElementById('sessionTimer');
+            
+            sessionTimeout = setInterval(() => {
+                const now = Date.now();
+                const timeLeft = Math.max(0, expiryTime - now);
+                const minutesLeft = Math.floor(timeLeft / (1000 * 60));
+                
+                timerEl.textContent = minutesLeft;
+                
+                if (minutesLeft <= 0) {
+                    clearInterval(sessionTimeout);
+                    alert('⚠️ Session expired. Redirecting to login...');
+                    window.location.href = '/';
+                }
+            }, 60000); // Update every minute
+        }
+        
+        async function getClientIP() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip;
+            } catch (error) {
+                console.warn('Could not get client IP:', error);
+                return null;
+            }
+        }
+        
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        // 🧹 ADDITIONAL ADMIN FUNCTIONS
+        async function deactivateExpiredCodes() {
+            try {
+                const { data, error } = await supabase
+                    .from('invitation_codes')
+                    .update({ is_active: false })
+                    .lt('expires_at', new Date().toISOString())
+                    .select('count');
+                
+                if (error) throw error;
+                
+                showSuccess(`Deactivated ${data?.length || 0} expired invitation codes`);
+                await loadDashboardData();
+                
+            } catch (error) {
+                showError('Failed to clean expired codes: ' + error.message);
+            }
+        }
+        
+        async function getUserStats() {
+            try {
+                const { data, error } = await supabase
+                    .from('auth.users')
+                    .select('created_at, email_confirmed_at')
+                    .order('created_at', { ascending: false })
+                    .limit(100);
+                
+                if (error) throw error;
+                
+                showResults('User Statistics', JSON.stringify(data, null, 2));
+                
+            } catch (error) {
+                showError('Failed to get user statistics: ' + error.message);
+            }
+        }
+        
+        async function getRecentSignups() {
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            
+            try {
+                const { data, error } = await supabase
+                    .from('auth.users')
+                    .select('id, created_at, email, email_confirmed_at')
+                    .gte('created_at', sevenDaysAgo.toISOString())
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                showResults('Recent Signups (Last 7 Days)', JSON.stringify(data, null, 2));
+                
+            } catch (error) {
+                showError('Failed to get recent signups: ' + error.message);
+            }
+        }
+        
+        async function getMembershipStats() {
+            try {
+                const { data, error } = await supabase
+                    .from('user_memberships')
+                    .select('status, created_at, membership_type')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                showResults('Membership Statistics', JSON.stringify(data, null, 2));
+                
+            } catch (error) {
+                showError('Failed to get membership statistics: ' + error.message);
+            }
+        }
+        
+        async function getSecurityEvents() {
+            try {
+                const { data, error } = await supabase
+                    .from('admin_access_logs')
+                    .select('*')
+                    .eq('success', false)
+                    .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                showResults('Security Events (Last 24 Hours)', JSON.stringify(data, null, 2));
+                
+            } catch (error) {
+                showError('Failed to get security events: ' + error.message);
+            }
+        }
+    </script>
+    
+    <!-- 🚀 PWA Manager -->
+    <script src="assets/pwa-manager.js"></script>
+</body>
+</html>

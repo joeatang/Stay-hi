@@ -949,14 +949,7 @@
           <p class="location-privacy">🔒 Only country and state/region are shared for privacy</p>
         </div>
 
-        <div class="form-group">
-          <label class="toggle-label">
-            <input type="checkbox" id="editIsPublic">
-            <span class="toggle-slider"></span>
-            Public Profile
-          </label>
-          <small class="form-hint">Allow others to find and view your profile</small>
-        </div>
+        <!-- Tesla Security: Public profile feature removed for data protection -->
       </form>
       
       <div class="crop-actions">
@@ -978,7 +971,6 @@
       location: '',
       avatar_url: null,
       created_at: new Date().toISOString().split('T')[0],
-      is_public: true,
       id: null
     };
     
@@ -1700,7 +1692,7 @@ FOR INSERT WITH CHECK (
       document.getElementById('editUsername').value = currentProfile.username || '';
       document.getElementById('editBio').value = currentProfile.bio || '';
       document.getElementById('editLocation').value = currentProfile.location || '';
-      document.getElementById('editIsPublic').checked = currentProfile.is_public || false;
+      // Tesla Security: Public profile feature removed
       
       // Update bio counter
       updateBioCounter();
@@ -1745,8 +1737,7 @@ FOR INSERT WITH CHECK (
       const formData = {
         display_name: document.getElementById('editDisplayName').value.trim(),
         username: document.getElementById('editUsername').value.replace('@', '').trim(),
-        bio: document.getElementById('editBio').value.trim(),
-        is_public: document.getElementById('editIsPublic').checked
+        bio: document.getElementById('editBio').value.trim()
       };
 
       // Get location from LocationPicker input (Tesla-grade single source of truth)
@@ -1829,7 +1820,6 @@ FOR INSERT WITH CHECK (
             bio: profile.bio,
             location: profile.location,
             avatar_url: profile.avatar_url,
-            is_public: profile.is_public,
             updated_at: new Date().toISOString()
           }, {
             onConflict: 'username'
@@ -2175,15 +2165,14 @@ FOR INSERT WITH CHECK (
       if (displayNameEl) displayNameEl.value = profile.display_name || '';
       if (usernameEl) usernameEl.value = profile.username || '';
       if (bioEl) bioEl.value = profile.bio || '';
-      if (publicEl) publicEl.checked = profile.is_public !== false;
+      // Tesla Security: Public profile feature removed
       if (locationEl) locationEl.value = profile.location || '';
       
       console.log('✅ Edit form populated:', {
         display_name: profile.display_name,
         username: profile.username,
         bio: profile.bio?.length || 0,
-        location: profile.location,
-        is_public: profile.is_public
+        location: profile.location
       });
     }
 

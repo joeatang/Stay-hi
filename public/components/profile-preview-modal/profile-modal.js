@@ -175,8 +175,8 @@ export class ProfilePreviewModal {
 
       console.log('🔍 Loading profile for user:', userId);
 
-      // Fetch profile data using hiDB
-      const profile = await window.hiDB.fetchUserProfile(userId);
+      // Tesla UX-Preserving: Fetch limited community profile data (username, display_name, avatar only)
+      const profile = await this.fetchCommunityProfile(userId);
 
       console.log('📦 Profile result:', profile);
 
@@ -295,6 +295,49 @@ export class ProfilePreviewModal {
     if (content) content.style.display = 'none';
     if (loading) loading.style.display = 'flex';
     if (error) error.style.display = 'none';
+  }
+
+  // Tesla UX-Preserving: Fetch limited community profile (no bio, location, stats - just display info)
+  async fetchCommunityProfile(userId) {
+    try {
+      // Get Supabase client
+      const supa = window.hiDB?.getSupabase?.() || window.supabase;
+      if (!supa) {
+        throw new Error('Supabase client not available');
+      }
+
+      console.log('🔍 Fetching community profile for:', userId);
+
+      // Use the secure RPC function that only returns basic info
+      const { data, error } = await supa.rpc('get_community_profile', {
+        target_user_id: userId
+      });
+
+      if (error) {
+        console.error('❌ RPC error:', error);
+        throw error;
+      }
+
+      if (!data || data.length === 0) {
+        console.warn('⚠️ No profile data returned for userId:', userId);
+        return null;
+      }
+
+      const profile = data[0]; // RPC returns array
+      
+      console.log('✅ Community profile fetched:', {
+        id: profile.id,
+        username: profile.username,
+        display_name: profile.display_name,
+        has_avatar: !!profile.avatar_url
+      });
+
+      return profile;
+
+    } catch (error) {
+      console.error('❌ Failed to fetch community profile:', error);
+      return null;
+    }
   }
 
   // Show error state

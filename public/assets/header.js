@@ -56,6 +56,10 @@
           <a href="hi-muscle.html" role="menuitem">💪 Hi Gym</a>
           <a href="hi-island-NEW.html" role="menuitem">🏝️ Hi Island</a>
           <a href="profile.html?from=${getCurrentPageName()}" role="menuitem">👤 Profile</a>
+          <div id="adminMenuSection" style="display: none;">
+            <div class="sep"></div>
+            <a href="hi-mission-control.html" role="menuitem" style="color: #FFD166; font-weight: 600;">🏛️ Mission Control</a>
+          </div>
           <div class="sep"></div>
           <button id="btnSignOut" class="menu-item-btn" role="menuitem">🚪 Sign Out</button>
         </div>
@@ -196,6 +200,50 @@
       closeMenu();
     }
   });
+
+  // 🏛️ TESLA-GRADE: Dynamic Admin Menu Detection
+  async function checkAndShowAdminAccess() {
+    try {
+      // Wait for Supabase to be ready
+      const getClient = async () => {
+        if (window.sb) return window.sb;
+        if (window.sbReady) return await window.sbReady;
+        if (window.supabaseClient) return window.supabaseClient;
+        return null;
+      };
+      
+      const sb = await getClient();
+      if (!sb) return; // No Supabase = no admin check
+      
+      // Check if user is authenticated
+      const { data: { user }, error: authError } = await sb.auth.getUser();
+      if (authError || !user) return; // Not logged in = no admin access
+      
+      // Check admin role in database
+      const { data: adminCheck, error: adminError } = await sb
+        .from('admin_roles')
+        .select('role_type, is_active')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .single();
+      
+      if (!adminError && adminCheck && (adminCheck.role_type === 'super_admin' || adminCheck.role_type === 'admin')) {
+        // Show admin menu section
+        const adminSection = document.getElementById('adminMenuSection');
+        if (adminSection) {
+          adminSection.style.display = 'block';
+          console.log('🏛️ Admin access granted - Mission Control available');
+        }
+      }
+      
+    } catch (error) {
+      // Silently fail - admin access just won't appear
+      console.debug('Admin check failed (expected for non-admins):', error.message);
+    }
+  }
+  
+  // Run admin check after a short delay to ensure Supabase is ready
+  setTimeout(checkAndShowAdminAccess, 1500);
 
   // Sign out functionality
   btnSignOut?.addEventListener("click", async () => {

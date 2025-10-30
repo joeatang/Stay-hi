@@ -4,15 +4,29 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Welcome — Stay Hi</title>
+  
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FFD166">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Hi Collective">
+  <link rel="apple-touch-icon" href="assets/brand/hi-logo-192.png">
 
   <!-- Preload Supabase CDN for instant client init -->
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
+  <!-- 🌟 Tesla-Grade Smooth Redirects -->
+  <script src="assets/tesla-smooth-redirect.js"></script>
+
   <link rel="stylesheet" href="assets/theme.css"/>
   <link rel="stylesheet" href="assets/create-parity.css"/>
   <link rel="stylesheet" href="assets/tesla-mobile-fixes.css">
   <script src="assets/tesla-data-isolation.js"></script>
+  
+  <!-- PWA Manager -->
+  <script src="assets/pwa-manager.js"></script>
   
   <!-- Beta Systems -->
   <script type="module" src="assets/hi-rewards-beta.js"></script>

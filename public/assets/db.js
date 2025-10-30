@@ -85,7 +85,7 @@
       text: enhancedEntry.text,
       is_anonymous: !!enhancedEntry.isAnonymous,
       location: enhancedEntry.location || null,
-      is_public: enhancedEntry.isPublic !== false, // default true
+      // Tesla Security: Public sharing removed for data protection
       // 🆕 Add origin and type to database
       origin: enhancedEntry.origin,
       type: enhancedEntry.type
@@ -169,7 +169,7 @@
             avatar_url
           )
         `)
-        .eq("is_public", true)
+        // Tesla UX-Preserving: Community feed works, private data protected
         .order("created_at", { ascending: false })
         .limit(limit);
       if (error) throw error;

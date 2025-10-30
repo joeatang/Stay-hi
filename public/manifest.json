@@ -1,0 +1,91 @@
+{
+  "name": "Hi Collective",
+  "short_name": "Stay Hi",
+  "description": "Help Inspire The World — One Hi at a Time",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1024",
+  "theme_color": "#FFD166",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["social", "lifestyle", "wellness"],
+  "icons": [
+    {
+      "src": "assets/brand/hi-logo-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/brand/hi-logo-512.png", 
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/brand/hi-logo-512.png",
+      "sizes": "512x512", 
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "assets/screenshots/desktop-main.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Main Hi Collective experience on desktop"
+    },
+    {
+      "src": "assets/screenshots/mobile-main.png", 
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile Hi experience"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Give Yourself a Hi",
+      "short_name": "Hi Five",
+      "description": "Quick self-encouragement boost",
+      "url": "/",
+      "icons": [
+        {
+          "src": "assets/brand/hi-logo-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Hi Island",
+      "short_name": "Island", 
+      "description": "Community Hi sharing space",
+      "url": "/hi-island-NEW.html",
+      "icons": [
+        {
+          "src": "assets/brand/hi-logo-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Hi Muscle", 
+      "short_name": "Muscle",
+      "description": "Emotional fitness tracking",
+      "url": "/hi-muscle.html",
+      "icons": [
+        {
+          "src": "assets/brand/hi-logo-192.png", 
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+}
