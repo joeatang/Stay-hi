@@ -17,12 +17,19 @@
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
+  <!-- 🚀 Hi Flow Controller - Smart routing for welcome experience -->
+  <link rel="stylesheet" href="assets/hi-flow-controller.css">
+  <script src="assets/unified-membership-system.js"></script>
+  <script src="assets/hi-access-tiers.js"></script>
+  <script src="assets/hi-flow-controller.js"></script>
+
   <!-- 🌟 Tesla-Grade Smooth Redirects -->
   <script src="assets/tesla-smooth-redirect.js"></script>
 
   <link rel="stylesheet" href="assets/theme.css"/>
   <link rel="stylesheet" href="assets/create-parity.css"/>
   <link rel="stylesheet" href="assets/tesla-mobile-fixes.css">
+  <link rel="stylesheet" href="assets/tesla-edge-protection.css">
   <script src="assets/tesla-data-isolation.js"></script>
   
   <!-- PWA Manager -->
@@ -32,16 +39,17 @@
   <script type="module" src="assets/hi-rewards-beta.js"></script>
   <script type="module" src="assets/real-time-stats.js"></script>
   <style>
+    /* 🎯 GOLD-STANDARD WELCOME PAGE: Tesla-Grade Brand Design */
     body {
       background: linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #ffd166 100%);
       min-height: 100vh;
       margin: 0;
       font-family: var(--f-sans);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      /* FIXED: Proper mobile-first layout instead of flexbox centering */
+      padding: 20px 16px;
       overflow-x: hidden;
       position: relative;
+      box-sizing: border-box;
     }
     
     /* Tesla-grade background particles */
@@ -58,6 +66,7 @@
       z-index: 1;
     }
     
+    /* 🚀 GOLD-STANDARD WELCOME PANEL: Proper Hierarchy & Mobile-First */
     .welcome-panel {
       background: rgba(15, 16, 34, 0.85);
       border-radius: 28px;
@@ -65,18 +74,24 @@
         0 32px 80px rgba(0, 0, 0, 0.4),
         0 8px 32px rgba(255, 215, 0, 0.1),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
-      padding: 3rem 2.5rem 2.5rem 2.5rem;
-      max-width: 480px;
-      width: 90%;
+      /* FIXED: Responsive padding that ensures logo visibility */
+      padding: 1.5rem 1.25rem 2rem 1.25rem;
+      max-width: 400px;
+      /* FIXED: Proper responsive width without viewport issues */
+      width: 100%;
+      margin: 0 auto;
       backdrop-filter: blur(25px) saturate(1.4);
       -webkit-backdrop-filter: blur(25px) saturate(1.4);
-      border: 2px solid rgba(255, 215, 0, 0.2);
+      border: 1px solid rgba(255, 215, 0, 0.15);
       display: flex;
       flex-direction: column;
       align-items: center;
       position: relative;
       z-index: 2;
       animation: welcomeFloat 0.8s ease-out;
+      box-sizing: border-box;
+      /* CRITICAL: Ensure content fits in viewport */
+      min-height: auto;
     }
     
     @keyframes welcomeFloat {
@@ -90,15 +105,20 @@
       }
     }
     
+    /* 🎯 GOLD-STANDARD LOGO: Guaranteed Visibility */
     .welcome-logo {
-      width: 96px;
-      height: 96px;
+      width: 64px;  /* Optimized for mobile-first visibility */
+      height: 64px; 
       object-fit: contain;
-      margin-bottom: 1.2rem;
+      margin: 0.5rem 0 1rem 0; /* Reduced margins for mobile optimization */
       filter: 
-        drop-shadow(0 12px 28px rgba(255, 210, 102, 0.6))
-        drop-shadow(0 4px 16px rgba(255, 123, 24, 0.3));
+        drop-shadow(0 8px 20px rgba(255, 210, 102, 0.7))
+        drop-shadow(0 3px 12px rgba(255, 123, 24, 0.4));
       animation: logoGlow 3s ease-in-out infinite alternate;
+      position: relative;
+      z-index: 10;
+      /* CRITICAL: Ensure logo is always visible */
+      flex-shrink: 0;
     }
     
     @keyframes logoGlow {
@@ -114,18 +134,22 @@
       }
     }
     
+    /* 🎯 GOLD-STANDARD HEADLINE: Mobile-Optimized Hierarchy */
     .welcome-title {
-      font-size: clamp(1.8rem, 4vw, 2.5rem);
-      font-weight: 900;
+      font-size: clamp(1.25rem, 4vw, 1.8rem); /* Reduced for mobile visibility */
+      font-weight: 800;
       background: linear-gradient(135deg, #FFD166, #FF7B24);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       text-align: center;
-      margin: 0 0 0.8rem 0;
-      line-height: 1.1;
+      margin: 0 0 0.75rem 0; /* Tightened margins */
+      line-height: 1.15; /* Improved line height for readability */
       text-shadow: 0 4px 16px rgba(255, 123, 24, 0.3);
       position: relative;
+      letter-spacing: -0.02em;
+      /* CRITICAL: Ensure headline fits viewport */
+      flex-shrink: 0;
     }
     
     .welcome-title::after {
@@ -140,21 +164,25 @@
       border-radius: 2px;
     }
     
+    /* 🎯 GOLD-STANDARD VALUE PROP: Clear & Concise */
     .welcome-lead {
       color: rgba(255, 255, 255, 0.9);
       text-align: center;
-      margin: 0 0 2rem 0;
-      line-height: 1.5;
-      font-size: clamp(1rem, 2.5vw, 1.1rem);
+      margin: 0 0 1.25rem 0; /* Reduced margin for mobile */
+      line-height: 1.4; /* Optimized readability */
+      font-size: clamp(0.9rem, 2.5vw, 1rem); /* Mobile-optimized sizing */
       font-weight: 400;
+      flex-shrink: 0;
     }
     
+    /* 🎯 GOLD-STANDARD ACTIONS: Optimized Touch Targets */
     .welcome-actions {
       display: flex;
       flex-direction: column;
       width: 100%;
-      gap: 1rem;
-      margin-bottom: 2rem;
+      gap: 0.75rem; /* Tightened for mobile viewport */
+      margin-bottom: 1rem; /* Reduced bottom margin */
+      flex-shrink: 0;
     }
     
     .welcome-btn {
@@ -162,9 +190,11 @@
       border: none;
       border-radius: 20px;
       padding: 1.2rem 2rem;
+      min-height: 48px; /* Tesla-grade touch target */
+      min-width: 200px; /* Adequate button width */
       color: #000;
       font-weight: 800;
-      font-size: 1.1rem;
+      font-size: clamp(1rem, 2.5vw, 1.1rem); /* Responsive font sizing */
       text-decoration: none;
       text-align: center;
       transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -172,6 +202,8 @@
       overflow: hidden;
       box-shadow: 0 8px 32px rgba(255, 123, 24, 0.3);
       backdrop-filter: blur(10px);
+      box-sizing: border-box; /* Edge protection */
+      margin: 4px 0; /* Touch separation */
     }
     
     .welcome-btn::before {
@@ -206,6 +238,57 @@
     
     .welcome-btn:active {
       transform: translateY(-2px) scale(1.01);
+    }
+    
+    .welcome-btn.primary {
+      background: linear-gradient(135deg, #FF7B24, #FFD166);
+      color: #000;
+    }
+    
+    .welcome-btn.secondary {
+      background: linear-gradient(135deg, #2d1e4f, #667eea);
+      color: #fff;
+      font-size: 0.95rem;
+    }
+    
+    .welcome-btn.tertiary {
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 215, 102, 0.3);
+      color: #FFD166;
+      font-size: 0.9rem;
+      backdrop-filter: blur(10px);
+    }
+    
+    .welcome-btn.tertiary:hover {
+      background: rgba(255, 215, 102, 0.1);
+      border-color: #FFD166;
+    }
+    
+    .welcome-signin-link {
+      text-align: center;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .invite-code-section {
+      margin-top: 1.5rem;
+      padding: 1.5rem;
+      background: rgba(45, 30, 79, 0.3);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 215, 102, 0.2);
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .invite-input-container input:focus {
+      outline: none;
+      border-color: #FFD166;
+      box-shadow: 0 0 0 3px rgba(255, 215, 102, 0.2);
     }
     
     .welcome-stats {
@@ -246,37 +329,209 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-    @media (max-width: 500px) {
+    /* 🛡️ Tesla-grade mobile protection with consistent scaling */
+    @media (max-width: 320px) {
+      .welcome-panel { 
+        padding: 1.75rem 1.25rem; 
+        margin: 0.75rem; 
+        border-radius: 20px;
+        width: calc(100vw - 24px); /* Ultra-safe margins */
+        max-width: 340px; /* Consistent with desktop proportions */
+      }
+      .welcome-logo { 
+        width: 58px; /* Slightly larger for mobile prominence */
+        height: 58px;
+        margin-bottom: 1rem;
+      }
+    }
+    
+    @media (min-width: 321px) and (max-width: 480px) {
       .welcome-panel { 
         padding: 2rem 1.5rem; 
         margin: 1rem; 
         border-radius: 24px;
-        width: calc(100% - 2rem);
+        width: calc(100vw - 28px); /* Safe edge protection */
+        max-width: 380px; /* Consistent with desktop proportions */
       }
       .welcome-logo { 
-        width: 72px; 
-        height: 72px; 
+        width: 64px; /* Better mobile/tablet balance */
+        height: 64px;
+        margin-bottom: 1.2rem;
       }
+    }
+    
+    @media (min-width: 481px) and (max-width: 768px) {
+      .welcome-panel {
+        width: calc(100vw - 64px); /* Tablet comfort */
+        max-width: 420px; /* Maintain consistent proportions */
+      }
+      .welcome-logo {
+        width: 72px; /* Maintain logo prominence on tablets */
+        height: 72px;
+      }
+    }
+    
+    /* Desktop optimization for better proportions */
+    @media (min-width: 769px) {
+      .welcome-panel {
+        max-width: 420px; /* Consistent desktop size */
+        padding: 2.5rem 1.75rem 2rem 1.75rem;
+      }
+      .welcome-logo {
+        width: 76px; /* Slightly larger for desktop prominence */
+        height: 76px;
+      }
+    }
+    
+    /* 🚀 GOLD-STANDARD MOBILE: Critical Small Screen Optimizations */
+    @media (max-width: 480px) {
+      body {
+        padding: 10px 12px; /* Tighter mobile padding */
+      }
+      
+      .welcome-panel {
+        padding: 1.25rem 1rem 1.5rem 1rem; /* Optimized for small screens */
+        min-height: auto;
+        max-height: 95vh; /* Prevent viewport overflow */
+        overflow-y: auto; /* Allow scrolling if needed */
+      }
+      
+      .welcome-logo {
+        width: 56px; /* Smaller for mobile */
+        height: 56px;
+        margin: 0.25rem 0 0.75rem 0;
+      }
+      
+      .welcome-title {
+        font-size: clamp(1.1rem, 5vw, 1.4rem);
+        line-height: 1.1;
+        margin-bottom: 0.5rem;
+      }
+      
+      .welcome-lead {
+        font-size: clamp(0.85rem, 3vw, 0.95rem);
+        margin-bottom: 1rem;
+      }
+      
       .welcome-stats {
         grid-template-columns: 1fr 1fr;
         gap: 0.75rem;
         padding: 1rem;
       }
+      
       .welcome-btn {
-        padding: 1rem 1.5rem;
-        font-size: 1rem;
+        padding: 0.9rem 1.5rem;
+        font-size: 0.95rem;
+        min-height: 44px; /* Reduced for mobile */
       }
+      
       .stat-value {
         font-size: 1.5rem;
+      }
+      
+      .medallion-demo {
+        transform: scale(0.9); /* Slightly smaller on mobile */
+        margin: 0.75rem auto;
+      }
+    }
+    
+    /* 🎯 ULTRA-MOBILE: Emergency small screen protection */
+    @media (max-height: 700px) and (max-width: 400px) {
+      body {
+        padding: 8px;
+      }
+      
+      .welcome-panel {
+        padding: 1rem 0.875rem;
+        max-height: 98vh;
+      }
+      
+      .welcome-logo {
+        width: 48px;
+        height: 48px;
+        margin: 0.25rem 0 0.5rem 0;
+      }
+      
+      .welcome-title {
+        font-size: 1.1rem;
+        margin-bottom: 0.4rem;
+      }
+      
+      .welcome-lead {
+        font-size: 0.8rem;
+        margin-bottom: 0.8rem;
+      }
+      
+      .welcome-actions {
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+      }
+      
+      .welcome-btn {
+        padding: 0.8rem 1.25rem;
+        font-size: 0.9rem;
+        min-height: 40px;
+      }
+      
+      .medallion-demo {
+        transform: scale(0.8);
+        margin: 0.5rem auto;
       }
     }
     
     /* Reduced motion preferences */
+    /* 🎯 Hi Medallion Preview Styles */
+    .welcome-medallion-preview {
+      text-align: center;
+      margin: 1.5rem 0;
+      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      border: 2px dashed rgba(255, 215, 102, 0.3);
+    }
+    
+    .medallion-demo {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #FFD166, #FF7B24);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 32px rgba(255, 123, 24, 0.4);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .medallion-demo:hover {
+      transform: translateY(-4px) scale(1.05);
+      box-shadow: 0 16px 48px rgba(255, 123, 24, 0.6);
+    }
+    
+    .medallion-demo .hi-symbol {
+      font-size: 1.8rem;
+      margin-bottom: -4px;
+    }
+    
+    .medallion-demo .hi-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #000;
+    }
+    
+    .medallion-hint {
+      color: rgba(255, 215, 102, 0.8);
+      font-size: 0.9rem;
+      margin: 0.8rem 0 0 0;
+      font-weight: 500;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .welcome-panel,
       .welcome-logo,
       .welcome-btn,
-      .welcome-btn::before {
+      .welcome-btn::before,
+      .medallion-demo {
         animation: none;
         transition: none;
       }
@@ -289,15 +544,47 @@
 <body>
   <main class="welcome-panel">
     <img src="assets/brand/hi-logo-light.png" alt="Stay Hi" class="welcome-logo" />
-    <div class="welcome-title">Say Hi to <em style="font-style: italic; color: #FF7B24;">YOU</em></div>
+    <div class="welcome-title">Your forever companion for <br><em style="font-style: italic; color: #FF7B24;">loving yourself & the world</em></div>
     <div class="welcome-lead">
-      Choose your path. Join the <strong style="font-weight: 900; background: linear-gradient(135deg, #FFD166, #FF7B24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">#HIREVOLUTION</strong> or sign in to continue to<br>
-      <span style="font-size: 1.1em; font-weight: 600;">Help Inspire The World</span><br>
-      <em style="font-style: italic; opacity: 0.9;">One Hi at a time.</em>
+      <strong style="font-weight: 600; color: rgba(255, 255, 255, 0.95);">A simple tool to say hi to yourself for real</strong><br>
+      <span style="font-size: 0.95em; opacity: 0.9;">so you can really say hi to the world</span>
+    </div>
+    
+    <!-- 🎯 INSTANT SEROTONIN: Interactive Hi Medallion Preview -->
+    <div class="welcome-medallion-preview" id="welcomeMedallion">
+      <div class="medallion-demo hi-medal" style="margin: 1rem auto; cursor: pointer; transition: all 0.3s ease;">
+        <div class="hi-symbol">👋</div>
+        <div class="hi-label">Try it!</div>
+      </div>
+      <p class="medallion-hint">Click to feel the Hi energy ✨</p>
     </div>
     <div class="welcome-actions">
-      <a href="signup.html" class="welcome-btn">Sign Up</a>
-      <a href="signin.html" class="welcome-btn">Sign In</a>
+      <button class="welcome-btn primary" id="tryAnonymousBtn">✨ Experience Hi Anonymously</button>
+      <button class="welcome-btn secondary" id="joinCommunityBtn">🌟 Get Full Hi Access via Stan</button>
+      <button class="welcome-btn tertiary" id="haveCodeBtn">I have an invite code</button>
+      <div class="welcome-signin-link">
+        <span style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">Already a member? </span>
+        <a href="signin.html" style="color: #FFD166; text-decoration: none; font-weight: 600;">Sign in</a>
+      </div>
+    </div>
+    
+    <!-- 🎯 Contextual Invite Code Input (Hidden by default) -->
+    <div class="invite-code-section" id="inviteCodeSection" style="display: none;">
+      <div class="invite-input-container">
+        <label for="welcomeInviteCode" style="color: #FFD166; font-weight: 600; margin-bottom: 0.5rem; display: block;">Enter your invite code:</label>
+        <input type="text" id="welcomeInviteCode" placeholder="e.g. HIFRIEND24" style="
+          width: 100%; 
+          padding: 0.8rem; 
+          border-radius: 12px; 
+          border: 2px solid rgba(255, 215, 102, 0.3); 
+          background: rgba(255, 255, 255, 0.1); 
+          color: white; 
+          font-size: 1rem; 
+          text-align: center;
+          margin-bottom: 1rem;
+        ">
+        <button class="welcome-btn primary" id="continueWithCodeBtn">Continue with Code</button>
+      </div>
     </div>
     <div class="welcome-stats" id="welcomeStats">
       <div class="stat-item">
@@ -335,6 +622,9 @@
         
         if (session) {
           console.log('Welcome: User already authenticated, redirecting to main app');
+          // Mark that user is coming FROM welcome to prevent redirect loop
+          sessionStorage.setItem('from-welcome', 'true');
+          
           // Use Tesla smooth redirect if available
           if (window.teslaRedirect) {
             await window.teslaRedirect.redirectToMainApp();
@@ -441,19 +731,174 @@
     // Initialize fallback stats
     fetchStats();
     
-    // Listen for Hi button clicks to award rewards points
+    // 🎯 Hi-Grade Welcome Experience Interactions
     document.addEventListener('DOMContentLoaded', () => {
-      const hiButtons = document.querySelectorAll('.welcome-btn');
-      hiButtons.forEach(btn => {
-        if (btn.textContent.includes('Join') || btn.href?.includes('signup')) {
-          btn.addEventListener('click', () => {
-            // Trigger rewards point for signup interest
-            window.dispatchEvent(new CustomEvent('stats-update', {
-              detail: { type: 'signup_interest' }
-            }));
-          });
-        }
-      });
+      const medallionDemo = document.getElementById('welcomeMedallion');
+      const tryAnonymousBtn = document.getElementById('tryAnonymousBtn');
+      const joinBtn = document.getElementById('joinCommunityBtn');
+      const haveCodeBtn = document.getElementById('haveCodeBtn');
+      const inviteSection = document.getElementById('inviteCodeSection');
+      const continueWithCodeBtn = document.getElementById('continueWithCodeBtn');
+      const inviteInput = document.getElementById('welcomeInviteCode');
+      
+      let clickCount = 0;
+      
+      // 🎯 INSTANT SEROTONIN: Medallion Demo Click
+      if (medallionDemo) {
+        medallionDemo.addEventListener('click', () => {
+          clickCount++;
+          const medallion = medallionDemo.querySelector('.medallion-demo');
+          const hint = medallionDemo.querySelector('.medallion-hint');
+          
+          // Celebration animation
+          medallion.style.transform = 'translateY(-8px) scale(1.1)';
+          medallion.style.boxShadow = '0 20px 60px rgba(255, 123, 24, 0.8)';
+          
+          // Show celebration message
+          const celebrations = [
+            '✨ You felt the Hi energy!',
+            '🎉 That\'s the power of self-love!',
+            '💫 Ready to join the community?'
+          ];
+          
+          hint.textContent = celebrations[Math.min(clickCount - 1, celebrations.length - 1)];
+          hint.style.color = '#FFD166';
+          hint.style.fontWeight = '600';
+          
+          // Reset animation
+          setTimeout(() => {
+            medallion.style.transform = '';
+            medallion.style.boxShadow = '0 8px 32px rgba(255, 123, 24, 0.4)';
+          }, 300);
+          
+          // After 2 clicks, enhance both buttons
+          if (clickCount >= 2) {
+            // Make anonymous experience more prominent
+            tryAnonymousBtn.textContent = '🎯 Experience the Full Hi App!';
+            tryAnonymousBtn.style.background = 'linear-gradient(135deg, #FFD166, #FF7B24)';
+            tryAnonymousBtn.style.color = '#000';
+            tryAnonymousBtn.style.transform = 'scale(1.02)';
+            
+            // Also enhance join button
+            joinBtn.textContent = '💫 Join & Save Your Journey';
+            joinBtn.style.transform = 'scale(1.01)';
+          }
+        });
+      }
+      
+      // 🎯 Anonymous Experience Flow (PRIMARY for User 3)
+      if (tryAnonymousBtn) {
+        tryAnonymousBtn.addEventListener('click', () => {
+          // Mark as anonymous discovery session
+          localStorage.setItem('hi_discovery_mode', 'anonymous');
+          localStorage.setItem('hi_welcome_experienced', 'true');
+          
+          // Mark that user is coming FROM welcome to prevent redirect loop
+          sessionStorage.setItem('from-welcome', 'true');
+          
+          // Go to full app experience in anonymous mode
+          window.location.href = 'index.html?source=welcome';
+        });
+      }
+
+      // Join Community Flow (SECONDARY - Stan Integration Strategy)
+      if (joinBtn) {
+        joinBtn.addEventListener('click', () => {
+          // Track the interaction
+          if (window.hiAnalytics) {
+            window.hiAnalytics.trackEvent('join_community_clicked', {
+              medallion_interactions: clickCount,
+              source: 'welcome_page'
+            });
+          }
+          
+          // Stan Integration: Premium experience route
+          // This creates a conversion funnel: Hi App → Stan Newsletter → Hi Membership
+          window.location.href = 'https://stan.store/stayhi?utm_source=hi_app&utm_medium=welcome&utm_campaign=community_join';
+          
+          // Alternative: If we want to keep some users in-app for now
+          // We could show a modal explaining the Stan connection first:
+          /*
+          if (confirm('🌟 Hi membership comes with exclusive perks!\n\nJoin via Stan (our premium platform) for:\n• VIP Hi features\n• Direct creator access\n• Exclusive community benefits\n\nContinue to Stan?')) {
+            window.location.href = 'https://stan.store/stayhi?utm_source=hi_app';
+          }
+          */
+        });
+      }
+      
+      // Contextual Invite Code Flow
+      if (haveCodeBtn && inviteSection) {
+        haveCodeBtn.addEventListener('click', () => {
+          inviteSection.style.display = inviteSection.style.display === 'none' ? 'block' : 'none';
+          haveCodeBtn.textContent = inviteSection.style.display === 'block' ? 'Cancel' : 'I have an invite code';
+          
+          if (inviteSection.style.display === 'block') {
+            setTimeout(() => inviteInput.focus(), 100);
+          }
+        });
+      }
+      
+      // Continue with Code - Enhanced with Access Tier System
+      if (continueWithCodeBtn && inviteInput) {
+        continueWithCodeBtn.addEventListener('click', () => {
+          const code = inviteInput.value.trim();
+          if (code) {
+            // Validate and activate invite code through access tier system
+            if (window.hiAccessManager) {
+              const result = window.hiAccessManager.activateInviteCode(code);
+              
+              if (result.success) {
+                // Show success message with tier info
+                const tierName = result.tier.name;
+                const features = result.tier.hooks || [];
+                
+                // Create success message
+                let successMsg = `🎉 ${tierName} activated!\n`;
+                features.forEach(feature => successMsg += `• ${feature}\n`);
+                
+                // Show in UI (you could replace this with a proper modal)
+                alert(successMsg);
+                
+                // Redirect to appropriate experience
+                if (result.tier.level >= 2) {
+                  // Mark that user is coming FROM welcome to prevent redirect loop
+                  sessionStorage.setItem('from-welcome', 'true');
+                  
+                  // Explorer+ gets direct app access
+                  window.location.href = 'index.html?tier=activated&source=welcome';
+                } else {
+                  // Discovery gets guided signup
+                  window.location.href = `signup.html?code=${encodeURIComponent(code)}&source=welcome&tier=${result.tier.level}`;
+                }
+              } else {
+                // Invalid code
+                inviteInput.style.borderColor = '#ff6b6b';
+                inviteInput.style.background = 'rgba(255, 107, 107, 0.1)';
+                inviteInput.value = '';
+                inviteInput.placeholder = '❌ Invalid code - try again';
+                setTimeout(() => {
+                  inviteInput.style.borderColor = 'rgba(255, 215, 102, 0.3)';
+                  inviteInput.style.background = 'rgba(255, 255, 255, 0.1)';
+                  inviteInput.placeholder = 'e.g. HIFRIEND24';
+                }, 2000);
+              }
+            } else {
+              // Fallback to old system
+              window.location.href = `signup.html?code=${encodeURIComponent(code)}&source=welcome`;
+            }
+          } else {
+            inviteInput.style.borderColor = '#ff6b6b';
+            inviteInput.placeholder = 'Please enter your invite code';
+          }
+        });
+        
+        // Enter key support
+        inviteInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            continueWithCodeBtn.click();
+          }
+        });
+      }
     });
   </script>
 </body>
