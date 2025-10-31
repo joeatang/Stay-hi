@@ -252,7 +252,7 @@ class AnonymousAccessModal {
   async backAction() {
     // Go back to main app
     await this.hideModal();
-    window.location.href = '/index.html';
+    window.location.href = '/app';
   }
   
   async hideModal() {

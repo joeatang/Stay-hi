@@ -24,14 +24,15 @@
   ],
   
   "rewrites": [
+    { "source": "/", "destination": "/welcome.html" },
+    { "source": "/app", "destination": "/index.html" },
     { "source": "/welcome", "destination": "/welcome.html" },
     { "source": "/signin", "destination": "/signin.html" },
     { "source": "/signup", "destination": "/signup.html" },
     { "source": "/post-auth", "destination": "/post-auth.html" },
     { "source": "/profile", "destination": "/profile.html" },
     { "source": "/hi-island", "destination": "/hi-island-NEW.html" },
-    { "source": "/hi-muscle", "destination": "/hi-muscle.html" },
-    { "source": "/app", "destination": "/app.html" }
+    { "source": "/hi-muscle", "destination": "/hi-muscle.html" }
   ],
   
   "redirects": [

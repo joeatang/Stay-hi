@@ -5,76 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Stay Hi — Today</title>
 
-  <!-- 🚀 TESLA-GRADE FIRST-TIME VISITOR DETECTION -->
-  <script>
-    (function() {
-      // CRITICAL: Execute BEFORE any other scripts can pollute localStorage
-      console.log('🔍 Tesla First-Time Detection: Checking visitor status...');
-      
-      // Check ONLY user-generated activity indicators (not system-created cache)
-      const userActivityIndicators = [
-        'hi-usage-start',      // User started using Hi
-        'hi-anonymous-usage',  // User created anonymous Hi
-        'hiAccess',           // User access state
-        'hi_discovery_mode',  // User discovery interactions
-        'sb-access-token',    // User authentication token
-        'hiCounts',          // User's Hi counts
-        'hiHistory',         // User's Hi history
-        'hi.starts',         // Hi composer usage
-        'hi.queue',          // User's Hi queue
-        'hi_rewards_beta',   // User rewards data
-        'auth_return_to'     // User navigation state
-      ];
-      
-      // Check if ANY user activity exists
-      const hasUserActivity = userActivityIndicators.some(key => {
-        const value = localStorage.getItem(key);
-        console.log(`🔍 Checking ${key}: ${value ? 'FOUND' : 'none'}`);
-        return value !== null;
-      });
-      
-      // Check session storage for previous visit
-      const visitedBefore = sessionStorage.getItem('visited-before');
-      
-      // Check if coming from welcome page (return visitor)
-      const fromWelcome = sessionStorage.getItem('from-welcome');
-      
-      console.log('🎯 Tesla Detection Results:', {
-        hasUserActivity,
-        visitedBefore,
-        fromWelcome,
-        pathname: window.location.pathname,
-        search: window.location.search
-      });
-      
-      // TESLA-GRADE LOGIC: Redirect only true first-time visitors
-      if (!hasUserActivity && !visitedBefore && !fromWelcome && window.location.pathname === '/') {
-        console.log('🚀 TESLA REDIRECT: Confirmed first-time visitor -> welcome');
-        sessionStorage.setItem('visited-before', 'true');
-        
-        // CRITICAL: Prevent any other scripts from polluting localStorage during redirect
-        const originalSetItem = localStorage.setItem;
-        localStorage.setItem = function(key, value) {
-          console.log(`🚫 BLOCKED localStorage.setItem during redirect: ${key}`);
-          return; // Block all localStorage writes during redirect
-        };
-        
-        // Prevent any other scripts from executing during redirect
-        window.addEventListener('beforeunload', () => {
-          console.log('🔄 Tesla redirect in progress...');
-        });
-        
-        // Immediate redirect without allowing other script execution
-        setTimeout(() => {
-          window.location.replace('/welcome.html');
-        }, 0);
-        
-        return; // Stop execution
-      }
-      
-      console.log('✅ Tesla Detection: Returning user or non-root path, continuing to app');
-    })();
-  </script>
+  <!-- 🚀 TESLA-GRADE APP ACCESS - Direct main app experience -->
 
   <!-- Preload Supabase CDN for instant client init -->
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">

@@ -629,7 +629,7 @@
           if (window.teslaRedirect) {
             await window.teslaRedirect.redirectToMainApp();
           } else {
-            window.location.replace('index.html');
+            window.location.replace('/app');
           }
         }
       } catch (error) {
@@ -797,7 +797,7 @@
           sessionStorage.setItem('from-welcome', 'true');
           
           // Go to full app experience in anonymous mode
-          window.location.href = 'index.html?source=welcome';
+          window.location.href = '/app?source=welcome';
         });
       }
 
@@ -865,7 +865,7 @@
                   sessionStorage.setItem('from-welcome', 'true');
                   
                   // Explorer+ gets direct app access
-                  window.location.href = 'index.html?tier=activated&source=welcome';
+                  window.location.href = '/app?tier=activated&source=welcome';
                 } else {
                   // Discovery gets guided signup
                   window.location.href = `signup.html?code=${encodeURIComponent(code)}&source=welcome&tier=${result.tier.level}`;
