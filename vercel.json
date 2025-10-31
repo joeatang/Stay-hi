@@ -36,11 +36,6 @@
   
   "redirects": [
     {
-      "source": "/",
-      "destination": "/welcome",
-      "permanent": false
-    },
-    {
       "source": "/hi-island.html", 
       "destination": "/hi-island",
       "permanent": true
