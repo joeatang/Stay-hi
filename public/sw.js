@@ -89,13 +89,25 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - Tesla-grade caching strategy without redirect conflicts
 self.addEventListener('fetch', event => {
-  const { request } = event;
+  const request = event.request;
   const url = new URL(request.url);
   
   // Skip non-GET requests
   if (request.method !== 'GET') {
+    return;
+  }
+  
+  // 🚀 TESLA-GRADE FIX: Skip ALL navigation requests to avoid redirect conflicts
+  // This prevents "Response served by service worker has redirections" on mobile Safari
+  if (request.destination === 'document' || request.mode === 'navigate') {
+    console.log('[SW] Bypassing navigation request to prevent redirect conflicts:', url.pathname);
+    return; // Let browser handle navigation naturally - no event.respondWith()
+  }
+  
+  // Skip cross-origin requests (except Supabase CDN)  
+  if (url.origin !== self.location.origin && !url.hostname.includes('supabase')) {
     return;
   }
   
@@ -104,19 +116,10 @@ self.addEventListener('fetch', event => {
     return;
   }
   
-  // Handle different types of requests
-  if (APP_SHELL_FILES.includes(url.pathname) || url.pathname === '/') {
-    // App shell: Cache first, fallback to network
+  // Only handle static assets (CSS, JS, images) - never HTML pages
+  if (url.pathname.includes('/assets/') || 
+      url.pathname.match(/\.(css|js|png|jpg|jpeg|svg|woff|woff2)$/)) {
     event.respondWith(cacheFirst(request));
-  } else if (url.pathname.includes('/assets/')) {
-    // Static assets: Cache first
-    event.respondWith(cacheFirst(request));
-  } else if (url.pathname.endsWith('.html')) {
-    // HTML pages: Network first, fallback to cache
-    event.respondWith(networkFirst(request));
-  } else {
-    // Everything else: Network first
-    event.respondWith(networkFirst(request));
   }
 });
 
