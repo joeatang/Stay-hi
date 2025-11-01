@@ -302,11 +302,8 @@
           return false;
         }
         
-        console.log('🌊 Tracking Hi wave with params:', { user_uuid: userUuid, share_data: shareData });
-        const result = await supabase.rpc('increment_hi_wave', { 
-          user_uuid: userUuid,
-          share_data: shareData 
-        });
+        console.log('🌊 Tracking Hi wave (surgical - no params)');
+        const result = await supabase.rpc('increment_hi_wave');
         
         console.log('📊 RPC increment_hi_wave result:', result);
         
