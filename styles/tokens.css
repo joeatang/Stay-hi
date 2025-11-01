@@ -1,0 +1,137 @@
+/**
+ * 🎨 Hi App Design Token System
+ * Tesla-Grade Design Foundation
+ * 
+ * This file defines all design tokens used throughout the Hi App.
+ * All components should reference these tokens instead of hard-coded values.
+ */
+
+:root {
+  /* 🧭 Primary Hi Brand Colors */
+  --hi-orange: #FF7A18;
+  --hi-orange-2: #FFD166;
+  --hi-orange-3: #FFF3CD;
+  --hi-teal: #20D4D4;
+  --hi-teal-2: #17A2B8;
+  --hi-purple: #6F42C1;
+  --hi-purple-dark: #2D1E4F;
+  
+  /* 🌈 Tesla Palette */
+  --tesla-red: #E31837;
+  --tesla-blue: #3498DB;
+  --tesla-white: #FFFFFF;
+  --tesla-black: #000000;
+  --tesla-gray: #393C41;
+  --tesla-light-gray: #F5F5F5;
+  
+  /* 📝 Text Colors */
+  --hi-text-primary: #333333;
+  --hi-text-secondary: #666666;
+  --hi-text-muted: #777777;
+  --hi-text-light: #999999;
+  --hi-text-white: #FFFFFF;
+  --hi-text-success: #28A745;
+  --hi-text-warning: #FFC107;
+  --hi-text-danger: #DC3545;
+  
+  /* 🎭 Glass Morphism Effects */
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-bg-light: rgba(255, 255, 255, 0.1);
+  --glass-bg-medium: rgba(255, 255, 255, 0.2);
+  --glass-bg-strong: rgba(255, 255, 255, 0.25);
+  --glass-bg-dark: rgba(0, 0, 0, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-backdrop: rgba(0, 0, 0, 0.5);
+  --glass-blur: blur(20px);
+  --glass-text: rgba(255, 255, 255, 0.95);
+  --glass-text-muted: rgba(255, 255, 255, 0.7);
+  
+  /* 📏 Spacing System (8px base) */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+  
+  /* 🔄 Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 50%;
+  
+  /* ⚡ Transitions */
+  --transition-fast: 0.15s ease-out;
+  --transition-normal: 0.3s ease-out;
+  --transition-slow: 0.5s ease-out;
+  --transition-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  /* 🎯 Z-Index Scale */
+  --z-behind: -1;
+  --z-base: 0;
+  --z-raised: 10;
+  --z-overlay: 100;
+  --z-modal: 1000;
+  --z-popover: 1100;
+  --z-tooltip: 1200;
+  --z-top: 9999;
+  
+  /* 🌟 Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 25px 50px rgba(0, 0, 0, 0.25);
+  --shadow-premium: 0 20px 40px rgba(255, 122, 24, 0.2);
+  --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.37);
+  
+  /* 🎨 Gradients */
+  --gradient-primary: linear-gradient(135deg, var(--hi-teal) 0%, var(--hi-teal-2) 100%);
+  --gradient-premium: linear-gradient(135deg, var(--hi-orange) 0%, var(--hi-orange-2) 100%);
+  --gradient-glass: linear-gradient(135deg, var(--glass-bg-light) 0%, var(--glass-bg-medium) 100%);
+  --gradient-background: linear-gradient(135deg, var(--hi-purple-dark) 0%, var(--hi-orange) 60%, var(--hi-orange-2) 100%);
+  
+  /* 📱 Component Specific Tokens */
+  
+  /* Footer */
+  --footer-bg: var(--glass-bg-medium);
+  --footer-border: var(--glass-border);
+  --footer-backdrop-filter: blur(20px);
+  --footer-tab-indicator: var(--hi-orange-2);
+  
+  /* Modal */
+  --modal-backdrop: var(--glass-backdrop);
+  --modal-bg: var(--glass-bg-light);
+  --modal-border: var(--glass-border);
+  --modal-title-color: var(--hi-orange-2);
+  
+  /* Share Sheet */
+  --share-bg: var(--glass-bg-light);
+  --share-border: var(--glass-border);
+  --share-textarea-bg: var(--glass-bg-dark);
+}
+
+/* 🎯 Dark Mode Support (Future Enhancement) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --hi-text-primary: #FFFFFF;
+    --hi-text-secondary: #CCCCCC;
+    --hi-text-muted: #999999;
+    --glass-bg-light: rgba(255, 255, 255, 0.05);
+    --glass-bg-medium: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* 🔧 Print Styles */
+@media print {
+  :root {
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+    --shadow-xl: none;
+    --shadow-premium: none;
+    --shadow-glass: none;
+  }
+}
