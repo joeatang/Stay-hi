@@ -33,18 +33,18 @@
   <!-- Premium CSS Integration -->
   <link rel="preload" href="assets/premium-ux.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" href="assets/premium-calendar.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" href="assets/premium-footer.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" href="styles/modal-base.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="../ui/HiFooter/HiFooter.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="../ui/HiModal/HiModal.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   
   <!-- Hi Share Sheet Component -->
-  <link rel="preload" href="components/hi-share-sheet/share-sheet.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="../ui/HiShareSheet/HiShareSheet.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   
   <noscript>
     <link rel="stylesheet" href="assets/premium-ux.css">
     <link rel="stylesheet" href="assets/premium-calendar.css">
-    <link rel="stylesheet" href="assets/premium-footer.css">
-    <link rel="stylesheet" href="styles/modal-base.css">
-    <link rel="stylesheet" href="components/hi-share-sheet/share-sheet.css">
+    <link rel="stylesheet" href="../ui/HiFooter/HiFooter.css">
+    <link rel="stylesheet" href="../ui/HiModal/HiModal.css">
+    <link rel="stylesheet" href="../ui/HiShareSheet/HiShareSheet.css">
   </noscript>
 
   <style>
@@ -1388,11 +1388,11 @@
   <!-- Premium Component Scripts -->
   <script src="assets/premium-ux.js"></script>
   <script src="assets/premium-calendar.js"></script>
-  <script src="assets/premium-footer.js" defer></script>
+  <script src="../ui/HiFooter/HiFooter.js" defer></script>
   
   <!-- Hi Share Sheet Component -->
   <script type="module">
-    import { HiShareSheet } from './components/hi-share-sheet/share-sheet.js';
+    import { HiShareSheet } from '../ui/HiShareSheet/HiShareSheet.js';
     
     // Initialize Hi Share Sheet for dashboard hi5 functionality
     document.addEventListener('DOMContentLoaded', () => {
