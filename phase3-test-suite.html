@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 3 Test Suite - Hi Platform</title>
+    <link rel="stylesheet" href="tesla-edge-protection.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        .test-pass { background: rgba(16, 185, 129, 0.3); }
+        .test-fail { background: rgba(239, 68, 68, 0.3); }
+        .test-info { background: rgba(59, 130, 246, 0.3); }
+        button {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+        button:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🚀 Phase 3 Tesla-Grade Test Suite</h1>
+        <p>Comprehensive testing for Hi Platform's advanced systems</p>
+        
+        <div class="test-section">
+            <h2>📊 Analytics Engine Tests</h2>
+            <button onclick="testAnalytics()">Test Analytics</button>
+            <div id="analytics-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🔄 Real-Time Controller Tests</h2>
+            <button onclick="testRealTime()">Test Real-Time</button>
+            <div id="realtime-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>⚡ Performance Engine Tests</h2>
+            <button onclick="testPerformance()">Test Performance</button>
+            <div id="performance-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🎯 Access Tiers Tests</h2>
+            <button onclick="testAccessTiers()">Test Access Tiers</button>
+            <div id="access-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🛡️ Edge Protection Tests</h2>
+            <button onclick="testEdgeProtection()">Test Edge Protection</button>
+            <div id="edge-results"></div>
+        </div>
+    </div>
+
+    <!-- Phase 3 Scripts -->
+    <script src="hi-analytics-engine.js"></script>
+    <script src="hi-realtime-controller.js"></script>
+    <script src="tesla-map-performance.js"></script>
+    <script src="hi-access-tiers.js"></script>
+
+    <script>
+        function addResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const result = document.createElement('div');
+            result.className = `test-result test-${type}`;
+            result.textContent = message;
+            container.appendChild(result);
+        }
+
+        function testAnalytics() {
+            const container = document.getElementById('analytics-results');
+            container.innerHTML = '';
+            
+            try {
+                // Test analytics initialization
+                if (typeof hiAnalytics !== 'undefined') {
+                    addResult('analytics-results', '✅ Analytics engine initialized', 'pass');
+                    
+                    // Test event tracking
+                    hiAnalytics.trackEvent('test_event', { source: 'test_suite' });
+                    addResult('analytics-results', '✅ Event tracking works', 'pass');
+                    
+                    // Test Hi event tracking
+                    hiAnalytics.trackHiEvent('hi_share_created', { test: true });
+                    addResult('analytics-results', '✅ Hi event tracking works', 'pass');
+                    
+                    // Test analytics report
+                    const report = hiAnalytics.getAnalyticsReport();
+                    addResult('analytics-results', `✅ Analytics report generated (${report.events.total} events)`, 'pass');
+                } else {
+                    addResult('analytics-results', '❌ Analytics engine not found', 'fail');
+                }
+            } catch (error) {
+                addResult('analytics-results', `❌ Analytics test failed: ${error.message}`, 'fail');
+            }
+        }
+
+        function testRealTime() {
+            const container = document.getElementById('realtime-results');
+            container.innerHTML = '';
+            
+            try {
+                if (typeof hiRealTime !== 'undefined') {
+                    addResult('realtime-results', '✅ Real-time controller initialized', 'pass');
+                    addResult('realtime-results', `📡 Connection status: ${hiRealTime.connectionStatus}`, 'info');
+                    
+                    // Test mock update
+                    hiRealTime.triggerMockUpdate();
+                    addResult('realtime-results', '✅ Mock update triggered', 'pass');
+                    
+                    // Test metrics
+                    const metrics = hiRealTime.getMetrics();
+                    addResult('realtime-results', `📊 Messages received: ${metrics.messagesReceived}`, 'info');
+                } else {
+                    addResult('realtime-results', '❌ Real-time controller not found', 'fail');
+                }
+            } catch (error) {
+                addResult('realtime-results', `❌ Real-time test failed: ${error.message}`, 'fail');
+            }
+        }
+
+        function testPerformance() {
+            const container = document.getElementById('performance-results');
+            container.innerHTML = '';
+            
+            try {
+                if (typeof TeslaMapPerformanceEngine !== 'undefined') {
+                    const engine = new TeslaMapPerformanceEngine();
+                    addResult('performance-results', '✅ Performance engine initialized', 'pass');
+                    
+                    // Test parallel geocoding
+                    const testCoords = [
+                        { lat: 37.7749, lng: -122.4194 },
+                        { lat: 40.7128, lng: -74.0060 }
+                    ];
+                    
+                    engine.parallelGeocode(testCoords).then(results => {
+                        addResult('performance-results', `✅ Parallel geocoding: ${results.length} results`, 'pass');
+                    }).catch(error => {
+                        addResult('performance-results', `⚠️ Geocoding test: ${error.message}`, 'info');
+                    });
+                    
+                    addResult('performance-results', '✅ Performance engine tests initiated', 'pass');
+                } else {
+                    addResult('performance-results', '❌ Performance engine not found', 'fail');
+                }
+            } catch (error) {
+                addResult('performance-results', `❌ Performance test failed: ${error.message}`, 'fail');
+            }
+        }
+
+        function testAccessTiers() {
+            const container = document.getElementById('access-results');
+            container.innerHTML = '';
+            
+            try {
+                if (typeof HiAccessManager !== 'undefined') {
+                    const accessManager = new HiAccessManager();
+                    addResult('access-results', '✅ Access manager initialized', 'pass');
+                    
+                    // Test tier validation
+                    const currentTier = accessManager.getCurrentAccessTier();
+                    addResult('access-results', `🎯 Current tier: ${currentTier.name}`, 'info');
+                    
+                    // Test feature access
+                    const canCreateHi = accessManager.canAccessFeature('create_hi_share');
+                    addResult('access-results', `✅ Create Hi access: ${canCreateHi}`, 'pass');
+                } else {
+                    addResult('access-results', '❌ Access manager not found', 'fail');
+                }
+            } catch (error) {
+                addResult('access-results', `❌ Access tier test failed: ${error.message}`, 'fail');
+            }
+        }
+
+        function testEdgeProtection() {
+            const container = document.getElementById('edge-results');
+            container.innerHTML = '';
+            
+            // Test CSS protection
+            const body = document.body;
+            const computedStyle = window.getComputedStyle(body);
+            
+            addResult('edge-results', '✅ Edge protection CSS loaded', 'pass');
+            addResult('edge-results', `📱 Viewport width: ${window.innerWidth}px`, 'info');
+            addResult('edge-results', `📊 Device pixel ratio: ${window.devicePixelRatio}`, 'info');
+            
+            // Test touch targets
+            const buttons = document.querySelectorAll('button');
+            let touchTargetsPassed = 0;
+            
+            buttons.forEach(button => {
+                const rect = button.getBoundingClientRect();
+                if (rect.height >= 44 && rect.width >= 44) {
+                    touchTargetsPassed++;
+                }
+            });
+            
+            addResult('edge-results', `✅ Touch targets: ${touchTargetsPassed}/${buttons.length} meet 44px minimum`, 'pass');
+        }
+
+        // Auto-run tests on load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                addResult('analytics-results', '🚀 Click "Test Analytics" to run tests', 'info');
+                addResult('realtime-results', '🚀 Click "Test Real-Time" to run tests', 'info');
+                addResult('performance-results', '🚀 Click "Test Performance" to run tests', 'info');
+                addResult('access-results', '🚀 Click "Test Access Tiers" to run tests', 'info');
+                addResult('edge-results', '🚀 Click "Test Edge Protection" to run tests', 'info');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

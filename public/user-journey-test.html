@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXACT User Journey Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #0F0F23;
+            color: white;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .step {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #4ECDC4;
+        }
+        .result {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        button {
+            background: #4ECDC4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        input {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 4px;
+            margin: 5px;
+        }
+        .error { color: #ef4444; }
+        .success { color: #22c55e; }
+        .warning { color: #fbbf24; }
+    </style>
+</head>
+<body>
+    <h1>🔬 EXACT User Journey Replication</h1>
+    <p>This will replicate EXACTLY what a user experiences when they try to sign in.</p>
+
+    <div class="step">
+        <h3>Step 1: Load Current Signin Page in iframe</h3>
+        <button onclick="loadSigninPage()">Load signin.html</button>
+        <div id="loadResult" class="result"></div>
+        <iframe id="signinFrame" src="" width="100%" height="400" style="display:none; border: 1px solid #333;"></iframe>
+    </div>
+
+    <div class="step">
+        <h3>Step 2: Simulate User Entering Email</h3>
+        <input type="email" id="testEmail" value="user@gmail.com" placeholder="Email to test">
+        <button onclick="simulateEmailEntry()">Enter Email in Signin Form</button>
+        <div id="emailResult" class="result"></div>
+    </div>
+
+    <div class="step">
+        <h3>Step 3: Simulate Clicking Send Magic Link</h3>
+        <button onclick="simulateSubmit()">Click Send Magic Link Button</button>
+        <div id="submitResult" class="result"></div>
+    </div>
+
+    <div class="step">
+        <h3>Step 4: Monitor Network Requests</h3>
+        <button onclick="monitorRequests()">Start Request Monitor</button>
+        <div id="networkResult" class="result"></div>
+    </div>
+
+    <div class="step">
+        <h3>Step 5: Check What User Actually Sees</h3>
+        <button onclick="checkUserExperience()">Analyze User Experience</button>
+        <div id="experienceResult" class="result"></div>
+    </div>
+
+    <script>
+        let requestLog = [];
+        let originalFetch = window.fetch;
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            console.log(`[${timestamp}] ${message}`);
+            return `[${timestamp}] ${message}`;
+        }
+
+        function loadSigninPage() {
+            const frame = document.getElementById('signinFrame');
+            const result = document.getElementById('loadResult');
+            
+            result.textContent = log('Loading signin.html...', 'warning');
+            
+            frame.src = '/signin.html';
+            frame.style.display = 'block';
+            
+            frame.onload = () => {
+                result.textContent = log('✅ Signin page loaded successfully');
+                result.className = 'result success';
+            };
+            
+            frame.onerror = () => {
+                result.textContent = log('❌ Failed to load signin page');
+                result.className = 'result error';
+            };
+        }
+
+        function simulateEmailEntry() {
+            const email = document.getElementById('testEmail').value;
+            const result = document.getElementById('emailResult');
+            const frame = document.getElementById('signinFrame');
+            
+            try {
+                result.textContent = log(`Attempting to enter email: ${email}...`);
+                
+                // Access the iframe's content
+                const frameDoc = frame.contentDocument || frame.contentWindow.document;
+                const emailInput = frameDoc.getElementById('email');
+                
+                if (emailInput) {
+                    emailInput.value = email;
+                    emailInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    result.textContent = log(`✅ Email entered successfully: ${email}`);
+                    result.className = 'result success';
+                } else {
+                    result.textContent = log('❌ Could not find email input field');
+                    result.className = 'result error';
+                }
+            } catch (error) {
+                result.textContent = log(`❌ Error entering email: ${error.message}`);
+                result.className = 'result error';
+            }
+        }
+
+        function simulateSubmit() {
+            const result = document.getElementById('submitResult');
+            const frame = document.getElementById('signinFrame');
+            
+            try {
+                result.textContent = log('Attempting to click submit button...');
+                
+                const frameDoc = frame.contentDocument || frame.contentWindow.document;
+                const submitBtn = frameDoc.getElementById('send');
+                
+                if (submitBtn) {
+                    // Monitor for any error displays
+                    const errorDiv = frameDoc.getElementById('err');
+                    const successDiv = frameDoc.getElementById('success');
+                    
+                    // Set up monitoring
+                    let checkCount = 0;
+                    const checkInterval = setInterval(() => {
+                        checkCount++;
+                        let status = '';
+                        
+                        if (errorDiv && errorDiv.style.display !== 'none' && errorDiv.textContent.trim()) {
+                            status = `❌ ERROR DISPLAYED: "${errorDiv.textContent}"`;
+                            clearInterval(checkInterval);
+                        } else if (successDiv && successDiv.style.display !== 'none' && successDiv.textContent.trim()) {
+                            status = `✅ SUCCESS DISPLAYED: "${successDiv.textContent}"`;
+                            clearInterval(checkInterval);
+                        } else if (checkCount > 50) { // 5 seconds
+                            status = '⏰ No response detected after 5 seconds';
+                            clearInterval(checkInterval);
+                        } else {
+                            status = `⏳ Waiting for response... (${checkCount/10}s)`;
+                        }
+                        
+                        result.textContent = log(status);
+                        result.className = status.includes('ERROR') ? 'result error' : 
+                                         status.includes('SUCCESS') ? 'result success' : 'result';
+                    }, 100);
+                    
+                    // Click the button
+                    submitBtn.click();
+                    result.textContent = log('🖱️ Submit button clicked, monitoring response...');
+                    
+                } else {
+                    result.textContent = log('❌ Could not find submit button');
+                    result.className = 'result error';
+                }
+            } catch (error) {
+                result.textContent = log(`❌ Error clicking submit: ${error.message}`);
+                result.className = 'result error';
+            }
+        }
+
+        function monitorRequests() {
+            const result = document.getElementById('networkResult');
+            requestLog = [];
+            
+            result.textContent = log('🔍 Starting network request monitoring...');
+            
+            // Override fetch to monitor API calls
+            window.fetch = function(...args) {
+                const url = args[0];
+                const options = args[1] || {};
+                
+                requestLog.push({
+                    url: url,
+                    method: options.method || 'GET',
+                    timestamp: new Date().toISOString(),
+                    body: options.body
+                });
+                
+                return originalFetch.apply(this, args).then(response => {
+                    requestLog[requestLog.length - 1].status = response.status;
+                    requestLog[requestLog.length - 1].statusText = response.statusText;
+                    
+                    // Update display
+                    const logText = requestLog.map(req => 
+                        `${req.method} ${req.url} → ${req.status} ${req.statusText}`
+                    ).join('\n');
+                    result.textContent = log(`Network requests:\n${logText}`);
+                    
+                    return response;
+                }).catch(error => {
+                    requestLog[requestLog.length - 1].error = error.message;
+                    
+                    const logText = requestLog.map(req => 
+                        `${req.method} ${req.url} → ${req.error || req.status + ' ' + req.statusText}`
+                    ).join('\n');
+                    result.textContent = log(`Network requests:\n${logText}`);
+                    result.className = 'result error';
+                    
+                    throw error;
+                });
+            };
+            
+            result.className = 'result success';
+        }
+
+        function checkUserExperience() {
+            const result = document.getElementById('experienceResult');
+            const frame = document.getElementById('signinFrame');
+            
+            try {
+                result.textContent = log('🔍 Analyzing current user experience...');
+                
+                const frameDoc = frame.contentDocument || frame.contentWindow.document;
+                
+                // Check all possible error/success displays
+                const errorDiv = frameDoc.getElementById('err');
+                const successDiv = frameDoc.getElementById('success');
+                const emailInput = frameDoc.getElementById('email');
+                const submitBtn = frameDoc.getElementById('send');
+                
+                let analysis = 'Current page state:\n';
+                
+                if (emailInput) {
+                    analysis += `• Email input value: "${emailInput.value}"\n`;
+                }
+                
+                if (submitBtn) {
+                    analysis += `• Submit button text: "${submitBtn.textContent}"\n`;
+                    analysis += `• Submit button disabled: ${submitBtn.disabled}\n`;
+                }
+                
+                if (errorDiv) {
+                    analysis += `• Error div visible: ${errorDiv.style.display !== 'none'}\n`;
+                    analysis += `• Error div content: "${errorDiv.textContent}"\n`;
+                }
+                
+                if (successDiv) {
+                    analysis += `• Success div visible: ${successDiv.style.display !== 'none'}\n`;
+                    analysis += `• Success div content: "${successDiv.textContent}"\n`;
+                }
+                
+                analysis += `\nPage URL: ${frameDoc.URL}\n`;
+                analysis += `Page title: ${frameDoc.title}\n`;
+                
+                if (requestLog.length > 0) {
+                    analysis += '\nNetwork activity:\n';
+                    requestLog.forEach(req => {
+                        analysis += `• ${req.method} ${req.url} → ${req.status || req.error}\n`;
+                    });
+                }
+                
+                result.textContent = log(analysis);
+                result.className = 'result';
+                
+            } catch (error) {
+                result.textContent = log(`❌ Error analyzing experience: ${error.message}`);
+                result.className = 'result error';
+            }
+        }
+
+        // Auto-start monitoring on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(monitorRequests, 500);
+        });
+    </script>
+</body>
+</html>

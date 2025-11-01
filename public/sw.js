@@ -25,7 +25,7 @@ const APP_SHELL_FILES = [
   // Core scripts
   '/assets/supabase-init.js',
   '/assets/auth-guard.js',
-  '/assets/tesla-smooth-redirect.js',
+  // '/assets/tesla-smooth-redirect.js', // File removed
   '/assets/tesla-instant-auth.js',
   '/assets/db.js',
   '/assets/header.js',

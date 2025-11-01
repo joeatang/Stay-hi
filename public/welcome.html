@@ -22,9 +22,10 @@
   <script src="assets/unified-membership-system.js"></script>
   <script src="assets/hi-access-tiers.js"></script>
   <script src="assets/hi-flow-controller.js"></script>
-
-  <!-- 🌟 Tesla-Grade Smooth Redirects -->
-  <script src="assets/tesla-smooth-redirect.js"></script>
+  
+  <!-- 🎬 Tesla-Grade Loading Experience V2.0 -->
+  <link rel="stylesheet" href="assets/hi-loading-experience.css">
+  <script src="assets/hi-loading-experience.js"></script>
 
   <link rel="stylesheet" href="assets/theme.css"/>
   <link rel="stylesheet" href="assets/create-parity.css"/>
@@ -34,6 +35,9 @@
   
   <!-- PWA Manager -->
   <script src="assets/pwa-manager.js"></script>
+  
+  <!-- Hi Anonymous Onboarding System -->
+  <script src="assets/hi-anonymous-onboarding.js"></script>
   
   <!-- Beta Systems -->
   <script type="module" src="assets/hi-rewards-beta.js"></script>
@@ -606,13 +610,13 @@
   <script src="assets/supabase-init.js"></script>
   <script src="assets/db.js"></script>
   
-  <!-- Authentication Redirect Logic -->
+  <!-- 🎬 TESLA-GRADE LOADING EXPERIENCE V2.0 -->
   <script>
-    // Check if user is already authenticated and redirect to main app
-    async function checkAuthAndRedirect() {
+    // Tesla-grade auth check with beautiful loading experience
+    async function checkAuthWithLoadingExperience() {
       try {
         const supa = getSupabase();
-        if (!supa) return; // Supabase not available, stay on welcome
+        if (!supa) return;
         
         const { data: { session }, error } = await supa.auth.getSession();
         if (error) {
@@ -621,27 +625,23 @@
         }
         
         if (session) {
-          console.log('Welcome: User already authenticated, redirecting to main app');
-          // Mark that user is coming FROM welcome to prevent redirect loop
+          console.log('Welcome: User authenticated - starting loading experience');
           sessionStorage.setItem('from-welcome', 'true');
           
-          // Use Tesla smooth redirect if available
-          if (window.teslaRedirect) {
-            await window.teslaRedirect.redirectToMainApp();
-          } else {
-            window.location.replace('/app');
-          }
+          // Start Tesla-grade loading experience
+          await window.hiLoadingExperience.start('Welcome back! Loading your Hi space...');
+          
+          // Navigate after beautiful experience
+          window.location.replace('/hi-dashboard.html');
         }
       } catch (error) {
         console.log('Welcome: Auth check failed:', error);
-        // Stay on welcome page if auth check fails
       }
     }
     
-    // Run auth check when Supabase is ready
+    // Initialize when ready
     document.addEventListener('DOMContentLoaded', () => {
-      // Wait a bit for supabase to initialize
-      setTimeout(checkAuthAndRedirect, 500);
+      setTimeout(checkAuthWithLoadingExperience, 500);
     });
   </script>
   
@@ -679,44 +679,27 @@
             console.log('✅ Real stats displayed - Real-Time system will take over');
             return; // Success - exit early
           } else {
-            console.warn('⚠️ RPC call failed:', error);
+            console.error('❌ RPC call failed:', error);
           }
         }
         
-        // 🔄 Fallback: Try localStorage data if Supabase unavailable
-        console.log('⚠️ Supabase unavailable, checking localStorage for real data...');
+        // � NO FALLBACKS - Use unified stats system for consistency
+        console.error('❌ CRITICAL: Supabase RPC failed - using unified stats system');
         
-        try {
-          const hiTotal = localStorage.getItem('hi_total') || '0';
-          const generalShares = JSON.parse(localStorage.getItem('hi_general_shares') || '[]');
+        // Let unified stats handle error and ensure consistency across devices
+        if (window.updateGlobalStats) {
+          console.log('🔄 Delegating to unified global stats system');
+          window.updateGlobalStats();
+        } else {
+          console.error('❌ Unified stats system not loaded - showing loading state');
           
-          const fallbackStats = {
-            totalHis: parseInt(hiTotal) || 0,
-            globalWaves: generalShares.length || 0
-          };
-          
-          console.log('✅ Using real localStorage data as fallback:', fallbackStats);
-          
-          Object.keys(fallbackStats).forEach(key => {
-            const element = document.getElementById(key);
+          // Show loading state instead of fallback data
+          const elements = ['totalHis', 'globalWaves'];
+          elements.forEach(id => {
+            const element = document.getElementById(id);
             if (element) {
-              element.textContent = fallbackStats[key].toLocaleString();
-            }
-          });
-          
-        } catch (localError) {
-          console.warn('⚠️ localStorage fallback failed:', localError);
-          
-          // Last resort: Conservative placeholder
-          const minimalStats = {
-            totalHis: 0,
-            globalWaves: 0
-          };
-          
-          Object.keys(minimalStats).forEach(key => {
-            const element = document.getElementById(key);
-            if (element) {
-              element.textContent = minimalStats[key].toLocaleString();
+              element.textContent = 'Loading...';
+              element.style.color = '#4ECDC4';
             }
           });
         }
@@ -796,8 +779,8 @@
           // Mark that user is coming FROM welcome to prevent redirect loop
           sessionStorage.setItem('from-welcome', 'true');
           
-          // Go to full app experience in anonymous mode
-          window.location.href = '/app?source=welcome';
+          // Go to Tesla-grade Hi Dashboard experience in anonymous mode
+          window.location.href = '/hi-dashboard.html?source=welcome';
         });
       }
 
@@ -865,7 +848,7 @@
                   sessionStorage.setItem('from-welcome', 'true');
                   
                   // Explorer+ gets direct app access
-                  window.location.href = '/app?tier=activated&source=welcome';
+                  window.location.href = '/hi-dashboard.html?tier=activated&source=welcome';
                 } else {
                   // Discovery gets guided signup
                   window.location.href = `signup.html?code=${encodeURIComponent(code)}&source=welcome&tier=${result.tier.level}`;
@@ -901,5 +884,8 @@
       }
     });
   </script>
+
+  <!-- 🌍 Tesla-Grade Unified Global Stats System -->
+  <script src="assets/hi-unified-global-stats.js"></script>
 </body>
 </html>

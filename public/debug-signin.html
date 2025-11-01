@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Sign In — Stay Hi</title>
+    
+    <!-- Basic Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="assets/config.js"></script>
+    
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0a0a0a;
+            color: #fff;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #4ECDC4;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+        }
+        
+        button {
+            background: #4ECDC4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .debug-log {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            border-left: 4px solid #4ECDC4;
+        }
+        
+        .error {
+            color: #ff6b6b;
+        }
+        
+        .success {
+            color: #51cf66;
+        }
+        
+        .info {
+            color: #4ECDC4;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Sign In Test</h1>
+    <p>This page will show exactly what happens during the sign-in process.</p>
+    
+    <form id="debugForm">
+        <div class="form-group">
+            <label for="email">Email Address:</label>
+            <input type="email" id="email" placeholder="test@example.com" required>
+        </div>
+        <button type="submit" id="submitBtn">Send Magic Link (Debug Mode)</button>
+    </form>
+    
+    <div id="debugLog" class="debug-log">
+        <div class="info">Debug log will appear here...</div>
+    </div>
+    
+    <script>
+        const debugLog = document.getElementById('debugLog');
+        const form = document.getElementById('debugForm');
+        const emailInput = document.getElementById('email');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        let supabaseClient = null;
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            debugLog.appendChild(logEntry);
+            debugLog.scrollTop = debugLog.scrollHeight;
+            console.log(`[DEBUG] ${message}`);
+        }
+        
+        async function initializeSupabase() {
+            try {
+                log('🚀 Starting Supabase initialization...', 'info');
+                
+                if (!window.supabase) {
+                    log('❌ Supabase library not loaded', 'error');
+                    return false;
+                }
+                
+                log('✅ Supabase library detected', 'success');
+                
+                const SUPABASE_URL = window.SUPABASE_URL || 'https://gfcubvroxgfvjhacinic.supabase.co';
+                const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g';
+                
+                log(`🔑 Using URL: ${SUPABASE_URL}`, 'info');
+                log(`🔑 Using Key: ${SUPABASE_ANON_KEY.substring(0, 20)}...`, 'info');
+                
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                    auth: {
+                        persistSession: true,
+                        autoRefreshToken: true
+                    }
+                });
+                
+                log('✅ Supabase client created', 'success');
+                
+                // Test connection
+                const { data, error } = await supabaseClient.auth.getSession();
+                if (error) {
+                    log(`⚠️ Session check error: ${error.message}`, 'error');
+                } else {
+                    log('✅ Session check successful', 'success');
+                }
+                
+                return true;
+                
+            } catch (error) {
+                log(`❌ Supabase initialization failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        async function testMagicLink(email) {
+            try {
+                log(`📧 Attempting to send magic link to: ${email}`, 'info');
+                
+                if (!supabaseClient) {
+                    throw new Error('Supabase client not initialized');
+                }
+                
+                const redirectTo = `${window.location.origin}/post-auth.html`;
+                log(`🔗 Redirect URL: ${redirectTo}`, 'info');
+                
+                log('🚀 Calling signInWithOtp...', 'info');
+                
+                const { data, error } = await supabaseClient.auth.signInWithOtp({
+                    email: email,
+                    options: {
+                        emailRedirectTo: redirectTo
+                    }
+                });
+                
+                if (error) {
+                    log(`❌ Magic link error: ${error.message}`, 'error');
+                    log(`❌ Error code: ${error.status || 'unknown'}`, 'error');
+                    log(`❌ Full error: ${JSON.stringify(error, null, 2)}`, 'error');
+                    throw error;
+                }
+                
+                log(`✅ Magic link API call successful!`, 'success');
+                log(`📊 Response data: ${JSON.stringify(data, null, 2)}`, 'info');
+                
+                return { success: true, data };
+                
+            } catch (error) {
+                log(`❌ Magic link failed: ${error.message}`, 'error');
+                return { success: false, error };
+            }
+        }
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = emailInput.value.trim();
+            if (!email) {
+                log('❌ No email provided', 'error');
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Testing...';
+            
+            log('🔬 Starting debug test...', 'info');
+            log(`📧 Testing with email: ${email}`, 'info');
+            
+            // Clear previous logs
+            debugLog.innerHTML = '<div class="info">Starting new test...</div>';
+            
+            try {
+                // Step 1: Initialize Supabase
+                const supabaseReady = await initializeSupabase();
+                if (!supabaseReady) {
+                    throw new Error('Supabase initialization failed');
+                }
+                
+                // Step 2: Test magic link
+                const result = await testMagicLink(email);
+                
+                if (result.success) {
+                    log('🎉 TEST PASSED: Magic link sent successfully!', 'success');
+                } else {
+                    log('💥 TEST FAILED: Magic link could not be sent', 'error');
+                }
+                
+            } catch (error) {
+                log(`💥 TEST FAILED: ${error.message}`, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send Magic Link (Debug Mode)';
+            }
+        });
+        
+        // Auto-initialize when page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            log('🔧 Page loaded, checking environment...', 'info');
+            log(`🌐 Location: ${window.location.href}`, 'info');
+            log(`🍪 Cookies enabled: ${navigator.cookieEnabled}`, 'info');
+            log(`💾 LocalStorage available: ${typeof(Storage) !== 'undefined'}`, 'info');
+            
+            // Check if incognito
+            try {
+                const testKey = 'incognito-test';
+                localStorage.setItem(testKey, 'test');
+                localStorage.removeItem(testKey);
+                log('🔍 Browsing mode: Normal', 'info');
+            } catch (e) {
+                log('🕵️ Browsing mode: Incognito/Private detected', 'info');
+            }
+            
+            await initializeSupabase();
+        });
+        
+        // Global error handler
+        window.addEventListener('error', (event) => {
+            log(`🚨 Global error: ${event.error.message}`, 'error');
+        });
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            log(`🚨 Unhandled rejection: ${event.reason}`, 'error');
+        });
+    </script>
+</body>
+</html>

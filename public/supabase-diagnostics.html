@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔍 Supabase Magic Link Diagnostics</title>
+    <style>
+        body { font-family: monospace; margin: 20px; background: #0f0f0f; color: #00ff00; }
+        .test { padding: 10px; margin: 10px 0; border: 1px solid #333; }
+        .success { border-color: #00ff00; }
+        .error { border-color: #ff0000; color: #ff0000; }
+        .warning { border-color: #ffaa00; color: #ffaa00; }
+        input, button { padding: 8px; margin: 5px; font-family: monospace; }
+        .log { background: #111; padding: 10px; margin: 10px 0; font-size: 12px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔍 SUPABASE MAGIC LINK ROOT CAUSE ANALYSIS</h1>
+    
+    <div class="test">
+        <h3>📋 Environment Detection</h3>
+        <div id="env-results"></div>
+    </div>
+
+    <div class="test">
+        <h3>🎯 Magic Link Generation Test</h3>
+        <input type="email" id="test-email" placeholder="Enter your email" value="joeatangstay@gmail.com">
+        <button onclick="testMagicLink()">🚀 Generate Magic Link</button>
+        <div id="magic-results"></div>
+    </div>
+
+    <div class="test">
+        <h3>🔗 URL Analysis</h3>
+        <div id="url-analysis"></div>
+    </div>
+
+    <div class="log" id="diagnostic-log"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const log = (msg, type = 'info') => {
+            const timestamp = new Date().toISOString();
+            const logDiv = document.getElementById('diagnostic-log');
+            const color = type === 'error' ? '#ff0000' : type === 'warning' ? '#ffaa00' : '#00ff00';
+            logDiv.innerHTML += `<div style="color: ${color}">[${timestamp}] ${msg}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        };
+
+        // Initialize Supabase
+        const supabase = window.supabase.createClient(
+            "https://gfcubvroxgfvjhacinic.supabase.co",
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g"
+        );
+
+        // Environment Detection
+        function detectEnvironment() {
+            const results = document.getElementById('env-results');
+            const origin = window.location.origin;
+            const hostname = window.location.hostname;
+            const protocol = window.location.protocol;
+            
+            let envType = 'unknown';
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                envType = 'local';
+            } else if (hostname.includes('vercel.app')) {
+                envType = 'vercel';
+            } else if (hostname.includes('netlify.app')) {
+                envType = 'netlify';
+            }
+
+            results.innerHTML = `
+                <div class="success">✅ Origin: ${origin}</div>
+                <div class="success">🌐 Environment: ${envType}</div>
+                <div class="success">📍 Target URL: ${origin}/post-auth.html</div>
+            `;
+            
+            log(`Environment detected: ${envType} at ${origin}`);
+            return origin;
+        }
+
+        // Test Magic Link Generation
+        async function testMagicLink() {
+            const email = document.getElementById('test-email').value;
+            const results = document.getElementById('magic-results');
+            
+            if (!email) {
+                results.innerHTML = '<div class="error">❌ Please enter an email</div>';
+                return;
+            }
+
+            const origin = window.location.origin;
+            const redirectUrl = `${origin}/post-auth.html`;
+            
+            log(`Testing magic link generation for: ${email}`);
+            log(`Redirect URL: ${redirectUrl}`);
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithOtp({
+                    email: email,
+                    options: {
+                        emailRedirectTo: redirectUrl
+                    }
+                });
+
+                if (error) {
+                    results.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+                    log(`Magic link error: ${error.message} (Code: ${error.error_code})`, 'error');
+                    return;
+                }
+
+                results.innerHTML = `
+                    <div class="success">✅ Magic link sent successfully!</div>
+                    <div class="success">📧 Email: ${email}</div>
+                    <div class="success">🔗 Should redirect to: ${redirectUrl}</div>
+                    <div class="warning">⚠️ Check email and click link to test redirect behavior</div>
+                `;
+                
+                log(`Magic link generated successfully for ${email}`);
+                log(`Expected redirect: ${redirectUrl}`);
+                
+            } catch (err) {
+                results.innerHTML = `<div class="error">❌ Exception: ${err.message}</div>`;
+                log(`Exception during magic link generation: ${err.message}`, 'error');
+            }
+        }
+
+        // URL Analysis
+        function analyzeCurrentUrl() {
+            const results = document.getElementById('url-analysis');
+            const url = window.location.href;
+            const params = new URLSearchParams(window.location.search);
+            const hash = window.location.hash;
+            
+            let analysis = `<div class="success">🔍 Current URL: ${url}</div>`;
+            
+            // Check for magic link parameters
+            if (hash.includes('access_token')) {
+                analysis += '<div class="warning">🎯 MAGIC LINK DETECTED in hash!</div>';
+                log('Magic link detected in URL hash', 'warning');
+            }
+            
+            if (params.get('access_token')) {
+                analysis += '<div class="warning">🎯 MAGIC LINK DETECTED in query params!</div>';
+                log('Magic link detected in query parameters', 'warning');
+            }
+            
+            if (!hash.includes('access_token') && !params.get('access_token')) {
+                analysis += '<div class="success">✅ No magic link parameters detected</div>';
+            }
+            
+            results.innerHTML = analysis;
+        }
+
+        // Initialize on page load
+        window.onload = function() {
+            detectEnvironment();
+            analyzeCurrentUrl();
+            log('Diagnostic tool initialized');
+        };
+    </script>
+</body>
+</html>

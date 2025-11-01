@@ -5,13 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Stay Hi — Calendar (Redirecting...)</title>
   
-  <!-- Auth guard - must be first -->
-  <script src="assets/auth-health-monitor.js"></script>
-  <script src="assets/auth-guard.js?v=enhanced-logging"></script>
-  
-  <!-- Auto-redirect to main app with premium calendar modal -->
+  <!-- Simple redirect - no auth needed -->
   <script>
-    // This standalone calendar page is deprecated in favor of the premium modal system
     // Redirect to main app which has the modern calendar modal
     console.log('📅 Redirecting to premium calendar system...');
     setTimeout(() => {

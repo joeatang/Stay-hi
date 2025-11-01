@@ -78,6 +78,7 @@
       font-size: 16px;
       font-weight: 500;
       transition: all 0.3s ease;
+      cursor: pointer;
       
       /* Tesla mobile touch target */
       min-height: 44px;
@@ -98,15 +99,26 @@
     }
     
     .nav-back:hover {
-      background: rgba(78, 205, 196, 0.1);
+      background: rgba(78, 205, 196, 0.15);
       border-color: var(--tesla-primary);
       transform: translateX(-4px);
+      box-shadow: 0 8px 25px rgba(78, 205, 196, 0.3);
+    }
+    
+    .nav-back:active {
+      transform: translateX(-2px) scale(0.98);
+      background: rgba(78, 205, 196, 0.2);
     }
     
     .nav-back::before {
       content: '←';
       font-size: 18px;
       font-weight: 600;
+      transition: transform 0.2s ease;
+    }
+    
+    .nav-back:hover::before {
+      transform: translateX(-2px);
     }
     
     /* Profile Container - Mobile First */
@@ -778,11 +790,11 @@
   </style>
 </head>
 <body>
-  <!-- Tesla Navigation - Dynamic Context-Aware -->
+  <!-- Tesla Navigation - Bulletproof Simple Architecture -->
   <div class="back-navigation">
-    <a href="#" class="nav-back" id="dynamicBackNav">
-      <span id="backNavText">Back</span>
-    </a>
+    <button type="button" class="nav-back" onclick="navigateToHiDashboard()">
+      <span>🚀 Back to Dashboard</span>
+    </button>
   </div>
   
   <!-- Profile Container -->
@@ -963,7 +975,7 @@
   </div>
 
   <script>
-    // Tesla-Grade Profile System - No Auth Barriers
+    // Tesla-Grade Profile System - WITH SECURITY BARRIERS
     
     // Tesla Profile Data - Production Ready
     // Tesla-Grade Profile System - Persistent by Default
@@ -1785,8 +1797,8 @@ FOR INSERT WITH CHECK (
       }
     }
 
-    // Tesla-Grade Multi-Layer Persistence Strategy
-    async function saveProfileToStorage(profile) {
+    // Tesla-Grade Secure Multi-Layer Persistence Strategy
+    async function saveProfileToStorage(profile, userId = null) {
       const profileData = {
         ...profile,
         last_updated: new Date().toISOString(),
@@ -1794,17 +1806,23 @@ FOR INSERT WITH CHECK (
       };
 
       try {
-        // Layer 1: Local Storage (immediate persistence)
-        localStorage.setItem('stayhi_profile', JSON.stringify(profileData));
-        console.log('💾 Profile saved to localStorage');
+        // Determine storage key based on authentication
+        const storageKey = userId ? `stayhi_profile_${userId}` : 'stayhi_profile_demo';
+        
+        // Layer 1: User-specific Local Storage (immediate persistence)
+        localStorage.setItem(storageKey, JSON.stringify(profileData));
+        console.log(`💾 Profile saved to localStorage: ${storageKey}`);
 
-        // Layer 2: Supabase Database (cloud persistence)
-        if (window.supabaseClient) {
+        // Layer 2: Supabase Database (cloud persistence) - ONLY for authenticated users
+        if (window.supabaseClient && userId) {
+          profileData.user_id = userId; // Ensure user_id is set
           await saveProfileToSupabase(profileData);
+        } else if (!userId) {
+          console.log('🎭 Demo profile - skipping Supabase sync');
         }
 
-        // Layer 3: Session backup
-        sessionStorage.setItem('stayhi_profile_backup', JSON.stringify(profileData));
+        // Layer 3: Session backup with user context
+        sessionStorage.setItem(`stayhi_profile_backup_${userId || 'demo'}`, JSON.stringify(profileData));
         
       } catch (error) {
         console.error('Storage save error:', error);
@@ -2049,38 +2067,51 @@ FOR INSERT WITH CHECK (
       setTimeout(initializeTeslaAvatarSystem, 100);
     });
     
-    // Progressive Data Loading
+    // Tesla-Grade Secure Data Loading
     async function loadProfileData() {
-      console.log('🔄 Loading profile data...');
+      console.log('🔄 Loading profile data with Tesla-grade security...');
       
       try {
-        // Tesla-Grade Loading Priority: localStorage → Supabase → demo fallback
-        let profile = null;
+        // CRITICAL SECURITY: Check authentication first
+        const { data: session } = await window.supabaseClient.auth.getSession();
+        const isAuthenticated = !!session?.session?.user;
         
-        // Layer 1: Check localStorage first (fastest)
-        const savedProfile = localStorage.getItem('stayhi_profile');
+        console.log('🔐 Authentication status:', isAuthenticated ? 'AUTHENTICATED' : 'ANONYMOUS');
+        
+        if (!isAuthenticated) {
+          console.log('🚨 Anonymous user detected - blocking Supabase access');
+          // Anonymous users get local-only demo profile
+          await loadAnonymousDemoProfile();
+          return;
+        }
+        
+        // Tesla-Grade Loading Priority for authenticated users: localStorage → Supabase → demo fallback
+        let profile = null;
+        const userId = session.session.user.id;
+        
+        // Layer 1: Check user-specific localStorage first (fastest)
+        const savedProfile = localStorage.getItem(`stayhi_profile_${userId}`);
         if (savedProfile) {
           try {
             profile = JSON.parse(savedProfile);
-            console.log('💾 Profile loaded from localStorage:', profile.username);
+            console.log('💾 Authenticated profile loaded from localStorage:', profile.username);
           } catch (e) {
             console.warn('⚠️ Invalid localStorage profile data');
           }
         }
         
-        // Layer 2: Try Supabase if no local data or if we want to sync
+        // Layer 2: Try user-specific Supabase data
         if (!profile && window.supabaseClient) {
-          profile = await loadProfileFromSupabase();
+          profile = await loadAuthenticatedProfileFromSupabase(userId);
         }
         
-        // Layer 3: Use current profile as fallback but make it persistent
+        // Layer 3: Create new authenticated profile
         if (!profile) {
-          console.log('📊 No saved profile found, creating persistent profile...');
+          console.log('📊 Creating new authenticated profile...');
           profile = { ...currentProfile };
-          // Generate stable user ID instead of random
-          profile.id = generateStableUserId();
-          profile.username = profile.username || `user_${profile.id.slice(-6)}`;
-          await saveProfileToStorage(profile);
+          profile.id = userId;
+          profile.username = profile.username || `user_${userId.slice(-6)}`;
+          await saveProfileToStorage(profile, userId);
         }
         
         // Update current profile and UI
@@ -2088,36 +2119,84 @@ FOR INSERT WITH CHECK (
         updateProfileDisplay(currentProfile);
         populateEditForm(currentProfile);
         
-        console.log('✅ Profile loaded successfully:', currentProfile.username);
+        console.log('✅ Authenticated profile loaded successfully:', currentProfile.username);
         
       } catch (error) {
         console.error('❌ Profile loading error:', error);
-        // Ensure we always have a working profile
-        populateEditForm(currentProfile);
+        // Fallback to anonymous demo profile
+        await loadAnonymousDemoProfile();
       }
     }
 
-    async function loadProfileFromSupabase() {
+    // Tesla-Grade Authenticated Supabase Loading
+    async function loadAuthenticatedProfileFromSupabase(userId) {
       try {
-        // For now, we'll use username-based lookup
-        // In production, you'd use proper user authentication
+        console.log('☁️ Loading authenticated profile from Supabase for user:', userId);
+        
         const { data, error } = await window.supabaseClient
           .from('profiles')
           .select('*')
+          .eq('user_id', userId)
           .order('updated_at', { ascending: false })
           .limit(1);
 
         if (error) {
-          console.warn('⚠️ Supabase query failed:', error.message);
+          console.warn('⚠️ Authenticated Supabase query failed:', error.message);
           return null;
         }
 
         if (data && data.length > 0) {
-          console.log('☁️ Profile loaded from Supabase');
+          console.log('✅ Authenticated profile loaded from Supabase');
           return data[0];
         }
 
+        console.log('📝 No existing profile found for authenticated user');
         return null;
+      } catch (error) {
+        console.error('❌ Supabase loading error:', error);
+        return null;
+      }
+    }
+
+    // Anonymous Demo Profile - NO DATABASE ACCESS
+    async function loadAnonymousDemoProfile() {
+      console.log('🎭 Loading anonymous demo profile - NO real data access');
+      
+      // Anonymous users get a safe demo profile
+      const demoProfile = {
+        id: 'demo_' + Date.now(),
+        username: 'Anonymous User',
+        email: '',
+        bio: 'This is a demo profile. Sign up to create your real profile!',
+        location: '',
+        avatar_url: '',
+        created_at: new Date().toISOString(),
+        is_demo: true
+      };
+      
+      // Update UI with demo profile
+      Object.assign(currentProfile, demoProfile);
+      updateProfileDisplay(currentProfile);
+      populateEditForm(currentProfile);
+      
+      // Show membership signup modal after short delay
+      setTimeout(() => {
+        console.log('🚪 Triggering membership modal for anonymous user');
+        // Trigger the anonymous access modal
+        if (window.anonymousAccessModal) {
+          window.anonymousAccessModal.showAccessModal();
+        } else {
+          console.warn('⚠️ Anonymous access modal not loaded');
+        }
+      }, 1500);
+      
+      console.log('✅ Anonymous demo profile loaded safely');
+    }
+
+    // Legacy function - DEPRECATED FOR SECURITY
+    async function loadProfileFromSupabase() {
+      console.warn('🚨 DEPRECATED: loadProfileFromSupabase() bypasses authentication!');
+      return null;
       } catch (error) {
         console.warn('⚠️ Supabase unavailable:', error.message);
         return null;
@@ -2248,12 +2327,19 @@ FOR INSERT WITH CHECK (
       `;
     }
     
-    // Tesla-Grade Dynamic Navigation System
+    // Tesla-Grade Simple Navigation System - Bulletproof Architecture
+    function navigateToHiDashboard() {
+      console.log('🚀 Tesla-grade navigation: Returning to hi-dashboard');
+      window.location.href = 'hi-dashboard.html';
+    }
+    
+    // Expose globally for onclick handler
+    window.navigateToHiDashboard = navigateToHiDashboard;
+    
+    // Legacy function for compatibility (no longer used)
     function initDynamicNavigation() {
-      const backNav = document.getElementById('dynamicBackNav');
-      const backNavText = document.getElementById('backNavText');
-      
-      if (!backNav || !backNavText) return;
+      // This function is deprecated - using simple onclick navigation now
+      return;
       
       // Navigation mapping - Tesla-grade contextual routing
       const navigationMap = {
@@ -2286,14 +2372,24 @@ FOR INSERT WITH CHECK (
           url: 'index.html', // Welcome redirects to home
           text: 'Back to Home',
           icon: '🏠'
+        },
+        'app.html': {
+          url: 'hi-dashboard.html',  // Updated to use new hi-dashboard
+          text: 'Back to Dashboard',
+          icon: '📱'
+        },
+        'hi-dashboard.html': {
+          url: 'hi-dashboard.html',
+          text: 'Back to Dashboard',
+          icon: '�'
         }
       };
       
       // Default fallback navigation
       const defaultNav = {
-        url: 'index.html',
-        text: 'Back to Home', 
-        icon: '🏠'
+        url: 'hi-dashboard.html', // Most users come from hi-dashboard
+        text: 'Back to Dashboard', 
+        icon: '�'
       };
       
       let targetNav = defaultNav;
@@ -2330,8 +2426,8 @@ FOR INSERT WITH CHECK (
         }
       }
       
-      // Apply navigation configuration
-      backNav.href = targetNav.url;
+      // Apply navigation configuration - store target for button click
+      backNav.setAttribute('data-target-url', targetNav.url);
       backNavText.textContent = targetNav.text;
       
       // Add icon if available
@@ -2341,6 +2437,23 @@ FOR INSERT WITH CHECK (
       
       console.log('🧭 Dynamic navigation configured:', targetNav);
       
+      // Visual feedback that navigation is ready
+      backNav.style.opacity = '1';
+      backNav.setAttribute('title', `Navigate to ${targetNav.text}`);
+      
+      // Add Tesla-grade click handler to back navigation
+      console.log('🎯 Attaching click handler to back navigation button');
+      backNav.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        const targetUrl = backNav.getAttribute('data-target-url') || targetNav.url;
+        console.log('🔙 Back button clicked, navigating to:', targetUrl);
+        
+        // Tesla-grade SIMPLE navigation - direct to hi-dashboard as requested
+        console.log('🎯 Direct navigation to hi-dashboard.html');
+        window.location.href = 'hi-dashboard.html';
+      });
+      
       // Track this page visit for future navigation
       localStorage.setItem('stayhi_last_page', 'profile.html');
     }
@@ -2348,6 +2461,14 @@ FOR INSERT WITH CHECK (
     // Tesla-Grade Initialization
     document.addEventListener('DOMContentLoaded', () => {
       console.log('🚀 Tesla Profile System Initialized');
+      
+      // Initialize anonymous access modal FIRST
+      if (typeof AnonymousAccessModal !== 'undefined') {
+        window.anonymousAccessModal = new AnonymousAccessModal();
+        console.log('🔒 Anonymous access modal initialized');
+      } else {
+        console.warn('⚠️ AnonymousAccessModal not loaded');
+      }
       
       // Initialize dynamic navigation first
       initDynamicNavigation();
@@ -2358,8 +2479,11 @@ FOR INSERT WITH CHECK (
       
       showToast('Profile loaded successfully! 🎉');
       
-      // Progressive enhancement: Load real data if available
-      setTimeout(loadProfileData, 500);
+      // Tesla-Grade Security: Load data with authentication check
+      setTimeout(() => {
+        console.log('🔒 Initializing secure profile loading...');
+        loadProfileData();
+      }, 500);
       
       // Avatar file input handler
       const avatarInput = document.getElementById('avatarFileInput');
@@ -2388,7 +2512,16 @@ FOR INSERT WITH CHECK (
       testSupabaseConnection
     };
     
-    console.log('✅ Tesla Profile System Ready - No Auth Barriers');
+    // Expose membership modal for security system
+    window.showMembershipModal = () => {
+      if (window.anonymousAccessModal) {
+        window.anonymousAccessModal.showAccessModal();
+      } else {
+        console.warn('⚠️ Anonymous access modal not loaded');
+      }
+    };
+    
+    console.log('✅ Tesla Profile System Ready - WITH SECURITY BARRIERS');
     
     // Debug: Add test functions to window for manual testing
     window.testProfilePersistence = {

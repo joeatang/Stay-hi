@@ -1,0 +1,244 @@
+/**
+ * 🎬 HI LOADING EXPERIENCE V2.0
+ * Tesla-Grade CSS-First Loading Animation System
+ * Built using Stay Hi's proven architecture patterns
+ */
+
+/* ============================================================================
+   TESLA-GRADE LOADING OVERLAY SYSTEM
+============================================================================ */
+
+.hi-loading-overlay {
+  /* Foundation: Fixed positioning with proper z-index hierarchy */
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: var(--z-modal, 400);
+  
+  /* Tesla-grade visual design matching Stay Hi aesthetics */
+  background: linear-gradient(135deg, 
+    rgba(45, 30, 79, 0.95) 0%, 
+    rgba(15, 16, 34, 0.98) 50%, 
+    rgba(45, 30, 79, 0.95) 100%);
+  backdrop-filter: blur(25px) saturate(1.4);
+  -webkit-backdrop-filter: blur(25px) saturate(1.4);
+  
+  /* Responsive design foundation */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  
+  /* Performance optimization */
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  
+  /* Animation states */
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Active state using Stay Hi's show pattern */
+.hi-loading-overlay.show {
+  opacity: 1;
+  visibility: visible;
+  animation: hiLoadingFadeIn 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+.hi-loading-overlay.hide {
+  animation: hiLoadingFadeOut 0.2s ease-in forwards;
+}
+
+/* ============================================================================
+   HI LOGO ANIMATION CONTAINER
+============================================================================ */
+
+.hi-loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 300px;
+  width: 100%;
+  text-align: center;
+}
+
+.hi-loading-logo {
+  width: 100px;
+  height: 100px;
+  border-radius: 24px;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 8px 16px rgba(255, 215, 102, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  
+  /* Tesla-grade animation foundation */
+  transform: scale(1);
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  
+  /* Performance optimization */
+  will-change: transform, filter;
+  backface-visibility: hidden;
+}
+
+.hi-loading-message {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  opacity: 0.8;
+  
+  /* Subtle gradient text matching Stay Hi theme */
+  background: linear-gradient(135deg, #FFD166, #FF7B24);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  
+  /* Performance */
+  will-change: opacity;
+}
+
+/* ============================================================================
+   TESLA-GRADE ANIMATIONS USING STAY HI PATTERNS
+============================================================================ */
+
+@keyframes hiLoadingFadeIn {
+  0% { 
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes hiLoadingFadeOut {
+  0% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% { 
+    opacity: 0;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes hiLogoPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: 
+      drop-shadow(0 8px 20px rgba(255, 210, 102, 0.4))
+      drop-shadow(0 3px 12px rgba(255, 123, 24, 0.2));
+  }
+  50% {
+    transform: scale(1.08);
+    filter: 
+      drop-shadow(0 12px 28px rgba(255, 210, 102, 0.6))
+      drop-shadow(0 6px 20px rgba(255, 123, 24, 0.4));
+  }
+}
+
+@keyframes hiLogoBreathing {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 
+      0 20px 40px rgba(0, 0, 0, 0.4),
+      0 8px 16px rgba(255, 215, 102, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 
+      0 24px 48px rgba(0, 0, 0, 0.5),
+      0 12px 24px rgba(255, 215, 102, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* Animation classes for JavaScript control */
+.hi-loading-logo.pulse {
+  animation: hiLogoPulse 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.hi-loading-logo.breathing {
+  animation: hiLogoBreathing 1.2s cubic-bezier(0.25, 0.8, 0.25, 1) infinite;
+}
+
+/* ============================================================================
+   MOBILE-FIRST RESPONSIVE DESIGN
+============================================================================ */
+
+@media (max-width: 480px) {
+  .hi-loading-content {
+    gap: 1rem;
+    padding: 0 16px;
+  }
+  
+  .hi-loading-logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+  }
+  
+  .hi-loading-message {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 320px) {
+  .hi-loading-logo {
+    width: 70px;
+    height: 70px;
+    border-radius: 16px;
+  }
+  
+  .hi-loading-message {
+    font-size: 0.95rem;
+  }
+}
+
+/* ============================================================================
+   ACCESSIBILITY & PERFORMANCE
+============================================================================ */
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .hi-loading-overlay,
+  .hi-loading-logo,
+  .hi-loading-message {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .hi-loading-overlay.show {
+    opacity: 1;
+    visibility: visible;
+    animation: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .hi-loading-overlay {
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: none;
+  }
+  
+  .hi-loading-message {
+    color: white;
+    background: none;
+    -webkit-text-fill-color: white;
+  }
+}
+
+/* Dark mode optimization (future-ready) */
+@media (prefers-color-scheme: dark) {
+  .hi-loading-overlay {
+    background: linear-gradient(135deg, 
+      rgba(14, 14, 18, 0.95) 0%, 
+      rgba(31, 36, 49, 0.98) 50%, 
+      rgba(14, 14, 18, 0.95) 100%);
+  }
+}

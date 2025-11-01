@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tesla-Grade Access Control Testing</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/supabase-init.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0; padding: 20px; color: white;
+        }
+        .test-container {
+            max-width: 1200px; margin: 0 auto;
+            background: rgba(255,255,255,0.1); backdrop-filter: blur(20px);
+            border-radius: 20px; padding: 30px;
+        }
+        .test-section {
+            margin: 20px 0; padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .test-result {
+            padding: 10px; margin: 8px 0; border-radius: 8px;
+            font-family: 'SF Mono', Monaco, monospace; font-size: 14px;
+        }
+        .pass { background: rgba(46, 204, 113, 0.2); border-left: 4px solid #2ecc71; }
+        .fail { background: rgba(231, 76, 60, 0.2); border-left: 4px solid #e74c3c; }
+        .info { background: rgba(52, 152, 219, 0.2); border-left: 4px solid #3498db; }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none; color: white; padding: 12px 24px;
+            border-radius: 8px; cursor: pointer; margin: 8px;
+            font-weight: 500; transition: all 0.3s ease;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .status-indicator {
+            display: inline-block; width: 12px; height: 12px;
+            border-radius: 50%; margin-right: 8px;
+        }
+        .status-authenticated { background: #2ecc71; }
+        .status-anonymous { background: #f39c12; }
+        .status-expired { background: #e74c3c; }
+        .status-unknown { background: #95a5a6; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🚀 Tesla-Grade Access Control Testing</h1>
+        <p>Comprehensive validation of anonymous vs membership access levels</p>
+        
+        <div class="test-section">
+            <h2>🔍 Authentication Status Detection</h2>
+            <button onclick="testAuthStatus()">Run Auth Status Tests</button>
+            <div id="authResults"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🎭 Anonymous Access Testing</h2>
+            <button onclick="testAnonymousAccess()">Test Anonymous Mode</button>
+            <button onclick="simulateAnonymousUser()">Simulate Anonymous User</button>
+            <div id="anonymousResults"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🎫 Membership Access Testing</h2>
+            <button onclick="testMembershipAccess()">Test Membership Status</button>
+            <button onclick="simulateExpiredTrial()">Simulate Expired Trial</button>
+            <button onclick="simulateActiveMember()">Simulate Active Member</button>
+            <div id="membershipResults"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🧪 Feature Access Testing</h2>
+            <button onclick="testFeatureAccess()">Test Feature Access Levels</button>
+            <div id="featureResults"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🔄 Navigation Testing</h2>
+            <button onclick="testNavigationFlow()">Test Navigation Flow</button>
+            <div id="navigationResults"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>📊 Complete System Test</h2>
+            <button onclick="runCompleteTest()" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                🚀 Run Complete Tesla-Grade Test Suite
+            </button>
+            <div id="completeResults"></div>
+        </div>
+    </div>
+
+    <script>
+        // Tesla-Grade Testing Framework
+        class TeslaAccessTesting {
+            constructor() {
+                this.results = [];
+                this.supabaseReady = false;
+            }
+            
+            async init() {
+                // Wait for Supabase to be ready
+                let attempts = 0;
+                while (!window.sb && attempts < 50) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+                this.supabaseReady = !!window.sb;
+                this.log(this.supabaseReady ? '✅ Supabase client ready' : '❌ Supabase client not available', 'info');
+            }
+            
+            log(message, type = 'info') {
+                const timestamp = new Date().toLocaleTimeString();
+                const result = { timestamp, message, type };
+                this.results.push(result);
+                console.log(`[${timestamp}] ${message}`);
+                return result;
+            }
+            
+            displayResults(containerId, results = this.results) {
+                const container = document.getElementById(containerId);
+                container.innerHTML = results.map(r => 
+                    `<div class="test-result ${r.type}">
+                        [${r.timestamp}] ${r.message}
+                    </div>`
+                ).join('');
+            }
+            
+            async checkAuthStatus() {
+                const tests = [];
+                
+                // Test 1: Supabase session
+                try {
+                    if (this.supabaseReady) {
+                        const { data: { session } } = await window.sb.auth.getSession();
+                        tests.push(this.log(
+                            session ? '✅ Active Supabase session detected' : '❌ No Supabase session', 
+                            session ? 'pass' : 'fail'
+                        ));
+                    }
+                } catch (error) {
+                    tests.push(this.log(`❌ Supabase session check failed: ${error.message}`, 'fail'));
+                }
+                
+                // Test 2: LocalStorage indicators
+                const authIndicators = ['sb-access-token', 'hiAccess', 'unified_membership_cache', 'hi_member'];
+                authIndicators.forEach(key => {
+                    const value = localStorage.getItem(key);
+                    tests.push(this.log(
+                        `${value ? '✅' : '❌'} localStorage.${key}: ${value || 'null'}`,
+                        value ? 'pass' : 'info'
+                    ));
+                });
+                
+                // Test 3: Anonymous mode indicators
+                const anonymousKeys = ['hi_discovery_mode', 'anonymous_access_granted', 'hi-anonymous-usage'];
+                anonymousKeys.forEach(key => {
+                    const value = localStorage.getItem(key);
+                    tests.push(this.log(
+                        `${value ? '🎭' : '❌'} Anonymous.${key}: ${value || 'null'}`,
+                        value ? 'info' : 'info'
+                    ));
+                });
+                
+                return tests;
+            }
+            
+            async checkMembershipStatus() {
+                const tests = [];
+                
+                if (!this.supabaseReady) {
+                    tests.push(this.log('❌ Cannot test membership - Supabase not ready', 'fail'));
+                    return tests;
+                }
+                
+                try {
+                    const { data, error } = await window.sb.rpc('get_my_membership');
+                    
+                    if (error) {
+                        tests.push(this.log(`❌ Membership RPC error: ${error.message}`, 'fail'));
+                    } else {
+                        const membership = data;
+                        tests.push(this.log(`✅ Membership status: ${membership.status}`, 'pass'));
+                        tests.push(this.log(`📋 Membership tier: ${membership.tier}`, 'info'));
+                        
+                        if (membership.trial_end) {
+                            const trialEnd = new Date(membership.trial_end);
+                            const isExpired = trialEnd < new Date();
+                            tests.push(this.log(
+                                `⏰ Trial ${isExpired ? 'expired' : 'active'} - ends ${trialEnd.toLocaleDateString()}`,
+                                isExpired ? 'fail' : 'pass'
+                            ));
+                        }
+                        
+                        if (membership.features_enabled) {
+                            tests.push(this.log(`🎁 Features: ${membership.features_enabled.join(', ')}`, 'info'));
+                        }
+                    }
+                } catch (error) {
+                    tests.push(this.log(`❌ Membership check exception: ${error.message}`, 'fail'));
+                }
+                
+                return tests;
+            }
+            
+            testAnonymousAccess() {
+                const tests = [];
+                
+                // Enable anonymous mode
+                localStorage.setItem('hi_discovery_mode', 'anonymous');
+                localStorage.setItem('anonymous_access_granted', Date.now().toString());
+                tests.push(this.log('🎭 Anonymous mode enabled', 'pass'));
+                
+                // Test anonymous modal check
+                try {
+                    if (window.AnonymousAccessModal) {
+                        const modal = new window.AnonymousAccessModal();
+                        tests.push(this.log('✅ AnonymousAccessModal class available', 'pass'));
+                    } else {
+                        tests.push(this.log('❌ AnonymousAccessModal class not found', 'fail'));
+                    }
+                } catch (error) {
+                    tests.push(this.log(`❌ Anonymous modal test failed: ${error.message}`, 'fail'));
+                }
+                
+                return tests;
+            }
+            
+            simulateUserStates() {
+                const tests = [];
+                
+                // Clear all auth
+                const clearKeys = ['sb-access-token', 'hiAccess', 'unified_membership_cache', 'hi_member'];
+                clearKeys.forEach(key => localStorage.removeItem(key));
+                
+                // Simulate different user states
+                tests.push(this.log('🧹 Cleared authentication state', 'info'));
+                tests.push(this.log('👤 Simulating clean anonymous user', 'info'));
+                
+                return tests;
+            }
+            
+            testFeatureAccess() {
+                const tests = [];
+                
+                // Test feature availability based on access level
+                const features = [
+                    'hi_medallion_tap',
+                    'hi_sharing',
+                    'location_services',
+                    'premium_calendar',
+                    'hi_muscle_access',
+                    'hi_island_access',
+                    'profile_editing'
+                ];
+                
+                features.forEach(feature => {
+                    // Simulate feature availability check
+                    const hasAccess = this.checkFeatureAccess(feature);
+                    tests.push(this.log(
+                        `${hasAccess ? '✅' : '❌'} Feature: ${feature}`,
+                        hasAccess ? 'pass' : 'fail'
+                    ));
+                });
+                
+                return tests;
+            }
+            
+            checkFeatureAccess(feature) {
+                // Tesla-grade feature access logic
+                const hasAuth = localStorage.getItem('hiAccess') || localStorage.getItem('sb-access-token');
+                const hasAnonymous = localStorage.getItem('hi_discovery_mode') === 'anonymous';
+                const hasMembership = localStorage.getItem('hi_member') === '1';
+                
+                // Basic features available to anonymous users
+                const basicFeatures = ['hi_medallion_tap', 'hi_sharing'];
+                if (basicFeatures.includes(feature) && (hasAuth || hasAnonymous)) {
+                    return true;
+                }
+                
+                // Premium features require membership
+                const premiumFeatures = ['premium_calendar', 'location_services'];
+                if (premiumFeatures.includes(feature) && hasMembership) {
+                    return true;
+                }
+                
+                // Core features require any authentication
+                const coreFeatures = ['hi_muscle_access', 'hi_island_access', 'profile_editing'];
+                if (coreFeatures.includes(feature) && hasAuth) {
+                    return true;
+                }
+                
+                return false;
+            }
+            
+            async testNavigationFlow() {
+                const tests = [];
+                
+                // Test onboarding flow
+                const hasOnboarding = localStorage.getItem('stayhi_onboarding_completed');
+                tests.push(this.log(
+                    `🎯 Onboarding status: ${hasOnboarding ? 'completed' : 'pending'}`,
+                    hasOnboarding ? 'info' : 'pass'
+                ));
+                
+                // Test navigation history
+                const lastPage = localStorage.getItem('stayhi_last_page');
+                tests.push(this.log(`🧭 Last page: ${lastPage || 'none'}`, 'info'));
+                
+                // Test URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const hasParams = urlParams.toString();
+                tests.push(this.log(`🔗 URL params: ${hasParams || 'none'}`, 'info'));
+                
+                return tests;
+            }
+        }
+        
+        // Initialize testing framework
+        const tester = new TeslaAccessTesting();
+        window.addEventListener('load', () => tester.init());
+        
+        // Test functions
+        async function testAuthStatus() {
+            const results = await tester.checkAuthStatus();
+            tester.displayResults('authResults', results);
+        }
+        
+        async function testAnonymousAccess() {
+            const results = tester.testAnonymousAccess();
+            tester.displayResults('anonymousResults', results);
+        }
+        
+        async function simulateAnonymousUser() {
+            const results = tester.simulateUserStates();
+            tester.displayResults('anonymousResults', results);
+        }
+        
+        async function testMembershipAccess() {
+            const results = await tester.checkMembershipStatus();
+            tester.displayResults('membershipResults', results);
+        }
+        
+        async function simulateExpiredTrial() {
+            localStorage.setItem('hi_member', '0');
+            localStorage.setItem('trial_expired', 'true');
+            const results = [tester.log('⏰ Simulated expired trial user', 'info')];
+            tester.displayResults('membershipResults', results);
+        }
+        
+        async function simulateActiveMember() {
+            localStorage.setItem('hi_member', '1');
+            localStorage.setItem('hiAccess', 'active');
+            const results = [tester.log('✅ Simulated active member', 'pass')];
+            tester.displayResults('membershipResults', results);
+        }
+        
+        async function testFeatureAccess() {
+            const results = tester.testFeatureAccess();
+            tester.displayResults('featureResults', results);
+        }
+        
+        async function testNavigationFlow() {
+            const results = await tester.testNavigationFlow();
+            tester.displayResults('navigationResults', results);
+        }
+        
+        async function runCompleteTest() {
+            const container = document.getElementById('completeResults');
+            container.innerHTML = '<div class="test-result info">🚀 Running complete Tesla-grade test suite...</div>';
+            
+            // Run all tests
+            const allResults = [];
+            allResults.push(...await tester.checkAuthStatus());
+            allResults.push(...await tester.checkMembershipStatus());
+            allResults.push(...tester.testAnonymousAccess());
+            allResults.push(...tester.testFeatureAccess());
+            allResults.push(...await tester.testNavigationFlow());
+            
+            // Generate summary
+            const passed = allResults.filter(r => r.type === 'pass').length;
+            const failed = allResults.filter(r => r.type === 'fail').length;
+            const total = allResults.length;
+            
+            allResults.unshift(tester.log(`📊 Test Summary: ${passed}/${total} passed, ${failed} failed`, 
+                failed === 0 ? 'pass' : 'fail'));
+            
+            tester.displayResults('completeResults', allResults);
+        }
+    </script>
+</body>
+</html>

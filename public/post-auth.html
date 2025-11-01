@@ -376,8 +376,8 @@
       $('#working').style.display = 'none';
       $('#done').style.display = 'block';
       
-      // Check for 'next' parameter and use it, otherwise default to main app (index.html) for authenticated users
-      const nextPage = new URLSearchParams(location.search).get('next') || 'index.html';
+      // Check for 'next' parameter and use it, otherwise default to hi-dashboard.html for authenticated users
+      const nextPage = new URLSearchParams(location.search).get('next') || 'hi-dashboard.html';
       console.log('🔄 Redirecting to:', nextPage);
       setTimeout(()=>go(nextPage), 900);
     } catch (err) {

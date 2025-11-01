@@ -142,11 +142,19 @@
         case 'complete':
           markOnboardingComplete();
           closeOnboarding(overlay);
+          // Tesla-grade navigation to hi-dashboard after onboarding
+          setTimeout(() => {
+            window.location.href = 'hi-dashboard.html';
+          }, 400);
           break;
 
         case 'skip':
           markOnboardingComplete();
           closeOnboarding(overlay);
+          // Tesla-grade navigation to hi-dashboard after skip
+          setTimeout(() => {
+            window.location.href = 'hi-dashboard.html';
+          }, 400);
           break;
       }
     });
@@ -177,12 +185,13 @@
 
   // Initialize onboarding
   function initOnboarding() {
-    // Only show on index.html (main app page)
-    const isIndexPage = window.location.pathname.endsWith('/') || 
-                        window.location.pathname.endsWith('index.html') ||
-                        window.location.pathname === '/';
+    // Show on main dashboard pages (index.html or hi-dashboard.html)
+    const isMainPage = window.location.pathname.endsWith('/') || 
+                       window.location.pathname.endsWith('index.html') ||
+                       window.location.pathname.endsWith('hi-dashboard.html') ||
+                       window.location.pathname === '/';
 
-    if (!isIndexPage) return;
+    if (!isMainPage) return;
 
     // Check if already completed
     if (hasCompletedOnboarding()) return;

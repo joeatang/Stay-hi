@@ -427,4 +427,5 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
   console.log('🔧 Development auth helper available: debugAuth()');
 }
 
-export default TeslaAuthController;
+// Global exposure for compatibility
+window.TeslaAuthController = TeslaAuthController;

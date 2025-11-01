@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔄 CACHE BUSTER & VERSION CHECKER</title>
+    <style>
+        body {
+            background: #0a0a0a;
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+        }
+        .terminal {
+            background: rgba(0,0,0,0.9);
+            border: 2px solid #00ff41;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 16px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 13px;
+        }
+        .critical { color: #ff0040; font-weight: bold; }
+        .success { color: #40ff00; font-weight: bold; }
+        .warning { color: #ffaa00; }
+        .info { color: #00aaff; }
+        button {
+            background: #003300;
+            color: #00ff41;
+            border: 2px solid #00ff41;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 8px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        button:hover { background: #004400; }
+        .version-info {
+            background: rgba(0,100,0,0.1);
+            border: 1px solid #00ff41;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔄 CACHE BUSTER & VERSION CHECKER</h1>
+    <p>Ensure user is seeing the latest Tesla-grade authentication system</p>
+
+    <div>
+        <button onclick="checkVersions()">🔍 CHECK VERSIONS</button>
+        <button onclick="bustCache()">💥 BUST CACHE</button>
+        <button onclick="testFreshLoad()">🆕 TEST FRESH LOAD</button>
+        <button onclick="clearLog()">🗑️ CLEAR</button>
+    </div>
+
+    <div class="terminal" id="log"></div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const timestamp = new Date().toISOString().substr(11, 12);
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `[${timestamp}] ${message}`;
+            logEl.appendChild(div);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        async function checkVersions() {
+            log('🔍 CHECKING FILE VERSIONS & TIMESTAMPS', 'success');
+
+            try {
+                const files = ['signin.html', 'post-auth.html'];
+                
+                for (const file of files) {
+                    const response = await fetch(`/${file}?v=${Date.now()}`);
+                    const content = await response.text();
+                    
+                    log(`📄 ${file}:`, 'info');
+                    log(`   • Size: ${content.length} bytes`, 'info');
+                    log(`   • Last-Modified: ${response.headers.get('last-modified') || 'unknown'}`, 'info');
+                    log(`   • Cache-Control: ${response.headers.get('cache-control') || 'none'}`, 'info');
+
+                    // Check for Tesla signatures
+                    const teslaSignatures = [
+                        'Tesla-grade',
+                        'handleConfigurationError',
+                        'CONFIG',
+                        'bulletproof'
+                    ];
+
+                    let foundSignatures = 0;
+                    teslaSignatures.forEach(signature => {
+                        if (content.includes(signature)) {
+                            foundSignatures++;
+                            log(`   ✅ Contains: "${signature}"`, 'success');
+                        } else {
+                            log(`   ❌ Missing: "${signature}"`, 'critical');
+                        }
+                    });
+
+                    if (foundSignatures === teslaSignatures.length) {
+                        log(`   🎯 ${file} is Tesla-grade version`, 'success');
+                    } else {
+                        log(`   ⚠️  ${file} appears to be old version (${foundSignatures}/${teslaSignatures.length} signatures)`, 'warning');
+                    }
+
+                    // Check specific error handling
+                    if (content.includes('email_address_invalid')) {
+                        log(`   ✅ Has email_address_invalid handling`, 'success');
+                    } else {
+                        log(`   ❌ Missing email_address_invalid handling`, 'critical');
+                    }
+                }
+
+            } catch (error) {
+                log(`❌ Version check failed: ${error.message}`, 'critical');
+            }
+        }
+
+        async function bustCache() {
+            log('💥 CACHE BUSTING OPERATION', 'success');
+
+            try {
+                // Clear various browser caches
+                log('🗑️  Clearing browser caches...', 'info');
+
+                // Method 1: Programmatic cache clearing
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    log(`📦 Found ${cacheNames.length} cache instances`, 'info');
+                    
+                    for (const cacheName of cacheNames) {
+                        await caches.delete(cacheName);
+                        log(`   ✅ Deleted cache: ${cacheName}`, 'success');
+                    }
+                } else {
+                    log('ℹ️  Cache API not available', 'info');
+                }
+
+                // Method 2: Force reload with cache bypass
+                log('🔄 Instructions for manual cache bypass:', 'warning');
+                log('   • Chrome/Edge: Ctrl+Shift+R (Cmd+Shift+R on Mac)', 'info');
+                log('   • Firefox: Ctrl+F5 (Cmd+Shift+R on Mac)', 'info');
+                log('   • Safari: Cmd+Option+R', 'info');
+
+                // Method 3: Add cache-busting to signin links
+                const timestamp = Date.now();
+                const cacheBustUrls = [
+                    `/signin.html?cb=${timestamp}`,
+                    `/post-auth.html?cb=${timestamp}`
+                ];
+
+                log('🆕 Cache-busted URLs:', 'info');
+                cacheBustUrls.forEach(url => {
+                    log(`   • ${window.location.origin}${url}`, 'success');
+                });
+
+                // Test cache-busted signin page
+                const response = await fetch(`/signin.html?cb=${timestamp}`);
+                if (response.ok) {
+                    log('✅ Cache-busted signin.html loaded successfully', 'success');
+                } else {
+                    log(`❌ Cache-busted signin.html failed: ${response.status}`, 'critical');
+                }
+
+            } catch (error) {
+                log(`❌ Cache busting failed: ${error.message}`, 'critical');
+            }
+        }
+
+        async function testFreshLoad() {
+            log('🆕 TESTING FRESH LOAD EXPERIENCE', 'success');
+
+            try {
+                const timestamp = Date.now();
+                
+                // Open fresh signin page in new window/tab
+                log('🪟 Opening fresh signin page...', 'info');
+                
+                const freshUrl = `/signin.html?fresh=${timestamp}`;
+                const newWindow = window.open(freshUrl, '_blank');
+                
+                if (newWindow) {
+                    log('✅ Fresh signin page opened in new tab', 'success');
+                    log('👀 Check the new tab to see if Tesla-grade UI is visible', 'warning');
+                    log('🎯 Try entering any email and clicking "Hi" button', 'info');
+                    
+                    // Test API endpoint to confirm expected behavior
+                    log('🧪 Testing expected API behavior...', 'info');
+                    
+                    const apiResponse = await fetch('https://gfcubvroxgfvjhacinic.supabase.co/auth/v1/otp', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g'
+                        },
+                        body: JSON.stringify({
+                            email: 'fresh@load.test',
+                            type: 'magiclink',
+                            options: {
+                                emailRedirectTo: 'http://localhost:8082/post-auth.html'
+                            }
+                        })
+                    });
+
+                    const apiData = await apiResponse.json();
+                    log(`📡 API returns: ${apiData.error_code} - ${apiData.msg}`, 'info');
+                    
+                    if (apiData.error_code === 'email_address_invalid') {
+                        log('✅ API correctly returns email_address_invalid', 'success');
+                        log('🎯 This SHOULD trigger demo mode in fresh signin page', 'success');
+                    } else {
+                        log('⚠️  Unexpected API response', 'warning');
+                    }
+                    
+                } else {
+                    log('❌ Failed to open new window (popup blocked?)', 'critical');
+                    log(`🔗 Manual URL: ${window.location.origin}${freshUrl}`, 'info');
+                }
+
+            } catch (error) {
+                log(`❌ Fresh load test failed: ${error.message}`, 'critical');
+            }
+        }
+
+        // Show current page info
+        setTimeout(() => {
+            log('🔄 Cache Buster & Version Checker ready', 'success');
+            log(`📍 Current origin: ${window.location.origin}`, 'info');
+            log(`🕒 Page loaded: ${new Date().toISOString()}`, 'info');
+        }, 500);
+    </script>
+</body>
+</html>

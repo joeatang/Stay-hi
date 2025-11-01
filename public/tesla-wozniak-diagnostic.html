@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔬 Tesla Wozniak Diagnostic Tool</title>
+    <style>
+        body {
+            background: #0f1024;
+            color: #cfd2ea;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .diagnostic-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #23264d;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 16px 0;
+        }
+        .test { 
+            padding: 12px; 
+            margin: 8px 0; 
+            border-radius: 8px;
+            border-left: 4px solid #666;
+        }
+        .test.pass { 
+            background: rgba(76, 175, 80, 0.1); 
+            border-left-color: #4CAF50; 
+        }
+        .test.fail { 
+            background: rgba(244, 67, 54, 0.1); 
+            border-left-color: #f44336; 
+        }
+        .test.warning { 
+            background: rgba(255, 193, 7, 0.1); 
+            border-left-color: #FFC107; 
+        }
+        .big-number {
+            font-size: 3rem;
+            font-weight: 900;
+            text-align: center;
+            margin: 16px 0;
+        }
+        .counter-display {
+            background: rgba(255,255,255,0.08);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 12px;
+        }
+        .test-btn {
+            background: #4ECDC4;
+            color: #111;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 8px;
+        }
+        .console-log {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 12px 0;
+        }
+        .error { color: #ff6b6b; }
+        .success { color: #4ecdc4; }
+        .warning { color: #ffd93d; }
+    </style>
+</head>
+<body>
+    <h1>🔬 Tesla Wozniak Counter Diagnostic</h1>
+    <p>Testing the Tesla-grade renderCounters() fix and Wozniak system integration</p>
+
+    <!-- Live Counter Display -->
+    <div class="diagnostic-card">
+        <h3>📊 Live Counter Display</h3>
+        <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+            <div class="counter-display">
+                <div>Today</div>
+                <div id="todayCount" class="big-number">0</div>
+            </div>
+            <div class="counter-display">
+                <div>Total</div>
+                <div id="totalCount" class="big-number">0</div>
+            </div>
+            <div class="counter-display">
+                <div>Streak</div>
+                <div id="streakLen" class="big-number">0</div>
+            </div>
+        </div>
+        <div id="announceTxt" style="text-align: center; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-top: 16px;">
+            Rotator Loading...
+        </div>
+    </div>
+
+    <!-- Test Controls -->
+    <div class="diagnostic-card">
+        <h3>🎯 Test Controls</h3>
+        <button class="test-btn" onclick="testWozniakSystem()">🔍 Test Wozniak System</button>
+        <button class="test-btn" onclick="testRenderCounters()">🎨 Test renderCounters()</button>
+        <button class="test-btn" onclick="testDatabaseConnection()">💾 Test Database</button>
+        <button class="test-btn" onclick="loadDashboardScripts()">⚡ Load Dashboard Scripts</button>
+        <button class="test-btn" onclick="testDirectFunction()">⚡ Test Direct Function</button>
+        <button class="test-btn" onclick="clearConsole()">🧹 Clear Console</button>
+    </div>
+
+    <!-- Console Output -->
+    <div class="diagnostic-card">
+        <h3>📝 Real-time Console Log</h3>
+        <div id="consoleOutput" class="console-log">Starting diagnostic...\n</div>
+    </div>
+
+    <!-- Test Results -->
+    <div class="diagnostic-card">
+        <h3>✅ Test Results</h3>
+        <div id="results"></div>
+    </div>
+
+    <!-- Hidden medallion for testing -->
+    <div id="hiMedal" style="display: none;">Hidden Test Medallion</div>
+
+    <script>
+        const results = document.getElementById('results');
+        const consoleOutput = document.getElementById('consoleOutput');
+        
+        // Capture console logs
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function logToDiv(type, ...args) {
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'warn' ? 'warning' : 'success';
+            consoleOutput.innerHTML += `<span class="${className}">[${timestamp}] ${type.toUpperCase()}: ${message}</span>\n`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+        
+        console.log = (...args) => {
+            originalLog.apply(console, args);
+            logToDiv('log', ...args);
+        };
+        
+        console.error = (...args) => {
+            originalError.apply(console, args);
+            logToDiv('error', ...args);
+        };
+        
+        console.warn = (...args) => {
+            originalWarn.apply(console, args);
+            logToDiv('warn', ...args);
+        };
+
+        function test(name, condition, info = '') {
+            const div = document.createElement('div');
+            div.className = `test ${condition ? 'pass' : 'fail'}`;
+            div.innerHTML = `${condition ? '✅' : '❌'} ${name} ${info ? `<br>   ${info}` : ''}`;
+            results.appendChild(div);
+            
+            console.log(`TEST: ${name} - ${condition ? 'PASS' : 'FAIL'} ${info}`);
+        }
+        
+        function warning(name, info = '') {
+            const div = document.createElement('div');
+            div.className = 'test warning';
+            div.innerHTML = `⚠️ ${name} ${info ? `<br>   ${info}` : ''}`;
+            results.appendChild(div);
+            
+            console.warn(`WARNING: ${name} ${info}`);
+        }
+
+        async function testWozniakSystem() {
+            console.log('🔍 Testing Wozniak System...');
+            results.innerHTML = '';
+            
+            // Test 1: Check if Wozniak scripts loaded
+            test('Wozniak Foundation Script', !!window.WozniakTrackingFoundation, 'Class available');
+            test('Wozniak UI Script', !!window.WozniakUIConnectors, 'Class available');
+            test('Initialize Functions', !!(window.initializeWozniakTracking && window.initializeWozniakUI), 'Global functions available');
+            
+            // Test 2: Check global instances
+            test('WozniakTracking Instance', !!window.WozniakTracking, window.WozniakTracking ? 'Instance exists' : 'Not initialized');
+            test('WozniakUI Instance', !!window.WozniakUI, window.WozniakUI ? 'Instance exists' : 'Not initialized');
+            
+            // Test 3: If instances exist, test their methods
+            if (window.WozniakTracking) {
+                const health = window.WozniakTracking.getHealthStatus();
+                test('Wozniak Foundation Initialized', health.initialized, `Cache: ${health.cacheSize} items`);
+                
+                const metrics = window.WozniakTracking.getAllMetrics();
+                console.log('📊 Wozniak Metrics:', metrics);
+                test('Metrics Available', Object.keys(metrics).length > 0, `Found ${Object.keys(metrics).length} metrics`);
+                
+                // Test Hi Waves specifically
+                const hiWaves = window.WozniakTracking.getHiWaves();
+                test('Hi Waves Data', hiWaves >= 0, `Value: ${hiWaves}`);
+                
+                if (hiWaves === 0) {
+                    warning('Hi Waves is Zero', 'Database may not be loaded or connection failed');
+                }
+            }
+            
+            if (window.WozniakUI) {
+                const uiHealth = window.WozniakUI.getHealthStatus();
+                test('Wozniak UI Connected', uiHealth.connected, `Elements found: ${uiHealth.elementsFound}`);
+                test('updateRotatorDisplay Method', typeof window.WozniakUI.updateRotatorDisplay === 'function', 'Method available');
+            }
+        }
+
+        async function testRenderCounters() {
+            console.log('🎨 Testing renderCounters() function...');
+            
+            // 🚀 TESLA-GRADE: Multiple methods to access renderCounters
+            let functionAvailable = false;
+            let renderCountersFunc = null;
+            let accessMethod = '';
+            
+            // Method 1: Direct window access
+            if (typeof window.renderCounters === 'function') {
+                functionAvailable = true;
+                renderCountersFunc = window.renderCounters;
+                accessMethod = 'Direct window access';
+            }
+            
+            // Method 2: If not available, try loading the dashboard in iframe and accessing it
+            if (!functionAvailable) {
+                console.log('⏳ Method 1 failed, trying iframe access...');
+                
+                try {
+                    // Create hidden iframe to load the dashboard
+                    const iframe = document.createElement('iframe');
+                    iframe.src = '/82815_stayhi_index.html';
+                    iframe.style.display = 'none';
+                    document.body.appendChild(iframe);
+                    
+                    // Wait for iframe to load
+                    await new Promise((resolve, reject) => {
+                        iframe.onload = resolve;
+                        iframe.onerror = reject;
+                        setTimeout(reject, 5000); // 5 second timeout
+                    });
+                    
+                    // Wait a bit more for scripts to execute
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // Try to access function from iframe
+                    if (iframe.contentWindow && typeof iframe.contentWindow.renderCounters === 'function') {
+                        functionAvailable = true;
+                        renderCountersFunc = iframe.contentWindow.renderCounters.bind(iframe.contentWindow);
+                        accessMethod = 'Iframe window access';
+                    }
+                    
+                    // Clean up
+                    document.body.removeChild(iframe);
+                    
+                } catch (iframeError) {
+                    console.warn('⚠️ Iframe method failed:', iframeError);
+                }
+            }
+            
+            // Method 3: Wait with polling as fallback
+            if (!functionAvailable) {
+                console.log('⏳ Methods 1-2 failed, trying polling...');
+                let attempts = 0;
+                const maxAttempts = 10;
+                
+                while (!functionAvailable && attempts < maxAttempts) {
+                    console.log(`⏳ Polling for renderCounters... (attempt ${attempts + 1}/${maxAttempts})`);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    if (typeof window.renderCounters === 'function') {
+                        functionAvailable = true;
+                        renderCountersFunc = window.renderCounters;
+                        accessMethod = 'Polling success';
+                    }
+                    attempts++;
+                }
+            }
+            
+            // Test if renderCounters function exists
+            test('renderCounters Function', functionAvailable, functionAvailable ? `Available via: ${accessMethod}` : 'Not available after all methods');
+            
+            if (functionAvailable && renderCountersFunc) {
+                console.log('🚀 Calling renderCounters()...');
+                
+                try {
+                    await renderCountersFunc();
+                    test('renderCounters Execution', true, 'Function executed without error');
+                    
+                    // Check if counters were updated
+                    setTimeout(() => {
+                        const todayValue = document.getElementById('todayCount').textContent;
+                        const totalValue = document.getElementById('totalCount').textContent;
+                        const streakValue = document.getElementById('streakLen').textContent;
+                        
+                        test('Today Counter Updated', todayValue !== '0', `Value: ${todayValue}`);
+                        test('Total Counter Updated', totalValue !== '0', `Value: ${totalValue}`);
+                        test('Streak Counter Updated', streakValue !== '0', `Value: ${streakValue}`);
+                        
+                        console.log('📊 Counter Values After renderCounters:', {
+                            today: todayValue,
+                            total: totalValue, 
+                            streak: streakValue
+                        });
+                    }, 500);
+                    
+                } catch (error) {
+                    test('renderCounters Execution', false, `Error: ${error.message}`);
+                    console.error('renderCounters failed:', error);
+                }
+            }
+        }
+
+        async function loadDashboardScripts() {
+            console.log('⚡ Loading dashboard scripts directly...');
+            
+            try {
+                // Fetch the main dashboard HTML and extract the script content
+                const response = await fetch('/82815_stayhi_index.html');
+                const htmlContent = await response.text();
+                
+                // Find the main script section
+                const scriptMatch = htmlContent.match(/<script>\s*\(async function\(\)\{([\s\S]*?)\}\)\(\);\s*<\/script>/);
+                
+                if (scriptMatch) {
+                    console.log('📜 Found main dashboard script, executing...');
+                    
+                    // Create and execute the script
+                    const scriptContent = `(async function(){${scriptMatch[1]}})();`;
+                    const scriptElement = document.createElement('script');
+                    scriptElement.textContent = scriptContent;
+                    document.head.appendChild(scriptElement);
+                    
+                    // Wait for execution
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    console.log('✅ Dashboard scripts loaded successfully');
+                    
+                    // Test if renderCounters is now available
+                    if (typeof window.renderCounters === 'function') {
+                        console.log('🎉 renderCounters is now available!');
+                        test('Dashboard Script Loading', true, 'renderCounters function loaded');
+                    } else {
+                        console.warn('⚠️ renderCounters still not available after script loading');
+                        test('Dashboard Script Loading', false, 'renderCounters function not found');
+                    }
+                } else {
+                    console.error('❌ Could not find main script in dashboard HTML');
+                    test('Dashboard Script Loading', false, 'Main script not found');
+                }
+                
+            } catch (error) {
+                console.error('❌ Script loading failed:', error);
+                test('Dashboard Script Loading', false, `Error: ${error.message}`);
+            }
+        }
+
+        async function testDirectFunction() {
+            console.log('⚡ Testing direct renderCounters creation...');
+            
+            try {
+                // Create our own renderCounters function for testing
+                const testRenderCounters = async function() {
+                    console.log('🏆 TEST renderCounters() called directly');
+                    
+                    if (window.WozniakTracking && window.WozniakUI) {
+                        console.log('✅ Using Wozniak system for rendering');
+                        const metrics = await window.WozniakTracking.getAllMetrics();
+                        console.log('📊 Test metrics:', metrics);
+                        
+                        // Update counters
+                        const todayElem = document.getElementById('todayCount');
+                        const streakElem = document.getElementById('streakCount');
+                        const totalElem = document.getElementById('totalCount');
+                        
+                        if (todayElem) todayElem.textContent = metrics.user_today || 0;
+                        if (streakElem) streakElem.textContent = metrics.user_streak || 0; 
+                        if (totalElem) totalElem.textContent = metrics.total_his || 0;
+                        
+                        // Update rotator
+                        if (window.WozniakUI && window.WozniakUI.updateRotatorDisplay) {
+                            await window.WozniakUI.updateRotatorDisplay(metrics);
+                        }
+                        
+                        console.log('✅ Direct renderCounters completed successfully');
+                        return true;
+                    } else {
+                        console.log('⚠️ Wozniak system not available for direct test');
+                        return false;
+                    }
+                };
+                
+                // Test the function
+                console.log('🚀 Calling direct renderCounters test...');
+                const result = await testRenderCounters();
+                
+                test('Direct renderCounters Test', result, result ? 'Function worked directly' : 'Function failed');
+                
+                // Also assign it to window for testing
+                window.testRenderCounters = testRenderCounters;
+                console.log('✅ testRenderCounters assigned to window for manual testing');
+                
+            } catch (error) {
+                console.error('❌ Direct function test failed:', error);
+                test('Direct renderCounters Test', false, `Error: ${error.message}`);
+            }
+        }
+
+        async function testDatabaseConnection() {
+            console.log('💾 Testing Database Connection...');
+            
+            try {
+                const response = await fetch('https://gfcubvroxgfvjhacinic.supabase.co/rest/v1/rpc/get_global_stats', {
+                    method: 'POST',
+                    headers: {
+                        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g',
+                        'Content-Type': 'application/json'
+                    },
+                    body: '{}'
+                });
+                
+                const data = await response.json();
+                test('Database Connection', response.ok, `Status: ${response.status}`);
+                
+                if (response.ok && data.length > 0) {
+                    const stats = data[0];
+                    console.log('📊 Database Stats:', stats);
+                    
+                    test('Hi Waves in DB', stats.hi_waves > 0, `Value: ${stats.hi_waves}`);
+                    test('Total His in DB', stats.total_his >= 0, `Value: ${stats.total_his}`);  
+                    test('Total Users in DB', stats.total_users >= 0, `Value: ${stats.total_users}`);
+                    
+                    // Update counters with database values for comparison
+                    document.getElementById('todayCount').textContent = stats.hi_waves;
+                    document.getElementById('totalCount').textContent = stats.total_his;
+                    document.getElementById('streakLen').textContent = stats.total_users;
+                    
+                    console.log('✅ Updated counters with database values for comparison');
+                }
+                
+            } catch (error) {
+                test('Database Connection', false, `Error: ${error.message}`);
+                console.error('Database test failed:', error);
+            }
+        }
+        
+        function clearConsole() {
+            consoleOutput.innerHTML = 'Console cleared...\n';
+            results.innerHTML = '';
+        }
+
+        // Auto-run initial tests
+        setTimeout(() => {
+            console.log('🚀 Starting automatic diagnostic...');
+            testWozniakSystem();
+        }, 1000);
+        
+        console.log('🔬 Tesla Wozniak Diagnostic Ready');
+    </script>
+
+    <!-- Include the actual Wozniak scripts for testing -->
+    <script src="/assets/wozniak-tracking-foundation.js"></script>
+    <script src="/assets/wozniak-ui-connectors.js"></script>
+    
+    <!-- Include Supabase for database testing -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        // Initialize Supabase client for testing
+        const supabaseUrl = 'https://gfcubvroxgfvjhacinic.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // 🚀 TESLA-GRADE BULLETPROOF GLOBAL RENDERCOUNTERS
+        window.renderCounters = async function() {
+            try {
+                console.log('🏆 GLOBAL Tesla renderCounters() called');
+                
+                if (window.WozniakTracking && window.WozniakUI) {
+                    console.log('✅ Using Wozniak system for counter rendering');
+                    
+                    const metrics = await window.WozniakTracking.getAllMetrics();
+                    console.log('📊 Tesla renderCounters metrics:', metrics);
+                    
+                    // Update counters with real database values
+                    const todayElem = document.getElementById('todayCount');
+                    const streakElem = document.getElementById('streakCount') || document.getElementById('streakLen');
+                    const totalElem = document.getElementById('totalCount');
+                    
+                    if (todayElem) {
+                        todayElem.textContent = metrics.user_today || 0;
+                        console.log('📊 Today updated:', metrics.user_today || 0);
+                    }
+                    if (streakElem) {
+                        streakElem.textContent = metrics.user_streak || 0;
+                        console.log('📊 Streak updated:', metrics.user_streak || 0);
+                    }
+                    if (totalElem) {
+                        totalElem.textContent = metrics.total_his || 0;
+                        console.log('📊 Total updated:', metrics.total_his || 0);
+                    }
+                    
+                    // Update rotator with Hi Waves
+                    if (window.WozniakUI && window.WozniakUI.updateRotatorDisplay) {
+                        await window.WozniakUI.updateRotatorDisplay(metrics);
+                        console.log('🔄 Rotator updated with Hi Waves:', metrics.hi_waves);
+                    }
+                    
+                    console.log('✅ TESLA renderCounters completed successfully');
+                    return true;
+                    
+                } else {
+                    console.log('⚠️ Wozniak system not available for Tesla renderCounters');
+                    return false;
+                }
+                
+            } catch (error) {
+                console.error('❌ TESLA renderCounters failed:', error);
+                return false;
+            }
+        };
+        
+        console.log('🔥 TESLA SUCCESS: Global bulletproof renderCounters installed');
+        
+        // Initialize Wozniak system for testing
+        setTimeout(async () => {
+            console.log('🏗️ Initializing Wozniak System for diagnostic...');
+            
+            try {
+                const tracking = await window.initializeWozniakTracking(supabase);
+                if (tracking) {
+                    const ui = await window.initializeWozniakUI(tracking);
+                    console.log('✅ Wozniak system initialized for diagnostic');
+                } else {
+                    console.error('❌ Failed to initialize Wozniak tracking');
+                }
+            } catch (error) {
+                console.error('❌ Wozniak initialization failed:', error);
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

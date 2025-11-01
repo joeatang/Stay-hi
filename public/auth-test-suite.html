@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tesla-Grade Authentication Test Suite</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="assets/config.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0F0F23;
+            color: white;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 4px solid #4ECDC4;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-family: monospace;
+        }
+        .success { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .error { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .warning { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+        button {
+            background: linear-gradient(135deg, #4ECDC4, #44A08D);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 8px;
+            font-weight: 600;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        input {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 8px;
+            min-width: 250px;
+        }
+        h1, h2 {
+            color: #FFD700;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔬 Tesla-Grade Authentication Test Suite</h1>
+    <p>This page will validate the exact authentication flow and confirm the root cause of the "straight to err" issue.</p>
+
+    <div class="test-section">
+        <h2>Test 1: Supabase API Health Check</h2>
+        <button onclick="testSupabaseHealth()">Test Health Endpoint</button>
+        <div id="healthResult" class="test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Direct OTP API Test</h2>
+        <input type="email" id="testEmail" placeholder="Enter test email" value="test@example.com">
+        <button onclick="testOTPDirect()">Test OTP API Directly</button>
+        <div id="otpResult" class="test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Supabase Client Integration</h2>
+        <button onclick="testSupabaseClient()">Initialize Supabase Client</button>
+        <div id="clientResult" class="test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Full Auth Flow Simulation</h2>
+        <input type="email" id="authEmail" placeholder="Enter email for full test" value="user@gmail.com">
+        <button onclick="testFullAuthFlow()">Test Complete Flow</button>
+        <div id="authResult" class="test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 5: Error Detection Validation</h2>
+        <button onclick="testErrorDetection()">Validate Error Detection</button>
+        <div id="errorResult" class="test-result"></div>
+    </div>
+
+    <script>
+        let supabaseClient = null;
+        let testResults = [];
+
+        function log(message, type = 'info') {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+            testResults.push({ message, type, timestamp: new Date().toISOString() });
+        }
+
+        function displayResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.className = `test-result ${type}`;
+            element.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
+            log(message, type);
+        }
+
+        async function testSupabaseHealth() {
+            displayResult('healthResult', 'Testing Supabase health endpoint...', 'warning');
+            
+            try {
+                const url = window.SUPABASE_URL || 'https://gfcubvroxgfvjhacinic.supabase.co';
+                const key = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g';
+                
+                const response = await fetch(`${url}/auth/v1/health`, {
+                    headers: {
+                        'apikey': key
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayResult('healthResult', `✅ Health check passed: ${data.name} ${data.version}`, 'success');
+                } else {
+                    displayResult('healthResult', `❌ Health check failed: ${response.status} - ${JSON.stringify(data)}`, 'error');
+                }
+            } catch (error) {
+                displayResult('healthResult', `❌ Health check error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testOTPDirect() {
+            const email = document.getElementById('testEmail').value;
+            displayResult('otpResult', `Testing OTP API with email: ${email}...`, 'warning');
+            
+            try {
+                const url = window.SUPABASE_URL || 'https://gfcubvroxgfvjhacinic.supabase.co';
+                const key = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g';
+                
+                const response = await fetch(`${url}/auth/v1/otp`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': key,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        options: {
+                            emailRedirectTo: `${window.location.origin}/post-auth.html`
+                        }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayResult('otpResult', `✅ OTP request successful: ${JSON.stringify(data)}`, 'success');
+                } else {
+                    const errorCode = data.error_code || 'unknown';
+                    const errorMsg = data.msg || data.message || 'Unknown error';
+                    
+                    if (errorCode === 'email_address_invalid') {
+                        displayResult('otpResult', `🔍 CONFIRMED: Configuration issue detected - ${errorMsg}`, 'warning');
+                    } else if (errorCode === 'over_email_send_rate_limit') {
+                        displayResult('otpResult', `⏰ Rate limit detected: ${errorMsg}`, 'warning');
+                    } else {
+                        displayResult('otpResult', `❌ OTP failed: ${response.status} - ${errorCode}: ${errorMsg}`, 'error');
+                    }
+                }
+            } catch (error) {
+                displayResult('otpResult', `❌ OTP error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSupabaseClient() {
+            displayResult('clientResult', 'Initializing Supabase client...', 'warning');
+            
+            try {
+                if (!window.supabase) {
+                    throw new Error('Supabase library not available');
+                }
+
+                const url = window.SUPABASE_URL || 'https://gfcubvroxgfvjhacinic.supabase.co';
+                const key = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g';
+
+                supabaseClient = window.supabase.createClient(url, key, {
+                    auth: {
+                        persistSession: true,
+                        autoRefreshToken: true
+                    }
+                });
+
+                // Test client by checking session
+                const { data: session, error } = await supabaseClient.auth.getSession();
+                
+                if (error) {
+                    displayResult('clientResult', `⚠️ Client initialized but session check failed: ${error.message}`, 'warning');
+                } else {
+                    displayResult('clientResult', `✅ Supabase client initialized successfully. Session: ${session ? 'Active' : 'None'}`, 'success');
+                }
+            } catch (error) {
+                displayResult('clientResult', `❌ Client initialization failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testFullAuthFlow() {
+            const email = document.getElementById('authEmail').value;
+            displayResult('authResult', `Testing full authentication flow with ${email}...`, 'warning');
+            
+            try {
+                if (!supabaseClient) {
+                    await testSupabaseClient();
+                    if (!supabaseClient) {
+                        throw new Error('Supabase client not available');
+                    }
+                }
+
+                const redirectTo = `${window.location.origin}/post-auth.html`;
+                
+                const { data, error } = await supabaseClient.auth.signInWithOtp({
+                    email: email,
+                    options: {
+                        emailRedirectTo: redirectTo
+                    }
+                });
+
+                if (error) {
+                    if (error.message?.includes('invalid') || error.message?.includes('email')) {
+                        displayResult('authResult', `🔍 CONFIGURATION ISSUE DETECTED: ${error.message}`, 'warning');
+                    } else {
+                        displayResult('authResult', `❌ Auth flow failed: ${error.message}`, 'error');
+                    }
+                } else {
+                    displayResult('authResult', `✅ Auth flow successful: ${JSON.stringify(data)}`, 'success');
+                }
+            } catch (error) {
+                displayResult('authResult', `❌ Auth flow error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testErrorDetection() {
+            displayResult('errorResult', 'Testing error detection logic...', 'warning');
+            
+            try {
+                // Simulate the error conditions we expect
+                const testErrors = [
+                    { error_code: 'email_address_invalid', msg: 'Email address "test@example.com" is invalid' },
+                    { error_code: 'over_email_send_rate_limit', msg: 'Rate limit exceeded' },
+                    { message: 'SMTP configuration not found' },
+                    { message: 'Network error' }
+                ];
+
+                let detectionResults = [];
+
+                testErrors.forEach((testError, index) => {
+                    // This is the same logic used in our production-ready signin
+                    let isConfigIssue = false;
+                    
+                    if (testError.error_code === 'email_address_invalid' || 
+                        testError.message?.toLowerCase().includes('invalid') ||
+                        testError.message?.toLowerCase().includes('smtp') ||
+                        testError.message?.toLowerCase().includes('email')) {
+                        isConfigIssue = true;
+                    }
+                    
+                    detectionResults.push(`Test ${index + 1}: ${isConfigIssue ? '✅ DETECTED' : '❌ MISSED'} - ${JSON.stringify(testError)}`);
+                });
+
+                displayResult('errorResult', detectionResults.join('<br>'), 'success');
+                
+            } catch (error) {
+                displayResult('errorResult', `❌ Error detection test failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run health check on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(testSupabaseHealth, 1000);
+        });
+    </script>
+</body>
+</html>

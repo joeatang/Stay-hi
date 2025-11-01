@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incognito Authentication Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="assets/config.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+            background: #0F0F23;
+            color: white;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-card {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 4px solid #4ECDC4;
+        }
+        .result {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            font-size: 14px;
+        }
+        .success { border-left: 4px solid #22c55e; }
+        .error { border-left: 4px solid #ef4444; }
+        .warning { border-left: 4px solid #fbbf24; }
+        button {
+            background: linear-gradient(135deg, #4ECDC4, #44A08D);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 8px 0;
+            font-weight: 600;
+        }
+        button:hover { transform: translateY(-2px); }
+        input {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 8px 0;
+            width: 300px;
+        }
+        .status-indicator {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 10px 0;
+            display: inline-block;
+        }
+        .incognito { background: #fbbf24; color: black; }
+        .normal { background: #22c55e; color: white; }
+    </style>
+</head>
+<body>
+    <h1>🕵️ Incognito Mode Authentication Test</h1>
+    
+    <div class="test-card">
+        <h3>Browser Mode Detection</h3>
+        <div id="modeDetection" class="result">Detecting browser mode...</div>
+        <button onclick="detectMode()">Re-detect Mode</button>
+    </div>
+
+    <div class="test-card">
+        <h3>Storage Availability Test</h3>
+        <button onclick="testStorage()">Test Local/Session Storage</button>
+        <div id="storageResult" class="result"></div>
+    </div>
+
+    <div class="test-card">
+        <h3>Supabase Initialization in Current Mode</h3>
+        <button onclick="testSupabaseInit()">Initialize Supabase</button>
+        <div id="supabaseResult" class="result"></div>
+    </div>
+
+    <div class="test-card">
+        <h3>Authentication Flow Test</h3>
+        <input type="email" id="testEmail" placeholder="Enter email to test" value="test@example.com">
+        <br>
+        <button onclick="testAuthFlow()">Test Complete Auth Flow</button>
+        <div id="authFlowResult" class="result"></div>
+    </div>
+
+    <div class="test-card">
+        <h3>Error Scenario Simulation</h3>
+        <button onclick="simulateUserJourney()">Simulate Real User Journey</button>
+        <div id="journeyResult" class="result"></div>
+    </div>
+
+    <script>
+        let isIncognito = false;
+        let supabaseClient = null;
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            console.log(`[${timestamp}] ${message}`);
+            return `[${timestamp}] ${message}`;
+        }
+
+        function updateResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${type}`;
+        }
+
+        async function detectMode() {
+            updateResult('modeDetection', 'Detecting browser mode...', 'warning');
+            
+            try {
+                // Method 1: Storage quota check
+                let quotaCheck = 'unknown';
+                if ('storage' in navigator && 'estimate' in navigator.storage) {
+                    const estimate = await navigator.storage.estimate();
+                    quotaCheck = estimate.quota < 120000000 ? 'likely-incognito' : 'likely-normal';
+                }
+
+                // Method 2: Local storage test
+                let storageCheck = 'unknown';
+                try {
+                    localStorage.setItem('test', 'test');
+                    localStorage.removeItem('test');
+                    storageCheck = 'available';
+                } catch (e) {
+                    storageCheck = 'blocked';
+                }
+
+                // Method 3: Session storage test
+                let sessionCheck = 'unknown';
+                try {
+                    sessionStorage.setItem('test', 'test');
+                    sessionStorage.removeItem('test');
+                    sessionCheck = 'available';
+                } catch (e) {
+                    sessionCheck = 'blocked';
+                }
+
+                isIncognito = quotaCheck === 'likely-incognito' || storageCheck === 'blocked';
+                
+                const result = `Detection Results:
+• Quota Check: ${quotaCheck}
+• Local Storage: ${storageCheck}
+• Session Storage: ${sessionCheck}
+• Final Assessment: ${isIncognito ? 'INCOGNITO MODE' : 'NORMAL MODE'}`;
+
+                updateResult('modeDetection', result, isIncognito ? 'warning' : 'success');
+
+                // Add status indicator
+                const indicator = document.createElement('div');
+                indicator.className = `status-indicator ${isIncognito ? 'incognito' : 'normal'}`;
+                indicator.textContent = isIncognito ? '🕵️ INCOGNITO MODE DETECTED' : '🌐 NORMAL BROWSING MODE';
+                document.getElementById('modeDetection').appendChild(indicator);
+
+            } catch (error) {
+                updateResult('modeDetection', `Error detecting mode: ${error.message}`, 'error');
+            }
+        }
+
+        async function testStorage() {
+            updateResult('storageResult', 'Testing storage capabilities...', 'warning');
+            
+            const tests = [];
+            
+            // Test localStorage
+            try {
+                localStorage.setItem('testKey', 'testValue');
+                const retrieved = localStorage.getItem('testKey');
+                localStorage.removeItem('testKey');
+                tests.push(`✅ localStorage: ${retrieved === 'testValue' ? 'Working' : 'Failed'}`);
+            } catch (e) {
+                tests.push(`❌ localStorage: ${e.message}`);
+            }
+
+            // Test sessionStorage
+            try {
+                sessionStorage.setItem('testKey', 'testValue');
+                const retrieved = sessionStorage.getItem('testKey');
+                sessionStorage.removeItem('testKey');
+                tests.push(`✅ sessionStorage: ${retrieved === 'testValue' ? 'Working' : 'Failed'}`);
+            } catch (e) {
+                tests.push(`❌ sessionStorage: ${e.message}`);
+            }
+
+            // Test IndexedDB
+            if ('indexedDB' in window) {
+                tests.push(`✅ IndexedDB: Available`);
+            } else {
+                tests.push(`❌ IndexedDB: Not available`);
+            }
+
+            updateResult('storageResult', tests.join('\n'), 'success');
+        }
+
+        async function testSupabaseInit() {
+            updateResult('supabaseResult', 'Initializing Supabase...', 'warning');
+            
+            try {
+                if (!window.supabase) {
+                    throw new Error('Supabase library not loaded');
+                }
+
+                const url = window.SUPABASE_URL || 'https://gfcubvroxgfvjhacinic.supabase.co';
+                const key = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g';
+
+                supabaseClient = window.supabase.createClient(url, key, {
+                    auth: {
+                        persistSession: !isIncognito, // Disable session persistence in incognito
+                        autoRefreshToken: !isIncognito,
+                        storage: isIncognito ? {
+                            getItem: () => null,
+                            setItem: () => {},
+                            removeItem: () => {}
+                        } : undefined
+                    }
+                });
+
+                // Test session retrieval
+                const { data: session, error: sessionError } = await supabaseClient.auth.getSession();
+                
+                let result = `Supabase initialized successfully!
+URL: ${url}
+Mode: ${isIncognito ? 'Incognito (no persistence)' : 'Normal (with persistence)'}
+Session: ${session ? 'Active session found' : 'No active session'}`;
+
+                if (sessionError) {
+                    result += `\nSession Error: ${sessionError.message}`;
+                }
+
+                updateResult('supabaseResult', result, 'success');
+
+            } catch (error) {
+                updateResult('supabaseResult', `Supabase initialization failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAuthFlow() {
+            const email = document.getElementById('testEmail').value;
+            updateResult('authFlowResult', `Testing authentication flow with ${email}...`, 'warning');
+            
+            try {
+                if (!supabaseClient) {
+                    await testSupabaseInit();
+                    if (!supabaseClient) {
+                        throw new Error('Supabase not available');
+                    }
+                }
+
+                const { data, error } = await supabaseClient.auth.signInWithOtp({
+                    email: email,
+                    options: {
+                        emailRedirectTo: `${window.location.origin}/post-auth.html`
+                    }
+                });
+
+                if (error) {
+                    let result = `Authentication Failed:
+Error Code: ${error.error_code || 'unknown'}
+Message: ${error.message}
+Browser Mode: ${isIncognito ? 'Incognito' : 'Normal'}`;
+
+                    if (error.message?.includes('invalid') || error.error_code === 'email_address_invalid') {
+                        result += '\n\n🔍 ANALYSIS: This appears to be a Supabase configuration issue, not related to incognito mode.';
+                        updateResult('authFlowResult', result, 'warning');
+                    } else {
+                        updateResult('authFlowResult', result, 'error');
+                    }
+                } else {
+                    updateResult('authFlowResult', `✅ Authentication request successful: ${JSON.stringify(data)}`, 'success');
+                }
+
+            } catch (error) {
+                updateResult('authFlowResult', `Authentication test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function simulateUserJourney() {
+            updateResult('journeyResult', 'Simulating complete user journey...', 'warning');
+            
+            const steps = [];
+            
+            try {
+                // Step 1: User opens signin page
+                steps.push(`1. User opens signin.html in ${isIncognito ? 'incognito' : 'normal'} mode`);
+                
+                // Step 2: User enters email
+                steps.push(`2. User enters email: test@example.com`);
+                
+                // Step 3: Try to send magic link
+                steps.push(`3. User clicks "Send Magic Link"`);
+                
+                if (!supabaseClient) {
+                    await testSupabaseInit();
+                }
+
+                const { error } = await supabaseClient.auth.signInWithOtp({
+                    email: 'test@example.com',
+                    options: {
+                        emailRedirectTo: `${window.location.origin}/post-auth.html`
+                    }
+                });
+
+                if (error) {
+                    if (error.error_code === 'email_address_invalid') {
+                        steps.push(`4. ❌ Supabase returns: "${error.message}"`);
+                        steps.push(`5. 🤔 User sees error but might not understand it's a config issue`);
+                        steps.push(`6. 😵 User might think email was sent and waits`);
+                        steps.push(`7. ⏰ After waiting, user might try to access app directly`);
+                        steps.push(`8. 🔄 User gets redirected to signin or post-auth`);
+                        steps.push(`9. 💥 User sees "Authentication Failed" - THIS IS THE 'ERR'!`);
+                        
+                        steps.push(`\n🎯 ROOT CAUSE CONFIRMED:`);
+                        steps.push(`- Supabase email configuration is broken`);
+                        steps.push(`- Users don't get clear feedback about the real issue`);
+                        steps.push(`- They end up seeing "Authentication Failed" error`);
+                        steps.push(`- This happens in both normal and incognito mode`);
+                        
+                    } else {
+                        steps.push(`4. ❌ Different error: ${error.message}`);
+                    }
+                } else {
+                    steps.push(`4. ✅ Magic link would be sent (if SMTP was configured)`);
+                }
+
+                updateResult('journeyResult', steps.join('\n'), error ? 'warning' : 'success');
+
+            } catch (error) {
+                steps.push(`ERROR: ${error.message}`);
+                updateResult('journeyResult', steps.join('\n'), 'error');
+            }
+        }
+
+        // Auto-run detection on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(detectMode, 500);
+        });
+    </script>
+</body>
+</html>

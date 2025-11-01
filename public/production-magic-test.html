@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🎯 Production Magic Link Test</title>
+    <style>
+        body { font-family: monospace; margin: 20px; background: #0f0f0f; color: #00ff00; }
+        .test { padding: 15px; margin: 15px 0; border: 1px solid #333; border-radius: 5px; }
+        .success { border-color: #00ff00; background: rgba(0, 255, 0, 0.1); }
+        .error { border-color: #ff0000; color: #ff0000; background: rgba(255, 0, 0, 0.1); }
+        .warning { border-color: #ffaa00; color: #ffaa00; background: rgba(255, 170, 0, 0.1); }
+        input, button { padding: 10px; margin: 5px; font-family: monospace; background: #222; color: #fff; border: 1px solid #555; }
+        button { cursor: pointer; }
+        button:hover { background: #333; }
+        .log { background: #111; padding: 15px; margin: 15px 0; font-size: 12px; overflow-x: auto; max-height: 300px; overflow-y: auto; }
+        h1 { color: #00ffff; }
+        h3 { color: #ffff00; }
+    </style>
+</head>
+<body>
+    <h1>🎯 PRODUCTION MAGIC LINK TEST</h1>
+    <p>Testing on domain: <strong id="domain"></strong></p>
+    
+    <div class="test">
+        <h3>🚀 Generate Magic Link for Production</h3>
+        <input type="email" id="test-email" placeholder="Your email" value="joeatangstay@gmail.com" style="width: 300px;">
+        <br><br>
+        <button onclick="testProductionMagicLink()" style="background: #0066cc;">🔥 Send Magic Link to stay-hi.vercel.app/post-auth.html</button>
+        <div id="production-results"></div>
+    </div>
+
+    <div class="test">
+        <h3>📊 Expected vs Actual Behavior</h3>
+        <div id="behavior-analysis">
+            <div class="warning">📋 Current Status: Testing redirect URL allowlist theory</div>
+            <div class="success">✅ Expected: Magic link → https://stay-hi.vercel.app/post-auth.html</div>
+            <div class="error">❌ Current: Magic link → https://stay-hi.vercel.app/ (root)</div>
+            <div class="warning">🔧 Fix: Add post-auth.html to Supabase redirect allowlist</div>
+        </div>
+    </div>
+
+    <div class="log" id="test-log"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const log = (msg, type = 'info') => {
+            const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+            const logDiv = document.getElementById('test-log');
+            const colors = { error: '#ff0000', warning: '#ffaa00', success: '#00ff00', info: '#00ff00' };
+            logDiv.innerHTML += `<div style="color: ${colors[type]}">[${timestamp}] ${msg}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        };
+
+        // Initialize Supabase
+        const supabase = window.supabase.createClient(
+            "https://gfcubvroxgfvjhacinic.supabase.co",
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g"
+        );
+
+        // Test Production Magic Link
+        async function testProductionMagicLink() {
+            const email = document.getElementById('test-email').value;
+            const results = document.getElementById('production-results');
+            
+            if (!email || !email.includes('@')) {
+                results.innerHTML = '<div class="error">❌ Please enter a valid email address</div>';
+                return;
+            }
+
+            // Use the PRODUCTION URL specifically
+            const productionUrl = "https://stay-hi.vercel.app/post-auth.html";
+            
+            log(`🎯 Testing magic link for PRODUCTION domain`);
+            log(`📧 Email: ${email}`);
+            log(`🔗 Requested redirect: ${productionUrl}`);
+            
+            results.innerHTML = '<div class="warning">⏳ Generating magic link...</div>';
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithOtp({
+                    email: email,
+                    options: {
+                        emailRedirectTo: productionUrl
+                    }
+                });
+
+                if (error) {
+                    results.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+                    log(`❌ Magic link error: ${error.message} (${error.error_code})`, 'error');
+                    return;
+                }
+
+                results.innerHTML = `
+                    <div class="success">✅ Magic link sent successfully!</div>
+                    <div class="success">📧 Sent to: ${email}</div>
+                    <div class="success">🎯 Requested redirect: ${productionUrl}</div>
+                    <div class="warning">
+                        <strong>🧪 NOW TEST:</strong><br>
+                        1. Check your email<br>
+                        2. Click the magic link<br>
+                        3. See if it goes to post-auth.html or redirects to root<br>
+                        4. This will prove if the allowlist theory is correct
+                    </div>
+                `;
+                
+                log(`✅ Magic link generated successfully`);
+                log(`📨 Email sent to: ${email}`);
+                log(`🔬 Test: Click link to verify redirect behavior`);
+                
+            } catch (err) {
+                results.innerHTML = `<div class="error">❌ Exception: ${err.message}</div>`;
+                log(`❌ Exception: ${err.message}`, 'error');
+            }
+        }
+
+        // Initialize
+        window.onload = function() {
+            document.getElementById('domain').textContent = window.location.hostname;
+            log('🚀 Production magic link test initialized');
+            log(`🌐 Testing domain: ${window.location.hostname}`);
+            log(`🎯 Target redirect: https://stay-hi.vercel.app/post-auth.html`);
+        };
+    </script>
+</body>
+</html>

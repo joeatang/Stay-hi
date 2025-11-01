@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Debug - What's Actually Happening</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="assets/config.js"></script>
+    <style>
+        body {
+            background: #0F0F23;
+            color: white;
+            font-family: monospace;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .debug-section {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #4ECDC4;
+        }
+        .error { border-left-color: #ef4444; }
+        .success { border-left-color: #22c55e; }
+        .warning { border-left-color: #fbbf24; }
+        button {
+            background: #4ECDC4;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 8px 4px;
+        }
+        input {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 4px;
+            margin: 8px 4px;
+            width: 250px;
+        }
+        pre {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔬 Live Debug Session - "Didn't Work" Investigation</h1>
+    
+    <div class="debug-section">
+        <h3>Step 1: Test Current Signin Page Load</h3>
+        <button onclick="testSigninPageLoad()">Test Signin Page</button>
+        <div id="signinTest"></div>
+    </div>
+
+    <div class="debug-section">
+        <h3>Step 2: Test Supabase API Direct</h3>
+        <input type="email" id="testEmail" value="user@gmail.com" placeholder="Enter test email">
+        <button onclick="testSupabaseAPI()">Test API Call</button>
+        <div id="apiTest"></div>
+    </div>
+
+    <div class="debug-section">
+        <h3>Step 3: Test Error Detection Logic</h3>
+        <button onclick="testErrorDetection()">Test Error Handling</button>
+        <div id="errorTest"></div>
+    </div>
+
+    <div class="debug-section">
+        <h3>Step 4: Test Demo Mode Functionality</h3>
+        <button onclick="testDemoMode()">Test Demo Mode</button>
+        <div id="demoTest"></div>
+    </div>
+
+    <div class="debug-section">
+        <h3>Step 5: Test Complete User Flow</h3>
+        <button onclick="testCompleteFlow()">Simulate User Actions</button>
+        <div id="flowTest"></div>
+    </div>
+
+    <script>
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            
+            let className = 'debug-section';
+            if (type === 'error') className += ' error';
+            if (type === 'success') className += ' success';
+            if (type === 'warning') className += ' warning';
+            
+            element.className = className;
+            element.innerHTML = `<pre>[${timestamp}] ${message}</pre>`;
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        async function testSigninPageLoad() {
+            log('signinTest', 'Testing signin page load...', 'warning');
+            
+            try {
+                // Test if the signin page is accessible
+                const response = await fetch('/signin.html');
+                const html = await response.text();
+                
+                // Check for key elements
+                const hasConfigError = html.includes('configError');
+                const hasDemoOption = html.includes('demoOption');
+                const hasErrorHandling = html.includes('handleConfigurationError');
+                
+                let result = `Signin Page Analysis:
+• Response Status: ${response.status}
+• Content Length: ${html.length} characters
+• Has Config Error Div: ${hasConfigError}
+• Has Demo Option Div: ${hasDemoOption}
+• Has Error Handling Function: ${hasErrorHandling}
+                
+Key Functions Found:
+${hasErrorHandling ? '✅' : '❌'} handleConfigurationError()
+${html.includes('enterDemoMode') ? '✅' : '❌'} enterDemoMode()
+${html.includes('showMessage') ? '✅' : '❌'} showMessage()`;
+
+                log('signinTest', result, hasErrorHandling ? 'success' : 'error');
+                
+            } catch (error) {
+                log('signinTest', `Error testing signin page: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSupabaseAPI() {
+            const email = document.getElementById('testEmail').value;
+            log('apiTest', `Testing Supabase API with email: ${email}...`, 'warning');
+            
+            try {
+                const url = window.SUPABASE_URL || 'https://gfcubvroxgfvjhacinic.supabase.co';
+                const key = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g';
+                
+                const response = await fetch(`${url}/auth/v1/otp`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': key,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        options: {
+                            emailRedirectTo: `${window.location.origin}/post-auth.html`
+                        }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                let result = `API Response:
+• Status: ${response.status}
+• Error Code: ${data.error_code || 'none'}
+• Message: ${data.msg || data.message || 'success'}
+• Full Response: ${JSON.stringify(data, null, 2)}`;
+
+                if (data.error_code === 'email_address_invalid') {
+                    result += '\n\n🎯 CONFIRMED: This is the exact error our system should detect!';
+                    log('apiTest', result, 'warning');
+                } else if (response.ok) {
+                    result += '\n\n✅ API call succeeded - email would be sent';
+                    log('apiTest', result, 'success');
+                } else {
+                    result += '\n\n❌ Different error than expected';
+                    log('apiTest', result, 'error');
+                }
+                
+            } catch (error) {
+                log('apiTest', `Network error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testErrorDetection() {
+            log('errorTest', 'Testing error detection logic...', 'warning');
+            
+            try {
+                // Simulate the exact errors we expect
+                const testCases = [
+                    { error_code: 'email_address_invalid', msg: 'Email address "test@example.com" is invalid' },
+                    { error_code: 'over_email_send_rate_limit', msg: 'Rate limit exceeded' },
+                    { message: 'SMTP not configured' },
+                    { message: 'Network timeout' }
+                ];
+                
+                let results = 'Error Detection Test Results:\n\n';
+                
+                testCases.forEach((testError, index) => {
+                    // This mirrors the logic in our signin page
+                    let shouldDetect = false;
+                    
+                    if (testError.error_code === 'email_address_invalid' || 
+                        testError.message?.toLowerCase().includes('invalid') ||
+                        testError.message?.toLowerCase().includes('smtp') ||
+                        testError.message?.toLowerCase().includes('email')) {
+                        shouldDetect = true;
+                    }
+                    
+                    results += `Test ${index + 1}: ${shouldDetect ? '✅ WOULD DETECT' : '❌ WOULD MISS'}\n`;
+                    results += `  Error: ${JSON.stringify(testError)}\n\n`;
+                });
+                
+                results += '🔍 The detection logic should catch email_address_invalid errors.';
+                
+                log('errorTest', results, 'success');
+                
+            } catch (error) {
+                log('errorTest', `Error in detection test: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDemoMode() {
+            log('demoTest', 'Testing demo mode functionality...', 'warning');
+            
+            try {
+                // Clear any existing demo mode
+                localStorage.removeItem('stay_hi_demo_mode');
+                localStorage.removeItem('stay_hi_demo_user_email');
+                localStorage.removeItem('stay_hi_demo_user_id');
+                
+                // Simulate entering demo mode (like the signin page does)
+                localStorage.setItem('stay_hi_demo_mode', 'true');
+                localStorage.setItem('stay_hi_demo_user_email', 'demo@stayhi.local');
+                localStorage.setItem('stay_hi_demo_user_id', 'demo-user-' + Date.now());
+                
+                // Check if demo mode was set correctly
+                const demoMode = localStorage.getItem('stay_hi_demo_mode');
+                const demoEmail = localStorage.getItem('stay_hi_demo_user_email');
+                const demoId = localStorage.getItem('stay_hi_demo_user_id');
+                
+                let result = `Demo Mode Test:
+• Demo Mode Set: ${demoMode === 'true' ? '✅' : '❌'}
+• Demo Email: ${demoEmail}
+• Demo User ID: ${demoId}
+• LocalStorage Working: ${localStorage ? '✅' : '❌'}
+
+Next Step: Navigate to index.html to see if demo mode is detected`;
+
+                // Test navigation to demo dashboard
+                const indexUrl = '/index.html?demo=true';
+                result += `\n\nDemo Dashboard URL: ${indexUrl}`;
+                
+                log('demoTest', result, demoMode === 'true' ? 'success' : 'error');
+                
+            } catch (error) {
+                log('demoTest', `Demo mode test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCompleteFlow() {
+            log('flowTest', 'Testing complete user flow simulation...', 'warning');
+            
+            try {
+                let flowSteps = 'Complete User Flow Test:\n\n';
+                
+                // Step 1: User visits signin page
+                flowSteps += '1. ✅ User visits signin.html\n';
+                
+                // Step 2: User enters email
+                const testEmail = 'user@gmail.com';
+                flowSteps += `2. ✅ User enters email: ${testEmail}\n`;
+                
+                // Step 3: User clicks submit - simulate API call
+                flowSteps += '3. 🔄 User clicks "Send Magic Link"\n';
+                
+                const response = await fetch('https://gfcubvroxgfvjhacinic.supabase.co/auth/v1/otp', {
+                    method: 'POST',
+                    headers: {
+                        'apikey': window.SUPABASE_ANON_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: testEmail })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error_code === 'email_address_invalid') {
+                    flowSteps += '4. ⚠️  Supabase returns email_address_invalid\n';
+                    flowSteps += '5. 🎯 System should detect config issue\n';
+                    flowSteps += '6. 📢 System should show error explanation\n';
+                    flowSteps += '7. 🎭 System should offer demo mode\n';
+                    flowSteps += '8. ✅ User clicks "Continue in Demo Mode"\n';
+                    flowSteps += '9. 🚀 User redirected to dashboard with full functionality\n';
+                    flowSteps += '\n💡 EXPECTED BEHAVIOR: User should see error explanation + demo option';
+                } else {
+                    flowSteps += `4. ❓ Unexpected response: ${JSON.stringify(data)}\n`;
+                    flowSteps += '\n⚠️  This is not the expected email_address_invalid error';
+                }
+                
+                flowSteps += '\n\n🔍 INVESTIGATION NEEDED:';
+                flowSteps += '\n• Is the error detection triggering correctly?';
+                flowSteps += '\n• Are the config error divs becoming visible?';
+                flowSteps += '\n• Is demo mode button clickable?';
+                
+                log('flowTest', flowSteps, data.error_code === 'email_address_invalid' ? 'warning' : 'error');
+                
+            } catch (error) {
+                log('flowTest', `Flow test error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run initial test
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(testSigninPageLoad, 1000);
+        });
+    </script>
+</body>
+</html>

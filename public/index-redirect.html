@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Stay Hi - Routing</title>
+  <script>
+    // 🚀 BULLETPROOF FIRST-TIME VISITOR REDIRECT
+    // This executes BEFORE any other scripts
+    (function() {
+      console.log('🎯 BULLETPROOF ROUTING: Checking visitor status');
+      
+      // Check for any indicators of previous activity
+      const indicators = [
+        'hi-usage-start', 'hi-anonymous-usage', 'hiAccess', 
+        'hi_discovery_mode', 'sb-access-token', 'hiCounts', 'hiHistory'
+      ];
+      
+      const hasHistory = indicators.some(key => localStorage.getItem(key));
+      const visitedBefore = sessionStorage.getItem('visited-before');
+      
+      if (!hasHistory && !visitedBefore) {
+        console.log('👋 NEW VISITOR: Redirecting to welcome');
+        sessionStorage.setItem('visited-before', 'true');
+        window.location.replace('/welcome.html');
+      } else {
+        console.log('🔄 RETURNING VISITOR: Loading main app');
+        // Continue to main app (index.html will be loaded by server)
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div style="text-align:center;padding:50px;font-family:system-ui;">
+    <h2>🚀 Stay Hi</h2>
+    <p>Loading your Hi experience...</p>
+  </div>
+</body>
+</html>

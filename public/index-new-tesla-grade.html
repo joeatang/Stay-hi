@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stay Hi</title>
+    
+    <!-- Tesla-Grade Loading Experience Styles -->
+    <link rel="stylesheet" href="hi-loading-experience.css">
+    
+    <script>
+        // 🚀 TESLA-GRADE BULLETPROOF WELCOME FLOW ARCHITECTURE
+        // Steve Wozniak-level first-principles routing system
+        (function() {
+            console.log('🎯 TESLA-GRADE ROUTING: Initializing bulletproof flow');
+            
+            // PHASE 1: Instant routing decision (< 50ms)
+            const indicators = [
+                'hi-usage-start', 'hi-anonymous-usage', 'hiAccess', 
+                'hi_discovery_mode', 'sb-access-token', 'hiCounts', 'hiHistory'
+            ];
+            
+            const hasHistory = indicators.some(key => localStorage.getItem(key));
+            const visitedBefore = sessionStorage.getItem('visited-before');
+            
+            // PHASE 2: Check for magic links (Supabase auth redirects)
+            const url = window.location.href;
+            const hash = window.location.hash;
+            const isMagicLink = hash.includes('access_token') || 
+                               hash.includes('refresh_token') ||
+                               url.includes('access_token') ||
+                               url.includes('refresh_token');
+            
+            if (isMagicLink) {
+                console.log('🔐 MAGIC LINK DETECTED: Loading dashboard with auth');
+                // Continue to dashboard (this page will load dashboard content)
+                window.sessionStorage.setItem('magic-link-flow', 'true');
+            } else if (!hasHistory && !visitedBefore) {
+                console.log('👋 NEW VISITOR: Initiating welcome flow');
+                sessionStorage.setItem('visited-before', 'true');
+                
+                // PHASE 3: Load Tesla-grade loading experience then redirect
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Initialize loading experience
+                    if (window.HiLoadingExperience) {
+                        const loadingExp = new HiLoadingExperience();
+                        loadingExp.show();
+                        
+                        // 500ms Tesla-grade loading then redirect to welcome
+                        setTimeout(() => {
+                            window.location.replace('/welcome.html');
+                        }, 500);
+                    } else {
+                        // Fallback if loading system not available
+                        setTimeout(() => {
+                            window.location.replace('/welcome.html');
+                        }, 100);
+                    }
+                });
+            } else {
+                console.log('🔄 RETURNING VISITOR: Loading dashboard');
+                // Continue to dashboard (this page will load dashboard content)
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Tesla-Grade Loading Overlay (will be controlled by hi-loading-experience.js) -->
+    <div id="hi-loading-container"></div>
+    
+    <!-- Dashboard Content (loads for returning visitors and magic links) -->
+    <div id="dashboard-content" style="display: none;">
+        <div style="text-align:center;padding:50px;font-family:system-ui;">
+            <h2>🚀 Stay Hi Dashboard</h2>
+            <p>Loading your Hi experience...</p>
+            <div id="loading-spinner">
+                <div style="border: 4px solid #f3f3f3; border-radius: 50%; border-top: 4px solid #3498db; width: 40px; height: 40px; animation: spin 2s linear infinite; margin: 20px auto;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loading animation for dashboard spinner -->
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    
+    <!-- Load Tesla-Grade Loading Experience -->
+    <script src="hi-loading-experience.js"></script>
+    
+    <!-- Dashboard loading logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const magicLinkFlow = sessionStorage.getItem('magic-link-flow');
+            const indicators = [
+                'hi-usage-start', 'hi-anonymous-usage', 'hiAccess', 
+                'hi_discovery_mode', 'sb-access-token', 'hiCounts', 'hiHistory'
+            ];
+            const hasHistory = indicators.some(key => localStorage.getItem(key));
+            const visitedBefore = sessionStorage.getItem('visited-before');
+            
+            // Show dashboard for returning visitors or magic link users
+            if (magicLinkFlow || hasHistory || visitedBefore) {
+                document.getElementById('dashboard-content').style.display = 'block';
+                
+                // Load the full dashboard after a brief moment
+                setTimeout(() => {
+                    // This will be replaced with the actual dashboard load
+                    window.location.replace('/index-dashboard-current-backup.html');
+                }, 1000);
+            }
+        });
+    </script>
+</body>
+</html>

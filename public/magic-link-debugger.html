@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 MAGIC LINK CALLBACK DEBUGGER</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="assets/supabase-init.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0F0F23, #1a1a3a);
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .debug-panel {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 32px;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+        }
+        .critical { border-left: 6px solid #ef4444; background: rgba(239, 68, 68, 0.1); }
+        .success { border-left: 6px solid #22c55e; background: rgba(34, 197, 94, 0.1); }
+        .warning { border-left: 6px solid #fbbf24; background: rgba(251, 191, 36, 0.1); }
+        .info { border-left: 6px solid #3b82f6; background: rgba(59, 130, 246, 0.1); }
+        button {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            cursor: pointer;
+            margin: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3); }
+        pre {
+            background: rgba(0,0,0,0.6);
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            font-size: 14px;
+            line-height: 1.5;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        h1 { color: #ef4444; text-align: center; font-size: 2.5em; margin-bottom: 20px; }
+        h2 { color: #4ECDC4; }
+        h3 { color: #fbbf24; }
+        .url-panel {
+            background: rgba(0,0,0,0.4);
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .step { 
+            padding: 12px 0; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+        }
+        .step:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+    <h1>🔍 MAGIC LINK CALLBACK DEBUGGER</h1>
+
+    <div class="debug-panel warning">
+        <h2>🎯 CURRENT URL ANALYSIS</h2>
+        <div class="url-panel" id="urlAnalysis"></div>
+    </div>
+
+    <div class="debug-panel info">
+        <h3>🚀 COMPREHENSIVE MAGIC LINK DEBUG</h3>
+        <button onclick="runMagicLinkDebug()">🔬 ANALYZE MAGIC LINK FLOW</button>
+        <div id="debugResults"></div>
+    </div>
+
+    <div class="debug-panel critical">
+        <h3>🔧 SIMULATE POST-AUTH PROCESS</h3>
+        <button onclick="simulatePostAuth()">⚡ SIMULATE POST-AUTH EXACTLY</button>
+        <div id="postAuthResults"></div>
+    </div>
+
+    <script>
+        // Display current URL analysis immediately
+        function analyzeCurrentURL() {
+            const url = window.location.href;
+            const urlObj = new URL(url);
+            
+            let analysis = `CURRENT URL BREAKDOWN:\n\n`;
+            analysis += `Full URL: ${url}\n`;
+            analysis += `Protocol: ${urlObj.protocol}\n`;
+            analysis += `Host: ${urlObj.host}\n`;
+            analysis += `Pathname: ${urlObj.pathname}\n`;
+            analysis += `Search params: ${urlObj.search || 'None'}\n`;
+            analysis += `Hash: ${urlObj.hash || 'None'}\n\n`;
+            
+            // Parse URL parameters
+            const searchParams = new URLSearchParams(urlObj.search);
+            const hashParams = urlObj.hash ? new URLSearchParams(urlObj.hash.replace('#', '')) : null;
+            
+            analysis += `SEARCH PARAMETERS:\n`;
+            if (searchParams.toString()) {
+                for (const [key, value] of searchParams.entries()) {
+                    analysis += `• ${key}: ${value}\n`;
+                }
+            } else {
+                analysis += `• None found\n`;
+            }
+            
+            analysis += `\nHASH PARAMETERS:\n`;
+            if (hashParams && hashParams.toString()) {
+                for (const [key, value] of hashParams.entries()) {
+                    analysis += `• ${key}: ${value.substring(0, 50)}${value.length > 50 ? '...' : ''}\n`;
+                }
+            } else {
+                analysis += `• None found\n`;
+            }
+            
+            // Magic link indicators
+            analysis += `\nMAGIC LINK INDICATORS:\n`;
+            const hasAccessToken = hashParams?.get('access_token') || searchParams.get('access_token');
+            const hasRefreshToken = hashParams?.get('refresh_token') || searchParams.get('refresh_token');
+            const hasCode = searchParams.get('code');
+            const hasError = searchParams.get('error');
+            
+            analysis += `• Access Token: ${hasAccessToken ? '✅ PRESENT' : '❌ MISSING'}\n`;
+            analysis += `• Refresh Token: ${hasRefreshToken ? '✅ PRESENT' : '❌ MISSING'}\n`;
+            analysis += `• OAuth Code: ${hasCode ? '✅ PRESENT' : '❌ MISSING'}\n`;
+            analysis += `• Error Parameter: ${hasError ? '❌ ' + hasError : '✅ NO ERRORS'}\n`;
+            
+            document.getElementById('urlAnalysis').innerHTML = `<pre>${analysis}</pre>`;
+        }
+
+        async function runMagicLinkDebug() {
+            const resultsDiv = document.getElementById('debugResults');
+            let report = `🔬 MAGIC LINK COMPREHENSIVE DEBUG\n`;
+            report += `Timestamp: ${new Date().toISOString()}\n`;
+            report += `${"=".repeat(60)}\n\n`;
+
+            resultsDiv.innerHTML = `<pre>${report}RUNNING COMPREHENSIVE ANALYSIS...</pre>`;
+
+            try {
+                // Step 1: Wait for Supabase initialization
+                report += `STEP 1: SUPABASE INITIALIZATION CHECK\n`;
+                
+                let supabaseClient = null;
+                if (window.sb) {
+                    supabaseClient = window.sb;
+                    report += `• Supabase client: ✅ READY (window.sb)\n`;
+                } else if (window.supabaseClient) {
+                    supabaseClient = window.supabaseClient;
+                    report += `• Supabase client: ✅ READY (window.supabaseClient)\n`;
+                } else {
+                    report += `• Supabase client: ❌ NOT INITIALIZED\n`;
+                    report += `• Waiting for initialization...\n`;
+                    
+                    // Wait for Supabase to be ready
+                    await new Promise((resolve) => {
+                        const checkInterval = setInterval(() => {
+                            if (window.sb || window.supabaseClient) {
+                                supabaseClient = window.sb || window.supabaseClient;
+                                clearInterval(checkInterval);
+                                resolve();
+                            }
+                        }, 100);
+                        
+                        // Timeout after 5 seconds
+                        setTimeout(() => {
+                            clearInterval(checkInterval);
+                            resolve();
+                        }, 5000);
+                    });
+                    
+                    if (supabaseClient) {
+                        report += `• Supabase client: ✅ INITIALIZED AFTER WAIT\n`;
+                    } else {
+                        report += `• Supabase client: ❌ FAILED TO INITIALIZE\n`;
+                    }
+                }
+                report += `\n`;
+
+                if (!supabaseClient) {
+                    report += `❌ CRITICAL: Cannot proceed without Supabase client\n`;
+                    resultsDiv.innerHTML = `<pre>${report}</pre>`;
+                    return;
+                }
+
+                // Step 2: URL Parameter Analysis
+                report += `STEP 2: URL PARAMETER ANALYSIS\n`;
+                const urlObj = new URL(window.location.href);
+                const searchParams = new URLSearchParams(urlObj.search);
+                const hashParams = urlObj.hash ? new URLSearchParams(urlObj.hash.replace('#', '')) : null;
+
+                // Check for OAuth code flow
+                const code = searchParams.get('code');
+                const state = searchParams.get('state');
+                const error = searchParams.get('error');
+
+                report += `• OAuth Code: ${code ? '✅ PRESENT' : '❌ MISSING'}\n`;
+                report += `• OAuth State: ${state ? '✅ PRESENT' : '❌ MISSING'}\n`;
+                report += `• OAuth Error: ${error ? '❌ ' + error : '✅ NONE'}\n`;
+
+                // Check for magic link tokens in hash
+                const accessToken = hashParams?.get('access_token');
+                const refreshToken = hashParams?.get('refresh_token');
+                const tokenType = hashParams?.get('token_type');
+
+                report += `• Hash Access Token: ${accessToken ? '✅ PRESENT' : '❌ MISSING'}\n`;
+                report += `• Hash Refresh Token: ${refreshToken ? '✅ PRESENT' : '❌ MISSING'}\n`;
+                report += `• Token Type: ${tokenType || 'Not specified'}\n\n`;
+
+                // Step 3: Test OAuth Code Exchange
+                report += `STEP 3: OAUTH CODE EXCHANGE TEST\n`;
+                if (code) {
+                    try {
+                        report += `• Attempting code exchange...\n`;
+                        const codeResult = await supabaseClient.auth.exchangeCodeForSession(window.location.href);
+                        
+                        if (codeResult.error) {
+                            report += `• Code exchange: ❌ FAILED - ${codeResult.error.message}\n`;
+                        } else {
+                            report += `• Code exchange: ✅ SUCCESS\n`;
+                            report += `• Session created: ${codeResult.data.session ? '✅ YES' : '❌ NO'}\n`;
+                        }
+                    } catch (codeError) {
+                        report += `• Code exchange: ❌ EXCEPTION - ${codeError.message}\n`;
+                    }
+                } else {
+                    report += `• No OAuth code present, skipping code exchange\n`;
+                }
+                report += `\n`;
+
+                // Step 4: Test Magic Link Token Setting
+                report += `STEP 4: MAGIC LINK TOKEN TEST\n`;
+                if (accessToken && refreshToken) {
+                    try {
+                        report += `• Attempting to set session with tokens...\n`;
+                        const tokenResult = await supabaseClient.auth.setSession({
+                            access_token: accessToken,
+                            refresh_token: refreshToken
+                        });
+                        
+                        if (tokenResult.error) {
+                            report += `• Token session: ❌ FAILED - ${tokenResult.error.message}\n`;
+                        } else {
+                            report += `• Token session: ✅ SUCCESS\n`;
+                            report += `• Session created: ${tokenResult.data.session ? '✅ YES' : '❌ NO'}\n`;
+                        }
+                    } catch (tokenError) {
+                        report += `• Token session: ❌ EXCEPTION - ${tokenError.message}\n`;
+                    }
+                } else {
+                    report += `• No tokens in hash, skipping token session\n`;
+                }
+                report += `\n`;
+
+                // Step 5: Check Final Session State
+                report += `STEP 5: FINAL SESSION CHECK\n`;
+                try {
+                    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+                    
+                    if (sessionError) {
+                        report += `• Session check: ❌ ERROR - ${sessionError.message}\n`;
+                    } else if (session) {
+                        report += `• Session check: ✅ ACTIVE SESSION FOUND\n`;
+                        report += `• User ID: ${session.user.id}\n`;
+                        report += `• User Email: ${session.user.email}\n`;
+                        report += `• Session expires: ${new Date(session.expires_at * 1000).toLocaleString()}\n`;
+                    } else {
+                        report += `• Session check: ❌ NO ACTIVE SESSION\n`;
+                    }
+                } catch (sessionCheckError) {
+                    report += `• Session check: ❌ EXCEPTION - ${sessionCheckError.message}\n`;
+                }
+                report += `\n`;
+
+                // Step 6: Test Membership Check
+                report += `STEP 6: MEMBERSHIP CHECK TEST\n`;
+                try {
+                    const { data: user } = await supabaseClient.auth.getUser();
+                    if (user?.user?.id) {
+                        const { data: membership, error: memberError } = await supabaseClient
+                            .from('memberships')
+                            .select('expires_at')
+                            .eq('user_id', user.user.id)
+                            .gt('expires_at', new Date().toISOString())
+                            .limit(1)
+                            .maybeSingle();
+                        
+                        if (memberError) {
+                            report += `• Membership check: ❌ ERROR - ${memberError.message}\n`;
+                        } else {
+                            report += `• Membership check: ✅ SUCCESS\n`;
+                            report += `• Active membership: ${membership ? '✅ YES' : '❌ NO'}\n`;
+                        }
+                    } else {
+                        report += `• Membership check: ❌ NO USER FOR CHECK\n`;
+                    }
+                } catch (membershipError) {
+                    report += `• Membership check: ❌ EXCEPTION - ${membershipError.message}\n`;
+                }
+                report += `\n`;
+
+                // Final Analysis
+                report += `🎯 DIAGNOSIS SUMMARY:\n`;
+                report += `${"=".repeat(40)}\n\n`;
+
+                if (error) {
+                    report += `❌ OAUTH ERROR DETECTED: ${error}\n`;
+                    report += `This indicates the magic link authentication failed at the Supabase level.\n\n`;
+                } else if (!code && !accessToken) {
+                    report += `❌ NO AUTHENTICATION TOKENS FOUND\n`;
+                    report += `The URL does not contain OAuth code or magic link tokens.\n`;
+                    report += `This suggests the magic link URL was malformed or expired.\n\n`;
+                } else {
+                    report += `✅ AUTHENTICATION TOKENS PRESENT\n`;
+                    report += `The post-auth process should handle the authentication.\n`;
+                    report += `If you're seeing 'errr', the issue is likely in the post-auth.html processing.\n\n`;
+                }
+
+                report += `🔧 NEXT STEPS:\n`;
+                report += `1. Check browser console for JavaScript errors\n`;
+                report += `2. Verify post-auth.html loads without errors\n`;
+                report += `3. Test membership table permissions\n`;
+                report += `4. Check redirect logic for index.html\n`;
+
+                resultsDiv.innerHTML = `<pre>${report}</pre>`;
+
+            } catch (error) {
+                report += `\n💥 DEBUG ERROR: ${error.message}\n`;
+                report += `Stack: ${error.stack}\n`;
+                resultsDiv.innerHTML = `<pre>${report}</pre>`;
+            }
+        }
+
+        async function simulatePostAuth() {
+            const resultsDiv = document.getElementById('postAuthResults');
+            let simulation = `⚡ POST-AUTH SIMULATION\n\n`;
+
+            resultsDiv.innerHTML = `<pre>${simulation}SIMULATING POST-AUTH PROCESS...</pre>`;
+
+            try {
+                // Load the post-auth page in an iframe to test it
+                simulation += `LOADING POST-AUTH PAGE:\n`;
+                
+                const iframe = document.createElement('iframe');
+                iframe.src = '/post-auth.html' + window.location.search + window.location.hash;
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+                
+                simulation += `• Loading: /post-auth.html${window.location.search}${window.location.hash}\n\n`;
+
+                await new Promise((resolve) => {
+                    let resolved = false;
+                    
+                    iframe.onload = () => {
+                        if (!resolved) {
+                            resolved = true;
+                            resolve();
+                        }
+                    };
+                    
+                    iframe.onerror = () => {
+                        if (!resolved) {
+                            resolved = true;
+                            resolve();
+                        }
+                    };
+                    
+                    // Timeout after 5 seconds
+                    setTimeout(() => {
+                        if (!resolved) {
+                            resolved = true;
+                            resolve();
+                        }
+                    }, 5000);
+                });
+
+                // Try to access the iframe and check for errors
+                try {
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    const workingDiv = iframeDoc.getElementById('working');
+                    const doneDiv = iframeDoc.getElementById('done');
+                    const oopsDiv = iframeDoc.getElementById('oops');
+                    
+                    simulation += `POST-AUTH PAGE ELEMENTS:\n`;
+                    simulation += `• Working indicator: ${workingDiv ? '✅ FOUND' : '❌ MISSING'}\n`;
+                    simulation += `• Success indicator: ${doneDiv ? '✅ FOUND' : '❌ MISSING'}\n`;
+                    simulation += `• Error indicator: ${oopsDiv ? '✅ FOUND' : '❌ MISSING'}\n\n`;
+
+                    // Check current visibility
+                    if (workingDiv) {
+                        simulation += `• Working display: ${workingDiv.style.display || 'default'}\n`;
+                    }
+                    if (doneDiv) {
+                        simulation += `• Success display: ${doneDiv.style.display || 'default'}\n`;
+                    }
+                    if (oopsDiv) {
+                        simulation += `• Error display: ${oopsDiv.style.display || 'default'}\n`;
+                    }
+
+                    // Check for error messages
+                    const oopsMsg = iframeDoc.getElementById('oopsMsg');
+                    if (oopsMsg && oopsMsg.textContent.trim()) {
+                        simulation += `\n❌ ERROR MESSAGE FOUND: ${oopsMsg.textContent}\n`;
+                    }
+
+                } catch (iframeError) {
+                    simulation += `❌ Cannot access iframe content (CORS/Security): ${iframeError.message}\n`;
+                }
+
+                // Wait a bit longer to see if the page processes
+                await new Promise(resolve => setTimeout(resolve, 3000));
+
+                // Check again
+                try {
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    const workingDiv = iframeDoc.getElementById('working');
+                    const doneDiv = iframeDoc.getElementById('done');
+                    const oopsDiv = iframeDoc.getElementById('oops');
+                    
+                    simulation += `\nAFTER 3 SECONDS:\n`;
+                    if (workingDiv) {
+                        simulation += `• Working display: ${workingDiv.style.display || 'default'}\n`;
+                    }
+                    if (doneDiv) {
+                        simulation += `• Success display: ${doneDiv.style.display || 'default'}\n`;
+                    }
+                    if (oopsDiv) {
+                        simulation += `• Error display: ${oopsDiv.style.display || 'default'}\n`;
+                    }
+
+                    const oopsMsg = iframeDoc.getElementById('oopsMsg');
+                    if (oopsMsg && oopsMsg.textContent.trim()) {
+                        simulation += `\n❌ FINAL ERROR: ${oopsMsg.textContent}\n`;
+                    }
+
+                    // Check page title for clues
+                    simulation += `\n• Page title: ${iframeDoc.title}\n`;
+
+                } catch (finalCheckError) {
+                    simulation += `\n❌ Final check failed: ${finalCheckError.message}\n`;
+                }
+
+                document.body.removeChild(iframe);
+
+                simulation += `\n🎯 SIMULATION COMPLETE\n`;
+                simulation += `Check the results above to identify where the post-auth process fails.\n`;
+
+                resultsDiv.innerHTML = `<pre>${simulation}</pre>`;
+
+            } catch (error) {
+                simulation += `\n💥 SIMULATION ERROR: ${error.message}\n`;
+                resultsDiv.innerHTML = `<pre>${simulation}</pre>`;
+            }
+        }
+
+        // Initialize URL analysis on load
+        window.addEventListener('DOMContentLoaded', () => {
+            analyzeCurrentURL();
+            setTimeout(runMagicLinkDebug, 1000);
+        });
+    </script>
+</body>
+</html>

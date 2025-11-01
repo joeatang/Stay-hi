@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔧 Tesla Render Counters Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #000; color: #00ff00; }
+        .result { padding: 10px; margin: 10px 0; border-left: 3px solid #00ff00; }
+        .error { border-left-color: #ff0000; color: #ff0000; }
+        button { background: #333; color: #00ff00; border: 1px solid #00ff00; padding: 10px; margin: 5px; cursor: pointer; }
+        button:hover { background: #555; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Tesla Render Counters Test</h1>
+    <p>Testing if renderCounters is available from the main dashboard page</p>
+    
+    <button onclick="testAvailability()">Test Function Availability</button>
+    <button onclick="testExecution()">Test Function Execution</button>
+    <button onclick="openMainDashboard()">Open Main Dashboard</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message, isError = false) {
+            const div = document.createElement('div');
+            div.className = `result ${isError ? 'error' : ''}`;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            results.appendChild(div);
+        }
+        
+        function testAvailability() {
+            log('🔍 Testing renderCounters availability...');
+            
+            try {
+                // Test if function exists on window
+                log(`typeof window.renderCounters: ${typeof window.renderCounters}`);
+                
+                if (typeof window.renderCounters === 'function') {
+                    log('✅ renderCounters function is available!');
+                } else {
+                    log('❌ renderCounters function is NOT available', true);
+                }
+                
+                // Test if parent window has it (if this is in iframe)
+                if (window.parent && window.parent !== window) {
+                    log(`Parent window renderCounters: ${typeof window.parent.renderCounters}`);
+                }
+                
+            } catch (error) {
+                log(`❌ Error testing availability: ${error.message}`, true);
+            }
+        }
+        
+        async function testExecution() {
+            log('🚀 Testing renderCounters execution...');
+            
+            try {
+                if (typeof window.renderCounters === 'function') {
+                    const result = await window.renderCounters();
+                    log(`✅ renderCounters executed successfully! Result: ${result}`);
+                } else {
+                    log('❌ Cannot execute - function not available', true);
+                }
+            } catch (error) {
+                log(`❌ Execution error: ${error.message}`, true);
+            }
+        }
+        
+        function openMainDashboard() {
+            window.open('http://localhost:8205/82815_stayhi_index.html', '_blank');
+        }
+        
+        // Auto-test on load
+        setTimeout(testAvailability, 1000);
+    </script>
+</body>
+</html>

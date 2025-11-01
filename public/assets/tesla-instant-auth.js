@@ -24,7 +24,7 @@
       
       // Get intended destination
       const urlParams = new URLSearchParams(location.search);
-      const next = urlParams.get('next') || 'index.html';
+      const next = urlParams.get('next') || 'hi-dashboard.html';
       
       // Instant redirect without visible page load
       const redirectUrl = `post-auth.html?next=${encodeURIComponent(next)}${hash}`;

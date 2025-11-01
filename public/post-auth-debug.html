@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔍 Post-Auth Debug Console</title>
+    <style>
+        body { font-family: monospace; margin: 20px; background: #0f0f0f; color: #00ff00; }
+        .debug-panel { padding: 15px; margin: 15px 0; border: 1px solid #333; background: #111; }
+        .success { border-color: #00ff00; color: #00ff00; }
+        .error { border-color: #ff0000; color: #ff0000; }
+        .warning { border-color: #ffaa00; color: #ffaa00; }
+        .info { border-color: #00aaff; color: #00aaff; }
+        .log { background: #000; padding: 10px; margin: 10px 0; font-size: 11px; max-height: 200px; overflow-y: auto; }
+        h1 { color: #00ffff; }
+        button { padding: 10px; margin: 5px; background: #333; color: #fff; border: 1px solid #555; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🔍 POST-AUTH DEBUG CONSOLE</h1>
+    
+    <div class="debug-panel info">
+        <h3>📊 URL Analysis</h3>
+        <div id="url-info"></div>
+    </div>
+
+    <div class="debug-panel warning">
+        <h3>🔐 Authentication State</h3>
+        <div id="auth-state"></div>
+    </div>
+
+    <div class="debug-panel success">
+        <h3>🎯 Magic Link Parameters</h3>
+        <div id="magic-params"></div>
+    </div>
+
+    <div class="debug-panel error">
+        <h3>🚨 Error Detection</h3>
+        <button onclick="testAuthFlow()">🔬 Test Auth Flow</button>
+        <div id="error-analysis"></div>
+    </div>
+
+    <div class="log" id="debug-log"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const log = (msg, type = 'info') => {
+            const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+            const logDiv = document.getElementById('debug-log');
+            const colors = { error: '#ff0000', warning: '#ffaa00', success: '#00ff00', info: '#00aaff' };
+            logDiv.innerHTML += `<div style="color: ${colors[type]}">[${timestamp}] ${msg}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(`[POST-AUTH-DEBUG] ${msg}`);
+        };
+
+        // Initialize Supabase
+        const supabase = window.supabase.createClient(
+            "https://gfcubvroxgfvjhacinic.supabase.co",
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g"
+        );
+
+        // Analyze URL
+        function analyzeUrl() {
+            const url = window.location.href;
+            const hash = window.location.hash;
+            const search = window.location.search;
+            const params = new URLSearchParams(search);
+            
+            let urlInfo = `<div><strong>Full URL:</strong> ${url}</div>`;
+            urlInfo += `<div><strong>Hash:</strong> ${hash || 'None'}</div>`;
+            urlInfo += `<div><strong>Search:</strong> ${search || 'None'}</div>`;
+            
+            document.getElementById('url-info').innerHTML = urlInfo;
+            
+            log(`URL Analysis: ${url}`);
+            log(`Hash: ${hash}`);
+            log(`Search: ${search}`);
+        }
+
+        // Check Magic Link Parameters
+        function checkMagicParams() {
+            const hash = window.location.hash;
+            const hashParams = new URLSearchParams(hash.substring(1));
+            const searchParams = new URLSearchParams(window.location.search);
+            
+            let paramInfo = '';
+            
+            // Check for access_token in hash
+            const accessToken = hashParams.get('access_token');
+            const refreshToken = hashParams.get('refresh_token');
+            const tokenType = hashParams.get('token_type');
+            const expiresIn = hashParams.get('expires_in');
+            
+            if (accessToken) {
+                paramInfo += `<div class="success">✅ Access Token: ${accessToken.substring(0, 20)}...</div>`;
+                paramInfo += `<div class="success">✅ Token Type: ${tokenType}</div>`;
+                paramInfo += `<div class="success">✅ Expires In: ${expiresIn}</div>`;
+                log(`Magic link params found - Access Token present`, 'success');
+            } else {
+                paramInfo += `<div class="error">❌ No access_token found in URL</div>`;
+                log(`No magic link parameters detected`, 'error');
+            }
+            
+            // Check for error parameters
+            const errorCode = hashParams.get('error');
+            const errorDescription = hashParams.get('error_description');
+            
+            if (errorCode) {
+                paramInfo += `<div class="error">❌ Error: ${errorCode}</div>`;
+                paramInfo += `<div class="error">❌ Description: ${errorDescription}</div>`;
+                log(`OAuth error detected: ${errorCode} - ${errorDescription}`, 'error');
+            }
+            
+            document.getElementById('magic-params').innerHTML = paramInfo;
+        }
+
+        // Test Authentication Flow
+        async function testAuthFlow() {
+            log('🧪 Testing authentication flow...', 'info');
+            
+            try {
+                // Get current session
+                const { data: session, error: sessionError } = await supabase.auth.getSession();
+                
+                if (sessionError) {
+                    document.getElementById('error-analysis').innerHTML = 
+                        `<div class="error">❌ Session Error: ${sessionError.message}</div>`;
+                    log(`Session error: ${sessionError.message}`, 'error');
+                    return;
+                }
+                
+                if (session?.session) {
+                    document.getElementById('error-analysis').innerHTML = 
+                        `<div class="success">✅ Valid session found!</div>
+                         <div class="success">👤 User: ${session.session.user.email}</div>`;
+                    log(`Valid session found for: ${session.session.user.email}`, 'success');
+                } else {
+                    document.getElementById('error-analysis').innerHTML = 
+                        `<div class="warning">⚠️ No active session found</div>`;
+                    log('No active session found', 'warning');
+                }
+                
+                // Test if magic link can be processed
+                const hash = window.location.hash;
+                if (hash.includes('access_token')) {
+                    log('Processing magic link tokens...', 'info');
+                    
+                    // This should trigger the auth state change
+                    const { data, error } = await supabase.auth.getUser();
+                    
+                    if (error) {
+                        log(`User fetch error: ${error.message}`, 'error');
+                    } else if (data.user) {
+                        log(`User authenticated: ${data.user.email}`, 'success');
+                    }
+                }
+                
+            } catch (err) {
+                document.getElementById('error-analysis').innerHTML = 
+                    `<div class="error">❌ Exception: ${err.message}</div>`;
+                log(`Exception during auth test: ${err.message}`, 'error');
+            }
+        }
+
+        // Monitor auth state changes
+        supabase.auth.onAuthStateChange((event, session) => {
+            log(`Auth state change: ${event}`, 'info');
+            
+            let authInfo = `<div><strong>Event:</strong> ${event}</div>`;
+            
+            if (session) {
+                authInfo += `<div class="success">✅ Session Active</div>`;
+                authInfo += `<div>👤 Email: ${session.user.email}</div>`;
+                authInfo += `<div>🆔 ID: ${session.user.id}</div>`;
+                log(`Session active for: ${session.user.email}`, 'success');
+            } else {
+                authInfo += `<div class="error">❌ No Session</div>`;
+                log('No active session', 'warning');
+            }
+            
+            document.getElementById('auth-state').innerHTML = authInfo;
+        });
+
+        // Initialize
+        window.onload = function() {
+            analyzeUrl();
+            checkMagicParams();
+            testAuthFlow();
+            log('🚀 Post-auth debug console initialized');
+        };
+    </script>
+</body>
+</html>

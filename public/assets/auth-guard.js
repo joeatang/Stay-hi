@@ -241,10 +241,12 @@
       return; // Public pages don't need protection
     }
 
-    // PRODUCTION AUTH: Only Hi-Island remains hybrid for public sharing
+    // PRODUCTION AUTH: Hi-Island + Dashboard hybrid for public sharing
     const isHybridPage = location.pathname.endsWith('hi-island.html') || 
                          location.pathname.endsWith('hi-island-NEW.html') ||
-                         location.pathname.endsWith('hi-muscle.html');
+                         location.pathname.endsWith('hi-muscle.html') ||
+                         location.pathname.endsWith('82815_stayhi_index.html') ||
+                         location.pathname.endsWith('index.html');
     
     if (isHybridPage) {
       console.log('[auth-guard] ⭐ Hybrid mode page detected - allowing access regardless of auth');

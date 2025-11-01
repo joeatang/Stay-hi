@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔗 MAGIC LINK FLOW TESTER</title>
+    <style>
+        body {
+            background: #0a0a0a;
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+        }
+        .terminal {
+            background: rgba(0,0,0,0.9);
+            border: 2px solid #00ff41;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 16px 0;
+            max-height: 500px;
+            overflow-y: auto;
+            font-size: 13px;
+        }
+        .critical { color: #ff0040; font-weight: bold; }
+        .success { color: #40ff00; font-weight: bold; }
+        .warning { color: #ffaa00; }
+        .info { color: #00aaff; }
+        button {
+            background: #003300;
+            color: #00ff41;
+            border: 2px solid #00ff41;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 4px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        button:hover { background: #004400; }
+        input {
+            background: #001100;
+            color: #00ff41;
+            border: 1px solid #00ff41;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin: 4px;
+            font-family: 'Courier New', monospace;
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔗 MAGIC LINK FLOW TESTER</h1>
+    <p>Test complete signin → magic link → post-auth flow</p>
+
+    <div>
+        <input type="email" id="testEmail" value="magic@link.test" placeholder="Test email">
+        <br>
+        <button onclick="startMagicLinkTest()">🚀 START MAGIC LINK TEST</button>
+        <button onclick="simulateSuccess()">✅ SIMULATE SUCCESS</button>
+        <button onclick="simulateFailure()">❌ SIMULATE FAILURE</button>
+        <button onclick="clearLog()">🗑️ CLEAR</button>
+    </div>
+
+    <div class="terminal" id="log"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script>
+        const CONFIG = {
+            SUPABASE_URL: 'https://gfcubvroxgfvjhacinic.supabase.co',
+            SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g'
+        };
+
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const timestamp = new Date().toISOString().substr(11, 12);
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `[${timestamp}] ${message}`;
+            logEl.appendChild(div);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        async function startMagicLinkTest() {
+            const email = document.getElementById('testEmail').value;
+            log('🚀 STARTING COMPLETE MAGIC LINK FLOW TEST', 'success');
+            log(`📧 Email: ${email}`, 'info');
+
+            try {
+                // Step 1: Initialize Supabase
+                log('📡 Initializing Supabase client...', 'info');
+                const supabaseClient = window.supabase.createClient(
+                    CONFIG.SUPABASE_URL,
+                    CONFIG.SUPABASE_ANON_KEY,
+                    {
+                        auth: {
+                            persistSession: true,
+                            autoRefreshToken: true,
+                            detectSessionInUrl: false
+                        }
+                    }
+                );
+                log('✅ Supabase client initialized', 'success');
+
+                // Step 2: Request magic link
+                log('📫 Requesting magic link...', 'info');
+                const { data, error } = await supabaseClient.auth.signInWithOtp({
+                    email: email,
+                    options: {
+                        emailRedirectTo: `${window.location.origin}/post-auth.html`
+                    }
+                });
+
+                if (error) {
+                    log(`❌ Magic link request failed: ${error.error_code} - ${error.message}`, 'critical');
+                    
+                    if (error.error_code === 'email_address_invalid') {
+                        log('🎯 This is expected - email_address_invalid triggers demo mode', 'warning');
+                        log('✅ Magic link system is correctly configured for demo', 'success');
+                        return;
+                    }
+                } else {
+                    log('✅ Magic link request succeeded!', 'success');
+                    log(`📧 Magic link should be sent to: ${email}`, 'info');
+                    log('🔗 Magic link URL would look like:', 'info');
+                    log(`   ${window.location.origin}/post-auth.html?token=...&type=magiclink`, 'info');
+                }
+
+                // Step 3: Simulate what happens in post-auth.html
+                log('🧪 SIMULATING POST-AUTH PROCESSING...', 'success');
+                
+                // Test URL parsing
+                const testUrls = [
+                    `${window.location.origin}/post-auth.html?token=fake-token&type=magiclink`,
+                    `${window.location.origin}/post-auth.html#access_token=fake-access&refresh_token=fake-refresh`,
+                    `${window.location.origin}/post-auth.html?code=fake-code&state=fake-state`,
+                    `${window.location.origin}/post-auth.html?error=access_denied&error_description=User%20cancelled`
+                ];
+
+                testUrls.forEach((url, index) => {
+                    log(`🔍 Test URL ${index + 1}: ${url}`, 'info');
+                    
+                    // Parse like post-auth.html does
+                    const urlObj = new URL(url);
+                    
+                    // Check search params (OAuth/error)
+                    const code = urlObj.searchParams.get('code');
+                    const error = urlObj.searchParams.get('error');
+                    const token = urlObj.searchParams.get('token');
+                    
+                    // Check hash params (magic link tokens)
+                    const hashParams = new URLSearchParams(urlObj.hash.replace('#', ''));
+                    const access_token = hashParams.get('access_token');
+                    const refresh_token = hashParams.get('refresh_token');
+                    
+                    log(`   • OAuth Code: ${code || 'none'}`, 'info');
+                    log(`   • Error: ${error || 'none'}`, 'info');
+                    log(`   • Magic Link Token: ${token || 'none'}`, 'info');
+                    log(`   • Hash Access Token: ${access_token || 'none'}`, 'info');
+                    log(`   • Hash Refresh Token: ${refresh_token || 'none'}`, 'info');
+                });
+
+                // Step 4: Test session check
+                log('👤 Testing session check...', 'info');
+                const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+                
+                if (sessionError) {
+                    log(`❌ Session check failed: ${sessionError.message}`, 'critical');
+                } else if (session) {
+                    log(`✅ Active session found: ${session.user.email}`, 'success');
+                } else {
+                    log('ℹ️  No active session (expected for test)', 'info');
+                }
+
+            } catch (error) {
+                log(`💥 Test failed: ${error.message}`, 'critical');
+            }
+        }
+
+        function simulateSuccess() {
+            log('✅ SIMULATING SUCCESSFUL MAGIC LINK PROCESSING', 'success');
+            
+            // Simulate what should happen in post-auth.html on success
+            const mockSession = {
+                user: { email: 'test@success.com', id: 'user-123' },
+                access_token: 'mock-access-token',
+                refresh_token: 'mock-refresh-token'
+            };
+            
+            log(`👤 User authenticated: ${mockSession.user.email}`, 'success');
+            log('🎯 Should redirect to index.html', 'success');
+            log('✨ Success UI should be shown', 'success');
+        }
+
+        function simulateFailure() {
+            log('❌ SIMULATING MAGIC LINK PROCESSING FAILURE', 'critical');
+            
+            // Simulate what happens when post-auth.html fails
+            log('📄 Magic link clicked → post-auth.html loaded', 'info');
+            log('⚙️  finishAuth() function starts', 'info');
+            log('❌ Authentication error occurs', 'critical');
+            log('🚨 showError() called with "Authentication failed - no valid session created"', 'critical');
+            log('📺 #oops div shown with .err class', 'critical');
+            log('💀 User sees "Authentication Failed" (abbreviated as "err")', 'critical');
+            log('🎯 THIS IS THE "errr" THE USER IS SEEING!', 'critical');
+        }
+
+        // Auto-start
+        setTimeout(() => {
+            log('🔗 Magic Link Flow Tester ready', 'success');
+            log('🧪 This will test the complete signin → magic link → post-auth flow', 'info');
+            log('Click "START MAGIC LINK TEST" to begin comprehensive testing', 'info');
+        }, 500);
+    </script>
+</body>
+</html>

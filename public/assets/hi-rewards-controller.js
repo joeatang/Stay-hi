@@ -339,4 +339,5 @@ class HiPointsTracker {
 // Initialize Hi Rewards Controller
 window.HiRewards = new HiRewardsController();
 
-export default HiRewardsController;
+// Global exposure for compatibility
+window.HiRewardsController = HiRewardsController;

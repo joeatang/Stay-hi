@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In — Stay Hi</title>
+    
+    <!-- Tesla-Grade CDN Loading with Fallback -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://unpkg.com">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" async></script>
+    
+    <!-- Tesla Auth System -->
+    <script src="assets/config.js"></script>
+    <script src="assets/tesla-supabase-manager.js"></script>
+    <script src="assets/tesla-auth-system.js"></script>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0F0F23 0%, #1A1A2E 25%, #16213E 50%, #2D1B69 75%, #4A1A40 100%);
+            background-size: 400% 400%;
+            animation: gradientFlow 20s ease infinite;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .signin-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.3),
+                0 10px 25px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 480px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .signin-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.8), transparent);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo h1 {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FFD700 0%, #4ECDC4 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+
+        .logo p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        input[type="email"] {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        input[type="email"]:focus {
+            outline: none;
+            border-color: #4ECDC4;
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 0 4px rgba(78, 205, 196, 0.1);
+        }
+
+        input[type="email"]::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .signin-btn {
+            width: 100%;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .signin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(78, 205, 196, 0.4);
+        }
+
+        .signin-btn:active {
+            transform: translateY(0);
+        }
+
+        .signin-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .signin-btn .btn-text {
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .signin-btn .loading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .signin-btn.loading .btn-text {
+            display: none;
+        }
+
+        .signin-btn.loading .loading {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-message {
+            margin-top: 16px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            display: none;
+        }
+
+        .status-message.success {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+        }
+
+        .status-message.error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        .status-message.info {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #3b82f6;
+        }
+
+        .footer {
+            margin-top: 32px;
+            text-align: center;
+        }
+
+        .footer a {
+            color: #4ECDC4;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .incognito-notice {
+            background: rgba(251, 191, 36, 0.15);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            color: #fbbf24;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+        }
+
+        .debug-info {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-family: monospace;
+            display: none;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 480px) {
+            .signin-container {
+                margin: 10px;
+                padding: 24px;
+            }
+            
+            .logo h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="signin-container">
+        <div class="logo">
+            <h1>Stay Hi</h1>
+            <p>Welcome back to your island community</p>
+        </div>
+
+        <div id="incognitoNotice" class="incognito-notice">
+            🕵️ Incognito mode detected. Authentication will work but sessions may be limited.
+        </div>
+
+        <form id="signinForm">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    placeholder="your@email.com" 
+                    required 
+                    autocomplete="email"
+                >
+            </div>
+
+            <button type="submit" id="signinBtn" class="signin-btn">
+                <span class="btn-text">Send Magic Link</span>
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <span>Sending...</span>
+                </div>
+            </button>
+        </form>
+
+        <div id="statusMessage" class="status-message"></div>
+
+        <div class="footer">
+            <p>Don't have an account? <a href="signup.html">Sign up here</a></p>
+            <p><a href="welcome.html">← Back to Welcome</a></p>
+        </div>
+    </div>
+
+    <div id="debugInfo" class="debug-info"></div>
+
+    <script>
+        // Tesla-grade signin implementation
+        class TeslaSignin {
+            constructor() {
+                this.form = document.getElementById('signinForm');
+                this.emailInput = document.getElementById('email');
+                this.submitBtn = document.getElementById('signinBtn');
+                this.statusMessage = document.getElementById('statusMessage');
+                this.incognitoNotice = document.getElementById('incognitoNotice');
+                this.debugInfo = document.getElementById('debugInfo');
+                
+                this.isSubmitting = false;
+                this.authSystem = null;
+                
+                this.init();
+            }
+
+            async init() {
+                console.log('🚀 Tesla Signin initializing...');
+                
+                try {
+                    // Set up form handler
+                    this.form.addEventListener('submit', this.handleSubmit.bind(this));
+                    this.emailInput.addEventListener('keypress', this.handleKeyPress.bind(this));
+                    
+                    // Wait for Tesla Auth System
+                    await this.waitForAuthSystem();
+                    
+                    // Check for existing authentication
+                    await this.checkExistingAuth();
+                    
+                    // Show incognito notice if needed
+                    this.showIncognitoNotice();
+                    
+                    // Auto-fill email from URL params
+                    this.autoFillEmail();
+                    
+                    // Enable debug mode in development
+                    if (this.isDevelopment()) {
+                        this.enableDebugMode();
+                    }
+                    
+                    console.log('✅ Tesla Signin ready');
+                    
+                } catch (error) {
+                    console.error('❌ Tesla Signin initialization failed:', error);
+                    this.showStatus('error', `Initialization failed: ${error.message}`);
+                }
+            }
+
+            async waitForAuthSystem(timeout = 15000) {
+                return new Promise((resolve, reject) => {
+                    const timeoutId = setTimeout(() => {
+                        reject(new Error('Tesla Auth System timeout'));
+                    }, timeout);
+
+                    const checkAuth = () => {
+                        if (window.TeslaAuth && window.TeslaAuth.initialized) {
+                            clearTimeout(timeoutId);
+                            this.authSystem = window.TeslaAuth;
+                            resolve();
+                        } else if (window.TeslaAuth) {
+                            // Auth system loaded but not initialized
+                            window.TeslaAuth.initialize()
+                                .then(() => {
+                                    clearTimeout(timeoutId);
+                                    this.authSystem = window.TeslaAuth;
+                                    resolve();
+                                })
+                                .catch(reject);
+                        } else {
+                            // Keep checking
+                            setTimeout(checkAuth, 100);
+                        }
+                    };
+
+                    checkAuth();
+
+                    // Also listen for auth system ready event
+                    window.addEventListener('tesla-auth-ready', () => {
+                        clearTimeout(timeoutId);
+                        this.authSystem = window.TeslaAuth;
+                        resolve();
+                    }, { once: true });
+                });
+            }
+
+            async checkExistingAuth() {
+                try {
+                    if (!this.authSystem) return;
+
+                    const isAuthenticated = await this.authSystem.isAuthenticated();
+                    
+                    if (isAuthenticated) {
+                        console.log('🔄 User already authenticated, redirecting...');
+                        this.showStatus('info', 'You are already signed in. Redirecting...');
+                        
+                        setTimeout(() => {
+                            const nextPage = this.getNextPage();
+                            window.location.replace(nextPage);
+                        }, 2000);
+                    }
+                } catch (error) {
+                    console.warn('Auth check failed:', error.message);
+                    // Continue with signin page
+                }
+            }
+
+            showIncognitoNotice() {
+                if (this.authSystem && this.authSystem.incognitoMode) {
+                    this.incognitoNotice.style.display = 'block';
+                }
+            }
+
+            autoFillEmail() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const email = urlParams.get('email');
+                
+                if (email) {
+                    this.emailInput.value = email;
+                    this.emailInput.focus();
+                }
+            }
+
+            getNextPage() {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get('next') || 'index.html';
+            }
+
+            isDevelopment() {
+                return location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+            }
+
+            enableDebugMode() {
+                this.debugInfo.style.display = 'block';
+                
+                const updateDebugInfo = () => {
+                    const info = {
+                        auth: this.authSystem?.initialized || false,
+                        incognito: this.authSystem?.incognitoMode || false,
+                        authenticated: this.authSystem?.authenticated || false,
+                        user: this.authSystem?.user?.email || null
+                    };
+                    
+                    this.debugInfo.textContent = JSON.stringify(info, null, 2);
+                };
+
+                updateDebugInfo();
+                setInterval(updateDebugInfo, 2000);
+            }
+
+            handleKeyPress(event) {
+                if (event.key === 'Enter' && !this.isSubmitting) {
+                    event.preventDefault();
+                    this.handleSubmit(event);
+                }
+            }
+
+            async handleSubmit(event) {
+                event.preventDefault();
+                
+                if (this.isSubmitting) return;
+                
+                try {
+                    this.isSubmitting = true;
+                    this.setLoadingState(true);
+                    this.hideStatus();
+
+                    const email = this.emailInput.value.trim();
+                    
+                    if (!email) {
+                        throw new Error('Please enter your email address');
+                    }
+
+                    if (!this.isValidEmail(email)) {
+                        throw new Error('Please enter a valid email address');
+                    }
+
+                    if (!this.authSystem) {
+                        throw new Error('Authentication system not ready. Please refresh the page.');
+                    }
+
+                    console.log('📧 Sending magic link to:', email);
+
+                    const nextPage = this.getNextPage();
+                    const result = await this.authSystem.signInWithEmail(email, {
+                        next: nextPage,
+                        redirectTo: `${window.location.origin}/post-auth.html`
+                    });
+
+                    if (result.error) {
+                        throw result.error;
+                    }
+
+                    this.showStatus('success', 
+                        `✉️ Magic link sent to ${email}! Check your inbox and click the link to sign in.`
+                    );
+
+                    // Disable form after successful send
+                    this.emailInput.disabled = true;
+                    this.submitBtn.textContent = 'Magic Link Sent!';
+
+                } catch (error) {
+                    console.error('❌ Signin error:', error);
+                    this.showStatus('error', error.message || 'Something went wrong. Please try again.');
+                } finally {
+                    this.isSubmitting = false;
+                    this.setLoadingState(false);
+                }
+            }
+
+            isValidEmail(email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            }
+
+            setLoadingState(loading) {
+                this.submitBtn.classList.toggle('loading', loading);
+                this.submitBtn.disabled = loading;
+                this.emailInput.disabled = loading;
+            }
+
+            showStatus(type, message) {
+                this.statusMessage.className = `status-message ${type}`;
+                this.statusMessage.textContent = message;
+                this.statusMessage.style.display = 'block';
+
+                // Auto-hide error messages after 10 seconds
+                if (type === 'error') {
+                    setTimeout(() => this.hideStatus(), 10000);
+                }
+            }
+
+            hideStatus() {
+                this.statusMessage.style.display = 'none';
+            }
+        }
+
+        // Initialize Tesla Signin when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                new TeslaSignin();
+            });
+        } else {
+            new TeslaSignin();
+        }
+
+        // Global error handler
+        window.addEventListener('error', (event) => {
+            console.error('Global error:', event.error);
+            if (event.error.message.includes('supabase') || event.error.message.includes('auth')) {
+                const statusEl = document.getElementById('statusMessage');
+                if (statusEl) {
+                    statusEl.className = 'status-message error';
+                    statusEl.textContent = 'Authentication system error. Please refresh the page.';
+                    statusEl.style.display = 'block';
+                }
+            }
+        });
+
+        // Handle unhandled promise rejections
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection:', event.reason);
+            if (event.reason.message && 
+                (event.reason.message.includes('supabase') || event.reason.message.includes('auth'))) {
+                const statusEl = document.getElementById('statusMessage');
+                if (statusEl) {
+                    statusEl.className = 'status-message error';
+                    statusEl.textContent = 'Network error. Please check your connection and try again.';
+                    statusEl.style.display = 'block';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

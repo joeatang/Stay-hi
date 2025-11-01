@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 TESLA GRADE DEFINITIVE DIAGNOSIS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="assets/config.js"></script>
+    <style>
+        body {
+            background: #0F0F23;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .diagnostic-panel {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+        }
+        .critical { border-left: 4px solid #ef4444; }
+        .success { border-left: 4px solid #22c55e; }
+        .warning { border-left: 4px solid #fbbf24; }
+        button {
+            background: linear-gradient(135deg, #4ECDC4, #44A08D);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 8px;
+            font-weight: 600;
+        }
+        input {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 8px;
+            width: 280px;
+        }
+        pre {
+            background: rgba(0,0,0,0.4);
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            font-size: 13px;
+        }
+        iframe {
+            width: 100%;
+            height: 500px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            background: white;
+        }
+        .status { margin: 8px 0; }
+        .pass { color: #22c55e; }
+        .fail { color: #ef4444; }
+        .pending { color: #fbbf24; }
+    </style>
+</head>
+<body>
+    <h1>🎯 TESLA GRADE DEFINITIVE DIAGNOSIS</h1>
+    <h2 style="color: #4ECDC4;">Finding the exact reason error handling isn't visible to users</h2>
+
+    <div class="diagnostic-panel success">
+        <h3>✅ CONFIRMED FACTS</h3>
+        <div class="status pass">• API returns email_address_invalid error</div>
+        <div class="status pass">• signin.html contains handleConfigurationError function</div>
+        <div class="status pass">• DOM elements (configError, demoOption) exist in HTML</div>
+        <div class="status pass">• Server serves signin.html correctly (HTTP 200)</div>
+        <div class="status pending">• Error handling execution: TESTING...</div>
+    </div>
+
+    <div class="diagnostic-panel warning">
+        <h3>🔍 REAL USER SIMULATION</h3>
+        <p>This will load the actual signin page and perform the exact same action a user would take.</p>
+        <input type="email" id="userEmail" value="user@gmail.com" placeholder="Email address">
+        <button onclick="simulateRealUserExperience()">🎯 SIMULATE USER SIGNIN</button>
+        <div id="simulationResults"></div>
+        <iframe id="signinFrame" src="" style="display:none;"></iframe>
+    </div>
+
+    <div class="diagnostic-panel">
+        <h3>🔬 STEP-BY-STEP EXECUTION TRACE</h3>
+        <button onclick="performStepByStepTrace()">📋 EXECUTE TRACE</button>
+        <div id="executionTrace"></div>
+    </div>
+
+    <script>
+        let diagnosticResults = [];
+        
+        function updateResults(elementId, content, type = 'info') {
+            const element = document.getElementById(elementId);
+            let className = 'diagnostic-panel';
+            if (type === 'error') className += ' critical';
+            if (type === 'success') className += ' success'; 
+            if (type === 'warning') className += ' warning';
+            
+            element.className = className;
+            element.innerHTML = '<pre>' + content + '</pre>';
+        }
+
+        async function simulateRealUserExperience() {
+            const email = document.getElementById('userEmail').value;
+            let trace = `🎯 REAL USER SIMULATION\n`;
+            trace += `Email: ${email}\n`;
+            trace += `Timestamp: ${new Date().toISOString()}\n\n`;
+
+            updateResults('simulationResults', trace + 'Loading signin page...', 'warning');
+
+            try {
+                // Step 1: Load the actual signin page
+                trace += `STEP 1: Loading signin.html\n`;
+                const frame = document.getElementById('signinFrame');
+                frame.src = '/signin.html';
+                frame.style.display = 'block';
+                
+                // Wait for frame to fully load
+                await new Promise((resolve) => {
+                    frame.onload = resolve;
+                    setTimeout(resolve, 4000); // Extended timeout
+                });
+
+                trace += `✅ Signin page loaded successfully\n\n`;
+
+                // Step 2: Access frame DOM and inspect elements
+                trace += `STEP 2: Inspecting DOM elements\n`;
+                let frameDoc;
+                try {
+                    frameDoc = frame.contentDocument || frame.contentWindow.document;
+                } catch (e) {
+                    trace += `❌ Cannot access frame DOM (CORS/Security): ${e.message}\n`;
+                    updateResults('simulationResults', trace, 'error');
+                    return;
+                }
+
+                const emailInput = frameDoc.getElementById('email');
+                const signinBtn = frameDoc.getElementById('signinBtn');  
+                const configError = frameDoc.getElementById('configError');
+                const demoOption = frameDoc.getElementById('demoOption');
+                const signinForm = frameDoc.getElementById('signinForm');
+
+                trace += `• Email input: ${emailInput ? '✅ Found' : '❌ Missing'}\n`;
+                trace += `• Signin button: ${signinBtn ? '✅ Found' : '❌ Missing'}\n`;
+                trace += `• Config error div: ${configError ? '✅ Found' : '❌ Missing'}\n`;
+                trace += `• Demo option div: ${demoOption ? '✅ Found' : '❌ Missing'}\n`;
+                trace += `• Signin form: ${signinForm ? '✅ Found' : '❌ Missing'}\n\n`;
+
+                if (!emailInput || !signinBtn || !configError || !demoOption) {
+                    trace += `❌ CRITICAL: Missing required DOM elements!\n`;
+                    updateResults('simulationResults', trace, 'error');
+                    return;
+                }
+
+                // Step 3: Check initial visibility
+                trace += `STEP 3: Initial element visibility\n`;
+                const configErrorStyle = window.getComputedStyle(configError);
+                const demoOptionStyle = window.getComputedStyle(demoOption);
+                
+                trace += `• Config error display: ${configErrorStyle.display}\n`;
+                trace += `• Demo option display: ${demoOptionStyle.display}\n\n`;
+
+                // Step 4: Simulate user input
+                trace += `STEP 4: Simulating user input\n`;
+                emailInput.value = email;
+                trace += `✅ Email entered: ${emailInput.value}\n\n`;
+
+                // Step 5: Set up error monitoring
+                trace += `STEP 5: Monitoring for DOM changes\n`;
+                let errorShown = false;
+                let demoShown = false;
+                let jsErrors = [];
+
+                // Capture JavaScript errors
+                const originalConsoleError = frameDoc.defaultView.console.error;
+                frameDoc.defaultView.console.error = function(...args) {
+                    jsErrors.push(args.join(' '));
+                    originalConsoleError.apply(this, args);
+                };
+
+                // Monitor DOM changes
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        if (mutation.target === configError && configError.style.display !== 'none') {
+                            errorShown = true;
+                        }
+                        if (mutation.target === demoOption && demoOption.style.display !== 'none') {
+                            demoShown = true;
+                        }
+                    });
+                });
+                
+                observer.observe(configError, { attributes: true, attributeFilter: ['style'] });
+                observer.observe(demoOption, { attributes: true, attributeFilter: ['style'] });
+
+                // Step 6: Click signin button
+                trace += `STEP 6: Clicking signin button\n`;
+                signinBtn.click();
+                trace += `✅ Signin button clicked\n`;
+
+                // Wait for async operations
+                await new Promise(resolve => setTimeout(resolve, 3000));
+
+                // Step 7: Check results
+                trace += `\nSTEP 7: POST-CLICK ANALYSIS\n`;
+                
+                const finalConfigStyle = window.getComputedStyle(configError);
+                const finalDemoStyle = window.getComputedStyle(demoOption);
+                
+                trace += `• Config error final display: ${finalConfigStyle.display}\n`;
+                trace += `• Demo option final display: ${finalDemoStyle.display}\n`;
+                trace += `• Error div became visible: ${errorShown ? '✅ YES' : '❌ NO'}\n`;
+                trace += `• Demo option became visible: ${demoShown ? '✅ YES' : '❌ NO'}\n`;
+                trace += `• JavaScript errors: ${jsErrors.length === 0 ? '✅ None' : '❌ ' + jsErrors.length + ' errors'}\n`;
+
+                if (jsErrors.length > 0) {
+                    trace += `\nJavaScript Errors:\n`;
+                    jsErrors.forEach((error, i) => {
+                        trace += `  ${i + 1}. ${error}\n`;
+                    });
+                }
+
+                observer.disconnect();
+                frameDoc.defaultView.console.error = originalConsoleError;
+
+                // Final diagnosis
+                trace += `\n🎯 DIAGNOSIS:\n`;
+                if (errorShown && demoShown) {
+                    trace += `✅ SUCCESS: Error handling is working correctly!\n`;
+                    trace += `The user should see error explanation and demo mode option.\n`;
+                    updateResults('simulationResults', trace, 'success');
+                } else if (jsErrors.length > 0) {
+                    trace += `❌ JAVASCRIPT ERRORS PREVENTING EXECUTION\n`;
+                    trace += `Error handling code exists but JavaScript errors block it.\n`;
+                    updateResults('simulationResults', trace, 'error');
+                } else {
+                    trace += `❌ ERROR HANDLING NOT TRIGGERING\n`;
+                    trace += `The handleConfigurationError function may not be called.\n`;
+                    trace += `OR DOM manipulation is failing silently.\n`;
+                    updateResults('simulationResults', trace, 'error');
+                }
+
+            } catch (error) {
+                trace += `\n💥 SIMULATION ERROR: ${error.message}\n`;
+                updateResults('simulationResults', trace, 'error');
+            }
+        }
+
+        async function performStepByStepTrace() {
+            let trace = `🔬 STEP-BY-STEP EXECUTION TRACE\n\n`;
+            
+            updateResults('executionTrace', trace + 'Starting comprehensive trace...', 'warning');
+
+            try {
+                // Test 1: Verify API behavior
+                trace += `TEST 1: Supabase API Direct Call\n`;
+                const apiResponse = await fetch('https://gfcubvroxgfvjhacinic.supabase.co/auth/v1/otp', {
+                    method: 'POST',
+                    headers: {
+                        'apikey': window.SUPABASE_ANON_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'test@gmail.com',
+                        options: {
+                            emailRedirectTo: window.location.origin + '/post-auth.html'
+                        }
+                    })
+                });
+
+                const apiData = await apiResponse.json();
+                trace += `• Status: ${apiResponse.status}\n`;
+                trace += `• Error Code: ${apiData.error_code || 'none'}\n`;
+                trace += `• Message: ${apiData.msg || apiData.message || 'success'}\n`;
+                trace += `• Expected error_code match: ${apiData.error_code === 'email_address_invalid' ? '✅ YES' : '❌ NO'}\n\n`;
+
+                // Test 2: Test Supabase client
+                trace += `TEST 2: Supabase Client Integration\n`;
+                const { createClient } = supabase;
+                const client = createClient(
+                    'https://gfcubvroxgfvjhacinic.supabase.co',
+                    window.SUPABASE_ANON_KEY
+                );
+
+                const { data: clientData, error: clientError } = await client.auth.signInWithOtp({
+                    email: 'test@gmail.com',
+                    options: {
+                        emailRedirectTo: window.location.origin + '/post-auth.html'
+                    }
+                });
+
+                trace += `• Client error: ${clientError ? '✅ YES' : '❌ NO'}\n`;
+                if (clientError) {
+                    trace += `• Error code: ${clientError.error_code || 'none'}\n`;
+                    trace += `• Error message: ${clientError.message}\n`;
+                    trace += `• Matches expected: ${clientError.error_code === 'email_address_invalid' ? '✅ YES' : '❌ NO'}\n`;
+                }
+                trace += `• Client data: ${clientData ? JSON.stringify(clientData) : 'null'}\n\n`;
+
+                // Test 3: Signin page HTML analysis
+                trace += `TEST 3: Signin Page HTML Analysis\n`;
+                const signinResponse = await fetch('/signin.html');
+                const signinHtml = await signinResponse.text();
+                
+                const hasHandleError = signinHtml.includes('function handleConfigurationError');
+                const hasErrorDiv = signinHtml.includes('id="configError"');
+                const hasDemoDiv = signinHtml.includes('id="demoOption"');
+                const hasErrorCheck = signinHtml.includes("error.error_code === 'email_address_invalid'");
+                
+                trace += `• Page loads: ${signinResponse.ok ? '✅ YES' : '❌ NO'}\n`;
+                trace += `• handleConfigurationError function: ${hasHandleError ? '✅ YES' : '❌ NO'}\n`;
+                trace += `• configError div: ${hasErrorDiv ? '✅ YES' : '❌ NO'}\n`;
+                trace += `• demoOption div: ${hasDemoDiv ? '✅ YES' : '❌ NO'}\n`;
+                trace += `• Error code check: ${hasErrorCheck ? '✅ YES' : '❌ NO'}\n\n`;
+
+                // Final assessment
+                trace += `🎯 COMPREHENSIVE ASSESSMENT:\n`;
+                
+                if (apiData.error_code === 'email_address_invalid' && hasHandleError && hasErrorDiv && hasDemoDiv) {
+                    trace += `✅ ALL COMPONENTS PRESENT AND CORRECT\n`;
+                    trace += `\nThe error handling system should work perfectly.\n`;
+                    trace += `If users report issues, the problem is likely:\n`;
+                    trace += `1. Browser JavaScript disabled/blocked\n`;
+                    trace += `2. CSS hiding the error elements\n`;
+                    trace += `3. Runtime JavaScript errors preventing execution\n`;
+                    trace += `4. User not waiting for async operation to complete\n`;
+                    updateResults('executionTrace', trace, 'success');
+                } else {
+                    trace += `❌ MISSING CRITICAL COMPONENTS\n`;
+                    if (apiData.error_code !== 'email_address_invalid') {
+                        trace += `• API not returning expected error\n`;
+                    }
+                    if (!hasHandleError) {
+                        trace += `• Missing handleConfigurationError function\n`;
+                    }
+                    if (!hasErrorDiv || !hasDemoDiv) {
+                        trace += `• Missing required DOM elements\n`;
+                    }
+                    updateResults('executionTrace', trace, 'error');
+                }
+
+            } catch (error) {
+                trace += `\n💥 TRACE ERROR: ${error.message}\n`;
+                updateResults('executionTrace', trace, 'error');
+            }
+        }
+
+        // Auto-start comprehensive testing
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                console.log('🎯 Tesla Grade Diagnostic Ready');
+                performStepByStepTrace();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

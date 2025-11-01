@@ -854,4 +854,5 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 1000);
 });
 
-export default HiRewardsBeta;
+// Global exposure for compatibility
+window.HiRewardsBeta = HiRewardsBeta;

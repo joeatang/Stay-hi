@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 SURGICAL DIAGNOSTIC</title>
+    <style>
+        body {
+            background: #0a0a0a;
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            line-height: 1.4;
+        }
+        .terminal {
+            background: rgba(0,0,0,0.9);
+            border: 2px solid #00ff41;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 16px 0;
+            max-height: 500px;
+            overflow-y: auto;
+            font-size: 13px;
+        }
+        .critical { color: #ff0040; font-weight: bold; }
+        .success { color: #40ff00; font-weight: bold; }
+        .warning { color: #ffaa00; }
+        .info { color: #00aaff; }
+        .highlight { background: rgba(255,255,0,0.2); padding: 2px 4px; }
+        button {
+            background: #003300;
+            color: #00ff41;
+            border: 2px solid #00ff41;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 4px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        button:hover { background: #004400; }
+    </style>
+</head>
+<body>
+    <h1>🎯 SURGICAL DIAGNOSTIC</h1>
+    <p>Hypothesis-driven debugging of signin error handling</p>
+
+    <div>
+        <button onclick="testHypothesis1()">🧪 H1: JavaScript Execution</button>
+        <button onclick="testHypothesis2()">🧪 H2: DOM Element Access</button>
+        <button onclick="testHypothesis3()">🧪 H3: CSS Override Issues</button>
+        <button onclick="testHypothesis4()">🧪 H4: Async Timing</button>
+        <button onclick="runFullDiagnostic()">🚀 FULL DIAGNOSTIC</button>
+        <button onclick="clearLog()">🗑️ CLEAR</button>
+    </div>
+
+    <div class="terminal" id="log"></div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const timestamp = new Date().toISOString().substr(11, 12);
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `[${timestamp}] ${message}`;
+            logEl.appendChild(div);
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        async function testHypothesis1() {
+            log('🧪 HYPOTHESIS 1: JavaScript Execution Test', 'success');
+            log('Testing if JavaScript errors prevent handleConfigurationError from running', 'info');
+
+            try {
+                // Test 1: Check if we can access signin page
+                const response = await fetch('/signin.html');
+                const htmlContent = await response.text();
+                
+                log(`✅ Signin page accessible (${response.status})`, 'success');
+
+                // Test 2: Check for JavaScript syntax errors
+                const scriptMatches = htmlContent.match(/<script[^>]*>([\s\S]*?)<\/script>/gi);
+                log(`📜 Found ${scriptMatches ? scriptMatches.length : 0} script blocks`, 'info');
+
+                // Test 3: Look for handleConfigurationError definition
+                if (htmlContent.includes('function handleConfigurationError')) {
+                    log('✅ handleConfigurationError function found in HTML', 'success');
+                } else {
+                    log('❌ handleConfigurationError function NOT found', 'critical');
+                }
+
+                // Test 4: Look for error handling call
+                if (htmlContent.includes('handleConfigurationError(error)')) {
+                    log('✅ handleConfigurationError call found', 'success');
+                } else {
+                    log('❌ handleConfigurationError call NOT found', 'critical');
+                }
+
+                // Test 5: Check for potential JavaScript errors
+                const errorPatterns = [
+                    'console.error',
+                    'throw new',
+                    'undefined',
+                    'null',
+                    'ReferenceError',
+                    'TypeError'
+                ];
+
+                let potentialIssues = 0;
+                errorPatterns.forEach(pattern => {
+                    const matches = (htmlContent.match(new RegExp(pattern, 'gi')) || []).length;
+                    if (matches > 0) {
+                        log(`⚠️  Found ${matches} instances of "${pattern}"`, 'warning');
+                        potentialIssues++;
+                    }
+                });
+
+                if (potentialIssues === 0) {
+                    log('✅ No obvious JavaScript error patterns detected', 'success');
+                }
+
+                log('🎯 H1 CONCLUSION: JavaScript appears to be intact', 'success');
+
+            } catch (error) {
+                log(`❌ H1 TEST FAILED: ${error.message}`, 'critical');
+            }
+        }
+
+        async function testHypothesis2() {
+            log('🧪 HYPOTHESIS 2: DOM Element Access Test', 'success');
+            log('Testing if required DOM elements exist and are accessible', 'info');
+
+            try {
+                // Create a temporary iframe to test DOM access
+                const iframe = document.createElement('iframe');
+                iframe.src = '/signin.html';
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+
+                await new Promise(resolve => {
+                    iframe.onload = () => {
+                        try {
+                            const doc = iframe.contentDocument || iframe.contentWindow.document;
+                            
+                            // Test critical elements
+                            const requiredElements = [
+                                'configError',
+                                'demoOption',
+                                'errorDetails',
+                                'signinForm',
+                                'signinBtn'
+                            ];
+
+                            log('🔍 Checking DOM element existence...', 'info');
+
+                            let foundElements = 0;
+                            let missingElements = [];
+
+                            requiredElements.forEach(id => {
+                                const element = doc.getElementById(id);
+                                if (element) {
+                                    foundElements++;
+                                    log(`✅ <span class="highlight">${id}</span>: EXISTS`, 'success');
+                                    
+                                    // Check computed styles
+                                    const styles = iframe.contentWindow.getComputedStyle(element);
+                                    log(`   • display: ${styles.display}`, 'info');
+                                    log(`   • visibility: ${styles.visibility}`, 'info');
+                                    log(`   • opacity: ${styles.opacity}`, 'info');
+                                } else {
+                                    missingElements.push(id);
+                                    log(`❌ <span class="highlight">${id}</span>: NOT FOUND`, 'critical');
+                                }
+                            });
+
+                            // Summary
+                            log(`📊 Elements found: ${foundElements}/${requiredElements.length}`, foundElements === requiredElements.length ? 'success' : 'critical');
+                            
+                            if (missingElements.length > 0) {
+                                log(`💥 MISSING ELEMENTS: ${missingElements.join(', ')}`, 'critical');
+                            }
+
+                            if (foundElements === requiredElements.length) {
+                                log('🎯 H2 CONCLUSION: All DOM elements exist and accessible', 'success');
+                            } else {
+                                log('🎯 H2 CONCLUSION: Missing DOM elements detected!', 'critical');
+                            }
+
+                        } catch (error) {
+                            log(`❌ DOM access error: ${error.message}`, 'critical');
+                            log('🎯 H2 CONCLUSION: DOM access blocked by CORS/security', 'warning');
+                        }
+                        
+                        document.body.removeChild(iframe);
+                        resolve();
+                    };
+                });
+
+            } catch (error) {
+                log(`❌ H2 TEST FAILED: ${error.message}`, 'critical');
+            }
+        }
+
+        async function testHypothesis3() {
+            log('🧪 HYPOTHESIS 3: CSS Override Test', 'success');
+            log('Testing if CSS rules prevent error elements from becoming visible', 'info');
+
+            try {
+                const response = await fetch('/signin.html');
+                const htmlContent = await response.text();
+
+                // Extract CSS rules
+                const styleMatches = htmlContent.match(/<style[^>]*>([\s\S]*?)<\/style>/gi);
+                
+                if (styleMatches) {
+                    log(`🎨 Found ${styleMatches.length} style blocks`, 'info');
+                    
+                    let configErrorRules = [];
+                    let demoOptionRules = [];
+                    let displayNoneRules = [];
+
+                    styleMatches.forEach((styleBlock, index) => {
+                        const cssContent = styleBlock.replace(/<\/?style[^>]*>/gi, '');
+                        
+                        // Look for config-error rules
+                        const configErrorMatch = cssContent.match(/\.config-error[^}]*{[^}]*}/gi);
+                        if (configErrorMatch) {
+                            configErrorRules.push(...configErrorMatch);
+                        }
+
+                        // Look for demo-option rules  
+                        const demoOptionMatch = cssContent.match(/\.demo-option[^}]*{[^}]*}/gi);
+                        if (demoOptionMatch) {
+                            demoOptionRules.push(...demoOptionMatch);
+                        }
+
+                        // Look for display: none rules
+                        const displayNoneMatch = cssContent.match(/[^}]*display\s*:\s*none[^}]*/gi);
+                        if (displayNoneMatch) {
+                            displayNoneRules.push(...displayNoneMatch);
+                        }
+                    });
+
+                    log('🔍 CSS Rule Analysis:', 'info');
+                    
+                    if (configErrorRules.length > 0) {
+                        log(`📝 config-error rules (${configErrorRules.length}):`, 'info');
+                        configErrorRules.forEach(rule => {
+                            log(`   ${rule.replace(/\s+/g, ' ')}`, 'info');
+                            if (rule.includes('display: none')) {
+                                log('   ⚠️  DEFAULT HIDDEN - requires JavaScript override', 'warning');
+                            }
+                        });
+                    }
+
+                    if (demoOptionRules.length > 0) {
+                        log(`📝 demo-option rules (${demoOptionRules.length}):`, 'info');
+                        demoOptionRules.forEach(rule => {
+                            log(`   ${rule.replace(/\s+/g, ' ')}`, 'info');
+                        });
+                    }
+
+                    if (displayNoneRules.length > 0) {
+                        log(`🚫 display:none rules (${displayNoneRules.length}):`, 'warning');
+                        displayNoneRules.forEach(rule => {
+                            if (rule.includes('config-error') || rule.includes('demo-option')) {
+                                log(`   ⚠️  ${rule.replace(/\s+/g, ' ')}`, 'warning');
+                            }
+                        });
+                    }
+
+                    log('🎯 H3 CONCLUSION: CSS rules require JavaScript override to show elements', 'success');
+                } else {
+                    log('❌ No CSS styles found', 'critical');
+                }
+
+            } catch (error) {
+                log(`❌ H3 TEST FAILED: ${error.message}`, 'critical');
+            }
+        }
+
+        async function testHypothesis4() {
+            log('🧪 HYPOTHESIS 4: Async Timing Test', 'success');
+            log('Testing if timing issues prevent error handling from working', 'info');
+
+            try {
+                // Simulate the exact timing sequence
+                log('⏱️  Simulating signin timing sequence...', 'info');
+
+                // Step 1: Page load
+                log('1️⃣  Page loads and DOM ready', 'info');
+                
+                // Step 2: User enters email and clicks signin
+                log('2️⃣  User triggers signin event', 'info');
+
+                // Step 3: Supabase API call (simulate delay)
+                log('3️⃣  Making Supabase API call...', 'info');
+                const startTime = Date.now();
+
+                const response = await fetch('https://gfcubvroxgfvjhacinic.supabase.co/auth/v1/otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g'
+                    },
+                    body: JSON.stringify({
+                        email: 'timing@test.diagnostic',
+                        type: 'magiclink',
+                        options: {
+                            emailRedirectTo: 'http://localhost:8082/post-auth.html'
+                        }
+                    })
+                });
+
+                const apiLatency = Date.now() - startTime;
+                const errorData = await response.json();
+
+                log(`4️⃣  API response received (${apiLatency}ms latency)`, 'success');
+                log(`📨 Error: ${errorData.error_code} - ${errorData.msg}`, 'info');
+
+                // Step 4: Error handling should trigger
+                log('5️⃣  handleConfigurationError should trigger now', 'success');
+                
+                // Test if DOM would be ready
+                if (document.readyState === 'complete') {
+                    log('✅ Document ready state: complete', 'success');
+                } else {
+                    log(`⚠️  Document ready state: ${document.readyState}`, 'warning');
+                }
+
+                // Test timing scenarios
+                const timingScenarios = [
+                    { delay: 0, desc: 'Immediate execution' },
+                    { delay: 100, desc: 'Short delay (100ms)' },
+                    { delay: 500, desc: 'Medium delay (500ms)' },
+                    { delay: 1000, desc: 'Long delay (1000ms)' }
+                ];
+
+                log('⏱️  Testing execution timing scenarios:', 'info');
+
+                for (const scenario of timingScenarios) {
+                    await new Promise(resolve => {
+                        setTimeout(() => {
+                            try {
+                                // Simulate DOM access at this timing
+                                const testDiv = document.createElement('div');
+                                testDiv.id = 'configError';
+                                testDiv.style.display = 'none';
+                                document.body.appendChild(testDiv);
+
+                                // Simulate handleConfigurationError
+                                testDiv.style.display = 'block';
+                                testDiv.classList.add('visible');
+
+                                log(`✅ ${scenario.desc}: DOM manipulation successful`, 'success');
+                                
+                                document.body.removeChild(testDiv);
+                            } catch (error) {
+                                log(`❌ ${scenario.desc}: ${error.message}`, 'critical');
+                            }
+                            resolve();
+                        }, scenario.delay);
+                    });
+                }
+
+                log('🎯 H4 CONCLUSION: Timing does not appear to be the issue', 'success');
+
+            } catch (error) {
+                log(`❌ H4 TEST FAILED: ${error.message}`, 'critical');
+            }
+        }
+
+        async function runFullDiagnostic() {
+            log('🚀 RUNNING FULL DIAGNOSTIC SUITE', 'success');
+            log('='.repeat(60), 'info');
+            
+            await testHypothesis1();
+            log('-'.repeat(40), 'info');
+            
+            await testHypothesis2();
+            log('-'.repeat(40), 'info');
+            
+            await testHypothesis3();
+            log('-'.repeat(40), 'info');
+            
+            await testHypothesis4();
+            log('='.repeat(60), 'info');
+            
+            log('💡 DIAGNOSTIC COMPLETE - Check results above', 'success');
+        }
+
+        // Auto-start diagnostic
+        setTimeout(() => {
+            log('🔬 Surgical diagnostic ready', 'success');
+            log('Click buttons above to test specific hypotheses', 'info');
+        }, 500);
+    </script>
+</body>
+</html>

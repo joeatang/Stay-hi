@@ -67,7 +67,7 @@ class TeslaSmoothRedirect {
    * Smooth redirect after successful authentication
    * @param {string} nextUrl - URL to redirect to (default: index.html)
    */
-  async redirectAfterAuth(nextUrl = 'index.html') {
+  async redirectAfterAuth(nextUrl = 'hi-dashboard.html') {
     await this.redirect(nextUrl, true);
   }
 }

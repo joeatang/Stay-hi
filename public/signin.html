@@ -360,7 +360,7 @@
           const sb = await waitForSupabase();
           const { data: { session } } = await sb.auth.getSession();
           if (session) {
-            const next = new URLSearchParams(location.search).get('next') || 'index.html';
+            const next = new URLSearchParams(location.search).get('next') || 'hi-dashboard.html';
             
             // Use Tesla smooth redirect if available
             if (window.teslaRedirect) {
@@ -404,7 +404,7 @@
           // Skip complex membership validation temporarily to fix ERR_FAILED issue
           console.log('✅ Sending magic link to user (membership checks temporarily disabled)...');
           
-          const nextPage = new URLSearchParams(location.search).get('next') || 'index.html';
+          const nextPage = new URLSearchParams(location.search).get('next') || 'hi-dashboard.html';
           const redirectTo = `${location.origin}/post-auth?next=${encodeURIComponent(nextPage)}`;
           
           // Add timeout to prevent infinite loading

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Test — Stay Hi Signin</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="assets/config.js"></script>
+    
+    <style>
+        body {
+            font-family: system-ui;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #111;
+            color: #fff;
+        }
+        
+        .test-section {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #4ECDC4;
+        }
+        
+        input, button {
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border: 1px solid #333;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            width: 100%;
+            font-size: 16px;
+        }
+        
+        button {
+            background: #4ECDC4;
+            color: black;
+            cursor: pointer;
+        }
+        
+        .result {
+            background: rgba(0,0,0,0.5);
+            padding: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            border-radius: 6px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        
+        .error { color: #ff6b6b; }
+        .success { color: #51cf66; }
+        .info { color: #4ECDC4; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Live Authentication Test</h1>
+    <p><strong>This will test the actual Supabase authentication API calls to identify the exact error.</strong></p>
+    
+    <div class="test-section">
+        <h3>Test Magic Link Authentication</h3>
+        <input type="email" id="testEmail" placeholder="Enter email to test" value="test@example.com">
+        <button onclick="testMagicLink()">Send Real Magic Link</button>
+        <div id="magicResult" class="result">Click button to test...</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test Supabase Connection</h3>
+        <button onclick="testConnection()">Test Supabase Connection</button>
+        <div id="connectionResult" class="result">Click button to test...</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Environment Information</h3>
+        <div id="envInfo" class="result">Loading environment info...</div>
+    </div>
+    
+    <script>
+        let supabase = null;
+        
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}\n`;
+            
+            if (element.textContent === 'Click button to test...' || 
+                element.textContent === 'Loading environment info...') {
+                element.textContent = '';
+            }
+            
+            element.innerHTML += `<span class="${type}">${logEntry}</span>`;
+            element.scrollTop = element.scrollHeight;
+            console.log(`[${type}] ${message}`);
+        }
+        
+        async function initSupabase() {
+            try {
+                if (!window.supabase) {
+                    throw new Error('Supabase library not loaded');
+                }
+                
+                const url = window.SUPABASE_URL || 'https://gfcubvroxgfvjhacinic.supabase.co';
+                const key = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g';
+                
+                supabase = window.supabase.createClient(url, key, {
+                    auth: {
+                        persistSession: true,
+                        autoRefreshToken: true
+                    }
+                });
+                
+                return true;
+            } catch (error) {
+                console.error('Supabase init failed:', error);
+                return false;
+            }
+        }
+        
+        async function testConnection() {
+            log('connectionResult', 'Testing Supabase connection...', 'info');
+            
+            try {
+                if (!supabase && !(await initSupabase())) {
+                    throw new Error('Failed to initialize Supabase');
+                }
+                
+                log('connectionResult', 'Supabase client created successfully', 'success');
+                
+                // Test basic auth methods
+                log('connectionResult', 'Testing auth.getSession()...', 'info');
+                const { data, error } = await supabase.auth.getSession();
+                
+                if (error) {
+                    log('connectionResult', `getSession error: ${error.message}`, 'error');
+                    log('connectionResult', `Error details: ${JSON.stringify(error, null, 2)}`, 'error');
+                } else {
+                    log('connectionResult', 'getSession successful', 'success');
+                    log('connectionResult', `Session data: ${JSON.stringify(data, null, 2)}`, 'info');
+                }
+                
+                // Test if signInWithOtp method exists
+                if (typeof supabase.auth.signInWithOtp === 'function') {
+                    log('connectionResult', 'signInWithOtp method is available', 'success');
+                } else {
+                    log('connectionResult', 'signInWithOtp method NOT available', 'error');
+                }
+                
+            } catch (error) {
+                log('connectionResult', `Connection test failed: ${error.message}`, 'error');
+                log('connectionResult', `Full error: ${JSON.stringify(error, null, 2)}`, 'error');
+            }
+        }
+        
+        async function testMagicLink() {
+            const email = document.getElementById('testEmail').value;
+            if (!email) {
+                log('magicResult', 'Please enter an email address', 'error');
+                return;
+            }
+            
+            log('magicResult', `Testing magic link for: ${email}`, 'info');
+            
+            try {
+                if (!supabase && !(await initSupabase())) {
+                    throw new Error('Failed to initialize Supabase');
+                }
+                
+                log('magicResult', 'Calling signInWithOtp...', 'info');
+                
+                const redirectTo = `${window.location.origin}/post-auth.html`;
+                log('magicResult', `Redirect URL: ${redirectTo}`, 'info');
+                
+                const { data, error } = await supabase.auth.signInWithOtp({
+                    email: email,
+                    options: {
+                        emailRedirectTo: redirectTo
+                    }
+                });
+                
+                if (error) {
+                    log('magicResult', `❌ MAGIC LINK FAILED: ${error.message}`, 'error');
+                    log('magicResult', `Error code: ${error.status || 'unknown'}`, 'error');
+                    log('magicResult', `Error name: ${error.name || 'unknown'}`, 'error');
+                    log('magicResult', `Full error object: ${JSON.stringify(error, null, 2)}`, 'error');
+                    
+                    // This is likely the error the user is seeing
+                    log('magicResult', '👆 THIS IS PROBABLY THE ERROR USERS ARE SEEING!', 'error');
+                } else {
+                    log('magicResult', '✅ MAGIC LINK SUCCESS!', 'success');
+                    log('magicResult', `Response data: ${JSON.stringify(data, null, 2)}`, 'info');
+                }
+                
+            } catch (error) {
+                log('magicResult', `❌ Exception during magic link: ${error.message}`, 'error');
+                log('magicResult', `Exception type: ${error.name}`, 'error');
+                log('magicResult', `Stack trace: ${error.stack}`, 'error');
+            }
+        }
+        
+        function loadEnvironmentInfo() {
+            log('envInfo', 'Loading environment information...', 'info');
+            
+            // Basic environment
+            log('envInfo', `URL: ${window.location.href}`, 'info');
+            log('envInfo', `User Agent: ${navigator.userAgent}`, 'info');
+            log('envInfo', `Cookies Enabled: ${navigator.cookieEnabled}`, 'info');
+            log('envInfo', `Local Storage: ${typeof(Storage) !== 'undefined'}`, 'info');
+            
+            // Incognito detection
+            try {
+                const testKey = 'incognito-test';
+                localStorage.setItem(testKey, 'test');
+                localStorage.removeItem(testKey);
+                log('envInfo', 'Browsing Mode: Normal', 'info');
+            } catch (e) {
+                log('envInfo', 'Browsing Mode: INCOGNITO DETECTED', 'info');
+            }
+            
+            // Supabase library
+            log('envInfo', `Supabase Library: ${window.supabase ? 'Loaded' : 'NOT LOADED'}`, window.supabase ? 'success' : 'error');
+            
+            // Config
+            log('envInfo', `SUPABASE_URL: ${window.SUPABASE_URL || 'NOT SET'}`, window.SUPABASE_URL ? 'success' : 'error');
+            log('envInfo', `SUPABASE_ANON_KEY: ${window.SUPABASE_ANON_KEY ? 'SET' : 'NOT SET'}`, window.SUPABASE_ANON_KEY ? 'success' : 'error');
+        }
+        
+        // Auto-load environment info
+        document.addEventListener('DOMContentLoaded', () => {
+            loadEnvironmentInfo();
+        });
+        
+        // Error handlers
+        window.addEventListener('error', (event) => {
+            log('envInfo', `Global Error: ${event.error.message}`, 'error');
+        });
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            log('envInfo', `Unhandled Promise Rejection: ${event.reason}`, 'error');
+        });
+    </script>
+</body>
+</html>

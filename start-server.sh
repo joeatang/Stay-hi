@@ -12,11 +12,11 @@ NC='\033[0m' # No Color
 echo -e "${BLUE}🚀 Stay Hi Development Server${NC}"
 echo -e "${BLUE}================================${NC}"
 
-# Kill any existing server on port 5500
-echo -e "${YELLOW}🔍 Checking for existing server on port 5500...${NC}"
-if lsof -ti:5500 >/dev/null 2>&1; then
-    echo -e "${RED}❌ Killing existing server on port 5500${NC}"
-    lsof -ti:5500 | xargs kill -9
+# Kill any existing server on port 3000
+echo -e "${YELLOW}🔍 Checking for existing server on port 3000...${NC}"
+if lsof -ti:3000 >/dev/null 2>&1; then
+    echo -e "${RED}❌ Killing existing server on port 3000${NC}"
+    lsof -ti:3000 | xargs kill -9
     sleep 2
 fi
 
@@ -36,13 +36,13 @@ if [ ! -f "$PUBLIC_DIR/index.html" ]; then
     exit 1
 fi
 
-if [ ! -f "$PUBLIC_DIR/hi-island-NEW.html" ]; then
-    echo -e "${RED}❌ Error: hi-island-NEW.html not found in $PUBLIC_DIR${NC}"
+if [ ! -f "$PUBLIC_DIR/hi-dashboard.html" ]; then
+    echo -e "${RED}❌ Error: hi-dashboard.html not found in $PUBLIC_DIR${NC}"
     exit 1
 fi
 
 echo -e "${GREEN}✅ Public directory verified: $PUBLIC_DIR${NC}"
-echo -e "${GREEN}✅ Key files found: index.html, hi-island-NEW.html${NC}"
+echo -e "${GREEN}✅ Key files found: index.html, hi-dashboard.html${NC}"
 
 # Change to public directory
 cd "$PUBLIC_DIR"
@@ -53,11 +53,13 @@ echo -e "${BLUE}📋 Files available:${NC}"
 ls -la *.html | head -5
 
 # Start the server
-echo -e "${GREEN}🌟 Starting Python HTTP server on port 5500...${NC}"
-echo -e "${BLUE}🔗 Server URL: http://localhost:5500${NC}"
-echo -e "${BLUE}🏝️ Hi Island: http://localhost:5500/hi-island-NEW.html${NC}"
+echo -e "${GREEN}🌟 Starting Tesla-Grade Hi Server on port 3000...${NC}"
+echo -e "${BLUE}🔗 Server URL: http://localhost:3000${NC}"
+echo -e "${BLUE}🚀 Hi Dashboard: http://localhost:3000/hi-dashboard.html${NC}"
+echo -e "${BLUE}👋 Welcome Page: http://localhost:3000/welcome.html${NC}"
+echo -e "${BLUE}🏝️ Hi Island: http://localhost:3000/hi-island-NEW.html${NC}"
 echo -e "${YELLOW}⚠️  Press Ctrl+C to stop the server${NC}"
 echo ""
 
 # Start Python server
-python3 -m http.server 5500
+python3 -m http.server 3000

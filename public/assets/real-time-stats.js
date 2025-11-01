@@ -512,4 +512,5 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 500);
 });
 
-export default RealTimeStats;
+// Global exposure for compatibility
+window.RealTimeStats = RealTimeStats;

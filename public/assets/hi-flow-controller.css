@@ -1,0 +1,99 @@
+/* Hi Flow Controller Styles */
+
+.hi-membership-prompt {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  animation: fadeIn 0.3s ease;
+}
+
+.hi-prompt-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+.hi-prompt-content h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.hi-prompt-content p {
+  margin: 0 0 1.5rem 0;
+  color: #666;
+  line-height: 1.5;
+}
+
+.hi-prompt-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.hi-btn-primary, .hi-btn-secondary {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.hi-btn-primary {
+  background: #007AFF;
+  color: white;
+}
+
+.hi-btn-primary:hover {
+  background: #0056CC;
+  transform: translateY(-1px);
+}
+
+.hi-btn-secondary {
+  background: #F0F0F0;
+  color: #666;
+}
+
+.hi-btn-secondary:hover {
+  background: #E0E0E0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .hi-prompt-content {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+  
+  .hi-prompt-buttons {
+    flex-direction: column;
+  }
+}

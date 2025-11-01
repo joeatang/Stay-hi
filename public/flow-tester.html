@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 TESLA-GRADE FLOW TESTER</title>
+    <style>
+        body {
+            background: #0a0a0a;
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+        }
+        .terminal {
+            background: rgba(0,0,0,0.9);
+            border: 2px solid #00ff41;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 16px 0;
+            max-height: 500px;
+            overflow-y: auto;
+            font-size: 13px;
+        }
+        .critical { color: #ff0040; font-weight: bold; }
+        .success { color: #40ff00; font-weight: bold; }
+        .warning { color: #ffaa00; }
+        .info { color: #00aaff; }
+        button {
+            background: #003300;
+            color: #00ff41;
+            border: 2px solid #00ff41;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 8px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        button:hover { background: #004400; }
+        .flow-test {
+            background: rgba(0,100,0,0.1);
+            border: 2px solid #40ff00;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 TESLA-GRADE AUTHENTICATION FLOW TESTER</h1>
+    <p>Complete end-to-end testing of bulletproof authentication system</p>
+
+    <div>
+        <button onclick="testCompleteFlow()">🚀 TEST COMPLETE FLOW</button>
+        <button onclick="testDemoMode()">🎭 TEST DEMO MODE</button>
+        <button onclick="testSessionValidation()">👤 TEST SESSION VALIDATION</button>
+        <button onclick="clearStorage()">🗑️ CLEAR STORAGE</button>
+        <button onclick="clearLog()">📜 CLEAR LOG</button>
+    </div>
+
+    <div class="terminal" id="log"></div>
+
+    <div id="flowResults" class="flow-test" style="display: none;">
+        <h2>🏆 FLOW TEST RESULTS</h2>
+        <div id="flowContent"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const timestamp = new Date().toISOString().substr(11, 12);
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `[${timestamp}] ${message}`;
+            logEl.appendChild(div);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            document.getElementById('flowResults').style.display = 'none';
+        }
+
+        function clearStorage() {
+            log('🗑️ CLEARING ALL STORAGE', 'warning');
+            localStorage.clear();
+            sessionStorage.clear();
+            log('✅ Storage cleared', 'success');
+        }
+
+        async function testCompleteFlow() {
+            log('🚀 TESTING COMPLETE AUTHENTICATION FLOW', 'success');
+            log('='.repeat(60), 'info');
+
+            const results = {
+                signin: { status: 'pending', details: [] },
+                postAuth: { status: 'pending', details: [] },
+                index: { status: 'pending', details: [] },
+                overall: 'testing'
+            };
+
+            try {
+                // Test 1: Signin page functionality
+                log('1️⃣ TESTING signin.html...', 'success');
+                
+                const signinResponse = await fetch('/signin.html?t=' + Date.now());
+                const signinContent = await signinResponse.text();
+                
+                if (signinContent.includes('handleConfigurationError') && 
+                    signinContent.includes('enterDemoMode') &&
+                    signinContent.includes('demo_mode_active')) {
+                    results.signin.status = 'pass';
+                    results.signin.details.push('✅ Has error handling');
+                    results.signin.details.push('✅ Has demo mode');
+                    results.signin.details.push('✅ Sets unified demo flag');
+                    log('   ✅ signin.html: PASS', 'success');
+                } else {
+                    results.signin.status = 'fail';
+                    results.signin.details.push('❌ Missing critical functions');
+                    log('   ❌ signin.html: FAIL', 'critical');
+                }
+
+                // Test 2: Post-auth page functionality
+                log('2️⃣ TESTING post-auth.html...', 'success');
+                
+                const postAuthResponse = await fetch('/post-auth.html?t=' + Date.now());
+                const postAuthContent = await postAuthResponse.text();
+                
+                if (postAuthContent.includes('handleConfigurationError') && 
+                    postAuthContent.includes('enterDemoMode') &&
+                    postAuthContent.includes('demo_mode_active')) {
+                    results.postAuth.status = 'pass';
+                    results.postAuth.details.push('✅ Has error handling');
+                    results.postAuth.details.push('✅ Has demo mode');
+                    results.postAuth.details.push('✅ Sets unified demo flag');
+                    log('   ✅ post-auth.html: PASS', 'success');
+                } else {
+                    results.postAuth.status = 'fail';
+                    results.postAuth.details.push('❌ Missing critical functions');
+                    log('   ❌ post-auth.html: FAIL', 'critical');
+                }
+
+                // Test 3: Index page functionality
+                log('3️⃣ TESTING index.html...', 'success');
+                
+                const indexResponse = await fetch('/index.html?t=' + Date.now());
+                const indexContent = await indexResponse.text();
+                
+                if (indexContent.includes('checkAuthentication') && 
+                    indexContent.includes('demo_mode_active') &&
+                    indexContent.includes('supabase')) {
+                    results.index.status = 'pass';
+                    results.index.details.push('✅ Has authentication check');
+                    results.index.details.push('✅ Checks demo mode flag');
+                    results.index.details.push('✅ Has Supabase integration');
+                    log('   ✅ index.html: PASS', 'success');
+                } else {
+                    results.index.status = 'fail';
+                    results.index.details.push('❌ Missing authentication logic');
+                    log('   ❌ index.html: FAIL', 'critical');
+                }
+
+                // Overall assessment
+                const allPass = results.signin.status === 'pass' && 
+                               results.postAuth.status === 'pass' && 
+                               results.index.status === 'pass';
+
+                results.overall = allPass ? 'pass' : 'fail';
+
+                log('='.repeat(60), 'info');
+                log(`🏆 OVERALL RESULT: ${allPass ? 'PASS' : 'FAIL'}`, allPass ? 'success' : 'critical');
+
+                showFlowResults(results);
+
+            } catch (error) {
+                log(`💥 Flow test failed: ${error.message}`, 'critical');
+                results.overall = 'error';
+                showFlowResults(results);
+            }
+        }
+
+        function showFlowResults(results) {
+            const flowResults = document.getElementById('flowResults');
+            const flowContent = document.getElementById('flowContent');
+            
+            const statusColor = (status) => {
+                switch (status) {
+                    case 'pass': return '#40ff00';
+                    case 'fail': return '#ff0040';
+                    case 'pending': return '#ffaa00';
+                    default: return '#00aaff';
+                }
+            };
+            
+            flowContent.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                    <div>
+                        <h4 style="color: ${statusColor(results.signin.status)};">📄 signin.html</h4>
+                        <div style="color: #00aaff; margin-bottom: 4px;">Status: ${results.signin.status.toUpperCase()}</div>
+                        ${results.signin.details.map(detail => `<div style="font-size: 12px; margin: 2px 0;">${detail}</div>`).join('')}
+                    </div>
+                    
+                    <div>
+                        <h4 style="color: ${statusColor(results.postAuth.status)};">📄 post-auth.html</h4>
+                        <div style="color: #00aaff; margin-bottom: 4px;">Status: ${results.postAuth.status.toUpperCase()}</div>
+                        ${results.postAuth.details.map(detail => `<div style="font-size: 12px; margin: 2px 0;">${detail}</div>`).join('')}
+                    </div>
+                    
+                    <div>
+                        <h4 style="color: ${statusColor(results.index.status)};">📄 index.html</h4>
+                        <div style="color: #00aaff; margin-bottom: 4px;">Status: ${results.index.status.toUpperCase()}</div>
+                        ${results.index.details.map(detail => `<div style="font-size: 12px; margin: 2px 0;">${detail}</div>`).join('')}
+                    </div>
+                </div>
+                
+                <div style="text-align: center; padding: 20px; border-top: 1px solid #333;">
+                    <div style="font-size: 24px; font-weight: bold; color: ${statusColor(results.overall)};">
+                        ${results.overall.toUpperCase()}
+                    </div>
+                    <div style="margin-top: 12px; color: #00aaff;">
+                        ${results.overall === 'pass' ? 
+                          '🎯 Tesla-grade authentication system ready for deployment' : 
+                          '⚠️ Issues detected - requires attention before deployment'}
+                    </div>
+                </div>
+            `;
+            
+            flowResults.style.display = 'block';
+        }
+
+        async function testDemoMode() {
+            log('🎭 TESTING DEMO MODE FUNCTIONALITY', 'success');
+            
+            // Clear previous demo state
+            localStorage.removeItem('demo_mode_active');
+            localStorage.removeItem('stay_hi_demo_mode');
+            
+            log('1️⃣ Setting demo mode flag...', 'info');
+            localStorage.setItem('demo_mode_active', 'true');
+            
+            log('2️⃣ Checking flag persistence...', 'info');
+            const flag = localStorage.getItem('demo_mode_active');
+            
+            if (flag === 'true') {
+                log('✅ Demo mode flag set correctly', 'success');
+                log('🎯 This should allow access to index.html dashboard', 'success');
+                
+                log('3️⃣ Opening index.html to test demo mode...', 'info');
+                window.open('/index.html?test=demo', '_blank');
+                
+            } else {
+                log('❌ Demo mode flag not set correctly', 'critical');
+            }
+        }
+
+        async function testSessionValidation() {
+            log('👤 TESTING SESSION VALIDATION LOGIC', 'success');
+            
+            // Test without demo mode
+            localStorage.removeItem('demo_mode_active');
+            
+            log('1️⃣ Testing without demo mode (should redirect to signin)...', 'info');
+            log('2️⃣ Opening index.html...', 'info');
+            
+            setTimeout(() => {
+                window.open('/index.html?test=no-demo', '_blank');
+                log('🎯 Check if it redirects to signin.html', 'warning');
+            }, 1000);
+        }
+
+        // Auto-start
+        setTimeout(() => {
+            log('🎯 Tesla-Grade Flow Tester ready', 'success');
+            log('This will test the complete authentication flow end-to-end', 'info');
+            log('Click "TEST COMPLETE FLOW" for comprehensive validation', 'info');
+        }, 500);
+    </script>
+</body>
+</html>

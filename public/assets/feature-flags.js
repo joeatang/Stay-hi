@@ -252,4 +252,5 @@ if (window.HiFlags.environment === 'development') {
   console.log('🔧 Development flag helpers available: debugFlags(), setFlag(key, enabled, config)');
 }
 
-export default HiFeatureFlags;
+// Global exposure for compatibility
+window.HiFeatureFlags = HiFeatureFlags;

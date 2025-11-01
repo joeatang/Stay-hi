@@ -1,0 +1,9 @@
+#!/bin/bash
+# 🚀 Quick Hi Server Launcher
+# Just run: ./hi-server from anywhere in the Stay-hi project
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Run the main server script
+exec "$SCRIPT_DIR/start-server.sh"

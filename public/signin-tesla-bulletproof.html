@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stay Hi - Sign In</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            padding: 48px;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 700;
+            color: #4ECDC4;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 32px;
+            font-size: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="email"] {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        input[type="email"]:focus {
+            outline: none;
+            border-color: #4ECDC4;
+            box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #4ECDC4, #44A08D);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 16px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(78, 205, 196, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            padding: 16px;
+            border-radius: 12px;
+            margin: 16px 0;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message.success {
+            background: #ecfdf5;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .message.error {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+
+        .message.warning {
+            background: #fffbeb;
+            color: #d97706;
+            border: 1px solid #fed7aa;
+        }
+
+        /* Tesla-grade error handling UI */
+        .config-error {
+            background: linear-gradient(135deg, #fef2f2, #fecaca);
+            border: 2px solid #ef4444;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 24px 0;
+            text-align: left;
+            display: none;
+        }
+
+        .config-error h3 {
+            color: #dc2626;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .config-error h3::before {
+            content: "⚠️";
+            margin-right: 8px;
+        }
+
+        .config-error p {
+            color: #7f1d1d;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .demo-option {
+            background: linear-gradient(135deg, #4ECDC4, #44A08D);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 16px;
+            display: none;
+            transition: all 0.2s ease;
+        }
+
+        .demo-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(78, 205, 196, 0.4);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden { display: none !important; }
+        .visible { display: block !important; }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 32px 24px;
+                margin: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">Stay Hi</div>
+        <div class="subtitle">Sign in to your account</div>
+
+        <form id="signinForm">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required placeholder="Enter your email">
+            </div>
+
+            <button type="submit" class="submit-btn" id="signinBtn">
+                Send Magic Link
+            </button>
+        </form>
+
+        <div id="message" class="message"></div>
+
+        <!-- Tesla-grade error handling -->
+        <div id="configError" class="config-error">
+            <h3>Authentication System Issue</h3>
+            <p>We're experiencing a temporary authentication configuration issue. This is a known problem that affects the magic link system.</p>
+            <p><strong>Good news:</strong> You can still access the full Stay Hi experience using our demo mode while we resolve this.</p>
+            <div id="errorDetails" style="font-size: 12px; color: #991b1b; margin-top: 8px;"></div>
+        </div>
+
+        <button id="demoOption" class="demo-option" onclick="enterDemoMode()">
+            🚀 Continue in Demo Mode
+        </button>
+    </div>
+
+    <script>
+        // Tesla-grade configuration with bulletproof fallbacks
+        const CONFIG = {
+            SUPABASE_URL: 'https://gfcubvroxgfvjhacinic.supabase.co',
+            SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g'
+        };
+
+        // Global state
+        let supabaseClient = null;
+        let isProcessing = false;
+
+        // Tesla-grade logging
+        function log(message, level = 'info') {
+            const timestamp = new Date().toISOString();
+            console.log(`[${timestamp}] [${level.toUpperCase()}] ${message}`);
+        }
+
+        // Bulletproof message display
+        function showMessage(text, type = 'info', persistent = false) {
+            const messageEl = document.getElementById('message');
+            if (!messageEl) return;
+
+            messageEl.textContent = text;
+            messageEl.className = `message ${type} visible`;
+            
+            if (!persistent) {
+                setTimeout(() => {
+                    messageEl.classList.remove('visible');
+                }, 5000);
+            }
+        }
+
+        // Tesla-grade error handling with guaranteed visibility
+        function handleConfigurationError(error) {
+            log(`Configuration error detected: ${error.message || error}`, 'error');
+            
+            const configErrorEl = document.getElementById('configError');
+            const demoOptionEl = document.getElementById('demoOption');
+            const errorDetailsEl = document.getElementById('errorDetails');
+            const signinFormEl = document.getElementById('signinForm');
+            const submitBtnEl = document.getElementById('signinBtn');
+
+            // Always show error UI regardless of error type
+            if (configErrorEl) {
+                configErrorEl.classList.add('visible');
+                configErrorEl.style.display = 'block';
+            }
+
+            if (demoOptionEl) {
+                demoOptionEl.classList.add('visible');
+                demoOptionEl.style.display = 'block';
+            }
+
+            // Disable signin form
+            if (signinFormEl) {
+                signinFormEl.style.opacity = '0.5';
+                signinFormEl.style.pointerEvents = 'none';
+            }
+
+            if (submitBtnEl) {
+                submitBtnEl.disabled = true;
+                submitBtnEl.textContent = 'Authentication Unavailable';
+            }
+
+            // Show technical details
+            if (errorDetailsEl) {
+                let details = '';
+                if (error.error_code) {
+                    details += `Error Code: ${error.error_code} | `;
+                }
+                details += `Detected: ${new Date().toLocaleTimeString()}`;
+                errorDetailsEl.textContent = details;
+            }
+
+            // Show user-friendly message
+            if (error.error_code === 'email_address_invalid') {
+                showMessage('Magic link system temporarily unavailable. Please use Demo Mode below.', 'warning', true);
+            } else {
+                showMessage('Authentication system error. Please use Demo Mode to continue.', 'error', true);
+            }
+        }
+
+        // Bulletproof demo mode activation
+        function enterDemoMode() {
+            log('Demo mode activation initiated', 'info');
+            
+            try {
+                // Set demo mode flags
+                localStorage.setItem('stay_hi_demo_mode', 'true');
+                localStorage.setItem('stay_hi_demo_user_email', 'demo@stayhi.local');
+                localStorage.setItem('stay_hi_demo_user_id', 'demo-user-' + Date.now());
+                localStorage.setItem('stay_hi_demo_activated_at', new Date().toISOString());
+
+                showMessage('🚀 Activating demo mode...', 'success');
+                
+                // Redirect with visual feedback
+                setTimeout(() => {
+                    window.location.href = 'index.html?demo=true';
+                }, 1000);
+
+            } catch (error) {
+                log(`Demo mode activation failed: ${error.message}`, 'error');
+                showMessage('Demo mode activation failed. Please try refreshing the page.', 'error');
+            }
+        }
+
+        // Bulletproof Supabase initialization
+        async function initializeSupabase() {
+            try {
+                log('Initializing Supabase client', 'info');
+                
+                if (!window.supabase) {
+                    throw new Error('Supabase library not loaded');
+                }
+
+                supabaseClient = window.supabase.createClient(
+                    CONFIG.SUPABASE_URL,
+                    CONFIG.SUPABASE_ANON_KEY,
+                    {
+                        auth: {
+                            persistSession: true,
+                            autoRefreshToken: true,
+                            detectSessionInUrl: false
+                        }
+                    }
+                );
+
+                log('Supabase client initialized successfully', 'info');
+                return true;
+
+            } catch (error) {
+                log(`Supabase initialization failed: ${error.message}`, 'error');
+                handleConfigurationError(error);
+                return false;
+            }
+        }
+
+        // Tesla-grade signin handler with comprehensive error detection
+        async function handleSignin(event) {
+            event.preventDefault();
+            
+            if (isProcessing) {
+                log('Signin already in progress, ignoring duplicate request', 'warning');
+                return;
+            }
+
+            isProcessing = true;
+            const submitBtn = document.getElementById('signinBtn');
+            const emailInput = document.getElementById('email');
+            const email = emailInput.value.trim();
+
+            log(`Starting signin process for email: ${email}`, 'info');
+
+            // Update UI to show processing
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="loading"></span>Sending Magic Link...';
+            }
+
+            try {
+                // Ensure Supabase is ready
+                if (!supabaseClient) {
+                    const initialized = await initializeSupabase();
+                    if (!initialized) {
+                        return; // Error already handled
+                    }
+                }
+
+                log('Making authentication request', 'info');
+                
+                // Make the authentication request
+                const { data, error } = await supabaseClient.auth.signInWithOtp({
+                    email: email,
+                    options: {
+                        emailRedirectTo: `${window.location.origin}/post-auth.html`
+                    }
+                });
+
+                log(`Authentication response received`, 'info');
+
+                if (error) {
+                    log(`Authentication error: ${error.message} (${error.error_code})`, 'error');
+                    
+                    // Tesla-grade error classification
+                    if (error.error_code === 'email_address_invalid' || 
+                        error.message?.includes('email_address_invalid') ||
+                        error.message?.includes('Email address') ||
+                        error.error_code === 'signup_disabled') {
+                        
+                        handleConfigurationError(error);
+                        return;
+                    }
+                    
+                    // Handle other errors
+                    showMessage(`Sign in error: ${error.message}`, 'error');
+                } else {
+                    log('Magic link sent successfully', 'info');
+                    showMessage(
+                        `✅ Magic link sent to ${email}! Check your inbox and click the link to sign in.`,
+                        'success',
+                        true
+                    );
+                }
+
+            } catch (networkError) {
+                log(`Network error during signin: ${networkError.message}`, 'error');
+                handleConfigurationError(networkError);
+            } finally {
+                isProcessing = false;
+                
+                // Reset button
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Send Magic Link';
+                }
+            }
+        }
+
+        // Bulletproof initialization sequence
+        async function initializePage() {
+            try {
+                log('Starting page initialization', 'info');
+
+                // Wait for DOM to be completely ready
+                if (document.readyState !== 'complete') {
+                    await new Promise(resolve => {
+                        if (document.readyState === 'complete') {
+                            resolve();
+                        } else {
+                            window.addEventListener('load', resolve);
+                        }
+                    });
+                }
+
+                log('DOM fully loaded', 'info');
+
+                // Initialize Supabase
+                await initializeSupabase();
+
+                // Attach form handler with bulletproof error handling
+                const form = document.getElementById('signinForm');
+                if (form) {
+                    form.addEventListener('submit', handleSignin);
+                    log('Form event handler attached', 'info');
+                } else {
+                    throw new Error('Signin form not found in DOM');
+                }
+
+                // Check for existing authentication
+                try {
+                    if (supabaseClient) {
+                        const { data: { session } } = await supabaseClient.auth.getSession();
+                        if (session) {
+                            log('Existing session found, redirecting', 'info');
+                            showMessage('Already signed in, redirecting...', 'success');
+                            setTimeout(() => {
+                                window.location.replace('index.html');
+                            }, 1000);
+                            return;
+                        }
+                    }
+                } catch (authCheckError) {
+                    log(`Auth check failed: ${authCheckError.message}`, 'warning');
+                    // Continue with signin page
+                }
+
+                log('Page initialization completed successfully', 'info');
+
+            } catch (initError) {
+                log(`Page initialization failed: ${initError.message}`, 'error');
+                handleConfigurationError(initError);
+            }
+        }
+
+        // Global error handlers
+        window.addEventListener('error', (event) => {
+            log(`Global JavaScript error: ${event.error?.message || event.message}`, 'error');
+            console.error('Global error details:', event.error);
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            log(`Unhandled promise rejection: ${event.reason}`, 'error');
+            console.error('Unhandled rejection details:', event.reason);
+        });
+
+        // Tesla-grade initialization with multiple fallbacks
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializePage);
+        } else {
+            initializePage();
+        }
+
+        // Fallback initialization
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if (!supabaseClient) {
+                    log('Fallback initialization triggered', 'warning');
+                    initializePage();
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

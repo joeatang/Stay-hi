@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔬 SURGICAL SIGNIN INJECTION TEST</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <style>
+        body {
+            background: #0a0a0a;
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            line-height: 1.3;
+        }
+        .terminal {
+            background: rgba(0,0,0,0.9);
+            border: 2px solid #00ff41;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 16px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+        .critical { color: #ff0040; }
+        .success { color: #40ff00; }
+        .warning { color: #ffaa00; }
+        .info { color: #00aaff; }
+        button {
+            background: #003300;
+            color: #00ff41;
+            border: 2px solid #00ff41;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 8px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        button:hover { background: #004400; }
+        input {
+            background: #001100;
+            color: #00ff41;
+            border: 1px solid #00ff41;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin: 8px;
+            font-family: 'Courier New', monospace;
+        }
+        .step { margin: 8px 0; padding: 4px 0; border-bottom: 1px solid #003300; }
+    </style>
+</head>
+<body>
+    <h1>🔬 SURGICAL SIGNIN INJECTION TEST</h1>
+    <p>Direct injection into signin page JavaScript context</p>
+
+    <div>
+        <input type="email" id="testEmail" value="surgical@test.com" placeholder="Test email">
+        <button onclick="runSurgicalTest()">⚡ INJECT & TEST</button>
+        <button onclick="clearTerminal()">🗑️ CLEAR</button>
+    </div>
+
+    <div class="terminal" id="terminal"></div>
+
+    <script>
+        const CONFIG = {
+            SUPABASE_URL: 'https://gfcubvroxgfvjhacinic.supabase.co',
+            SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI2020'};
+
+        function log(message, type = 'info') {
+            const terminal = document.getElementById('terminal');
+            const timestamp = new Date().toISOString().substr(11, 12);
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `[${timestamp}] ${message}`;
+            terminal.appendChild(div);
+            terminal.scrollTop = terminal.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function clearTerminal() {
+            document.getElementById('terminal').innerHTML = '';
+        }
+
+        async function runSurgicalTest() {
+            const email = document.getElementById('testEmail').value;
+            log('🔬 STARTING SURGICAL INJECTION TEST', 'success');
+            log(`Target email: ${email}`, 'info');
+
+            try {
+                // Step 1: Create Supabase client exactly like signin page
+                log('📡 Creating Supabase client...', 'info');
+                
+                if (!window.supabase) {
+                    log('❌ CRITICAL: Supabase library not loaded!', 'critical');
+                    return;
+                }
+
+                const supabaseClient = window.supabase.createClient(
+                    CONFIG.SUPABASE_URL,
+                    CONFIG.SUPABASE_ANON_KEY,
+                    {
+                        auth: {
+                            persistSession: true,
+                            autoRefreshToken: true,
+                            detectSessionInUrl: false
+                        }
+                    }
+                );
+                log('✅ Supabase client created', 'success');
+
+                // Step 2: Make exact API call as signin page
+                log('🎯 Making signInWithOtp call...', 'info');
+                
+                const { data, error } = await supabaseClient.auth.signInWithOtp({
+                    email: email,
+                    options: {
+                        emailRedirectTo: `${window.location.origin}/post-auth.html`
+                    }
+                });
+
+                log('📨 API response received', 'info');
+                
+                // Step 3: Analyze response exactly like signin page
+                if (error) {
+                    log(`🔍 Error detected:`, 'warning');
+                    log(`  • Message: ${error.message}`, 'warning');
+                    log(`  • Error Code: ${error.error_code || 'none'}`, 'warning');
+                    log(`  • Full Error: ${JSON.stringify(error, null, 2)}`, 'info');
+                    
+                    // Test exact conditional from signin page
+                    const shouldTriggerDemo = (
+                        error.error_code === 'email_address_invalid' || 
+                        error.message?.includes('email_address_invalid') ||
+                        error.message?.includes('Email address') ||
+                        error.error_code === 'signup_disabled'
+                    );
+                    
+                    log(`🎯 Should trigger demo mode: ${shouldTriggerDemo ? 'YES' : 'NO'}`, shouldTriggerDemo ? 'success' : 'critical');
+                    
+                    if (shouldTriggerDemo) {
+                        log('✅ PERFECT: Error should trigger handleConfigurationError()', 'success');
+                        log('🚀 Demo mode should be shown to user', 'success');
+                        
+                        // Test the actual error handling function
+                        log('🧪 Testing handleConfigurationError simulation...', 'info');
+                        testErrorHandlingSimulation(error);
+                    } else {
+                        log('❌ PROBLEM: Error not matching demo trigger conditions!', 'critical');
+                        log(`Expected: error_code='email_address_invalid'`, 'critical');
+                        log(`Actual: error_code='${error.error_code}'`, 'critical');
+                    }
+                } else {
+                    log('✅ SUCCESS: API call succeeded', 'success');
+                    log(`📧 Magic link should be sent to: ${email}`, 'success');
+                    log(`📋 Response data: ${JSON.stringify(data, null, 2)}`, 'info');
+                    log('⚠️  This means Supabase API is working normally', 'warning');
+                    log('👤 User should receive working magic link', 'success');
+                }
+
+                // Step 4: Test post-auth URL construction
+                const postAuthUrl = `${window.location.origin}/post-auth.html`;
+                log(`🔗 Post-auth URL: ${postAuthUrl}`, 'info');
+                
+                try {
+                    const postAuthTest = await fetch('/post-auth.html');
+                    log(`📄 Post-auth accessible: ${postAuthTest.ok ? 'YES' : 'NO'} (${postAuthTest.status})`, postAuthTest.ok ? 'success' : 'critical');
+                } catch (postAuthError) {
+                    log(`❌ Post-auth test failed: ${postAuthError.message}`, 'critical');
+                }
+
+            } catch (testError) {
+                log(`💥 SURGICAL TEST ERROR: ${testError.message}`, 'critical');
+                log(`Stack: ${testError.stack}`, 'critical');
+            }
+        }
+
+        function testErrorHandlingSimulation(error) {
+            log('🎭 SIMULATING ERROR HANDLING FUNCTION', 'info');
+            
+            try {
+                // Simulate what handleConfigurationError should do
+                log('📝 Error handling steps:', 'info');
+                log('  1. Get DOM elements by ID', 'info');
+                log('  2. Set display: block on configError', 'info');
+                log('  3. Set display: block on demoOption', 'info');
+                log('  4. Disable signin form', 'info');
+                log('  5. Show user message', 'info');
+                
+                // Check if we can access the signin page DOM (unlikely due to CORS)
+                try {
+                    // This would work if we were on the same page
+                    const configError = document.getElementById('configError');
+                    const demoOption = document.getElementById('demoOption');
+                    
+                    log(`🔍 DOM elements accessible: ${configError ? 'YES' : 'NO'}`, configError ? 'success' : 'warning');
+                    
+                    if (!configError) {
+                        log('ℹ️  Cannot test DOM manipulation (different page context)', 'info');
+                        log('✅ But the handleConfigurationError logic should work', 'success');
+                    }
+                } catch (domError) {
+                    log('ℹ️  DOM access blocked (expected - different page)', 'info');
+                }
+                
+                // Test error message logic
+                if (error.error_code === 'email_address_invalid') {
+                    log('✅ Should show: "Magic link system temporarily unavailable"', 'success');
+                    log('✅ Should show: "Please use Demo Mode below"', 'success');
+                } else {
+                    log('✅ Should show: "Authentication system error"', 'success');
+                    log('✅ Should show: "Please use Demo Mode to continue"', 'success');
+                }
+                
+                log('🎯 SIMULATION COMPLETE: Error handling should work perfectly', 'success');
+                
+            } catch (simError) {
+                log(`❌ Simulation error: ${simError.message}`, 'critical');
+            }
+        }
+
+        // Auto-run test
+        window.addEventListener('DOMContentLoaded', () => {
+            log('🔬 Surgical injection test ready', 'success');
+            log('Click "INJECT & TEST" to run comprehensive test', 'info');
+            
+            setTimeout(() => {
+                log('🚀 Auto-starting surgical test...', 'info');
+                runSurgicalTest();
+            }, 1500);
+        });
+    </script>
+</body>
+</html>

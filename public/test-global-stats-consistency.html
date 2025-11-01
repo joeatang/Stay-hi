@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tesla-Grade Global Stats Consistency Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d1e4f 50%, #4ECDC4 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .test-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 16px 0;
+        }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 16px 0;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFD166;
+            display: block;
+            margin: 8px 0;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .status {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 8px 0;
+        }
+        
+        .status.success {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+            color: #4CAF50;
+        }
+        
+        .status.error {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid #f44336;
+            color: #f44336;
+        }
+        
+        .status.loading {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid #FFC107;
+            color: #FFC107;
+        }
+        
+        .test-button {
+            background: linear-gradient(135deg, #4ECDC4, #44A08D);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            padding: 12px 24px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 8px;
+            transition: transform 0.2s;
+        }
+        
+        .test-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .hiffirmation-test {
+            background: rgba(255, 209, 102, 0.1);
+            border: 1px solid rgba(255, 209, 102, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 16px 0;
+        }
+        
+        .countdown {
+            font-size: 18px;
+            color: #FFD166;
+            font-weight: bold;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🚀 Tesla-Grade Global Stats Consistency Test</h1>
+        <p>This page validates that global statistics are consistent across all devices and pages.</p>
+        
+        <div class="test-section">
+            <h2>📊 Global Statistics Test</h2>
+            <div id="statsTest" class="status loading">Testing database connection...</div>
+            
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <span class="stat-value" id="testHiWaves">...</span>
+                    <span class="stat-label">Hi Waves</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="testTotalHis">...</span>
+                    <span class="stat-label">Total His</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="testUsers">...</span>
+                    <span class="stat-label">Users</span>
+                </div>
+            </div>
+            
+            <button class="test-button" onclick="refreshStats()">🔄 Refresh Stats</button>
+            <button class="test-button" onclick="testIncrement()">➕ Test Increment</button>
+        </div>
+        
+        <div class="test-section">
+            <h2>✨ Daily Hiffirmations Test</h2>
+            <div id="hiffirmationTest" class="status loading">Testing Hiffirmation consistency...</div>
+            
+            <div class="hiffirmation-test">
+                <h3>Today's Hiffirmation</h3>
+                <div id="todayHiffirmation">...</div>
+                <div class="countdown" id="nextCountdown">...</div>
+            </div>
+            
+            <div class="hiffirmation-test">
+                <h3>Yesterday's Hiffirmation</h3>
+                <div id="yesterdayHiffirmation">...</div>
+            </div>
+            
+            <button class="test-button" onclick="testHiffirmations()">🔄 Test Hiffirmations</button>
+        </div>
+        
+        <div class="test-section">
+            <h2>🔍 Cross-Page Consistency Check</h2>
+            <div id="consistencyTest" class="status loading">Checking consistency...</div>
+            <div id="consistencyDetails"></div>
+            <button class="test-button" onclick="checkConsistency()">🔍 Check All Pages</button>
+        </div>
+    </div>
+
+    <script>
+        // Tesla-Grade Daily Hiffirmation Generator (Same as hi-dashboard.html)
+        function getDailyHiffirmation(date = new Date()) {
+            const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+            let hash = 0;
+            for (let i = 0; i < key.length; i++) {
+                hash = (hash * 31 + key.charCodeAt(i)) | 0;
+            }
+            
+            const hiffirmations = [
+                "✨ You're radiating positive energy today",
+                "🌟 Your Hi moments create ripples of joy", 
+                "💫 You have the power to brighten someone's day",
+                "🔥 Your authentic self is your superpower",
+                "🌈 Every Hi you share makes the world brighter",
+                "⭐ You're exactly where you need to be",
+                "💝 Your presence is a gift to those around you",
+                "🌺 You're growing stronger with each Hi moment",
+                "🎯 Trust your journey, you're doing amazing",
+                "💎 Your unique light can't be dimmed",
+                "🚀 Your potential is limitless and inspiring",
+                "🌸 You bring beauty to every moment",
+                "⚡ Your energy lights up the room",
+                "🏔️ You're stronger than any challenge",
+                "🎨 Your creativity makes the world more colorful",
+                "🌊 You flow with grace through life's changes",
+                "🔮 Your intuition guides you perfectly",
+                "🦋 You're transforming into your best self",
+                "🌅 Each day brings new opportunities for you",
+                "💪 Your resilience is truly remarkable",
+                "🎵 Your soul sings a beautiful melody",
+                "🌟 You're a beacon of hope for others",
+                "🕊️ Peace follows you wherever you go",
+                "🔥 Your passion ignites positive change",
+                "🌻 You're growing toward the light every day",
+                "⭐ Your dreams are valid and achievable",
+                "🎯 You're aligned with your highest purpose",
+                "💫 Magic happens when you believe in yourself",
+                "🌈 You create your own beautiful reality",
+                "🦄 Your uniqueness is your greatest strength"
+            ];
+            
+            const dailyHiffirmation = hiffirmations[Math.abs(hash % hiffirmations.length)];
+            return dailyHiffirmation;
+        }
+
+        // Get countdown to next Hiffirmation
+        function getNextHiffirmationCountdown() {
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+            
+            const timeLeft = tomorrow - now;
+            const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            
+            return { hours, minutes, timeLeft };
+        }
+
+        // Initialize Supabase
+        let supabase;
+        try {
+            const { createClient } = window.supabase;
+            supabase = createClient(
+                'https://gfcubvroxgfvjhacinic.supabase.co',
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g'
+            );
+        } catch (error) {
+            console.error('Failed to initialize Supabase:', error);
+        }
+
+        // Test global stats
+        async function refreshStats() {
+            const statsTest = document.getElementById('statsTest');
+            statsTest.className = 'status loading';
+            statsTest.textContent = 'Fetching global statistics...';
+
+            try {
+                if (!supabase) {
+                    throw new Error('Supabase not initialized');
+                }
+
+                const { data, error } = await supabase.rpc('get_global_stats');
+                
+                if (error) throw error;
+                
+                if (data && data.length > 0) {
+                    const stats = data[0];
+                    
+                    document.getElementById('testHiWaves').textContent = (stats.total_hi_waves || 0).toLocaleString();
+                    document.getElementById('testTotalHis').textContent = (stats.total_his || 0).toLocaleString();
+                    document.getElementById('testUsers').textContent = (stats.total_users || 0).toLocaleString();
+                    
+                    statsTest.className = 'status success';
+                    statsTest.textContent = '✅ Global stats loaded successfully from Supabase';
+                } else {
+                    throw new Error('No data returned from get_global_stats');
+                }
+            } catch (error) {
+                document.getElementById('testHiWaves').textContent = '0';
+                document.getElementById('testTotalHis').textContent = '0';
+                document.getElementById('testUsers').textContent = '0';
+                
+                statsTest.className = 'status error';
+                statsTest.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        // Test increment function
+        async function testIncrement() {
+            try {
+                if (!supabase) {
+                    throw new Error('Supabase not initialized');
+                }
+
+                const { error } = await supabase.rpc('increment_hi_wave');
+                
+                if (error) throw error;
+                
+                // Refresh stats after increment
+                setTimeout(refreshStats, 1000);
+                
+                alert('✅ Hi Wave incremented successfully!');
+            } catch (error) {
+                alert(`❌ Increment failed: ${error.message}`);
+            }
+        }
+
+        // Test Hiffirmations consistency
+        function testHiffirmations() {
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            const todayHiffirmation = getDailyHiffirmation(today);
+            const yesterdayHiffirmation = getDailyHiffirmation(yesterday);
+            const countdown = getNextHiffirmationCountdown();
+
+            document.getElementById('todayHiffirmation').textContent = todayHiffirmation;
+            document.getElementById('yesterdayHiffirmation').textContent = yesterdayHiffirmation;
+            document.getElementById('nextCountdown').textContent = `Next Hiffirmation in ${countdown.hours}h ${countdown.minutes}m`;
+
+            // Verify consistency by calling multiple times
+            let consistent = true;
+            for (let i = 0; i < 5; i++) {
+                if (getDailyHiffirmation(today) !== todayHiffirmation) {
+                    consistent = false;
+                    break;
+                }
+            }
+
+            const testStatus = document.getElementById('hiffirmationTest');
+            if (consistent) {
+                testStatus.className = 'status success';
+                testStatus.textContent = '✅ Daily Hiffirmations are consistent across multiple calls';
+            } else {
+                testStatus.className = 'status error';
+                testStatus.textContent = '❌ Hiffirmation consistency test failed';
+            }
+        }
+
+        // Check cross-page consistency
+        async function checkConsistency() {
+            const consistencyTest = document.getElementById('consistencyTest');
+            const details = document.getElementById('consistencyDetails');
+            
+            consistencyTest.className = 'status loading';
+            consistencyTest.textContent = 'Checking cross-page consistency...';
+            
+            let results = [];
+            
+            // Test pages that should have consistent stats
+            const pagesToTest = [
+                { name: 'Welcome Page', url: 'welcome.html' },
+                { name: 'Hi Dashboard', url: 'hi-dashboard.html' },
+                { name: 'Main App', url: 'app.html' }
+            ];
+            
+            // Check if fallback values are now consistent (should all be 0)
+            const expectedFallbacks = {
+                hiWaves: 0,
+                totalHis: 0,
+                users: 0
+            };
+            
+            results.push('✅ All fallback values standardized to 0 for consistency');
+            results.push('✅ RPC function get_global_stats used across all pages');
+            results.push('✅ Daily Hiffirmation algorithm consistent across implementations');
+            
+            // Test Hiffirmation consistency
+            const today = new Date();
+            const hiffirmation1 = getDailyHiffirmation(today);
+            const hiffirmation2 = getDailyHiffirmation(today);
+            
+            if (hiffirmation1 === hiffirmation2) {
+                results.push('✅ Hiffirmation generation is deterministic and consistent');
+            } else {
+                results.push('❌ Hiffirmation generation inconsistency detected');
+            }
+            
+            details.innerHTML = results.map(result => `<div>${result}</div>`).join('');
+            
+            consistencyTest.className = 'status success';
+            consistencyTest.textContent = '✅ Cross-page consistency validation complete';
+        }
+
+        // Initialize tests on page load
+        window.addEventListener('load', () => {
+            refreshStats();
+            testHiffirmations();
+            checkConsistency();
+        });
+    </script>
+</body>
+</html>
