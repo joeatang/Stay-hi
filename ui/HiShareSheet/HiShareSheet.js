@@ -308,8 +308,7 @@ export class HiShareSheet {
 
     // 🎉 TESLA-GRADE: Premium celebration for private save
     if (window.PremiumUX) {
-      const glowColor = getComputedStyle(document.documentElement).getPropertyValue('--hi-green-2').trim();
-      window.PremiumUX.glow(button, glowColor);
+      window.PremiumUX.glow(button, '#4ECDC4');
       window.PremiumUX.triggerHapticFeedback('medium');
     }
 
@@ -331,11 +330,7 @@ export class HiShareSheet {
 
     // 🎉 TESLA-GRADE: Premium celebration for anonymous share
     if (window.PremiumUX) {
-      const colors = [
-        getComputedStyle(document.documentElement).getPropertyValue('--hi-green').trim(),
-        getComputedStyle(document.documentElement).getPropertyValue('--hi-orange-2').trim()
-      ];
-      window.PremiumUX.burst(button, { count: 8, colors });
+      window.PremiumUX.burst(button, { count: 8, colors: ['#8A2BE2', '#FFD700'] });
       window.PremiumUX.triggerHapticFeedback('medium');
     }
 
@@ -360,12 +355,7 @@ export class HiShareSheet {
       // Sequence animations to prevent overlap
       window.PremiumUX.celebrate(button, '🌟 Shared publicly!');
       setTimeout(() => {
-        const colors = [
-          getComputedStyle(document.documentElement).getPropertyValue('--hi-green-2').trim(),
-          getComputedStyle(document.documentElement).getPropertyValue('--hi-orange-2').trim(),
-          getComputedStyle(document.documentElement).getPropertyValue('--hi-orange-1').trim()
-        ];
-        window.PremiumUX.confetti({ count: 20, colors });
+        window.PremiumUX.confetti({ count: 20, colors: ['#4ECDC4', '#FFD700', '#FF6B6B'] });
       }, 100);
       window.PremiumUX.triggerHapticFeedback('celebration');
     }
@@ -668,8 +658,8 @@ export class HiShareSheet {
       bottom: 120px;
       left: 50%;
       transform: translateX(-50%) translateY(30px) scale(0.8);
-      background: ${getComputedStyle(document.documentElement).getPropertyValue('--gradient-premium')};
-      color: ${getComputedStyle(document.documentElement).getPropertyValue('--tesla-black')};
+      background: linear-gradient(135deg, #4ECDC4 0%, #FFD93D 100%);
+      color: #111;
       padding: 16px 28px;
       border-radius: 20px;
       font-weight: 700;
@@ -682,7 +672,7 @@ export class HiShareSheet {
       border: 2px solid rgba(255, 255, 255, 0.2);
       max-width: calc(100vw - 40px);
       text-align: center;
-      transition: all var(--transition-slow) var(--transition-bounce);
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     `;
     
     document.body.appendChild(toast);

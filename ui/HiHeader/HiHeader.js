@@ -61,7 +61,7 @@
             <a href="profile.html?from=${getCurrentPageName()}" role="menuitem">👤 Profile</a>
             <div id="adminMenuSection" style="display: none;">
               <div class="sep"></div>
-              <a href="hi-mission-control.html" role="menuitem" style="color: var(--hi-orange-2); font-weight: 600;">🏛️ Mission Control</a>
+              <a href="hi-mission-control.html" role="menuitem" style="color: #FFD166; font-weight: 600;">🏛️ Mission Control</a>
             </div>
             <div class="sep"></div>
             <button id="btnSignOut" class="menu-item-btn" role="menuitem">🚪 Sign Out</button>
