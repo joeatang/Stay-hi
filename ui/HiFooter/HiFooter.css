@@ -9,12 +9,12 @@
   left: 0;
   right: 0;
   z-index: 1000;
-  background: rgba(15, 16, 34, 0.95);
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 8px 0 env(safe-area-inset-bottom, 8px);
-  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.2);
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-top: 1px solid var(--glass-border);
+  padding: var(--space-sm) 0 env(safe-area-inset-bottom, var(--space-sm));
+  box-shadow: var(--shadow-glass);
 }
 
 .hi-footer-nav {
@@ -22,8 +22,8 @@
   grid-template-columns: repeat(4, 1fr);
   max-width: 480px;
   margin: 0 auto;
-  padding: 0 16px;
-  gap: 4px;
+  padding: 0 var(--space-md);
+  gap: var(--space-xs);
 }
 
 .hi-footer-tab {
@@ -31,11 +31,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8px 4px;
+  padding: var(--space-sm) var(--space-xs);
   text-decoration: none;
-  color: rgba(255, 255, 255, 0.6);
-  border-radius: 12px;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  color: var(--glass-text-muted);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-normal) var(--transition-bounce);
   min-height: 52px;
   position: relative;
   overflow: hidden;
@@ -45,10 +45,10 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
+  background: var(--glass-bg);
+  border-radius: var(--radius-md);
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--transition-normal);
 }
 
 .hi-footer-tab:hover::before {
@@ -56,8 +56,8 @@
 }
 
 .hi-footer-tab.active {
-  color: white;
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--glass-text);
+  background: var(--glass-bg-strong);
 }
 
 .hi-footer-tab.active::after {
@@ -66,11 +66,11 @@
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 24px;
+  width: var(--space-lg);
   height: 2px;
-  background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+  background: var(--gradient-green);
   border-radius: 0 0 2px 2px;
-  animation: hiTabIndicator 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  animation: hiTabIndicator 0.4s var(--transition-bounce);
 }
 
 @keyframes hiTabIndicator {
@@ -79,16 +79,16 @@
     opacity: 0;
   }
   to {
-    width: 24px;
+    width: var(--space-lg);
     opacity: 1;
   }
 }
 
 .hi-footer-icon {
-  font-size: 20px;
+  font-size: var(--font-size-lg);
   line-height: 1;
-  margin-bottom: 4px;
-  transition: transform 0.3s ease;
+  margin-bottom: var(--space-xs);
+  transition: transform var(--transition-normal);
 }
 
 .hi-footer-tab.active .hi-footer-icon {
@@ -106,7 +106,7 @@
 /* Mobile optimization */
 @media (max-width: 375px) {
   .hi-footer-nav {
-    padding: 0 8px;
+    padding: 0 var(--space-sm);
     gap: 2px;
   }
   
@@ -116,7 +116,7 @@
   }
   
   .hi-footer-icon {
-    font-size: 18px;
+    font-size: var(--font-size-lg);
   }
   
   .hi-footer-label {
@@ -127,16 +127,16 @@
 /* Large screen adjustments */
 @media (min-width: 768px) {
   .hi-footer {
-    padding: 12px 0 12px;
+    padding: var(--space-md) 0 var(--space-md);
   }
   
   .hi-footer-nav {
     max-width: 520px;
-    gap: 8px;
+    gap: var(--space-sm);
   }
   
   .hi-footer-tab {
-    padding: 12px 8px;
+    padding: var(--space-md) var(--space-sm);
     min-height: 60px;
   }
   
@@ -183,7 +183,7 @@ body {
   text-decoration: none;
   color: rgba(255, 255, 255, 0.6);
   border-radius: 12px;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: all var(--transition-normal) var(--transition-bounce);
   min-height: 52px;
   position: relative;
   overflow: hidden;
