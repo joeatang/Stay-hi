@@ -12,8 +12,8 @@
 - **Status**: **MVP ACCEPTANCE COMPLETE** — Ready for production deployment
 - **Guardrails**: 
   - 🛑 STOP-CHECKPOINT on "glass/premium transitions/visual enhancements" 
-  - 🔄 2-iteration rule: attempt → rollback → defer post-MVP
-  - 🚫 No `sw.js`/`manifest.json` edits pre-MVP
+  - 🔄 2-iteration rule maintained post-MVP
+  - 🚫 No `sw.js`/`manifest.json` edits until post-MVP
 
 ## What's Done
 
