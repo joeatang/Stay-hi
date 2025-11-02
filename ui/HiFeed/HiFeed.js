@@ -505,11 +505,11 @@ const hiFeedStyles = `
   </style>
 `;
 
-// Export for module use
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = HiFeed;
-} else {
-  // Browser global
+// ES6 export for browser modules
+export { HiFeed };
+
+// Also add to window for backward compatibility
+if (typeof window !== 'undefined') {
   window.HiFeed = HiFeed;
 }
 

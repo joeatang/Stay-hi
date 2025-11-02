@@ -671,11 +671,11 @@ const hiStreaksStyles = `
   </style>
 `;
 
-// Export for module use
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = HiStreaks;
-} else {
-  // Browser global
+// ES6 export for browser modules
+export { HiStreaks };
+
+// Also add to window for backward compatibility
+if (typeof window !== 'undefined') {
   window.HiStreaks = HiStreaks;
 }
 

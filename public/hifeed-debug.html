@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiFeed Debug Console</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            padding: 20px; 
+            background: #1a1a1a; 
+            color: #fff; 
+        }
+        .debug-section { 
+            background: #2d2d2d; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 8px; 
+            border-left: 4px solid #00ff88;
+        }
+        .error { border-left-color: #ff4444; }
+        .success { border-left-color: #44ff44; }
+        .warning { border-left-color: #ffaa44; }
+        pre { 
+            background: #000; 
+            padding: 10px; 
+            border-radius: 4px; 
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        h2 { color: #00ff88; margin-top: 0; }
+        .flag-status { 
+            display: inline-block; 
+            padding: 4px 8px; 
+            border-radius: 4px; 
+            font-weight: bold;
+            margin: 2px;
+        }
+        .flag-enabled { background: #44ff44; color: #000; }
+        .flag-disabled { background: #ff4444; color: #fff; }
+        .flag-unknown { background: #666; color: #fff; }
+        #test-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #444;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 HiFeed System Debug Console</h1>
+    
+    <div class="debug-section">
+        <h2>Flag System Status</h2>
+        <div id="flag-status">Loading...</div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Module Loading Test</h2>
+        <div id="module-status">Testing...</div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Component Initialization</h2>
+        <div id="component-status">Initializing...</div>
+        <div id="test-container"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Console Log Output</h2>
+        <pre id="console-output"></pre>
+    </div>
+
+    <script>
+        // Capture console output
+        const consoleOutput = document.getElementById('console-output');
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function addToConsole(type, ...args) {
+            const timestamp = new Date().toLocaleTimeString();
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            consoleOutput.textContent += `[${timestamp}] ${type.toUpperCase()}: ${message}\n`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+        
+        console.log = (...args) => { originalLog(...args); addToConsole('log', ...args); };
+        console.error = (...args) => { originalError(...args); addToConsole('error', ...args); };
+        console.warn = (...args) => { originalWarn(...args); addToConsole('warn', ...args); };
+        
+        console.log('🚀 Debug console initialized');
+        
+        // Test flag systems
+        async function testFlagSystems() {
+            const flagStatus = document.getElementById('flag-status');
+            let html = '<h3>Flag System Tests:</h3>';
+            
+            try {
+                // Test feature-flags.js system
+                console.log('Testing feature-flags.js system...');
+                await import('/public/assets/feature-flags.js');
+                
+                if (typeof window.hiFeatureFlags !== 'undefined') {
+                    const hifeedFlag = window.hiFeatureFlags.hifeed_enabled;
+                    html += `<div>hiFeatureFlags.hifeed_enabled: <span class="flag-status flag-${hifeedFlag ? 'enabled' : 'disabled'}">${hifeedFlag}</span></div>`;
+                    console.log('hiFeatureFlags system loaded, hifeed_enabled:', hifeedFlag);
+                } else {
+                    html += `<div>hiFeatureFlags: <span class="flag-status flag-unknown">NOT FOUND</span></div>`;
+                    console.error('hiFeatureFlags not found on window object');
+                }
+                
+                // Test HiFlags.js system
+                console.log('Testing HiFlags.js system...');
+                const { HiFlags } = await import('/lib/flags/HiFlags.js');
+                
+                if (HiFlags && typeof HiFlags.isEnabled === 'function') {
+                    const hifeedFlag = HiFlags.isEnabled('hifeed_enabled');
+                    html += `<div>HiFlags.isEnabled('hifeed_enabled'): <span class="flag-status flag-${hifeedFlag ? 'enabled' : 'disabled'}">${hifeedFlag}</span></div>`;
+                    
+                    const allFlags = HiFlags.getAllFlags ? HiFlags.getAllFlags() : 'getAllFlags not available';
+                    html += `<div>All HiFlags: <pre>${JSON.stringify(allFlags, null, 2)}</pre></div>`;
+                    console.log('HiFlags system loaded, hifeed_enabled:', hifeedFlag);
+                    console.log('All HiFlags:', allFlags);
+                } else {
+                    html += `<div>HiFlags: <span class="flag-status flag-unknown">NOT LOADED</span></div>`;
+                    console.error('HiFlags not loaded or isEnabled method missing');
+                }
+                
+            } catch (error) {
+                html += `<div class="error">Flag system error: ${error.message}</div>`;
+                console.error('Flag system test error:', error);
+            }
+            
+            flagStatus.innerHTML = html;
+        }
+        
+        // Test module loading
+        async function testModuleLoading() {
+            const moduleStatus = document.getElementById('module-status');
+            let html = '<h3>Module Loading Tests:</h3>';
+            
+            try {
+                console.log('Testing HiFeed module loading...');
+                const hifeedModule = await import('/lib/hifeed/index.js');
+                
+                if (hifeedModule && hifeedModule.getUnifiedFeed) {
+                    html += `<div class="success">✅ HiFeed module loaded successfully</div>`;
+                    html += `<div>Available functions: ${Object.keys(hifeedModule).join(', ')}</div>`;
+                    console.log('HiFeed module loaded:', Object.keys(hifeedModule));
+                    
+                    // Test feed function
+                    console.log('Testing getUnifiedFeed function...');
+                    const feed = await hifeedModule.getUnifiedFeed();
+                    html += `<div class="success">✅ getUnifiedFeed returned ${feed ? feed.length : 0} items</div>`;
+                    console.log('Feed data:', feed);
+                    
+                } else {
+                    html += `<div class="error">❌ HiFeed module missing getUnifiedFeed function</div>`;
+                    console.error('HiFeed module malformed:', hifeedModule);
+                }
+                
+            } catch (error) {
+                html += `<div class="error">❌ Module loading error: ${error.message}</div>`;
+                console.error('Module loading error:', error);
+            }
+            
+            moduleStatus.innerHTML = html;
+        }
+        
+        // Test component initialization
+        async function testComponentInit() {
+            const componentStatus = document.getElementById('component-status');
+            const testContainer = document.getElementById('test-container');
+            let html = '<h3>Component Tests:</h3>';
+            
+            try {
+                console.log('Testing HiFeed component...');
+                const { HiFeed } = await import('/ui/HiFeed/HiFeed.js');
+                
+                if (HiFeed && typeof HiFeed.init === 'function') {
+                    html += `<div class="success">✅ HiFeed component loaded</div>`;
+                    console.log('HiFeed component loaded successfully');
+                    
+                    // Try to initialize component
+                    try {
+                        await HiFeed.init(testContainer);
+                        html += `<div class="success">✅ HiFeed component initialized</div>`;
+                        console.log('HiFeed component initialized in test container');
+                    } catch (initError) {
+                        html += `<div class="warning">⚠️ HiFeed init error: ${initError.message}</div>`;
+                        console.error('HiFeed init error:', initError);
+                    }
+                } else {
+                    html += `<div class="error">❌ HiFeed component missing init function</div>`;
+                    console.error('HiFeed component malformed:', HiFeed);
+                }
+                
+                console.log('Testing HiStreaks component...');
+                const { HiStreaks } = await import('/ui/HiStreaks/HiStreaks.js');
+                
+                if (HiStreaks && typeof HiStreaks.init === 'function') {
+                    html += `<div class="success">✅ HiStreaks component loaded</div>`;
+                    console.log('HiStreaks component loaded successfully');
+                } else {
+                    html += `<div class="error">❌ HiStreaks component missing init function</div>`;
+                    console.error('HiStreaks component malformed:', HiStreaks);
+                }
+                
+            } catch (error) {
+                html += `<div class="error">❌ Component loading error: ${error.message}</div>`;
+                console.error('Component loading error:', error);
+            }
+            
+            componentStatus.innerHTML = html;
+        }
+        
+        // Run all tests
+        async function runAllTests() {
+            console.log('🔬 Starting comprehensive system test...');
+            
+            await testFlagSystems();
+            await testModuleLoading();
+            await testComponentInit();
+            
+            console.log('✅ All tests completed');
+        }
+        
+        // Start tests when page loads
+        window.addEventListener('DOMContentLoaded', runAllTests);
+        
+        // Also run tests after a short delay to ensure all modules are available
+        setTimeout(runAllTests, 1000);
+    </script>
+</body>
+</html>
