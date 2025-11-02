@@ -5,8 +5,15 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Welcome — Stay Hi</title>
   
+  <!-- Flag Init Guard -->
+  <script type="module">
+    import * as HiFlags from '../lib/flags/HiFlags.js';
+    await HiFlags.waitUntilReady();
+  </script>
+  
   <!-- PWA Meta Tags -->
-  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="../favicon.ico">
+  <link rel="manifest" href="../manifest.json">
   <meta name="theme-color" content="#FFD166">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -642,7 +649,7 @@
           await window.hiLoadingExperience.start('Welcome back! Loading your Hi space...');
           
           // Navigate after beautiful experience
-          window.location.replace('hi-dashboard.html?source=welcome');
+          window.location.replace('./hi-dashboard.html?source=welcome');
         }
       } catch (error) {
         console.log('Welcome: Auth check failed:', error);
@@ -782,7 +789,7 @@
       
       // 🎯 Anonymous Experience Flow (PRIMARY for User 3)
       if (tryAnonymousBtn) {
-        tryAnonymousBtn.addEventListener('click', () => {
+        tryAnonymousBtn.addEventListener('click', async () => {
           // Mark as anonymous discovery session
           localStorage.setItem('hi_discovery_mode', 'anonymous');
           localStorage.setItem('hi_welcome_experienced', 'true');
@@ -790,8 +797,9 @@
           // Mark that user is coming FROM welcome to prevent redirect loop
           sessionStorage.setItem('from-welcome', 'true');
           
-          // Go to Tesla-grade Hi Dashboard experience in anonymous mode
-          window.location.href = 'hi-dashboard.html?source=welcome';
+          // Import nav helper and navigate
+          const { go } = await import('../lib/nav.js');
+          go('hi-dashboard.html', { source: 'welcome' });
         });
       }
 
@@ -859,10 +867,10 @@
                   sessionStorage.setItem('from-welcome', 'true');
                   
                   // Explorer+ gets direct app access
-                  window.location.href = 'hi-dashboard.html?tier=activated&source=welcome';
+                  window.location.href = './hi-dashboard.html?tier=activated&source=welcome';
                 } else {
                   // Discovery gets guided signup
-                  window.location.href = `signup.html?code=${encodeURIComponent(code)}&source=welcome&tier=${result.tier.level}`;
+                  window.location.href = `./signup.html?code=${encodeURIComponent(code)}&source=welcome&tier=${result.tier.level}`;
                 }
               } else {
                 // Invalid code
@@ -878,7 +886,7 @@
               }
             } else {
               // Fallback to old system
-              window.location.href = `signup.html?code=${encodeURIComponent(code)}&source=welcome`;
+              window.location.href = `./signup.html?code=${encodeURIComponent(code)}&source=welcome`;
             }
           } else {
             inviteInput.style.borderColor = '#ff6b6b';
