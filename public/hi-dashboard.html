@@ -1782,12 +1782,14 @@
   <!-- Initialize Premium Features -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // Initialize calendar integration
-      setupCalendarIntegration();
-      
-      // Initialize premium calendar if available
-      if (window.PremiumCalendar) {
+      // HI DEV: Calendar modal stacking fix (P2) - Initialize once only
+      if (window.PremiumCalendar && !window.__hiCalendarInitialized) {
+        window.__hiCalendarInitialized = true;
         window.PremiumCalendar = new window.PremiumCalendar();
+        console.log('[HI DEV] Calendar initialized once, stacking prevented');
+        
+        // Setup calendar integration
+        setupCalendarIntegration();
       }
     });
   </script>

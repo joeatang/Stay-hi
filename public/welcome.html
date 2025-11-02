@@ -579,7 +579,10 @@
       <p class="medallion-hint">Click to feel the Hi energy ✨</p>
     </div>
     <div class="welcome-actions">
-      <button class="welcome-btn primary" id="tryAnonymousBtn">✨ Experience Hi Anonymously</button>
+      <a id="cta-experience-anon" 
+         class="welcome-btn primary" 
+         href="./hi-dashboard.html?source=welcome"
+         data-hi-nav="anon">✨ Experience Hi Anonymously</a>
       <button class="welcome-btn secondary" id="joinCommunityBtn">🌟 Get Full Hi Access via Stan</button>
       <button class="welcome-btn tertiary" id="haveCodeBtn">I have an invite code</button>
       <div class="welcome-signin-link">
@@ -735,7 +738,7 @@
     // 🎯 Hi-Grade Welcome Experience Interactions
     document.addEventListener('DOMContentLoaded', () => {
       const medallionDemo = document.getElementById('welcomeMedallion');
-      const tryAnonymousBtn = document.getElementById('tryAnonymousBtn');
+      const tryAnonymousBtn = document.getElementById('cta-experience-anon'); // Updated ID for anchor
       const joinBtn = document.getElementById('joinCommunityBtn');
       const haveCodeBtn = document.getElementById('haveCodeBtn');
       const inviteSection = document.getElementById('inviteCodeSection');
@@ -787,21 +790,9 @@
         });
       }
       
-      // 🎯 Anonymous Experience Flow (PRIMARY for User 3)
-      if (tryAnonymousBtn) {
-        tryAnonymousBtn.addEventListener('click', async () => {
-          // Mark as anonymous discovery session
-          localStorage.setItem('hi_discovery_mode', 'anonymous');
-          localStorage.setItem('hi_welcome_experienced', 'true');
-          
-          // Mark that user is coming FROM welcome to prevent redirect loop
-          sessionStorage.setItem('from-welcome', 'true');
-          
-          // Import nav helper and navigate
-          const { go } = await import('../lib/nav.js');
-          go('hi-dashboard.html', { source: 'welcome' });
-        });
-      }
+      // 🎯 Anonymous Experience Flow - MOVED to welcome-cta.js for reliability
+      // Old tryAnonymousBtn handler neutralized - now using anchor with stable href
+      console.log('[HI DEV] Legacy tryAnonymousBtn handler disabled in favor of welcome-cta.js');
 
       // Join Community Flow (SECONDARY - Stan Integration Strategy)
       if (joinBtn) {
@@ -1061,5 +1052,8 @@
       import('/devtools/HiFlagsDiag.js');
     }
   </script>
+  
+  <!-- HI DEV: Welcome CTA reliability fix (P1) -->
+  <script defer src="./js/welcome-cta.js"></script>
 </body>
 </html>

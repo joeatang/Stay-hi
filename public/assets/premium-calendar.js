@@ -19,9 +19,12 @@ class PremiumCalendar {
   }
 
   createCalendarModal() {
-    // Remove existing modal if it exists
+    // HI DEV: Prevent modal stacking (P2) - Guard against duplicate creation
     const existing = document.querySelector('.premium-calendar-modal');
-    if (existing) existing.remove();
+    if (existing) {
+      console.log('[HI DEV] Removing existing calendar modal to prevent stacking');
+      existing.remove();
+    }
 
     const modal = document.createElement('div');
     modal.className = 'premium-calendar-modal';
