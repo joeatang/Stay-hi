@@ -35,7 +35,7 @@
       
       // Determine the intended destination
       const urlParams = new URLSearchParams(window.location.search);
-      const next = urlParams.get('next') || '/hi-dashboard.html';
+      const next = urlParams.get('next') || 'hi-dashboard.html';
       
       const postAuthUrl = `/post-auth.html?next=${encodeURIComponent(next)}${window.location.hash}`;
       window.location.replace(postAuthUrl);

@@ -237,9 +237,21 @@
     // 🔥 Phase 7: Hi Experience Layer Initialization (Feature Flagged)
     async function initializeHiExperienceLayer() {
       try {
-        // Check if hifeed_enabled flag is active using the existing feature flags system
-        const flagEnabled = window.hiFeatureFlags ? await window.hiFeatureFlags.isEnabled('hifeed_enabled') : false;
-        console.log('🔍 HiFeed flag check:', { flagSystem: !!window.hiFeatureFlags, flagEnabled });
+        // Check if hifeed_enabled flag is active (cohort-aware)
+        const { isEnabledCohort } = await import('../lib/flags/HiFlags.js');
+        const { trackEvent } = await import('../lib/monitoring/HiMonitor.js');
+        
+        const flagEnabled = await isEnabledCohort('hifeed_enabled');
+        
+        // Track flag evaluation for telemetry
+        trackEvent('flag_check', {
+          key: 'hifeed_enabled',
+          enabled: flagEnabled,
+          rollout: true,
+          location: 'island'
+        });
+        
+        console.log('🔍 HiFeed flag check (island - cohort):', { flagEnabled, rollout: true });
         
         if (flagEnabled) {
           console.log('🔥 HiFeed enabled - initializing experience layer components on Hi Island');

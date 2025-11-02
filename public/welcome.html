@@ -642,7 +642,7 @@
           await window.hiLoadingExperience.start('Welcome back! Loading your Hi space...');
           
           // Navigate after beautiful experience
-          window.location.replace('/hi-dashboard.html');
+          window.location.replace('hi-dashboard.html');
         }
       } catch (error) {
         console.log('Welcome: Auth check failed:', error);
@@ -791,7 +791,7 @@
           sessionStorage.setItem('from-welcome', 'true');
           
           // Go to Tesla-grade Hi Dashboard experience in anonymous mode
-          window.location.href = '/hi-dashboard.html?source=welcome';
+          window.location.href = 'hi-dashboard.html?source=welcome';
         });
       }
 
@@ -859,7 +859,7 @@
                   sessionStorage.setItem('from-welcome', 'true');
                   
                   // Explorer+ gets direct app access
-                  window.location.href = '/hi-dashboard.html?tier=activated&source=welcome';
+                  window.location.href = 'hi-dashboard.html?tier=activated&source=welcome';
                 } else {
                   // Discovery gets guided signup
                   window.location.href = `signup.html?code=${encodeURIComponent(code)}&source=welcome&tier=${result.tier.level}`;

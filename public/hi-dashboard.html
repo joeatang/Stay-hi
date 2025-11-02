@@ -1114,8 +1114,18 @@
         
         // 🏝️ HI ISLAND PIPING: Track global hi5 + personal user stats
         try {
-          // Check if HiBase shares integration is enabled
-          const hibaseEnabled = window.HiFlags && window.HiFlags.isEnabled('hibase_shares_enabled');
+          // Check if HiBase shares integration is enabled (cohort-aware)
+          const { isEnabledCohort } = await import('../lib/flags/HiFlags.js');
+          const { trackEvent } = await import('../lib/monitoring/HiMonitor.js');
+          const hibaseEnabled = await isEnabledCohort('hibase_shares_enabled');
+          
+          // Track flag evaluation for telemetry
+          trackEvent('flag_check', {
+            key: 'hibase_shares_enabled',
+            enabled: hibaseEnabled,
+            rollout: true,
+            location: 'dashboard-shares'
+          });
           
           if (hibaseEnabled && window.HiBase_shares) {
             // 🔥 NEW: HiBase integration path
@@ -1621,12 +1631,23 @@
     // 🔥 Phase 7: Hi Experience Layer Initialization (Feature Flagged)
     async function initializeHiExperienceLayer() {
       try {
-        // Check if hifeed_enabled flag is active
-        const hiFeedEnabled = await window.HiFlags?.getFlag('hifeed_enabled');
-        console.log('🔍 HiFeed flag check (dashboard):', { 
-          flagSystem: !!window.HiFlags, 
+        // Check if hifeed_enabled flag is active (cohort-aware)
+        const { isEnabledCohort } = await import('../lib/flags/HiFlags.js');
+        const { trackEvent } = await import('../lib/monitoring/HiMonitor.js');
+        
+        const hiFeedEnabled = await isEnabledCohort('hifeed_enabled');
+        
+        // Track flag evaluation for telemetry
+        trackEvent('flag_check', {
+          key: 'hifeed_enabled',
+          enabled: hiFeedEnabled,
+          rollout: true,
+          location: 'dashboard'
+        });
+        
+        console.log('🔍 HiFeed flag check (dashboard - cohort):', { 
           flagEnabled: hiFeedEnabled,
-          allFlags: window.HiFlags?.getAllFlags?.() 
+          rollout: true
         });
         
         if (hiFeedEnabled) {
