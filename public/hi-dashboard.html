@@ -572,7 +572,7 @@
   </style>
 </head>
 
-<body>
+<body data-page="hi-dashboard">
   <!-- Tesla-Grade Header with Centered Branding -->
   <header class="tesla-header">
     <div class="header-left">
@@ -1002,14 +1002,17 @@
           selfHi5Enhanced.style.transform = '';
         }, 150);
 
-        // HI DEV: Open HiShareSheet (centered modal, mobile-first) - NO legacy modal
+        // HI DEV: Use existing HiShareSheet instance (Tesla-grade single initialization)
         try {
-          // Import HiShareSheet dynamically
-          const { HiShareSheet } = await import('../ui/HiShareSheet/HiShareSheet.js');
+          // Get the globally initialized HiShareSheet instance
+          const shareSheetInstance = window.__hiComponentsInitialized?.shareSheetInstance;
           
-          // Initialize share sheet with Hi5 preset and success handler
-          const shareSheet = new HiShareSheet({
-            origin: 'dashboard',
+          if (!shareSheetInstance) {
+            throw new Error('HiShareSheet not initialized');
+          }
+          
+          // Configure success handler for Hi5 flow
+          shareSheetInstance.updateOptions({
             onSuccess: async (shareData) => {
               console.log('[HI DEV] Hi5 share submitted via Share Sheet:', shareData);
               
@@ -1025,9 +1028,8 @@
             }
           });
 
-          // Render and open with Hi5 context (centered modal)
-          shareSheet.init();
-          shareSheet.open({
+          // Open with Hi5 context (centered modal)
+          shareSheetInstance.open({
             context: 'dashboard',
             preset: 'hi5',
             prefilledText: '🙌 Giving myself a Hi5! ',
@@ -1474,20 +1476,32 @@
   <script src="assets/premium-calendar.js"></script>
   <script src="../ui/HiFooter/HiFooter.js" defer></script>
   
-  <!-- Hi Share Sheet Component -->
+  <!-- Hi Components: HiShareSheet + HiMedallion (Tesla-grade initialization) -->
   <script type="module">
     import { HiShareSheet } from '../ui/HiShareSheet/HiShareSheet.js';
     import { mountHiMedallion } from '../ui/HiMedallion/HiMedallion.js';
     
-    // Initialize Hi Share Sheet for dashboard hi5 functionality
+    // Tesla-grade component initialization with guards
     document.addEventListener('DOMContentLoaded', () => {
-      const shareSheet = new HiShareSheet({ 
-        origin: 'dashboard',
-        onSuccess: () => {
-          console.log('✅ Dashboard Hi5 shared successfully!');
-        }
-      });
-      shareSheet.init();
+      // Initialize components only once
+      if (!window.__hiComponentsInitialized) {
+        window.__hiComponentsInitialized = {};
+      }
+      
+      // HiShareSheet - unified initialization (replaces duplicate at line 1008)
+      if (!window.__hiComponentsInitialized.shareSheet) {
+        const shareSheet = new HiShareSheet({ 
+          origin: 'dashboard',
+          onSuccess: () => {
+            console.log('✅ Dashboard Hi5 shared successfully!');
+          }
+        });
+        shareSheet.init();
+        
+        // Store instance reference for button handlers
+        window.__hiComponentsInitialized.shareSheet = true;
+        window.__hiComponentsInitialized.shareSheetInstance = shareSheet;
+      }
       
       // HI DEV: Initialize Tesla-Grade HiMedallion Component
       const medallionContainer = document.getElementById('hiMedallionContainer');

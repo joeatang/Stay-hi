@@ -11,6 +11,12 @@ export class HiShareSheet {
     this.isOpen = false;
   }
 
+  // Tesla-grade: Update options after initialization
+  updateOptions(options = {}) {
+    if (options.origin) this.origin = options.origin;
+    if (options.onSuccess) this.onSuccess = options.onSuccess;
+  }
+
   // Initialize component
   init() {
     this.render();
@@ -784,8 +790,14 @@ function init() {
   console.log('🔧 Hi Share Sheet init check:', { 
     page, 
     bodyElement: !!document.body,
-    shouldInit: page === 'hi-island' || page === 'index' || page === 'hi-muscle'
+    shouldInit: page === 'hi-island' || page === 'index' || page === 'hi-muscle' || page === 'hi-dashboard'
   });
+  
+  // Tesla-grade: Skip auto-init for hi-dashboard (manual initialization preferred)
+  if (page === 'hi-dashboard') {
+    console.log('✅ Hi Share Sheet: hi-dashboard uses manual initialization');
+    return;
+  }
   
   if (page === 'hi-island' || page === 'index' || page === 'hi-muscle') {
     const shareSheet = new HiShareSheet({ origin: page === 'hi-muscle' ? 'higym' : 'hi5' });
