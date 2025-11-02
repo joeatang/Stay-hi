@@ -4,6 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Phase 7 Final Verification</title>
+    <script>
+        // HI DEV Production Redirect with ?dev=1 Detection
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isDev = urlParams.get('dev') === '1';
+            
+            if (isDev) {
+                console.log('🛠️ DEV MODE DETECTED: Redirecting to isolated dev environment');
+                window.location.href = '/public/dev/phase7/index.html';
+                return;
+            }
+            
+            // Production mode continues as normal
+            console.log('📦 PRODUCTION MODE: Running standard verification');
+        })();
+    </script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
