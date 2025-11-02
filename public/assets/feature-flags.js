@@ -123,6 +123,9 @@ class HiFeatureFlags {
       premium_animations: { enabled: true, config: {}, source: 'default' },
       debug_mode: { enabled: this.environment === 'development', config: {}, source: 'default' },
       
+      // Experience Layer
+      hifeed_enabled: { enabled: false, config: {}, source: 'default' },
+      
       // A/B Tests (placeholder)
       ab_new_onboarding: { enabled: false, config: { cohort: 'control' }, source: 'default' }
     };

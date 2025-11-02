@@ -18,13 +18,29 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   
   <!-- Database & Hi Island Integration -->
-  <script src="assets/supabase-init.js"></script>
+  <script src="../lib/HiSupabase.js"></script>
   <script src="assets/db.js"></script>
+  
+  <!-- 🚀 INTEGRATION #5: HiBase + HiFlags for Streaks system (flagged rollout) -->
+  <script src="../lib/flags/HiFlags.js"></script>
+  <script src="../lib/hibase/index.js"></script>
+  
+  <!-- 🔥 Phase 7: Hi Experience Layer Components (Feature Flagged) -->
+  <script src="../lib/hifeed/index.js"></script>
+  <script src="../ui/HiFeed/HiFeed.js"></script>
+  <script src="../ui/HiStreaks/HiStreaks.js"></script>
+  
+  <!-- HiBase Integration (Flagged Rollout) -->
+  <script type="module">
+    // Import HiBase shares for flagged rollout
+    window.HiBase_shares = await import('../lib/hibase/shares.js');
+    console.log('🔥 HiBase shares module loaded for dashboard integration');
+  </script>
   
   <!-- Premium Authentication & UX -->
   <script src="assets/progressive-auth.js"></script>
   <script src="assets/anonymous-access-modal.js"></script>
-  <script src="assets/unified-membership-system.js"></script>
+  <script src="../lib/HiMembership.js"></script>
   <script src="assets/performance-manager.js"></script>
   
   <!-- Tesla-Grade Onboarding System -->
@@ -594,6 +610,28 @@
       border-color: #FFD166;
       box-shadow: 0 0 0 2px rgba(255, 209, 102, 0.3);
     }
+
+    /* 🔥 Hi Experience Layer Styles */
+    #hiExperienceLayer {
+      margin: 2rem 0;
+    }
+
+    .hi-experience-section {
+      margin-bottom: 2rem;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      border-radius: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      overflow: hidden;
+    }
+
+    /* Responsive adjustments for experience layer */
+    @media (max-width: 768px) {
+      .hi-experience-section {
+        margin: 1rem 0.5rem;
+        border-radius: 0.75rem;
+      }
+    }
   </style>
 </head>
 
@@ -656,10 +694,26 @@
           <span class="stat-label">Users</span>
         </div>
       </div>
+      <div class="global-stat">
+        <span class="stat-icon">⚡</span>
+        <div class="stat-content">
+          <span class="stat-number" id="userStreak">0</span>
+          <span class="stat-label">Streak</span>
+        </div>
+      </div>
     </div>
     
     <!-- Weekly Progress Strip -->
     <div id="weekStrip" class="weekstrip" aria-label="Your week"></div>
+
+    <!-- 🔥 NEW: Hi Experience Layer Components (Feature Flagged) -->
+    <div id="hiExperienceLayer" style="display: none;">
+      <!-- HiFeed Component Container -->
+      <div id="hiFeedContainer" class="hi-experience-section"></div>
+      
+      <!-- HiStreaks Component Container -->
+      <div id="hiStreaksContainer" class="hi-experience-section"></div>
+    </div>
 
     <!-- 50% Scaled Medallion -->
     <div class="hi-medal-simplified" id="hiMedalSimplified" aria-label="Tap to send Hi Wave">
@@ -795,6 +849,9 @@
           
           console.log('✅ Stats loaded from unified system:', { gWaves, gTotalHis, gUsers });
           updateGlobalStats();
+          
+          // Load user streak data
+          loadUserStreak();
         } else {
           console.warn('⚠️ Unified stats system not ready, retrying...');
           setTimeout(loadStatsFromUnifiedSystem, 1000);
@@ -802,6 +859,86 @@
       } catch (error) {
         console.error('❌ Failed to load from unified system:', error);
         showStatsError();
+      }
+    }
+
+    // 🚀 INTEGRATION #5: Load user streak via HiBase (flagged rollout)
+    async function loadUserStreak() {
+      try {
+        const useHiBaseStreaks = await window.HiFlags?.getFlag('hibase_streaks_enabled');
+        console.log(`🔄 Streak loading via ${useHiBaseStreaks ? 'HiBase' : 'legacy'} path`);
+
+        if (useHiBaseStreaks) {
+          // 🎯 HiBase path: unified streak API
+          console.log('📦 Streak → HiBase.getUserStreak...');
+          const currentUser = window.hiAuth?.getCurrentUser?.() || { id: 'anonymous' };
+          
+          if (currentUser.id && currentUser.id !== 'anonymous') {
+            const streakResult = await window.HiBase.getUserStreak(currentUser.id);
+
+            if (streakResult.error) {
+              console.warn('⚠️ HiBase streak loading failed:', streakResult.error);
+              updateStreakDisplay(0);
+            } else {
+              const currentStreak = streakResult.data.streak?.current || 0;
+              console.log('✅ Streak loaded via HiBase:', currentStreak);
+              updateStreakDisplay(currentStreak);
+            }
+          } else {
+            // Anonymous user - no streak
+            updateStreakDisplay(0);
+          }
+
+          // 📊 Track HiBase streak usage
+          import('/lib/monitoring/HiMonitor.js').then(m => 
+            m.trackEvent('streak_load', { 
+              source: 'dashboard', 
+              path: 'hibase'
+            })
+          ).catch(() => {});
+
+        } else {
+          // 🔄 Legacy path: load from localStorage or other system
+          console.log('📦 Streak → Legacy loading...');
+          
+          // Legacy streak loading - could be from localStorage or existing system
+          const localStreak = localStorage.getItem('user_current_streak') || '0';
+          updateStreakDisplay(parseInt(localStreak, 10));
+          
+          // 📊 Track legacy streak usage
+          import('/lib/monitoring/HiMonitor.js').then(m => 
+            m.trackEvent('streak_load', { 
+              source: 'dashboard', 
+              path: 'legacy'
+            })
+          ).catch(() => {});
+        }
+
+      } catch (error) {
+        console.warn('⚠️ Streak loading failed:', error);
+        updateStreakDisplay(0);
+      }
+    }
+
+    // Update streak display in UI
+    function updateStreakDisplay(streak) {
+      const streakElement = document.getElementById('userStreak');
+      if (streakElement) {
+        streakElement.textContent = streak;
+        
+        // Add visual effects for high streaks
+        if (streak >= 7) {
+          streakElement.style.background = 'linear-gradient(45deg, #ff6b6b, #ffd93d)';
+          streakElement.style.webkitBackgroundClip = 'text';
+          streakElement.style.webkitTextFillColor = 'transparent';
+        } else if (streak >= 3) {
+          streakElement.style.color = '#ffd93d';
+        } else {
+          streakElement.style.color = '';
+          streakElement.style.background = '';
+          streakElement.style.webkitBackgroundClip = '';
+          streakElement.style.webkitTextFillColor = '';
+        }
       }
     }
 
@@ -975,37 +1112,172 @@
         
         // 🏝️ HI ISLAND PIPING: Track global hi5 + personal user stats
         try {
-          // Track global hi5 stat
-          if (window.hiDB && window.hiDB.insertPublic) {
-            const hi5Entry = {
-              currentEmoji: '🙌',
-              desiredEmoji: '✨',
-              journal: 'Self Hi5 from Dashboard',
-              location: await getCurrentUserLocation(),
-              origin: 'dashboard',
-              type: 'self_hi5'
+          // Check if HiBase shares integration is enabled
+          const hibaseEnabled = window.HiFlags && window.HiFlags.isEnabled('hibase_shares_enabled');
+          
+          if (hibaseEnabled && window.HiBase_shares) {
+            // 🔥 NEW: HiBase integration path
+            console.log('📡 Using HiBase shares integration for Hi5 submission');
+            
+            // Get current user for user_id (required for HiBase)
+            const currentUser = window.hiAuth?.getCurrentUser?.() || { id: 'anonymous' };
+            const userLocation = await getCurrentUserLocation();
+            
+            // Prepare HiBase payload
+            const sharePayload = {
+              user_id: currentUser.id,
+              type: 'self_hi5',
+              message: 'Self Hi5 from Dashboard 🙌',
+              location: userLocation?.name || null,
+              latitude: userLocation?.lat || null,
+              longitude: userLocation?.lng || null,
+              is_public: true,
+              metadata: {
+                currentEmoji: '🙌',
+                desiredEmoji: '✨',
+                origin: 'dashboard'
+              }
             };
             
-            await window.hiDB.insertPublic(hi5Entry);
-            console.log('✅ Global hi5 tracked via Hi Island piping');
+            // Submit via HiBase
+            const { data, error } = await window.HiBase_shares.insertShare(sharePayload);
+            
+            if (error) {
+              console.error('❌ HiBase share submission failed:', error);
+              // Log error for monitoring
+              if (window.HiMonitor) {
+                window.HiMonitor.logError(error, { where: 'share_submit', path: 'hibase' });
+              }
+              // Fall back to legacy path
+              throw new Error('HiBase submission failed, using fallback');
+            } else {
+              console.log('✅ Hi5 submitted via HiBase:', data);
+              // Track successful HiBase submission
+              import('/lib/monitoring/HiMonitor.js').then(m => 
+                m.trackEvent('share_submit', { type: 'Hi5', source: 'dashboard', path: 'hibase' })
+              ).catch(() => {});
+            }
+          } else {
+            // 🔄 FALLBACK: Legacy Hi Island piping path
+            console.log('📡 Using legacy Hi Island piping for Hi5 submission');
+            
+            // Track global hi5 stat
+            if (window.hiDB && window.hiDB.insertPublic) {
+              const hi5Entry = {
+                currentEmoji: '🙌',
+                desiredEmoji: '✨',
+                journal: 'Self Hi5 from Dashboard',
+                location: await getCurrentUserLocation(),
+                origin: 'dashboard',
+                type: 'self_hi5'
+              };
+              
+              await window.hiDB.insertPublic(hi5Entry);
+              console.log('✅ Global hi5 tracked via Hi Island piping');
+            }
+            
+            // Track personal user stats
+            if (window.hiDB && window.hiDB.insertArchive) {
+              const personalEntry = {
+                currentEmoji: '🙌',
+                desiredEmoji: '✨', 
+                journal: 'Self Hi5 - Dashboard moment',
+                location: await getCurrentUserLocation(),
+                origin: 'dashboard',
+                type: 'self_hi5'
+              };
+              
+              await window.hiDB.insertArchive(personalEntry);
+              console.log('✅ Personal hi5 stats tracked via Hi Island piping');
+            }
+            
+            // Track legacy submission
+            import('/lib/monitoring/HiMonitor.js').then(m => 
+              m.trackEvent('share_submit', { type: 'Hi5', source: 'dashboard', path: 'legacy' })
+            ).catch(() => {});
+          }
+
+          // 🚀 INTEGRATION #5: Streak tracking via HiBase (flagged rollout)
+          const useHiBaseStreaks = await window.HiFlags?.getFlag('hibase_streaks_enabled');
+          console.log(`🔄 Streak tracking via ${useHiBaseStreaks ? 'HiBase' : 'legacy'} path`);
+
+          if (useHiBaseStreaks) {
+            try {
+              // 🎯 HiBase path: unified streak API
+              console.log('📦 Streak → HiBase.updateStreak...');
+              const currentUser = window.hiAuth?.getCurrentUser?.() || { id: 'anonymous' };
+              
+              if (currentUser.id && currentUser.id !== 'anonymous') {
+                const streakResult = await window.HiBase.updateStreak(currentUser.id, {
+                  hiDate: new Date().toISOString().split('T')[0]
+                });
+
+                if (streakResult.error) {
+                  console.warn('⚠️ HiBase streak update failed:', streakResult.error);
+                } else {
+                  console.log('✅ Streak updated via HiBase:', streakResult.data.message);
+                  
+                  // Show streak celebration if applicable
+                  if (streakResult.data.milestone) {
+                    setTimeout(() => {
+                      if (window.toast) {
+                        window.toast(streakResult.data.message, 'celebration');
+                      }
+                    }, 1000);
+                  }
+                }
+              }
+
+              // 📊 Track HiBase streak usage
+              import('/lib/monitoring/HiMonitor.js').then(m => 
+                m.trackEvent('streak_update', { 
+                  source: 'dashboard', 
+                  path: 'hibase'
+                })
+              ).catch(() => {});
+
+            } catch (error) {
+              console.warn('⚠️ HiBase streak tracking failed:', error);
+            }
+          } else {
+            // 🔄 Legacy path: track locally (placeholder for existing system)
+            console.log('📦 Streak → Legacy tracking...');
+            
+            // Legacy streak tracking would go here
+            // Currently this might be handled by the unified stats system
+            
+            // 📊 Track legacy streak usage
+            import('/lib/monitoring/HiMonitor.js').then(m => 
+              m.trackEvent('streak_update', { 
+                source: 'dashboard', 
+                path: 'legacy'
+              })
+            ).catch(() => {});
           }
           
-          // Track personal user stats
-          if (window.hiDB && window.hiDB.insertArchive) {
-            const personalEntry = {
-              currentEmoji: '🙌',
-              desiredEmoji: '✨', 
-              journal: 'Self Hi5 - Dashboard moment',
-              location: await getCurrentUserLocation(),
-              origin: 'dashboard',
-              type: 'self_hi5'
-            };
-            
-            await window.hiDB.insertArchive(personalEntry);
-            console.log('✅ Personal hi5 stats tracked via Hi Island piping');
-          }
         } catch (error) {
-          console.warn('⚠️ Hi Island tracking failed (non-critical):', error);
+          console.warn('⚠️ Hi submission tracking failed (non-critical):', error);
+          
+          // If HiBase failed, ensure we still try legacy path
+          if (error.message?.includes('HiBase') && window.hiDB) {
+            console.log('🔄 Attempting legacy fallback after HiBase failure...');
+            try {
+              if (window.hiDB.insertPublic) {
+                const hi5Entry = {
+                  currentEmoji: '🙌',
+                  desiredEmoji: '✨',
+                  journal: 'Self Hi5 from Dashboard (fallback)',
+                  location: await getCurrentUserLocation(),
+                  origin: 'dashboard',
+                  type: 'self_hi5'
+                };
+                await window.hiDB.insertPublic(hi5Entry);
+                console.log('✅ Fallback: Global hi5 tracked via legacy method');
+              }
+            } catch (fallbackError) {
+              console.warn('⚠️ Legacy fallback also failed:', fallbackError);
+            }
+          }
         }
         
         // Open Self Hi5 share modal
@@ -1344,6 +1616,44 @@
       setTimeout(() => celebration.remove(), 2000);
     }
 
+    // 🔥 Phase 7: Hi Experience Layer Initialization (Feature Flagged)
+    async function initializeHiExperienceLayer() {
+      try {
+        // Check if hifeed_enabled flag is active
+        const hiFeedEnabled = await window.HiFlags?.getFlag('hifeed_enabled');
+        
+        if (hiFeedEnabled) {
+          console.log('🔥 HiFeed enabled - initializing experience layer components');
+          
+          // Show the experience layer container
+          const experienceLayer = document.getElementById('hiExperienceLayer');
+          if (experienceLayer) {
+            experienceLayer.style.display = 'block';
+          }
+          
+          // Initialize HiFeed component
+          if (window.HiFeed) {
+            const hiFeed = new window.HiFeed('#hiFeedContainer');
+            await hiFeed.initialize();
+            console.log('✅ HiFeed component initialized');
+          }
+          
+          // Initialize HiStreaks component
+          if (window.HiStreaks) {
+            const hiStreaks = new window.HiStreaks('#hiStreaksContainer');
+            await hiStreaks.initialize();
+            console.log('✅ HiStreaks component initialized');
+          }
+          
+        } else {
+          console.log('🚫 HiFeed disabled - experience layer components not loaded');
+        }
+        
+      } catch (error) {
+        console.error('❌ Hi Experience Layer initialization error:', error);
+      }
+    }
+
     // Tesla-Grade Initialization
     document.addEventListener('DOMContentLoaded', () => {
       // Initialize all components
@@ -1358,6 +1668,8 @@
       console.log('🎯 Loading stats from unified system for consistent data...');
       loadStatsFromUnifiedSystem();
       
+      // 🔥 Phase 7: Initialize Hi Experience Layer (Feature Flagged)
+      initializeHiExperienceLayer();
 
     });
 

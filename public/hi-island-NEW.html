@@ -111,6 +111,28 @@
       margin: 0 auto;
       padding: var(--space-md);
     }
+
+    /* 🔥 Hi Experience Layer Styles */
+    #hiExperienceLayer {
+      margin: 2rem 0;
+    }
+
+    .hi-experience-section {
+      margin-bottom: 2rem;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      border-radius: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      overflow: hidden;
+    }
+
+    /* Responsive adjustments for experience layer */
+    @media (max-width: 768px) {
+      .hi-experience-section {
+        margin: 1rem 0;
+        border-radius: 0.75rem;
+      }
+    }
   </style>
 </head>
 <body data-page="hi-island">
@@ -124,6 +146,15 @@
 
     <!-- Feed Component (will be injected) -->
     <div id="hi-island-feed-root"></div>
+
+    <!-- 🔥 NEW: Hi Experience Layer Components (Feature Flagged) -->
+    <div id="hiExperienceLayer" style="display: none;">
+      <!-- HiFeed Component Container -->
+      <div id="hiFeedContainer" class="hi-experience-section"></div>
+      
+      <!-- HiStreaks Component Container -->
+      <div id="hiStreaksContainer" class="hi-experience-section"></div>
+    </div>
   </main>
 
   <!-- Toast Notifications -->
@@ -145,6 +176,18 @@
   <script src="assets/feature-flags.js"></script>
   <script src="assets/hi-rewards-controller.js"></script>
   
+  <!-- HiBase Integration (Flagged Rollout) -->
+  <script type="module">
+    // Import HiBase shares for flagged rollout
+    window.HiBase_shares = await import('../lib/hibase/shares.js');
+    console.log('🔥 HiBase shares module loaded for Hi Island feed integration');
+  </script>
+  
+  <!-- 🔥 Phase 7: Hi Experience Layer Components (Feature Flagged) -->
+  <script src="../lib/hifeed/index.js"></script>
+  <script src="../ui/HiFeed/HiFeed.js"></script>
+  <script src="../ui/HiStreaks/HiStreaks.js"></script>
+
   <!-- Component Scripts -->
   <script src="../ui/HiShareSheet/HiShareSheet.js" type="module"></script>
   <script src="components/hi-island-map/map.js" type="module"></script>
@@ -184,7 +227,47 @@
       // No need to duplicate wiring here
 
       // Initialize components (they handle their own rendering)
+      
+      // 🔥 Phase 7: Initialize Hi Experience Layer (Feature Flagged)
+      await initializeHiExperienceLayer();
+      
       console.log('✅ Hi Island ready');
+    }
+
+    // 🔥 Phase 7: Hi Experience Layer Initialization (Feature Flagged)
+    async function initializeHiExperienceLayer() {
+      try {
+        // Check if hifeed_enabled flag is active using the existing feature flags system
+        if (window.hiFeatureFlags && await window.hiFeatureFlags.isEnabled('hifeed_enabled')) {
+          console.log('🔥 HiFeed enabled - initializing experience layer components on Hi Island');
+          
+          // Show the experience layer container
+          const experienceLayer = document.getElementById('hiExperienceLayer');
+          if (experienceLayer) {
+            experienceLayer.style.display = 'block';
+          }
+          
+          // Initialize HiFeed component
+          if (window.HiFeed) {
+            const hiFeed = new window.HiFeed('#hiFeedContainer');
+            await hiFeed.initialize();
+            console.log('✅ HiFeed component initialized on Hi Island');
+          }
+          
+          // Initialize HiStreaks component
+          if (window.HiStreaks) {
+            const hiStreaks = new window.HiStreaks('#hiStreaksContainer');
+            await hiStreaks.initialize();
+            console.log('✅ HiStreaks component initialized on Hi Island');
+          }
+          
+        } else {
+          console.log('🚫 HiFeed disabled - experience layer components not loaded on Hi Island');
+        }
+        
+      } catch (error) {
+        console.error('❌ Hi Experience Layer initialization error on Hi Island:', error);
+      }
     }
 
     // Start when DOM is ready
