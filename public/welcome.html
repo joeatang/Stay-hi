@@ -47,6 +47,21 @@
   <link rel="stylesheet" href="assets/create-parity.css"/>
   <link rel="stylesheet" href="assets/tesla-mobile-fixes.css">
   <link rel="stylesheet" href="assets/tesla-edge-protection.css">
+  
+  <!-- HI DEV: Tesla-Grade HiMedallion Component -->
+  <link rel="preload" href="../ui/HiMedallion/HiMedallion.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="../ui/HiMedallion/HiMedallion.css"></noscript>
+  
+  <!-- HI DEV: Fast Brand Controls - Page-Specific Medallion Overrides -->
+  <style>
+    :root {
+      /* Welcome page flavor - warmer, inviting gradient */
+      --hi-medallion-bg1: #FF9A3C;   /* warmer top */
+      --hi-medallion-bg2: #D84B8A;   /* richer bottom */
+      --hi-medallion-halo: rgba(255,255,255,0.22);
+    }
+  </style>
+  
   <script src="assets/tesla-data-isolation.js"></script>
   
   <!-- PWA Manager -->
@@ -500,51 +515,7 @@
     }
     
     /* Reduced motion preferences */
-    /* 🎯 Hi Medallion Preview Styles */
-    .welcome-medallion-preview {
-      text-align: center;
-      margin: 1.5rem 0;
-      padding: 1.5rem;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 20px;
-      border: 2px dashed rgba(255, 215, 102, 0.3);
-    }
-    
-    .medallion-demo {
-      width: 80px;
-      height: 80px;
-      background: linear-gradient(135deg, #FFD166, #FF7B24);
-      border-radius: 50%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 8px 32px rgba(255, 123, 24, 0.4);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .medallion-demo:hover {
-      transform: translateY(-4px) scale(1.05);
-      box-shadow: 0 16px 48px rgba(255, 123, 24, 0.6);
-    }
-    
-    .medallion-demo .hi-symbol {
-      font-size: 1.8rem;
-      margin-bottom: -4px;
-    }
-    
-    .medallion-demo .hi-label {
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: #000;
-    }
-    
-    .medallion-hint {
-      color: rgba(255, 215, 102, 0.8);
-      font-size: 0.9rem;
-      margin: 0.8rem 0 0 0;
-      font-weight: 500;
-    }
+
 
     @media (prefers-reduced-motion: reduce) {
       .welcome-panel,
@@ -561,7 +532,7 @@
     }
   </style>
 </head>
-<body>
+<body data-page="welcome">
   <main class="welcome-panel">
     <img src="assets/brand/hi-logo-light.png" alt="Stay Hi" class="welcome-logo" />
     <div class="welcome-title">Your forever companion for <br><em style="font-style: italic; color: #FF7B24;">loving yourself & the world</em></div>
@@ -570,14 +541,8 @@
       <span style="font-size: 0.95em; opacity: 0.9;">so you can really say hi to the world</span>
     </div>
     
-    <!-- 🎯 INSTANT SEROTONIN: Interactive Hi Medallion Preview -->
-    <div class="welcome-medallion-preview" id="welcomeMedallion">
-      <div class="medallion-demo hi-medal" style="margin: 1rem auto; cursor: pointer; transition: all 0.3s ease;">
-        <div class="hi-symbol">👋</div>
-        <div class="hi-label">Try it!</div>
-      </div>
-      <p class="medallion-hint">Click to feel the Hi energy ✨</p>
-    </div>
+    <!-- HI DEV: Tesla-Grade HiMedallion Component -->
+    <div id="hiMedallionContainer" class="hi-medallion-section"></div>
     <div class="welcome-actions">
       <a id="cta-experience-anon" 
          class="welcome-btn primary" 
@@ -737,58 +702,12 @@
     
     // 🎯 Hi-Grade Welcome Experience Interactions
     document.addEventListener('DOMContentLoaded', () => {
-      const medallionDemo = document.getElementById('welcomeMedallion');
       const tryAnonymousBtn = document.getElementById('cta-experience-anon'); // Updated ID for anchor
       const joinBtn = document.getElementById('joinCommunityBtn');
       const haveCodeBtn = document.getElementById('haveCodeBtn');
       const inviteSection = document.getElementById('inviteCodeSection');
       const continueWithCodeBtn = document.getElementById('continueWithCodeBtn');
       const inviteInput = document.getElementById('welcomeInviteCode');
-      
-      let clickCount = 0;
-      
-      // 🎯 INSTANT SEROTONIN: Medallion Demo Click
-      if (medallionDemo) {
-        medallionDemo.addEventListener('click', () => {
-          clickCount++;
-          const medallion = medallionDemo.querySelector('.medallion-demo');
-          const hint = medallionDemo.querySelector('.medallion-hint');
-          
-          // Celebration animation
-          medallion.style.transform = 'translateY(-8px) scale(1.1)';
-          medallion.style.boxShadow = '0 20px 60px rgba(255, 123, 24, 0.8)';
-          
-          // Show celebration message
-          const celebrations = [
-            '✨ You felt the Hi energy!',
-            '🎉 That\'s the power of self-love!',
-            '💫 Ready to join the community?'
-          ];
-          
-          hint.textContent = celebrations[Math.min(clickCount - 1, celebrations.length - 1)];
-          hint.style.color = '#FFD166';
-          hint.style.fontWeight = '600';
-          
-          // Reset animation
-          setTimeout(() => {
-            medallion.style.transform = '';
-            medallion.style.boxShadow = '0 8px 32px rgba(255, 123, 24, 0.4)';
-          }, 300);
-          
-          // After 2 clicks, enhance both buttons
-          if (clickCount >= 2) {
-            // Make anonymous experience more prominent
-            tryAnonymousBtn.textContent = '🎯 Experience the Full Hi App!';
-            tryAnonymousBtn.style.background = 'linear-gradient(135deg, #FFD166, #FF7B24)';
-            tryAnonymousBtn.style.color = '#000';
-            tryAnonymousBtn.style.transform = 'scale(1.02)';
-            
-            // Also enhance join button
-            joinBtn.textContent = '💫 Join & Save Your Journey';
-            joinBtn.style.transform = 'scale(1.01)';
-          }
-        });
-      }
       
       // 🎯 Anonymous Experience Flow - MOVED to welcome-cta.js for reliability
       // Old tryAnonymousBtn handler neutralized - now using anchor with stable href
@@ -1055,5 +974,22 @@
   
   <!-- HI DEV: Welcome CTA reliability fix (P1) -->
   <script defer src="./js/welcome-cta.js"></script>
+  
+  <!-- HI DEV: Tesla-Grade HiMedallion Component -->
+  <script type="module">
+    import { mountHiMedallion } from '../ui/HiMedallion/HiMedallion.js';
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize HiMedallion with navigation override for welcome page
+      const medallionContainer = document.getElementById('hiMedallionContainer');
+      if (medallionContainer) {
+        mountHiMedallion(medallionContainer, {
+          onTap: () => {
+            location.href = './hi-dashboard.html?source=medallion';
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>

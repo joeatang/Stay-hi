@@ -57,15 +57,27 @@
   <!-- Hi Share Sheet Component -->
   <link rel="preload" href="../ui/HiShareSheet/HiShareSheet.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   
+  <!-- HI DEV: Tesla-Grade HiMedallion Component -->
+  <link rel="preload" href="../ui/HiMedallion/HiMedallion.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  
   <noscript>
     <link rel="stylesheet" href="assets/premium-ux.css">
     <link rel="stylesheet" href="assets/premium-calendar.css">
     <link rel="stylesheet" href="../ui/HiFooter/HiFooter.css">
     <link rel="stylesheet" href="../ui/HiModal/HiModal.css">
     <link rel="stylesheet" href="../ui/HiShareSheet/HiShareSheet.css">
+    <link rel="stylesheet" href="../ui/HiMedallion/HiMedallion.css">
   </noscript>
 
+  <!-- HI DEV: Fast Brand Controls - Page-Specific Medallion Overrides -->
   <style>
+    :root {
+      /* Dashboard page flavor - energetic, action-oriented gradient */
+      --hi-medallion-bg1: #FF9A3C;   /* warmer top */
+      --hi-medallion-bg2: #D84B8A;   /* richer bottom */
+      --hi-medallion-halo: rgba(255,255,255,0.22);
+    }
+    
     body {
       background: linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #ffd166 100%);
       min-height: 100vh;
@@ -214,84 +226,7 @@
       min-height: calc(100vh - 180px); /* Account for header + footer */
     }
 
-    /* 50% Scaled Medallion (Tesla Optimized) */
-    .hi-medal-simplified {
-      width: min(210px, 39vw); 
-      aspect-ratio: 1/1; 
-      border-radius: 999px;
-      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.8) 100%);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 2px solid rgba(255, 255, 255, 0.1); 
-      box-shadow: 
-        0 25px 50px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1),
-        0 0 60px rgba(255, 210, 102, 0.2);
-      position: relative; 
-      overflow: hidden; 
-      transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1),
-                  box-shadow 0.25s ease;
-      cursor: pointer;
-      will-change: transform;
-      user-select: none;
-      margin: 20px auto; /* Center with auto margins */
-      /* Tesla Architecture: Ensure container stability */
-      transform-origin: center center;
-    }
 
-    .hi-medal-simplified:hover {
-      transform: translateY(-5px) scale(1.02) translateZ(0);
-      box-shadow: 
-        0 35px 70px rgba(0, 0, 0, 0.5),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        0 0 80px rgba(255, 210, 102, 0.4);
-    }
-
-    .hi-medal-simplified:active {
-      transform: translateY(-2px) scale(0.98) translateZ(0);
-    }
-
-    /* Logo Container - Tesla Architecture: Separate Positioning from Animation */
-    .hi-logo-simplified {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 60%;
-      height: 60%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none; /* Prevent logo from intercepting clicks */
-    }
-
-    /* Logo Animation Container - Independent from positioning */
-    .hi-logo-simplified .logo-animation-wrapper {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    }
-
-    .hi-mark-simplified {
-      width: 100%;
-      height: auto;
-      max-width: 100px;
-      filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
-    }
-
-    /* Burst Animation Container */
-    .burst-simplified {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 10;
-    }
 
     /* Enhanced Self Hi5 Button */
     .self-hi5-enhanced {
@@ -705,6 +640,9 @@
       </div>
     </div>
     
+    <!-- HI DEV: Tesla-Grade HiMedallion Component -->
+    <div id="hiMedallionContainer" class="hi-medallion-section"></div>
+    
     <!-- Weekly Progress Strip -->
     <div id="weekStrip" class="weekstrip" aria-label="Your week"></div>
 
@@ -717,15 +655,7 @@
       <div id="hiStreaksContainer" class="hi-experience-section"></div>
     </div>
 
-    <!-- 50% Scaled Medallion -->
-    <div class="hi-medal-simplified" id="hiMedalSimplified" aria-label="Tap to send Hi Wave">
-      <div class="hi-logo-simplified" id="hiLogoSimplified">
-        <div class="logo-animation-wrapper" id="logoAnimationWrapper">
-          <img class="hi-mark-simplified" src="assets/brand/hi-logo-light.png" alt="Stay Hi" />
-        </div>
-      </div>
-      <div class="burst-simplified" id="burstSimplified"></div>
-    </div>
+
 
     <!-- Enhanced Self Hi5 Button -->
     <button class="self-hi5-enhanced" id="selfHi5Enhanced">
@@ -786,10 +716,6 @@
     let clickAnimationFrame = null;
 
     // DOM Elements
-    const hiMedalSimplified = document.getElementById('hiMedalSimplified');
-    const hiLogoSimplified = document.getElementById('hiLogoSimplified');
-    const logoAnimationWrapper = document.getElementById('logoAnimationWrapper');
-    const burstSimplified = document.getElementById('burstSimplified');
     const selfHi5Enhanced = document.getElementById('selfHi5Enhanced');
     const hiffirmationsTrigger = document.getElementById('hiffirmationsTrigger');
 
@@ -1024,73 +950,7 @@
       }
     }
 
-    // Tesla-Grade Medallion Click Handler
-    function setupMedallionHandler() {
-      if (!hiMedalSimplified) return;
 
-      hiMedalSimplified.addEventListener('click', async (e) => {
-        e.preventDefault();
-        
-        // Cancel any pending animation
-        if (clickAnimationFrame) {
-          cancelAnimationFrame(clickAnimationFrame);
-        }
-
-        try { 
-          navigator?.vibrate?.(25); 
-        } catch {}
-
-        // Increment Hi Wave
-        await incrementHiWave();
-
-        // Tesla-Grade Animation
-        clickAnimationFrame = requestAnimationFrame(() => {
-          // Immediate visual feedback - ONLY scale, maintain center origin
-          hiMedalSimplified.style.transform = 'scale(0.98)';
-
-          // Emoji burst animation
-          for (let i = 0; i < 8; i++) {
-            const emoji = document.createElement('span');
-            const x = 50 + (Math.random() - 0.5) * 12;
-            const y = 48 + (Math.random() - 0.5) * 8;
-            
-            emoji.textContent = '👋';
-            emoji.style.position = 'absolute';
-            emoji.style.left = x + '%';
-            emoji.style.top = y + '%';
-            emoji.style.transform = 'translate(-50%, -50%) translateZ(0)';
-            emoji.style.setProperty('--dx', ((Math.random() - 0.5) * 120) + 'px');
-            emoji.style.setProperty('--s', (0.8 + Math.random() * 0.4));
-            emoji.style.animation = `waveUp-simplified 1000ms cubic-bezier(.22,1,.36,1) ${(Math.random() * 150) | 0}ms forwards`;
-            emoji.style.willChange = 'transform, opacity';
-            emoji.style.pointerEvents = 'none';
-            emoji.style.fontSize = '16px';
-            
-            burstSimplified.appendChild(emoji);
-            setTimeout(() => emoji.remove(), 1200);
-          }
-
-          // CSS Animation Classes - Tesla Architecture
-          hiMedalSimplified.classList.remove('pulse-simplified');
-          void hiMedalSimplified.offsetWidth;
-          hiMedalSimplified.classList.add('pulse-simplified');
-
-          // Logo animation on wrapper (preserves positioning)
-          if (logoAnimationWrapper) {
-            logoAnimationWrapper.classList.remove('logo-pop-simplified');
-            void logoAnimationWrapper.offsetWidth;
-            logoAnimationWrapper.classList.add('logo-pop-simplified');
-          }
-
-          // Reset transform
-          setTimeout(() => {
-            hiMedalSimplified.style.transform = '';
-          }, 150);
-        });
-      });
-
-
-    }
 
     // HI DEV: Hi5 Counter (separate from HiWave medallion taps)
     async function incrementHi5Counter() {
@@ -1571,7 +1431,6 @@
     document.addEventListener('DOMContentLoaded', () => {
       // Initialize all components
       initializeDatabase();
-      setupMedallionHandler();
       setupSelfHi5Handler();
       setupNavigationHandler();
       setupHiffirmationsHandler();
@@ -1618,6 +1477,7 @@
   <!-- Hi Share Sheet Component -->
   <script type="module">
     import { HiShareSheet } from '../ui/HiShareSheet/HiShareSheet.js';
+    import { mountHiMedallion } from '../ui/HiMedallion/HiMedallion.js';
     
     // Initialize Hi Share Sheet for dashboard hi5 functionality
     document.addEventListener('DOMContentLoaded', () => {
@@ -1628,6 +1488,12 @@
         }
       });
       shareSheet.init();
+      
+      // HI DEV: Initialize Tesla-Grade HiMedallion Component
+      const medallionContainer = document.getElementById('hiMedallionContainer');
+      if (medallionContainer) {
+        mountHiMedallion(medallionContainer);
+      }
     });
   </script>
   
