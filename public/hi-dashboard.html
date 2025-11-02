@@ -754,38 +754,50 @@
         console.error('❌ Database connection failed:', error);
       }
       
-      // 🌍 LOAD STATS FROM UNIFIED SYSTEM - ensures identical data across all devices
-      loadStatsFromUnifiedSystem();
+      // METRICS SEPARATION: Load stats from clean HiBase.stats API
+      loadMetricsFromHiBase();
     }
 
-    // Load stats using unified system for cross-device consistency
-    async function loadStatsFromUnifiedSystem() {
+    // METRICS SEPARATION: Load metrics using clean HiBase.stats API
+    async function loadMetricsFromHiBase() {
       try {
-        if (window.HiUnifiedGlobalStats) {
-          const stats = await window.HiUnifiedGlobalStats.getStats();
+        if (window.HiBase?.stats?.getMetrics) {
+          console.log('🎯 Loading separated metrics from HiBase.stats...');
           
-          if (stats.error) {
-            console.error('❌ Unified stats system error:', stats.error_message);
-            showStatsError();
-            return;
+          const metrics = await window.HiBase.stats.getMetrics();
+          
+          // Handle Hi Waves (medallion taps)
+          if (metrics.waves.error) {
+            console.error('❌ Failed to load Hi Waves:', metrics.waves.error);
+            gWaves = 0;
+          } else {
+            gWaves = metrics.waves.data || 0;
+            console.log('✅ Hi Waves loaded:', gWaves);
           }
           
-          // Update local variables from unified source
-          gWaves = stats.hi_waves;
-          gTotalHis = stats.total_his;
-          gUsers = stats.total_users;
+          // Handle Total Hi5s (share submissions) 
+          if (metrics.hi5s.error) {
+            console.error('❌ Failed to load Total Hi5s:', metrics.hi5s.error);
+            gTotalHis = 0;
+          } else {
+            gTotalHis = metrics.hi5s.data || 0;
+            console.log('✅ Total Hi5s loaded:', gTotalHis);
+          }
           
-          console.log('✅ Stats loaded from unified system:', { gWaves, gTotalHis, gUsers });
+          // Legacy users count (from old system for now)
+          gUsers = 0; // Will be replaced with user-specific API later
+          
+          console.log('✅ METRICS SEPARATION: Clean metrics loaded', { gWaves, gTotalHis, gUsers });
           updateGlobalStats();
           
           // Load user streak data
           loadUserStreak();
         } else {
-          console.warn('⚠️ Unified stats system not ready, retrying...');
-          setTimeout(loadStatsFromUnifiedSystem, 1000);
+          console.warn('⚠️ HiBase.stats not ready, retrying...');
+          setTimeout(loadMetricsFromHiBase, 1000);
         }
       } catch (error) {
-        console.error('❌ Failed to load from unified system:', error);
+        console.error('❌ Failed to load from HiBase.stats:', error);
         showStatsError();
       }
     }
@@ -914,39 +926,36 @@
       }
     }
 
-    // Tesla-Grade Hi Wave Increment using unified tracking
+    // METRICS SEPARATION: Hi Wave Increment (medallion taps → hi_events table only)
     async function incrementHiWave() {
       try {
-        console.log('🎯 SURGICAL: Medallion tapped on hi-dashboard');
+        console.log('🎯 METRICS SEPARATION: Medallion tapped on hi-dashboard');
         
-        // � USE SURGICAL MEDALLION TAP TRACKING (1:1 with Global Waves)
-        if (window.HiUnifiedStats && window.HiUnifiedStats.trackMedallionTap) {
-          console.log('🎯 SURGICAL: Using unified stats medallion tracking...');
-          const newCount = await window.HiUnifiedStats.trackMedallionTap();
-          console.log('✅ SURGICAL SUCCESS: Medallion tap tracked, new count:', newCount);
+        // Use new separated HiBase.stats.insertMedallionTap (no share contamination)
+        if (window.HiBase?.stats?.insertMedallionTap) {
+          console.log('🎯 Using clean HiBase.stats.insertMedallionTap...');
           
-          // Refresh the display immediately 
-          setTimeout(loadStatsFromUnifiedSystem, 100);
+          // Get current user (null for anonymous)
+          const user = window.HiBase?.auth?.getCurrentUser();
+          const userId = user?.data?.id || null;
           
-        } else if (window.trackHiWave) {
-          // Fallback to old system
-          console.log('⚠️ SURGICAL FALLBACK: Using old trackHiWave system');
-          const success = await window.trackHiWave(null, {
-            source: 'hi-dashboard-medallion',
-            timestamp: new Date().toISOString()
-          });
+          const result = await window.HiBase.stats.insertMedallionTap(userId);
           
-          if (success) {
-            console.log('✅ Hi wave tracked via unified system');
-            setTimeout(loadStatsFromUnifiedSystem, 500);
-          } else {
-            console.warn('⚠️ Hi wave tracking failed via unified system');
+          if (result.error) {
+            console.error('❌ Medallion tap failed:', result.error);
+            return;
           }
+          
+          console.log('✅ METRICS SEPARATION SUCCESS: Medallion tap tracked, new wave count:', result.data);
+          
+          // Refresh dashboard metrics
+          setTimeout(loadMetricsFromHiBase, 100);
+          
         } else {
-          console.error('❌ SURGICAL ERROR: No tracking system available');
+          console.error('❌ METRICS SEPARATION ERROR: HiBase.stats not available');
         }
       } catch (error) {
-        console.error('💥 SURGICAL FAILURE: Medallion tap failed:', error);
+        console.error('💥 METRICS SEPARATION FAILURE: Medallion tap failed:', error);
       }
     }
 
@@ -1461,12 +1470,13 @@
       }
     }
 
-    // Expose for debugging
-    window.teslaDebug = {
+    // METRICS SEPARATION: Debug exposure
+    window.metricsDebug = {
       gWaves: () => gWaves,
       gTotalHis: () => gTotalHis,
       gUsers: () => gUsers,
       incrementHiWave,
+      loadMetricsFromHiBase,
       updateGlobalStats
     };
   </script>
@@ -1503,10 +1513,13 @@
         window.__hiComponentsInitialized.shareSheetInstance = shareSheet;
       }
       
-      // HI DEV: Initialize Tesla-Grade HiMedallion Component
+      // METRICS SEPARATION: Initialize HiMedallion with medallion tap handler
       const medallionContainer = document.getElementById('hiMedallionContainer');
       if (medallionContainer) {
-        mountHiMedallion(medallionContainer);
+        mountHiMedallion(medallionContainer, {
+          onTap: incrementHiWave, // Connect medallion tap to hi_events table
+          origin: 'dashboard'
+        });
       }
     });
   </script>
