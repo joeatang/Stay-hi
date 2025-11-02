@@ -1,0 +1,40 @@
+{
+  "project": "Hi App (Help Inspyre)",
+  "description": "mindfulness / emotional GPS MVP",
+  "hi_dev_persona": "Wozniak/Tesla-grade engineer; Jobs clarity, Woz execution; Stable > flashy",
+  "stack": ["Vercel", "Supabase", "Vanilla HTML/JS"],
+  "repo_structure": ["/ui", "/lib", "/styles", "/archive"],
+  "tags": {
+    "ui_base": "phase3-ui-base",
+    "lib_base": "phase3-lib-base", 
+    "rollback_from": "phase3-style-guardrails-fix"
+  },
+  "branch": "hi/sanitation-v1-ui",
+  "status": "Token wiring rolled back; MVP Acceptance next within 48h",
+  "guardrails": [
+    "STOP-CHECKPOINT on glass/premium transitions/visual enhancements",
+    "2-iteration rule: attempt → rollback → defer post-MVP",
+    "No sw.js/manifest.json changes pre-MVP"
+  ],
+  "phases_completed": [
+    "Phase 1: Archive cleanup → 47 orphaned files archived; core routes intact",
+    "Phase 2: UI consolidation → /ui components (HiHeader, HiFooter, HiModal, HiShareSheet)",
+    "Phase 3: Logic consolidation → /lib modules + deprecation stubs", 
+    "Phase 4: Token wiring attempt → visual regressions → rollback executed"
+  ],
+  "rollback_details": {
+    "wip_commit": "efb0e2e",
+    "rollback_commits": ["1aa6016", "96b4dca"],
+    "preserved": ["styles/tokens.css", "ui/DESIGN_TOKENS.md"],
+    "restored_from": "phase3-ui-base tag"
+  },
+  "next_actions": [
+    "Confirm rollback complete (verify UI restored to phase3-ui-base)",
+    "Run MVP_ACCEPTANCE_CHECKLIST (test 5 core pages, record PASS/FAIL)",
+    "Tag mvp-ready and deploy to Vercel; smoke test production",
+    "Post-MVP: HiBase (Supabase unification) + Token Re-Wiring (one component per PR)"
+  ],
+  "copy_block": "PROJECT: Hi App — mindfulness/emotional GPS MVP | STACK: Vercel + Supabase + Vanilla JS | STATE: phase3-ui-base ✅, phase3-lib-base ✅, style-guardrails rolled back | FLOW: rollback complete → MVP checklist → mvp-ready tag → deploy | GUARDRAILS: 🛑 glass/premium transitions/visual enhancements; 🔄 2-iteration rule; 🚫 SW/manifest edits pre-MVP | ASK: Run MVP Acceptance Checklist → prep deploy → plan HiBase + token pass (post-MVP)",
+  "timestamp_local": "2025-11-01T21:39",
+  "checkpoint_file": "checkpoint-20251101-2139.md"
+}
