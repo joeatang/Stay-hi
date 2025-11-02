@@ -7,11 +7,12 @@
   "tags": {
     "ui_base": "phase3-ui-base",
     "lib_base": "phase3-lib-base",
-    "mvp_ready": "mvp-ready",
+    "mvp_ready": "mvp-ready", 
+    "prod_stable": "phase4-prod-stable",
     "rollback_from": "phase3-style-guardrails-fix"
   },
   "branch": "hi/sanitation-v1-ui",
-  "status": "MVP ACCEPTANCE COMPLETE - Ready for production deployment",
+  "status": "PRODUCTION STABLE - Live deployment verified and operational",
   "guardrails": [
     "STOP-CHECKPOINT on glass/premium transitions/visual enhancements",
     "2-iteration rule: attempt → rollback → defer post-MVP",
@@ -36,6 +37,16 @@
     "Post-MVP: HiBase (Supabase unification) + Token Re-Wiring (one component per PR)"
   ],
   "copy_block": "PROJECT: Hi App — mindfulness/emotional GPS MVP | STACK: Vercel + Supabase + Vanilla JS | STATE: 🚀 MVP-READY — phase3-ui-base ✅, phase3-lib-base ✅, rollback complete, tests PASS | FLOW: Deploy mvp-ready tag → live smoke test → production monitoring → post-MVP roadmap | GUARDRAILS: 🛑 glass/premium transitions/visual enhancements; 🔄 2-iteration rule; 🚫 SW/manifest edits | ASK: Deploy to production → verify live environment → plan HiBase + gradual token adoption",
-  "timestamp_local": "2025-11-01T21:51",
-  "checkpoint_file": "checkpoint-20251101-2151-mvp.md"
+  "production_url": "https://stay-eoyezel0s-joeatangs-projects.vercel.app",
+  "smoke_test_results": {
+    "total_tests": 25,
+    "passed": 25,
+    "failed": 0,
+    "console_clean": true,
+    "no_404s": true,
+    "visual_parity": true,
+    "sw_cache_bypass": true
+  },
+  "timestamp_local": "2025-11-01T22:22",
+  "checkpoint_file": "checkpoint-20251101-2222-prod-stable.md"
 }
