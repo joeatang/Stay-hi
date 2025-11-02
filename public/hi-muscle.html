@@ -18,7 +18,7 @@
 
   <!-- Tesla-grade auth system - health monitor first -->
   <script src="assets/url-path-fixer.js"></script>
-  <script src="assets/supabase-init.js"></script>
+  <script src="../lib/HiSupabase.js"></script>
   <!-- 🚀 Tesla-Grade Anonymous Access Modal System -->
   <script src="assets/anonymous-access-modal.js"></script>
 
@@ -682,9 +682,13 @@
   <div id="toast" class="toast">Saved</div>
 
   <!-- order matters -->
-  <script src="assets/supabase-init.js"></script>
+  <script src="../lib/HiSupabase.js"></script>
   <script src="assets/auth.js"></script>
-  <script src="assets/db.js"></script>
+  <script src="../lib/HiDB.js"></script>
+  
+  <!-- 🚀 INTEGRATION #1A: HiBase + HiFlags for HiGYM shares (flagged rollout) -->
+  <script src="../lib/flags/HiFlags.js"></script>
+  <script src="../lib/hibase/index.js"></script>
   <script src="assets/geocoding-service.js"></script>
   <script src="../ui/HiHeader/HiHeader.js" defer></script>
   <script src="assets/emotions.js"></script>
@@ -923,36 +927,211 @@
         // Create celebration message
         const celebration = window.HiGym?.createJourneyCelebration(sessionData);
 
-        // Always save to personal archive
-        console.log('Saving to archive...');
-        await window.hiDB.insertArchive({
-          currentEmoji: state.current.emoji,
-          desiredEmoji: state.desired.emoji,
-          journal: text,
-          text: text, // Gold standard: include text field for archive display
-          location: loc,
-          journeyType: pattern?.journeyType || 'exploration',
-          origin: 'higym', // Gold standard: lowercase origin tag
-          type: 'higym' // Gold standard: type tag for filtering
-        });
+        // 🚀 INTEGRATION #1A: HiGYM shares via HiBase (flagged rollout)
+        const useHiBase = await window.HiFlags?.getFlag('hibase_shares_enabled');
+        console.log(`🔄 HiGYM submission via ${useHiBase ? 'HiBase' : 'legacy'} path`);
 
-        // Always share to Hi Island as part of the flow
-        console.log('Sharing to Hi Island...');
-        await window.hiDB.insertPublicShare({
-          currentEmoji: state.current.emoji, 
-          currentName: state.current.name,
-          desiredEmoji: state.desired.emoji, 
-          desiredName: state.desired.name,
-          text, 
-          isAnonymous: isAnon, 
-          location: loc || null, // Clean pipe: null for no location
-          isPublic: true,
-          origin: 'higym', // Gold standard: lowercase origin tag
-          journeyType: pattern?.journeyType || 'exploration',
-          tags: ['emotional-journey', 'higym'] // Gold standard: lowercase tags
-        });
+        if (useHiBase) {
+          // 🎯 HiBase path: unified API with structured payload
+          console.log('📦 HiGYM → HiBase.insertShare...');
+          const shareResult = await window.HiBase.insertShare({
+            type: 'HiGYM',
+            text: text,
+            visibility: isAnon ? 'anonymous' : 'public',
+            user_id: (await window.HiSupabase.getClient().auth.getUser()).data?.user?.id,
+            emotion_from: state.current?.name,
+            emotion_to: state.desired?.name,
+            location: loc || null,
+            metadata: {
+              currentEmoji: state.current.emoji,
+              desiredEmoji: state.desired.emoji,
+              journeyType: pattern?.journeyType || 'exploration',
+              tags: ['emotional-journey', 'higym'],
+              origin: 'higym'
+            }
+          });
+
+          if (shareResult.error) {
+            throw new Error(`HiBase insertion failed: ${shareResult.error.message}`);
+          }
+
+          // 📊 Track HiBase usage
+          import('/lib/monitoring/HiMonitor.js').then(m => 
+            m.trackEvent('hibase_share_success', { 
+              source: 'higym', 
+              path: 'hibase'
+            })
+          ).catch(() => {});
+
+          // 🚀 INTEGRATION #5: HiGYM streak tracking via HiBase (flagged rollout)
+          const useHiBaseStreaks = await window.HiFlags?.getFlag('hibase_streaks_enabled');
+          console.log(`🔄 HiGYM streak tracking via ${useHiBaseStreaks ? 'HiBase' : 'legacy'} path`);
+
+          if (useHiBaseStreaks) {
+            try {
+              // 🎯 HiBase streak path for HiGYM completion
+              console.log('📦 HiGYM Streak → HiBase.updateStreak...');
+              const userId = (await window.HiSupabase.getClient().auth.getUser()).data?.user?.id;
+              
+              if (userId && userId !== 'anonymous') {
+                const streakResult = await window.HiBase.updateStreak(userId, {
+                  hiDate: new Date().toISOString().split('T')[0],
+                  type: 'HiGYM',
+                  emotion_from: state.current?.name,
+                  emotion_to: state.desired?.name
+                });
+
+                if (streakResult.error) {
+                  console.warn('⚠️ HiBase HiGYM streak update failed:', streakResult.error);
+                } else {
+                  console.log('✅ HiGYM streak updated via HiBase:', streakResult.data.message);
+                  
+                  // Show HiGYM-specific streak celebration
+                  if (streakResult.data.milestone) {
+                    setTimeout(() => {
+                      if (window.toast) {
+                        const gymMessage = `💪 HiGYM Streak: ${streakResult.data.streak?.current} days! ${streakResult.data.message}`;
+                        window.toast(gymMessage, 'celebration');
+                      }
+                    }, 1500);
+                  }
+                }
+              }
+
+              // 📊 Track HiBase streak usage for HiGYM
+              import('/lib/monitoring/HiMonitor.js').then(m => 
+                m.trackEvent('streak_update', { 
+                  path: 'hibase', 
+                  type: 'HiGYM',
+                  source: 'higym',
+                  emotion_from: state.current?.name,
+                  emotion_to: state.desired?.name
+                })
+              ).catch(() => {});
+
+            } catch (error) {
+              console.warn('⚠️ HiBase HiGYM streak tracking failed:', error);
+            }
+          } else {
+            // 🔄 Legacy HiGYM streak tracking
+            console.log('📦 HiGYM Streak → Legacy tracking...');
+            
+            // Legacy streak logic for HiGYM would go here
+            
+            // 📊 Track legacy streak usage
+            import('/lib/monitoring/HiMonitor.js').then(m => 
+              m.trackEvent('streak_update', { 
+                path: 'legacy', 
+                type: 'HiGYM',
+                source: 'higym'
+              })
+            ).catch(() => {});
+          }
+
+        } else {
+          // 🔄 Legacy path: direct hiDB calls
+          console.log('📦 HiGYM → Legacy hiDB...');
+          
+          // Always save to personal archive
+          console.log('Saving to archive...');
+          await window.hiDB.insertArchive({
+            currentEmoji: state.current.emoji,
+            desiredEmoji: state.desired.emoji,
+            journal: text,
+            text: text, // Gold standard: include text field for archive display
+            location: loc,
+            journeyType: pattern?.journeyType || 'exploration',
+            origin: 'higym', // Gold standard: lowercase origin tag
+            type: 'higym' // Gold standard: type tag for filtering
+          });
+
+          // Always share to Hi Island as part of the flow
+          console.log('Sharing to Hi Island...');
+          await window.hiDB.insertPublicShare({
+            currentEmoji: state.current.emoji, 
+            currentName: state.current.name,
+            desiredEmoji: state.desired.emoji, 
+            desiredName: state.desired.name,
+            text, 
+            isAnonymous: isAnon, 
+            location: loc || null, // Clean pipe: null for no location
+            isPublic: true,
+            origin: 'higym', // Gold standard: lowercase origin tag
+            journeyType: pattern?.journeyType || 'exploration',
+            tags: ['emotional-journey', 'higym'] // Gold standard: lowercase tags
+          });
+
+          // 📊 Track legacy usage
+          import('/lib/monitoring/HiMonitor.js').then(m => 
+            m.trackEvent('hibase_share_success', { 
+              source: 'higym', 
+              path: 'legacy'
+            })
+          ).catch(() => {});
+
+          // 🔄 Legacy HiGYM streak tracking (since HiBase shares are legacy too)
+          const useHiBaseStreaks = await window.HiFlags?.getFlag('hibase_streaks_enabled');
+          console.log(`🔄 HiGYM streak tracking via ${useHiBaseStreaks ? 'HiBase' : 'legacy'} path (in legacy share context)`);
+
+          if (useHiBaseStreaks) {
+            try {
+              // Even in legacy share mode, we can still use HiBase streaks if enabled
+              console.log('📦 HiGYM Streak → HiBase.updateStreak (legacy share context)...');
+              const userId = (await window.HiSupabase.getClient().auth.getUser()).data?.user?.id;
+              
+              if (userId && userId !== 'anonymous') {
+                const streakResult = await window.HiBase.updateStreak(userId, {
+                  hiDate: new Date().toISOString().split('T')[0],
+                  type: 'HiGYM',
+                  emotion_from: state.current?.name,
+                  emotion_to: state.desired?.name
+                });
+
+                if (streakResult.error) {
+                  console.warn('⚠️ HiBase HiGYM streak update failed (legacy context):', streakResult.error);
+                } else {
+                  console.log('✅ HiGYM streak updated via HiBase (legacy context):', streakResult.data.message);
+                }
+              }
+
+              // 📊 Track HiBase streak usage in legacy share context
+              import('/lib/monitoring/HiMonitor.js').then(m => 
+                m.trackEvent('streak_update', { 
+                  path: 'hibase', 
+                  type: 'HiGYM',
+                  source: 'higym',
+                  share_path: 'legacy',
+                  emotion_from: state.current?.name,
+                  emotion_to: state.desired?.name
+                })
+              ).catch(() => {});
+
+            } catch (error) {
+              console.warn('⚠️ HiBase HiGYM streak tracking failed (legacy context):', error);
+            }
+          } else {
+            // 📊 Track legacy streak usage
+            import('/lib/monitoring/HiMonitor.js').then(m => 
+              m.trackEvent('streak_update', { 
+                path: 'legacy', 
+                type: 'HiGYM',
+                source: 'higym',
+                share_path: 'legacy'
+              })
+            ).catch(() => {});
+          }
+        }
 
         closeSheet();
+        
+        // 📊 Analytics: Track successful gym submission
+        import('/lib/monitoring/HiMonitor.js').then(m => 
+          m.trackEvent('gym_submit', { 
+            moodFrom: state.current?.name,
+            moodTo: state.desired?.name,
+            journeyType: pattern?.journeyType || 'exploration'
+          })
+        ).catch(() => {}); // Silent fail
         
         // 🎉 TESLA-GRADE: Premium celebration for emotional journey completion
         const celebrationMsg = celebration?.message || '🌟 Amazing emotional journey completed!';

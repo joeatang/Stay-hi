@@ -15,7 +15,11 @@
   
   <!-- Supabase Integration -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="assets/supabase-init.js"></script>
+  <script src="../lib/HiSupabase.js"></script>
+  
+  <!-- 🚀 INTEGRATION #2: HiBase + HiFlags for Profile operations (flagged rollout) -->
+  <script src="../lib/flags/HiFlags.js"></script>
+  <script src="../lib/hibase/index.js"></script>
   
   <!-- 🚀 Tesla-Grade Anonymous Access Modal System -->
   <script src="assets/anonymous-access-modal.js"></script>
@@ -1072,100 +1076,141 @@
     async function uploadAvatarToSupabase(blob, originalFile) {
       console.log('📤 Uploading avatar to Supabase Storage...');
       
-      // Enhanced debugging and validation
-      console.log('🔍 Supabase client check:', {
-        supabaseClient: !!window.supabaseClient,
-        supabase: !!window.supabase,
-        sb: !!window.sb
-      });
+      // 🚀 INTEGRATION #2: Avatar uploads via HiBase (flagged rollout)
+      const useHiBase = await window.HiFlags?.getFlag('hibase_profile_enabled');
+      console.log(`🔄 Avatar upload via ${useHiBase ? 'HiBase' : 'legacy'} path`);
 
-      // Test bucket connectivity first
-      await testSupabaseConnection();
-      
-      if (!window.supabaseClient && !window.sb) {
-        throw new Error('Supabase client not initialized - check supabase-init.js loading');
-      }
-      
-      const client = window.supabaseClient || window.sb;
-      
-      // Check if we need authentication for uploads
-      const { data: session } = await client.auth.getSession();
-      console.log('🔐 Auth session:', {
-        hasSession: !!session?.session,
-        user: session?.session?.user?.id || 'anonymous'
-      });
-      
-      // Generate filename using stable user identity
-      const timestamp = Date.now();
-      const userId = currentProfile.id || generateStableUserId();
-      const fileExt = originalFile.name.split('.').pop() || 'jpg';
-      const fileName = `avatar_${userId}_${timestamp}.${fileExt}`;
-      
-      // Try different upload strategies based on auth status
-      let filePath, uploadResult;
-      
-      if (session?.session?.user) {
-        // Authenticated upload - use auth user ID
-        filePath = `${session.session.user.id}/${fileName}`;
-        console.log('👤 Authenticated upload to:', filePath);
-      } else {
-        // Anonymous but persistent - use stable user ID  
-        const persistentUserId = currentProfile.id || generateStableUserId();
-        filePath = `users/${persistentUserId}/${fileName}`;
-        console.log('🔒 Persistent anonymous upload to:', filePath);
-      }
-      
-      console.log('📦 Upload details:', {
-        fileName,
-        filePath,
-        blobSize: blob.size,
-        blobType: blob.type
-      });
-      
-      // Upload to Supabase Storage
-      uploadResult = await client.storage
-        .from('avatars')
-        .upload(filePath, blob, {
-          contentType: blob.type,
-          upsert: false
-        });
-      
-      console.log('📤 Upload result:', uploadResult);
-      
-      if (uploadResult.error) {
-        console.error('❌ Supabase upload error:', uploadResult.error);
+      if (useHiBase) {
+        // 🎯 HiBase path: unified API
+        console.log('📦 Avatar → HiBase.uploadAvatar...');
+        const userId = currentProfile.id || (await window.HiSupabase.getClient().auth.getUser()).data?.user?.id || generateStableUserId();
         
-        // Try fallback strategies
-        if (uploadResult.error.message?.includes('new row violates row-level security') || 
-            uploadResult.error.message?.includes('insufficient_privilege')) {
-          
-          console.log('🔄 Trying anonymous upload fallback...');
-          const fallbackPath = `temp/${fileName}`;
-          
-          const fallbackResult = await client.storage
-            .from('avatars')
-            .upload(fallbackPath, blob, {
-              contentType: blob.type,
-              upsert: true // Allow overwrite for temp files
-            });
-          
-          if (fallbackResult.error) {
-            throw new Error(`Upload failed: ${fallbackResult.error.message}`);
-          }
-          
-          filePath = fallbackPath;
-        } else {
-          throw new Error(`Upload failed: ${uploadResult.error.message}`);
+        const uploadResult = await window.HiBase.uploadAvatar(blob, userId);
+
+        if (uploadResult.error) {
+          throw new Error(`HiBase avatar upload failed: ${uploadResult.error.message}`);
         }
+
+        console.log('✅ Avatar uploaded via HiBase:', uploadResult.data.avatarUrl);
+        
+        // 📊 Track HiBase usage
+        import('/lib/monitoring/HiMonitor.js').then(m => 
+          m.trackEvent('profile_avatar_upload', { 
+            source: 'profile', 
+            path: 'hibase'
+          })
+        ).catch(() => {});
+
+        return uploadResult.data.avatarUrl;
+
+      } else {
+        // 🔄 Legacy path: direct Supabase calls
+        console.log('📦 Avatar → Legacy Supabase...');
+        
+        // Enhanced debugging and validation
+        console.log('🔍 Supabase client check:', {
+          supabaseClient: !!window.supabaseClient,
+          supabase: !!window.supabase,
+          sb: !!window.sb
+        });
+
+        // Test bucket connectivity first
+        await testSupabaseConnection();
+        
+        if (!window.supabaseClient && !window.sb) {
+          throw new Error('Supabase client not initialized - check supabase-init.js loading');
+        }
+        
+        const client = window.supabaseClient || window.sb;
+        
+        // Check if we need authentication for uploads
+        const { data: session } = await client.auth.getSession();
+        console.log('🔐 Auth session:', {
+          hasSession: !!session?.session,
+          user: session?.session?.user?.id || 'anonymous'
+        });
+        
+        // Generate filename using stable user identity
+        const timestamp = Date.now();
+        const userId = currentProfile.id || generateStableUserId();
+        const fileExt = originalFile.name.split('.').pop() || 'jpg';
+        const fileName = `avatar_${userId}_${timestamp}.${fileExt}`;
+        
+        // Try different upload strategies based on auth status
+        let filePath, uploadResult;
+        
+        if (session?.session?.user) {
+          // Authenticated upload - use auth user ID
+          filePath = `${session.session.user.id}/${fileName}`;
+          console.log('👤 Authenticated upload to:', filePath);
+        } else {
+          // Anonymous but persistent - use stable user ID  
+          const persistentUserId = currentProfile.id || generateStableUserId();
+          filePath = `users/${persistentUserId}/${fileName}`;
+          console.log('🔒 Persistent anonymous upload to:', filePath);
+        }
+        
+        console.log('📦 Upload details:', {
+          fileName,
+          filePath,
+          blobSize: blob.size,
+          blobType: blob.type
+        });
+        
+        // Upload to Supabase Storage
+        uploadResult = await client.storage
+          .from('avatars')
+          .upload(filePath, blob, {
+            contentType: blob.type,
+            upsert: false
+          });
+        
+        console.log('📤 Upload result:', uploadResult);
+        
+        if (uploadResult.error) {
+          console.error('❌ Supabase upload error:', uploadResult.error);
+          
+          // Try fallback strategies
+          if (uploadResult.error.message?.includes('new row violates row-level security') || 
+              uploadResult.error.message?.includes('insufficient_privilege')) {
+            
+            console.log('🔄 Trying anonymous upload fallback...');
+            const fallbackPath = `temp/${fileName}`;
+            
+            const fallbackResult = await client.storage
+              .from('avatars')
+              .upload(fallbackPath, blob, {
+                contentType: blob.type,
+                upsert: true // Allow overwrite for temp files
+              });
+            
+            if (fallbackResult.error) {
+              throw new Error(`Upload failed: ${fallbackResult.error.message}`);
+            }
+            
+            filePath = fallbackPath;
+          } else {
+            throw new Error(`Upload failed: ${uploadResult.error.message}`);
+          }
+        }
+        
+        // Get public URL
+        const { data: urlData } = client.storage
+          .from('avatars')
+          .getPublicUrl(filePath);
+        
+        console.log('🔗 Generated URL:', urlData.publicUrl);
+        
+        // 📊 Track legacy usage
+        import('/lib/monitoring/HiMonitor.js').then(m => 
+          m.trackEvent('profile_avatar_upload', { 
+            source: 'profile', 
+            path: 'legacy'
+          })
+        ).catch(() => {});
+
+        return urlData.publicUrl;
       }
-      
-      // Get public URL
-      const { data: urlData } = client.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-      
-      console.log('🔗 Generated URL:', urlData.publicUrl);
-      return urlData.publicUrl;
     }
     
     async function updateProfileInDatabase(avatarUrl) {
@@ -1175,17 +1220,57 @@
         throw new Error('Supabase client not initialized');
       }
       
-      // In a real app, you'd have a user ID from auth
-      // For demo, we'll use the current profile username
-      const { error } = await window.supabaseClient
-        .from('profiles')
-        .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
-        .eq('username', currentProfile.username);
-      
-      if (error) {
-        console.error('Database update error:', error);
-        // Don't throw - avatar is uploaded, just log the error
-        console.log('Avatar uploaded but profile update failed - will retry');
+      // 🚀 INTEGRATION #2: Profile updates via HiBase (flagged rollout)
+      const useHiBase = await window.HiFlags?.getFlag('hibase_profile_enabled');
+      console.log(`🔄 Profile update via ${useHiBase ? 'HiBase' : 'legacy'} path`);
+
+      if (useHiBase) {
+        // 🎯 HiBase path: unified API
+        console.log('📦 Profile → HiBase.updateProfile...');
+        const userId = currentProfile.id || (await window.HiSupabase.getClient().auth.getUser()).data?.user?.id;
+        
+        const updateResult = await window.HiBase.updateProfile(userId, {
+          avatar_url: avatarUrl,
+          updated_at: new Date().toISOString()
+        });
+
+        if (updateResult.error) {
+          console.error('HiBase profile update error:', updateResult.error);
+          console.log('Avatar uploaded but HiBase profile update failed - will retry');
+        }
+
+        // 📊 Track HiBase usage
+        import('/lib/monitoring/HiMonitor.js').then(m => 
+          m.trackEvent('profile_save', { 
+            source: 'profile', 
+            path: 'hibase'
+          })
+        ).catch(() => {});
+
+      } else {
+        // 🔄 Legacy path: direct Supabase calls
+        console.log('📦 Profile → Legacy Supabase...');
+        
+        // In a real app, you'd have a user ID from auth
+        // For demo, we'll use the current profile username
+        const { error } = await window.supabaseClient
+          .from('profiles')
+          .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
+          .eq('username', currentProfile.username);
+        
+        if (error) {
+          console.error('Database update error:', error);
+          // Don't throw - avatar is uploaded, just log the error
+          console.log('Avatar uploaded but profile update failed - will retry');
+        }
+
+        // 📊 Track legacy usage
+        import('/lib/monitoring/HiMonitor.js').then(m => 
+          m.trackEvent('profile_save', { 
+            source: 'profile', 
+            path: 'legacy'
+          })
+        ).catch(() => {});
       }
     }
     
@@ -1521,6 +1606,12 @@
         updateProfileAvatar(avatarUrl);
         
         showToast('Tesla-grade avatar saved successfully! 🚀');
+        
+        // 📊 Analytics: Track successful profile save
+        import('/lib/monitoring/HiMonitor.js').then(m => 
+          m.trackEvent('profile_save', { avatar: true })
+        ).catch(() => {}); // Silent fail
+        
         closeAvatarCrop();
         
       } catch (error) {
@@ -2133,27 +2224,69 @@ FOR INSERT WITH CHECK (
       try {
         console.log('☁️ Loading authenticated profile from Supabase for user:', userId);
         
-        const { data, error } = await window.supabaseClient
-          .from('profiles')
-          .select('*')
-          .eq('user_id', userId)
-          .order('updated_at', { ascending: false })
-          .limit(1);
+        // 🚀 INTEGRATION #2: Profile reads via HiBase (flagged rollout)
+        const useHiBase = await window.HiFlags?.getFlag('hibase_profile_enabled');
+        console.log(`🔄 Profile read via ${useHiBase ? 'HiBase' : 'legacy'} path`);
 
-        if (error) {
-          console.warn('⚠️ Authenticated Supabase query failed:', error.message);
-          return null;
+        let data, error;
+
+        if (useHiBase) {
+          // 🎯 HiBase path: unified API
+          console.log('📦 Profile → HiBase.getProfile...');
+          const profileResult = await window.HiBase.getProfile(userId);
+          
+          if (profileResult.error) {
+            console.warn('⚠️ HiBase profile query failed:', profileResult.error.message);
+            return null;
+          }
+
+          data = profileResult.data?.profile ? [profileResult.data.profile] : [];
+          
+          // 📊 Track HiBase usage
+          import('/lib/monitoring/HiMonitor.js').then(m => 
+            m.trackEvent('profile_load', { 
+              source: 'profile', 
+              path: 'hibase'
+            })
+          ).catch(() => {});
+
+        } else {
+          // 🔄 Legacy path: direct Supabase calls  
+          console.log('📦 Profile → Legacy Supabase...');
+          
+          const result = await window.supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('user_id', userId)
+            .order('updated_at', { ascending: false })
+            .limit(1);
+
+          data = result.data;
+          error = result.error;
+
+          if (error) {
+            console.warn('⚠️ Authenticated Supabase query failed:', error.message);
+            return null;
+          }
+
+          // 📊 Track legacy usage
+          import('/lib/monitoring/HiMonitor.js').then(m => 
+            m.trackEvent('profile_load', { 
+              source: 'profile', 
+              path: 'legacy'
+            })
+          ).catch(() => {});
         }
 
         if (data && data.length > 0) {
-          console.log('✅ Authenticated profile loaded from Supabase');
+          console.log(`✅ Authenticated profile loaded from ${useHiBase ? 'HiBase' : 'Supabase'}`);
           return data[0];
         }
 
         console.log('📝 No existing profile found for authenticated user');
         return null;
       } catch (error) {
-        console.error('❌ Supabase loading error:', error);
+        console.error('❌ Profile loading error:', error);
         return null;
       }
     }

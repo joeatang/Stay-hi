@@ -2,12 +2,12 @@
 console.warn('⚠️ DEPRECATED: assets/pwa-manager.js moved to lib/HiPWA.js - update your imports');
 
 // Load consolidated module
-const script = document.createElement('script');
-script.src = '../../lib/HiPWA.js';
-script.onerror = () => {
+const pwaManagerScript = document.createElement('script');
+pwaManagerScript.src = '../../lib/HiPWA.js';
+pwaManagerScript.onerror = () => {
   console.warn('⏳ Loading fallback pwa-manager.js...');
-  const fallbackScript = document.createElement('script');
-  fallbackScript.src = './pwa-manager.js.bak';
-  document.head.appendChild(fallbackScript);
+  const fallbackPwaScript = document.createElement('script');
+  fallbackPwaScript.src = './pwa-manager.js.bak';
+  document.head.appendChild(fallbackPwaScript);
 };
-document.head.appendChild(script);
+document.head.appendChild(pwaManagerScript);

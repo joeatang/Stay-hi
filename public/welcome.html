@@ -19,13 +19,22 @@
 
   <!-- 🚀 Hi Flow Controller - Smart routing for welcome experience -->
   <link rel="stylesheet" href="assets/hi-flow-controller.css">
-  <script src="assets/unified-membership-system.js"></script>
+  <script src="../lib/HiMembership.js"></script>
   <script src="assets/hi-access-tiers.js"></script>
   <script src="assets/hi-flow-controller.js"></script>
   
   <!-- 🎬 Tesla-Grade Loading Experience V2.0 -->
   <link rel="stylesheet" href="assets/hi-loading-experience.css">
   <script src="assets/hi-loading-experience.js"></script>
+
+  <!-- 🔥 HiBase - Unified Database Access Layer -->
+  <script type="module">
+    import HiBase from '../lib/hibase/index.js';
+    console.log('🔥 HiBase ready - unified API online');
+    
+    // Make available for console testing
+    window.HiBase = HiBase;
+  </script>
 
   <link rel="stylesheet" href="assets/theme.css"/>
   <link rel="stylesheet" href="assets/create-parity.css"/>
@@ -607,15 +616,16 @@
       </div>
     </div>
   </main>
-  <script src="assets/supabase-init.js"></script>
-  <script src="assets/db.js"></script>
+  <script src="../lib/HiSupabase.js"></script>
+  <script src="../lib/HiDB.js"></script>
   
   <!-- 🎬 TESLA-GRADE LOADING EXPERIENCE V2.0 -->
   <script>
     // Tesla-grade auth check with beautiful loading experience
     async function checkAuthWithLoadingExperience() {
       try {
-        const supa = getSupabase();
+        const { getClient } = await import('/lib/HiSupabase.js');
+        const supa = getClient();
         if (!supa) return;
         
         const { data: { session }, error } = await supa.auth.getSession();
@@ -652,7 +662,8 @@
         console.log('🔄 Fetching real stats from Supabase...');
         
         // Try to fetch REAL stats first
-        let supa = getSupabase();
+        const { getClient } = await import('/lib/HiSupabase.js');
+        const supa = getClient();
         if (supa) {
           console.log('📊 Calling get_global_stats RPC...');
           const { data, error } = await supa.rpc('get_global_stats');
@@ -888,7 +899,159 @@
   <!-- 🌍 Tesla-Grade Unified Global Stats System -->
   <script src="assets/hi-unified-global-stats.js"></script>
   
+  <!-- 📊 Monitoring Configuration (Non-Secret) -->
+  <script>
+    window.HI_ENV = {
+      PLAUSIBLE_DOMAIN: 'stay-eoyezel0s-joeatangs-projects.vercel.app',
+      SENTRY_DSN: '' // leave empty for now; we'll fill later
+    };
+  </script>
+  
   <!-- 📊 Production Monitoring Layer -->
-  <script src="/lib/monitoring/HiMonitor.js"></script>
+  <script type="module" src="/lib/monitoring/HiMonitor.js"></script>
+  
+  <!-- 🚩 Tesla-Grade Feature Flags System -->
+  <script type="module" src="/lib/flags/HiFlags.js"></script>
+  
+  <!-- 🎁 HiBase Referral Code Handler -->
+  <script type="module">
+    import HiBase from '/lib/hibase/index.js';
+    import { HiFlags } from '/lib/flags/HiFlags.js';
+    import { HiMonitor } from '/lib/monitoring/HiMonitor.js';
+
+    // Handle referral and gift codes from URL
+    async function handleReferralCode() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const referralCode = params.get('ref');
+        const giftCode = params.get('gift');
+        const code = referralCode || giftCode;
+        
+        if (!code) return;
+        
+        // Check if HiBase referrals are enabled
+        const useHiBaseReferrals = await HiFlags.isEnabled('hibase_referrals_enabled');
+        
+        if (useHiBaseReferrals) {
+          // Use HiBase referrals system
+          try {
+            const referralData = await HiBase.referrals.getReferral(code);
+            
+            if (referralData) {
+              // Store referral info for signup process
+              sessionStorage.setItem('hi_referral_code', code);
+              sessionStorage.setItem('hi_referral_type', referralData.type);
+              
+              // Show appropriate UI message
+              if (giftCode && referralData.type === 'gift') {
+                showGiftWelcomeMessage(referralData);
+              } else if (referralCode && referralData.type === 'signup') {
+                showReferralWelcomeMessage(referralData);
+              }
+              
+              HiMonitor.trackEvent('referral_code_detected', {
+                code: code,
+                type: referralData.type,
+                source: giftCode ? 'gift' : 'referral',
+                via: 'hibase'
+              });
+            }
+          } catch (error) {
+            console.log('HiBase referral lookup failed:', error.message);
+            // Fall back to legacy handling if needed
+            handleLegacyReferral(code);
+          }
+        } else {
+          // Use legacy referral system
+          handleLegacyReferral(code);
+        }
+      } catch (error) {
+        console.error('Referral handler error:', error);
+      }
+    }
+
+    function showGiftWelcomeMessage(referralData) {
+      // Create gift welcome banner
+      const banner = document.createElement('div');
+      banner.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #FFD166 0%, #F4A261 100%);
+        color: #264653;
+        padding: 12px 20px;
+        text-align: center;
+        font-weight: 600;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      `;
+      
+      const issuerName = referralData.issuer?.display_name || 'A friend';
+      banner.innerHTML = `
+        🎁 ${issuerName} sent you a gift! Join Hi to claim your welcome bonus.
+      `;
+      
+      document.body.prepend(banner);
+      
+      // Adjust body padding to account for banner
+      document.body.style.paddingTop = '60px';
+    }
+
+    function showReferralWelcomeMessage(referralData) {
+      // Create referral welcome banner  
+      const banner = document.createElement('div');
+      banner.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #2A9D8F 0%, #264653 100%);
+        color: white;
+        padding: 12px 20px;
+        text-align: center;
+        font-weight: 600;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      `;
+      
+      const issuerName = referralData.issuer?.display_name || 'Someone';
+      banner.innerHTML = `
+        👋 ${issuerName} invited you to Hi! Join to get bonus rewards.
+      `;
+      
+      document.body.prepend(banner);
+      
+      // Adjust body padding to account for banner
+      document.body.style.paddingTop = '60px';
+    }
+
+    function handleLegacyReferral(code) {
+      // Legacy referral handling (existing system)
+      sessionStorage.setItem('hi_referral_code', code);
+      
+      HiMonitor.trackEvent('referral_code_detected', {
+        code: code,
+        source: 'legacy',
+        via: 'legacy'
+      });
+    }
+
+    // Initialize referral handler when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', handleReferralCode);
+    } else {
+      handleReferralCode();
+    }
+  </script>
+
+  <!-- 🔧 Development Tools Gate (Local Only) -->
+  <script type="module">
+    const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    const params = new URLSearchParams(location.search);
+    if (isLocal && params.has('dev')) {
+      import('/devtools/HiFlagsDiag.js');
+    }
+  </script>
 </body>
 </html>

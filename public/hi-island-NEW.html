@@ -238,7 +238,10 @@
     async function initializeHiExperienceLayer() {
       try {
         // Check if hifeed_enabled flag is active using the existing feature flags system
-        if (window.hiFeatureFlags && await window.hiFeatureFlags.isEnabled('hifeed_enabled')) {
+        const flagEnabled = window.hiFeatureFlags ? await window.hiFeatureFlags.isEnabled('hifeed_enabled') : false;
+        console.log('🔍 HiFeed flag check:', { flagSystem: !!window.hiFeatureFlags, flagEnabled });
+        
+        if (flagEnabled) {
           console.log('🔥 HiFeed enabled - initializing experience layer components on Hi Island');
           
           // Show the experience layer container

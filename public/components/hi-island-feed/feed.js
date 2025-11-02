@@ -191,8 +191,79 @@ class HiIslandFeed {
     console.log(`🔍 Switched filter: ${filterName}`);
   }
 
-  // Load data from Supabase (using hiDB wrapper)
+  // Load data from Supabase (using hiDB wrapper or HiBase)
   async loadData() {
+    // Check if HiBase shares integration is enabled
+    const hibaseEnabled = window.HiFlags && window.HiFlags.isEnabled('hibase_shares_enabled');
+    
+    if (hibaseEnabled && window.HiBase_shares) {
+      // 🔥 NEW: HiBase integration path
+      console.log('📡 Using HiBase shares integration for feed loading');
+      
+      try {
+        // Load General feed via HiBase
+        const { data: generalData, error: generalError } = await window.HiBase_shares.getPublicShares(50);
+        
+        if (generalError) {
+          console.error('❌ HiBase general feed load failed:', generalError);
+          throw new Error('HiBase general feed failed');
+        }
+        
+        this.feedData.general = generalData || [];
+        console.log(`✅ Loaded ${this.feedData.general.length} general shares via HiBase`);
+        
+        // Load Archive (user's private shares) - note: this may need user authentication
+        try {
+          const currentUser = window.hiAuth?.getCurrentUser?.();
+          if (currentUser && currentUser.id !== 'anonymous') {
+            const { data: archiveData, error: archiveError } = await window.HiBase_shares.getUserShares(currentUser.id, 50);
+            
+            if (!archiveError) {
+              this.feedData.archive = archiveData || [];
+              console.log(`✅ Loaded ${this.feedData.archive.length} archive shares via HiBase`);
+            } else {
+              console.warn('⚠️ HiBase archive load failed (using empty):', archiveError);
+              this.feedData.archive = [];
+            }
+          } else {
+            console.log('ℹ️ No authenticated user, skipping archive load');
+            this.feedData.archive = [];
+          }
+        } catch (archiveError) {
+          console.warn('⚠️ HiBase archive load failed (non-critical):', archiveError);
+          this.feedData.archive = [];
+        }
+        
+        // Track successful HiBase feed load
+        import('/lib/monitoring/HiMonitor.js').then(m => 
+          m.trackEvent('feed_load', { path: 'hibase', items: this.feedData.general.length })
+        ).catch(() => {});
+        
+        // Render current tab
+        this.renderList(this.currentTab);
+        
+      } catch (error) {
+        console.error('❌ HiBase feed loading failed, falling back to legacy:', error);
+        
+        // Log error for monitoring
+        if (window.HiMonitor) {
+          window.HiMonitor.logError(error, { where: 'feed_load', path: 'hibase' });
+        }
+        
+        // Fall back to legacy hiDB method
+        await this.loadDataLegacy();
+      }
+      
+    } else {
+      // 🔄 FALLBACK: Legacy hiDB path
+      await this.loadDataLegacy();
+    }
+  }
+  
+  // Legacy data loading method
+  async loadDataLegacy() {
+    console.log('📡 Using legacy hiDB for feed loading');
+    
     if (!window.hiDB) {
       console.error('❌ hiDB not initialized');
       return;
@@ -202,12 +273,17 @@ class HiIslandFeed {
       // Load General feed (public shares) - hiDB handles fallbacks
       const generalData = await window.hiDB.fetchPublicShares({ limit: 50 });
       this.feedData.general = generalData || [];
-      console.log(`✅ Loaded ${this.feedData.general.length} general shares`);
+      console.log(`✅ Loaded ${this.feedData.general.length} general shares via legacy`);
 
       // Load Archive (user's private shares) - hiDB handles auth
       const archiveData = await window.hiDB.fetchMyArchive({ limit: 50 });
       this.feedData.archive = archiveData || [];
-      console.log(`✅ Loaded ${this.feedData.archive.length} archive shares`);
+      console.log(`✅ Loaded ${this.feedData.archive.length} archive shares via legacy`);
+
+      // Track legacy feed load
+      import('/lib/monitoring/HiMonitor.js').then(m => 
+        m.trackEvent('feed_load', { path: 'legacy', items: this.feedData.general.length })
+      ).catch(() => {});
 
       // Render current tab
       this.renderList(this.currentTab);

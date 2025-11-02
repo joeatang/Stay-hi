@@ -1623,6 +1623,11 @@
       try {
         // Check if hifeed_enabled flag is active
         const hiFeedEnabled = await window.HiFlags?.getFlag('hifeed_enabled');
+        console.log('🔍 HiFeed flag check (dashboard):', { 
+          flagSystem: !!window.HiFlags, 
+          flagEnabled: hiFeedEnabled,
+          allFlags: window.HiFlags?.getAllFlags?.() 
+        });
         
         if (hiFeedEnabled) {
           console.log('🔥 HiFeed enabled - initializing experience layer components');

@@ -2,12 +2,12 @@
 console.warn('⚠️ DEPRECATED: assets/hi-flow-controller.js moved to lib/HiFlowController.js - update your imports');
 
 // Load consolidated module
-const script = document.createElement('script');
-script.src = '../../lib/HiFlowController.js';
-script.onerror = () => {
+const flowControllerScript = document.createElement('script');
+flowControllerScript.src = '../../lib/HiFlowController.js';
+flowControllerScript.onerror = () => {
   console.warn('⏳ Loading fallback hi-flow-controller.js...');
-  const fallbackScript = document.createElement('script');
-  fallbackScript.src = './hi-flow-controller.js.bak';
-  document.head.appendChild(fallbackScript);
+  const fallbackFlowScript = document.createElement('script');
+  fallbackFlowScript.src = './hi-flow-controller.js.bak';
+  document.head.appendChild(fallbackFlowScript);
 };
-document.head.appendChild(script);
+document.head.appendChild(flowControllerScript);

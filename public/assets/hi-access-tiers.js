@@ -241,13 +241,13 @@ class HiAccessManager {
           localStorage.removeItem('hiAccessLevel');
         }
       } catch (error) {
-        console.warn('⚠️ Invalid access level data, resetting to authenticated');
+        console.warn('⚠️ Invalid access level data, resetting to member');
         localStorage.removeItem('hiAccessLevel');
       }
     }
 
-    // Default to authenticated for valid users
-    this.setAccessLevel(HI_ACCESS_TIERS.AUTHENTICATED);
+    // Default to member for valid users (permanent access)
+    this.setAccessLevel(HI_ACCESS_TIERS.MEMBER);
   }
 
   setAccessLevel(tier) {

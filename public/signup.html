@@ -294,6 +294,89 @@ function showSuccess(message) {
   successEl.style.display = 'block';
 }
 
+// Process referral code redemption (HiBase integration)
+async function processReferralRedemption(userId) {
+  try {
+    const referralCode = sessionStorage.getItem('hi_referral_code');
+    const referralType = sessionStorage.getItem('hi_referral_type');
+    
+    if (!referralCode) {
+      console.log('No referral code to redeem');
+      return;
+    }
+    
+    console.log('🎁 Processing referral redemption:', { code: referralCode, type: referralType });
+    
+    // Check if HiBase referrals are enabled
+    let useHiBaseReferrals = false;
+    try {
+      // Simple flag check without full HiFlags import
+      const flagsResponse = await fetch('/lib/flags/flags.json');
+      const flags = await flagsResponse.json();
+      useHiBaseReferrals = flags.hibase_referrals_enabled?.enabled || false;
+    } catch (error) {
+      console.log('Could not check HiBase referrals flag, using legacy');
+    }
+    
+    if (useHiBaseReferrals) {
+      try {
+        // Use HiBase referrals system
+        const response = await supabaseClient.rpc('redeem_referral_code', {
+          referral_code: referralCode,
+          redeemer_id: userId
+        });
+        
+        if (response.data && response.data.success) {
+          console.log('✅ HiBase referral redeemed successfully:', response.data);
+          
+          // Show rewards message if any
+          if (response.data.rewards) {
+            showSuccess(`🎉 Account created! You received: ${JSON.stringify(response.data.rewards)}. Check email to verify.`);
+          }
+          
+          // Clear referral data
+          sessionStorage.removeItem('hi_referral_code');
+          sessionStorage.removeItem('hi_referral_type');
+        }
+      } catch (error) {
+        console.log('HiBase referral redemption failed:', error);
+        // Fall back to legacy if needed
+        await processLegacyReferral(userId, referralCode);
+      }
+    } else {
+      // Use legacy referral system
+      await processLegacyReferral(userId, referralCode);
+    }
+    
+  } catch (error) {
+    console.error('Referral processing error:', error);
+    // Don't fail signup for referral errors
+  }
+}
+
+async function processLegacyReferral(userId, referralCode) {
+  try {
+    console.log('🔄 Processing legacy referral:', referralCode);
+    
+    // Legacy referral processing logic
+    const { data, error } = await supabaseClient
+      .from('hi_referral_redemptions')
+      .insert({
+        user_id: userId,
+        referral_code: referralCode.toUpperCase(),
+        redeemed_at: new Date().toISOString()
+      });
+    
+    if (!error) {
+      console.log('✅ Legacy referral processed successfully');
+      sessionStorage.removeItem('hi_referral_code');
+      sessionStorage.removeItem('hi_referral_type');
+    }
+  } catch (error) {
+    console.log('Legacy referral processing failed:', error);
+  }
+}
+
 // Handle form submission
 document.getElementById('signup-form').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -360,6 +443,9 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
       showError('Error tracking invite code usage.');
       return;
     }
+
+    // 3.5. Process referral code if present (HiBase integration)
+    await processReferralRedemption(userId);
 
     // 4. Success: show message and redirect with smooth transition
     showSuccess('🎉 Account created! Check your email to verify and sign in.');
