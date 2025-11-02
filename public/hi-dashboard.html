@@ -1092,9 +1092,42 @@
 
     }
 
-    // Enhanced Self Hi5 Handler
+    // HI DEV: Hi5 Counter (separate from HiWave medallion taps)
+    async function incrementHi5Counter() {
+      try {
+        // Update Hi5 counter in localStorage and database
+        const currentCount = parseInt(localStorage.getItem('hi5_count') || '0');
+        const newCount = currentCount + 1;
+        localStorage.setItem('hi5_count', newCount.toString());
+        
+        // Update database if available
+        if (window.hiDB?.updateUserStats) {
+          await window.hiDB.updateUserStats('hi5_count', newCount);
+        }
+        
+        console.log('[HI DEV] Hi5 counter incremented to:', newCount);
+        
+        // Update UI display if element exists
+        const hi5CountElement = document.querySelector('.hi5-count');
+        if (hi5CountElement) {
+          hi5CountElement.textContent = newCount;
+        }
+        
+      } catch (error) {
+        console.error('[HI DEV] Failed to increment Hi5 counter:', error);
+      }
+    }
+
+    // Enhanced Self Hi5 Handler (HI DEV: Enforced Hi5 flow)
     function setupSelfHi5Handler() {
       if (!selfHi5Enhanced) return;
+      
+      // HI DEV: Dedupe handlers - only bind once
+      if (selfHi5Enhanced.__hi5HandlerBound) {
+        console.log('[HI DEV] Hi5 handler already bound, skipping duplicate');
+        return;
+      }
+      selfHi5Enhanced.__hi5HandlerBound = true;
 
       selfHi5Enhanced.addEventListener('click', async (e) => {
         e.preventDefault();
@@ -1109,28 +1142,30 @@
           selfHi5Enhanced.style.transform = '';
         }, 150);
 
-        // Open HiShareSheet for Self Hi-5
+        // HI DEV: Open HiShareSheet (centered modal, mobile-first) - NO legacy modal
         try {
           // Import HiShareSheet dynamically
           const { HiShareSheet } = await import('../ui/HiShareSheet/HiShareSheet.js');
           
-          // Initialize share sheet with Hi5 preset
+          // Initialize share sheet with Hi5 preset and success handler
           const shareSheet = new HiShareSheet({
             origin: 'dashboard',
             onSuccess: async (shareData) => {
-              console.log('📤 Self Hi-5 share submitted:', shareData);
+              console.log('[HI DEV] Hi5 share submitted via Share Sheet:', shareData);
               
-              // Track telemetry for hishare_submit (not HiWave)
+              // HI DEV: Increment Hi5 counter on successful submit ONLY
+              await incrementHi5Counter();
+              
+              // HI DEV: Analytics via HiMonitor.trackEvent
               const { trackEvent } = await import('../lib/monitoring/HiMonitor.js');
-              trackEvent('hishare_submit', {
-                path: shareData.hibaseEnabled ? 'hibase' : 'legacy',
-                type: 'Hi5',
-                visibility: shareData.visibility || 'public'
+              trackEvent('hi5_submit', {
+                visibility: shareData.visibility,
+                path: shareData.hibaseEnabled ? 'hibase' : 'legacy'
               });
             }
           });
 
-          // Render and open with Hi5 context
+          // Render and open with Hi5 context (centered modal)
           shareSheet.init();
           shareSheet.open({
             context: 'dashboard',
@@ -1140,201 +1175,18 @@
           });
           
         } catch (error) {
-          console.error('❌ Failed to open HiShareSheet for Self Hi-5:', error);
-          // Fallback to legacy behavior
-          await incrementHiWave();
+          console.error('[HI DEV] Failed to open HiShareSheet for Hi5:', error);
+          // HI DEV: NO fallback to HiWave - Hi5 and HiWave are separate flows
+          // Show error message to user instead
+          const errorMsg = document.createElement('div');
+          errorMsg.style.cssText = 'position:fixed;top:20px;right:20px;background:#ff4444;color:white;padding:12px;border-radius:8px;z-index:9999;';
+          errorMsg.textContent = 'Hi5 Share Sheet failed to load. Please try again.';
+          document.body.appendChild(errorMsg);
+          setTimeout(() => errorMsg.remove(), 3000);
         }
         
-        // 🏝️ HI ISLAND PIPING: Track global hi5 + personal user stats
-        try {
-          // Check if HiBase shares integration is enabled (cohort-aware)
-          const { isEnabledCohort } = await import('../lib/flags/HiFlags.js');
-          const { trackEvent } = await import('../lib/monitoring/HiMonitor.js');
-          const hibaseEnabled = await isEnabledCohort('hibase_shares_enabled');
-          
-          // Track flag evaluation for telemetry
-          trackEvent('flag_check', {
-            key: 'hibase_shares_enabled',
-            enabled: hibaseEnabled,
-            rollout: true,
-            location: 'dashboard-shares'
-          });
-          
-          if (hibaseEnabled && window.HiBase_shares) {
-            // 🔥 NEW: HiBase integration path
-            console.log('📡 Using HiBase shares integration for Hi5 submission');
-            
-            // Get current user for user_id (required for HiBase)
-            const currentUser = window.hiAuth?.getCurrentUser?.() || { id: 'anonymous' };
-            const userLocation = await getCurrentUserLocation();
-            
-            // Prepare HiBase payload
-            const sharePayload = {
-              user_id: currentUser.id,
-              type: 'self_hi5',
-              message: 'Self Hi5 from Dashboard 🙌',
-              location: userLocation?.name || null,
-              latitude: userLocation?.lat || null,
-              longitude: userLocation?.lng || null,
-              is_public: true,
-              metadata: {
-                currentEmoji: '🙌',
-                desiredEmoji: '✨',
-                origin: 'dashboard'
-              }
-            };
-            
-            // Submit via HiBase
-            const { data, error } = await window.HiBase_shares.insertShare(sharePayload);
-            
-            if (error) {
-              console.error('❌ HiBase share submission failed:', error);
-              // Log error for monitoring
-              if (window.HiMonitor) {
-                window.HiMonitor.logError(error, { where: 'share_submit', path: 'hibase' });
-              }
-              // Fall back to legacy path
-              throw new Error('HiBase submission failed, using fallback');
-            } else {
-              console.log('✅ Hi5 submitted via HiBase:', data);
-              // Track successful HiBase submission
-              import('/lib/monitoring/HiMonitor.js').then(m => 
-                m.trackEvent('share_submit', { type: 'Hi5', source: 'dashboard', path: 'hibase' })
-              ).catch(() => {});
-            }
-          } else {
-            // 🔄 FALLBACK: Legacy Hi Island piping path
-            console.log('📡 Using legacy Hi Island piping for Hi5 submission');
-            
-            // Track global hi5 stat
-            if (window.hiDB && window.hiDB.insertPublic) {
-              const hi5Entry = {
-                currentEmoji: '🙌',
-                desiredEmoji: '✨',
-                journal: 'Self Hi5 from Dashboard',
-                location: await getCurrentUserLocation(),
-                origin: 'dashboard',
-                type: 'self_hi5'
-              };
-              
-              await window.hiDB.insertPublic(hi5Entry);
-              console.log('✅ Global hi5 tracked via Hi Island piping');
-            }
-            
-            // Track personal user stats
-            if (window.hiDB && window.hiDB.insertArchive) {
-              const personalEntry = {
-                currentEmoji: '🙌',
-                desiredEmoji: '✨', 
-                journal: 'Self Hi5 - Dashboard moment',
-                location: await getCurrentUserLocation(),
-                origin: 'dashboard',
-                type: 'self_hi5'
-              };
-              
-              await window.hiDB.insertArchive(personalEntry);
-              console.log('✅ Personal hi5 stats tracked via Hi Island piping');
-            }
-            
-            // Track legacy submission
-            import('/lib/monitoring/HiMonitor.js').then(m => 
-              m.trackEvent('share_submit', { type: 'Hi5', source: 'dashboard', path: 'legacy' })
-            ).catch(() => {});
-          }
-
-          // 🚀 INTEGRATION #5: Streak tracking via HiBase (flagged rollout)
-          const useHiBaseStreaks = await window.HiFlags?.getFlag('hibase_streaks_enabled');
-          console.log(`🔄 Streak tracking via ${useHiBaseStreaks ? 'HiBase' : 'legacy'} path`);
-
-          if (useHiBaseStreaks) {
-            try {
-              // 🎯 HiBase path: unified streak API
-              console.log('📦 Streak → HiBase.updateStreak...');
-              const currentUser = window.hiAuth?.getCurrentUser?.() || { id: 'anonymous' };
-              
-              if (currentUser.id && currentUser.id !== 'anonymous') {
-                const streakResult = await window.HiBase.updateStreak(currentUser.id, {
-                  hiDate: new Date().toISOString().split('T')[0]
-                });
-
-                if (streakResult.error) {
-                  console.warn('⚠️ HiBase streak update failed:', streakResult.error);
-                } else {
-                  console.log('✅ Streak updated via HiBase:', streakResult.data.message);
-                  
-                  // Show streak celebration if applicable
-                  if (streakResult.data.milestone) {
-                    setTimeout(() => {
-                      if (window.toast) {
-                        window.toast(streakResult.data.message, 'celebration');
-                      }
-                    }, 1000);
-                  }
-                }
-              }
-
-              // 📊 Track HiBase streak usage
-              import('/lib/monitoring/HiMonitor.js').then(m => 
-                m.trackEvent('streak_update', { 
-                  source: 'dashboard', 
-                  path: 'hibase'
-                })
-              ).catch(() => {});
-
-            } catch (error) {
-              console.warn('⚠️ HiBase streak tracking failed:', error);
-            }
-          } else {
-            // 🔄 Legacy path: track locally (placeholder for existing system)
-            console.log('📦 Streak → Legacy tracking...');
-            
-            // Legacy streak tracking would go here
-            // Currently this might be handled by the unified stats system
-            
-            // 📊 Track legacy streak usage
-            import('/lib/monitoring/HiMonitor.js').then(m => 
-              m.trackEvent('streak_update', { 
-                source: 'dashboard', 
-                path: 'legacy'
-              })
-            ).catch(() => {});
-          }
-          
-        } catch (error) {
-          console.warn('⚠️ Hi submission tracking failed (non-critical):', error);
-          
-          // If HiBase failed, ensure we still try legacy path
-          if (error.message?.includes('HiBase') && window.hiDB) {
-            console.log('🔄 Attempting legacy fallback after HiBase failure...');
-            try {
-              if (window.hiDB.insertPublic) {
-                const hi5Entry = {
-                  currentEmoji: '🙌',
-                  desiredEmoji: '✨',
-                  journal: 'Self Hi5 from Dashboard (fallback)',
-                  location: await getCurrentUserLocation(),
-                  origin: 'dashboard',
-                  type: 'self_hi5'
-                };
-                await window.hiDB.insertPublic(hi5Entry);
-                console.log('✅ Fallback: Global hi5 tracked via legacy method');
-              }
-            } catch (fallbackError) {
-              console.warn('⚠️ Legacy fallback also failed:', fallbackError);
-            }
-          }
-        }
-        
-        // Open Self Hi5 share modal
-        if (window.openHiShareSheet) {
-          setTimeout(() => {
-            window.openHiShareSheet('hi5');
-          }, 300);
-        } else {
-          // Fallback: Show simple success message
-          showCelebrationMessage('🎉 Hi5 shared! Keep spreading the positive energy!');
-        }
-
+        // HI DEV: All Hi5 submission logic moved to HiShareSheet.persist()
+        // This keeps the flow clean and maintains separation of concerns
       });
     }
 

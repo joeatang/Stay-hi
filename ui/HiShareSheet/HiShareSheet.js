@@ -575,25 +575,23 @@ export class HiShareSheet {
       if (hibaseEnabled && window.HiBase?.shares) {
         console.log('📡 Using HiBase shares integration');
         
-        // Get current user
-        const currentUser = window.hiAuth?.getCurrentUser?.() || { id: 'anonymous' };
+        // Get current user (HI DEV: null for anonymous, not 'anonymous' string)
+        const currentUser = window.hiAuth?.getCurrentUser?.() || { id: null };
         
-        // Prepare HiBase payload
+        // HI DEV: Prepare payload per specifications
         const sharePayload = {
-          user_id: currentUser.id,
-          type: this.shareType || 'Hi5',
+          type: 'Hi5',
           text: text,
           visibility: anon ? 'anonymous' : (toIsland ? 'public' : 'private'),
+          user_id: currentUser.id || null, // null for anonymous
           location: location?.name || null,
-          latitude: location?.lat || null,
-          longitude: location?.lng || null,
-          origin: this.context || 'dashboard',
-          tags: [this.shareType?.toLowerCase() || 'hi5'],
-          metadata: {
+          metadata: { 
+            origin: 'dashboard', 
+            tags: ['hi5'],
+            latitude: location?.lat || null,
+            longitude: location?.lng || null,
             currentEmoji: this.emotionalJourney?.current || '🙌',
-            desiredEmoji: this.emotionalJourney?.desired || '✨',
-            device: navigator.userAgent || 'unknown',
-            version: '1.0'
+            desiredEmoji: this.emotionalJourney?.desired || '✨'
           }
         };
         
