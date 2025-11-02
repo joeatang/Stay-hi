@@ -1109,8 +1109,41 @@
           selfHi5Enhanced.style.transform = '';
         }, 150);
 
-        // Increment and celebrate
-        await incrementHiWave();
+        // Open HiShareSheet for Self Hi-5
+        try {
+          // Import HiShareSheet dynamically
+          const { HiShareSheet } = await import('../ui/HiShareSheet/HiShareSheet.js');
+          
+          // Initialize share sheet with Hi5 preset
+          const shareSheet = new HiShareSheet({
+            origin: 'dashboard',
+            onSuccess: async (shareData) => {
+              console.log('📤 Self Hi-5 share submitted:', shareData);
+              
+              // Track telemetry for hishare_submit (not HiWave)
+              const { trackEvent } = await import('../lib/monitoring/HiMonitor.js');
+              trackEvent('hishare_submit', {
+                path: shareData.hibaseEnabled ? 'hibase' : 'legacy',
+                type: 'Hi5',
+                visibility: shareData.visibility || 'public'
+              });
+            }
+          });
+
+          // Render and open with Hi5 context
+          shareSheet.init();
+          shareSheet.open({
+            context: 'dashboard',
+            preset: 'hi5',
+            prefilledText: '🙌 Giving myself a Hi5! ',
+            type: 'Hi5'
+          });
+          
+        } catch (error) {
+          console.error('❌ Failed to open HiShareSheet for Self Hi-5:', error);
+          // Fallback to legacy behavior
+          await incrementHiWave();
+        }
         
         // 🏝️ HI ISLAND PIPING: Track global hi5 + personal user stats
         try {

@@ -134,6 +134,10 @@
       }
     }
   </style>
+  
+  <!-- HiFooter CSS - Dashboard Parity -->
+  <link rel="preload" href="../ui/HiFooter/HiFooter.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="../ui/HiFooter/HiFooter.css"></noscript>
 </head>
 <body data-page="hi-island">
   <!-- Header (shared component) -->
@@ -196,6 +200,9 @@
   
   <!-- Header (Load synchronously - no defer) -->
   <script src="../ui/HiHeader/HiHeader.js"></script>
+  
+  <!-- Footer - Dashboard Parity -->
+  <script src="../ui/HiFooter/HiFooter.js" defer></script>
   
   <!-- Premium Calendar (Flagship - matches index.html) -->
   <script src="assets/premium-calendar.js"></script>
@@ -262,11 +269,11 @@
             experienceLayer.style.display = 'block';
           }
           
-          // Initialize HiFeed component
+          // Initialize HiFeed component (public feed for Hi Island)
           if (window.HiFeed) {
-            const hiFeed = new window.HiFeed('#hiFeedContainer');
+            const hiFeed = new window.HiFeed('#hiFeedContainer', { publicFeed: true });
             await hiFeed.initialize();
-            console.log('✅ HiFeed component initialized on Hi Island');
+            console.log('✅ HiFeed component initialized on Hi Island (public feed mode)');
           }
           
           // Initialize HiStreaks component

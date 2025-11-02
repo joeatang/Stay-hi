@@ -186,7 +186,12 @@ export class HiShareSheet {
   }
 
   // Open share sheet
-  async open() {
+  async open(options = {}) {
+    // Store context and preset for submission
+    this.context = options.context || this.origin;
+    this.preset = options.preset || 'default';
+    this.shareType = options.type || (options.preset === 'hi5' ? 'Hi5' : 'share');
+    
     const backdrop = document.getElementById('hi-share-backdrop');
     const sheet = document.getElementById('hi-share-sheet');
     
@@ -200,10 +205,11 @@ export class HiShareSheet {
     this.isOpen = true;
     document.body.style.overflow = 'hidden';
 
-    // 🌟 TESLA-GRADE: Handle prefilled data from Hi Muscle
+    // 🌟 TESLA-GRADE: Handle prefilled data (Hi Muscle + Hi5)
     const textarea = document.getElementById('hi-share-journal');
-    if (this.prefilledData?.prefilledText) {
-      textarea.value = this.prefilledData.prefilledText;
+    const prefilledText = options.prefilledText || this.prefilledData?.prefilledText;
+    if (prefilledText) {
+      textarea.value = prefilledText;
       this.updateCharCount();
     }
     
@@ -554,24 +560,77 @@ export class HiShareSheet {
     const raw = (journal.value || '').trim();
     const text = raw || 'Marked a Hi-5 ✨';
     
-    console.log('💾 Saving Hi-5:', { text, toIsland, anon, origin: this.origin });
+    console.log('💾 Saving Hi-5:', { text, toIsland, anon, origin: this.origin, type: this.shareType });
     
     const location = await this.getUserLocation();
 
     try {
-      // ALWAYS write to My Archive (private storage)
-      // 🌟 TESLA-GRADE: Use emotional journey data if available (Hi Muscle integration)
-      const currentEmoji = this.emotionalJourney?.current || '👋';
-      const desiredEmoji = this.emotionalJourney?.desired || '👋';
+      // Check if HiBase shares integration is enabled
+      const { isEnabledCohort } = await import('../lib/flags/HiFlags.js');
+      const hibaseEnabled = await isEnabledCohort('hibase_shares_enabled');
       
-      const archivePayload = {
-        currentEmoji,
-        desiredEmoji,
-        journal: text,
-        location,
-        origin: this.origin, // 'hi5', 'higym', or 'hi-island'
-        type: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : 'self_hi5')
-      };
+      let shareResult = null;
+      
+      // Use HiBase if enabled, otherwise fall back to legacy hiDB
+      if (hibaseEnabled && window.HiBase?.shares) {
+        console.log('📡 Using HiBase shares integration');
+        
+        // Get current user
+        const currentUser = window.hiAuth?.getCurrentUser?.() || { id: 'anonymous' };
+        
+        // Prepare HiBase payload
+        const sharePayload = {
+          user_id: currentUser.id,
+          type: this.shareType || 'Hi5',
+          text: text,
+          visibility: anon ? 'anonymous' : (toIsland ? 'public' : 'private'),
+          location: location?.name || null,
+          latitude: location?.lat || null,
+          longitude: location?.lng || null,
+          origin: this.context || 'dashboard',
+          tags: [this.shareType?.toLowerCase() || 'hi5'],
+          metadata: {
+            currentEmoji: this.emotionalJourney?.current || '🙌',
+            desiredEmoji: this.emotionalJourney?.desired || '✨',
+            device: navigator.userAgent || 'unknown',
+            version: '1.0'
+          }
+        };
+        
+        shareResult = await window.HiBase.shares.insertShare(sharePayload);
+        console.log('📤 HiBase share result:', shareResult);
+        
+        // Call success callback with HiBase info
+        this.onSuccess({ 
+          ...sharePayload, 
+          hibaseEnabled: true,
+          visibility: sharePayload.visibility
+        });
+        
+      } else {
+        console.log('📝 Using legacy hiDB integration');
+        
+        // ALWAYS write to My Archive (private storage)
+        // 🌟 TESLA-GRADE: Use emotional journey data if available (Hi Muscle integration)
+        const currentEmoji = this.emotionalJourney?.current || '�';
+        const desiredEmoji = this.emotionalJourney?.desired || '✨';
+        
+        const archivePayload = {
+          currentEmoji,
+          desiredEmoji,
+          journal: text,
+          location,
+          origin: this.origin, // 'hi5', 'higym', or 'hi-island'
+          type: this.shareType || (this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : 'Hi5'))
+        };
+        
+        // Call success callback with legacy info
+        this.onSuccess({ 
+          ...archivePayload,
+          hibaseEnabled: false,
+          visibility: anon ? 'anonymous' : (toIsland ? 'public' : 'private')
+        });
+      }
       
       const archiveResult = await window.hiDB?.insertArchive?.(archivePayload);
       console.log('📝 Archive saved:', archiveResult);

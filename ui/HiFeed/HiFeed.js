@@ -10,7 +10,7 @@
  */
 
 class HiFeed {
-  constructor(container) {
+  constructor(container, options = {}) {
     this.container = typeof container === 'string' ? 
       document.querySelector(container) : container;
     
@@ -23,6 +23,7 @@ class HiFeed {
     this.limit = 20;
     this.isLoading = false;
     this.hasMore = true;
+    this.isPublicFeed = options.publicFeed || false; // Hi Island mode
     this.feedItems = [];
     
     this.bindEvents();
@@ -33,7 +34,14 @@ class HiFeed {
    */
   async initialize() {
     try {
-      // Get current user ID
+      // For public feeds (Hi Island), skip user auth
+      if (this.isPublicFeed) {
+        this.renderLoadingState();
+        await this.loadFeedData();
+        return;
+      }
+
+      // Get current user ID for personalized feed
       this.userId = await this.getCurrentUserId();
       if (!this.userId) {
         this.renderEmptyState('Please log in to view your feed');
@@ -69,10 +77,11 @@ class HiFeed {
           'Authorization': `Bearer ${await this.getAuthToken()}`
         },
         body: JSON.stringify({
-          userId: this.userId,
+          userId: this.isPublicFeed ? null : this.userId, // No user for public feed
           page: this.currentPage,
           limit: this.limit,
-          type: 'all'
+          type: 'all',
+          publicFeed: this.isPublicFeed // Hi Island mode
         })
       });
 
