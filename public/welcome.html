@@ -844,17 +844,13 @@
     };
   </script>
   
-  <!-- 📊 Production Monitoring Layer -->
-  <script type="module" src="./lib/monitoring/HiMonitor.js"></script>
-  
-  <!-- 🚩 Tesla-Grade Feature Flags System -->
+  <!--  Tesla-Grade Feature Flags System -->
   <script type="module" src="./lib/flags/HiFlags.js"></script>
   
   <!-- 🎁 HiBase Referral Code Handler -->
   <script type="module">
     import HiBase from './lib/hibase/index.js';
     import { HiFlags } from './lib/flags/HiFlags.js';
-    import { HiMonitor } from './lib/monitoring/HiMonitor.js';
 
     // Handle referral and gift codes from URL
     async function handleReferralCode() {
@@ -886,7 +882,7 @@
                 showReferralWelcomeMessage(referralData);
               }
               
-              HiMonitor.trackEvent('referral_code_detected', {
+              console.log('[Welcome] Referral code detected:', {
                 code: code,
                 type: referralData.type,
                 source: giftCode ? 'gift' : 'referral',
@@ -967,7 +963,7 @@
       // Legacy referral handling (existing system)
       sessionStorage.setItem('hi_referral_code', code);
       
-      HiMonitor.trackEvent('referral_code_detected', {
+      console.log('[Welcome] Legacy referral code detected:', {
         code: code,
         source: 'legacy',
         via: 'legacy'
