@@ -3,7 +3,7 @@
  * 30s TTL caching, subscriber pattern, console tracing
  */
 
-import HiBase from '../hibase/index.js';
+import HiBase from '../../lib/hibase/index.js';
 
 // Internal state management
 const STATE = {

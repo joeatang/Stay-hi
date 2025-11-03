@@ -146,18 +146,18 @@
   <link rel="preload" href="../ui/HiModal/HiModal.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   
   <!-- Hi Share Sheet Component -->
-  <link rel="preload" href="../ui/HiShareSheet/HiShareSheet.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="ui/HiShareSheet/HiShareSheet.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   
   <!-- HI DEV: Tesla-Grade HiMedallion Component -->
-  <link rel="preload" href="../ui/HiMedallion/HiMedallion.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="ui/HiMedallion/HiMedallion.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   
   <noscript>
     <link rel="stylesheet" href="assets/premium-ux.css">
     <link rel="stylesheet" href="assets/premium-calendar.css">
-    <link rel="stylesheet" href="../ui/HiFooter/HiFooter.css">
-    <link rel="stylesheet" href="../ui/HiModal/HiModal.css">
-    <link rel="stylesheet" href="../ui/HiShareSheet/HiShareSheet.css">
-    <link rel="stylesheet" href="../ui/HiMedallion/HiMedallion.css">
+    <link rel="stylesheet" href="ui/HiFooter/HiFooter.css">
+    <link rel="stylesheet" href="ui/HiModal/HiModal.css">
+    <link rel="stylesheet" href="ui/HiShareSheet/HiShareSheet.css">
+    <link rel="stylesheet" href="ui/HiMedallion/HiMedallion.css">
   </noscript>
 
   <!-- HI DEV: Fast Brand Controls - Page-Specific Medallion Overrides -->
@@ -1545,8 +1545,8 @@
   
   <!-- Hi Components: HiShareSheet + HiMedallion (Tesla-grade initialization) -->
   <script type="module">
-    import { HiShareSheet } from '../ui/HiShareSheet/HiShareSheet.js';
-    import { mountHiMedallion } from '../ui/HiMedallion/HiMedallion.js';
+    import { HiShareSheet } from './ui/HiShareSheet/HiShareSheet.js';
+    import { mountHiMedallion } from './ui/HiMedallion/HiMedallion.js';
     
     // Tesla-grade component initialization with guards
     document.addEventListener('DOMContentLoaded', () => {
@@ -1574,7 +1574,7 @@
       const medallionContainer = document.getElementById('hiMedallionContainer');
       if (medallionContainer) {
         // First create the medallion HTML structure
-        import('../ui/HiMedallion/HiMedallion.js').then(({ createHiMedallionHTML, mountHiMedallion }) => {
+        import('./ui/HiMedallion/HiMedallion.js').then(({ createHiMedallionHTML, mountHiMedallion }) => {
           // Create Tesla-grade medallion HTML
           medallionContainer.innerHTML = createHiMedallionHTML({
             id: 'dashboardMedallion',
