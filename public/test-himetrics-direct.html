@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiMetrics Direct Test</title>
+</head>
+<body>
+    <h1>HiMetrics Direct Test</h1>
+    <div id="result">Testing...</div>
+    
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Hi Supabase Init -->
+    <script src="./lib/HiSupabase.js"></script>
+    
+    <!-- Direct test of HiMetrics -->
+    <script type="module">
+        const resultDiv = document.getElementById('result');
+        
+        async function testHiMetrics() {
+            try {
+                resultDiv.innerHTML = 'Loading HiMetrics...';
+                
+                // Import HiMetrics
+                const HiMetrics = await import('./lib/HiMetrics.js');
+                resultDiv.innerHTML = 'HiMetrics imported, loading data...';
+                
+                // Load metrics
+                const metrics = await HiMetrics.default.load();
+                
+                resultDiv.innerHTML = `
+                    <strong>✅ HiMetrics Success!</strong><br>
+                    Waves: ${metrics.waves}<br>
+                    Hi5s: ${metrics.hi5s}<br>
+                    Raw: <pre>${JSON.stringify(metrics, null, 2)}</pre>
+                `;
+                
+            } catch (error) {
+                console.error('HiMetrics test failed:', error);
+                resultDiv.innerHTML = `
+                    <strong>❌ HiMetrics Failed</strong><br>
+                    Error: ${error.message}<br>
+                    Stack: <pre>${error.stack}</pre>
+                `;
+            }
+        }
+        
+        // Wait for Supabase to be ready
+        if (window.supabaseClient) {
+            testHiMetrics();
+        } else {
+            window.addEventListener('supabase-ready', testHiMetrics);
+        }
+    </script>
+</body>
+</html>
