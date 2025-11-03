@@ -7,7 +7,7 @@
   
   <!-- Flag Init Guard -->
   <script type="module">
-    import * as HiFlags from ./lib/flags/HiFlags.js';
+    import * as HiFlags from './lib/flags/HiFlags.js';
     await HiFlags.waitUntilReady();
   </script>
   
@@ -37,7 +37,7 @@
 
   <!-- 🔥 HiBase - Unified Database Access Layer -->
   <script type="module">
-    import HiBase from ./lib/hibase/index.js';
+    import HiBase from './lib/hibase/index.js';
     console.log('🔥 HiBase ready - unified API online');
     
     // Make available for console testing
@@ -675,8 +675,8 @@
       </div>
     </div>
   </main>
-  <script src="./lib/HiSupabase.js"></script>
-  <script src="./lib/HiDB.js"></script>
+  <script type="module" src="./lib/HiSupabase.js"></script>
+  <script type="module" src="./lib/HiDB.js"></script>
   
   <!-- 🎬 TESLA-GRADE LOADING EXPERIENCE V2.0 -->
   <script>
@@ -845,7 +845,7 @@
   </script>
   
   <!-- 📊 Production Monitoring Layer -->
-  <script type="module" src./lib/monitoring/HiMonitor.js"></script>
+  <script type="module" src="./lib/monitoring/HiMonitor.js"></script>
   
   <!-- 🚩 Tesla-Grade Feature Flags System -->
   <script type="module" src="./lib/flags/HiFlags.js"></script>
