@@ -213,7 +213,7 @@
                 const testStart = performance.now();
                 
                 const featureFlags = window.hiFeatureFlags?.hifeed_enabled;
-                const { HiFlags } = await import('/lib/flags/HiFlags.js');
+                const { HiFlags } = await import./lib/flags/HiFlags.js');
                 const hiFlagsResult = HiFlags?.isEnabled('hifeed_enabled');
                 
                 const passed = featureFlags === true && hiFlagsResult === true;
@@ -235,9 +235,9 @@
                 console.log('📦 Testing module loading...');
                 const testStart = performance.now();
                 
-                const hifeedModule = await import('/lib/hifeed/index.js');
-                const hiFeedComponent = await import('/ui/HiFeed/HiFeed.js');
-                const hiStreaksComponent = await import('/ui/HiStreaks/HiStreaks.js');
+                const hifeedModule = await import./lib/hifeed/index.js');
+                const hiFeedComponent = await import./ui/HiFeed/HiFeed.js');
+                const hiStreaksComponent = await import./ui/HiStreaks/HiStreaks.js');
                 
                 const passed = !!(hifeedModule.getUnifiedFeed && hiFeedComponent.HiFeed && hiStreaksComponent.HiStreaks);
                 const message = passed ? 'All modules loaded successfully' : 'Missing required exports';
@@ -263,10 +263,10 @@
                 document.body.appendChild(hiFeedContainer);
                 document.body.appendChild(hiStreaksContainer);
                 
-                const { HiFeed } = await import('/ui/HiFeed/HiFeed.js');
+                const { HiFeed } = await import./ui/HiFeed/HiFeed.js');
                 await HiFeed.init(hiFeedContainer);
                 
-                const { HiStreaks } = await import('/ui/HiStreaks/HiStreaks.js');
+                const { HiStreaks } = await import./ui/HiStreaks/HiStreaks.js');
                 await HiStreaks.init(hiStreaksContainer);
                 
                 const hiFeedRendered = hiFeedContainer.children.length > 0;
@@ -293,7 +293,7 @@
                 console.log('📊 Testing feed data...');
                 const testStart = performance.now();
                 
-                const { getUnifiedFeed } = await import('/lib/hifeed/index.js');
+                const { getUnifiedFeed } = await import./lib/hifeed/index.js');
                 const feedData = await getUnifiedFeed();
                 
                 const passed = !!(feedData && Array.isArray(feedData) && feedData.length > 0);

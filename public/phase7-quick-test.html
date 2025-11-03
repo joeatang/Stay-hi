@@ -45,7 +45,7 @@
 
         // Test 1: HiFeed API
         try {
-            const hifeedModule = await import('/lib/hifeed/index.js');
+            const hifeedModule = await import./lib/hifeed/index.js');
             if (hifeedModule.getUnifiedFeed) {
                 addResult('HiFeed API', true, 'Module loaded and exports function');
                 
@@ -61,7 +61,7 @@
 
         // Test 2: HiFeed Component
         try {
-            const { HiFeed } = await import('/ui/HiFeed/HiFeed.js');
+            const { HiFeed } = await import./ui/HiFeed/HiFeed.js');
             if (HiFeed) {
                 addResult('HiFeed Component', true, 'Component class loaded');
                 
@@ -86,7 +86,7 @@
 
         // Test 3: HiStreaks Component
         try {
-            const { HiStreaks } = await import('/ui/HiStreaks/HiStreaks.js');
+            const { HiStreaks } = await import./ui/HiStreaks/HiStreaks.js');
             if (HiStreaks) {
                 addResult('HiStreaks Component', true, 'Component class loaded');
                 
@@ -112,7 +112,7 @@
         // Test 4: Flag Systems
         try {
             await import('/public/assets/feature-flags.js');
-            const { HiFlags } = await import('/lib/flags/HiFlags.js');
+            const { HiFlags } = await import./lib/flags/HiFlags.js');
             
             if (window.hiFeatureFlags && HiFlags) {
                 const featureFlag = window.hiFeatureFlags.hifeed_enabled;

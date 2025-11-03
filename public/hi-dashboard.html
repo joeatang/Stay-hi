@@ -18,30 +18,30 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   
   <!-- Database & Hi Island Integration -->
-  <script src="../lib/HiSupabase.js"></script>
+  <script src=./lib/HiSupabase.js"></script>
   <script src="assets/db.js"></script>
   
   <!-- 🚀 INTEGRATION #5: HiBase + HiFlags for Streaks system (flagged rollout) -->
-  <script src="../lib/flags/HiFlags.js"></script>
-  <script src="../lib/hibase/index.js"></script>
+  <script src=./lib/flags/HiFlags.js"></script>
+  <script src=./lib/hibase/index.js"></script>
   
   <!-- 🔥 Phase 7: Hi Experience Layer Components (Feature Flagged) -->
-  <script src="../lib/hifeed/index.js"></script>
-  <script src="../ui/HiFeed/HiFeed.js"></script>
-  <script src="../ui/HiStreaks/HiStreaks.js"></script>
+  <script src=./lib/hifeed/index.js"></script>
+  <script src="./ui/HiFeed/HiFeed.js"></script>
+  <script src="./ui/HiStreaks/HiStreaks.js"></script>
   <script src="assets/hifeed-test-helper.js"></script>
   <script src="assets/hifeed-verification.js"></script>
   
   <!-- HiBase Integration (Flagged Rollout) -->
   <script type="module">
     // Import HiBase shares for flagged rollout
-    window.HiBase_shares = await import('../lib/hibase/shares.js');
+    window.HiBase_shares = await import(./lib/hibase/shares.js');
     console.log('🔥 HiBase shares module loaded for dashboard integration');
   </script>
   
   <!-- HI-OS: Tesla-Grade HiMetrics Adapter (30s Cache + Dashboard Globals) -->
   <script type="module">
-    import HiMetrics from './lib/HiMetrics.js';
+    import HiMetrics from./lib/HiMetrics.js';
     
     // Tesla-grade dashboard metrics with global variable compatibility
     async function initDashboardMetrics() {
@@ -133,7 +133,7 @@
   <!-- Premium Authentication & UX -->
   <script src="assets/progressive-auth.js"></script>
   <script src="assets/anonymous-access-modal.js"></script>
-  <script src="../lib/HiMembership.js"></script>
+  <script src=./lib/HiMembership.js"></script>
   <script src="assets/performance-manager.js"></script>
   
   <!-- Tesla-Grade Onboarding System -->
@@ -142,8 +142,8 @@
   <!-- Premium CSS Integration -->
   <link rel="preload" href="assets/premium-ux.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" href="assets/premium-calendar.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" href="../ui/HiFooter/HiFooter.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" href="../ui/HiModal/HiModal.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="./ui/HiFooter/HiFooter.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="./ui/HiModal/HiModal.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   
   <!-- Hi Share Sheet Component -->
   <link rel="preload" href="ui/HiShareSheet/HiShareSheet.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -876,7 +876,7 @@
           }
 
           // 📊 Track HiBase streak usage
-          import('/lib/monitoring/HiMonitor.js').then(m => 
+          impor./lib/monitoring/HiMonitor.js').then(m => 
             m.trackEvent('streak_load', { 
               source: 'dashboard', 
               path: 'hibase'
@@ -892,7 +892,7 @@
           updateStreakDisplay(parseInt(localStreak, 10));
           
           // 📊 Track legacy streak usage
-          import('/lib/monitoring/HiMonitor.js').then(m => 
+          impor./lib/monitoring/HiMonitor.js').then(m => 
             m.trackEvent('streak_load', { 
               source: 'dashboard', 
               path: 'legacy'
@@ -1087,7 +1087,7 @@
               await incrementHi5Counter();
               
               // HI DEV: Analytics via HiMonitor.trackEvent
-              const { trackEvent } = await import('../lib/monitoring/HiMonitor.js');
+              const { trackEvent } = await import(./lib/monitoring/HiMonitor.js');
               trackEvent('hi5_submit', {
                 visibility: shareData.visibility,
                 path: shareData.hibaseEnabled ? 'hibase' : 'legacy'
@@ -1446,8 +1446,8 @@
     async function initializeHiExperienceLayer() {
       try {
         // Check if hifeed_enabled flag is active (cohort-aware)
-        const { isEnabledCohort } = await import('../lib/flags/HiFlags.js');
-        const { trackEvent } = await import('../lib/monitoring/HiMonitor.js');
+        const { isEnabledCohort } = await import(./lib/flags/HiFlags.js');
+        const { trackEvent } = await import(./lib/monitoring/HiMonitor.js');
         
         const hiFeedEnabled = await isEnabledCohort('hifeed_enabled');
         
@@ -1541,12 +1541,12 @@
   <!-- Premium Component Scripts -->
   <script src="assets/premium-ux.js"></script>
   <script src="assets/premium-calendar.js"></script>
-  <script src="../ui/HiFooter/HiFooter.js" defer></script>
+  <script src="./ui/HiFooter/HiFooter.js" defer></script>
   
   <!-- Hi Components: HiShareSheet + HiMedallion (Tesla-grade initialization) -->
   <script type="module">
-    import { HiShareSheet } from './ui/HiShareSheet/HiShareSheet.js';
-    import { mountHiMedallion } from './ui/HiMedallion/HiMedallion.js';
+    import { HiShareSheet } from ./ui/HiShareSheet/HiShareSheet.js';
+    import { mountHiMedallion } from ./ui/HiMedallion/HiMedallion.js';
     
     // Tesla-grade component initialization with guards
     document.addEventListener('DOMContentLoaded', () => {
@@ -1574,7 +1574,7 @@
       const medallionContainer = document.getElementById('hiMedallionContainer');
       if (medallionContainer) {
         // First create the medallion HTML structure
-        import('./ui/HiMedallion/HiMedallion.js').then(({ createHiMedallionHTML, mountHiMedallion }) => {
+        import(./ui/HiMedallion/HiMedallion.js').then(({ createHiMedallionHTML, mountHiMedallion }) => {
           // Create Tesla-grade medallion HTML
           medallionContainer.innerHTML = createHiMedallionHTML({
             id: 'dashboardMedallion',

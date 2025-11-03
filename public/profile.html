@@ -15,11 +15,11 @@
   
   <!-- Supabase Integration -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../lib/HiSupabase.js"></script>
+  <script src="./lib/HiSupabase.js"></script>
   
   <!-- 🚀 INTEGRATION #2: HiBase + HiFlags for Profile operations (flagged rollout) -->
-  <script src="../lib/flags/HiFlags.js"></script>
-  <script src="../lib/hibase/index.js"></script>
+  <script src="./lib/flags/HiFlags.js"></script>
+  <script src="./lib/hibase/index.js"></script>
   
   <!-- 🚀 Tesla-Grade Anonymous Access Modal System -->
   <script src="assets/anonymous-access-modal.js"></script>
@@ -1094,7 +1094,7 @@
         console.log('✅ Avatar uploaded via HiBase:', uploadResult.data.avatarUrl);
         
         // 📊 Track HiBase usage
-        import('/lib/monitoring/HiMonitor.js').then(m => 
+        import./lib/monitoring/HiMonitor.js').then(m => 
           m.trackEvent('profile_avatar_upload', { 
             source: 'profile', 
             path: 'hibase'
@@ -1202,7 +1202,7 @@
         console.log('🔗 Generated URL:', urlData.publicUrl);
         
         // 📊 Track legacy usage
-        import('/lib/monitoring/HiMonitor.js').then(m => 
+        import./lib/monitoring/HiMonitor.js').then(m => 
           m.trackEvent('profile_avatar_upload', { 
             source: 'profile', 
             path: 'legacy'
@@ -1240,7 +1240,7 @@
         }
 
         // 📊 Track HiBase usage
-        import('/lib/monitoring/HiMonitor.js').then(m => 
+        import./lib/monitoring/HiMonitor.js').then(m => 
           m.trackEvent('profile_save', { 
             source: 'profile', 
             path: 'hibase'
@@ -1265,7 +1265,7 @@
         }
 
         // 📊 Track legacy usage
-        import('/lib/monitoring/HiMonitor.js').then(m => 
+        import./lib/monitoring/HiMonitor.js').then(m => 
           m.trackEvent('profile_save', { 
             source: 'profile', 
             path: 'legacy'
@@ -1608,7 +1608,7 @@
         showToast('Tesla-grade avatar saved successfully! 🚀');
         
         // 📊 Analytics: Track successful profile save
-        import('/lib/monitoring/HiMonitor.js').then(m => 
+        import./lib/monitoring/HiMonitor.js').then(m => 
           m.trackEvent('profile_save', { avatar: true })
         ).catch(() => {}); // Silent fail
         
@@ -2243,7 +2243,7 @@ FOR INSERT WITH CHECK (
           data = profileResult.data?.profile ? [profileResult.data.profile] : [];
           
           // 📊 Track HiBase usage
-          import('/lib/monitoring/HiMonitor.js').then(m => 
+          import./lib/monitoring/HiMonitor.js').then(m => 
             m.trackEvent('profile_load', { 
               source: 'profile', 
               path: 'hibase'
@@ -2270,7 +2270,7 @@ FOR INSERT WITH CHECK (
           }
 
           // 📊 Track legacy usage
-          import('/lib/monitoring/HiMonitor.js').then(m => 
+          import./lib/monitoring/HiMonitor.js').then(m => 
             m.trackEvent('profile_load', { 
               source: 'profile', 
               path: 'legacy'

@@ -114,7 +114,7 @@
                 
                 // Test HiFlags.js system
                 console.log('Testing HiFlags.js system...');
-                const { HiFlags } = await import('/lib/flags/HiFlags.js');
+                const { HiFlags } = await import./lib/flags/HiFlags.js');
                 
                 if (HiFlags && typeof HiFlags.isEnabled === 'function') {
                     const hifeedFlag = HiFlags.isEnabled('hifeed_enabled');
@@ -144,7 +144,7 @@
             
             try {
                 console.log('Testing HiFeed module loading...');
-                const hifeedModule = await import('/lib/hifeed/index.js');
+                const hifeedModule = await import./lib/hifeed/index.js');
                 
                 if (hifeedModule && hifeedModule.getUnifiedFeed) {
                     html += `<div class="success">✅ HiFeed module loaded successfully</div>`;
@@ -178,7 +178,7 @@
             
             try {
                 console.log('Testing HiFeed component...');
-                const { HiFeed } = await import('/ui/HiFeed/HiFeed.js');
+                const { HiFeed } = await import./ui/HiFeed/HiFeed.js');
                 
                 if (HiFeed && typeof HiFeed.init === 'function') {
                     html += `<div class="success">✅ HiFeed component loaded</div>`;
@@ -199,7 +199,7 @@
                 }
                 
                 console.log('Testing HiStreaks component...');
-                const { HiStreaks } = await import('/ui/HiStreaks/HiStreaks.js');
+                const { HiStreaks } = await import./ui/HiStreaks/HiStreaks.js');
                 
                 if (HiStreaks && typeof HiStreaks.init === 'function') {
                     html += `<div class="success">✅ HiStreaks component loaded</div>`;

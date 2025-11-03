@@ -7,13 +7,13 @@
   
   <!-- Flag Init Guard -->
   <script type="module">
-    import * as HiFlags from '../lib/flags/HiFlags.js';
+    import * as HiFlags from ./lib/flags/HiFlags.js';
     await HiFlags.waitUntilReady();
   </script>
   
   <!-- PWA Meta Tags -->
-  <link rel="icon" href="../favicon.ico">
-  <link rel="manifest" href="../manifest.json">
+  <link rel="icon" href="./favicon.ico">
+  <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#FFD166">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -26,7 +26,7 @@
 
   <!-- 🚀 Hi Flow Controller - Smart routing for welcome experience -->
   <link rel="stylesheet" href="assets/hi-flow-controller.css">
-  <script src="../lib/HiMembership.js"></script>
+  <script src=./lib/HiMembership.js"></script>
   <!-- TEMPORARILY DISABLED: Access tiers has function errors -->
   <!-- <script src="assets/hi-access-tiers.js"></script> -->
   <script src="assets/hi-flow-controller.js"></script>
@@ -37,7 +37,7 @@
 
   <!-- 🔥 HiBase - Unified Database Access Layer -->
   <script type="module">
-    import HiBase from '../lib/hibase/index.js';
+    import HiBase from ./lib/hibase/index.js';
     console.log('🔥 HiBase ready - unified API online');
     
     // Make available for console testing
@@ -50,8 +50,8 @@
   <link rel="stylesheet" href="assets/tesla-edge-protection.css">
   
   <!-- HI DEV: Tesla-Grade HiMedallion Component -->
-  <link rel="preload" href="../ui/HiMedallion/HiMedallion.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="../ui/HiMedallion/HiMedallion.css"></noscript>
+  <link rel="preload" href="./ui/HiMedallion/HiMedallion.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="./ui/HiMedallion/HiMedallion.css"></noscript>
   
   <!-- HI DEV: Fast Brand Controls - Page-Specific Medallion Overrides -->
   <style>
@@ -76,7 +76,7 @@
   
   <!-- HI-OS: Tesla-Grade HiMetrics Adapter (30s Cache + Subscribers) -->
   <script type="module">
-    import HiMetrics from './lib/HiMetrics.js';
+    import HiMetrics from ./lib/HiMetrics.js';
     
     // Tesla-grade metrics adapter with cache + subscriber pattern
     async function initWelcomeMetrics() {
@@ -675,15 +675,15 @@
       </div>
     </div>
   </main>
-  <script src="../lib/HiSupabase.js"></script>
-  <script src="../lib/HiDB.js"></script>
+  <script src="./lib/HiSupabase.js"></script>
+  <script src="./lib/HiDB.js"></script>
   
   <!-- 🎬 TESLA-GRADE LOADING EXPERIENCE V2.0 -->
   <script>
     // Tesla-grade auth check with beautiful loading experience
     async function checkAuthWithLoadingExperience() {
       try {
-        const { getClient } = await import('/lib/HiSupabase.js');
+        const { getClient } = await import./lib/HiSupabase.js');
         const supa = getClient();
         if (!supa) return;
         
@@ -846,16 +846,16 @@
   </script>
   
   <!-- 📊 Production Monitoring Layer -->
-  <script type="module" src="/lib/monitoring/HiMonitor.js"></script>
+  <script type="module" src./lib/monitoring/HiMonitor.js"></script>
   
   <!-- 🚩 Tesla-Grade Feature Flags System -->
-  <script type="module" src="/lib/flags/HiFlags.js"></script>
+  <script type="module" src./lib/flags/HiFlags.js"></script>
   
   <!-- 🎁 HiBase Referral Code Handler -->
   <script type="module">
-    import HiBase from '/lib/hibase/index.js';
-    import { HiFlags } from '/lib/flags/HiFlags.js';
-    import { HiMonitor } from '/lib/monitoring/HiMonitor.js';
+    import HiBase from./lib/hibase/index.js';
+    import { HiFlags } from./lib/flags/HiFlags.js';
+    import { HiMonitor } from./lib/monitoring/HiMonitor.js';
 
     // Handle referral and gift codes from URL
     async function handleReferralCode() {
@@ -997,7 +997,7 @@
   
   <!-- HI DEV: Tesla-Grade HiMedallion Component -->
   <script type="module">
-    import { mountHiMedallion } from '../ui/HiMedallion/HiMedallion.js';
+    import { mountHiMedallion } from './ui/HiMedallion/HiMedallion.js';
     
     document.addEventListener('DOMContentLoaded', () => {
       // Initialize HiMedallion with navigation override for welcome page

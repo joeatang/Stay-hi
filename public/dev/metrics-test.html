@@ -196,7 +196,7 @@
 
   <!-- Load Dependencies -->
   <script src="https://gfcubvroxgfvjhacinic.supabase.co/functions/v1/supabase-js/2"></script>
-  <script src="../lib/hibase/HiBaseClient.js"></script>
+  <script src="./lib/hibase/HiBaseClient.js"></script>
 
   <script>
     // Test state
@@ -246,7 +246,7 @@
         }
         
         // Load HiBase stats module
-        const { getHiWaves, getTotalHi5s, insertMedallionTap, getMetrics } = await import('../lib/hibase/stats.js');
+        const { getHiWaves, getTotalHi5s, insertMedallionTap, getMetrics } = await import('./lib/hibase/stats.js');
         
         // Expose to window for testing
         window.HiBaseStats = { getHiWaves, getTotalHi5s, insertMedallionTap, getMetrics };

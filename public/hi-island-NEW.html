@@ -136,8 +136,8 @@
   </style>
   
   <!-- HiFooter CSS - Dashboard Parity -->
-  <link rel="preload" href="../ui/HiFooter/HiFooter.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="../ui/HiFooter/HiFooter.css"></noscript>
+  <link rel="preload" href="./ui/HiFooter/HiFooter.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="./ui/HiFooter/HiFooter.css"></noscript>
 </head>
 <body data-page="hi-island">
   <!-- Header (shared component) -->
@@ -183,14 +183,14 @@
   <!-- HiBase Integration (Flagged Rollout) -->
   <script type="module">
     // Import HiBase shares for flagged rollout
-    window.HiBase_shares = await import('../lib/hibase/shares.js');
+    window.HiBase_shares = await import('./lib/hibase/shares.js');
     console.log('🔥 HiBase shares module loaded for Hi Island feed integration');
   </script>
   
   <!-- 🔥 Phase 7: Hi Experience Layer Components (Feature Flagged) -->
-  <script src="../lib/hifeed/index.js"></script>
-  <script src="../ui/HiFeed/HiFeed.js"></script>
-  <script src="../ui/HiStreaks/HiStreaks.js"></script>
+  <script src="./lib/hifeed/index.js"></script>
+  <script src="./ui/HiFeed/HiFeed.js"></script>
+  <script src="./ui/HiStreaks/HiStreaks.js"></script>
 
   <!-- Component Scripts -->
   <script src="ui/HiShareSheet/HiShareSheet.js" type="module"></script>
@@ -199,10 +199,10 @@
   <script src="components/profile-preview-modal/profile-modal.js" type="module"></script>
   
   <!-- Header (Load synchronously - no defer) -->
-  <script src="../ui/HiHeader/HiHeader.js"></script>
+  <script src="./ui/HiHeader/HiHeader.js"></script>
   
   <!-- Footer - Dashboard Parity -->
-  <script src="../ui/HiFooter/HiFooter.js" defer></script>
+  <script src="./ui/HiFooter/HiFooter.js" defer></script>
   
   <!-- Premium Calendar (Flagship - matches index.html) -->
   <script src="assets/premium-calendar.js"></script>
@@ -245,8 +245,8 @@
     async function initializeHiExperienceLayer() {
       try {
         // Check if hifeed_enabled flag is active (cohort-aware)
-        const { isEnabledCohort } = await import('../lib/flags/HiFlags.js');
-        const { trackEvent } = await import('../lib/monitoring/HiMonitor.js');
+        const { isEnabledCohort } = await import('./lib/flags/HiFlags.js');
+        const { trackEvent } = await import('./lib/monitoring/HiMonitor.js');
         
         const flagEnabled = await isEnabledCohort('hifeed_enabled');
         

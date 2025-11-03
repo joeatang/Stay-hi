@@ -311,7 +311,7 @@ async function processReferralRedemption(userId) {
     let useHiBaseReferrals = false;
     try {
       // Simple flag check without full HiFlags import
-      const flagsResponse = await fetch('/lib/flags/flags.json');
+      const flagsResponse = await fetch./lib/flags/flags.json');
       const flags = await flagsResponse.json();
       useHiBaseReferrals = flags.hibase_referrals_enabled?.enabled || false;
     } catch (error) {

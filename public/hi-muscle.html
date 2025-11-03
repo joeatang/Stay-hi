@@ -18,7 +18,7 @@
 
   <!-- Tesla-grade auth system - health monitor first -->
   <script src="assets/url-path-fixer.js"></script>
-  <script src="../lib/HiSupabase.js"></script>
+  <script src="./lib/HiSupabase.js"></script>
   <!-- 🚀 Tesla-Grade Anonymous Access Modal System -->
   <script src="assets/anonymous-access-modal.js"></script>
 
@@ -26,8 +26,8 @@
   <link rel="stylesheet" href="assets/theme.css"/>
   <link rel="stylesheet" href="assets/create-parity.css"/>
   <link rel="stylesheet" href="assets/premium-ux.css"/>
-  <link rel="stylesheet" href="../ui/HiFooter/HiFooter.css"/>
-  <link rel="stylesheet" href="../ui/HiModal/HiModal.css">
+  <link rel="stylesheet" href="./ui/HiFooter/HiFooter.css"/>
+  <link rel="stylesheet" href="./ui/HiModal/HiModal.css">
   
   <!-- 🌟 Unified Share Sheet System -->
   <link rel="stylesheet" href="ui/HiShareSheet/HiShareSheet.css"/>
@@ -682,15 +682,15 @@
   <div id="toast" class="toast">Saved</div>
 
   <!-- order matters -->
-  <script src="../lib/HiSupabase.js"></script>
+  <script src="./lib/HiSupabase.js"></script>
   <script src="assets/auth.js"></script>
-  <script src="../lib/HiDB.js"></script>
+  <script src="./lib/HiDB.js"></script>
   
   <!-- 🚀 INTEGRATION #1A: HiBase + HiFlags for HiGYM shares (flagged rollout) -->
-  <script src="../lib/flags/HiFlags.js"></script>
-  <script src="../lib/hibase/index.js"></script>
+  <script src="./lib/flags/HiFlags.js"></script>
+  <script src="./lib/hibase/index.js"></script>
   <script src="assets/geocoding-service.js"></script>
-  <script src="../ui/HiHeader/HiHeader.js" defer></script>
+  <script src="./ui/HiHeader/HiHeader.js" defer></script>
   <script src="assets/emotions.js"></script>
   <script src="assets/hi-gym.js"></script>
 
@@ -956,7 +956,7 @@
           }
 
           // 📊 Track HiBase usage
-          import('/lib/monitoring/HiMonitor.js').then(m => 
+          import./lib/monitoring/HiMonitor.js').then(m => 
             m.trackEvent('hibase_share_success', { 
               source: 'higym', 
               path: 'hibase'
@@ -999,7 +999,7 @@
               }
 
               // 📊 Track HiBase streak usage for HiGYM
-              import('/lib/monitoring/HiMonitor.js').then(m => 
+              import./lib/monitoring/HiMonitor.js').then(m => 
                 m.trackEvent('streak_update', { 
                   path: 'hibase', 
                   type: 'HiGYM',
@@ -1019,7 +1019,7 @@
             // Legacy streak logic for HiGYM would go here
             
             // 📊 Track legacy streak usage
-            import('/lib/monitoring/HiMonitor.js').then(m => 
+            import./lib/monitoring/HiMonitor.js').then(m => 
               m.trackEvent('streak_update', { 
                 path: 'legacy', 
                 type: 'HiGYM',
@@ -1062,7 +1062,7 @@
           });
 
           // 📊 Track legacy usage
-          import('/lib/monitoring/HiMonitor.js').then(m => 
+          import./lib/monitoring/HiMonitor.js').then(m => 
             m.trackEvent('hibase_share_success', { 
               source: 'higym', 
               path: 'legacy'
@@ -1095,7 +1095,7 @@
               }
 
               // 📊 Track HiBase streak usage in legacy share context
-              import('/lib/monitoring/HiMonitor.js').then(m => 
+              import./lib/monitoring/HiMonitor.js').then(m => 
                 m.trackEvent('streak_update', { 
                   path: 'hibase', 
                   type: 'HiGYM',
@@ -1111,7 +1111,7 @@
             }
           } else {
             // 📊 Track legacy streak usage
-            import('/lib/monitoring/HiMonitor.js').then(m => 
+            import./lib/monitoring/HiMonitor.js').then(m => 
               m.trackEvent('streak_update', { 
                 path: 'legacy', 
                 type: 'HiGYM',
@@ -1125,7 +1125,7 @@
         closeSheet();
         
         // 📊 Analytics: Track successful gym submission
-        import('/lib/monitoring/HiMonitor.js').then(m => 
+        import./lib/monitoring/HiMonitor.js').then(m => 
           m.trackEvent('gym_submit', { 
             moodFrom: state.current?.name,
             moodTo: state.desired?.name,
@@ -1541,7 +1541,7 @@
     })();
   </script>
   <script src="assets/premium-ux.js"></script>
-  <script src="../ui/HiFooter/HiFooter.js" defer></script>
+  <script src="./ui/HiFooter/HiFooter.js" defer></script>
   
   <!-- 🚀 PWA Manager -->
   <script src="assets/pwa-manager.js"></script>

@@ -259,7 +259,7 @@
         async function checkFlags() {
             try {
                 // Try to load HiFlags
-                const flagsModule = await import('/lib/flags/HiFlags.js').catch(() => null);
+                const flagsModule = await import./lib/flags/HiFlags.js').catch(() => null);
                 if (!flagsModule || !window.HiFlags) {
                     throw new Error('HiFlags module not available');
                 }
@@ -275,7 +275,7 @@
         async function checkCohort() {
             try {
                 // Try to load HiRollout
-                const rolloutModule = await import('/lib/rollout/HiRollout.js').catch(() => null);
+                const rolloutModule = await import./lib/rollout/HiRollout.js').catch(() => null);
                 if (!rolloutModule || !window.HiRollout) {
                     throw new Error('HiRollout module not available');
                 }
@@ -293,7 +293,7 @@
         async function checkHiBase() {
             try {
                 // Try to load HiBase
-                const hibaseModule = await import('/lib/hibase/index.js').catch(() => null);
+                const hibaseModule = await import./lib/hibase/index.js').catch(() => null);
                 if (!hibaseModule || !window.HiBase) {
                     throw new Error('HiBase module not available');
                 }
@@ -313,7 +313,7 @@
         async function checkTelemetry() {
             try {
                 // Try to load HiMonitor
-                const monitorModule = await import('/lib/monitor/HiMonitor.js').catch(() => null);
+                const monitorModule = await import./lib/monitor/HiMonitor.js').catch(() => null);
                 if (!monitorModule || !window.HiMonitor) {
                     throw new Error('HiMonitor module not available');
                 }

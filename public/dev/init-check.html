@@ -164,14 +164,14 @@
   </div>
 
   <!-- Required Dependencies -->
-  <script src="../lib/HiSupabase.js"></script>
-  <script src="../lib/hibase/index.js"></script>
-  <script src="../lib/flags/HiFlags.js"></script>
+  <script src="./lib/HiSupabase.js"></script>
+  <script src="./lib/hibase/index.js"></script>
+  <script src="./lib/flags/HiFlags.js"></script>
 
   <!-- Components Under Test -->
   <script type="module">
     // A4: Proper import order test (Hi System Pattern)
-    import { HiShareSheet } from '../ui/HiShareSheet/HiShareSheet.js';
+    import { HiShareSheet } from './ui/HiShareSheet/HiShareSheet.js';
     import { HiCalendar } from '../components/hi-calendar/calendar.js';
 
     let shareSheetInstance = null;
