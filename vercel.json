@@ -2,8 +2,7 @@
   "version": 2,
   "cleanUrls": true,
   "trailingSlash": false,
-  "outputDirectory": ".",
-  "public": true,
+  "outputDirectory": "public",
   
   "headers": [
     {
@@ -21,13 +20,13 @@
   ],
   
   "rewrites": [
-    { "source": "/", "destination": "/public/welcome.html" },
-    { "source": "/welcome", "destination": "/public/welcome.html" },
-    { "source": "/signin", "destination": "/public/signin.html" },
-    { "source": "/signup", "destination": "/public/signup.html" },
-    { "source": "/hi-island", "destination": "/public/hi-island-NEW.html" },
-    { "source": "/hi-muscle", "destination": "/public/hi-muscle.html" },
-    { "source": "/hi-dashboard", "destination": "/public/hi-dashboard.html" }
+    { "source": "/", "destination": "/welcome.html" },
+    { "source": "/welcome", "destination": "/welcome.html" },
+    { "source": "/signin", "destination": "/signin.html" },
+    { "source": "/signup", "destination": "/signup.html" },
+    { "source": "/hi-island", "destination": "/hi-island-NEW.html" },
+    { "source": "/hi-muscle", "destination": "/hi-muscle.html" },
+    { "source": "/hi-dashboard", "destination": "/hi-dashboard.html" }
   ],
   
   "redirects": [
