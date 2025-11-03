@@ -39,96 +39,94 @@
     console.log('🔥 HiBase shares module loaded for dashboard integration');
   </script>
   
-  <!-- HI-OS: Stats Init Guard - Prevent duplicate calls -->
+  <!-- HI-OS: Tesla-Grade HiMetrics Adapter (30s Cache + Dashboard Globals) -->
   <script type="module">
-    import { initHiStatsOnce } from '../ui/stats/initHiStats.js';
+    import HiMetrics from './lib/HiMetrics.js';
     
-    // Single unified stats loader for dashboard
-    async function loadDashboardStats() {
-      console.log('[HiStats] Loading dashboard metrics...');
-      
+    // Tesla-grade dashboard metrics with global variable compatibility
+    async function initDashboardMetrics() {
       try {
-        // Check if metrics separation is enabled
-        const useMetricsSeparation = await window.HiFlags?.getFlag('metrics_separation_enabled', true);
+        console.log('[Dashboard] Initializing HiMetrics adapter...');
         
-        if (useMetricsSeparation && window.HiBase?.stats?.getMetrics) {
-          console.log('[HiStats] Using HiBase.stats.getMetrics()...');
-          const metrics = await window.HiBase.stats.getMetrics();
+        // Subscribe to metric updates for live dashboard
+        const unsubscribe = HiMetrics.subscribe('dashboard-page', (metrics, cacheInfo) => {
+          console.log('[Dashboard] Metrics updated:', metrics);
           
-          // Handle Hi Waves (medallion taps)
-          let gWaves = 0;
-          if (metrics.waves.error) {
-            console.error('❌ Failed to load Hi Waves:', metrics.waves.error);
-          } else {
-            gWaves = metrics.waves.data || 0;
+          // Update global variables for legacy dashboard code compatibility
+          window.gWaves = metrics.waves || 0;
+          window.gTotalHis = metrics.hi5s || 0;
+          window.gUsers = 0; // Legacy fallback - not separated yet
+          
+          // Update debug badge (show during development)
+          if (window.location.hostname === 'localhost' || window.location.search.includes('debug=1')) {
+            const debugEl = document.getElementById('hiMetricsDebugDash');
+            const statusEl = document.getElementById('dashMetricsStatus');
+            const cacheEl = document.getElementById('dashCacheAge');
+            
+            if (debugEl && statusEl && cacheEl) {
+              debugEl.style.display = 'block';
+              statusEl.textContent = cacheInfo?.fromCache ? '✅' : '🔄';
+              cacheEl.textContent = `Cache: ${cacheInfo?.ageSeconds || 0}s`;
+            }
           }
           
-          // Handle Total Hi5s (share submissions) 
-          let gTotalHis = 0;
-          if (metrics.hi5s.error) {
-            console.error('❌ Failed to load Total Hi5s:', metrics.hi5s.error);
-          } else {
-            gTotalHis = metrics.hi5s.data || 0;
-          }
-          
-          // Make global for other dashboard code
-          window.gWaves = gWaves;
-          window.gTotalHis = gTotalHis;
-          window.gUsers = 0; // Legacy fallback
-          
-          console.log('[HiStats] ✅ Dashboard metrics loaded via HiBase.stats', { gWaves, gTotalHis });
-          
-          // Update UI if update function exists
+          // Trigger UI update if legacy function exists
           if (window.updateGlobalStats) {
             window.updateGlobalStats();
           }
           
-          // Load user streak data
+          // Load user streak data if function exists
           if (window.loadUserStreak) {
             window.loadUserStreak();
           }
-          
-        } else {
-          // Fallback to legacy system
-          console.log('[HiStats] Fallback to legacy get_global_stats RPC...');
-          if (window.db?.rpc) {
-            const { data, error } = await window.db.rpc('get_global_stats');
-            if (data && !error) {
-              const stats = data[0];
-              window.gWaves = stats.hi_waves || stats.total_hi_waves || 0;
-              window.gTotalHis = stats.total_his || 0;
-              window.gUsers = stats.total_users || stats.active_users_24h || 0;
-              
-              console.log('[HiStats] ✅ Dashboard stats loaded via legacy RPC', { 
-                gWaves: window.gWaves, 
-                gTotalHis: window.gTotalHis, 
-                gUsers: window.gUsers 
-              });
-              
-              if (window.updateGlobalStats) {
-                window.updateGlobalStats();
-              }
-              
-              // Load user streak data  
-              if (window.loadUserStreak) {
-                window.loadUserStreak();
-              }
-            }
-          } else {
-            console.warn('[HiStats] ⚠️ No database connection available');
-          }
-        }
+        });
+        
+        // Load initial metrics (will use cache if available)
+        const metrics = await HiMetrics.load();
+        console.log('[Dashboard] ✅ HiMetrics adapter initialized with globals', {
+          gWaves: window.gWaves,
+          gTotalHis: window.gTotalHis,
+          gUsers: window.gUsers
+        });
+        
+        // Store unsubscribe function for cleanup
+        window.dashboardMetricsCleanup = unsubscribe;
+        
+        // Make legacy loader available for compatibility
+        window.hiStatsLoader = () => HiMetrics.load();
+        
       } catch (error) {
-        console.error('[HiStats] ❌ Dashboard stats loading failed:', error);
+        console.error('[Dashboard] HiMetrics initialization failed:', error);
+        
+        // Legacy fallback for safety
+        try {
+          if (window.HiBase?.stats?.getMetrics) {
+            const metrics = await window.HiBase.stats.getMetrics();
+            window.gWaves = metrics.waves?.data || 0;
+            window.gTotalHis = metrics.hi5s?.data || 0;
+            window.gUsers = 0;
+            
+            if (window.updateGlobalStats) {
+              window.updateGlobalStats();
+            }
+            
+            console.log('[Dashboard] ✅ Fallback stats loaded');
+          }
+        } catch (fallbackError) {
+          console.error('[Dashboard] Fallback also failed:', fallbackError);
+        }
       }
     }
     
-    // Make the loader available globally for legacy code
-    window.hiStatsLoader = loadDashboardStats;
+    // Initialize when DOM is ready
+    window.addEventListener('DOMContentLoaded', initDashboardMetrics);
     
-    // Initialize stats once per page load
-    window.addEventListener('DOMContentLoaded', () => {
-      initHiStatsOnce(loadDashboardStats);
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      if (window.dashboardMetricsCleanup) {
+        window.dashboardMetricsCleanup();
+        console.log('[Dashboard] HiMetrics subscription cleaned up');
+      }
     });
   </script>
   
@@ -729,6 +727,14 @@
         <div class="stat-content">
           <span class="stat-number" id="userStreak">0</span>
           <span class="stat-label">Streak</span>
+        </div>
+      </div>
+      <!-- HiMetrics Debug Badge -->
+      <div class="global-stat" id="hiMetricsDebugDash" style="display: none; opacity: 0.7; font-size: 0.8rem;">
+        <span class="stat-icon">🔧</span>
+        <div class="stat-content">
+          <span class="stat-number" id="dashMetricsStatus">init</span>
+          <span class="stat-label" id="dashCacheAge">Cache: 0s</span>
         </div>
       </div>
     </div>
@@ -1611,6 +1617,7 @@
   </script>
 
   <!-- 🌍 Tesla-Grade Unified Global Stats System -->
-  <script src="assets/hi-unified-global-stats.js"></script>
+  <!-- DISABLED: Legacy stats system replaced by HiMetrics adapter -->
+  <!-- <script src="assets/hi-unified-global-stats.js"></script> -->
 </body>
 </html>

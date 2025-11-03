@@ -27,7 +27,8 @@
   <!-- 🚀 Hi Flow Controller - Smart routing for welcome experience -->
   <link rel="stylesheet" href="assets/hi-flow-controller.css">
   <script src="../lib/HiMembership.js"></script>
-  <script src="assets/hi-access-tiers.js"></script>
+  <!-- TEMPORARILY DISABLED: Access tiers has function errors -->
+  <!-- <script src="assets/hi-access-tiers.js"></script> -->
   <script src="assets/hi-flow-controller.js"></script>
   
   <!-- 🎬 Tesla-Grade Loading Experience V2.0 -->
@@ -73,55 +74,78 @@
   <!-- Beta Systems -->
   <script type="module" src="assets/hi-rewards-beta.js"></script>
   
-  <!-- HI-OS: Stats Init Guard - Prevent duplicate calls -->
+  <!-- HI-OS: Tesla-Grade HiMetrics Adapter (30s Cache + Subscribers) -->
   <script type="module">
-    import { initHiStatsOnce } from '../ui/stats/initHiStats.js';
+    import HiMetrics from './lib/HiMetrics.js';
     
-    // Single unified stats loader for welcome page
-    async function loadWelcomeStats() {
-      console.log('[HiStats] Loading welcome page metrics...');
-      
-      // Check for HiBase.stats first (preferred)
-      if (window.HiBase?.stats?.getMetrics) {
-        console.log('[HiStats] Using HiBase.stats.getMetrics()...');
-        const metrics = await window.HiBase.stats.getMetrics();
+    // Tesla-grade metrics adapter with cache + subscriber pattern
+    async function initWelcomeMetrics() {
+      try {
+        console.log('[Welcome] Initializing HiMetrics adapter...');
         
-        // Update DOM with separated metrics
-        if (metrics.waves?.data !== null) {
+        // Subscribe to metric updates
+        const unsubscribe = HiMetrics.subscribe('welcome-page', (metrics, cacheInfo) => {
+          console.log('[Welcome] Metrics updated:', metrics);
+          
+          // Update DOM elements with cached metrics
           const wavesEl = document.getElementById('globalWaves');
-          if (wavesEl) wavesEl.textContent = (metrics.waves.data || 0).toLocaleString();
-        }
-        
-        if (metrics.hi5s?.data !== null) {
           const hi5sEl = document.getElementById('totalHis');
-          if (hi5sEl) hi5sEl.textContent = (metrics.hi5s.data || 0).toLocaleString();
-        }
-        
-        console.log('[HiStats] ✅ Welcome stats loaded via HiBase.stats');
-      } else {
-        // Fallback to legacy RPC call
-        console.log('[HiStats] Fallback to legacy RPC...');
-        const { getClient } = await import('/lib/HiSupabase.js');
-        const supa = getClient();
-        if (supa) {
-          const { data, error } = await supa.rpc('get_global_stats');
-          if (data && !error) {
-            const realStats = Array.isArray(data) ? data[0] : data;
-            const wavesEl = document.getElementById('globalWaves');
-            const hi5sEl = document.getElementById('totalHis');
-            
-            if (wavesEl) wavesEl.textContent = (Number(realStats.hi_waves) || 0).toLocaleString();
-            if (hi5sEl) hi5sEl.textContent = (Number(realStats.total_his) || 0).toLocaleString();
-            
-            console.log('[HiStats] ✅ Welcome stats loaded via legacy RPC');
+          
+          if (wavesEl && metrics.waves !== null) {
+            wavesEl.textContent = (metrics.waves || 0).toLocaleString();
           }
+          
+          if (hi5sEl && metrics.hi5s !== null) {
+            hi5sEl.textContent = (metrics.hi5s || 0).toLocaleString();
+          }
+          
+          // Update debug badge (show during development)
+          if (window.location.hostname === 'localhost' || window.location.search.includes('debug=1')) {
+            const debugEl = document.getElementById('hiMetricsDebug');
+            const statusEl = document.getElementById('metricsStatus');
+            const cacheEl = document.getElementById('cacheAge');
+            
+            if (debugEl && statusEl && cacheEl) {
+              debugEl.style.display = 'block';
+              statusEl.textContent = cacheInfo?.fromCache ? 'cached ✅' : 'fresh 🔄';
+              cacheEl.textContent = cacheInfo?.ageSeconds ? `${cacheInfo.ageSeconds}s` : '0s';
+            }
+          }
+        });
+        
+        // Load initial metrics (will use cache if available)
+        const metrics = await HiMetrics.load();
+        console.log('[Welcome] ✅ HiMetrics adapter initialized');
+        
+        // Store unsubscribe function for cleanup
+        window.welcomeMetricsCleanup = unsubscribe;
+        
+      } catch (error) {
+        console.error('[Welcome] HiMetrics initialization failed:', error);
+        
+        // Legacy fallback for safety
+        if (window.HiBase?.stats?.getMetrics) {
+          const metrics = await window.HiBase.stats.getMetrics();
+          const wavesEl = document.getElementById('globalWaves');
+          const hi5sEl = document.getElementById('totalHis');
+          
+          if (wavesEl) wavesEl.textContent = (metrics.waves?.data || 0).toLocaleString();
+          if (hi5sEl) hi5sEl.textContent = (metrics.hi5s?.data || 0).toLocaleString();
+          
+          console.log('[Welcome] ✅ Fallback stats loaded');
         }
       }
     }
     
-    // Initialize stats once per page load
-    window.addEventListener('DOMContentLoaded', () => {
-      initHiStatsOnce(loadWelcomeStats);
+    // Initialize when DOM is ready
+    window.addEventListener('DOMContentLoaded', initWelcomeMetrics);
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      if (window.welcomeMetricsCleanup) {
+        window.welcomeMetricsCleanup();
+        console.log('[Welcome] HiMetrics subscription cleaned up');
+      }
     });
   </script>
   
@@ -643,6 +667,12 @@
           <span class="stats-live-indicator"></span>
         </span>
       </div>
+      <!-- HiMetrics Debug Badge -->
+      <div class="stat-item" id="hiMetricsDebug" style="grid-column: 1 / -1; margin-top: 0.5rem; display: none;">
+        <span style="font-size: 0.65rem; opacity: 0.6; color: #FFD166;">
+          🔧 HiMetrics: <span id="metricsStatus">initializing...</span> | Cache: <span id="cacheAge">0s</span>
+        </span>
+      </div>
     </div>
   </main>
   <script src="../lib/HiSupabase.js"></script>
@@ -804,7 +834,8 @@
   </script>
 
   <!-- 🌍 Tesla-Grade Unified Global Stats System -->
-  <script src="assets/hi-unified-global-stats.js"></script>
+  <!-- DISABLED: Legacy stats system replaced by HiMetrics adapter -->
+  <!-- <script src="assets/hi-unified-global-stats.js"></script> -->
   
   <!-- 📊 Monitoring Configuration (Non-Secret) -->
   <script>
