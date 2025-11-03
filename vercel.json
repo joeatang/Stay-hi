@@ -5,21 +5,21 @@
   
   "headers": [
     {
-      "source": "**/*.js",
+      "source": "/(.*)\\.js",
       "headers": [
         { "key": "Content-Type", "value": "application/javascript; charset=utf-8" },
         { "key": "Cache-Control", "value": "public, max-age=3600" }
       ]
     },
     {
-      "source": "**/*.css",
+      "source": "/(.*)\\.css",
       "headers": [
         { "key": "Content-Type", "value": "text/css; charset=utf-8" },
         { "key": "Cache-Control", "value": "public, max-age=3600" }
       ]
     },
     {
-      "source": "**/*.json",
+      "source": "/(.*)\\.json",
       "headers": [
         { "key": "Content-Type", "value": "application/json; charset=utf-8" }
       ]
