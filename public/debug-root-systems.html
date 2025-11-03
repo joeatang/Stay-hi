@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hi System Debug - Root Verification</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #0a0a0a; color: #fff; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #333; border-radius: 4px; }
+        .pass { border-color: #4CAF50; background: rgba(76, 175, 80, 0.1); }
+        .fail { border-color: #f44336; background: rgba(244, 67, 54, 0.1); }
+        .pending { border-color: #ff9800; background: rgba(255, 152, 0, 0.1); }
+    </style>
+</head>
+<body>
+    <h1>🔍 Hi System Root Verification</h1>
+    <p>Testing core systems from the foundation up...</p>
+    
+    <div id="test-imports" class="test pending">
+        <strong>Test 1: Module Imports</strong>
+        <div id="imports-result">Testing HiMetrics import...</div>
+    </div>
+    
+    <div id="test-hibase" class="test pending">
+        <strong>Test 2: HiBase Connection</strong>
+        <div id="hibase-result">Testing database connection...</div>
+    </div>
+    
+    <div id="test-stats" class="test pending">
+        <strong>Test 3: Stats Functions</strong>
+        <div id="stats-result">Testing get_hi_waves & get_total_hi5s...</div>
+    </div>
+    
+    <div id="test-medallion" class="test pending">
+        <strong>Test 4: Medallion Function</strong>
+        <div id="medallion-result">Testing insert_medallion_tap...</div>
+    </div>
+    
+    <script type="module">
+        async function runTests() {
+            // Test 1: HiMetrics Import
+            try {
+                const HiMetrics = await import('./lib/HiMetrics.js');
+                document.getElementById('imports-result').textContent = '✅ HiMetrics imported successfully';
+                document.getElementById('test-imports').className = 'test pass';
+                
+                // Test 2: HiBase Connection  
+                const HiBase = await import('./lib/hibase/index.js');
+                if (HiBase.default) {
+                    document.getElementById('hibase-result').textContent = '✅ HiBase available';
+                    document.getElementById('test-hibase').className = 'test pass';
+                    
+                    // Test 3: Stats Functions
+                    try {
+                        const metrics = await HiBase.default.stats.getMetrics();
+                        const wavesData = metrics.waves?.data;
+                        const hi5sData = metrics.hi5s?.data;
+                        
+                        document.getElementById('stats-result').innerHTML = 
+                            `✅ Stats working: Waves=${wavesData}, Hi5s=${hi5sData}<br>` +
+                            `Waves error: ${metrics.waves?.error || 'none'}<br>` +
+                            `Hi5s error: ${metrics.hi5s?.error || 'none'}`;
+                        document.getElementById('test-stats').className = 'test pass';
+                        
+                        // Test 4: Medallion Function
+                        try {
+                            const tapResult = await HiBase.default.stats.insertMedallionTap(null);
+                            document.getElementById('medallion-result').innerHTML = 
+                                `✅ Medallion tap: ${JSON.stringify(tapResult)}`;
+                            document.getElementById('test-medallion').className = 'test pass';
+                        } catch (error) {
+                            document.getElementById('medallion-result').innerHTML = 
+                                `❌ Medallion tap failed: ${error.message}`;
+                            document.getElementById('test-medallion').className = 'test fail';
+                        }
+                        
+                    } catch (error) {
+                        document.getElementById('stats-result').innerHTML = 
+                            `❌ Stats failed: ${error.message}`;
+                        document.getElementById('test-stats').className = 'test fail';
+                    }
+                    
+                } else {
+                    throw new Error('HiBase not available');
+                }
+                
+            } catch (error) {
+                if (error.message.includes('HiMetrics')) {
+                    document.getElementById('imports-result').textContent = `❌ HiMetrics import failed: ${error.message}`;
+                    document.getElementById('test-imports').className = 'test fail';
+                } else {
+                    document.getElementById('hibase-result').textContent = `❌ HiBase failed: ${error.message}`;
+                    document.getElementById('test-hibase').className = 'test fail';
+                }
+            }
+        }
+        
+        runTests();
+    </script>
+</body>
+</html>

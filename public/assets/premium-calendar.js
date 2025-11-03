@@ -418,15 +418,8 @@ class PremiumCalendar {
   }
 }
 
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-  window.PremiumCalendar = new PremiumCalendar();
-});
-
-// Also initialize immediately if DOM is already ready
-if (document.readyState !== 'loading') {
-  window.PremiumCalendar = new PremiumCalendar();
-}
+// Expose PremiumCalendar class to window for manual instantiation
+window.PremiumCalendar = PremiumCalendar;
 
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {

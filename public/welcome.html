@@ -26,7 +26,7 @@
 
   <!-- 🚀 Hi Flow Controller - Smart routing for welcome experience -->
   <link rel="stylesheet" href="assets/hi-flow-controller.css">
-  <script src=./lib/HiMembership.js"></script>
+  <script src="./lib/HiMembership.js"></script>
   <!-- TEMPORARILY DISABLED: Access tiers has function errors -->
   <!-- <script src="assets/hi-access-tiers.js"></script> -->
   <script src="assets/hi-flow-controller.js"></script>
@@ -683,8 +683,7 @@
     // Tesla-grade auth check with beautiful loading experience
     async function checkAuthWithLoadingExperience() {
       try {
-        const { getClient } = await import./lib/HiSupabase.js');
-        const supa = getClient();
+        const supa = window.supabaseClient;
         if (!supa) return;
         
         const { data: { session }, error } = await supa.auth.getSession();
@@ -849,13 +848,13 @@
   <script type="module" src./lib/monitoring/HiMonitor.js"></script>
   
   <!-- 🚩 Tesla-Grade Feature Flags System -->
-  <script type="module" src./lib/flags/HiFlags.js"></script>
+  <script type="module" src="./lib/flags/HiFlags.js"></script>
   
   <!-- 🎁 HiBase Referral Code Handler -->
   <script type="module">
-    import HiBase from./lib/hibase/index.js';
-    import { HiFlags } from./lib/flags/HiFlags.js';
-    import { HiMonitor } from./lib/monitoring/HiMonitor.js';
+    import HiBase from './lib/hibase/index.js';
+    import { HiFlags } from './lib/flags/HiFlags.js';
+    import { HiMonitor } from './lib/monitoring/HiMonitor.js';
 
     // Handle referral and gift codes from URL
     async function handleReferralCode() {

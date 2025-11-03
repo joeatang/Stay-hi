@@ -59,13 +59,15 @@
   }
 })();
 
-// ✅ Normalized API - Export standardized functions for module imports
-export function getClient() {
-  if (!window.supabaseClient) {
-    throw new Error('Supabase client not initialized. Ensure HiSupabase.js loads first.');
+// ✅ Normalized API - Window functions for script tag compatibility
+window.HiSupabaseClient = {
+  getClient() {
+    if (!window.supabaseClient) {
+      throw new Error('Supabase client not initialized. Ensure HiSupabase.js loads first.');
+    }
+    return window.supabaseClient;
   }
-  return window.supabaseClient;
-}
+};
 
 export function from(table) {
   return getClient().from(table);

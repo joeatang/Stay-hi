@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hi Database Connection Test</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 40px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 2px solid #eee; border-radius: 8px; }
+        .success { background: #f0f9f0; border-color: #4caf50; }
+        .error { background: #fff0f0; border-color: #f44336; }
+        .pending { background: #f0f8ff; border-color: #2196f3; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Database Connection Test</h1>
+    <p>Testing Supabase connection and function availability</p>
+
+    <div id="connection-test" class="test-section pending">
+        <h3>1. Supabase Connection</h3>
+        <div id="connection-result">Testing...</div>
+    </div>
+
+    <div id="functions-test" class="test-section pending">
+        <h3>2. Database Functions</h3>
+        <div id="functions-result">Waiting for connection...</div>
+    </div>
+
+    <div id="deploy-test" class="test-section pending">
+        <h3>3. Deploy Functions (if missing)</h3>
+        <div id="deploy-result">Waiting for function check...</div>
+    </div>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Hi Supabase Init -->
+    <script src="../lib/HiSupabase.js"></script>
+
+    <script>
+        let client = null;
+
+        // Wait for Supabase to initialize
+        window.addEventListener('supabase-ready', async (event) => {
+            client = event.detail.client;
+            await runTests();
+        });
+
+        async function runTests() {
+            await testConnection();
+            await testFunctions();
+        }
+
+        async function testConnection() {
+            const connectionDiv = document.getElementById('connection-test');
+            const resultDiv = document.getElementById('connection-result');
+            
+            try {
+                console.log('🔌 Testing Supabase connection...');
+                
+                // Simple auth check - should work without authentication
+                const { data, error } = await client.auth.getSession();
+                
+                resultDiv.innerHTML = `
+                    <strong>✅ Connection Successful</strong><br>
+                    Client: ${!!client}<br>
+                    URL: ${client.supabaseUrl}<br>
+                    Auth Available: ${!!client.auth}<br>
+                    Session: ${data ? 'Available' : 'None (OK for anonymous)'}
+                `;
+                connectionDiv.className = 'test-section success';
+                
+                return true;
+            } catch (error) {
+                console.error('❌ Connection failed:', error);
+                resultDiv.innerHTML = `
+                    <strong>❌ Connection Failed</strong><br>
+                    Error: ${error.message}<br>
+                    <pre>${JSON.stringify(error, null, 2)}</pre>
+                `;
+                connectionDiv.className = 'test-section error';
+                return false;
+            }
+        }
+
+        async function testFunctions() {
+            const functionsDiv = document.getElementById('functions-test');
+            const resultDiv = document.getElementById('functions-result');
+            const deployDiv = document.getElementById('deploy-test');
+            const deployResult = document.getElementById('deploy-result');
+            
+            try {
+                console.log('🔍 Testing database functions...');
+                
+                // Test get_hi_waves
+                const wavesResponse = await client.rpc('get_hi_waves');
+                console.log('📊 get_hi_waves response:', wavesResponse);
+                
+                // Test get_total_hi5s  
+                const hi5sResponse = await client.rpc('get_total_hi5s');
+                console.log('📊 get_total_hi5s response:', hi5sResponse);
+                
+                if (wavesResponse.error || hi5sResponse.error) {
+                    throw new Error(`Functions missing: ${wavesResponse.error?.message || hi5sResponse.error?.message}`);
+                }
+                
+                resultDiv.innerHTML = `
+                    <strong>✅ Functions Working</strong><br>
+                    get_hi_waves(): ${JSON.stringify(wavesResponse.data)}<br>
+                    get_total_hi5s(): ${JSON.stringify(hi5sResponse.data)}<br>
+                    <pre>Raw responses:\n${JSON.stringify({wavesResponse, hi5sResponse}, null, 2)}</pre>
+                `;
+                functionsDiv.className = 'test-section success';
+                
+                deployResult.innerHTML = `
+                    <strong>✅ No deployment needed</strong><br>
+                    Database functions are already working!
+                `;
+                deployDiv.className = 'test-section success';
+                
+            } catch (error) {
+                console.error('❌ Functions failed:', error);
+                resultDiv.innerHTML = `
+                    <strong>❌ Functions Not Available</strong><br>
+                    Error: ${error.message}<br>
+                    <pre>${JSON.stringify(error, null, 2)}</pre>
+                `;
+                functionsDiv.className = 'test-section error';
+                
+                deployResult.innerHTML = `
+                    <strong>🚨 DEPLOYMENT REQUIRED</strong><br>
+                    The database functions are missing.<br>
+                    Please run: <code>METRICS_SEPARATION_DEPLOY.sql</code><br>
+                    <br>
+                    <strong>Manual Deployment Instructions:</strong><br>
+                    1. Go to Supabase Dashboard → SQL Editor<br>
+                    2. Copy content from <code>METRICS_SEPARATION_DEPLOY.sql</code><br>
+                    3. Paste and run the SQL<br>
+                    4. Refresh this page to test again
+                `;
+                deployDiv.className = 'test-section error';
+            }
+        }
+
+        // Auto-run if Supabase is already loaded
+        if (window.supabase && window.supabaseClient) {
+            client = window.supabaseClient;
+            runTests();
+        }
+    </script>
+</body>
+</html>
