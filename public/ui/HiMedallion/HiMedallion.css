@@ -1,0 +1,259 @@
+/* ===================================================================
+   🎯 HI MEDALLION COMPONENT - Tesla-Grade Premium UI
+   Cross-browser optimized, responsive, accessible, performant
+=================================================================== */
+
+:root {
+  /* HI DEV: Brand tokens for consistent theming */
+  --hi-medallion-bg1: #FF8A00;
+  --hi-medallion-bg2: #FF5C5C;
+  --hi-medallion-halo: rgba(255, 255, 255, 0.18);
+  --hi-medallion-edge: rgba(0, 0, 0, 0.28);
+  --hi-medallion-hand: #FFFFFF;
+  --hi-medallion-surface: #1A0F0A;
+}
+
+.hi-medallion {
+  /* HI DEV: Responsive sizing - mobile-first, scales to desktop */
+  --size: clamp(180px, 28vw, 320px);
+  width: var(--size);
+  height: var(--size);
+  
+  /* HI DEV: Layout & positioning */
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  
+  /* HI DEV: Performance optimizations */
+  isolation: isolate;
+  transform: translateZ(0); /* Force GPU layer */
+  will-change: transform, box-shadow;
+  backface-visibility: hidden; /* Prevent flickering */
+  
+  /* HI DEV: Interaction states */
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent; /* iOS tap highlight */
+  -webkit-touch-callout: none; /* iOS long-press menu */
+  user-select: none; /* Prevent text selection */
+  
+  /* HI DEV: Smooth transitions with easing */
+  transition: 
+    transform 0.18s cubic-bezier(0.2, 0.7, 0.2, 1),
+    filter 0.18s ease-out,
+    box-shadow 0.18s ease-out;
+}
+
+/* HI DEV: Base gradient with premium depth */
+.hi-medallion__base {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  
+  /* HI DEV: Multi-layer gradient for depth */
+  background:
+    radial-gradient(120% 120% at 30% 25%, var(--hi-medallion-bg1) 0%, var(--hi-medallion-bg2) 70%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.04));
+  
+  /* HI DEV: Premium shadows - outer drop, inner highlight, inner depth */
+  box-shadow:
+    0 18px 46px rgba(0, 0, 0, 0.35),
+    inset 0 10px 22px rgba(255, 255, 255, 0.08),
+    inset 0 -18px 28px rgba(0, 0, 0, 0.25);
+}
+
+/* HI DEV: Crisp edge definition */
+.hi-medallion__edge {
+  pointer-events: none;
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  box-shadow: 0 0 0 1px var(--hi-medallion-edge) inset;
+  opacity: 0.85;
+}
+
+/* HI DEV: Ambient halo effect */
+.hi-medallion__halo {
+  position: absolute;
+  inset: -18%;
+  border-radius: 50%;
+  background: radial-gradient(70% 70% at 50% 50%, var(--hi-medallion-halo) 0%, rgba(255, 255, 255, 0) 70%);
+  filter: blur(18px);
+  opacity: 0;
+  transform: scale(0.9);
+  z-index: -1;
+  
+  /* HI DEV: Smooth halo transitions */
+  transition: 
+    opacity 0.22s ease-out, 
+    transform 0.22s ease-out;
+}
+
+/* HI DEV: Icon sizing and positioning */
+.hi-medallion__icon {
+  width: 58%;
+  aspect-ratio: 1 / 1;
+  display: block;
+  position: relative;
+  z-index: 1;
+}
+
+/* HI DEV: Dark surface bleed fix for gradient backgrounds */
+.hi-medallion::after {
+  content: '';
+  position: absolute;
+  inset: 6%;
+  border-radius: inherit;
+  background: radial-gradient(120% 120% at 30% 25%, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0));
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+/* ===================================================================
+   🎯 INTERACTION STATES - Tesla-Grade Motion
+=================================================================== */
+
+/* HI DEV: Active state (tap/click) */
+.hi-medallion:active {
+  transform: scale(0.985);
+  transition-duration: 0.08s; /* Faster on press */
+}
+
+/* HI DEV: Hover state (desktop only) */
+@media (hover: hover) and (pointer: fine) {
+  .hi-medallion:hover {
+    transform: translateY(-2px) scale(1.01);
+    filter: brightness(1.02);
+  }
+}
+
+/* HI DEV: Focus state for accessibility */
+.hi-medallion:focus-visible {
+  outline: 3px solid rgba(255, 138, 0, 0.6);
+  outline-offset: 4px;
+}
+
+/* HI DEV: Pulse animation on tap */
+.hi-medallion.is-pulsing .hi-medallion__halo {
+  opacity: 0.9;
+  transform: scale(1.06);
+  animation: hiHalo 0.6s ease-out forwards;
+}
+
+@keyframes hiHalo {
+  0% { 
+    opacity: 0.9; 
+    transform: scale(1.02); 
+  }
+  100% { 
+    opacity: 0; 
+    transform: scale(1.25); 
+  }
+}
+
+/* ===================================================================
+   🎯 RESPONSIVE BREAKPOINTS - Mobile to Desktop Scaling
+=================================================================== */
+
+/* HI DEV: Mobile portrait (320px-480px) */
+@media screen and (max-width: 480px) and (orientation: portrait) {
+  .hi-medallion {
+    --size: clamp(160px, 35vw, 220px);
+  }
+}
+
+/* HI DEV: Mobile landscape */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  .hi-medallion {
+    --size: clamp(140px, 25vh, 200px);
+  }
+}
+
+/* HI DEV: Tablet (768px-1024px) */
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+  .hi-medallion {
+    --size: clamp(220px, 24vw, 280px);
+  }
+}
+
+/* HI DEV: Desktop (1025px+) */
+@media screen and (min-width: 1025px) {
+  .hi-medallion {
+    --size: clamp(260px, 20vw, 320px);
+  }
+}
+
+/* HI DEV: Large desktop (1440px+) */
+@media screen and (min-width: 1440px) {
+  .hi-medallion {
+    --size: clamp(280px, 18vw, 340px);
+  }
+}
+
+/* ===================================================================
+   🎯 CROSS-BROWSER COMPATIBILITY - All Modern Browsers
+=================================================================== */
+
+/* HI DEV: Safari specific optimizations */
+@supports (-webkit-backdrop-filter: blur(1px)) {
+  .hi-medallion {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+}
+
+/* HI DEV: Firefox specific optimizations */
+@-moz-document url-prefix() {
+  .hi-medallion {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* HI DEV: Edge/IE fallbacks */
+@supports not (inset: 0) {
+  .hi-medallion__base,
+  .hi-medallion__edge,
+  .hi-medallion__halo {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+}
+
+/* HI DEV: High contrast mode support */
+@media (prefers-contrast: high) {
+  .hi-medallion__edge {
+    opacity: 1;
+    box-shadow: 0 0 0 2px currentColor inset;
+  }
+}
+
+/* HI DEV: Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .hi-medallion,
+  .hi-medallion__halo {
+    transition-duration: 0.01s;
+  }
+  
+  .hi-medallion.is-pulsing .hi-medallion__halo {
+    animation: none;
+    opacity: 0.5;
+    transform: scale(1.02);
+  }
+}
+
+/* HI DEV: Print styles */
+@media print {
+  .hi-medallion {
+    filter: none;
+    box-shadow: none;
+    transform: none;
+  }
+  
+  .hi-medallion__halo {
+    display: none;
+  }
+}

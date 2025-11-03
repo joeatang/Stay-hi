@@ -1,0 +1,50 @@
+{
+  "referrals_enabled": {
+    "enabled": false,
+    "description": "Enable referral code system and social sharing rewards"
+  },
+  "token_rewire_mode": {
+    "enabled": false,
+    "description": "Enable design token system with CSS variable replacement"
+  },
+  "hi_map_animation": {
+    "enabled": true,
+    "description": "Enable animated map interactions and location markers"
+  },
+  "premium_ux_effects": {
+    "enabled": true,
+    "description": "Enable glassmorphism effects and premium visual enhancements"
+  },
+  "monitoring_analytics": {
+    "enabled": true,
+    "description": "Enable HiMonitor analytics and error tracking"
+  },
+  "offline_mode": {
+    "enabled": false,
+    "description": "Enable service worker offline functionality"
+  },
+  "beta_features": {
+    "enabled": false,
+    "description": "Enable experimental features for beta users"
+  },
+  "hibase_shares_enabled": {
+    "enabled": false,
+    "description": "Enable HiBase shares integration (unified API)"
+  },
+  "hibase_profile_enabled": {
+    "enabled": false,
+    "description": "Enable HiBase profile operations (getProfile, updateProfile, uploadAvatar)"
+  },
+  "hibase_streaks_enabled": {
+    "enabled": false,
+    "description": "Enable HiBase streaks operations (getUserStreak, updateStreak, getStreakLeaderboard)"
+  },
+  "hibase_referrals_enabled": {
+    "enabled": false,
+    "description": "Enable HiBase referrals integration (server-safe code generation and gift system)"
+  },
+  "metrics_separation_enabled": {
+    "enabled": true,
+    "description": "Enable separated Hi Waves (medallion taps) vs Total Hi5s (share submissions) via HiBase.stats API"
+  }
+}

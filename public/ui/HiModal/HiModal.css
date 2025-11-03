@@ -1,0 +1,193 @@
+/* ==========================================================================
+   Stay Hi — HiModal Component
+   Tesla-grade modal foundation with Hi-branded styling
+   ========================================================================== */
+
+/* HiModal Backdrop */
+.hi-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .6);
+  display: none;
+  z-index: 50;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* HiModal Container */
+.hi-modal-sheet {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  width: min(480px, 95vw);
+  background: var(--glass-bg, rgba(15, 16, 34, 0.95));
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  border-radius: 24px;
+  padding: 24px;
+  z-index: 60;
+  box-shadow: var(--shadow-premium, 0 24px 48px rgba(0, 0, 0, 0.3));
+  color: white;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  will-change: transform, opacity;
+}
+
+.hi-modal-sheet.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.hi-modal-sheet.hide {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.9);
+}
+
+/* Hi-branded modal header */
+.hi-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hi-modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #FFD166;
+  margin: 0;
+}
+
+.hi-modal-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.hi-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+/* Hi-branded modal content */
+.hi-modal-content {
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+/* Hi-branded modal footer */
+.hi-modal-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hi-modal-btn {
+  padding: 12px 24px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.hi-modal-btn-primary {
+  background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+  color: white;
+}
+
+.hi-modal-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(78, 205, 196, 0.3);
+}
+
+.hi-modal-btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.hi-modal-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Body scroll lock */
+body.hi-modal-open {
+  overflow: hidden;
+}
+
+/* Focus trap styles */
+.hi-modal-sheet:focus {
+  outline: none;
+}
+
+/* Focus trap helpers */
+.hi-modal-focus-trap {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .hi-modal-sheet {
+    width: 95vw;
+    padding: 20px;
+  }
+  
+  .hi-modal-footer {
+    flex-direction: column;
+  }
+  
+  .hi-modal-btn {
+    width: 100%;
+  }
+}
+
+/* Backward compatibility with modal-base classes */
+.modal-backdrop {
+  /* Use same styles as hi-modal-backdrop */
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .6);
+  display: none;
+  z-index: 50;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.modal-sheet {
+  /* Use same styles as hi-modal-sheet */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  width: min(480px, 95vw);
+  background: var(--glass-bg, rgba(15, 16, 34, 0.95));
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  border-radius: 24px;
+  padding: 24px;
+  z-index: 60;
+  box-shadow: var(--shadow-premium, 0 24px 48px rgba(0, 0, 0, 0.3));
+  color: white;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  will-change: transform, opacity;
+}
