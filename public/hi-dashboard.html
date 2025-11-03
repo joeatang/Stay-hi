@@ -989,9 +989,9 @@
         
         console.log('🎯 METRICS SEPARATION: Medallion tapped on hi-dashboard');
         
-        // Use new Tesla-Grade dual tracking HiBase.stats.insertMedallionTap
+        // Use basic medallion tap tracking (Database deployment required)
         if (window.HiBase?.stats?.insertMedallionTap) {
-          console.log('🎯 Using Tesla-Grade dual wave tracking...');
+          console.log('🎯 Using Hi Medallion tap tracking...');
           
           // Get current user (null for anonymous)
           const user = window.HiBase?.auth?.getCurrentUser();
@@ -1004,16 +1004,10 @@
             return;
           }
           
-          console.log('✅ TESLA-GRADE DUAL TRACKING SUCCESS:', {
-            globalWaves: result.data?.globalWaves,
-            userWaves: result.data?.userWaves,
+          console.log('✅ HI MEDALLION TAP SUCCESS:', {
+            newWaveCount: result.data,
             isAuthenticated: !!userId
           });
-          
-          // Display user-specific feedback if authenticated
-          if (userId && result.data?.userWaves) {
-            console.log(`🏆 Personal Hi Waves: ${result.data.userWaves}`);
-          }
           
           // Refresh dashboard metrics to show updated global waves
           setTimeout(loadMetricsFromHiBase, 100);
@@ -1583,7 +1577,7 @@
       const medallionContainer = document.getElementById('hiMedallionContainer');
       if (medallionContainer) {
         // First create the medallion HTML structure
-        import(./ui/HiMedallion/HiMedallion.js').then(({ createHiMedallionHTML, mountHiMedallion }) => {
+        import('./ui/HiMedallion/HiMedallion.js').then(({ createHiMedallionHTML, mountHiMedallion }) => {
           // Create Tesla-grade medallion HTML
           medallionContainer.innerHTML = createHiMedallionHTML({
             id: 'dashboardMedallion',

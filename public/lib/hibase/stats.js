@@ -81,7 +81,7 @@ const getTotalHi5s = withTelemetry('getTotalHi5s', async () => {
  */
 const insertMedallionTap = withTelemetry('insertMedallionTap', async (userId = null) => {
     return hiBaseClient.execute(async (client) => {
-        const { data, error } = await client.rpc('insert_medallion_tap_dual', {
+        const { data, error } = await client.rpc('insert_medallion_tap', {
             tap_user_id: userId
         });
         
@@ -92,14 +92,11 @@ const insertMedallionTap = withTelemetry('insertMedallionTap', async (userId = n
             };
         }
         
-        // Extract dual counts from database response
-        const result = {
-            globalWaves: data?.global_waves || 0,
-            userWaves: userId ? (data?.user_waves || 0) : null
-        };
+        // Extract new wave count from database response
+        const newCount = data?.data || 0;
         
         return {
-            data: result,
+            data: newCount,
             error: null
         };
     });

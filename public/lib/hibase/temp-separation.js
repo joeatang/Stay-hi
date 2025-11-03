@@ -5,7 +5,7 @@
  */
 
 // Temporary mock separation for development/testing
-const TEMP_MOCK_SEPARATION = true; // Set to false after database deployment
+const TEMP_MOCK_SEPARATION = false; // DISABLED - Real database functions deployed
 
 /**
  * Temporary wrapper that provides separated metrics using legacy data
