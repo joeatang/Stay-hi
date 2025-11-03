@@ -42,5 +42,9 @@
   "hibase_referrals_enabled": {
     "enabled": false,
     "description": "Enable HiBase referrals integration (server-safe code generation and gift system)"
+  },
+  "metrics_separation_enabled": {
+    "enabled": true,
+    "description": "Enable separated Hi Waves (medallion taps) vs Total Hi5s (share submissions) via HiBase.stats API"
   }
 }

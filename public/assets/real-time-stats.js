@@ -107,6 +107,13 @@ class RealTimeStats {
   }
 
   async simulateStatsAPI() {
+    async fetchStatsData() {
+    // HI-OS: Disable real-time stats if metrics separation is enabled
+    if (window.HiFlags?.getFlag('metrics_separation_enabled', false)) {
+      console.log('[RealTimeStats] Disabled - metrics separation active');
+      return null;
+    }
+    
     // 🔄 TESLA-GRADE: Fetch REAL data from Supabase
     try {
       console.log('📊 Fetching real stats from Supabase...');
@@ -117,7 +124,7 @@ class RealTimeStats {
         throw new Error('Supabase client not available');
       }
       
-      // Call the real RPC function
+      // Call get_global_stats RPC
       const { data, error } = await supa.rpc('get_global_stats');
       if (error) {
         console.warn('⚠️ RPC error:', error);

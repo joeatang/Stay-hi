@@ -10,16 +10,42 @@ export class HiCalendar {
     this.selectedDate = null;
     this.activityData = {};
     this.isOpen = false;
+    this._isReady = false; // A2: Hi System readiness tracking
   }
 
-  // Initialize component
-  init() {
-    this.render();
-    this.attachEventListeners();
-    this.loadMonthData();
-    
-    // Expose to global for header button
-    window.openHiCalendar = () => this.open();
+  // Initialize component (Hi System Pattern)
+  async init() {
+    // A3: Single-init guard (Hi System Standard)
+    if (this._isReady) {
+      console.log('✅ HiCalendar already initialized, skipping');
+      return;
+    }
+
+    try {
+      // Wait for HiFlags system if available (Hi System Pattern)
+      if (window.HiFlags?.waitUntilReady) {
+        await window.HiFlags.waitUntilReady();
+      }
+
+      this.render();
+      this.attachEventListeners();
+      this.loadMonthData();
+      
+      // Expose to global for header button (Hi System Pattern)
+      window.openHiCalendar = () => this.open();
+
+      this._isReady = true;
+      console.log('✅ HiCalendar initialized (Tesla-grade Hi System)');
+
+    } catch (error) {
+      console.error('❌ HiCalendar initialization failed:', error);
+      this._isReady = false;
+    }
+  }
+
+  // A2: Standardized isReady method (Hi System Interface)
+  isReady() {
+    return this._isReady;
   }
 
   // Render calendar HTML
@@ -137,21 +163,32 @@ export class HiCalendar {
     });
   }
 
-  // Open calendar
+  // Open calendar (A2: Standardized interface)
   open() {
+    if (!this._isReady) {
+      console.error('❌ HiCalendar not ready, call init() first');
+      return;
+    }
+
     const overlay = document.getElementById('hi-calendar-overlay');
-    overlay.classList.add('active');
-    this.isOpen = true;
-    document.body.style.overflow = 'hidden';
-    this.loadMonthData();
+    if (overlay) {
+      overlay.classList.add('active');
+      this.isOpen = true;
+      document.body.style.overflow = 'hidden';
+      this.loadMonthData();
+    }
   }
 
-  // Close calendar
+  // Close calendar (A2: Standardized interface)
   close() {
+    if (!this._isReady) return;
+
     const overlay = document.getElementById('hi-calendar-overlay');
-    overlay.classList.remove('active');
-    this.isOpen = false;
-    document.body.style.overflow = '';
+    if (overlay) {
+      overlay.classList.remove('active');
+      this.isOpen = false;
+      document.body.style.overflow = '';
+    }
   }
 
   // Navigate to previous month

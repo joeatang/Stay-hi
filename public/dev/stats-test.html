@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HI-OS Stats Call Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #000;
+            color: #0f0;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-results {
+            border: 1px solid #333;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .call-trace {
+            background: #111;
+            padding: 10px;
+            margin: 5px 0;
+            border-left: 3px solid #0f0;
+            font-size: 12px;
+        }
+        .error {
+            border-left-color: #f00;
+            color: #f00;
+        }
+        .success {
+            border-left-color: #0f0;
+            color: #0f0;
+        }
+        button {
+            background: #333;
+            color: #0f0;
+            border: 1px solid #0f0;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        button:hover {
+            background: #0f0;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧠 HI-OS Stats Call Diagnostic</h1>
+    <p>Testing duplicate stats calls detection and HiBase.stats tracing</p>
+
+    <div class="test-results">
+        <h3>Call Trace Log</h3>
+        <div id="callLog"></div>
+    </div>
+
+    <div class="test-results">
+        <h3>Test Controls</h3>
+        <button onclick="testWelcomeStats()">Test Welcome Stats Pattern</button>
+        <button onclick="testDashboardStats()">Test Dashboard Stats Pattern</button>
+        <button onclick="testDirectHiBase()">Test Direct HiBase.stats Calls</button>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <div class="test-results">
+        <h3>Expected Result</h3>
+        <p>Each test should show exactly ONE [HiStats CALL] trace per method</p>
+        <p>✅ PASS: One call per test</p>
+        <p>❌ FAIL: Multiple calls = duplicate issue</p>
+    </div>
+
+    <!-- Load required modules -->
+    <script type="module">
+        // Set up HI_ENV for dev tracing
+        window.HI_ENV = { DEV: true };
+        
+        // Mock HiFlags for testing
+        window.HiFlags = {
+            getFlag: (name, defaultValue) => {
+                if (name === 'metrics_separation_enabled') return true;
+                return defaultValue;
+            }
+        };
+
+        // Import stats guard
+        import { initHiStatsOnce, resetHiStatsInit } from '../ui/stats/initHiStats.js';
+        window.initHiStatsOnce = initHiStatsOnce;
+        window.resetHiStatsInit = resetHiStatsInit;
+
+        // Mock HiBase.stats for testing
+        window.HiBase = {
+            stats: {
+                async getMetrics() {
+                    console.trace('[HiStats CALL] getMetrics');
+                    logCall('getMetrics', 'HiBase.stats.getMetrics() called');
+                    return {
+                        waves: { data: 42, error: null },
+                        hi5s: { data: 17, error: null }
+                    };
+                },
+                async getHiWaves() {
+                    console.trace('[HiStats CALL] getHiWaves');
+                    logCall('getHiWaves', 'HiBase.stats.getHiWaves() called');
+                    return { data: 42, error: null };
+                },
+                async getTotalHi5s() {
+                    console.trace('[HiStats CALL] getTotalHi5s');
+                    logCall('getTotalHi5s', 'HiBase.stats.getTotalHi5s() called');
+                    return { data: 17, error: null };
+                }
+            }
+        };
+
+        // Mock legacy Supabase for fallback testing
+        window.getSupabase = () => ({
+            rpc: async (method) => {
+                logCall('legacy_rpc', `Legacy supa.rpc('${method}') called`);
+                return {
+                    data: [{ hi_waves: 42, total_his: 17 }],
+                    error: null
+                };
+            }
+        });
+
+        console.log('✅ HI-OS Stats Test Environment Ready');
+    </script>
+
+    <script>
+        const callLog = document.getElementById('callLog');
+        const calls = [];
+
+        function logCall(method, message, isError = false) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = {
+                timestamp,
+                method,
+                message,
+                isError
+            };
+            calls.push(logEntry);
+            
+            const div = document.createElement('div');
+            div.className = `call-trace ${isError ? 'error' : 'success'}`;
+            div.innerHTML = `[${timestamp}] <strong>${method}</strong>: ${message}`;
+            callLog.appendChild(div);
+            callLog.scrollTop = callLog.scrollHeight;
+        }
+
+        function clearLog() {
+            callLog.innerHTML = '';
+            calls.length = 0;
+            window.resetHiStatsInit();
+            logCall('system', 'Log cleared, init flag reset');
+        }
+
+        async function testWelcomeStats() {
+            logCall('test', '--- Testing Welcome Stats Pattern ---');
+            
+            try {
+                // Simulate welcome page stats loading
+                async function loadWelcomeStats() {
+                    logCall('welcome', 'Welcome stats init starting...');
+                    
+                    if (window.HiBase?.stats?.getMetrics) {
+                        const metrics = await window.HiBase.stats.getMetrics();
+                        logCall('welcome', `Welcome got metrics: waves=${metrics.waves.data}, hi5s=${metrics.hi5s.data}`);
+                    } else {
+                        logCall('welcome', 'Fallback to legacy RPC', true);
+                    }
+                }
+
+                await window.initHiStatsOnce(loadWelcomeStats);
+                
+                // Try again - should be blocked by guard
+                await window.initHiStatsOnce(loadWelcomeStats);
+                logCall('guard', 'Second call should be blocked by initHiStatsOnce()');
+                
+            } catch (error) {
+                logCall('error', `Welcome test failed: ${error.message}`, true);
+            }
+        }
+
+        async function testDashboardStats() {
+            logCall('test', '--- Testing Dashboard Stats Pattern ---');
+            window.resetHiStatsInit(); // Reset for new test
+            
+            try {
+                async function loadDashboardStats() {
+                    logCall('dashboard', 'Dashboard stats init starting...');
+                    
+                    if (window.HiBase?.stats?.getMetrics) {
+                        const metrics = await window.HiBase.stats.getMetrics();
+                        logCall('dashboard', `Dashboard got metrics: waves=${metrics.waves.data}, hi5s=${metrics.hi5s.data}`);
+                        
+                        // Simulate updating global variables
+                        window.gWaves = metrics.waves.data;
+                        window.gTotalHis = metrics.hi5s.data;
+                        logCall('dashboard', `Global vars set: gWaves=${window.gWaves}, gTotalHis=${window.gTotalHis}`);
+                    }
+                }
+
+                await window.initHiStatsOnce(loadDashboardStats);
+                
+            } catch (error) {
+                logCall('error', `Dashboard test failed: ${error.message}`, true);
+            }
+        }
+
+        async function testDirectHiBase() {
+            logCall('test', '--- Testing Direct HiBase.stats Calls ---');
+            
+            try {
+                logCall('direct', 'Testing individual method calls...');
+                
+                const waves = await window.HiBase.stats.getHiWaves();
+                logCall('direct', `Direct getHiWaves(): ${waves.data}`);
+                
+                const hi5s = await window.HiBase.stats.getTotalHi5s();
+                logCall('direct', `Direct getTotalHi5s(): ${hi5s.data}`);
+                
+                const metrics = await window.HiBase.stats.getMetrics();
+                logCall('direct', `Direct getMetrics(): waves=${metrics.waves.data}, hi5s=${metrics.hi5s.data}`);
+                
+                logCall('analysis', 'Check console for [HiStats CALL] traces - should see 5 total calls');
+                
+            } catch (error) {
+                logCall('error', `Direct test failed: ${error.message}`, true);
+            }
+        }
+
+        // Auto-run initial test
+        setTimeout(() => {
+            logCall('system', 'HI-OS Stats Diagnostic Ready - Console open to see [HiStats CALL] traces');
+        }, 500);
+    </script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Legacy vs Separated Metrics Test</title>
+    <style>
+        body { font-family: monospace; background: #000; color: #fff; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 2px solid #333; border-radius: 8px; }
+        .legacy { border-color: #f90; }
+        .separated { border-color: #0f0; }
+        .comparison { border-color: #f0f; }
+        pre { background: #111; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+        .warning { color: #ff0; }
+        .highlight { background: #333; padding: 2px 4px; border-radius: 2px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Legacy vs Separated Metrics Analysis</h1>
+    
+    <div class="test-section legacy">
+        <h2>📊 Legacy get_global_stats</h2>
+        <div id="legacy-results">Testing...</div>
+    </div>
+    
+    <div class="test-section separated">
+        <h2>🔄 Separated Functions</h2>
+        <div id="separated-results">Testing...</div>
+    </div>
+    
+    <div class="test-section comparison">
+        <h2>⚖️ Contamination Analysis</h2>
+        <div id="analysis-results">Analyzing...</div>
+    </div>
+
+    <script type="module">
+        import hiBaseClient from '/lib/hibase/HiBaseClient.js';
+        
+        const legacyDiv = document.getElementById('legacy-results');
+        const separatedDiv = document.getElementById('separated-results');
+        const analysisDiv = document.getElementById('analysis-results');
+        
+        function addResult(container, content, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = content;
+            container.appendChild(div);
+        }
+        
+        try {
+            const client = hiBaseClient.getClient();
+            
+            // Test 1: Legacy get_global_stats
+            addResult(legacyDiv, '📡 Calling legacy get_global_stats...');
+            const legacyResponse = await client.rpc('get_global_stats');
+            
+            addResult(legacyDiv, '<pre>' + JSON.stringify(legacyResponse, null, 2) + '</pre>');
+            
+            const legacyData = legacyResponse.data;
+            const legacyWaves = legacyData?.hi_waves || legacyData?.total_waves || 'N/A';
+            const legacyHi5s = legacyData?.total_hi5s || legacyData?.total_his || 'N/A';
+            
+            addResult(legacyDiv, `<div class="highlight">Legacy extracted: waves=${legacyWaves}, hi5s=${legacyHi5s}</div>`);
+            
+            // Test 2: Separated functions
+            addResult(separatedDiv, '🔄 Testing separated functions...');
+            
+            const wavesResponse = await client.rpc('get_hi_waves');
+            const hi5sResponse = await client.rpc('get_total_hi5s');
+            
+            addResult(separatedDiv, '<strong>get_hi_waves():</strong><pre>' + JSON.stringify(wavesResponse, null, 2) + '</pre>');
+            addResult(separatedDiv, '<strong>get_total_hi5s():</strong><pre>' + JSON.stringify(hi5sResponse, null, 2) + '</pre>');
+            
+            const separatedWaves = wavesResponse.data?.data;
+            const separatedHi5s = hi5sResponse.data?.data;
+            
+            addResult(separatedDiv, `<div class="highlight">Separated extracted: waves=${separatedWaves}, hi5s=${separatedHi5s}</div>`);
+            
+            // Test 3: Analysis
+            addResult(analysisDiv, '<h3>🔍 Contamination Analysis</h3>');
+            
+            if (wavesResponse.error || hi5sResponse.error) {
+                addResult(analysisDiv, '❌ <strong>FUNCTIONS NOT DEPLOYED</strong>', 'error');
+                addResult(analysisDiv, `Waves error: ${wavesResponse.error?.message || 'none'}`, 'error');
+                addResult(analysisDiv, `Hi5s error: ${hi5sResponse.error?.message || 'none'}`, 'error');
+                addResult(analysisDiv, '💡 Solution: Deploy METRICS_SEPARATION_DEPLOY.sql to database', 'warning');
+            } else if (separatedWaves === separatedHi5s) {
+                addResult(analysisDiv, '⚠️ <strong>CONTAMINATION DETECTED</strong>', 'warning');
+                addResult(analysisDiv, `Both functions return identical value: ${separatedWaves}`, 'warning');
+                
+                if (separatedWaves === legacyWaves || separatedWaves === legacyHi5s) {
+                    addResult(analysisDiv, '🔍 Both new functions appear to pull from same legacy source', 'warning');
+                } else {
+                    addResult(analysisDiv, '🔍 Functions deployed but using same data view', 'warning');
+                }
+            } else {
+                addResult(analysisDiv, '✅ <strong>SEPARATION WORKING</strong>', 'success');
+                addResult(analysisDiv, `Waves: ${separatedWaves}, Hi5s: ${separatedHi5s} - properly separated!`, 'success');
+            }
+            
+            // Additional check: Are the functions returning expected structure?
+            const expectedWavesStructure = wavesResponse.data && typeof wavesResponse.data.data === 'number';
+            const expectedHi5sStructure = hi5sResponse.data && typeof hi5sResponse.data.data === 'number';
+            
+            addResult(analysisDiv, `<div class="highlight">Response structure check: waves=${expectedWavesStructure}, hi5s=${expectedHi5sStructure}</div>`);
+            
+        } catch (error) {
+            addResult(analysisDiv, `❌ Critical error: ${error.message}`, 'error');
+            console.error('Test error:', error);
+        }
+    </script>
+</body>
+</html>

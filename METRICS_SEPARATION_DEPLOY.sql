@@ -65,45 +65,17 @@ END $$;
 -- C) SCHEMA DISCOVERY & ADAPTIVE VIEWS  
 -- =================================================================
 
--- Helper function: Detect which shares table exists
-CREATE OR REPLACE FUNCTION detect_shares_table()
-RETURNS text
-LANGUAGE plpgsql
-AS $$
-BEGIN
-  -- Check for hi_shares (HiBase standard)
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'hi_shares' AND table_schema = 'public') THEN
-    RETURN 'hi_shares';
-  END IF;
-  
-  -- Check for public_shares (legacy)  
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'public_shares' AND table_schema = 'public') THEN
-    RETURN 'public_shares';
-  END IF;
-  
-  -- Check for shares (alternative)
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'shares' AND table_schema = 'public') THEN
-    RETURN 'shares';
-  END IF;
-  
-  -- No shares table found
-  RETURN NULL;
-END;
-$$;
+-- Clean separation - no legacy detection needed
+-- All new activity goes to separated tables only
 
 -- =================================================================
 -- D) ADAPTIVE SEPARATION VIEWS
 -- =================================================================
 
--- View for Total Hi5 count (adapts to available shares table)
+-- View for Total Hi5 count (CLEAN SEPARATION - hi_shares only)
 CREATE OR REPLACE VIEW public.v_total_hi5s AS
   SELECT COALESCE(
-    CASE detect_shares_table()
-      WHEN 'hi_shares' THEN (SELECT COUNT(*) FROM hi_shares WHERE type = 'Hi5')
-      WHEN 'public_shares' THEN (SELECT COUNT(*) FROM public_shares WHERE share_type = 'Hi5' OR content LIKE '%Hi5%')
-      WHEN 'shares' THEN (SELECT COUNT(*) FROM shares WHERE type = 'Hi5')
-      ELSE 0
-    END,
+    (SELECT COUNT(*) FROM hi_shares WHERE share_type = 'hi5'),
     0
   )::bigint AS total_hi5s;
 
@@ -230,11 +202,11 @@ GRANT SELECT ON public.v_total_waves TO anon, authenticated;
 -- G) VERIFICATION QUERIES  
 -- =================================================================
 
--- Schema discovery verification
+-- Schema verification - clean separation tables
 SELECT 
-  'Schema Discovery' as test,
-  detect_shares_table() as shares_table_found,
-  EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name = 'hi_events') as hi_events_exists;
+  'Clean Separation Schema' as test,
+  EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name = 'hi_shares') as hi_shares_ready,
+  EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name = 'hi_events') as hi_events_ready;
 
 -- =================================================================
 -- H) DEPLOYMENT VERIFICATION

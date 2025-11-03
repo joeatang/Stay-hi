@@ -9,6 +9,7 @@ export class HiShareSheet {
     this.origin = options.origin || 'hi5'; // 'hi5', 'higym', or 'hi-island'
     this.onSuccess = options.onSuccess || (() => {});
     this.isOpen = false;
+    this._isReady = false; // A2: Readiness state tracking
   }
 
   // Tesla-grade: Update options after initialization
@@ -17,20 +18,40 @@ export class HiShareSheet {
     if (options.onSuccess) this.onSuccess = options.onSuccess;
   }
 
-  // Initialize component
-  init() {
-    this.render();
-    // 🔧 TESLA-GRADE FIX: Attach event listeners after DOM elements are rendered
-    setTimeout(() => {
-      this.attachEventListeners();
-    }, 0);
-    
-    // Expose to global for easy access with enhanced options
-    window.openHiShareSheet = (origin = 'hi5', options = {}) => {
-      this.origin = origin;
-      this.prefilledData = options; // Store prefilled data for Hi Muscle integration
-      this.open();
-    };
+  // Initialize component (Hi System Pattern)
+  async init() {
+    // A3: Single-init guard (Hi System Standard)
+    if (this._isReady) {
+      console.log('✅ HiShareSheet already initialized, skipping');
+      return;
+    }
+
+    try {
+      // Wait for HiFlags system to be ready (Hi System Pattern)
+      if (window.HiFlags?.waitUntilReady) {
+        await window.HiFlags.waitUntilReady();
+      }
+
+      this.render();
+      // 🔧 TESLA-GRADE FIX: Attach event listeners after DOM elements are rendered
+      setTimeout(() => {
+        this.attachEventListeners();
+      }, 0);
+      
+      // Expose to global for easy access with enhanced options (Hi System Pattern)
+      window.openHiShareSheet = (origin = 'hi5', options = {}) => {
+        this.origin = origin;
+        this.prefilledData = options; // Store prefilled data for Hi Muscle integration
+        this.open();
+      };
+
+      this._isReady = true;
+      console.log('✅ HiShareSheet initialized (Tesla-grade Hi System)');
+      
+    } catch (error) {
+      console.error('❌ HiShareSheet initialization failed:', error);
+      this._isReady = false;
+    }
   }
 
   // Render HTML structure
@@ -191,8 +212,18 @@ export class HiShareSheet {
     });
   }
 
+  // Standardized isReady method (A2 requirement)
+  isReady() {
+    return this._isReady;
+  }
+
   // Open share sheet
   async open(options = {}) {
+    if (!this._isReady) {
+      console.error('❌ HiShareSheet not ready, call init() first');
+      return;
+    }
+
     // Store context and preset for submission
     this.context = options.context || this.origin;
     this.preset = options.preset || 'default';
@@ -293,6 +324,8 @@ export class HiShareSheet {
 
   // Close share sheet
   close() {
+    if (!this._isReady) return;
+
     const backdrop = document.getElementById('hi-share-backdrop');
     const sheet = document.getElementById('hi-share-sheet');
     const journal = document.getElementById('hi-share-journal');

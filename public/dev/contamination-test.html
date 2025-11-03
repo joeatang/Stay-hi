@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metrics Contamination Fix Test</title>
+    <style>
+        body { font-family: monospace; background: #000; color: #0f0; padding: 20px; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #333; }
+        .pass { border-color: #0f0; }
+        .fail { border-color: #f00; color: #f00; }
+        .pending { border-color: #ff0; color: #ff0; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Metrics Contamination Fix Test</h1>
+    
+    <div id="testResults"></div>
+    
+    <script type="module">
+        // Import HiBase stats
+        import { getMetrics } from '/lib/hibase/stats.js';
+        
+        const results = document.getElementById('testResults');
+        
+        function addTest(name, status, details = '') {
+            const div = document.createElement('div');
+            div.className = `test ${status}`;
+            div.innerHTML = `
+                <strong>${name}</strong><br>
+                Status: ${status.toUpperCase()}<br>
+                ${details ? `Details: ${details}<br>` : ''}
+            `;
+            results.appendChild(div);
+        }
+        
+        // Enable dev tracing
+        window.HI_ENV = { DEV: true };
+        
+        addTest('1. Environment Setup', 'pass', 'HI_ENV.DEV enabled for console tracing');
+        
+        try {
+            addTest('2. HiBase Stats Import', 'pass', 'getMetrics function imported successfully');
+            
+            // Test the separated metrics
+            console.log('🧪 Testing separated metrics...');
+            
+            const metrics = await getMetrics();
+            
+            console.log('📊 Metrics result:', metrics);
+            
+            if (metrics && metrics.waves && metrics.hi5s) {
+                const wavesData = metrics.waves.data;
+                const hi5sData = metrics.hi5s.data;
+                
+                addTest('3. Metrics Structure', 'pass', `waves: ${wavesData}, hi5s: ${hi5sData}`);
+                
+                if (wavesData === hi5sData) {
+                    addTest('4. Separation Check', 'fail', `CONTAMINATION DETECTED: Both show ${wavesData} - database functions likely not deployed`);
+                } else {
+                    addTest('4. Separation Check', 'pass', `Metrics properly separated: ${wavesData} ≠ ${hi5sData}`);
+                }
+                
+                if (metrics.waves.error || metrics.hi5s.error) {
+                    addTest('5. Error Check', 'fail', `Errors: waves=${metrics.waves.error}, hi5s=${metrics.hi5s.error}`);
+                } else {
+                    addTest('5. Error Check', 'pass', 'No errors in API calls');
+                }
+            } else {
+                addTest('3. Metrics Structure', 'fail', 'Invalid metrics structure returned');
+            }
+            
+        } catch (error) {
+            addTest('2. HiBase Stats Import', 'fail', `Import failed: ${error.message}`);
+            console.error('❌ Test failed:', error);
+        }
+    </script>
+</body>
+</html>

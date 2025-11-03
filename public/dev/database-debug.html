@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Database Function Debug Test</title>
+    <style>
+        body { font-family: monospace; background: #000; color: #0f0; padding: 20px; }
+        pre { background: #111; padding: 10px; border: 1px solid #333; margin: 10px 0; }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+        .warning { color: #ff0; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Database Function Debug Test</h1>
+    <div id="results"></div>
+
+    <script type="module">
+        const results = document.getElementById('results');
+        
+        function log(message, type = 'info') {
+            const pre = document.createElement('pre');
+            pre.className = type;
+            pre.textContent = `[${new Date().toISOString()}] ${message}`;
+            results.appendChild(pre);
+            console.log(message);
+        }
+        
+        // Import HiBaseClient directly to test RPC calls
+        import hiBaseClient from '/lib/hibase/HiBaseClient.js';
+        
+        log('🚀 Starting database function tests...');
+        
+        try {
+            // Test 1: Raw get_hi_waves RPC call
+            log('📡 Testing raw get_hi_waves RPC call...');
+            
+            const client = hiBaseClient.getClient();
+            if (!client) {
+                log('❌ Failed to get HiBase client', 'error');
+                throw new Error('No database client available');
+            }
+            
+            log('✅ HiBase client connected', 'success');
+            
+            // Direct RPC call to get_hi_waves
+            const wavesResponse = await client.rpc('get_hi_waves');
+            log('📊 get_hi_waves response:', 'info');
+            log(JSON.stringify(wavesResponse, null, 2), 'info');
+            
+            // Direct RPC call to get_total_hi5s  
+            const hi5sResponse = await client.rpc('get_total_hi5s');
+            log('📊 get_total_hi5s response:', 'info');
+            log(JSON.stringify(hi5sResponse, null, 2), 'info');
+            
+            // Compare the responses
+            if (wavesResponse.error || hi5sResponse.error) {
+                log('❌ RPC errors detected - functions may not exist in database', 'error');
+                log(`Waves error: ${wavesResponse.error?.message || 'none'}`, 'error');
+                log(`Hi5s error: ${hi5sResponse.error?.message || 'none'}`, 'error');
+            } else {
+                const wavesValue = wavesResponse.data?.data;
+                const hi5sValue = hi5sResponse.data?.data;
+                
+                log(`🔢 Extracted values: waves=${wavesValue}, hi5s=${hi5sValue}`, 'info');
+                
+                if (wavesValue === hi5sValue) {
+                    log('⚠️ CONTAMINATION CONFIRMED: Both functions return identical values', 'warning');
+                    log('🔍 This indicates database functions may be using same data source', 'warning');
+                } else {
+                    log('✅ SEPARATION WORKING: Functions return different values', 'success');
+                }
+            }
+            
+        } catch (error) {
+            log(`❌ Test failed: ${error.message}`, 'error');
+            console.error('Full error:', error);
+        }
+    </script>
+</body>
+</html>

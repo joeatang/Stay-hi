@@ -72,7 +72,61 @@
   
   <!-- Beta Systems -->
   <script type="module" src="assets/hi-rewards-beta.js"></script>
-  <script type="module" src="assets/real-time-stats.js"></script>
+  
+  <!-- HI-OS: Stats Init Guard - Prevent duplicate calls -->
+  <script type="module">
+    import { initHiStatsOnce } from '../ui/stats/initHiStats.js';
+    
+    // Single unified stats loader for welcome page
+    async function loadWelcomeStats() {
+      console.log('[HiStats] Loading welcome page metrics...');
+      
+      // Check for HiBase.stats first (preferred)
+      if (window.HiBase?.stats?.getMetrics) {
+        console.log('[HiStats] Using HiBase.stats.getMetrics()...');
+        const metrics = await window.HiBase.stats.getMetrics();
+        
+        // Update DOM with separated metrics
+        if (metrics.waves?.data !== null) {
+          const wavesEl = document.getElementById('globalWaves');
+          if (wavesEl) wavesEl.textContent = (metrics.waves.data || 0).toLocaleString();
+        }
+        
+        if (metrics.hi5s?.data !== null) {
+          const hi5sEl = document.getElementById('totalHis');
+          if (hi5sEl) hi5sEl.textContent = (metrics.hi5s.data || 0).toLocaleString();
+        }
+        
+        console.log('[HiStats] ✅ Welcome stats loaded via HiBase.stats');
+      } else {
+        // Fallback to legacy RPC call
+        console.log('[HiStats] Fallback to legacy RPC...');
+        const { getClient } = await import('/lib/HiSupabase.js');
+        const supa = getClient();
+        if (supa) {
+          const { data, error } = await supa.rpc('get_global_stats');
+          if (data && !error) {
+            const realStats = Array.isArray(data) ? data[0] : data;
+            const wavesEl = document.getElementById('globalWaves');
+            const hi5sEl = document.getElementById('totalHis');
+            
+            if (wavesEl) wavesEl.textContent = (Number(realStats.hi_waves) || 0).toLocaleString();
+            if (hi5sEl) hi5sEl.textContent = (Number(realStats.total_his) || 0).toLocaleString();
+            
+            console.log('[HiStats] ✅ Welcome stats loaded via legacy RPC');
+          }
+        }
+      }
+    }
+    
+    // Initialize stats once per page load
+    window.addEventListener('DOMContentLoaded', () => {
+      initHiStatsOnce(loadWelcomeStats);
+    });
+  </script>
+  
+  <!-- Real-time stats (disabled until duplicates are resolved) -->
+  <!-- <script type="module" src="assets/real-time-stats.js"></script> -->
   <style>
     /* 🎯 GOLD-STANDARD WELCOME PAGE: Tesla-Grade Brand Design */
     body {
@@ -631,74 +685,9 @@
   </script>
   
   <script>
-    // TESLA-GRADE: Fetch REAL stats first, fallback to placeholders
-    async function fetchStats() {
-      try {
-        console.log('🔄 Fetching real stats from Supabase...');
-        
-        // Try to fetch REAL stats first
-        const { getClient } = await import('/lib/HiSupabase.js');
-        const supa = getClient();
-        if (supa) {
-          console.log('📊 Calling get_global_stats RPC...');
-          const { data, error } = await supa.rpc('get_global_stats');
-          
-          if (data && !error) {
-            const realStats = Array.isArray(data) ? data[0] : data;
-            
-            // 🎯 TESLA-GRADE: Simplified real data mapping
-            const statsMapping = {
-              totalHis: Number(realStats.total_his) || 0,
-              globalWaves: Number(realStats.hi_waves) || 0
-            };
-            
-            console.log('✅ Real community stats loaded:', statsMapping);
-            
-            // Update DOM with REAL community data
-            Object.keys(statsMapping).forEach(key => {
-              const element = document.getElementById(key);
-              if (element) {
-                element.textContent = statsMapping[key].toLocaleString();
-              }
-            });
-            
-            console.log('✅ Real stats displayed - Real-Time system will take over');
-            return; // Success - exit early
-          } else {
-            console.error('❌ RPC call failed:', error);
-          }
-        }
-        
-        // � NO FALLBACKS - Use unified stats system for consistency
-        console.error('❌ CRITICAL: Supabase RPC failed - using unified stats system');
-        
-        // Let unified stats handle error and ensure consistency across devices
-        if (window.updateGlobalStats) {
-          console.log('🔄 Delegating to unified global stats system');
-          window.updateGlobalStats();
-        } else {
-          console.error('❌ Unified stats system not loaded - showing loading state');
-          
-          // Show loading state instead of fallback data
-          const elements = ['totalHis', 'globalWaves'];
-          elements.forEach(id => {
-            const element = document.getElementById(id);
-            if (element) {
-              element.textContent = 'Loading...';
-              element.style.color = '#4ECDC4';
-            }
-          });
-        }
-        
-        console.log('⚠️ Placeholder stats loaded - Real-Time system will take over');
-        
-      } catch (e) {
-        console.error('❌ All stats loading failed:', e);
-      }
-    }
-    
-    // Initialize fallback stats
-    fetchStats();
+    // HI-OS: Legacy fetchStats function - REMOVED
+    // This has been replaced by the unified stats init guard system above
+    // All stats loading now happens via initHiStatsOnce() to prevent duplicates
     
     // 🎯 Hi-Grade Welcome Experience Interactions
     document.addEventListener('DOMContentLoaded', () => {
