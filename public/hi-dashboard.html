@@ -989,9 +989,9 @@
         
         console.log('🎯 METRICS SEPARATION: Medallion tapped on hi-dashboard');
         
-        // Use new separated HiBase.stats.insertMedallionTap (no share contamination)
+        // Use new Tesla-Grade dual tracking HiBase.stats.insertMedallionTap
         if (window.HiBase?.stats?.insertMedallionTap) {
-          console.log('🎯 Using clean HiBase.stats.insertMedallionTap...');
+          console.log('🎯 Using Tesla-Grade dual wave tracking...');
           
           // Get current user (null for anonymous)
           const user = window.HiBase?.auth?.getCurrentUser();
@@ -1004,9 +1004,18 @@
             return;
           }
           
-          console.log('✅ METRICS SEPARATION SUCCESS: Medallion tap tracked, new wave count:', result.data);
+          console.log('✅ TESLA-GRADE DUAL TRACKING SUCCESS:', {
+            globalWaves: result.data?.globalWaves,
+            userWaves: result.data?.userWaves,
+            isAuthenticated: !!userId
+          });
           
-          // Refresh dashboard metrics
+          // Display user-specific feedback if authenticated
+          if (userId && result.data?.userWaves) {
+            console.log(`🏆 Personal Hi Waves: ${result.data.userWaves}`);
+          }
+          
+          // Refresh dashboard metrics to show updated global waves
           setTimeout(loadMetricsFromHiBase, 100);
           
         } else {
@@ -1087,7 +1096,7 @@
               await incrementHi5Counter();
               
               // HI DEV: Analytics via HiMonitor.trackEvent
-              const { trackEvent } = await import(./lib/monitoring/HiMonitor.js');
+              const { trackEvent } = await import('./lib/monitoring/HiMonitor.js');
               trackEvent('hi5_submit', {
                 visibility: shareData.visibility,
                 path: shareData.hibaseEnabled ? 'hibase' : 'legacy'
@@ -1446,8 +1455,8 @@
     async function initializeHiExperienceLayer() {
       try {
         // Check if hifeed_enabled flag is active (cohort-aware)
-        const { isEnabledCohort } = await import(./lib/flags/HiFlags.js');
-        const { trackEvent } = await import(./lib/monitoring/HiMonitor.js');
+        const { isEnabledCohort } = await import('./lib/flags/HiFlags.js');
+        const { trackEvent } = await import('./lib/monitoring/HiMonitor.js');
         
         const hiFeedEnabled = await isEnabledCohort('hifeed_enabled');
         
@@ -1545,8 +1554,8 @@
   
   <!-- Hi Components: HiShareSheet + HiMedallion (Tesla-grade initialization) -->
   <script type="module">
-    import { HiShareSheet } from ./ui/HiShareSheet/HiShareSheet.js';
-    import { mountHiMedallion } from ./ui/HiMedallion/HiMedallion.js';
+    import { HiShareSheet } from './ui/HiShareSheet/HiShareSheet.js';
+    import { mountHiMedallion } from './ui/HiMedallion/HiMedallion.js';
     
     // Tesla-grade component initialization with guards
     document.addEventListener('DOMContentLoaded', () => {
