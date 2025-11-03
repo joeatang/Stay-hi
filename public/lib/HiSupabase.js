@@ -69,6 +69,13 @@ window.HiSupabaseClient = {
   }
 };
 
+export function getClient() {
+  if (!window.supabaseClient) {
+    throw new Error('Supabase client not initialized. Ensure HiSupabase.js loads first.');
+  }
+  return window.supabaseClient;
+}
+
 export function from(table) {
   return getClient().from(table);
 }
