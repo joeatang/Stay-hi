@@ -2,37 +2,20 @@
   "version": 2,
   "cleanUrls": true,
   "trailingSlash": false,
+  "outputDirectory": ".",
+  "public": true,
   
   "headers": [
     {
-      "source": "/(.*)\\.js",
+      "source": "/(.*\\.js)",
       "headers": [
-        { "key": "Content-Type", "value": "application/javascript; charset=utf-8" },
-        { "key": "Cache-Control", "value": "public, max-age=3600" }
+        { "key": "Content-Type", "value": "application/javascript; charset=utf-8" }
       ]
     },
     {
-      "source": "/(.*)\\.css",
+      "source": "/(.*\\.css)",
       "headers": [
-        { "key": "Content-Type", "value": "text/css; charset=utf-8" },
-        { "key": "Cache-Control", "value": "public, max-age=3600" }
-      ]
-    },
-    {
-      "source": "/(.*)\\.json",
-      "headers": [
-        { "key": "Content-Type", "value": "application/json; charset=utf-8" }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "X-XSS-Protection", "value": "1; mode=block" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "X-Hi-Environment", "value": "production" },
-        { "key": "X-Hi-Version", "value": "2.1.0" }
+        { "key": "Content-Type", "value": "text/css; charset=utf-8" }
       ]
     }
   ],
