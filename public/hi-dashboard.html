@@ -758,9 +758,17 @@
       loadMetricsFromHiBase();
     }
 
-    // METRICS SEPARATION: Load metrics using clean HiBase.stats API
+    // METRICS SEPARATION: Load metrics using clean HiBase.stats API (flag-gated)
     async function loadMetricsFromHiBase() {
       try {
+        // Check if metrics separation is enabled via feature flag
+        const useMetricsSeparation = await window.HiFlags?.getFlag('metrics_separation_enabled', true);
+        
+        if (!useMetricsSeparation) {
+          console.log('🎯 Metrics separation disabled, falling back to legacy system...');
+          return loadStatsFromUnifiedSystem(); // Fallback to old system
+        }
+        
         if (window.HiBase?.stats?.getMetrics) {
           console.log('🎯 Loading separated metrics from HiBase.stats...');
           
@@ -929,6 +937,18 @@
     // METRICS SEPARATION: Hi Wave Increment (medallion taps → hi_events table only)
     async function incrementHiWave() {
       try {
+        // Check if metrics separation is enabled via feature flag
+        const useMetricsSeparation = await window.HiFlags?.getFlag('metrics_separation_enabled', true);
+        
+        if (!useMetricsSeparation) {
+          console.log('🎯 Metrics separation disabled, using legacy medallion tracking...');
+          // Fallback to legacy system (preserved for rollback)
+          if (window.HiUnifiedStats?.trackMedallionTap) {
+            return await window.HiUnifiedStats.trackMedallionTap();
+          }
+          return;
+        }
+        
         console.log('🎯 METRICS SEPARATION: Medallion tapped on hi-dashboard');
         
         // Use new separated HiBase.stats.insertMedallionTap (no share contamination)
@@ -1516,9 +1536,29 @@
       // METRICS SEPARATION: Initialize HiMedallion with medallion tap handler
       const medallionContainer = document.getElementById('hiMedallionContainer');
       if (medallionContainer) {
-        mountHiMedallion(medallionContainer, {
-          onTap: incrementHiWave, // Connect medallion tap to hi_events table
-          origin: 'dashboard'
+        // First create the medallion HTML structure
+        import('../ui/HiMedallion/HiMedallion.js').then(({ createHiMedallionHTML, mountHiMedallion }) => {
+          // Create Tesla-grade medallion HTML
+          medallionContainer.innerHTML = createHiMedallionHTML({
+            id: 'dashboardMedallion',
+            className: 'dashboard-medallion',
+            dataAttributes: 'data-origin="dashboard" data-aria-label="Send positive energy to the Stay Hi community"'
+          });
+          
+          // Find the created medallion element
+          const medallionElement = medallionContainer.querySelector('.hi-medallion');
+          if (medallionElement) {
+            // Mount interactive behavior
+            mountHiMedallion(medallionElement, {
+              onTap: incrementHiWave, // Connect medallion tap to hi_events table
+              origin: 'dashboard',
+              ariaLabel: 'Send positive energy to the Stay Hi community'
+            });
+            
+            console.log('🎯 Tesla-grade HiMedallion mounted on dashboard');
+          }
+        }).catch(error => {
+          console.error('❌ Failed to load HiMedallion:', error);
         });
       }
     });
