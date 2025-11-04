@@ -135,6 +135,33 @@
             box-shadow: none;
         }
     </style>
+    
+    <!-- HI-OS S-ARCH/2: Dual-root deprecation detector -->
+    <!-- Intentional cross-root probe:
+         If served from /public (CORRECT), this  ../../lib/...  request 404s and never runs.
+         If served from repo root (INCORRECT), it 200s and sets window.__HI_DEPRECATED_LIB_HIT=true. -->
+    <script src="../../lib/DEPRECATED_DO_NOT_USE.js" defer></script>
+
+    <script>
+    // After the page settles, report RED if the deprecated marker executed.
+    window.addEventListener('DOMContentLoaded', function () {
+      const bad = !!window.__HI_DEPRECATED_LIB_HIT;
+      const tag = '[HI-OS][DEPRECATED-LIB-CHECK]';
+      if (bad) {
+        console.error(`${tag} RED — repo-root /lib imported. Fix dev server root (serve /public).`);
+        // Optional: upgrade the existing badge if present
+        const badge = document.getElementById('hi-webroot-guard');
+        if (badge) {
+          badge.textContent = 'RED — repo-root /lib imported (fix server root to /public)';
+          badge.style.border = '1px solid #a00';
+          badge.style.background = '#ffecec';
+          badge.style.color = '#7a0000';
+        }
+      } else {
+        console.log(`${tag} GREEN — no repo-root /lib imports detected.`);
+      }
+    });
+    </script>
 </head>
 <body>
     <div class="container">
