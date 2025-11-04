@@ -5,6 +5,47 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Welcome — Stay Hi</title>
   
+  <!-- HI-OS S-ARCH/1: Webroot Guard (dev-only) -->
+  <script>
+    // Pass criteria: location.pathname must contain "/public/"
+    (function() {
+      const PASS = location.pathname.includes('/public/');
+      const msg  = PASS ? 'GREEN — served from /public (web root OK)'
+                        : 'RED — NOT served from /public (fix dev server root)';
+      // Expose for other verifiers
+      window.__HI_WEBROOT_OK = PASS;
+
+      // Console signal
+      const tag = '[HI-OS][WEBROOT]';
+      if (PASS) {
+        console.log(`${tag} ${msg}`);
+      } else {
+        console.error(`${tag} ${msg}`);
+      }
+
+      // Minimal UI badge injection (dev page only)
+      try {
+        const badge = document.createElement('div');
+        badge.textContent = msg;
+        badge.setAttribute('id', 'hi-webroot-guard');
+        badge.style.position = 'fixed';
+        badge.style.bottom = '12px';
+        badge.style.right = '12px';
+        badge.style.zIndex = '99999';
+        badge.style.padding = '8px 10px';
+        badge.style.fontFamily = 'system-ui,-apple-system,Segoe UI,Roboto,Arial';
+        badge.style.fontSize = '12px';
+        badge.style.borderRadius = '6px';
+        badge.style.border = PASS ? '1px solid #1f7a1f' : '1px solid #a00';
+        badge.style.background = PASS ? '#eaffea' : '#ffecec';
+        badge.style.color = PASS ? '#0c540c' : '#7a0000';
+        document.body.appendChild(badge);
+      } catch (e) {
+        console.warn('[HI-OS][WEBROOT] badge inject failed:', e);
+      }
+    })();
+  </script>
+  
   <!-- Flag Init Guard -->
   <script type="module">
     import * as HiFlags from './lib/flags/HiFlags.js';
@@ -20,16 +61,19 @@
   <meta name="apple-mobile-web-app-title" content="Hi Collective">
   <link rel="apple-touch-icon" href="assets/brand/hi-logo-192.png">
 
-  <!-- Preload Supabase CDN for instant client init -->
-  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <!-- Preload Supabase CDN - DISABLED: Use ES module version -->
+  <!-- <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script"> -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script> -->
 
   <!-- 🚀 Hi Flow Controller - Smart routing for welcome experience -->
   <link rel="stylesheet" href="assets/hi-flow-controller.css">
-  <script src="./lib/HiMembership.js"></script>
+  <!-- HI-OS S9: Convert to ES module for v3 import -->
+  <script type="module" src="./lib/HiMembership.js"></script>
   <!-- TEMPORARILY DISABLED: Access tiers has function errors -->
   <!-- <script src="assets/hi-access-tiers.js"></script> -->
-  <script src="assets/hi-flow-controller.js"></script>
+  <!-- REPLACED: Use lib version instead of deprecated assets version -->
+  <!-- <script src="assets/hi-flow-controller.js"></script> -->
+  <script type="module" src="./lib/HiFlowController.js"></script>
   
   <!-- 🎬 Tesla-Grade Loading Experience V2.0 -->
   <link rel="stylesheet" href="assets/hi-loading-experience.css">
@@ -73,6 +117,31 @@
   
   <!-- Beta Systems -->
   <script type="module" src="assets/hi-rewards-beta.js"></script>
+  
+  <!-- S1 BOOT CHAIN DIAGNOSTIC -->
+  <script>
+    console.log('S1 DIAGNOSTIC: Executed scripts tracking initialized');
+    window.executedScripts = [];
+    window.redErrorCount = 0;
+    
+    // Track console errors
+    const originalError = console.error;
+    console.error = function(...args) {
+      window.redErrorCount++;
+      return originalError.apply(console, args);
+    };
+    
+    // Track script execution
+    const originalCreateElement = document.createElement;
+    document.createElement = function(tagName) {
+      const element = originalCreateElement.call(this, tagName);
+      if (tagName.toLowerCase() === 'script' && element.src) {
+        window.executedScripts.push(element.src);
+        console.log('S1 SCRIPT LOADED:', element.src);
+      }
+      return element;
+    };
+  </script>
   
   <!-- HI-OS: Tesla-Grade HiMetrics Adapter (30s Cache + Subscribers) -->
   <script type="module">
@@ -147,6 +216,55 @@
         console.log('[Welcome] HiMetrics subscription cleaned up');
       }
     });
+    
+    // S1 FINAL DIAGNOSTIC (after 3s)
+    setTimeout(() => {
+      console.log('S1 COMPLETE DIAGNOSTIC:');
+      console.log('Executed scripts:', window.executedScripts || []);
+      
+      const errorCount = window.redErrorCount || 0;
+      console.log('Console: ' + errorCount + ' red errors for metrics');
+      
+      console.log('Network: Checking key assets...');
+      fetch('/public/lib/HiMetrics.js').then(r => console.log('HiMetrics.js:', r.status));
+      // HI-OS CLEANUP (S7): Remove legacy HiSupabase.js 404 - using v3 module
+      // fetch('/public/lib/HiSupabase.js').then(r => console.log('HiSupabase.js:', r.status));
+      fetch('/public/lib/hibase/stats.js').then(r => console.log('stats.js:', r.status));
+    }, 3000);
+  </script>
+
+  <!-- HI-OS S10: Welcome Stats Loader (v3 ESM) -->
+  <script type="module">
+    import { supabase } from "./lib/HiSupabase.v3.js";
+    import { getGlobalStats } from "./lib/HiStats.js";
+
+    // Soft readiness gate: v3 client exists + flags loaded
+    const flagsReady = () => (window.hiFlags && window.hiFlags.hifeed_enabled);
+
+    async function waitReady(ms=2000) {
+      const t0 = performance.now();
+      while (performance.now() - t0 < ms) {
+        if (supabase && flagsReady()) return true;
+        await new Promise(r => setTimeout(r, 50));
+      }
+      return false;
+    }
+
+    const ok = await waitReady();
+    if (!ok) {
+      console.warn("hibase.stats.ready.timeout");
+    }
+
+    try {
+      const { totalHis, totalWaves } = await getGlobalStats();
+      const hisEl = document.querySelector("#totalHis");
+      const wavesEl = document.querySelector("#globalWaves");
+      if (hisEl) hisEl.textContent = Number.isFinite(totalHis) ? totalHis.toLocaleString() : "0";
+      if (wavesEl) wavesEl.textContent = Number.isFinite(totalWaves) ? totalWaves.toLocaleString() : "0";
+      console.log("hibase.stats.rendered", { totalHis, totalWaves });
+    } catch (e) {
+      console.error("hibase.stats.render.err", e);
+    }
   </script>
   
   <!-- Real-time stats (disabled until duplicates are resolved) -->
@@ -675,8 +793,16 @@
       </div>
     </div>
   </main>
-  <script type="module" src="./lib/HiSupabase.js"></script>
-  <script type="module" src="./lib/HiDB.js"></script>
+  <!-- HI-OS CLEANUP (S8): legacy Supabase script fully disabled -->
+  <!-- HiSupabase.js v2 DISABLED for v3 migration -->
+  <!-- <script type="module" src="./lib/HiSupabase.js"></script> -->
+  <!-- HiDB.js REMOVED: Welcome should use HiMetrics adapter, not direct DB access -->
+  
+  <!-- HI-OS FLAG: hibase_supabase_v3_enabled -->
+  <script type="module">
+    import { supabase } from "./lib/HiSupabase.v3.js";
+    console.log("🧠 HiSupabase v3 active:", !!supabase);
+  </script>
   
   <!-- 🎬 TESLA-GRADE LOADING EXPERIENCE V2.0 -->
   <script>
