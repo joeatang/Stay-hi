@@ -18,8 +18,8 @@
     <div id="testResults"></div>
     
     <script type="module">
-        // Import HiBase stats
-        import { getMetrics } from./lib/hibase/stats.js';
+        // HI-OS 5f-FIX: correct public path + syntax
+        import { getMetrics } from "../lib/hibase/stats.js"; // HI-OS: public-relative path
         
         const results = document.getElementById('testResults');
         
