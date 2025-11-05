@@ -1,0 +1,57 @@
+/* S-DASH/7: hero polish */
+.hi-medallion-btn {
+  display: grid;
+  place-items: center;
+  width: clamp(120px, 22vw, 220px);
+  height: clamp(120px, 22vw, 220px);
+  border-radius: 50%;
+  border: none;
+  background: radial-gradient(circle at 50% 45%, rgba(255,255,255,0.18), rgba(255,255,255,0.04)),
+              var(--hi-medallion-bg, #0f0f12);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25), inset 0 2px 6px rgba(255,255,255,0.08);
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.hi-medallion-btn:focus-visible {
+  outline: 2px solid #ffd76a;
+  outline-offset: 3px;
+}
+
+.hi-medallion-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 3px 12px rgba(0,0,0,0.25), inset 0 3px 8px rgba(255,255,255,0.12);
+}
+
+.hi-medallion-emblem {
+  width: 60%;
+  height: auto;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Personal stats row + compact global */
+#statsRow, .global-stats-container {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(72px, 1fr)) auto; /* 3 personal + 1 global pill */
+  gap: 10px;
+  align-items: center;
+}
+
+#statTotal, #stat7d, #statStreak {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  text-align: center;
+  font-weight: 600;
+}
+
+.hi-global-pill {
+  justify-self: end;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  opacity: 0.92;
+}

@@ -210,6 +210,9 @@
     <link rel="stylesheet" href="ui/HiMedallion/HiMedallion.css">
   </noscript>
 
+  <!-- S-DASH/7: Hero polish + stats row styling -->
+  <link rel="stylesheet" href="styles/hi-dashboard.css">
+
   <!-- HI DEV: Fast Brand Controls - Page-Specific Medallion Overrides -->
   <style>
     :root {
@@ -781,12 +784,20 @@
             
             let html = '';
             
-            // Add statsRow and its children if flag enabled
+            // Add statsRow and its children if flag enabled (S-DASH/7: personal first + global pill)
             if (statsRow) {
-              html += '<div id="statsRow"><div id="statTotal"></div><div id="stat7d"></div><div id="statStreak"></div></div>';
+              html += '<div id="statsRow">';
+              html += '<div id="statTotal"></div>';
+              html += '<div id="stat7d"></div>';
+              html += '<div id="statStreak"></div>';
+              // S-DASH/7: global pill anchor (text populated by S-DASH/3)
+              if (globalPill) {
+                html += '<div id="globalPill" class="hi-global-pill" aria-live="polite"></div>';
+              }
+              html += '</div>';
             }
             
-            // Add medallion anchor if flag enabled
+            // Add medallion anchor if flag enabled (S-DASH/7: now a proper button in main DOM)
             if (medallionCta) {
               html += '<div id="hiMedallion"></div>';
             }
@@ -796,10 +807,7 @@
               html += '<button id="giveHiBtn"></button>';
             }
             
-            // Add global pill anchor if flag enabled
-            if (globalPill) {
-              html += '<div id="globalPill"></div>';
-            }
+            // S-DASH/7: global pill moved into stats row above
             
             container.innerHTML = html;
             document.body.appendChild(container);
@@ -856,7 +864,19 @@
     </div>
     
     <!-- HI DEV: Tesla-Grade HiMedallion Component -->
-    <div id="hiMedallionContainer" class="hi-medallion-section"></div>
+    <div id="hiMedallionContainer" class="hi-medallion-section">
+      <!-- S-DASH/7: hero medallion -->
+      <button id="hiMedallion"
+              class="hi-medallion-btn"
+              aria-label="Give yourself a Hi-5"
+              aria-pressed="false"
+              title="Give yourself a Hi-5"
+              type="button">
+        <!-- Keep the JNA emblem inside exactly as-is -->
+        <img src="./assets/jna-emblem.svg" alt="Hi emblem" class="hi-medallion-emblem">
+      </button>
+      <!-- /S-DASH/7 -->
+    </div>
     
     <!-- Weekly Progress Strip -->
     <div id="weekStrip" class="weekstrip" aria-label="Your week"></div>
