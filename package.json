@@ -2,6 +2,9 @@
   "name": "stay-hi",
   "private": true,
   "type": "module",
+  "scripts": {
+    "dev:public": "cd public && python3 -m http.server 3030"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.1",
     "node-fetch": "^3.3.2"

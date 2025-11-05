@@ -7,6 +7,17 @@
 
 set -e  # Exit on any error
 
+# HI-OS S-ARCH/4: WEBROOT ENFORCEMENT GUARD
+# Ensure we're serving from /public (not repo root)
+CURRENT_DIR=$(pwd)
+if [[ "$CURRENT_DIR" != *"/public" ]] && [[ ! -f "./public/index.html" ]]; then
+    echo -e "\033[0;31m[HI-OS][WEBROOT] ERROR: Must serve from /public directory\033[0m"
+    echo -e "\033[1;33mCorrect usage:\033[0m"
+    echo -e "  cd /path/to/Stay-hi && ./dev-server.sh"
+    echo -e "  OR: npm run dev:public"
+    exit 1
+fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
