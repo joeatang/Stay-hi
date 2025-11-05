@@ -55,3 +55,41 @@
   white-space: nowrap;
   opacity: 0.92;
 }
+
+/* S-DASH/8: Micro-feedback animations */
+.hi-confetti {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--hi-accent, #ffd76a);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: hiBurst 0.9s ease-out forwards;
+  z-index: 10;
+}
+
+@keyframes hiBurst {
+  0% {
+    transform: scale(0.5) translateY(0);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(1.2) translateY(-30px);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(0.2) translateY(-50px);
+    opacity: 0;
+  }
+}
+
+/* Screen reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

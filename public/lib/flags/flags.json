@@ -70,5 +70,9 @@
   "hi_welcome_stats_v1": {
     "enabled": false,
     "description": "Enable welcome page statistics loading (retired in S-DASH/6)"
+  },
+  "hi_dash_feedback_v1": {
+    "enabled": true,
+    "description": "Enable S-DASH/8 micro-feedback system (haptic + confetti + ARIA)"
   }
 }

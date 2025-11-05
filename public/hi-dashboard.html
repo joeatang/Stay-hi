@@ -180,6 +180,9 @@
   <!-- S-DASH Share CTA Wiring (Flag-Gated) -->
   <script type="module" src="./lib/HiDash.share.js"></script>
   
+  <!-- S-DASH/8 Micro-Feedback System (Flag-Gated) -->
+  <script type="module" src="./lib/HiDash.feedback.js"></script>
+  
   <!-- Premium Authentication & UX -->
   <script src="assets/progressive-auth.js"></script>
   <script src="assets/anonymous-access-modal.js"></script>
@@ -880,6 +883,9 @@
     
     <!-- Weekly Progress Strip -->
     <div id="weekStrip" class="weekstrip" aria-label="Your week"></div>
+
+    <!-- S-DASH/8: ARIA live region for micro-feedback -->
+    <div id="hiLive" class="sr-only" aria-live="polite"></div>
 
     <!-- 🔥 NEW: Hi Experience Layer Components (Feature Flagged) -->
     <div id="hiExperienceLayer" style="display: none;">
