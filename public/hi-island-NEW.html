@@ -316,7 +316,7 @@
     window.addEventListener('DOMContentLoaded', () => {
       const ok = renderFeedSkeleton();
       // Temporary dev probe (visible evidence without changing product UI):
-      if (ok?.ok) {
+      if (ok === true) {
         console.log('[S-ISL/3] Dev probe: appending sample card');
         appendHiCard({ text: 'Welcome to Hi Island! 🌊', user: 'Hi System' });
       }

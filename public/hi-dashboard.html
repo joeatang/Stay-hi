@@ -59,7 +59,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   
   <!-- Database & Hi Island Integration -->
-  <script src="./lib/HiSupabase.js"></script>
+  <script src="./lib/HiSupabase.v3.js"></script>
   <script src="assets/db.js"></script>
   
   <!-- 🚀 INTEGRATION #5: HiBase + HiFlags for Streaks system (flagged rollout) -->
@@ -826,6 +826,16 @@
 
   <!-- Main Content -->
   <main class="main-content">
+    
+    <!-- S-DASH DOM Anchors (Required for Production Parity) -->
+    <div id="statsRow" style="display: none;">
+      <div id="statTotal"></div>
+      <div id="stat7d"></div>
+      <div id="statStreak"></div>
+    </div>
+    <div id="giveHiBtn" style="display: none;"></div>
+    <div id="globalPill" class="hi-global-pill" style="display: none;" aria-live="polite"></div>
+    
     <!-- Global Stats Above Weekly Progress -->
     <div class="global-stats-container">
       <div class="global-stat">
