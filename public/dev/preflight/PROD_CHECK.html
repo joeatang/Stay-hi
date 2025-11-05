@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P0 Production Parity Check | Tesla-Grade S-DASH/8</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui; 
+            margin: 20px; 
+            background: #f8f9fa; 
+        }
+        .container { 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
+        }
+        .header { 
+            text-align: center; 
+            margin-bottom: 30px; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            border-radius: 8px; 
+        }
+        .check-section { 
+            margin: 20px 0; 
+            padding: 15px; 
+            border: 1px solid #e1e5e9; 
+            border-radius: 8px; 
+        }
+        .check-result { 
+            margin: 8px 0; 
+            padding: 8px; 
+            border-radius: 4px; 
+        }
+        .pass { 
+            background: #d4edda; 
+            color: #155724; 
+            border-left: 4px solid #28a745; 
+        }
+        .fail { 
+            background: #f8d7da; 
+            color: #721c24; 
+            border-left: 4px solid #dc3545; 
+        }
+        .warn { 
+            background: #fff3cd; 
+            color: #856404; 
+            border-left: 4px solid #ffc107; 
+        }
+        .json-output { 
+            background: #2d3748; 
+            color: #e2e8f0; 
+            padding: 15px; 
+            border-radius: 8px; 
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; 
+            font-size: 12px; 
+            white-space: pre-wrap; 
+            max-height: 400px; 
+            overflow-y: auto; 
+        }
+        .copy-btn { 
+            background: #3182ce; 
+            color: white; 
+            border: none; 
+            padding: 8px 15px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin: 10px 0; 
+        }
+        .copy-btn:hover { background: #2c5aa0; }
+        .metadata { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 15px; 
+            margin: 20px 0; 
+        }
+        .meta-card { 
+            background: #f7fafc; 
+            padding: 12px; 
+            border-radius: 6px; 
+            border-left: 3px solid #4299e1; 
+        }
+        .spinner { 
+            border: 2px solid #f3f3f3; 
+            border-top: 2px solid #3498db; 
+            border-radius: 50%; 
+            width: 20px; 
+            height: 20px; 
+            animation: spin 1s linear infinite; 
+            display: inline-block; 
+            margin-right: 8px; 
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 P0 Production Parity Check</h1>
+            <p>Tesla-Grade S-DASH/8 Live vs Local Verification</p>
+            <p><small>Diagnosing welcome stats, dashboard medallion, flags, and S-DASH component drift</small></p>
+        </div>
+
+        <div class="metadata">
+            <div class="meta-card">
+                <strong>Environment:</strong> <span id="envInfo">Detecting...</span>
+            </div>
+            <div class="meta-card">
+                <strong>Timestamp:</strong> <span id="timestamp">Loading...</span>
+            </div>
+            <div class="meta-card">
+                <strong>Build Stamp:</strong> <span id="buildStamp">Checking...</span>
+            </div>
+            <div class="meta-card">
+                <strong>User Agent:</strong> <span id="userAgent">Loading...</span>
+            </div>
+        </div>
+
+        <div id="results"></div>
+
+        <div class="check-section">
+            <h3>📋 JSON Report for Hi Dev Jr</h3>
+            <p>Copy this complete report and paste it in the conversation:</p>
+            <button class="copy-btn" onclick="copyReport()">📋 Copy Complete Report</button>
+            <div id="jsonReport" class="json-output">Generating comprehensive report...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        const results = document.getElementById('results');
+        const jsonReport = document.getElementById('jsonReport');
+        let reportData = {
+            metadata: {},
+            checks: {},
+            summary: {},
+            recommendations: []
+        };
+
+        // Initialize metadata
+        function initMetadata() {
+            const now = new Date();
+            const isProduction = location.hostname.includes('vercel.app') || location.hostname !== 'localhost';
+            
+            reportData.metadata = {
+                timestamp: now.toISOString(),
+                environment: isProduction ? 'PRODUCTION (Vercel)' : 'LOCAL (localhost)',
+                hostname: location.hostname,
+                pathname: location.pathname,
+                userAgent: navigator.userAgent,
+                buildStamp: 'unknown'
+            };
+
+            document.getElementById('timestamp').textContent = now.toLocaleString();
+            document.getElementById('envInfo').textContent = reportData.metadata.environment;
+            document.getElementById('userAgent').textContent = navigator.userAgent.substring(0, 50) + '...';
+        }
+
+        // Add check result to UI and data
+        function addCheck(category, name, status, message, details = null) {
+            const section = getOrCreateSection(category);
+            const div = document.createElement('div');
+            div.className = `check-result ${status}`;
+            div.innerHTML = `<strong>${name}:</strong> ${message}`;
+            section.appendChild(div);
+
+            if (!reportData.checks[category]) reportData.checks[category] = [];
+            reportData.checks[category].push({
+                name,
+                status,
+                message,
+                details,
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        function getOrCreateSection(category) {
+            let section = document.getElementById(category);
+            if (!section) {
+                section = document.createElement('div');
+                section.className = 'check-section';
+                section.id = category;
+                section.innerHTML = `<h3>${category.charAt(0).toUpperCase() + category.slice(1)} Checks</h3>`;
+                results.appendChild(section);
+            }
+            return section;
+        }
+
+        // HTTP request helper
+        async function checkResource(url, description) {
+            try {
+                const response = await fetch(url);
+                return {
+                    url,
+                    status: response.status,
+                    ok: response.ok,
+                    description,
+                    contentType: response.headers.get('content-type'),
+                    size: response.headers.get('content-length')
+                };
+            } catch (error) {
+                return {
+                    url,
+                    status: 0,
+                    ok: false,
+                    description,
+                    error: error.message
+                };
+            }
+        }
+
+        // DOM element checker
+        async function checkDOM(page, selectors) {
+            try {
+                const response = await fetch(page);
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                const results = {};
+                for (const [key, selector] of Object.entries(selectors)) {
+                    const element = doc.querySelector(selector);
+                    results[key] = {
+                        exists: !!element,
+                        selector,
+                        textContent: element ? element.textContent.substring(0, 100) : null,
+                        attributes: element ? Object.fromEntries(
+                            Array.from(element.attributes).map(attr => [attr.name, attr.value])
+                        ) : null
+                    };
+                }
+                return { page, results };
+            } catch (error) {
+                return { page, error: error.message };
+            }
+        }
+
+        // Check build stamp
+        async function checkBuildStamp() {
+            try {
+                const response = await fetch('/BUILD_STAMP.json');
+                if (response.ok) {
+                    const buildData = await response.json();
+                    reportData.metadata.buildStamp = buildData;
+                    document.getElementById('buildStamp').textContent = 
+                        `${buildData.version || 'unknown'} (${buildData.timestamp ? new Date(buildData.timestamp).toLocaleDateString() : 'unknown date'})`;
+                    addCheck('metadata', 'Build Stamp', 'pass', 'BUILD_STAMP.json found and valid', buildData);
+                    return buildData;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                document.getElementById('buildStamp').textContent = 'Not found';
+                addCheck('metadata', 'Build Stamp', 'fail', `BUILD_STAMP.json missing or invalid: ${error.message}`);
+                return null;
+            }
+        }
+
+        // Check critical resources
+        async function checkResources() {
+            const criticalResources = [
+                ['/welcome.html', 'Welcome page'],
+                ['/hi-dashboard.html', 'Dashboard page'],
+                ['/hi-island-NEW.html', 'Hi Island page'],
+                ['/lib/flags/flags.json', 'Feature flags'],
+                ['/lib/HiSupabase.js', 'HiSupabase module'],
+                ['/lib/HiMetrics.js', 'HiMetrics module'],
+                ['/lib/HiDash.wire.js', 'S-DASH stats wiring'],
+                ['/lib/HiDash.cta.js', 'S-DASH CTA wiring'],
+                ['/lib/HiDash.share.js', 'S-DASH share wiring'],
+                ['/lib/hifeed/index.js', 'S-ISL/2 feed hub'],
+                ['/lib/hifeed/anchors.js', 'S-ISL/3 feed skeleton'],
+                ['/styles/hi-dashboard.css', 'Dashboard styling']
+            ];
+
+            for (const [url, description] of criticalResources) {
+                const result = await checkResource(url, description);
+                const status = result.ok ? 'pass' : 'fail';
+                const message = result.ok 
+                    ? `${description} loaded (${result.status})`
+                    : `${description} failed (${result.status || 'network error'})`;
+                addCheck('resources', description, status, message, result);
+            }
+        }
+
+        // Check page DOM structures
+        async function checkPageStructures() {
+            // Welcome page checks
+            const welcomeSelectors = {
+                hiMetricsScript: 'script[src*="HiMetrics"]',
+                statsContainer: '#hiStats, .hi-stats, [data-stats]',
+                welcomeTitle: 'h1, .welcome-title',
+                hiSupabaseScript: 'script[src*="HiSupabase"]'
+            };
+            
+            const welcomeCheck = await checkDOM('/welcome.html', welcomeSelectors);
+            if (welcomeCheck.error) {
+                addCheck('dom', 'Welcome Page DOM', 'fail', `Welcome page DOM check failed: ${welcomeCheck.error}`);
+            } else {
+                for (const [key, result] of Object.entries(welcomeCheck.results)) {
+                    const status = result.exists ? 'pass' : 'warn';
+                    const message = result.exists 
+                        ? `${key} found: ${result.textContent ? result.textContent.substring(0, 50) + '...' : '[element]'}`
+                        : `${key} missing (${result.selector})`;
+                    addCheck('dom', `Welcome ${key}`, status, message, result);
+                }
+            }
+
+            // Dashboard page checks
+            const dashboardSelectors = {
+                statsRow: '#statsRow',
+                statTotal: '#statTotal',
+                stat7d: '#stat7d', 
+                statStreak: '#statStreak',
+                hiMedallion: '#hiMedallion',
+                giveHiBtn: '#giveHiBtn',
+                globalPill: '#globalPill',
+                hiDashWireScript: 'script[src*="HiDash.wire"]',
+                hiDashCtaScript: 'script[src*="HiDash.cta"]',
+                hiDashShareScript: 'script[src*="HiDash.share"]'
+            };
+
+            const dashboardCheck = await checkDOM('/hi-dashboard.html', dashboardSelectors);
+            if (dashboardCheck.error) {
+                addCheck('dom', 'Dashboard Page DOM', 'fail', `Dashboard page DOM check failed: ${dashboardCheck.error}`);
+            } else {
+                for (const [key, result] of Object.entries(dashboardCheck.results)) {
+                    const status = result.exists ? 'pass' : 'fail';
+                    const message = result.exists 
+                        ? `${key} found${result.attributes && result.attributes['data-sisl3'] ? ` (ready: ${result.attributes['data-sisl3']})` : ''}`
+                        : `${key} MISSING (${result.selector}) - S-DASH component not deployed`;
+                    addCheck('dom', `Dashboard ${key}`, status, message, result);
+                }
+            }
+
+            // Hi Island page checks
+            const islandSelectors = {
+                hiFeedContainer: '#hiFeedContainer',
+                hiFeedList: '#hiFeedList',
+                hiFeedEmpty: '#hiFeedEmpty',
+                anchorsScript: 'script[src*="anchors.js"]',
+                indexScript: 'script[src*="hifeed/index"]',
+                sisl3Ready: '[data-sisl3="ready"]'
+            };
+
+            const islandCheck = await checkDOM('/hi-island-NEW.html', islandSelectors);
+            if (islandCheck.error) {
+                addCheck('dom', 'Hi Island Page DOM', 'fail', `Hi Island page DOM check failed: ${islandCheck.error}`);
+            } else {
+                for (const [key, result] of Object.entries(islandCheck.results)) {
+                    const status = result.exists ? 'pass' : 'fail';
+                    const message = result.exists 
+                        ? `${key} found`
+                        : `${key} MISSING (${result.selector}) - S-ISL/3 not deployed`;
+                    addCheck('dom', `Hi Island ${key}`, status, message, result);
+                }
+            }
+        }
+
+        // Check flags system
+        async function checkFlags() {
+            try {
+                const response = await fetch('/lib/flags/flags.json');
+                if (response.ok) {
+                    const flags = await response.json();
+                    
+                    const criticalFlags = [
+                        'hi_dash_v3',
+                        'hi_dash_stats_row_v1', 
+                        'hi_dash_medallion_cta_v1',
+                        'hi_dash_share_cta_v1',
+                        'hi_dash_global_pill_v1'
+                    ];
+                    
+                    for (const flag of criticalFlags) {
+                        const value = flags[flag];
+                        const status = value === true ? 'pass' : value === false ? 'warn' : 'fail';
+                        const message = `${flag}: ${value !== undefined ? value : 'MISSING'}`;
+                        addCheck('flags', flag, status, message, { flag, value });
+                    }
+                    
+                    addCheck('flags', 'Flags System', 'pass', `${Object.keys(flags).length} flags loaded`, flags);
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                addCheck('flags', 'Flags System', 'fail', `Flags system check failed: ${error.message}`);
+            }
+        }
+
+        // Generate summary and recommendations
+        function generateSummary() {
+            const allChecks = Object.values(reportData.checks).flat();
+            const passes = allChecks.filter(c => c.status === 'pass').length;
+            const fails = allChecks.filter(c => c.status === 'fail').length;
+            const warns = allChecks.filter(c => c.status === 'warn').length;
+            
+            reportData.summary = {
+                total: allChecks.length,
+                passes,
+                fails, 
+                warns,
+                passRate: ((passes / allChecks.length) * 100).toFixed(1),
+                isProduction: reportData.metadata.environment.includes('PRODUCTION')
+            };
+
+            // Generate recommendations
+            if (fails > 0) {
+                reportData.recommendations.push('🚨 CRITICAL: Production deployment is missing S-DASH/S-ISL components');
+            }
+            if (reportData.summary.passRate < 80) {
+                reportData.recommendations.push('⚠️ Low pass rate indicates significant drift from local codebase');
+            }
+            if (!reportData.metadata.buildStamp || reportData.metadata.buildStamp === 'unknown') {
+                reportData.recommendations.push('📦 Add BUILD_STAMP.json for deployment tracking');
+            }
+
+            // Check specific known issues
+            const dashboardChecks = reportData.checks.dom?.filter(c => c.name.startsWith('Dashboard')) || [];
+            const missingDashboardComponents = dashboardChecks.filter(c => c.status === 'fail');
+            if (missingDashboardComponents.length > 0) {
+                reportData.recommendations.push('🎯 Dashboard missing S-DASH components - run deployment script');
+            }
+
+            const islandChecks = reportData.checks.dom?.filter(c => c.name.startsWith('Hi Island')) || [];
+            const missingIslandComponents = islandChecks.filter(c => c.status === 'fail');
+            if (missingIslandComponents.length > 0) {
+                reportData.recommendations.push('🌊 Hi Island missing S-ISL/3 components - feed skeleton not deployed');
+            }
+        }
+
+        // Update JSON report display
+        function updateJsonReport() {
+            generateSummary();
+            
+            const report = {
+                ...reportData,
+                reportGeneratedAt: new Date().toISOString(),
+                version: 'P0-PROD-CHECK-v1.0'
+            };
+            
+            jsonReport.textContent = JSON.stringify(report, null, 2);
+        }
+
+        // Copy report to clipboard
+        window.copyReport = async function() {
+            try {
+                await navigator.clipboard.writeText(jsonReport.textContent);
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                btn.style.background = '#28a745';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '#3182ce';
+                }, 2000);
+            } catch (error) {
+                alert('Copy failed - please select and copy manually');
+            }
+        };
+
+        // Main execution
+        async function runDiagnostics() {
+            console.log('🔍 P0 Production Parity Check - Starting diagnostics...');
+            
+            initMetadata();
+            
+            // Add loading spinner
+            results.innerHTML = '<div class="check-result"><div class="spinner"></div>Running comprehensive checks...</div>';
+            
+            try {
+                await checkBuildStamp();
+                await checkResources();
+                await checkPageStructures();  
+                await checkFlags();
+                
+                updateJsonReport();
+                
+                // Remove loading spinner
+                const spinner = results.querySelector('.spinner');
+                if (spinner) spinner.parentElement.remove();
+                
+                console.log('✅ P0 diagnostics complete', reportData);
+                
+            } catch (error) {
+                console.error('❌ P0 diagnostics failed:', error);
+                addCheck('system', 'Diagnostic System', 'fail', `System error: ${error.message}`);
+                updateJsonReport();
+            }
+        }
+
+        // Auto-start diagnostics
+        runDiagnostics();
+    </script>
+</body>
+</html>
