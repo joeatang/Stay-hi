@@ -748,6 +748,62 @@
     </div>
   </header>
 
+  <!-- S-DASH Flag-Gated DOM Anchors (Hidden Placeholders) -->
+  <script>
+    (async function initSDashAnchors() {
+      try {
+        // Wait for HiFlags to be available
+        if (window.HiFlags) {
+          const flags = await Promise.all([
+            window.HiFlags.getFlag('hi_dash_v3', false),
+            window.HiFlags.getFlag('hi_dash_stats_row_v1', false),
+            window.HiFlags.getFlag('hi_dash_medallion_cta_v1', false),
+            window.HiFlags.getFlag('hi_dash_share_cta_v1', false),
+            window.HiFlags.getFlag('hi_dash_global_pill_v1', false)
+          ]);
+          
+          const [dashV3, statsRow, medallionCta, shareCta, globalPill] = flags;
+          
+          // Only add anchors if hi_dash_v3 is enabled
+          if (dashV3) {
+            const container = document.createElement('div');
+            container.id = 'sDashAnchors';
+            container.style.display = 'none'; // Hidden placeholders
+            
+            let html = '';
+            
+            // Add statsRow and its children if flag enabled
+            if (statsRow) {
+              html += '<div id="statsRow"><div id="statTotal"></div><div id="stat7d"></div><div id="statStreak"></div></div>';
+            }
+            
+            // Add medallion anchor if flag enabled
+            if (medallionCta) {
+              html += '<div id="hiMedallion"></div>';
+            }
+            
+            // Add share button anchor if flag enabled
+            if (shareCta) {
+              html += '<button id="giveHiBtn"></button>';
+            }
+            
+            // Add global pill anchor if flag enabled
+            if (globalPill) {
+              html += '<div id="globalPill"></div>';
+            }
+            
+            container.innerHTML = html;
+            document.body.appendChild(container);
+            
+            console.log('[S-DASH] Flag-gated anchors added:', { dashV3, statsRow, medallionCta, shareCta, globalPill });
+          }
+        }
+      } catch (error) {
+        console.warn('[S-DASH] Flag anchor setup failed:', error);
+      }
+    })();
+  </script>
+
   <!-- Main Content -->
   <main class="main-content">
     <!-- Global Stats Above Weekly Progress -->

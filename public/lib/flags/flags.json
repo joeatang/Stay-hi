@@ -46,5 +46,25 @@
   "metrics_separation_enabled": {
     "enabled": true,
     "description": "Enable separated Hi Waves (medallion taps) vs Total Hi5s (share submissions) via HiBase.stats API"
+  },
+  "hi_dash_v3": {
+    "enabled": true,
+    "description": "Enable S-DASH v3 dashboard optimization system"
+  },
+  "hi_dash_stats_row_v1": {
+    "enabled": true,
+    "description": "Enable S-DASH stats row component placeholders"
+  },
+  "hi_dash_global_pill_v1": {
+    "enabled": true,
+    "description": "Enable S-DASH global statistics pill component"
+  },
+  "hi_dash_medallion_cta_v1": {
+    "enabled": true,
+    "description": "Enable S-DASH medallion CTA optimization anchors"
+  },
+  "hi_dash_share_cta_v1": {
+    "enabled": true,
+    "description": "Enable S-DASH share CTA button optimization anchors"
   }
 }
