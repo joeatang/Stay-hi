@@ -308,5 +308,21 @@
       initHiIsland();
     }
   </script>
+
+  <!-- HI-OS S-ISL/3: init feed skeleton + expose test hook -->
+  <script type="module">
+    import { renderFeedSkeleton, appendHiCard } from './lib/hifeed/anchors.js';
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const ok = renderFeedSkeleton();
+      // Temporary dev probe (visible evidence without changing product UI):
+      if (ok?.ok) {
+        console.log('[S-ISL/3] Dev probe: appending sample card');
+        appendHiCard({ text: 'Welcome to Hi Island! 🌊', user: 'Hi System' });
+      }
+      // Expose for later bridge: HiShare → appendHiCard()
+      window.hiIslandAppend = appendHiCard;
+    });
+  </script>
 </body>
 </html>
