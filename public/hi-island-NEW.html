@@ -187,8 +187,17 @@
     console.log('🔥 HiBase shares module loaded for Hi Island feed integration');
   </script>
   
+  <!-- HI-OS S-ISL/2: v3 client + feed mount -->
+  <script type="module">
+    import './lib/HiSupabase.v3.js';
+    import { mountHiFeed } from './lib/hifeed/index.js';
+
+    window.addEventListener('DOMContentLoaded', () => {
+      mountHiFeed();
+    });
+  </script>
+
   <!-- 🔥 Phase 7: Hi Experience Layer Components (Feature Flagged) -->
-  <script src="./lib/hifeed/index.js"></script>
   <script src="./ui/HiFeed/HiFeed.js"></script>
   <script src="./ui/HiStreaks/HiStreaks.js"></script>
 
