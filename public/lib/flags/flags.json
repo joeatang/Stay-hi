@@ -66,5 +66,9 @@
   "hi_dash_share_cta_v1": {
     "enabled": true,
     "description": "Enable S-DASH share CTA button optimization anchors"
+  },
+  "hi_welcome_stats_v1": {
+    "enabled": false,
+    "description": "Enable welcome page statistics loading (retired in S-DASH/6)"
   }
 }

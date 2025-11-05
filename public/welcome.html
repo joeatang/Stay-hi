@@ -143,7 +143,9 @@
     };
   </script>
   
+  <!-- S-DASH/6: retired welcome stats -->
   <!-- HI-OS: Tesla-Grade HiMetrics Adapter (30s Cache + Subscribers) -->
+  <!--
   <script type="module">
     import HiMetrics from './lib/HiMetrics.js';
     
@@ -216,7 +218,10 @@
         console.log('[Welcome] HiMetrics subscription cleaned up');
       }
     });
-    
+  </script>
+  -->
+  <!-- /S-DASH/6 -->
+
     // S1 FINAL DIAGNOSTIC (after 3s)
     setTimeout(() => {
       console.log('S1 COMPLETE DIAGNOSTIC:');
@@ -226,14 +231,16 @@
       console.log('Console: ' + errorCount + ' red errors for metrics');
       
       console.log('Network: Checking key assets...');
-      fetch('/public/lib/HiMetrics.js').then(r => console.log('HiMetrics.js:', r.status));
+      // S-DASH/6: retired welcome stats - no more HiMetrics/stats requests
+      // fetch('/public/lib/HiMetrics.js').then(r => console.log('HiMetrics.js:', r.status));
       // HI-OS CLEANUP (S7): Remove legacy HiSupabase.js 404 - using v3 module
       // fetch('/public/lib/HiSupabase.js').then(r => console.log('HiSupabase.js:', r.status));
-      fetch('/public/lib/hibase/stats.js').then(r => console.log('stats.js:', r.status));
+      // fetch('/public/lib/hibase/stats.js').then(r => console.log('stats.js:', r.status));
     }, 3000);
   </script>
 
   <!-- HI-OS S10: Welcome Stats Loader (v3 ESM) -->
+  <!--
   <script type="module">
     import { supabase } from "./lib/HiSupabase.v3.js";
     import { getGlobalStats } from "./lib/HiStats.js";
@@ -266,6 +273,8 @@
       console.error("hibase.stats.render.err", e);
     }
   </script>
+  --> 
+  <!-- /S-DASH/6 -->
   
   <!-- Real-time stats (disabled until duplicates are resolved) -->
   <!-- <script type="module" src="assets/real-time-stats.js"></script> -->
@@ -785,12 +794,16 @@
           <span class="stats-live-indicator"></span>
         </span>
       </div>
+      <!-- S-DASH/6: retired welcome stats -->
       <!-- HiMetrics Debug Badge -->
+      <!--
       <div class="stat-item" id="hiMetricsDebug" style="grid-column: 1 / -1; margin-top: 0.5rem; display: none;">
         <span style="font-size: 0.65rem; opacity: 0.6; color: #FFD166;">
           🔧 HiMetrics: <span id="metricsStatus">initializing...</span> | Cache: <span id="cacheAge">0s</span>
         </span>
       </div>
+      -->
+      <!-- /S-DASH/6 -->
     </div>
   </main>
   <!-- HI-OS CLEANUP (S8): legacy Supabase script fully disabled -->
