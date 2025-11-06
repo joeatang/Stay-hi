@@ -5,8 +5,23 @@
  * Data Source: Supabase hi_flags table with local JSON fallback
  */
 
-import { getClient } from '/lib/HiSupabase.js';
-import { isEnabledFor, getIdentity, getRollout } from '../rollout/HiRollout.js';
+// HI-OS S9a: legacy HiSupabase.js disabled to stop 404
+// import { getClient } from '/lib/HiSupabase.js';
+import { supabase as getClient } from '../HiSupabase.v3.js';
+// import { isEnabledFor, getIdentity, getRollout } from '../rollout/HiRollout.js'; // Disabled - HiRollout not available in public
+
+// Fallback rollout functions (simplified)
+function getIdentity() {
+    return Math.random().toString(36).substr(2, 9); // Simple random identity
+}
+
+function isEnabledFor(identity, flagKey) {
+    return true; // Simplified: enable all features for now
+}
+
+function getRollout(flagKey) {
+    return 100; // Simplified: always return 100% rollout
+}
 
 class HiFlags {
     constructor() {
@@ -321,6 +336,21 @@ export async function isEnabledForIdentity(flagKey, identity) {
 export async function isEnabledCohort(flagKey) {
     return isEnabledForIdentity(flagKey, getIdentity());
 }
+
+// HI-OS P1/STEP1: normalize flags to booleans (object {enabled:true} -> true)
+export function hiFlagEnabled(key) {
+  const f = (globalThis.hiFlags && globalThis.hiFlags[key]);
+  if (typeof f === 'object' && f !== null) return !!f.enabled;
+  return !!f;
+}
+
+// Optional helper for multiple keys
+export function hiFlagsAllTrue(keys = []) {
+  return keys.every(k => hiFlagEnabled(k));
+}
+
+// Mark normalization active for diagnostics
+globalThis.__HI_FLAGS_NORMALIZED__ = true;
 
 // Export for ES6 modules - no global assignments
 export default HiFlags;
