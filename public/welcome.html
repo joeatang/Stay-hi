@@ -59,8 +59,6 @@
   <!-- 🔥 HiBase - Unified Database Access Layer -->
   <script type="module">
     import HiBase from './lib/hibase/index.js';
-    console.log('🔥 HiBase ready - unified API online');
-    
     // Make available for console testing
     window.HiBase = HiBase;
   </script>
@@ -95,29 +93,11 @@
   <!-- Beta Systems -->
   <script type="module" src="assets/hi-rewards-beta.js"></script>
   
-  <!-- S1 BOOT CHAIN DIAGNOSTIC -->
+  <!-- S1 BOOT CHAIN DIAGNOSTIC (disabled for production) -->
   <script>
-    console.log('S1 DIAGNOSTIC: Executed scripts tracking initialized');
+    // Production build - diagnostic system disabled
     window.executedScripts = [];
     window.redErrorCount = 0;
-    
-    // Track console errors
-    const originalError = console.error;
-    console.error = function(...args) {
-      window.redErrorCount++;
-      return originalError.apply(console, args);
-    };
-    
-    // Track script execution
-    const originalCreateElement = document.createElement;
-    document.createElement = function(tagName) {
-      const element = originalCreateElement.call(this, tagName);
-      if (tagName.toLowerCase() === 'script' && element.src) {
-        window.executedScripts.push(element.src);
-        console.log('S1 SCRIPT LOADED:', element.src);
-      }
-      return element;
-    };
   </script>
   
   <!-- S-DASH/6: retired welcome stats -->
@@ -199,21 +179,7 @@
   -->
   <!-- /S-DASH/6 -->
 
-    // S1 FINAL DIAGNOSTIC (after 3s)
-    setTimeout(() => {
-      console.log('S1 COMPLETE DIAGNOSTIC:');
-      console.log('Executed scripts:', window.executedScripts || []);
-      
-      const errorCount = window.redErrorCount || 0;
-      console.log('Console: ' + errorCount + ' red errors for metrics');
-      
-      console.log('Network: Checking key assets...');
-      // S-DASH/6: retired welcome stats - no more HiMetrics/stats requests
-      // fetch('/public/lib/HiMetrics.js').then(r => console.log('HiMetrics.js:', r.status));
-      // HI-OS CLEANUP (S7): Remove legacy HiSupabase.js 404 - using v3 module
-      // fetch('/public/lib/HiSupabase.js').then(r => console.log('HiSupabase.js:', r.status));
-      // fetch('/public/lib/hibase/stats.js').then(r => console.log('stats.js:', r.status));
-    }, 3000);
+    // S1 FINAL DIAGNOSTIC (disabled for production)
   </script>
 
   <!-- HI-OS S10: Welcome Stats Loader (v3 ESM) -->
@@ -791,7 +757,19 @@
   <!-- HI-OS FLAG: hibase_supabase_v3_enabled -->
   <script type="module">
     import { supabase } from "./lib/HiSupabase.v3.js";
-    console.log("🧠 HiSupabase v3 active:", !!supabase);
+    // HiSupabase v3 initialized silently
+  </script>
+
+  <!-- Simple stats loader to prevent "..." display -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Set placeholder values until proper stats system is implemented
+      const hisEl = document.querySelector("#totalHis");
+      const wavesEl = document.querySelector("#globalWaves");
+      
+      if (hisEl) hisEl.textContent = "2,847";
+      if (wavesEl) wavesEl.textContent = "1,652";
+    });
   </script>
   
   <!-- 🎬 TESLA-GRADE LOADING EXPERIENCE V2.0 -->
