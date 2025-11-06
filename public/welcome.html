@@ -178,8 +178,6 @@
   </script>
   -->
   <!-- /S-DASH/6 -->
-
-    // S1 FINAL DIAGNOSTIC (disabled for production)
   </script>
 
   <!-- HI-OS S10: Welcome Stats Loader (v3 ESM) -->
@@ -473,45 +471,7 @@
       border-color: #FFD166;
       box-shadow: 0 0 0 3px rgba(255, 215, 102, 0.2);
     }
-    
-    .welcome-stats {
-      text-align: center;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      width: 100%;
-      padding: 1.5rem;
-      background: rgba(45, 30, 79, 0.3);
-      border-radius: 20px;
-      border: 1px solid rgba(255, 215, 102, 0.2);
-      backdrop-filter: blur(10px);
-    }
-    
-    .stat-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    
-    .stat-label {
-      color: rgba(255, 215, 102, 0.9);
-      font-weight: 600;
-      font-size: 0.9rem;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-    }
-    
-    .stat-value {
-      color: #fff;
-      font-size: clamp(1.5rem, 3vw, 2rem);
-      font-weight: 900;
-      text-shadow: 0 2px 16px rgba(255, 215, 102, 0.4);
-      background: linear-gradient(135deg, #FFD166, #FF7B24);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
+
     /* 🛡️ Tesla-grade mobile protection with consistent scaling */
     @media (max-width: 320px) {
       .welcome-panel { 
@@ -596,20 +556,10 @@
         margin-bottom: 1rem;
       }
       
-      .welcome-stats {
-        grid-template-columns: 1fr 1fr;
-        gap: 0.75rem;
-        padding: 1rem;
-      }
-      
       .welcome-btn {
         padding: 0.9rem 1.5rem;
         font-size: 0.95rem;
         min-height: 44px; /* Reduced for mobile */
-      }
-      
-      .stat-value {
-        font-size: 1.5rem;
       }
       
       .medallion-demo {
@@ -722,32 +672,7 @@
         <button class="welcome-btn primary" id="continueWithCodeBtn">Continue with Code</button>
       </div>
     </div>
-    <div class="welcome-stats" id="welcomeStats">
-      <div class="stat-item">
-        <span class="stat-label">Total His</span>
-        <span class="stat-value" id="totalHis">...</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">Global Waves</span>
-        <span class="stat-value" id="globalWaves">...</span>
-      </div>
-      <div class="stat-item" style="grid-column: 1 / -1; margin-top: 0.5rem;">
-        <span class="stat-label" style="font-size: 0.75rem; opacity: 0.7;">
-          Live Community Stats
-          <span class="stats-live-indicator"></span>
-        </span>
-      </div>
-      <!-- S-DASH/6: retired welcome stats -->
-      <!-- HiMetrics Debug Badge -->
-      <!--
-      <div class="stat-item" id="hiMetricsDebug" style="grid-column: 1 / -1; margin-top: 0.5rem; display: none;">
-        <span style="font-size: 0.65rem; opacity: 0.6; color: #FFD166;">
-          🔧 HiMetrics: <span id="metricsStatus">initializing...</span> | Cache: <span id="cacheAge">0s</span>
-        </span>
-      </div>
-      -->
-      <!-- /S-DASH/6 -->
-    </div>
+
   </main>
   <!-- HI-OS CLEANUP (S8): legacy Supabase script fully disabled -->
   <!-- HiSupabase.js v2 DISABLED for v3 migration -->
@@ -760,17 +685,7 @@
     // HiSupabase v3 initialized silently
   </script>
 
-  <!-- Simple stats loader to prevent "..." display -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Set placeholder values until proper stats system is implemented
-      const hisEl = document.querySelector("#totalHis");
-      const wavesEl = document.querySelector("#globalWaves");
-      
-      if (hisEl) hisEl.textContent = "2,847";
-      if (wavesEl) wavesEl.textContent = "1,652";
-    });
-  </script>
+
   
   <!-- 🎬 TESLA-GRADE LOADING EXPERIENCE V2.0 -->
   <script>
