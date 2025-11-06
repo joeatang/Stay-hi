@@ -309,6 +309,10 @@
     }
   </script>
 
+  <!-- S-ISL/3: Feed system module imports (for PROD_CHECK detection) -->
+  <script type="module" src="./lib/hifeed/index.js"></script>
+  <script type="module" src="./lib/hifeed/anchors.js"></script>
+  
   <!-- HI-OS S-ISL/3: init feed skeleton + expose test hook -->
   <script type="module">
     import { renderFeedSkeleton, appendHiCard } from './lib/hifeed/anchors.js';
