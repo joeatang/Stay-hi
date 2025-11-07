@@ -357,8 +357,8 @@ export class HiShareSheet {
       window.PremiumUX.triggerHapticFeedback('medium');
     }
 
-    // Increment global Hi5 counter
-    this.incrementGlobalCounter();
+    // Increment global Hi5 counter (PRIVATE submission)
+    this.incrementGlobalCounter('private');
 
     await this.persist({ toIsland: false, anon: false });
 
@@ -379,8 +379,8 @@ export class HiShareSheet {
       window.PremiumUX.triggerHapticFeedback('medium');
     }
 
-    // Increment global Hi5 counter
-    this.incrementGlobalCounter();
+    // Increment global Hi5 counter (ANONYMOUS submission)
+    this.incrementGlobalCounter('anonymous');
 
     await this.persist({ toIsland: true, anon: true });
 
@@ -405,8 +405,8 @@ export class HiShareSheet {
       window.PremiumUX.triggerHapticFeedback('celebration');
     }
 
-    // Increment global Hi5 counter
-    this.incrementGlobalCounter();
+    // Increment global Hi5 counter (PUBLIC submission)  
+    this.incrementGlobalCounter('public');
 
     await this.persist({ toIsland: true, anon: false });
 
@@ -415,19 +415,44 @@ export class HiShareSheet {
     }, 800);
   }
 
-  // Increment global counter
-  incrementGlobalCounter() {
-    const LS_TOTAL = 'hi_total_count';
-    const LS_GLOBAL = 'hi_global_shares';
+  // Increment global counter with COMPREHENSIVE TRACKING
+  incrementGlobalCounter(submissionType = 'public') {
+    // 🎯 DATABASE-FIRST: Use comprehensive share tracking
+    if (window.trackShareSubmission) {
+      const pageOrigin = this.detectPageOrigin();
+      window.trackShareSubmission('share_sheet', {
+        submissionType: submissionType,
+        pageOrigin: pageOrigin,
+        origin: this.origin || pageOrigin
+      });
+    } else {
+      // Legacy localStorage fallback
+      const LS_TOTAL = 'hi_total_count';
+      const LS_GLOBAL = 'hi_global_shares';
+      
+      let total = parseInt(localStorage.getItem(LS_TOTAL) || '0', 10);
+      let gStarts = parseInt(localStorage.getItem(LS_GLOBAL) || '0', 10);
+      
+      total += 1;
+      gStarts += 1;
+      
+      localStorage.setItem(LS_TOTAL, String(total));
+      localStorage.setItem(LS_GLOBAL, String(gStarts));
+    }
+  }
+
+  // Detect current page origin
+  detectPageOrigin() {
+    const pathname = window.location.pathname;
+    const filename = pathname.split('/').pop() || '';
     
-    let total = parseInt(localStorage.getItem(LS_TOTAL) || '0', 10);
-    let gStarts = parseInt(localStorage.getItem(LS_GLOBAL) || '0', 10);
-    
-    total += 1;
-    gStarts += 1;
-    
-    localStorage.setItem(LS_TOTAL, String(total));
-    localStorage.setItem(LS_GLOBAL, String(gStarts));
+    if (filename.includes('island') || pathname.includes('island')) {
+      return 'hi-island';
+    } else if (filename.includes('muscle') || pathname.includes('muscle') || filename.includes('gym')) {
+      return 'hi-muscle';
+    } else {
+      return 'hi-dashboard';
+    }
     
     console.log('📊 Global Hi5 counter incremented:', { total, gStarts });
   }

@@ -1783,11 +1783,13 @@
           onSuccess: (shareData) => {
             console.log('✅ Dashboard Hi5 shared successfully!');
             
-            // Track submission for Global Hi's counter (UX-first integration)
+            // Track submission for Global Hi's counter (COMPREHENSIVE integration)
             if (window.trackShareSubmission) {
               window.trackShareSubmission('hi-dashboard', {
+                submissionType: shareData.privacy || 'public',
+                pageOrigin: 'hi-dashboard',
+                origin: 'hi-dashboard',
                 tag: 'Hi5️⃣',
-                privacy: shareData.privacy || 'public',
                 timestamp: Date.now()
               });
             }

@@ -65,10 +65,10 @@ async function initializeGlobalStats() {
 }
 
 /**
- * Initialize personal user stats tracking
+ * Initialize personal user stats tracking (DATABASE-FIRST)
  */
 async function initializePersonalStats() {
-  console.log('👤 [DashboardStats] Initializing personal stats...');
+  console.log('👤 [DashboardStats] Initializing personal stats (database-first)...');
   
   try {
     const personalStats = {
@@ -78,8 +78,35 @@ async function initializePersonalStats() {
       personalTaps: 0
     };
     
-    // Try HiBase first if available
-    if (window.HiBase?.stats?.getPersonalStats) {
+    // Get user info
+    const user = window.hiAuth?.getCurrentUser();
+    if (!user || user.id === 'anonymous') {
+      console.log('👤 Anonymous user - using default stats');
+      window.personalStats = personalStats;
+      return;
+    }
+    
+    // 🎯 DATABASE-FIRST: Get stats from Supabase user_stats table
+    if (window.supabase) {
+      const { data, error } = await window.supabase.rpc('get_user_stats', {
+        p_user_id: user.id
+      });
+      
+      if (!error && data?.personalStats) {
+        const dbStats = data.personalStats;
+        personalStats.totalSubmissions = dbStats.totalShares || 0;
+        personalStats.weeklySubmissions = dbStats.weeklyShares || 0;
+        personalStats.currentStreak = dbStats.currentStreak || 0;
+        personalStats.personalTaps = dbStats.totalWaves || 0;
+        
+        console.log('👤 Personal Stats (from database):', personalStats);
+      } else {
+        console.warn('⚠️ Database stats failed, using defaults:', error);
+      }
+    }
+    
+    // Fallback to HiBase if database unavailable
+    if (personalStats.totalSubmissions === 0 && window.HiBase?.stats?.getPersonalStats) {
       const result = await window.HiBase.stats.getPersonalStats();
       if (!result.error && result.data) {
         personalStats.totalSubmissions = result.data.totalSubmissions || 0;
@@ -87,27 +114,10 @@ async function initializePersonalStats() {
       }
     }
     
-    // Get streak data
-    if (window.HiBase?.getUserStreak && window.hiAuth?.getCurrentUser) {
-      const user = window.hiAuth.getCurrentUser();
-      if (user && user.id && user.id !== 'anonymous') {
-        const streakResult = await window.HiBase.getUserStreak(user.id);
-        if (!streakResult.error) {
-          personalStats.currentStreak = streakResult.data?.streak?.current || 0;
-        }
-      }
-    } else {
-      // Fallback to localStorage
-      personalStats.currentStreak = parseInt(localStorage.getItem('user_current_streak') || '0', 10);
-    }
-    
-    // Personal taps from localStorage 
-    personalStats.personalTaps = parseInt(localStorage.getItem('user_medallion_taps') || '0', 10);
-    
     // Store in window for S-DASH access
     window.personalStats = personalStats;
     
-    console.log('👤 Personal Stats:', personalStats);
+    console.log('👤 Final Personal Stats:', personalStats);
     
   } catch (error) {
     console.warn('⚠️ [DashboardStats] Personal stats failed, using defaults:', error);
@@ -133,33 +143,87 @@ async function initializeMedallionTracking() {
 }
 
 /**
- * Handle medallion tap with 1:1 Global Wave tracking
+ * Handle medallion tap with DATABASE-FIRST tracking + milestone detection
  */
-function handleMedallionTap() {
-  console.log('🏅 [DashboardStats] Medallion tapped - tracking wave...');
+async function handleMedallionTap() {
+  console.log('🏅 [DashboardStats] Medallion tapped - processing (database-first)...');
   
   try {
-    // Increment personal tap count
-    const currentPersonalTaps = parseInt(localStorage.getItem('user_medallion_taps') || '0', 10);
-    const newPersonalTaps = currentPersonalTaps + 1;
-    localStorage.setItem('user_medallion_taps', newPersonalTaps.toString());
-    
-    // Update personal stats
-    if (window.personalStats) {
-      window.personalStats.personalTaps = newPersonalTaps;
+    // Get user info
+    const user = window.hiAuth?.getCurrentUser();
+    if (!user || user.id === 'anonymous') {
+      console.log('🏅 Anonymous user - processing guest tap...');
+      
+      // For anonymous users, use global increment only
+      if (window.supabase) {
+        const { data } = await window.supabase.rpc('increment_hi_wave');
+        if (data) {
+          window.gWaves = data;
+          console.log('🏅 Anonymous wave tracked:', { globalWaves: window.gWaves });
+        }
+      }
+      
+      // Refresh stats display
+      setTimeout(() => {
+        if (window.updateGlobalStats) {
+          window.updateGlobalStats();
+        }
+      }, 100);
+      return;
     }
     
-    // Increment global waves (1:1 ratio)
-    if (window.gWaves !== undefined) {
-      window.gWaves += 1;
+    // 🎯 DATABASE-FIRST: Process medallion tap with user stats + milestone check
+    if (window.supabase) {
+      const { data, error } = await window.supabase.rpc('process_medallion_tap', {
+        p_user_id: user.id
+      });
+      
+      if (!error && data) {
+        console.log('🏅 Database medallion tap result:', data);
+        
+        // Update local state from database response
+        if (data.waveUpdate?.success) {
+          const newPersonalTaps = data.waveUpdate.userWaves;
+          const newGlobalWaves = data.waveUpdate.globalWaves;
+          
+          // Update personal stats
+          if (window.personalStats) {
+            window.personalStats.personalTaps = newPersonalTaps;
+          }
+          
+          // Update global waves
+          if (window.gWaves !== undefined) {
+            window.gWaves = newGlobalWaves;
+          }
+          
+          console.log('🏅 Wave tracked (database):', { 
+            personalTaps: newPersonalTaps, 
+            globalWaves: newGlobalWaves 
+          });
+          
+          // Show milestone celebration if achieved
+          if (data.milestone?.success) {
+            const milestone = data.milestone.milestone;
+            showMilestoneToast(milestone.name, milestone.description);
+          }
+        }
+      } else {
+        console.error('❌ Database medallion tap failed:', error);
+        // Fallback to localStorage for offline resilience
+        const currentTaps = parseInt(localStorage.getItem('user_medallion_taps') || '0', 10);
+        const newTaps = currentTaps + 1;
+        localStorage.setItem('user_medallion_taps', newTaps.toString());
+        
+        if (window.personalStats) {
+          window.personalStats.personalTaps = newTaps;
+        }
+      }
     }
     
     // Update HiMetrics cache if available
     if (window.HiMetrics?.updateCache) {
       window.HiMetrics.updateCache({ waves: window.gWaves });
     }
-    
-    console.log('🏅 Wave tracked:', { personalTaps: newPersonalTaps, globalWaves: window.gWaves });
     
     // Refresh stats display
     setTimeout(() => {
@@ -169,27 +233,119 @@ function handleMedallionTap() {
     }, 100);
     
   } catch (error) {
-    console.error('❌ [DashboardStats] Medallion tap tracking failed:', error);
+    console.error('❌ [DashboardStats] Medallion tap processing failed:', error);
   }
 }
 
 /**
- * Track share sheet submission (contributes to Global Hi's)
+ * Track share sheet submission with COMPREHENSIVE tracking + milestone detection
+ * Handles ALL submission types: public, private, anonymous
+ * Supports ALL pages: hi-dashboard, hi-island, hi-muscle
  */
-export function trackShareSubmission(source = 'dashboard', metadata = {}) {
-  console.log(`📤 [DashboardStats] Share submitted from ${source}:`, metadata);
+export async function trackShareSubmission(source = 'dashboard', metadata = {}) {
+  console.log(`📤 [DashboardStats] Share submitted from ${source} (comprehensive tracking):`, metadata);
   
   try {
-    // Increment personal total
-    if (window.personalStats) {
-      window.personalStats.totalSubmissions += 1;
-      // If within current week, increment weekly too
-      window.personalStats.weeklySubmissions += 1; // TODO: Add proper week logic
+    // Extract submission details
+    const submissionType = metadata.submissionType || metadata.type || 'public';
+    const pageOrigin = metadata.pageOrigin || metadata.origin || detectPageOrigin();
+    
+    // Get user info
+    const user = window.hiAuth?.getCurrentUser();
+    if (!user || user.id === 'anonymous') {
+      console.log('📤 Anonymous user - processing guest share...');
+      
+      // For anonymous users, use global increment only
+      if (window.supabase) {
+        try {
+          const { data } = await window.supabase.rpc('increment_total_hi');
+          if (data) {
+            window.gTotalHis = data;
+            console.log('📤 Anonymous share tracked:', { globalHis: window.gTotalHis });
+          }
+        } catch (error) {
+          console.warn('⚠️ Anonymous share increment failed:', error);
+        }
+      }
+      
+      // Refresh stats display
+      if (window.updateGlobalStats) {
+        window.updateGlobalStats();
+      }
+      return;
     }
     
-    // Increment global Hi's
-    if (window.gTotalHis !== undefined) {
-      window.gTotalHis += 1;
+    // 🎯 COMPREHENSIVE DATABASE TRACKING: Use page-specific functions
+    if (window.supabase) {
+      let rpcFunction;
+      let rpcParams;
+      
+      // Route to appropriate page-specific function
+      switch (pageOrigin) {
+        case 'hi-island':
+          rpcFunction = 'process_hi_island_share';
+          rpcParams = { p_user_id: user.id, p_submission_type: submissionType };
+          break;
+        case 'hi-muscle':
+          rpcFunction = 'process_hi_muscle_share';
+          rpcParams = { p_user_id: user.id, p_submission_type: submissionType };
+          break;
+        case 'hi-dashboard':
+        default:
+          rpcFunction = 'process_hi_dashboard_share';
+          rpcParams = { p_user_id: user.id, p_submission_type: submissionType };
+          break;
+      }
+      
+      const { data, error } = await window.supabase.rpc(rpcFunction, rpcParams);
+      
+      if (!error && data) {
+        console.log('📤 Comprehensive share submission result:', data);
+        
+        // Update local state from database response
+        if (data.shareUpdate?.success) {
+          const newPersonalShares = data.shareUpdate.userShares;
+          const newWeeklyShares = data.shareUpdate.userWeeklyShares;
+          const newGlobalHis = data.shareUpdate.globalHis;
+          
+          // Update personal stats
+          if (window.personalStats) {
+            window.personalStats.totalSubmissions = newPersonalShares;
+            window.personalStats.weeklySubmissions = newWeeklyShares;
+          }
+          
+          // Update global Hi's
+          if (window.gTotalHis !== undefined && newGlobalHis > 0) {
+            window.gTotalHis = newGlobalHis;
+          }
+          
+          console.log('📤 Share tracked (comprehensive):', { 
+            source, 
+            submissionType,
+            pageOrigin,
+            personalTotal: newPersonalShares,
+            weeklyTotal: newWeeklyShares,
+            globalHis: newGlobalHis 
+          });
+          
+          // Show milestone celebration if achieved
+          if (data.milestone?.success) {
+            const milestone = data.milestone.milestone;
+            showMilestoneToast(milestone.name, milestone.description);
+          }
+        }
+      } else {
+        console.error('❌ Comprehensive share submission failed:', error);
+        // Fallback to localStorage for offline resilience
+        if (window.personalStats) {
+          window.personalStats.totalSubmissions += 1;
+          window.personalStats.weeklySubmissions += 1;
+        }
+        
+        if (window.gTotalHis !== undefined) {
+          window.gTotalHis += 1;
+        }
+      }
     }
     
     // Update HiMetrics cache
@@ -197,21 +353,123 @@ export function trackShareSubmission(source = 'dashboard', metadata = {}) {
       window.HiMetrics.updateCache({ hi5s: window.gTotalHis });
     }
     
-    console.log('📤 Share tracked:', { 
-      source, 
-      personalTotal: window.personalStats?.totalSubmissions,
-      globalHis: window.gTotalHis 
-    });
-    
     // Refresh stats display  
     if (window.updateGlobalStats) {
       window.updateGlobalStats();
     }
     
   } catch (error) {
-    console.error('❌ [DashboardStats] Share tracking failed:', error);
+    console.error('❌ [DashboardStats] Comprehensive share tracking failed:', error);
+  }
+}
+
+/**
+ * Detect current page origin for share tracking
+ */
+function detectPageOrigin() {
+  const pathname = window.location.pathname;
+  const filename = pathname.split('/').pop() || '';
+  
+  if (filename.includes('island') || pathname.includes('island')) {
+    return 'hi-island';
+  } else if (filename.includes('muscle') || pathname.includes('muscle') || filename.includes('gym')) {
+    return 'hi-muscle';
+  } else {
+    return 'hi-dashboard';
   }
 }
 
 // Global export for share sheet integration
 window.trackShareSubmission = trackShareSubmission;
+
+/**
+ * 🎯 MILESTONE DETECTION FUNCTIONS
+ * Connects to Supabase RPC functions for achievement tracking
+ */
+
+/**
+ * 🎯 MILESTONE DETECTION FUNCTIONS
+ * Note: Milestone detection is now handled by database RPC functions:
+ * - process_medallion_tap() includes check_wave_milestone()
+ * - process_share_submission() includes check_share_milestone()
+ * 
+ * This ensures atomic database transactions and prevents race conditions.
+ */
+
+/**
+ * Show milestone achievement celebration
+ */
+function showMilestoneToast(milestoneName, description) {
+  // Create toast element
+  const toast = document.createElement('div');
+  toast.className = 'milestone-toast';
+  toast.innerHTML = `
+    <div class="milestone-toast-content">
+      <div class="milestone-icon">🏆</div>
+      <div class="milestone-text">
+        <div class="milestone-title">${milestoneName}</div>
+        <div class="milestone-desc">${description}</div>
+      </div>
+    </div>
+  `;
+  
+  // Add styles
+  toast.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    z-index: 10000;
+    max-width: 300px;
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  `;
+  
+  // Content styles
+  const style = document.createElement('style');
+  style.textContent = `
+    .milestone-toast-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .milestone-icon {
+      font-size: 32px;
+    }
+    .milestone-title {
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+    .milestone-desc {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+  `;
+  document.head.appendChild(style);
+  
+  // Add to page
+  document.body.appendChild(toast);
+  
+  // Animate in
+  setTimeout(() => {
+    toast.style.transform = 'translateX(0)';
+  }, 100);
+  
+  // Auto-remove after 4 seconds
+  setTimeout(() => {
+    toast.style.transform = 'translateX(400px)';
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+    }, 300);
+  }, 4000);
+  
+  console.log('🎉 [Milestone] Toast displayed for:', milestoneName);
+}
