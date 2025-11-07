@@ -1730,17 +1730,10 @@
       // METRICS SEPARATION: Initialize HiMedallion with medallion tap handler
       const medallionContainer = document.getElementById('hiMedallionContainer');
       if (medallionContainer) {
-        // First create the medallion HTML structure
-        import('./ui/HiMedallion/HiMedallion.js').then(({ createHiMedallionHTML, mountHiMedallion }) => {
-          // Create Tesla-grade medallion HTML
-          medallionContainer.innerHTML = createHiMedallionHTML({
-            id: 'dashboardMedallion',
-            className: 'dashboard-medallion',
-            dataAttributes: 'data-origin="dashboard" data-aria-label="Send positive energy to the Stay Hi community"'
-          });
-          
-          // Find the created medallion element
-          const medallionElement = medallionContainer.querySelector('.hi-medallion');
+        // Use existing medallion HTML with your logo (don't overwrite)
+        import('./ui/HiMedallion/HiMedallion.js').then(({ mountHiMedallion }) => {
+          // Find the existing medallion button element
+          const medallionElement = medallionContainer.querySelector('#hiMedallion');
           if (medallionElement) {
             // Mount interactive behavior
             mountHiMedallion(medallionElement, {
