@@ -1803,13 +1803,40 @@
           // Find the existing medallion button element
           const medallionElement = medallionContainer.querySelector('#hiMedallion');
           if (medallionElement) {
-            // Mount interactive behavior (stats tracking handled by DashboardStats.js)
+            // Mount interactive behavior with direct tap tracking (UX-first fix)
             mountHiMedallion(medallionElement, {
               origin: 'dashboard',
-              ariaLabel: 'Send positive energy to the Stay Hi community'
+              ariaLabel: 'Send positive energy to the Stay Hi community',
+              onTap: () => {
+                console.log('🏅 Medallion tapped - tracking wave...');
+                
+                // Increment global waves immediately (initialize if needed)
+                if (window.gWaves === undefined) {
+                  window.gWaves = 0; // Initialize if not set yet
+                }
+                window.gWaves += 1;
+                  console.log('🌊 Global waves updated:', window.gWaves);
+                  
+                  // Update UI immediately
+                  const globalHiWavesEl = document.getElementById('globalHiWaves');
+                  if (globalHiWavesEl) {
+                    globalHiWavesEl.textContent = window.gWaves.toLocaleString();
+                    console.log('✅ UI updated with new wave count');
+                  }
+                  
+                  // Also call the unified stats update if available
+                  if (window.updateGlobalStats) {
+                    window.updateGlobalStats();
+                  }
+                  
+                  // Track in localStorage for persistence
+                  const personalTaps = parseInt(localStorage.getItem('user_medallion_taps') || '0', 10) + 1;
+                  localStorage.setItem('user_medallion_taps', personalTaps.toString());
+                }
+              }
             });
             
-            console.log('🎯 Tesla-grade HiMedallion mounted on dashboard');
+            console.log('🎯 Tesla-grade HiMedallion mounted on dashboard with tap tracking');
           }
         }).catch(error => {
           console.error('❌ Failed to load HiMedallion:', error);
