@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "stay-hi-tesla-milestone-system",
   "builds": [
     {
       "src": "public/**/*",
@@ -17,11 +16,6 @@
       "dest": "/public/hi-dashboard.html"
     }
   ],
-  "functions": {
-    "public/**/*.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "env": {
     "NODE_ENV": "production"
   },
