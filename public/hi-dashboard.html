@@ -1663,8 +1663,14 @@
       setupHiffirmationsHandler();
       setupWeeklyProgress();
       
-      // HI-OS: Stats loading now handled by initHiStatsOnce() guard system
-      console.log('🎯 Stats loading managed by Hi-OS init guard - no direct calls');
+      // HI-OS: Initialize Tesla-grade stats system
+      import('./ui/stats/initHiStats.js').then(async ({ initHiStatsOnce }) => {
+        const { loadDashboardStats } = await import('./lib/stats/DashboardStats.js');
+        await initHiStatsOnce(loadDashboardStats);
+        console.log('🎯 Tesla-grade dashboard stats system initialized');
+      }).catch(error => {
+        console.error('❌ Stats initialization failed:', error);
+      });
       
       // 🔥 Phase 7: Initialize Hi Experience Layer (Feature Flagged)
       initializeHiExperienceLayer();
@@ -1735,9 +1741,8 @@
           // Find the existing medallion button element
           const medallionElement = medallionContainer.querySelector('#hiMedallion');
           if (medallionElement) {
-            // Mount interactive behavior
+            // Mount interactive behavior (stats tracking handled by DashboardStats.js)
             mountHiMedallion(medallionElement, {
-              onTap: incrementHiWave, // Connect medallion tap to hi_events table
               origin: 'dashboard',
               ariaLabel: 'Send positive energy to the Stay Hi community'
             });
