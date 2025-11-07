@@ -9,9 +9,15 @@
 // Guard: Only proceed if S-DASH flags are enabled
 (async function initShareCTA() {
   try {
-    // Wait for HiFlags to be ready
+    // Wait for HiFlags to be ready with initialization delay
+    let attempts = 0;
+    while (typeof window.HiFlags?.isEnabled !== 'function' && attempts < 10) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
+    }
+    
     if (typeof window.HiFlags?.isEnabled !== 'function') {
-      console.log('[S-DASH/5] HiFlags not available, skipping share CTA initialization');
+      console.log('[S-DASH/5] HiFlags not available after timeout, skipping share CTA initialization');
       return;
     }
 

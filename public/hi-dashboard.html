@@ -1165,7 +1165,7 @@
           });
           
           // Refresh dashboard metrics to show updated global waves
-          setTimeout(loadMetricsFromHiBase, 100);
+          setTimeout(() => initHiStatsOnce('medallion-tap-refresh'), 100);
           
         } else {
           console.error('❌ METRICS SEPARATION ERROR: HiBase.stats not available');
@@ -1691,7 +1691,6 @@
       gTotalHis: () => gTotalHis,
       gUsers: () => gUsers,
       incrementHiWave,
-      loadMetricsFromHiBase,
       updateGlobalStats
     };
   </script>

@@ -8,9 +8,15 @@
 // Flag-gated initialization
 (async function initSDashHeroCTA() {
   try {
-    // Wait for HiFlags to be available
+    // Wait for HiFlags to be available with initialization delay
+    let attempts = 0;
+    while (!window.HiFlags && attempts < 10) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
+    }
+    
     if (!window.HiFlags) {
-      console.warn('[S-DASH] HiFlags not available, skipping hero CTA wiring');
+      console.warn('[S-DASH] HiFlags not available after timeout, skipping hero CTA wiring');
       return;
     }
 
