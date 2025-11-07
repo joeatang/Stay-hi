@@ -21,19 +21,17 @@ export async function loadDashboardStats() {
   console.log('🎯 [DashboardStats] Loading Tesla-grade stats system...');
   
   try {
-    // Initialize stats sources in parallel
-    await Promise.all([
-      initializeGlobalStats(),
-      initializePersonalStats(),
-      initializeMedallionTracking()
-    ]);
+    // Initialize all dashboard stats - DATABASE FIRST ONLY
+  try {
+    // Only call personal stats - it now handles both personal AND global stats from database
+    await initializePersonalStats();
     
-    console.log('✅ [DashboardStats] All stats systems initialized');
-    
-    // Trigger S-DASH population
-    if (window.updateGlobalStats) {
-      window.updateGlobalStats();
-    }
+    console.log('📊 Dashboard stats initialized successfully (database-first)');
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Dashboard stats initialization failed:', error);
+    return { success: false, error };
+  }
     
   } catch (error) {
     console.error('❌ [DashboardStats] Initialization failed:', error);
@@ -92,14 +90,31 @@ async function initializePersonalStats() {
         p_user_id: user.id
       });
       
-      if (!error && data?.personalStats) {
-        const dbStats = data.personalStats;
-        personalStats.totalSubmissions = dbStats.totalShares || 0;
-        personalStats.weeklySubmissions = dbStats.weeklyShares || 0;
-        personalStats.currentStreak = dbStats.currentStreak || 0;
-        personalStats.personalTaps = dbStats.totalWaves || 0;
+      if (!error && data) {
+        // Update personal stats
+        if (data.personalStats) {
+          const dbStats = data.personalStats;
+          personalStats.totalSubmissions = dbStats.totalShares || 0;
+          personalStats.weeklySubmissions = dbStats.weeklyShares || 0;
+          personalStats.currentStreak = dbStats.currentStreak || 0;
+          personalStats.personalTaps = dbStats.totalWaves || 0;
+          
+          console.log('👤 Personal Stats (from database):', personalStats);
+        }
         
-        console.log('👤 Personal Stats (from database):', personalStats);
+        // 🔥 FIX: Update global stats from database (this was missing!)
+        if (data.globalStats) {
+          const globalStats = data.globalStats;
+          window.gWaves = globalStats.hiWaves || 0;
+          window.gTotalHis = globalStats.totalHis || 0;
+          window.gUsers = globalStats.totalUsers || 0;
+          
+          console.log('🌍 Global Stats (from database):', { 
+            waves: window.gWaves, 
+            his: window.gTotalHis, 
+            users: window.gUsers 
+          });
+        }
       } else {
         console.warn('⚠️ Database stats failed, using defaults:', error);
       }
