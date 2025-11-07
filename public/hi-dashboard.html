@@ -1139,24 +1139,24 @@
       
       // 🚀 INSTANT DISPLAY: Show placeholders immediately if loading
       if (globalHiWaves) {
-        if (gWaves !== null && gWaves !== undefined) {
-          globalHiWaves.textContent = gWaves.toLocaleString();
+        if (window.gWaves !== null && window.gWaves !== undefined) {
+          globalHiWaves.textContent = window.gWaves.toLocaleString();
         } else if (globalHiWaves.textContent === '...' || globalHiWaves.textContent === '') {
           globalHiWaves.textContent = '...';
         }
       }
       
       if (globalTotalHis) {
-        if (gTotalHis !== null && gTotalHis !== undefined) {
-          globalTotalHis.textContent = gTotalHis.toLocaleString();
+        if (window.gTotalHis !== null && window.gTotalHis !== undefined) {
+          globalTotalHis.textContent = window.gTotalHis.toLocaleString();
         } else if (globalTotalHis.textContent === '...' || globalTotalHis.textContent === '') {
           globalTotalHis.textContent = '...';
         }
       }
       
       if (globalUsers) {
-        if (gUsers !== null && gUsers !== undefined) {
-          globalUsers.textContent = gUsers.toLocaleString();
+        if (window.gUsers !== null && window.gUsers !== undefined) {
+          globalUsers.textContent = window.gUsers.toLocaleString();
         } else if (globalUsers.textContent === '...' || globalUsers.textContent === '') {
           globalUsers.textContent = '...';
         }
@@ -1699,6 +1699,11 @@
       setupHiffirmationsHandler();
       setupWeeklyProgress();
       
+      // Initialize global stats variables immediately
+      if (window.gWaves === undefined) window.gWaves = 0;
+      if (window.gTotalHis === undefined) window.gTotalHis = 0;
+      if (window.gUsers === undefined) window.gUsers = 0;
+      
       // HI-OS: Initialize Tesla-grade stats system
       import('./ui/stats/initHiStats.js').then(async ({ initHiStatsOnce }) => {
         const { loadDashboardStats } = await import('./lib/stats/DashboardStats.js');
@@ -1815,24 +1820,23 @@
                   window.gWaves = 0; // Initialize if not set yet
                 }
                 window.gWaves += 1;
-                  console.log('🌊 Global waves updated:', window.gWaves);
-                  
-                  // Update UI immediately
-                  const globalHiWavesEl = document.getElementById('globalHiWaves');
-                  if (globalHiWavesEl) {
-                    globalHiWavesEl.textContent = window.gWaves.toLocaleString();
-                    console.log('✅ UI updated with new wave count');
-                  }
-                  
-                  // Also call the unified stats update if available
-                  if (window.updateGlobalStats) {
-                    window.updateGlobalStats();
-                  }
-                  
-                  // Track in localStorage for persistence
-                  const personalTaps = parseInt(localStorage.getItem('user_medallion_taps') || '0', 10) + 1;
-                  localStorage.setItem('user_medallion_taps', personalTaps.toString());
+                console.log('🌊 Global waves updated:', window.gWaves);
+                
+                // Update UI immediately
+                const globalHiWavesEl = document.getElementById('globalHiWaves');
+                if (globalHiWavesEl) {
+                  globalHiWavesEl.textContent = window.gWaves.toLocaleString();
+                  console.log('✅ UI updated with new wave count');
                 }
+                
+                // Also call the unified stats update if available
+                if (window.updateGlobalStats) {
+                  window.updateGlobalStats();
+                }
+                
+                // Track in localStorage for persistence
+                const personalTaps = parseInt(localStorage.getItem('user_medallion_taps') || '0', 10) + 1;
+                localStorage.setItem('user_medallion_taps', personalTaps.toString());
               }
             });
             
