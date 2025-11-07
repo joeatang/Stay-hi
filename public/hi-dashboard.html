@@ -80,8 +80,11 @@
     console.log('🔥 HiBase shares module loaded for dashboard integration');
   </script>
   
-  <!-- HI-OS: Tesla-Grade HiMetrics Adapter (30s Cache + Dashboard Globals) -->
+  <!-- HI-OS: Tesla-Grade Systems Integration -->
   <script type="module">
+    // Load membership system first for access control
+    await import('./lib/membership/MembershipSystem.js');
+    
     import HiMetrics from './lib/HiMetrics.js';
     
     // Tesla-grade dashboard metrics with global variable compatibility
@@ -270,7 +273,35 @@
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      width: 60px; /* Fixed width for symmetry */
+      width: 140px; /* Expanded for tier indicator */
+      gap: 8px;
+    }
+    
+    /* UX-First: Membership Tier Indicator */
+    .tier-indicator {
+      display: flex;
+      align-items: center;
+      padding: 4px 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--hi-tier-color, #6B7280);
+      transition: all 0.3s ease;
+      cursor: default;
+      min-width: 60px;
+      text-align: center;
+    }
+    
+    .tier-indicator:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+    
+    .tier-text {
+      white-space: nowrap;
     }
 
     .brand-container {
@@ -756,6 +787,11 @@
     
     <!-- Navigation Menu -->
     <div class="header-right">
+      <!-- Membership Tier Indicator (UX-first implementation) -->
+      <div id="hi-tier-indicator" class="tier-indicator" title="Your membership tier">
+        <span class="tier-text">Anonymous</span>
+      </div>
+      
       <button id="btnMenu" class="menu-btn" aria-label="Open menu" title="Navigation Menu">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -1672,6 +1708,23 @@
         console.error('❌ Stats initialization failed:', error);
       });
       
+      // UX-First: Update membership tier indicator when system loads
+      setTimeout(() => {
+        if (window.HiMembership && window.HiMembership.initialized) {
+          const user = window.HiMembership.getCurrentUser();
+          const tierIndicator = document.getElementById('hi-tier-indicator');
+          if (tierIndicator && user) {
+            const tierText = tierIndicator.querySelector('.tier-text');
+            tierText.textContent = user.tierInfo.name;
+            tierIndicator.style.color = user.tierInfo.color || '#6B7280';
+            
+            console.log('🎫 [UX] Membership tier displayed:', user.tierInfo.name);
+          }
+        }
+      }, 1000);
+      
+      console.log('🎯 Stats loading managed by Hi-OS init guard - no direct calls');
+      
       // 🔥 Phase 7: Initialize Hi Experience Layer (Feature Flagged)
       initializeHiExperienceLayer();
 
@@ -1722,8 +1775,17 @@
       if (!window.__hiComponentsInitialized.shareSheet) {
         const shareSheet = new HiShareSheet({ 
           origin: 'dashboard',
-          onSuccess: () => {
+          onSuccess: (shareData) => {
             console.log('✅ Dashboard Hi5 shared successfully!');
+            
+            // Track submission for Global Hi's counter (UX-first integration)
+            if (window.trackShareSubmission) {
+              window.trackShareSubmission('hi-dashboard', {
+                tag: 'Hi5️⃣',
+                privacy: shareData.privacy || 'public',
+                timestamp: Date.now()
+              });
+            }
           }
         });
         shareSheet.init();
