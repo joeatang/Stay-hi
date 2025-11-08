@@ -47,10 +47,10 @@ BEGIN
       last_wave_at = NOW(),
       updated_at = NOW();
   ELSE
-    -- For anonymous users, return -1 to signal frontend to use localStorage
-    -- Don't create user_stats record, just increment global counter
-    current_waves := -1;
-    new_waves := -1;
+    -- For anonymous users, don't create user_stats record
+    -- Just increment global counter
+    current_waves := 0;
+    new_waves := p_increment;
   END IF;
   
   -- Increment global wave counter

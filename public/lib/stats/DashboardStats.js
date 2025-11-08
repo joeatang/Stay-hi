@@ -97,7 +97,10 @@ async function initializePersonalStats() {
           
           console.log('👤 Personal Stats (from database):', personalStats);
         } else if (isAnonymous) {
-          console.log('👤 Anonymous user - using default personal stats');
+          // 🎯 FIX: Load anonymous personal stats from localStorage
+          const anonymousTaps = parseInt(localStorage.getItem('anonymous_personal_taps') || '0', 10);
+          personalStats.personalTaps = anonymousTaps;
+          console.log('👤 Anonymous user - loaded from localStorage:', { personalTaps: anonymousTaps });
         }
         
         // 🌍 GLOBAL STATS: Always load from database (for all users)
@@ -183,7 +186,25 @@ async function handleMedallionTap() {
             if (window.gWaves !== undefined) {
               window.gWaves = newGlobalWaves;
             }
-            console.log('🏅 Anonymous wave tracked:', { globalWaves: window.gWaves });
+            
+            // 🎯 FIX: Handle anonymous personal stats with localStorage persistence
+            if (data.waveUpdate.userWaves === -1) {
+              // Database signals to use localStorage for anonymous personal tracking
+              const currentTaps = parseInt(localStorage.getItem('anonymous_personal_taps') || '0', 10);
+              const newTaps = currentTaps + 1;
+              localStorage.setItem('anonymous_personal_taps', newTaps.toString());
+              
+              // Update personal stats
+              if (!window.personalStats) window.personalStats = {};
+              window.personalStats.personalTaps = newTaps;
+              
+              console.log('🏅 Anonymous wave tracked (localStorage):', { 
+                personalTaps: newTaps,
+                globalWaves: window.gWaves 
+              });
+            } else {
+              console.log('🏅 Anonymous wave tracked (database):', { globalWaves: window.gWaves });
+            }
           }
         } else {
           console.error('❌ Anonymous wave failed:', error);
