@@ -212,11 +212,12 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- GRANT PERMISSIONS
 -- ===============================================
 
-GRANT EXECUTE ON FUNCTION process_comprehensive_share_submission(UUID, TEXT, TEXT, TEXT) TO authenticated;
-GRANT EXECUTE ON FUNCTION process_hi_dashboard_share(UUID, TEXT) TO authenticated;
-GRANT EXECUTE ON FUNCTION process_hi_island_share(UUID, TEXT) TO authenticated;
-GRANT EXECUTE ON FUNCTION process_hi_muscle_share(UUID, TEXT) TO authenticated;
-GRANT EXECUTE ON FUNCTION get_submission_analytics(INTEGER) TO authenticated;
+-- 🎯 CRITICAL FIX: Grant access to BOTH anonymous AND authenticated users
+GRANT EXECUTE ON FUNCTION process_comprehensive_share_submission(UUID, TEXT, TEXT, TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION process_hi_dashboard_share(UUID, TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION process_hi_island_share(UUID, TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION process_hi_muscle_share(UUID, TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION get_submission_analytics(INTEGER) TO anon, authenticated;
 
 -- ===============================================
 -- FUNCTION COMMENTS

@@ -417,13 +417,13 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- STEP 8: GRANT PERMISSIONS
 -- ===============================================
 
--- Grant execute permissions to authenticated users
-GRANT EXECUTE ON FUNCTION award_milestone(UUID, TEXT, INTEGER, JSONB) TO authenticated;
-GRANT EXECUTE ON FUNCTION check_wave_milestone(UUID) TO authenticated;
-GRANT EXECUTE ON FUNCTION check_share_milestone(UUID) TO authenticated;
-GRANT EXECUTE ON FUNCTION check_streak_milestone(UUID) TO authenticated;
-GRANT EXECUTE ON FUNCTION check_all_milestones(UUID) TO authenticated;
-GRANT EXECUTE ON FUNCTION get_user_milestones(UUID) TO authenticated;
+-- 🎯 CRITICAL FIX: Grant execute permissions to ALL users (anonymous + authenticated)
+GRANT EXECUTE ON FUNCTION award_milestone(UUID, TEXT, INTEGER, JSONB) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION check_wave_milestone(UUID) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION check_share_milestone(UUID) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION check_streak_milestone(UUID) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION check_all_milestones(UUID) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION get_user_milestones(UUID) TO anon, authenticated;
 
 -- Grant reset function to service role only
 GRANT EXECUTE ON FUNCTION reset_daily_points() TO service_role;
