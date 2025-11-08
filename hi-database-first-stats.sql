@@ -19,31 +19,39 @@ DECLARE
   new_waves INTEGER := 0;
   global_count BIGINT;
 BEGIN
-  -- Get current user wave count
-  SELECT COALESCE(total_waves, 0) INTO current_waves 
-  FROM user_stats 
-  WHERE user_id = p_user_id;
-  
-  -- Calculate new count
-  new_waves := current_waves + p_increment;
-  
-  -- Update user_stats with new wave count
-  INSERT INTO user_stats (
-    user_id, 
-    total_waves, 
-    last_wave_at,
-    updated_at
-  ) VALUES (
-    p_user_id, 
-    new_waves, 
-    NOW(),
-    NOW()
-  )
-  ON CONFLICT (user_id) 
-  DO UPDATE SET 
-    total_waves = new_waves,
-    last_wave_at = NOW(),
-    updated_at = NOW();
+  -- 🎯 FIX: Handle anonymous users (NULL p_user_id)
+  IF p_user_id IS NOT NULL THEN
+    -- Get current user wave count for authenticated users
+    SELECT COALESCE(total_waves, 0) INTO current_waves 
+    FROM user_stats 
+    WHERE user_id = p_user_id;
+    
+    -- Calculate new count
+    new_waves := current_waves + p_increment;
+    
+    -- Update user_stats with new wave count
+    INSERT INTO user_stats (
+      user_id, 
+      total_waves, 
+      last_wave_at,
+      updated_at
+    ) VALUES (
+      p_user_id, 
+      new_waves, 
+      NOW(),
+      NOW()
+    )
+    ON CONFLICT (user_id) 
+    DO UPDATE SET 
+      total_waves = new_waves,
+      last_wave_at = NOW(),
+      updated_at = NOW();
+  ELSE
+    -- For anonymous users, don't create user_stats record
+    -- Just increment global counter
+    current_waves := 0;
+    new_waves := p_increment;
+  END IF;
   
   -- Increment global wave counter
   SELECT increment_hi_wave() INTO global_count;

@@ -167,12 +167,30 @@ async function handleMedallionTap() {
     if (!user || user.id === 'anonymous') {
       console.log('🏅 Anonymous user - processing guest tap...');
       
-      // For anonymous users, use global increment only
+      // 🎯 FIX: Use same persistence mechanism for anonymous users
+      // Call process_medallion_tap with null user_id to persist properly
       if (window.supabase) {
-        const { data } = await window.supabase.rpc('increment_hi_wave');
-        if (data) {
-          window.gWaves = data;
-          console.log('🏅 Anonymous wave tracked:', { globalWaves: window.gWaves });
+        const { data, error } = await window.supabase.rpc('process_medallion_tap', {
+          p_user_id: null
+        });
+        
+        if (!error && data) {
+          console.log('🏅 Anonymous wave result (database):', data);
+          
+          // Update global waves from database response
+          if (data.waveUpdate?.success) {
+            const newGlobalWaves = data.waveUpdate.globalWaves;
+            if (window.gWaves !== undefined) {
+              window.gWaves = newGlobalWaves;
+            }
+            console.log('🏅 Anonymous wave tracked:', { globalWaves: window.gWaves });
+          }
+        } else {
+          console.error('❌ Anonymous wave failed:', error);
+          // Fallback: increment locally only
+          if (window.gWaves !== undefined) {
+            window.gWaves += 1;
+          }
         }
       }
       
