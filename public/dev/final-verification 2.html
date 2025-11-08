@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Final Separation Verification</title>
+    <style>
+        body { font-family: monospace; background: #000; color: #fff; padding: 20px; }
+        .result { margin: 15px 0; padding: 15px; border-radius: 8px; }
+        .success { background: #1a4a1a; border: 2px solid #0f0; }
+        .error { background: #4a1a1a; border: 2px solid #f00; }
+        .warning { background: #4a4a1a; border: 2px solid #ff0; }
+        .metrics { font-size: 1.5em; text-align: center; margin: 20px 0; }
+        .big-number { font-size: 3em; font-weight: bold; }
+        .label { font-size: 0.8em; opacity: 0.7; }
+    </style>
+</head>
+<body>
+    <h1>🎯 Final Metrics Contamination Fix Verification</h1>
+    
+    <div id="status">Testing...</div>
+    
+    <div class="metrics">
+        <div style="display: flex; justify-content: space-around;">
+            <div>
+                <div class="label">Hi Waves (Medallion Taps)</div>
+                <div class="big-number" id="waves-value">--</div>
+            </div>
+            <div>
+                <div class="label">Total Hi5s (Share Submissions)</div>
+                <div class="big-number" id="hi5s-value">--</div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="results"></div>
+
+    <script type="module">
+        // Enable dev mode for tracing
+        window.HI_ENV = { DEV: true };
+        
+        const statusDiv = document.getElementById('status');
+        const resultsDiv = document.getElementById('results');
+        const wavesEl = document.getElementById('waves-value');
+        const hi5sEl = document.getElementById('hi5s-value');
+        
+        function addResult(message, type = 'success') {
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = message;
+            resultsDiv.appendChild(div);
+        }
+        
+        try {
+            statusDiv.innerHTML = '🔄 Loading HiBase.stats...';
+            
+            // Import the fixed getMetrics function
+            const { getMetrics } = await import./lib/hibase/stats.js');
+            
+            statusDiv.innerHTML = '📊 Testing separated metrics...';
+            
+            // Call the fixed getMetrics function
+            const metrics = await getMetrics();
+            
+            console.log('📊 Final metrics test result:', metrics);
+            
+            const wavesData = metrics.waves?.data;
+            const hi5sData = metrics.hi5s?.data;
+            
+            // Update display
+            wavesEl.textContent = wavesData ?? 'ERROR';
+            hi5sEl.textContent = hi5sData ?? 'ERROR';
+            
+            // Check for errors
+            if (metrics.waves?.error || metrics.hi5s?.error) {
+                statusDiv.innerHTML = '❌ API Errors Detected';
+                addResult(`❌ <strong>API Errors:</strong><br>Waves: ${metrics.waves?.error || 'OK'}<br>Hi5s: ${metrics.hi5s?.error || 'OK'}`, 'error');
+                return;
+            }
+            
+            // Check separation
+            if (wavesData === hi5sData) {
+                statusDiv.innerHTML = '⚠️ Still Contaminated';
+                addResult(`⚠️ <strong>CONTAMINATION STILL DETECTED</strong><br>Both metrics show: ${wavesData}`, 'warning');
+                addResult('💡 The temporary fix may not be working. Check console for detailed logs.', 'warning');
+            } else {
+                statusDiv.innerHTML = '✅ Separation Working!';
+                addResult(`✅ <strong>CONTAMINATION FIXED!</strong><br>Hi Waves: ${wavesData}<br>Total Hi5s: ${hi5sData}<br>Values are now different! 🎉`, 'success');
+                
+                // Check if using temporary fix
+                if (metrics.waves?._temp_note || metrics.hi5s?._temp_note) {
+                    addResult(`🧪 <strong>Using Temporary Fix</strong><br>This is working via fallback separation until database deployment.<br>Deploy METRICS_SEPARATION_DEPLOY.sql for permanent fix.`, 'warning');
+                }
+            }
+            
+            // Additional verification
+            addResult(`📋 <strong>Technical Details:</strong><br>
+                Waves source: ${metrics.waves?._temp_note || 'Database function get_hi_waves()'}<br>
+                Hi5s source: ${metrics.hi5s?._temp_note || 'Database function get_total_hi5s()'}<br>
+                Console trace: Check browser console for [HiStats CALL] entries
+            `);
+            
+        } catch (error) {
+            statusDiv.innerHTML = '💥 Critical Error';
+            addResult(`❌ <strong>Critical Error:</strong> ${error.message}`, 'error');
+            console.error('Final verification error:', error);
+        }
+    </script>
+</body>
+</html>

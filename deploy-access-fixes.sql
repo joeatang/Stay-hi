@@ -259,17 +259,12 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- STEP 5: GRANT PERMISSIONS
 -- ===============================================
 
--- 🎯 HI OS COMPLIANT PERMISSIONS: Aligns with hi-access-tiers.js Level 0
--- Anonymous Explorer: unlimited_readonly medallions, view_only stats, shareCreation: false
-
--- ✅ ANONYMOUS ALLOWED: View stats and medallion engagement  
+-- 🎯 CRITICAL FIX: Grant access to BOTH anonymous AND authenticated users
+GRANT EXECUTE ON FUNCTION update_user_waves(UUID, INTEGER) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION update_user_shares(UUID, INTEGER) TO anon, authenticated;  
 GRANT EXECUTE ON FUNCTION get_user_stats(UUID) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION process_medallion_tap(UUID) TO anon, authenticated;
-GRANT EXECUTE ON FUNCTION update_user_waves(UUID, INTEGER) TO anon, authenticated;
-
--- ❌ MEMBERS ONLY: Share creation blocked for anonymous per HI OS
-GRANT EXECUTE ON FUNCTION update_user_shares(UUID, INTEGER) TO authenticated;
-GRANT EXECUTE ON FUNCTION process_share_submission(UUID, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION process_share_submission(UUID, TEXT) TO anon, authenticated;
 
 -- ===============================================
 -- STEP 6: FUNCTION COMMENTS

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 7 Quick Test</title>
+    <style>
+        body { 
+            font-family: system-ui; 
+            padding: 20px; 
+            background: #111; 
+            color: #fff; 
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid;
+        }
+        .pass { 
+            background: rgba(34, 197, 94, 0.1); 
+            border-color: #22c55e; 
+        }
+        .fail { 
+            background: rgba(239, 68, 68, 0.1); 
+            border-color: #ef4444; 
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Phase 7 Quick Module Test</h1>
+    <div id="results"></div>
+
+    <script type="module">
+        const results = document.getElementById('results');
+
+        function addResult(test, passed, message) {
+            const div = document.createElement('div');
+            div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `<strong>${test}:</strong> ${passed ? '✅' : '❌'} ${message}`;
+            results.appendChild(div);
+        }
+
+        console.log('🚀 Starting Phase 7 module tests...');
+
+        // Test 1: HiFeed API
+        try {
+            const hifeedModule = await import./lib/hifeed/index.js');
+            if (hifeedModule.getUnifiedFeed) {
+                addResult('HiFeed API', true, 'Module loaded and exports function');
+                
+                // Test the function
+                const feed = await hifeedModule.getUnifiedFeed();
+                addResult('HiFeed Function', true, `Returns ${feed ? feed.length : 0} items`);
+            } else {
+                addResult('HiFeed API', false, 'Module loaded but missing getUnifiedFeed');
+            }
+        } catch (error) {
+            addResult('HiFeed API', false, `Import failed: ${error.message}`);
+        }
+
+        // Test 2: HiFeed Component
+        try {
+            const { HiFeed } = await import./ui/HiFeed/HiFeed.js');
+            if (HiFeed) {
+                addResult('HiFeed Component', true, 'Component class loaded');
+                
+                // Test initialization
+                const testDiv = document.createElement('div');
+                document.body.appendChild(testDiv);
+                const hiFeed = new HiFeed(testDiv);
+                
+                if (hiFeed.container === testDiv) {
+                    addResult('HiFeed Init', true, 'Component initializes correctly');
+                } else {
+                    addResult('HiFeed Init', false, 'Component initialization failed');
+                }
+                
+                document.body.removeChild(testDiv);
+            } else {
+                addResult('HiFeed Component', false, 'Import succeeded but HiFeed undefined');
+            }
+        } catch (error) {
+            addResult('HiFeed Component', false, `Import failed: ${error.message}`);
+        }
+
+        // Test 3: HiStreaks Component
+        try {
+            const { HiStreaks } = await import./ui/HiStreaks/HiStreaks.js');
+            if (HiStreaks) {
+                addResult('HiStreaks Component', true, 'Component class loaded');
+                
+                // Test initialization
+                const testDiv = document.createElement('div');
+                document.body.appendChild(testDiv);
+                const hiStreaks = new HiStreaks(testDiv);
+                
+                if (hiStreaks.container === testDiv) {
+                    addResult('HiStreaks Init', true, 'Component initializes correctly');
+                } else {
+                    addResult('HiStreaks Init', false, 'Component initialization failed');
+                }
+                
+                document.body.removeChild(testDiv);
+            } else {
+                addResult('HiStreaks Component', false, 'Import succeeded but HiStreaks undefined');
+            }
+        } catch (error) {
+            addResult('HiStreaks Component', false, `Import failed: ${error.message}`);
+        }
+
+        // Test 4: Flag Systems
+        try {
+            await import('/public/assets/feature-flags.js');
+            const { HiFlags } = await import./lib/flags/HiFlags.js');
+            
+            if (window.hiFeatureFlags && HiFlags) {
+                const featureFlag = window.hiFeatureFlags.hifeed_enabled;
+                const hiFlag = HiFlags.isEnabled('hifeed_enabled');
+                
+                if (featureFlag && hiFlag) {
+                    addResult('Flag Systems', true, 'Both flag systems working and enabled');
+                } else {
+                    addResult('Flag Systems', false, `Flags not enabled: hiFeatureFlags=${featureFlag}, HiFlags=${hiFlag}`);
+                }
+            } else {
+                addResult('Flag Systems', false, 'One or both flag systems not available');
+            }
+        } catch (error) {
+            addResult('Flag Systems', false, `Flag test failed: ${error.message}`);
+        }
+
+        console.log('✅ Module tests complete');
+    </script>
+</body>
+</html>

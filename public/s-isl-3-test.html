@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>S-ISL/3 Acceptance Test</title>
+    <style>
+        body { font-family: system-ui; margin: 20px; }
+        .test-result { margin: 8px 0; }
+        .pass { color: green; }
+        .fail { color: red; }
+        .test-section { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <h1>S-ISL/3 Feed Skeleton Acceptance Test</h1>
+    <div id="results"></div>
+    <div id="hiFeedContainer"></div>
+
+    <script type="module">
+        import { renderFeedSkeleton, appendHiCard } from './lib/hifeed/anchors.js';
+        
+        const results = document.getElementById('results');
+        let testCount = 0;
+        const startTime = performance.now();
+        
+        function logTest(description, passed, details = '') {
+            testCount++;
+            const div = document.createElement('div');
+            div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `${testCount}. ${description}: <strong>${passed ? 'PASS' : 'FAIL'}</strong> ${details}`;
+            results.appendChild(div);
+            console.log(`[Test ${testCount}] ${description}: ${passed ? 'PASS' : 'FAIL'}`, details);
+            return passed;
+        }
+        
+        async function runTests() {
+            console.log('🧪 Starting S-ISL/3 Acceptance Tests');
+            
+            // E=100: Existence tests
+            logTest('E1: renderFeedSkeleton function exists', typeof renderFeedSkeleton === 'function');
+            logTest('E2: appendHiCard function exists', typeof appendHiCard === 'function');
+            logTest('E3: window.hiIslandAppend exposed', typeof window.hiIslandAppend === 'function');
+            
+            // Initialize skeleton
+            const skeletonResult = renderFeedSkeleton();
+            logTest('E4: renderFeedSkeleton returns true', skeletonResult === true);
+            
+            // N=100: Network and DOM tests
+            const container = document.getElementById('hiFeedContainer');
+            logTest('N1: #hiFeedContainer element exists', !!container);
+            logTest('N2: container.dataset.sisl3 === "ready"', container?.dataset?.sisl3 === 'ready');
+            
+            const list = document.getElementById('hiFeedList');
+            logTest('N3: #hiFeedList element exists', !!list);
+            
+            const empty = document.getElementById('hiFeedEmpty');
+            logTest('N4: #hiFeedEmpty element exists', !!empty);
+            logTest('N5: empty state text correct', empty?.textContent?.includes('No shares yet'));
+            
+            // V=100: Validation tests
+            const header = container?.querySelector('.hi-feed-header');
+            logTest('V1: Feed header exists', !!header);
+            
+            const title = header?.querySelector('.hi-feed-title');
+            logTest('V2: Feed title exists and correct', title?.textContent === 'Hi Island — Community Feed');
+            
+            // Test idempotency
+            const secondRender = renderFeedSkeleton();
+            logTest('V3: Second render returns true (idempotent)', secondRender === true);
+            
+            // B=100: Behavioral tests
+            const testShare = { text: 'Test Hi Message', user: 'TestUser', ts: Date.now() };
+            const appendResult = appendHiCard(testShare);
+            logTest('B1: appendHiCard returns true', appendResult === true);
+            
+            // Check if card was added
+            const cards = list.querySelectorAll('.hi-feed-card');
+            logTest('B2: Card added to feed', cards.length > 0);
+            
+            const cardText = cards[0]?.querySelector('.hi-feed-text');
+            logTest('B3: Card text rendered correctly', cardText?.textContent === 'Test Hi Message');
+            
+            const cardUser = cards[0]?.querySelector('.hi-feed-user');
+            logTest('B4: Card user rendered correctly', cardUser?.textContent === 'TestUser');
+            
+            // Check empty state hidden
+            logTest('B5: Empty state hidden after card added', empty.style.display === 'none');
+            
+            // T=100: Timing tests
+            const endTime = performance.now();
+            const totalTime = endTime - startTime;
+            logTest('T1: Total execution time ≤ 2000ms', totalTime <= 2000, `(${totalTime.toFixed(2)}ms)`);
+            
+            // Test window.hiIslandAppend
+            const windowAppendResult = window.hiIslandAppend({ text: 'Window test', user: 'WindowUser' });
+            logTest('T2: window.hiIslandAppend works', windowAppendResult === true);
+            
+            const finalCardCount = list.querySelectorAll('.hi-feed-card').length;
+            logTest('T3: Multiple cards can be added', finalCardCount >= 2);
+            
+            // Summary
+            const passedTests = results.querySelectorAll('.pass').length;
+            const totalTests = results.querySelectorAll('.test-result').length;
+            
+            const summary = document.createElement('div');
+            summary.className = 'test-section';
+            summary.innerHTML = `
+                <h2>S-ISL/3 Acceptance Summary</h2>
+                <p><strong>Tests Passed:</strong> ${passedTests}/${totalTests}</p>
+                <p><strong>Success Rate:</strong> ${((passedTests/totalTests)*100).toFixed(1)}%</p>
+                <p><strong>Total Time:</strong> ${totalTime.toFixed(2)}ms</p>
+                <p><strong>Status:</strong> ${passedTests === totalTests ? '✅ READY FOR S-ISL/4' : '❌ NEEDS FIXES'}</p>
+            `;
+            results.appendChild(summary);
+            
+            console.log(`🎯 S-ISL/3 Tests Complete: ${passedTests}/${totalTests} passed (${((passedTests/totalTests)*100).toFixed(1)}%)`);
+        }
+        
+        // Auto-run tests
+        runTests();
+    </script>
+</body>
+</html>

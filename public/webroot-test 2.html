@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Webroot Guard Test</title>
+</head>
+<body>
+    <h1>HI-OS Webroot Guard Test</h1>
+    <p>Check console and bottom-right corner for webroot status.</p>
+    <p id="status"></p>
+    
+    <!-- HI-OS S-ARCH/1: Webroot Guard (dev-only) -->
+    <script>
+        // Pass criteria: location.pathname must contain "/public/"
+        (function() {
+          const PASS = location.pathname.includes('/public/');
+          const msg  = PASS ? 'GREEN — served from /public (web root OK)'
+                            : 'RED — NOT served from /public (fix dev server root)';
+          // Expose for other verifiers
+          window.__HI_WEBROOT_OK = PASS;
+
+          // Console signal
+          const tag = '[HI-OS][WEBROOT]';
+          if (PASS) {
+            console.log(`${tag} ${msg}`);
+          } else {
+            console.error(`${tag} ${msg}`);
+          }
+
+          // Update page content
+          document.addEventListener('DOMContentLoaded', function() {
+            const statusEl = document.getElementById('status');
+            if (statusEl) {
+              statusEl.innerHTML = `<strong>Path:</strong> ${location.pathname}<br><strong>Status:</strong> ${msg}`;
+              statusEl.style.color = PASS ? 'green' : 'red';
+            }
+          });
+
+          // Minimal UI badge injection (dev page only)
+          try {
+            const badge = document.createElement('div');
+            badge.textContent = msg;
+            badge.setAttribute('id', 'hi-webroot-guard');
+            badge.style.position = 'fixed';
+            badge.style.bottom = '12px';
+            badge.style.right = '12px';
+            badge.style.zIndex = '99999';
+            badge.style.padding = '8px 10px';
+            badge.style.fontFamily = 'system-ui,-apple-system,Segoe UI,Roboto,Arial';
+            badge.style.fontSize = '12px';
+            badge.style.borderRadius = '6px';
+            badge.style.border = PASS ? '1px solid #1f7a1f' : '1px solid #a00';
+            badge.style.background = PASS ? '#eaffea' : '#ffecec';
+            badge.style.color = PASS ? '#0c540c' : '#7a0000';
+            document.body.appendChild(badge);
+          } catch (e) {
+            console.warn('[HI-OS][WEBROOT] badge inject failed:', e);
+          }
+        })();
+    </script>
+</body>
+</html>

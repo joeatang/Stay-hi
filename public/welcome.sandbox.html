@@ -1,0 +1,1014 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>Welcome — Stay Hi</title>
+  
+  <!-- Flag Init Guard -->
+  <script type="module">
+    import * as HiFlags from './lib/flags/HiFlags.js';
+    await HiFlags.waitUntilReady();
+  </script>
+  
+  <!-- PWA Meta Tags -->
+  <link rel="icon" href="./favicon.ico">
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#FFD166">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Hi Collective">
+  <link rel="apple-touch-icon" href="assets/brand/hi-logo-192.png">
+
+  <!-- Preload Supabase CDN for instant client init -->
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+  <!-- 🚀 Hi Flow Controller - Smart routing for welcome experience -->
+  <link rel="stylesheet" href="assets/hi-flow-controller.css">
+  <script src="./lib/HiMembership.js"></script>
+  <!-- TEMPORARILY DISABLED: Access tiers has function errors -->
+  <!-- <script src="assets/hi-access-tiers.js"></script> -->
+  <script src="assets/hi-flow-controller.js"></script>
+  
+  <!-- 🎬 Tesla-Grade Loading Experience V2.0 -->
+  <link rel="stylesheet" href="assets/hi-loading-experience.css">
+  <script src="assets/hi-loading-experience.js"></script>
+
+  <!-- 🔥 HiBase - Unified Database Access Layer -->
+  <script type="module">
+    import HiBase from './lib/hibase/index.js';
+    console.log('🔥 HiBase ready - unified API online');
+    
+    // Make available for console testing
+    window.HiBase = HiBase;
+  </script>
+
+  <link rel="stylesheet" href="assets/theme.css"/>
+  <link rel="stylesheet" href="assets/create-parity.css"/>
+  <link rel="stylesheet" href="assets/tesla-mobile-fixes.css">
+  <link rel="stylesheet" href="assets/tesla-edge-protection.css">
+  
+  <!-- HI DEV: Tesla-Grade HiMedallion Component -->
+  <link rel="preload" href="./ui/HiMedallion/HiMedallion.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="./ui/HiMedallion/HiMedallion.css"></noscript>
+  
+  <!-- HI DEV: Fast Brand Controls - Page-Specific Medallion Overrides -->
+  <style>
+    :root {
+      /* Welcome page flavor - warmer, inviting gradient */
+      --hi-medallion-bg1: #FF9A3C;   /* warmer top */
+      --hi-medallion-bg2: #D84B8A;   /* richer bottom */
+      --hi-medallion-halo: rgba(255,255,255,0.22);
+    }
+  </style>
+  
+  <script src="assets/tesla-data-isolation.js"></script>
+  
+  <!-- PWA Manager -->
+  <script src="assets/pwa-manager.js"></script>
+  
+  <!-- Hi Anonymous Onboarding System -->
+  <script src="assets/hi-anonymous-onboarding.js"></script>
+  
+  <!-- Beta Systems -->
+  <script type="module" src="assets/hi-rewards-beta.js"></script>
+  
+  <!-- HI-OS: Tesla-Grade HiMetrics Adapter (30s Cache + Subscribers) -->
+  <script type="module">
+    import HiMetrics from './lib/HiMetrics.js';
+    
+    // Tesla-grade metrics adapter with cache + subscriber pattern
+    async function initWelcomeMetrics() {
+      try {
+        console.log('[Welcome] Initializing HiMetrics adapter...');
+        
+        // Subscribe to metric updates
+        const unsubscribe = HiMetrics.subscribe('welcome-page', (metrics, cacheInfo) => {
+          console.log('[Welcome] Metrics updated:', metrics);
+          
+          // Update DOM elements with cached metrics
+          const wavesEl = document.getElementById('globalWaves');
+          const hi5sEl = document.getElementById('totalHis');
+          
+          if (wavesEl && metrics.waves !== null) {
+            wavesEl.textContent = (metrics.waves || 0).toLocaleString();
+          }
+          
+          if (hi5sEl && metrics.hi5s !== null) {
+            hi5sEl.textContent = (metrics.hi5s || 0).toLocaleString();
+          }
+          
+          // Update debug badge (show during development)
+          if (window.location.hostname === 'localhost' || window.location.search.includes('debug=1')) {
+            const debugEl = document.getElementById('hiMetricsDebug');
+            const statusEl = document.getElementById('metricsStatus');
+            const cacheEl = document.getElementById('cacheAge');
+            
+            if (debugEl && statusEl && cacheEl) {
+              debugEl.style.display = 'block';
+              statusEl.textContent = cacheInfo?.fromCache ? 'cached ✅' : 'fresh 🔄';
+              cacheEl.textContent = cacheInfo?.ageSeconds ? `${cacheInfo.ageSeconds}s` : '0s';
+            }
+          }
+        });
+        
+        // Load initial metrics (will use cache if available)
+        const metrics = await HiMetrics.load();
+        console.log('[Welcome] ✅ HiMetrics adapter initialized');
+        
+        // Store unsubscribe function for cleanup
+        window.welcomeMetricsCleanup = unsubscribe;
+        
+      } catch (error) {
+        console.error('[Welcome] HiMetrics initialization failed:', error);
+        
+        // Legacy fallback for safety
+        if (window.HiBase?.stats?.getMetrics) {
+          const metrics = await window.HiBase.stats.getMetrics();
+          const wavesEl = document.getElementById('globalWaves');
+          const hi5sEl = document.getElementById('totalHis');
+          
+          if (wavesEl) wavesEl.textContent = (metrics.waves?.data || 0).toLocaleString();
+          if (hi5sEl) hi5sEl.textContent = (metrics.hi5s?.data || 0).toLocaleString();
+          
+          console.log('[Welcome] ✅ Fallback stats loaded');
+        }
+      }
+    }
+    
+    // Initialize when DOM is ready
+    window.addEventListener('DOMContentLoaded', initWelcomeMetrics);
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      if (window.welcomeMetricsCleanup) {
+        window.welcomeMetricsCleanup();
+        console.log('[Welcome] HiMetrics subscription cleaned up');
+      }
+    });
+  </script>
+  
+  <!-- Real-time stats (disabled until duplicates are resolved) -->
+  <!-- <script type="module" src="assets/real-time-stats.js"></script> -->
+  <style>
+    /* 🎯 GOLD-STANDARD WELCOME PAGE: Tesla-Grade Brand Design */
+    body {
+      background: linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #ffd166 100%);
+      min-height: 100vh;
+      margin: 0;
+      font-family: var(--f-sans);
+      /* FIXED: Proper mobile-first layout instead of flexbox centering */
+      padding: 20px 16px;
+      overflow-x: hidden;
+      position: relative;
+      box-sizing: border-box;
+    }
+    
+    /* Tesla-grade background particles */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%), 
+                  radial-gradient(circle at 80% 20%, rgba(255, 177, 153, 0.15) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    /* 🚀 GOLD-STANDARD WELCOME PANEL: Proper Hierarchy & Mobile-First */
+    .welcome-panel {
+      background: rgba(15, 16, 34, 0.85);
+      border-radius: 28px;
+      box-shadow: 
+        0 32px 80px rgba(0, 0, 0, 0.4),
+        0 8px 32px rgba(255, 215, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      /* FIXED: Responsive padding that ensures logo visibility */
+      padding: 1.5rem 1.25rem 2rem 1.25rem;
+      max-width: 400px;
+      /* FIXED: Proper responsive width without viewport issues */
+      width: 100%;
+      margin: 0 auto;
+      backdrop-filter: blur(25px) saturate(1.4);
+      -webkit-backdrop-filter: blur(25px) saturate(1.4);
+      border: 1px solid rgba(255, 215, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+      animation: welcomeFloat 0.8s ease-out;
+      box-sizing: border-box;
+      /* CRITICAL: Ensure content fits in viewport */
+      min-height: auto;
+    }
+    
+    @keyframes welcomeFloat {
+      from { 
+        opacity: 0; 
+        transform: translateY(30px) scale(0.95); 
+      }
+      to { 
+        opacity: 1; 
+        transform: translateY(0) scale(1); 
+      }
+    }
+    
+    /* 🎯 GOLD-STANDARD LOGO: Guaranteed Visibility */
+    .welcome-logo {
+      width: 64px;  /* Optimized for mobile-first visibility */
+      height: 64px; 
+      object-fit: contain;
+      margin: 0.5rem 0 1rem 0; /* Reduced margins for mobile optimization */
+      filter: 
+        drop-shadow(0 8px 20px rgba(255, 210, 102, 0.7))
+        drop-shadow(0 3px 12px rgba(255, 123, 24, 0.4));
+      animation: logoGlow 3s ease-in-out infinite alternate;
+      position: relative;
+      z-index: 10;
+      /* CRITICAL: Ensure logo is always visible */
+      flex-shrink: 0;
+    }
+    
+    @keyframes logoGlow {
+      from { 
+        filter: 
+          drop-shadow(0 12px 28px rgba(255, 210, 102, 0.6))
+          drop-shadow(0 4px 16px rgba(255, 123, 24, 0.3));
+      }
+      to { 
+        filter: 
+          drop-shadow(0 16px 36px rgba(255, 210, 102, 0.8))
+          drop-shadow(0 6px 20px rgba(255, 123, 24, 0.5));
+      }
+    }
+    
+    /* 🎯 GOLD-STANDARD HEADLINE: Mobile-Optimized Hierarchy */
+    .welcome-title {
+      font-size: clamp(1.25rem, 4vw, 1.8rem); /* Reduced for mobile visibility */
+      font-weight: 800;
+      background: linear-gradient(135deg, #FFD166, #FF7B24);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+      margin: 0 0 0.75rem 0; /* Tightened margins */
+      line-height: 1.15; /* Improved line height for readability */
+      text-shadow: 0 4px 16px rgba(255, 123, 24, 0.3);
+      position: relative;
+      letter-spacing: -0.02em;
+      /* CRITICAL: Ensure headline fits viewport */
+      flex-shrink: 0;
+    }
+    
+    .welcome-title::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #FFD166, transparent);
+      border-radius: 2px;
+    }
+    
+    /* 🎯 GOLD-STANDARD VALUE PROP: Clear & Concise */
+    .welcome-lead {
+      color: rgba(255, 255, 255, 0.9);
+      text-align: center;
+      margin: 0 0 1.25rem 0; /* Reduced margin for mobile */
+      line-height: 1.4; /* Optimized readability */
+      font-size: clamp(0.9rem, 2.5vw, 1rem); /* Mobile-optimized sizing */
+      font-weight: 400;
+      flex-shrink: 0;
+    }
+    
+    /* 🎯 GOLD-STANDARD ACTIONS: Optimized Touch Targets */
+    .welcome-actions {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 0.75rem; /* Tightened for mobile viewport */
+      margin-bottom: 1rem; /* Reduced bottom margin */
+      flex-shrink: 0;
+    }
+    
+    .welcome-btn {
+      background: linear-gradient(135deg, #FF7B24, #FFD166);
+      border: none;
+      border-radius: 20px;
+      padding: 1.2rem 2rem;
+      min-height: 48px; /* Tesla-grade touch target */
+      min-width: 200px; /* Adequate button width */
+      color: #000;
+      font-weight: 800;
+      font-size: clamp(1rem, 2.5vw, 1.1rem); /* Responsive font sizing */
+      text-decoration: none;
+      text-align: center;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(255, 123, 24, 0.3);
+      backdrop-filter: blur(10px);
+      box-sizing: border-box; /* Edge protection */
+      margin: 4px 0; /* Touch separation */
+    }
+    
+    .welcome-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.6s;
+    }
+    
+    .welcome-btn:hover::before {
+      left: 100%;
+    }
+    
+    .welcome-btn:nth-child(2) {
+      background: linear-gradient(135deg, #2d1e4f, #667eea);
+      color: #fff;
+      box-shadow: 0 8px 32px rgba(45, 30, 79, 0.4);
+    }
+    
+    .welcome-btn:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 16px 48px rgba(255, 123, 24, 0.4);
+    }
+    
+    .welcome-btn:nth-child(2):hover {
+      box-shadow: 0 16px 48px rgba(45, 30, 79, 0.5);
+    }
+    
+    .welcome-btn:active {
+      transform: translateY(-2px) scale(1.01);
+    }
+    
+    .welcome-btn.primary {
+      background: linear-gradient(135deg, #FF7B24, #FFD166);
+      color: #000;
+    }
+    
+    .welcome-btn.secondary {
+      background: linear-gradient(135deg, #2d1e4f, #667eea);
+      color: #fff;
+      font-size: 0.95rem;
+    }
+    
+    .welcome-btn.tertiary {
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 215, 102, 0.3);
+      color: #FFD166;
+      font-size: 0.9rem;
+      backdrop-filter: blur(10px);
+    }
+    
+    .welcome-btn.tertiary:hover {
+      background: rgba(255, 215, 102, 0.1);
+      border-color: #FFD166;
+    }
+    
+    .welcome-signin-link {
+      text-align: center;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .invite-code-section {
+      margin-top: 1.5rem;
+      padding: 1.5rem;
+      background: rgba(45, 30, 79, 0.3);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 215, 102, 0.2);
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .invite-input-container input:focus {
+      outline: none;
+      border-color: #FFD166;
+      box-shadow: 0 0 0 3px rgba(255, 215, 102, 0.2);
+    }
+    
+    .welcome-stats {
+      text-align: center;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      width: 100%;
+      padding: 1.5rem;
+      background: rgba(45, 30, 79, 0.3);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 215, 102, 0.2);
+      backdrop-filter: blur(10px);
+    }
+    
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .stat-label {
+      color: rgba(255, 215, 102, 0.9);
+      font-weight: 600;
+      font-size: 0.9rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    
+    .stat-value {
+      color: #fff;
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 900;
+      text-shadow: 0 2px 16px rgba(255, 215, 102, 0.4);
+      background: linear-gradient(135deg, #FFD166, #FF7B24);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    /* 🛡️ Tesla-grade mobile protection with consistent scaling */
+    @media (max-width: 320px) {
+      .welcome-panel { 
+        padding: 1.75rem 1.25rem; 
+        margin: 0.75rem; 
+        border-radius: 20px;
+        width: calc(100vw - 24px); /* Ultra-safe margins */
+        max-width: 340px; /* Consistent with desktop proportions */
+      }
+      .welcome-logo { 
+        width: 58px; /* Slightly larger for mobile prominence */
+        height: 58px;
+        margin-bottom: 1rem;
+      }
+    }
+    
+    @media (min-width: 321px) and (max-width: 480px) {
+      .welcome-panel { 
+        padding: 2rem 1.5rem; 
+        margin: 1rem; 
+        border-radius: 24px;
+        width: calc(100vw - 28px); /* Safe edge protection */
+        max-width: 380px; /* Consistent with desktop proportions */
+      }
+      .welcome-logo { 
+        width: 64px; /* Better mobile/tablet balance */
+        height: 64px;
+        margin-bottom: 1.2rem;
+      }
+    }
+    
+    @media (min-width: 481px) and (max-width: 768px) {
+      .welcome-panel {
+        width: calc(100vw - 64px); /* Tablet comfort */
+        max-width: 420px; /* Maintain consistent proportions */
+      }
+      .welcome-logo {
+        width: 72px; /* Maintain logo prominence on tablets */
+        height: 72px;
+      }
+    }
+    
+    /* Desktop optimization for better proportions */
+    @media (min-width: 769px) {
+      .welcome-panel {
+        max-width: 420px; /* Consistent desktop size */
+        padding: 2.5rem 1.75rem 2rem 1.75rem;
+      }
+      .welcome-logo {
+        width: 76px; /* Slightly larger for desktop prominence */
+        height: 76px;
+      }
+    }
+    
+    /* 🚀 GOLD-STANDARD MOBILE: Critical Small Screen Optimizations */
+    @media (max-width: 480px) {
+      body {
+        padding: 10px 12px; /* Tighter mobile padding */
+      }
+      
+      .welcome-panel {
+        padding: 1.25rem 1rem 1.5rem 1rem; /* Optimized for small screens */
+        min-height: auto;
+        max-height: 95vh; /* Prevent viewport overflow */
+        overflow-y: auto; /* Allow scrolling if needed */
+      }
+      
+      .welcome-logo {
+        width: 56px; /* Smaller for mobile */
+        height: 56px;
+        margin: 0.25rem 0 0.75rem 0;
+      }
+      
+      .welcome-title {
+        font-size: clamp(1.1rem, 5vw, 1.4rem);
+        line-height: 1.1;
+        margin-bottom: 0.5rem;
+      }
+      
+      .welcome-lead {
+        font-size: clamp(0.85rem, 3vw, 0.95rem);
+        margin-bottom: 1rem;
+      }
+      
+      .welcome-stats {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        padding: 1rem;
+      }
+      
+      .welcome-btn {
+        padding: 0.9rem 1.5rem;
+        font-size: 0.95rem;
+        min-height: 44px; /* Reduced for mobile */
+      }
+      
+      .stat-value {
+        font-size: 1.5rem;
+      }
+      
+      .medallion-demo {
+        transform: scale(0.9); /* Slightly smaller on mobile */
+        margin: 0.75rem auto;
+      }
+    }
+    
+    /* 🎯 ULTRA-MOBILE: Emergency small screen protection */
+    @media (max-height: 700px) and (max-width: 400px) {
+      body {
+        padding: 8px;
+      }
+      
+      .welcome-panel {
+        padding: 1rem 0.875rem;
+        max-height: 98vh;
+      }
+      
+      .welcome-logo {
+        width: 48px;
+        height: 48px;
+        margin: 0.25rem 0 0.5rem 0;
+      }
+      
+      .welcome-title {
+        font-size: 1.1rem;
+        margin-bottom: 0.4rem;
+      }
+      
+      .welcome-lead {
+        font-size: 0.8rem;
+        margin-bottom: 0.8rem;
+      }
+      
+      .welcome-actions {
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+      }
+      
+      .welcome-btn {
+        padding: 0.8rem 1.25rem;
+        font-size: 0.9rem;
+        min-height: 40px;
+      }
+      
+      .medallion-demo {
+        transform: scale(0.8);
+        margin: 0.5rem auto;
+      }
+    }
+    
+    /* Reduced motion preferences */
+
+
+    @media (prefers-reduced-motion: reduce) {
+      .welcome-panel,
+      .welcome-logo,
+      .welcome-btn,
+      .welcome-btn::before,
+      .medallion-demo {
+        animation: none;
+        transition: none;
+      }
+      .welcome-btn:hover {
+        transform: none;
+      }
+    }
+  </style>
+</head>
+<body data-page="welcome">
+  <main class="welcome-panel">
+    <img src="assets/brand/hi-logo-light.png" alt="Stay Hi" class="welcome-logo" />
+    <div class="welcome-title">Your forever companion for <br><em style="font-style: italic; color: #FF7B24;">loving yourself & the world</em></div>
+    <div class="welcome-lead">
+      <strong style="font-weight: 600; color: rgba(255, 255, 255, 0.95);">A simple tool to say hi to yourself for real</strong><br>
+      <span style="font-size: 0.95em; opacity: 0.9;">so you can really say hi to the world</span>
+    </div>
+    
+    <!-- HI DEV: Tesla-Grade HiMedallion Component -->
+    <div id="hiMedallionContainer" class="hi-medallion-section"></div>
+    <div class="welcome-actions">
+      <a id="cta-experience-anon" 
+         class="welcome-btn primary" 
+         href="./hi-dashboard.html?source=welcome"
+         data-hi-nav="anon">✨ Experience Hi Anonymously</a>
+      <button class="welcome-btn secondary" id="joinCommunityBtn">🌟 Get Full Hi Access via Stan</button>
+      <button class="welcome-btn tertiary" id="haveCodeBtn">I have an invite code</button>
+      <div class="welcome-signin-link">
+        <span style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">Already a member? </span>
+        <a href="signin.html" style="color: #FFD166; text-decoration: none; font-weight: 600;">Sign in</a>
+      </div>
+    </div>
+    
+    <!-- 🎯 Contextual Invite Code Input (Hidden by default) -->
+    <div class="invite-code-section" id="inviteCodeSection" style="display: none;">
+      <div class="invite-input-container">
+        <label for="welcomeInviteCode" style="color: #FFD166; font-weight: 600; margin-bottom: 0.5rem; display: block;">Enter your invite code:</label>
+        <input type="text" id="welcomeInviteCode" placeholder="e.g. HIFRIEND24" style="
+          width: 100%; 
+          padding: 0.8rem; 
+          border-radius: 12px; 
+          border: 2px solid rgba(255, 215, 102, 0.3); 
+          background: rgba(255, 255, 255, 0.1); 
+          color: white; 
+          font-size: 1rem; 
+          text-align: center;
+          margin-bottom: 1rem;
+        ">
+        <button class="welcome-btn primary" id="continueWithCodeBtn">Continue with Code</button>
+      </div>
+    </div>
+    <div class="welcome-stats" id="welcomeStats">
+      <div class="stat-item">
+        <span class="stat-label">Total His</span>
+        <span class="stat-value" id="totalHis">...</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Global Waves</span>
+        <span class="stat-value" id="globalWaves">...</span>
+      </div>
+      <div class="stat-item" style="grid-column: 1 / -1; margin-top: 0.5rem;">
+        <span class="stat-label" style="font-size: 0.75rem; opacity: 0.7;">
+          Live Community Stats
+          <span class="stats-live-indicator"></span>
+        </span>
+      </div>
+      <!-- HiMetrics Debug Badge -->
+      <div class="stat-item" id="hiMetricsDebug" style="grid-column: 1 / -1; margin-top: 0.5rem; display: none;">
+        <span style="font-size: 0.65rem; opacity: 0.6; color: #FFD166;">
+          🔧 HiMetrics: <span id="metricsStatus">initializing...</span> | Cache: <span id="cacheAge">0s</span>
+        </span>
+      </div>
+    </div>
+  </main>
+  <script type="module" src="./lib/HiSupabase.js"></script>
+  <script type="module" src="./lib/HiDB.js"></script>
+  
+  <!-- 🎬 TESLA-GRADE LOADING EXPERIENCE V2.0 -->
+  <script>
+    // Tesla-grade auth check with beautiful loading experience
+    async function checkAuthWithLoadingExperience() {
+      try {
+        const supa = window.supabaseClient;
+        if (!supa) return;
+        
+        const { data: { session }, error } = await supa.auth.getSession();
+        if (error) {
+          console.log('Welcome: Auth check error:', error);
+          return;
+        }
+        
+        if (session) {
+          console.log('Welcome: User authenticated - starting loading experience');
+          sessionStorage.setItem('from-welcome', 'true');
+          
+          // Start Tesla-grade loading experience
+          await window.hiLoadingExperience.start('Welcome back! Loading your Hi space...');
+          
+          // Navigate after beautiful experience
+          window.location.replace('./hi-dashboard.html?source=welcome');
+        }
+      } catch (error) {
+        console.log('Welcome: Auth check failed:', error);
+      }
+    }
+    
+    // Initialize when ready
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(checkAuthWithLoadingExperience, 500);
+    });
+  </script>
+  
+  <script>
+    // HI-OS: Legacy fetchStats function - REMOVED
+    // This has been replaced by the unified stats init guard system above
+    // All stats loading now happens via initHiStatsOnce() to prevent duplicates
+    
+    // 🎯 Hi-Grade Welcome Experience Interactions
+    document.addEventListener('DOMContentLoaded', () => {
+      const tryAnonymousBtn = document.getElementById('cta-experience-anon'); // Updated ID for anchor
+      const joinBtn = document.getElementById('joinCommunityBtn');
+      const haveCodeBtn = document.getElementById('haveCodeBtn');
+      const inviteSection = document.getElementById('inviteCodeSection');
+      const continueWithCodeBtn = document.getElementById('continueWithCodeBtn');
+      const inviteInput = document.getElementById('welcomeInviteCode');
+      
+      // 🎯 Anonymous Experience Flow - MOVED to welcome-cta.js for reliability
+      // Old tryAnonymousBtn handler neutralized - now using anchor with stable href
+      console.log('[HI DEV] Legacy tryAnonymousBtn handler disabled in favor of welcome-cta.js');
+
+      // Join Community Flow (SECONDARY - Stan Integration Strategy)
+      if (joinBtn) {
+        joinBtn.addEventListener('click', () => {
+          // Track the interaction
+          if (window.hiAnalytics) {
+            window.hiAnalytics.trackEvent('join_community_clicked', {
+              medallion_interactions: clickCount,
+              source: 'welcome_page'
+            });
+          }
+          
+          // Stan Integration: Premium experience route
+          // This creates a conversion funnel: Hi App → Stan Newsletter → Hi Membership
+          window.location.href = 'https://stan.store/stayhi?utm_source=hi_app&utm_medium=welcome&utm_campaign=community_join';
+          
+          // Alternative: If we want to keep some users in-app for now
+          // We could show a modal explaining the Stan connection first:
+          /*
+          if (confirm('🌟 Hi membership comes with exclusive perks!\n\nJoin via Stan (our premium platform) for:\n• VIP Hi features\n• Direct creator access\n• Exclusive community benefits\n\nContinue to Stan?')) {
+            window.location.href = 'https://stan.store/stayhi?utm_source=hi_app';
+          }
+          */
+        });
+      }
+      
+      // Contextual Invite Code Flow
+      if (haveCodeBtn && inviteSection) {
+        haveCodeBtn.addEventListener('click', () => {
+          inviteSection.style.display = inviteSection.style.display === 'none' ? 'block' : 'none';
+          haveCodeBtn.textContent = inviteSection.style.display === 'block' ? 'Cancel' : 'I have an invite code';
+          
+          if (inviteSection.style.display === 'block') {
+            setTimeout(() => inviteInput.focus(), 100);
+          }
+        });
+      }
+      
+      // Continue with Code - Enhanced with Access Tier System
+      if (continueWithCodeBtn && inviteInput) {
+        continueWithCodeBtn.addEventListener('click', () => {
+          const code = inviteInput.value.trim();
+          if (code) {
+            // Validate and activate invite code through access tier system
+            if (window.hiAccessManager) {
+              const result = window.hiAccessManager.activateInviteCode(code);
+              
+              if (result.success) {
+                // Show success message with tier info
+                const tierName = result.tier.name;
+                const features = result.tier.hooks || [];
+                
+                // Create success message
+                let successMsg = `🎉 ${tierName} activated!\n`;
+                features.forEach(feature => successMsg += `• ${feature}\n`);
+                
+                // Show in UI (you could replace this with a proper modal)
+                alert(successMsg);
+                
+                // Redirect to appropriate experience
+                if (result.tier.level >= 2) {
+                  // Mark that user is coming FROM welcome to prevent redirect loop
+                  sessionStorage.setItem('from-welcome', 'true');
+                  
+                  // Explorer+ gets direct app access
+                  window.location.href = './hi-dashboard.html?tier=activated&source=welcome';
+                } else {
+                  // Discovery gets guided signup
+                  window.location.href = `./signup.html?code=${encodeURIComponent(code)}&source=welcome&tier=${result.tier.level}`;
+                }
+              } else {
+                // Invalid code
+                inviteInput.style.borderColor = '#ff6b6b';
+                inviteInput.style.background = 'rgba(255, 107, 107, 0.1)';
+                inviteInput.value = '';
+                inviteInput.placeholder = '❌ Invalid code - try again';
+                setTimeout(() => {
+                  inviteInput.style.borderColor = 'rgba(255, 215, 102, 0.3)';
+                  inviteInput.style.background = 'rgba(255, 255, 255, 0.1)';
+                  inviteInput.placeholder = 'e.g. HIFRIEND24';
+                }, 2000);
+              }
+            } else {
+              // Fallback to old system
+              window.location.href = `./signup.html?code=${encodeURIComponent(code)}&source=welcome`;
+            }
+          } else {
+            inviteInput.style.borderColor = '#ff6b6b';
+            inviteInput.placeholder = 'Please enter your invite code';
+          }
+        });
+        
+        // Enter key support
+        inviteInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            continueWithCodeBtn.click();
+          }
+        });
+      }
+    });
+  </script>
+
+  <!-- 🌍 Tesla-Grade Unified Global Stats System -->
+  <!-- DISABLED: Legacy stats system replaced by HiMetrics adapter -->
+  <!-- <script src="assets/hi-unified-global-stats.js"></script> -->
+  
+  <!-- 📊 Monitoring Configuration (Non-Secret) -->
+  <script>
+    window.HI_ENV = {
+      PLAUSIBLE_DOMAIN: 'stay-eoyezel0s-joeatangs-projects.vercel.app',
+      SENTRY_DSN: '' // leave empty for now; we'll fill later
+    };
+  </script>
+  
+  <!-- 📊 Production Monitoring Layer -->
+  <script type="module" src="./lib/monitoring/HiMonitor.js"></script>
+  
+  <!-- 🚩 Tesla-Grade Feature Flags System -->
+  <script type="module" src="./lib/flags/HiFlags.js"></script>
+  
+  <!-- 🎁 HiBase Referral Code Handler -->
+  <script type="module">
+    import HiBase from './lib/hibase/index.js';
+    import { HiFlags } from './lib/flags/HiFlags.js';
+    import { HiMonitor } from './lib/monitoring/HiMonitor.js';
+
+    // Handle referral and gift codes from URL
+    async function handleReferralCode() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const referralCode = params.get('ref');
+        const giftCode = params.get('gift');
+        const code = referralCode || giftCode;
+        
+        if (!code) return;
+        
+        // Check if HiBase referrals are enabled
+        const useHiBaseReferrals = await HiFlags.isEnabled('hibase_referrals_enabled');
+        
+        if (useHiBaseReferrals) {
+          // Use HiBase referrals system
+          try {
+            const referralData = await HiBase.referrals.getReferral(code);
+            
+            if (referralData) {
+              // Store referral info for signup process
+              sessionStorage.setItem('hi_referral_code', code);
+              sessionStorage.setItem('hi_referral_type', referralData.type);
+              
+              // Show appropriate UI message
+              if (giftCode && referralData.type === 'gift') {
+                showGiftWelcomeMessage(referralData);
+              } else if (referralCode && referralData.type === 'signup') {
+                showReferralWelcomeMessage(referralData);
+              }
+              
+              HiMonitor.trackEvent('referral_code_detected', {
+                code: code,
+                type: referralData.type,
+                source: giftCode ? 'gift' : 'referral',
+                via: 'hibase'
+              });
+            }
+          } catch (error) {
+            console.log('HiBase referral lookup failed:', error.message);
+            // Fall back to legacy handling if needed
+            handleLegacyReferral(code);
+          }
+        } else {
+          // Use legacy referral system
+          handleLegacyReferral(code);
+        }
+      } catch (error) {
+        console.error('Referral handler error:', error);
+      }
+    }
+
+    function showGiftWelcomeMessage(referralData) {
+      // Create gift welcome banner
+      const banner = document.createElement('div');
+      banner.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #FFD166 0%, #F4A261 100%);
+        color: #264653;
+        padding: 12px 20px;
+        text-align: center;
+        font-weight: 600;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      `;
+      
+      const issuerName = referralData.issuer?.display_name || 'A friend';
+      banner.innerHTML = `
+        🎁 ${issuerName} sent you a gift! Join Hi to claim your welcome bonus.
+      `;
+      
+      document.body.prepend(banner);
+      
+      // Adjust body padding to account for banner
+      document.body.style.paddingTop = '60px';
+    }
+
+    function showReferralWelcomeMessage(referralData) {
+      // Create referral welcome banner  
+      const banner = document.createElement('div');
+      banner.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #2A9D8F 0%, #264653 100%);
+        color: white;
+        padding: 12px 20px;
+        text-align: center;
+        font-weight: 600;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      `;
+      
+      const issuerName = referralData.issuer?.display_name || 'Someone';
+      banner.innerHTML = `
+        👋 ${issuerName} invited you to Hi! Join to get bonus rewards.
+      `;
+      
+      document.body.prepend(banner);
+      
+      // Adjust body padding to account for banner
+      document.body.style.paddingTop = '60px';
+    }
+
+    function handleLegacyReferral(code) {
+      // Legacy referral handling (existing system)
+      sessionStorage.setItem('hi_referral_code', code);
+      
+      HiMonitor.trackEvent('referral_code_detected', {
+        code: code,
+        source: 'legacy',
+        via: 'legacy'
+      });
+    }
+
+    // Initialize referral handler when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', handleReferralCode);
+    } else {
+      handleReferralCode();
+    }
+  </script>
+
+  <!-- 🔧 Development Tools Gate (Local Only) -->
+  <script type="module">
+    const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    const params = new URLSearchParams(location.search);
+    if (isLocal && params.has('dev')) {
+      import('/devtools/HiFlagsDiag.js');
+    }
+  </script>
+  
+  <!-- HI DEV: Welcome CTA reliability fix (P1) -->
+  <script defer src="./js/welcome-cta.js"></script>
+  
+  <!-- HI DEV: Tesla-Grade HiMedallion Component -->
+  <script type="module">
+    import { mountHiMedallion } from './ui/HiMedallion/HiMedallion.js';
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize HiMedallion with navigation override for welcome page
+      const medallionContainer = document.getElementById('hiMedallionContainer');
+      if (medallionContainer) {
+        mountHiMedallion(medallionContainer, {
+          onTap: () => {
+            location.href = './hi-dashboard.html?source=medallion';
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

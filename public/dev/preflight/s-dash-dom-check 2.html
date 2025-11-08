@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S-DASH DOM Check</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: bold;
+            text-align: center;
+            font-size: 18px;
+        }
+        .status.green {
+            background-color: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        .status.red {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        .json-output {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .progress {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #495057;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>S-DASH DOM Check</h1>
+        <div id="status" class="status">Checking flags and DOM anchors...</div>
+        <div class="json-output" id="jsonOutput">
+            Initializing check...
+        </div>
+        <div class="progress" id="progress"></div>
+    </div>
+
+    <script>
+        async function performDOMCheck() {
+            const statusEl = document.getElementById('status');
+            const jsonEl = document.getElementById('jsonOutput');
+            const progressEl = document.getElementById('progress');
+            
+            try {
+                let result = {
+                    flags_ok: false,
+                    anchors: {},
+                    flags: {},
+                    errors: []
+                };
+                
+                // Step 1: Check if we can access flags
+                if (typeof window.hiFlags === 'undefined') {
+                    // Try to fetch dashboard page and parse for script
+                    try {
+                        const dashResponse = await fetch('../../../hi-dashboard.html');
+                        if (dashResponse.ok) {
+                            const dashHTML = await dashResponse.text();
+                            
+                            // Parse flags from the content (simple check)
+                            result.flags = {
+                                hi_dash_v3: dashHTML.includes('hi_dash_v3'),
+                                hi_dash_stats_row_v1: dashHTML.includes('hi_dash_stats_row_v1'),
+                                hi_dash_medallion_cta_v1: dashHTML.includes('hi_dash_medallion_cta_v1'),
+                                hi_dash_share_cta_v1: dashHTML.includes('hi_dash_share_cta_v1'),
+                                hi_dash_global_pill_v1: dashHTML.includes('hi_dash_global_pill_v1')
+                            };
+                            
+                            // Check for anchor elements in the HTML
+                            result.anchors = {
+                                statsRow: dashHTML.includes('id="statsRow"'),
+                                statTotal: dashHTML.includes('id="statTotal"'),
+                                stat7d: dashHTML.includes('id="stat7d"'),
+                                statStreak: dashHTML.includes('id="statStreak"'),
+                                hiMedallion: dashHTML.includes('id="hiMedallion"'),
+                                giveHiBtn: dashHTML.includes('id="giveHiBtn"'),
+                                globalPill: dashHTML.includes('id="globalPill"')
+                            };
+                            
+                        } else {
+                            result.errors.push('Failed to fetch hi-dashboard.html');
+                        }
+                    } catch (fetchError) {
+                        result.errors.push('Fetch error: ' + fetchError.message);
+                    }
+                } else {
+                    // Window.hiFlags is available
+                    const REQUIRED_FLAGS = [
+                        'hi_dash_v3',
+                        'hi_dash_stats_row_v1', 
+                        'hi_dash_medallion_cta_v1',
+                        'hi_dash_share_cta_v1',
+                        'hi_dash_global_pill_v1'
+                    ];
+                    
+                    // Check flags
+                    REQUIRED_FLAGS.forEach(flagKey => {
+                        result.flags[flagKey] = window.hiFlags[flagKey] === true;
+                    });
+                    
+                    // Check DOM anchors
+                    const ANCHOR_IDS = [
+                        'statsRow', 'statTotal', 'stat7d', 'statStreak',
+                        'hiMedallion', 'giveHiBtn', 'globalPill'
+                    ];
+                    
+                    ANCHOR_IDS.forEach(anchorId => {
+                        result.anchors[anchorId] = document.getElementById(anchorId) !== null;
+                    });
+                }
+                
+                // Determine if flags are OK
+                const flagValues = Object.values(result.flags);
+                result.flags_ok = flagValues.length === 5 && flagValues.every(v => v === true);
+                
+                // Display results
+                jsonEl.textContent = JSON.stringify(result, null, 2);
+                
+                // Set status
+                if (result.flags_ok && Object.values(result.anchors).every(v => v === true)) {
+                    statusEl.className = 'status green';
+                    statusEl.textContent = 'SUCCESS: All flags enabled and anchors present';
+                } else if (result.flags_ok) {
+                    statusEl.className = 'status red';
+                    statusEl.textContent = 'WARNING: Flags OK but missing anchors';
+                } else {
+                    statusEl.className = 'status red';
+                    statusEl.textContent = 'ERROR: Missing required flags';
+                }
+                
+                // Log to console for verification
+                console.log('=== S-DASH DOM CHECK RESULTS ===');
+                console.log('Flags:', result.flags);
+                console.log('Anchors:', result.anchors);
+                console.log('Overall Status:', result.flags_ok ? 'PASS' : 'FAIL');
+                
+                // Progress calculation (simplified)
+                const anchorCount = Object.values(result.anchors).filter(v => v).length;
+                const progress = Math.round((anchorCount / 7) * 100);
+                progressEl.textContent = `Progress: ${progress}% (${anchorCount}/7 anchors found)`;
+                
+                return result;
+                
+            } catch (error) {
+                console.error('DOM check failed:', error);
+                statusEl.className = 'status red';
+                statusEl.textContent = 'CRITICAL ERROR: ' + error.message;
+                jsonEl.textContent = JSON.stringify({ error: error.message }, null, 2);
+            }
+        }
+
+        // Run check when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(performDOMCheck, 500);
+        });
+    </script>
+</body>
+</html>

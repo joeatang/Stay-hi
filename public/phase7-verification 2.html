@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 7 Final Verification</title>
+    <script>
+        // HI DEV Production Redirect with ?dev=1 Detection
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isDev = urlParams.get('dev') === '1';
+            
+            if (isDev) {
+                console.log('🛠️ DEV MODE DETECTED: Redirecting to isolated dev environment');
+                window.location.href = '/public/dev/phase7/index.html';
+                return;
+            }
+            
+            // Production mode continues as normal
+            console.log('📦 PRODUCTION MODE: Running standard verification');
+        })();
+    </script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin: 0;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .loading { background: rgba(255, 193, 7, 0.2); border-left: 4px solid #ffc107; }
+        .success { background: rgba(40, 167, 69, 0.2); border-left: 4px solid #28a745; }
+        .error { background: rgba(220, 53, 69, 0.2); border-left: 4px solid #dc3545; }
+        .console {
+            background: #000;
+            color: #00ff88;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .test-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .test-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .test-status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .pass { background: #28a745; color: white; }
+        .fail { background: #dc3545; color: white; }
+        .pending { background: #6c757d; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Phase 7 Final Verification</h1>
+            <p>Hi Experience Layer Rollout Readiness Assessment</p>
+        </div>
+
+        <div id="overall-status" class="status loading">
+            🔄 Running comprehensive verification tests...
+        </div>
+
+        <div class="test-grid">
+            <div class="test-card">
+                <div class="test-title">Flag Systems</div>
+                <div id="flag-status" class="test-status pending">PENDING</div>
+                <div id="flag-details"></div>
+            </div>
+            <div class="test-card">
+                <div class="test-title">Module Loading</div>
+                <div id="module-status" class="test-status pending">PENDING</div>
+                <div id="module-details"></div>
+            </div>
+            <div class="test-card">
+                <div class="test-title">Component Init</div>
+                <div id="component-status" class="test-status pending">PENDING</div>
+                <div id="component-details"></div>
+            </div>
+            <div class="test-card">
+                <div class="test-title">Feed Data</div>
+                <div id="feed-status" class="test-status pending">PENDING</div>
+                <div id="feed-details"></div>
+            </div>
+            <div class="test-card">
+                <div class="test-title">Performance</div>
+                <div id="performance-status" class="test-status pending">PENDING</div>
+                <div id="performance-details"></div>
+            </div>
+        </div>
+
+        <div class="console" id="console-output">
+            Initializing verification system...\n
+        </div>
+
+        <div id="final-report"></div>
+    </div>
+
+    <!-- Load required modules first -->
+    <script type="module" src="/public/assets/feature-flags.js"></script>
+    
+    <script type="module">
+        // UI update functions
+        function updateTestStatus(testName, passed, message, time) {
+            const statusElement = document.getElementById(`${testName}-status`);
+            const detailsElement = document.getElementById(`${testName}-details`);
+            
+            statusElement.textContent = passed ? 'PASS' : 'FAIL';
+            statusElement.className = `test-status ${passed ? 'pass' : 'fail'}`;
+            
+            if (detailsElement) {
+                detailsElement.textContent = message;
+                if (time) {
+                    detailsElement.textContent += ` (${time.toFixed(1)}ms)`;
+                }
+            }
+        }
+
+        function updateOverallStatus(status, readyForRollout) {
+            const element = document.getElementById('overall-status');
+            
+            if (readyForRollout) {
+                element.className = 'status success';
+                element.innerHTML = '🚀 <strong>READY FOR 10% ROLLOUT</strong> - All systems verified!';
+            } else {
+                element.className = 'status error';
+                element.innerHTML = '⚠️ <strong>NOT READY</strong> - Critical issues detected';
+            }
+        }
+
+        function addToConsole(message) {
+            const console = document.getElementById('console-output');
+            console.textContent += message + '\n';
+            console.scrollTop = console.scrollHeight;
+        }
+
+        // Override console to capture output
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        console.log = (...args) => {
+            originalLog(...args);
+            addToConsole(args.join(' '));
+        };
+        
+        console.error = (...args) => {
+            originalError(...args);
+            addToConsole('ERROR: ' + args.join(' '));
+        };
+
+        // Custom verification with UI updates
+        async function runVerificationWithUI() {
+            console.log('🚀 Starting Phase 7 Final Verification Suite...');
+            
+            const verificationStart = performance.now();
+            const results = {
+                tests: {},
+                overallStatus: 'TESTING',
+                readyForRollout: false,
+                totalTime: 0
+            };
+
+            // Test Flag Systems
+            try {
+                console.log('📋 Testing flag systems...');
+                const testStart = performance.now();
+                
+                const featureFlags = window.hiFeatureFlags?.hifeed_enabled;
+                const { HiFlags } = await import./lib/flags/HiFlags.js');
+                const hiFlagsResult = HiFlags?.isEnabled('hifeed_enabled');
+                
+                const passed = featureFlags === true && hiFlagsResult === true;
+                const message = passed ? 'Both systems enabled' : `Mismatch: hiFeatureFlags=${featureFlags}, HiFlags=${hiFlagsResult}`;
+                const time = performance.now() - testStart;
+                
+                results.tests.flagSystems = { passed, message, time };
+                updateTestStatus('flag', passed, message, time);
+                
+                console.log(passed ? '✅ Flag systems verified' : '❌ Flag systems failed');
+            } catch (error) {
+                results.tests.flagSystems = { passed: false, message: error.message, time: 0 };
+                updateTestStatus('flag', false, error.message);
+                console.error('❌ Flag test error:', error);
+            }
+
+            // Test Module Loading
+            try {
+                console.log('📦 Testing module loading...');
+                const testStart = performance.now();
+                
+                const hifeedModule = await import./lib/hifeed/index.js');
+                const hiFeedComponent = await import./ui/HiFeed/HiFeed.js');
+                const hiStreaksComponent = await import./ui/HiStreaks/HiStreaks.js');
+                
+                const passed = !!(hifeedModule.getUnifiedFeed && hiFeedComponent.HiFeed && hiStreaksComponent.HiStreaks);
+                const message = passed ? 'All modules loaded successfully' : 'Missing required exports';
+                const time = performance.now() - testStart;
+                
+                results.tests.moduleLoading = { passed, message, time };
+                updateTestStatus('module', passed, message, time);
+                
+                console.log(passed ? '✅ Modules verified' : '❌ Module loading failed');
+            } catch (error) {
+                results.tests.moduleLoading = { passed: false, message: error.message, time: 0 };
+                updateTestStatus('module', false, error.message);
+                console.error('❌ Module loading error:', error);
+            }
+
+            // Test Component Initialization
+            try {
+                console.log('🎨 Testing component initialization...');
+                const testStart = performance.now();
+                
+                const hiFeedContainer = document.createElement('div');
+                const hiStreaksContainer = document.createElement('div');
+                document.body.appendChild(hiFeedContainer);
+                document.body.appendChild(hiStreaksContainer);
+                
+                const { HiFeed } = await import./ui/HiFeed/HiFeed.js');
+                await HiFeed.init(hiFeedContainer);
+                
+                const { HiStreaks } = await import./ui/HiStreaks/HiStreaks.js');
+                await HiStreaks.init(hiStreaksContainer);
+                
+                const hiFeedRendered = hiFeedContainer.children.length > 0;
+                const hiStreaksRendered = hiStreaksContainer.children.length > 0;
+                const passed = hiFeedRendered && hiStreaksRendered;
+                const message = passed ? 'Both components rendered' : `HiFeed=${hiFeedRendered}, HiStreaks=${hiStreaksRendered}`;
+                const time = performance.now() - testStart;
+                
+                document.body.removeChild(hiFeedContainer);
+                document.body.removeChild(hiStreaksContainer);
+                
+                results.tests.componentInit = { passed, message, time };
+                updateTestStatus('component', passed, message, time);
+                
+                console.log(passed ? '✅ Components verified' : '❌ Component rendering failed');
+            } catch (error) {
+                results.tests.componentInit = { passed: false, message: error.message, time: 0 };
+                updateTestStatus('component', false, error.message);
+                console.error('❌ Component init error:', error);
+            }
+
+            // Test Feed Data
+            try {
+                console.log('📊 Testing feed data...');
+                const testStart = performance.now();
+                
+                const { getUnifiedFeed } = await import./lib/hifeed/index.js');
+                const feedData = await getUnifiedFeed();
+                
+                const passed = !!(feedData && Array.isArray(feedData) && feedData.length > 0);
+                let message = 'Feed empty or invalid';
+                
+                if (passed) {
+                    const shareCount = feedData.filter(item => item.type === 'share').length;
+                    const streakCount = feedData.filter(item => item.type === 'streak').length;
+                    message = `${feedData.length} items (${shareCount} shares, ${streakCount} streaks)`;
+                }
+                
+                const time = performance.now() - testStart;
+                
+                results.tests.feedData = { passed, message, time };
+                updateTestStatus('feed', passed, message, time);
+                
+                console.log(passed ? '✅ Feed data verified' : '❌ Feed data failed');
+            } catch (error) {
+                results.tests.feedData = { passed: false, message: error.message, time: 0 };
+                updateTestStatus('feed', false, error.message);
+                console.error('❌ Feed data error:', error);
+            }
+
+            // Test Performance
+            const totalTime = performance.now() - verificationStart;
+            const targetTime = 3000;
+            const passed = totalTime < targetTime;
+            const message = `${totalTime.toFixed(1)}ms (target: <${targetTime}ms)`;
+            
+            results.tests.performance = { passed, message, time: totalTime };
+            updateTestStatus('performance', passed, message);
+            
+            console.log(passed ? '✅ Performance verified' : '❌ Performance failed');
+
+            // Final Results
+            results.totalTime = totalTime;
+            results.readyForRollout = Object.values(results.tests).every(test => test.passed);
+            results.overallStatus = results.readyForRollout ? 'READY' : 'NOT_READY';
+            
+            updateOverallStatus(results.overallStatus, results.readyForRollout);
+            
+            // Generate final report
+            console.log('\n🎯 PHASE 7 FINAL VERIFICATION REPORT');
+            console.log('=====================================');
+            
+            if (results.readyForRollout) {
+                console.log('✅ APPROVED FOR 10% ROLLOUT');
+                console.log('🎉 All Phase 7 criteria met!');
+            } else {
+                console.log('❌ NOT READY FOR ROLLOUT');
+                console.log('🔧 Critical issues detected');
+            }
+            
+            window.phase7VerificationResults = results;
+            console.log('\n✅ Verification complete! Results in window.phase7VerificationResults');
+            
+            return results;
+        }
+
+        // Start verification when page loads
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Small delay to ensure all systems are ready
+            setTimeout(runVerificationWithUI, 300);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 9 Auth Verifier - Hi Dev Console</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #00ff88;
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .subtitle {
+            color: #888;
+            margin-top: 10px;
+        }
+        
+        .section {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .section h2 {
+            color: #00ff88;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .status-success { background: #00ff88; }
+        .status-error { background: #ff4444; }
+        .status-warning { background: #ffaa00; }
+        .status-pending { background: #666; }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ccc;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            background: #222;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #fff;
+            font-family: inherit;
+        }
+        
+        button {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            background: #00cc6a;
+        }
+        
+        button:disabled {
+            background: #444;
+            color: #888;
+            cursor: not-allowed;
+        }
+        
+        .button-secondary {
+            background: #333;
+            color: #fff;
+        }
+        
+        .button-secondary:hover {
+            background: #444;
+        }
+        
+        .button-danger {
+            background: #ff4444;
+            color: #fff;
+        }
+        
+        .button-danger:hover {
+            background: #cc3333;
+        }
+        
+        .console {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 12px;
+            height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .auth-status {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        
+        .auth-status.authenticated {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+        }
+        
+        .auth-status.anonymous {
+            background: rgba(255, 170, 0, 0.1);
+            border: 1px solid #ffaa00;
+        }
+        
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 4px solid;
+        }
+        
+        .test-pass {
+            background: rgba(0, 255, 136, 0.1);
+            border-left-color: #00ff88;
+        }
+        
+        .test-fail {
+            background: rgba(255, 68, 68, 0.1);
+            border-left-color: #ff4444;
+        }
+        
+        .test-info {
+            background: rgba(100, 100, 100, 0.1);
+            border-left-color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Phase 9 Auth Verifier</h1>
+            <div class="subtitle">Tesla-grade authentication testing & RLS policy verification</div>
+        </div>
+
+        <div class="grid">
+            <!-- Authentication Panel -->
+            <div class="section">
+                <h2>
+                    <span class="status-indicator" id="auth-status-indicator"></span>
+                    Authentication Control
+                </h2>
+                
+                <div id="auth-status-display" class="auth-status">
+                    <div><strong>Status:</strong> <span id="auth-status-text">Checking...</span></div>
+                    <div><strong>User ID:</strong> <span id="auth-user-id">-</span></div>
+                    <div><strong>Email:</strong> <span id="auth-email">-</span></div>
+                </div>
+
+                <div class="input-group">
+                    <label for="test-email">Test Email:</label>
+                    <input type="email" id="test-email" placeholder="test@example.com">
+                </div>
+
+                <div class="input-group">
+                    <label for="test-password">Password (leave blank for magic link):</label>
+                    <input type="password" id="test-password" placeholder="Optional password">
+                </div>
+
+                <button onclick="signInUser()">Sign In</button>
+                <button onclick="signUpUser()" class="button-secondary">Sign Up</button>
+                <button onclick="signOutUser()" class="button-danger">Sign Out</button>
+                <button onclick="refreshSession()" class="button-secondary">Refresh Session</button>
+            </div>
+
+            <!-- RLS Testing Panel -->
+            <div class="section">
+                <h2>
+                    <span class="status-indicator status-pending" id="rls-status-indicator"></span>
+                    RLS Policy Testing
+                </h2>
+
+                <button onclick="testRLSPolicies()">Run RLS Tests</button>
+                <button onclick="testDataAccess()" class="button-secondary">Test Data Access</button>
+                <button onclick="testPermissions()" class="button-secondary">Check Permissions</button>
+
+                <div id="rls-test-results"></div>
+            </div>
+        </div>
+
+        <!-- HiBase Operations Testing -->
+        <div class="section">
+            <h2>
+                <span class="status-indicator status-pending" id="hibase-status-indicator"></span>
+                HiBase Auth Integration Tests
+            </h2>
+
+            <div class="grid">
+                <div>
+                    <h3>Shares Testing</h3>
+                    <div class="input-group">
+                        <label for="test-share-message">Share Message:</label>
+                        <textarea id="test-share-message" placeholder="Test Hi message" rows="3"></textarea>
+                    </div>
+                    
+                    <button onclick="testCreateShare()">Create Share</button>
+                    <button onclick="testGetMyShares()" class="button-secondary">Get My Shares</button>
+                    <button onclick="testPublicFeed()" class="button-secondary">Get Public Feed</button>
+                </div>
+
+                <div>
+                    <h3>Profile Testing</h3>
+                    <div class="input-group">
+                        <label for="test-username">Username:</label>
+                        <input type="text" id="test-username" placeholder="testuser123">
+                    </div>
+                    
+                    <button onclick="testUpdateProfile()">Update Profile</button>
+                    <button onclick="testGetMyProfile()" class="button-secondary">Get Profile</button>
+                </div>
+            </div>
+
+            <div>
+                <h3>Streaks & Referrals</h3>
+                <button onclick="testGetStreaks()">Get My Streaks</button>
+                <button onclick="testCreateReferral()" class="button-secondary">Create Referral</button>
+                <button onclick="testGiftHi()" class="button-secondary">Gift Hi</button>
+            </div>
+        </div>
+
+        <!-- Console Output -->
+        <div class="section">
+            <h2>Console Output</h2>
+            <div id="console-output" class="console"></div>
+            <button onclick="clearConsole()" class="button-secondary">Clear</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import HiAuthCore and HiBase modules
+        import hiAuthCore from '../.././lib/auth/HiAuthCore.js';
+        import { createHiShare, getCommunityFeed, getUserHiHistory } from '../../lib/hibase/shares.js';
+        import { updateMyProfile } from '../.././lib/hibase/users.js';
+        import { getMyStreaks } from '../.././lib/hibase/streaks.js';
+        import { giftHi } from '../../lib/hibase/referrals.js';
+        import { logAuthEvent, AUTH_EVENTS } from '../../../monitoring/HiMonitor.js';
+
+        // Global functions for HTML onclick handlers
+        window.hiAuthCore = hiAuthCore;
+        window.hiBaseModules = {
+            createHiShare,
+            getCommunityFeed, 
+            getUserHiHistory,
+            updateMyProfile,
+            getMyStreaks,
+            giftHi
+        };
+        window.logAuthEvent = logAuthEvent;
+        window.AUTH_EVENTS = AUTH_EVENTS;
+
+        // Console management
+        let consoleHistory = [];
+
+        window.log = function(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            
+            consoleHistory.push(logEntry);
+            const consoleEl = document.getElementById('console-output');
+            consoleEl.textContent = consoleHistory.join('\n');
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+
+            // Also log to browser console
+            console.log(logEntry);
+        };
+
+        window.clearConsole = function() {
+            consoleHistory = [];
+            document.getElementById('console-output').textContent = '';
+        };
+
+        // Auth status monitoring
+        async function updateAuthStatus() {
+            try {
+                const { data, error } = await hiAuthCore.getActiveIdentity();
+                
+                const statusIndicator = document.getElementById('auth-status-indicator');
+                const statusDisplay = document.getElementById('auth-status-display');
+                const statusText = document.getElementById('auth-status-text');
+                const userIdEl = document.getElementById('auth-user-id');
+                const emailEl = document.getElementById('auth-email');
+
+                if (error) {
+                    log(`Auth status error: ${error}`, 'error');
+                    statusIndicator.className = 'status-indicator status-error';
+                    statusDisplay.className = 'auth-status anonymous';
+                    statusText.textContent = 'Error';
+                    userIdEl.textContent = '-';
+                    emailEl.textContent = '-';
+                } else if (data.isAnon) {
+                    statusIndicator.className = 'status-indicator status-warning';
+                    statusDisplay.className = 'auth-status anonymous';
+                    statusText.textContent = 'Anonymous';
+                    userIdEl.textContent = '-';
+                    emailEl.textContent = '-';
+                } else {
+                    statusIndicator.className = 'status-indicator status-success';
+                    statusDisplay.className = 'auth-status authenticated';
+                    statusText.textContent = 'Authenticated';
+                    userIdEl.textContent = data.userId;
+                    emailEl.textContent = data.email;
+                }
+            } catch (error) {
+                log(`Auth status check failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Authentication functions
+        window.signInUser = async function() {
+            const email = document.getElementById('test-email').value;
+            const password = document.getElementById('test-password').value;
+
+            if (!email) {
+                log('Email required for sign in', 'error');
+                return;
+            }
+
+            try {
+                log(`Attempting sign in for ${email}...`, 'info');
+                logAuthEvent(AUTH_EVENTS.SIGN_IN_ATTEMPT, { email });
+                
+                const { data, error } = await hiAuthCore.signIn(email, password || null);
+                
+                if (error) {
+                    log(`Sign in failed: ${error}`, 'error');
+                    logAuthEvent(AUTH_EVENTS.SIGN_IN_FAILURE, { email, error });
+                } else {
+                    log(`Sign in successful!`, 'success');
+                    logAuthEvent(AUTH_EVENTS.SIGN_IN_SUCCESS, { email });
+                    await updateAuthStatus();
+                }
+            } catch (error) {
+                log(`Sign in error: ${error.message}`, 'error');
+                logAuthEvent(AUTH_EVENTS.SIGN_IN_FAILURE, { email, error: error.message });
+            }
+        };
+
+        window.signUpUser = async function() {
+            const email = document.getElementById('test-email').value;
+            const password = document.getElementById('test-password').value;
+
+            if (!email || !password) {
+                log('Email and password required for sign up', 'error');
+                return;
+            }
+
+            try {
+                log(`Attempting sign up for ${email}...`, 'info');
+                
+                const { data, error } = await hiAuthCore.signUp(email, password);
+                
+                if (error) {
+                    log(`Sign up failed: ${error}`, 'error');
+                } else {
+                    log(`Sign up successful! Check email for confirmation.`, 'success');
+                    await updateAuthStatus();
+                }
+            } catch (error) {
+                log(`Sign up error: ${error.message}`, 'error');
+            }
+        };
+
+        window.signOutUser = async function() {
+            try {
+                log('Signing out...', 'info');
+                logAuthEvent(AUTH_EVENTS.SIGN_OUT);
+                
+                const { data, error } = await hiAuthCore.signOut();
+                
+                if (error) {
+                    log(`Sign out failed: ${error}`, 'error');
+                } else {
+                    log('Sign out successful', 'success');
+                    await updateAuthStatus();
+                }
+            } catch (error) {
+                log(`Sign out error: ${error.message}`, 'error');
+            }
+        };
+
+        window.refreshSession = async function() {
+            try {
+                log('Refreshing session...', 'info');
+                logAuthEvent(AUTH_EVENTS.SESSION_REFRESH);
+                
+                const { data, error } = await hiAuthCore.refreshSession();
+                
+                if (error) {
+                    log(`Session refresh failed: ${error}`, 'error');
+                } else {
+                    log('Session refreshed successfully', 'success');
+                    await updateAuthStatus();
+                }
+            } catch (error) {
+                log(`Session refresh error: ${error.message}`, 'error');
+            }
+        };
+
+        // RLS Testing functions
+        window.testRLSPolicies = async function() {
+            log('Testing RLS policies...', 'info');
+            const resultsEl = document.getElementById('rls-test-results');
+            resultsEl.innerHTML = '';
+
+            // Test 1: Try to access own data (should succeed if authenticated)
+            try {
+                const { data: authData } = await hiAuthCore.getActiveIdentity();
+                
+                if (authData.isAnon) {
+                    resultsEl.innerHTML += '<div class="test-result test-info">⚠️ Anonymous user - limited RLS tests available</div>';
+                } else {
+                    resultsEl.innerHTML += '<div class="test-result test-pass">✅ Authentication active - full RLS testing available</div>';
+                }
+            } catch (error) {
+                resultsEl.innerHTML += '<div class="test-result test-fail">❌ Auth check failed</div>';
+            }
+
+            // Test 2: Try HiBase operations with auth
+            try {
+                const shares = await window.hiBaseModules.getUserHiHistory();
+                if (shares.error && shares.error.code === 'AUTH_REQUIRED') {
+                    resultsEl.innerHTML += '<div class="test-result test-pass">✅ RLS Policy: Auth required for user history</div>';
+                } else if (shares.data) {
+                    resultsEl.innerHTML += '<div class="test-result test-pass">✅ RLS Policy: User can access own history</div>';
+                }
+            } catch (error) {
+                resultsEl.innerHTML += '<div class="test-result test-fail">❌ User history RLS test failed</div>';
+            }
+
+            // Test 3: Public feed access (should work for anonymous)
+            try {
+                const publicFeed = await window.hiBaseModules.getCommunityFeed();
+                if (publicFeed.data) {
+                    resultsEl.innerHTML += '<div class="test-result test-pass">✅ RLS Policy: Public feed accessible</div>';
+                } else {
+                    resultsEl.innerHTML += '<div class="test-result test-info">ℹ️ Public feed empty or restricted</div>';
+                }
+            } catch (error) {
+                resultsEl.innerHTML += '<div class="test-result test-fail">❌ Public feed RLS test failed</div>';
+            }
+
+            document.getElementById('rls-status-indicator').className = 'status-indicator status-success';
+        };
+
+        // HiBase testing functions
+        window.testCreateShare = async function() {
+            const message = document.getElementById('test-share-message').value;
+            
+            if (!message) {
+                log('Message required for share creation', 'error');
+                return;
+            }
+
+            try {
+                log('Creating Hi share...', 'info');
+                const result = await window.hiBaseModules.createHiShare({
+                    message: message,
+                    is_public: true
+                });
+
+                if (result.error) {
+                    log(`Share creation failed: ${result.error.message}`, 'error');
+                } else {
+                    log(`Share created successfully! ID: ${result.data.shareId}`, 'success');
+                }
+            } catch (error) {
+                log(`Share creation error: ${error.message}`, 'error');
+            }
+        };
+
+        window.testGetMyShares = async function() {
+            try {
+                log('Getting user shares...', 'info');
+                const result = await window.hiBaseModules.getUserHiHistory();
+
+                if (result.error) {
+                    log(`Get shares failed: ${result.error.message}`, 'error');
+                } else {
+                    log(`Retrieved ${result.data?.shares?.length || 0} shares`, 'success');
+                }
+            } catch (error) {
+                log(`Get shares error: ${error.message}`, 'error');
+            }
+        };
+
+        window.testPublicFeed = async function() {
+            try {
+                log('Getting public feed...', 'info');
+                const result = await window.hiBaseModules.getCommunityFeed({ limit: 5 });
+
+                if (result.error) {
+                    log(`Public feed failed: ${result.error.message}`, 'error');
+                } else {
+                    log(`Retrieved ${result.data?.shares?.length || 0} public shares`, 'success');
+                }
+            } catch (error) {
+                log(`Public feed error: ${error.message}`, 'error');
+            }
+        };
+
+        window.testUpdateProfile = async function() {
+            const username = document.getElementById('test-username').value;
+            
+            if (!username) {
+                log('Username required for profile update', 'error');
+                return;
+            }
+
+            try {
+                log('Updating profile...', 'info');
+                const result = await window.hiBaseModules.updateMyProfile({
+                    username: username
+                });
+
+                if (result.error) {
+                    log(`Profile update failed: ${result.error.message}`, 'error');
+                } else {
+                    log(`Profile updated successfully!`, 'success');
+                }
+            } catch (error) {
+                log(`Profile update error: ${error.message}`, 'error');
+            }
+        };
+
+        window.testGetStreaks = async function() {
+            try {
+                log('Getting streaks...', 'info');
+                const result = await window.hiBaseModules.getMyStreaks();
+
+                if (result.error) {
+                    log(`Get streaks failed: ${result.error.message}`, 'error');
+                } else {
+                    log(`Current streak: ${result.data?.currentStreak || 0}`, 'success');
+                }
+            } catch (error) {
+                log(`Get streaks error: ${error.message}`, 'error');
+            }
+        };
+
+        // Initialize
+        updateAuthStatus();
+        
+        // Set up auth state listener
+        hiAuthCore.onAuthStateChange((event, session) => {
+            log(`Auth state changed: ${event}`, 'info');
+            logAuthEvent(AUTH_EVENTS.AUTH_STATE_CHANGE, { event, hasSession: !!session });
+            updateAuthStatus();
+        });
+
+        log('Phase 9 Auth Verifier initialized', 'success');
+    </script>
+</body>
+</html>

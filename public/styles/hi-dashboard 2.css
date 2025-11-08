@@ -1,0 +1,304 @@
+/* TESLA-GRADE VISUAL HIERARCHY: Primary Hero Section */
+.hi-medallion-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin: 32px 0 40px;
+  position: relative;
+}
+
+.hi-medallion-btn {
+  display: grid;
+  place-items: center;
+  width: clamp(160px, 28vw, 260px);
+  height: clamp(160px, 28vw, 260px);
+  border-radius: 50%;
+  border: none;
+  background: radial-gradient(circle at 50% 45%, rgba(255,255,255,0.25), rgba(255,255,255,0.08)),
+              var(--hi-medallion-bg, linear-gradient(135deg, #ff7a18, #ffd166));
+  box-shadow: 
+    0 12px 32px rgba(255, 122, 24, 0.3),
+    0 4px 16px rgba(255, 122, 24, 0.2),
+    inset 0 2px 8px rgba(255,255,255,0.15);
+  cursor: pointer;
+  transition: all 200ms ease;
+  position: relative;
+}
+
+.hi-medallion-btn::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  background: linear-gradient(45deg, rgba(255,209,102,0.4), rgba(255,122,24,0.4));
+  opacity: 0;
+  transition: opacity 200ms ease;
+  z-index: -1;
+}
+
+.hi-medallion-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 
+    0 16px 40px rgba(255, 122, 24, 0.4),
+    0 8px 20px rgba(255, 122, 24, 0.25),
+    inset 0 2px 12px rgba(255,255,255,0.2);
+}
+
+.hi-medallion-btn:hover::before {
+  opacity: 1;
+}
+
+.hi-medallion-btn:focus-visible {
+  outline: 3px solid #ffd76a;
+  outline-offset: 4px;
+}
+
+.hi-medallion-btn:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 
+    0 8px 24px rgba(255, 122, 24, 0.35),
+    inset 0 4px 12px rgba(255,255,255,0.25);
+}
+
+.hi-medallion-emblem {
+  width: 65%;
+  height: auto;
+  user-select: none;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+/* Hero Call-to-Action Label */
+.hi-medallion-section::after {
+  content: 'Give yourself a Hi-5! 🙌';
+  font-size: clamp(16px, 3.5vw, 20px);
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  animation: subtle-pulse 2s ease-in-out infinite;
+}
+
+@keyframes subtle-pulse {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 0.7; }
+}
+
+/* TESLA-GRADE VISUAL HIERARCHY: Supporting Stats */
+.global-stats-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 12px;
+  margin: 0 0 24px;
+  padding: 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.global-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  transition: all 200ms ease;
+}
+
+.global-stat:hover {
+  background: rgba(255,255,255,0.08);
+  transform: translateY(-1px);
+}
+
+.stat-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.stat-number {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffd166;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
+/* Personal Stats Row (S-DASH integration) */
+#statsRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+  opacity: 0.9;
+}
+
+#statTotal, #stat7d, #statStreak {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+  color: rgba(255,255,255,0.9);
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: all 200ms ease;
+}
+
+#statTotal:hover, #stat7d:hover, #statStreak:hover {
+  background: rgba(255,255,255,0.12);
+  transform: translateY(-1px);
+}
+
+.hi-global-pill {
+  display: inline-block;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255,209,102,0.15);
+  border: 1px solid rgba(255,209,102,0.3);
+  font-size: 13px;
+  font-weight: 500;
+  color: #ffd166;
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* S-DASH/8: Micro-feedback animations */
+.hi-confetti {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--hi-accent, #ffd76a);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: hiBurst 0.9s ease-out forwards;
+  z-index: 10;
+}
+
+@keyframes hiBurst {
+  0% {
+    transform: scale(0.5) translateY(0);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(1.2) translateY(-30px);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(0.2) translateY(-50px);
+    opacity: 0;
+  }
+}
+
+/* TESLA-GRADE VISUAL HIERARCHY: Week Strip Integration */
+.weekstrip {
+  margin: 32px 0;
+  padding: 20px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+}
+
+/* RESPONSIVE HIERARCHY SYSTEM */
+@media (max-width: 480px) {
+  .hi-medallion-section {
+    margin: 24px 0 32px;
+    gap: 12px;
+  }
+  
+  .hi-medallion-btn {
+    width: clamp(140px, 35vw, 200px);
+    height: clamp(140px, 35vw, 200px);
+  }
+  
+  .hi-medallion-section::after {
+    font-size: 16px;
+  }
+  
+  .global-stats-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    padding: 12px;
+  }
+  
+  .stat-icon {
+    font-size: 18px;
+  }
+  
+  .stat-number {
+    font-size: 16px;
+  }
+  
+  .stat-label {
+    font-size: 10px;
+  }
+}
+
+@media (min-width: 768px) {
+  .hi-medallion-section {
+    margin: 48px 0 56px;
+    gap: 20px;
+  }
+  
+  .global-stats-container {
+    grid-template-columns: repeat(4, 1fr);
+    padding: 20px;
+    gap: 16px;
+  }
+  
+  .weekstrip {
+    margin: 40px 0;
+    padding: 24px;
+  }
+}
+
+/* ACCESSIBILITY & UTILITY */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .hi-medallion-btn {
+    border: 2px solid currentColor;
+  }
+  
+  .global-stat, #statTotal, #stat7d, #statStreak {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .hi-medallion-btn, 
+  .global-stat,
+  #statTotal, #stat7d, #statStreak {
+    transition: none;
+  }
+  
+  .subtle-pulse {
+    animation: none;
+  }
+  
+  .hi-medallion-btn:hover {
+    transform: none;
+  }
+}

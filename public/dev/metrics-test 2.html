@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metrics Separation Test - Hi App Dev Tools</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      min-height: 100vh;
+    }
+    
+    .container {
+      background: rgba(0,0,0,0.2);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(10px);
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 8px;
+      font-size: 2rem;
+    }
+    
+    .subtitle {
+      text-align: center;
+      opacity: 0.8;
+      margin-bottom: 32px;
+    }
+    
+    .test-section {
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 16px 0;
+    }
+    
+    .metrics-display {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 20px 0;
+    }
+    
+    .metric-card {
+      background: rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+    
+    .metric-value {
+      font-size: 2rem;
+      font-weight: bold;
+      margin: 8px 0;
+    }
+    
+    .metric-label {
+      opacity: 0.8;
+      font-size: 0.9rem;
+    }
+    
+    .test-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 20px 0;
+    }
+    
+    .test-button {
+      background: rgba(255,255,255,0.2);
+      border: 2px solid rgba(255,255,255,0.3);
+      color: white;
+      padding: 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    
+    .test-button:hover {
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-2px);
+    }
+    
+    .test-button:active {
+      transform: translateY(0);
+    }
+    
+    .test-button.waves {
+      border-color: #4FC3F7;
+      background: linear-gradient(135deg, rgba(79,195,247,0.3), rgba(79,195,247,0.1));
+    }
+    
+    .test-button.hi5s {
+      border-color: #FFB74D;
+      background: linear-gradient(135deg, rgba(255,183,77,0.3), rgba(255,183,77,0.1));
+    }
+    
+    .console-output {
+      background: #1a1a1a;
+      color: #00ff00;
+      padding: 16px;
+      border-radius: 8px;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 0.85rem;
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 16px 0;
+      border: 1px solid #333;
+    }
+    
+    .status {
+      text-align: center;
+      padding: 12px;
+      border-radius: 8px;
+      margin: 16px 0;
+      font-weight: 600;
+    }
+    
+    .status.loading { background: rgba(33,150,243,0.3); }
+    .status.success { background: rgba(76,175,80,0.3); }
+    .status.error { background: rgba(244,67,54,0.3); }
+    
+    .separator {
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      margin: 24px 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>🎯 Metrics Separation Test</h1>
+    <p class="subtitle">Verify Hi Waves (medallion taps) vs Total Hi5s (share submissions) separation</p>
+    
+    <!-- Current Metrics Display -->
+    <div class="test-section">
+      <h3>📊 Current Metrics</h3>
+      <div class="metrics-display">
+        <div class="metric-card">
+          <div class="metric-value" id="currentWaves">...</div>
+          <div class="metric-label">Hi Waves (medallion taps)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value" id="currentHi5s">...</div>
+          <div class="metric-label">Total Hi5s (share submissions)</div>
+        </div>
+      </div>
+      <button onclick="refreshMetrics()" class="test-button" style="grid-column: span 2; margin-top: 12px;">
+        🔄 Refresh Metrics
+      </button>
+    </div>
+
+    <div class="separator"></div>
+
+    <!-- Test Actions -->
+    <div class="test-section">
+      <h3>🧪 Separation Tests</h3>
+      <div class="test-buttons">
+        <button onclick="simulateMedallionTap()" class="test-button waves">
+          🏅 Simulate Medallion Tap<br>
+          <small>Should increase Hi Waves only</small>
+        </button>
+        <button onclick="simulateHi5Submit()" class="test-button hi5s">
+          🙌 Simulate Hi5 Submit<br>
+          <small>Should increase Total Hi5s only</small>
+        </button>
+      </div>
+    </div>
+
+    <!-- Status Display -->
+    <div id="statusDisplay" class="status loading">
+      Loading HiBase.stats module...
+    </div>
+
+    <!-- Console Output -->
+    <div class="test-section">
+      <h3>📋 Test Console</h3>
+      <div id="consoleOutput" class="console-output">
+        > Metrics Separation Test initialized...\n
+      </div>
+      <button onclick="clearConsole()" class="test-button" style="width: 120px; font-size: 0.9rem;">
+        🗑️ Clear
+      </button>
+    </div>
+  </div>
+
+  <!-- Load Dependencies -->
+  <script src="https://gfcubvroxgfvjhacinic.supabase.co/functions/v1/supabase-js/2"></script>
+  <script src="./lib/hibase/HiBaseClient.js"></script>
+
+  <script>
+    // Test state
+    let metricsBeforeTest = { waves: 0, hi5s: 0 };
+    let testRunning = false;
+
+    // Console logging
+    function logToConsole(message, type = 'info') {
+      const console = document.getElementById('consoleOutput');
+      const timestamp = new Date().toLocaleTimeString();
+      const colors = {
+        info: '#00ff00',
+        success: '#00ff41', 
+        error: '#ff4444',
+        warning: '#ffaa00'
+      };
+      
+      console.innerHTML += `<span style="color: ${colors[type]};">[${timestamp}] ${message}</span>\n`;
+      console.scrollTop = console.scrollHeight;
+    }
+
+    function clearConsole() {
+      document.getElementById('consoleOutput').innerHTML = '> Console cleared...\n';
+    }
+
+    // Status updates
+    function updateStatus(message, type = 'loading') {
+      const status = document.getElementById('statusDisplay');
+      status.textContent = message;
+      status.className = `status ${type}`;
+    }
+
+    // Initialize HiBase and test environment
+    async function initializeTest() {
+      try {
+        logToConsole('Initializing HiBase client...');
+        
+        // Initialize Supabase (matching hi-dashboard.html setup)
+        if (typeof supabase !== 'undefined') {
+          const { createClient } = supabase;
+          window.db = createClient(
+            'https://gfcubvroxgfvjhacinic.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g'
+          );
+          
+          logToConsole('✅ Supabase client initialized');
+        }
+        
+        // Load HiBase stats module
+        const { getHiWaves, getTotalHi5s, insertMedallionTap, getMetrics } = await import('./lib/hibase/stats.js');
+        
+        // Expose to window for testing
+        window.HiBaseStats = { getHiWaves, getTotalHi5s, insertMedallionTap, getMetrics };
+        
+        logToConsole('✅ HiBase.stats module loaded');
+        updateStatus('✅ Ready for testing', 'success');
+        
+        // Load initial metrics
+        await refreshMetrics();
+        
+      } catch (error) {
+        logToConsole(`❌ Initialization failed: ${error.message}`, 'error');
+        updateStatus('❌ Initialization failed', 'error');
+      }
+    }
+
+    // Refresh metrics display
+    async function refreshMetrics() {
+      try {
+        logToConsole('Fetching current metrics...');
+        
+        if (!window.HiBaseStats) {
+          throw new Error('HiBase.stats not initialized');
+        }
+        
+        const metrics = await window.HiBaseStats.getMetrics();
+        
+        // Update waves display
+        if (metrics.waves.error) {
+          logToConsole(`❌ Waves fetch error: ${metrics.waves.error}`, 'error');
+          document.getElementById('currentWaves').textContent = 'Error';
+        } else {
+          document.getElementById('currentWaves').textContent = metrics.waves.data || 0;
+          logToConsole(`📊 Hi Waves: ${metrics.waves.data || 0}`);
+        }
+        
+        // Update hi5s display  
+        if (metrics.hi5s.error) {
+          logToConsole(`❌ Hi5s fetch error: ${metrics.hi5s.error}`, 'error');
+          document.getElementById('currentHi5s').textContent = 'Error';
+        } else {
+          document.getElementById('currentHi5s').textContent = metrics.hi5s.data || 0;
+          logToConsole(`🙌 Total Hi5s: ${metrics.hi5s.data || 0}`);
+        }
+        
+        logToConsole('✅ Metrics refreshed successfully', 'success');
+        
+      } catch (error) {
+        logToConsole(`❌ Refresh failed: ${error.message}`, 'error');
+      }
+    }
+
+    // Test medallion tap (should only increment waves)
+    async function simulateMedallionTap() {
+      if (testRunning) return;
+      testRunning = true;
+      
+      try {
+        logToConsole('🧪 TESTING: Medallion Tap Simulation', 'warning');
+        
+        // Capture before state
+        const beforeMetrics = await window.HiBaseStats.getMetrics();
+        const beforeWaves = beforeMetrics.waves.data || 0;
+        const beforeHi5s = beforeMetrics.hi5s.data || 0;
+        
+        logToConsole(`BEFORE - Waves: ${beforeWaves}, Hi5s: ${beforeHi5s}`);
+        
+        // Execute medallion tap
+        logToConsole('Executing insertMedallionTap...');
+        const result = await window.HiBaseStats.insertMedallionTap(null); // Anonymous tap
+        
+        if (result.error) {
+          throw new Error(result.error);
+        }
+        
+        logToConsole(`✅ Medallion tap result: new wave count = ${result.data}`, 'success');
+        
+        // Wait and check after state
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const afterMetrics = await window.HiBaseStats.getMetrics();
+        const afterWaves = afterMetrics.waves.data || 0;
+        const afterHi5s = afterMetrics.hi5s.data || 0;
+        
+        logToConsole(`AFTER - Waves: ${afterWaves}, Hi5s: ${afterHi5s}`);
+        
+        // Validate separation
+        const wavesDelta = afterWaves - beforeWaves;
+        const hi5sDelta = afterHi5s - beforeHi5s;
+        
+        logToConsole(`DELTA - Waves: +${wavesDelta}, Hi5s: +${hi5sDelta}`, 'success');
+        
+        if (wavesDelta === 1 && hi5sDelta === 0) {
+          logToConsole('✅ SEPARATION TEST PASSED: Only waves incremented', 'success');
+          updateStatus('✅ Medallion tap test passed', 'success');
+        } else {
+          logToConsole('❌ SEPARATION TEST FAILED: Unexpected changes', 'error');
+          updateStatus('❌ Medallion tap test failed', 'error');
+        }
+        
+        // Refresh display
+        await refreshMetrics();
+        
+      } catch (error) {
+        logToConsole(`❌ Medallion tap test failed: ${error.message}`, 'error');
+        updateStatus('❌ Test failed', 'error');
+      } finally {
+        testRunning = false;
+      }
+    }
+
+    // Test Hi5 submission (should only increment Hi5s)
+    async function simulateHi5Submit() {
+      if (testRunning) return;
+      testRunning = true;
+      
+      try {
+        logToConsole('🧪 TESTING: Hi5 Submit Simulation', 'warning');
+        
+        // Capture before state
+        const beforeMetrics = await window.HiBaseStats.getMetrics();
+        const beforeWaves = beforeMetrics.waves.data || 0;
+        const beforeHi5s = beforeMetrics.hi5s.data || 0;
+        
+        logToConsole(`BEFORE - Waves: ${beforeWaves}, Hi5s: ${beforeHi5s}`);
+        
+        // Simulate Hi5 share insertion (direct to shares table)
+        logToConsole('Executing direct share insertion to shares table...');
+        
+        const sharePayload = {
+          type: 'Hi5',
+          text: '🧪 Test Hi5 from metrics-test.html',
+          visibility: 'public',
+          user_id: null, // Anonymous
+          metadata: {
+            source: 'metrics-separation-test',
+            timestamp: new Date().toISOString()
+          }
+        };
+        
+        const { data: shareResult, error } = await window.db
+          .from('shares')
+          .insert(sharePayload);
+        
+        if (error) {
+          throw new Error(`Share insertion failed: ${error.message}`);
+        }
+        
+        logToConsole('✅ Hi5 share inserted successfully', 'success');
+        
+        // Wait and check after state
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const afterMetrics = await window.HiBaseStats.getMetrics();
+        const afterWaves = afterMetrics.waves.data || 0;
+        const afterHi5s = afterMetrics.hi5s.data || 0;
+        
+        logToConsole(`AFTER - Waves: ${afterWaves}, Hi5s: ${afterHi5s}`);
+        
+        // Validate separation
+        const wavesDelta = afterWaves - beforeWaves;
+        const hi5sDelta = afterHi5s - beforeHi5s;
+        
+        logToConsole(`DELTA - Waves: +${wavesDelta}, Hi5s: +${hi5sDelta}`, 'success');
+        
+        if (wavesDelta === 0 && hi5sDelta === 1) {
+          logToConsole('✅ SEPARATION TEST PASSED: Only Hi5s incremented', 'success');
+          updateStatus('✅ Hi5 submit test passed', 'success');
+        } else {
+          logToConsole('❌ SEPARATION TEST FAILED: Unexpected changes', 'error');
+          updateStatus('❌ Hi5 submit test failed', 'error');
+        }
+        
+        // Refresh display
+        await refreshMetrics();
+        
+      } catch (error) {
+        logToConsole(`❌ Hi5 submit test failed: ${error.message}`, 'error');
+        updateStatus('❌ Test failed', 'error');
+      } finally {
+        testRunning = false;
+      }
+    }
+
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', initializeTest);
+  </script>
+</body>
+</html>

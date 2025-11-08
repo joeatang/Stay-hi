@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hi-OS v1.0 Preflight</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #00ff88, #0099ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .status-panel {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px solid #333;
+        }
+        .check-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #333;
+        }
+        .check-item:last-child {
+            border-bottom: none;
+        }
+        .check-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .check-status {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .status-pass {
+            background: #00ff8844;
+            color: #00ff88;
+            border: 1px solid #00ff88;
+        }
+        .status-fail {
+            background: #ff004444;
+            color: #ff4444;
+            border: 1px solid #ff4444;
+        }
+        .status-running {
+            background: #ffaa0044;
+            color: #ffaa00;
+            border: 1px solid #ffaa00;
+        }
+        .overall-status {
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .link-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            text-decoration: none;
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+        .link-card:hover {
+            border-color: #00ff88;
+            background: #1a1a1a;
+        }
+        .link-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #00ff88;
+        }
+        .link-desc {
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+        .check-details {
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-top: 5px;
+        }
+        .run-btn {
+            background: linear-gradient(45deg, #00ff88, #0099ff);
+            border: none;
+            color: #000;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+        .run-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 255, 136, 0.3);
+        }
+        .run-btn:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+    </style>
+    
+    <!-- HI-OS S-ARCH/2: Dual-root deprecation detector -->
+    <!-- Intentional cross-root probe:
+         If served from /public (CORRECT), this  ../../lib/...  request 404s and never runs.
+         If served from repo root (INCORRECT), it 200s and sets window.__HI_DEPRECATED_LIB_HIT=true. -->
+    <script src="../../lib/DEPRECATED_DO_NOT_USE.js" defer></script>
+
+    <script>
+    // After the page settles, report RED if the deprecated marker executed.
+    window.addEventListener('DOMContentLoaded', function () {
+      const bad = !!window.__HI_DEPRECATED_LIB_HIT;
+      const tag = '[HI-OS][DEPRECATED-LIB-CHECK]';
+      if (bad) {
+        console.error(`${tag} RED — repo-root /lib imported. Fix dev server root (serve /public).`);
+        // Optional: upgrade the existing badge if present
+        const badge = document.getElementById('hi-webroot-guard');
+        if (badge) {
+          badge.textContent = 'RED — repo-root /lib imported (fix server root to /public)';
+          badge.style.border = '1px solid #a00';
+          badge.style.background = '#ffecec';
+          badge.style.color = '#7a0000';
+        }
+      } else {
+        console.log(`${tag} GREEN — no repo-root /lib imports detected.`);
+      }
+    });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Hi-OS v1.0 Preflight</h1>
+            <p>Mandatory system checks before any task</p>
+        </div>
+
+        <div id="overallStatus" class="overall-status status-running">
+            🔄 Running Preflight Checks...
+        </div>
+
+        <button id="runPreflight" class="run-btn" onclick="runPreflight()">
+            Run Preflight Checks
+        </button>
+
+        <div class="status-panel">
+            <div class="check-item">
+                <div>
+                    <div class="check-name">🚩 Flags System</div>
+                    <div class="check-details" id="flagsDetails">Checking HiFlags.waitUntilReady()...</div>
+                </div>
+                <div id="flagsStatus" class="check-status status-running">RUNNING</div>
+            </div>
+
+            <div class="check-item">
+                <div>
+                    <div class="check-name">👥 Cohort Logic</div>
+                    <div class="check-details" id="cohortDetails">Testing identity hash & enabled flags...</div>
+                </div>
+                <div id="cohortStatus" class="check-status status-running">RUNNING</div>
+            </div>
+
+            <div class="check-item">
+                <div>
+                    <div class="check-name">🗄️ HiBase Health</div>
+                    <div class="check-details" id="hibaseDetails">Pinging shares/streaks/stats with {data,error} contract...</div>
+                </div>
+                <div id="hibaseStatus" class="check-status status-running">RUNNING</div>
+            </div>
+
+            <div class="check-item">
+                <div>
+                    <div class="check-name">📊 Telemetry Ping</div>
+                    <div class="check-details" id="telemetryDetails">Testing HiMonitor.trackEvent no-throw...</div>
+                </div>
+                <div id="telemetryStatus" class="check-status status-running">RUNNING</div>
+            </div>
+
+            <div class="check-item">
+                <div>
+                    <div class="check-name">🔒 PWA Guard</div>
+                    <div class="check-details" id="pwaDetails">Verifying sw.js & manifest untouched since phase4-prod-stable...</div>
+                </div>
+                <div id="pwaStatus" class="check-status status-running">RUNNING</div>
+            </div>
+        </div>
+
+        <div class="quick-links">
+            <a href="/public/dev/index.html" class="link-card">
+                <div class="link-title">🎛️ Dev Console</div>
+                <div class="link-desc">Flags console & system status</div>
+            </a>
+            <a href="/public/dev/phase7-verifier/verifier.html" class="link-card">
+                <div class="link-title">✅ Phase 7 Verifier</div>
+                <div class="link-desc">Core system verification</div>
+            </a>
+            <a href="/public/dev/auth/phase9-verifier.html" class="link-card">
+                <div class="link-title">🔐 Auth Verifier</div>
+                <div class="link-desc">Authentication system checks</div>
+            </a>
+            <a href="/public/dev/metrics-test.html" class="link-card">
+                <div class="link-title">📈 Metrics Test</div>
+                <div class="link-desc">Telemetry & analytics sanity check</div>
+            </a>
+        </div>
+    </div>
+
+    <script type="module">
+        let checksComplete = 0;
+        const totalChecks = 5;
+        let allPassed = true;
+
+        function updateStatus(checkId, status, details = '') {
+            const statusEl = document.getElementById(checkId + 'Status');
+            const detailsEl = document.getElementById(checkId + 'Details');
+            
+            statusEl.className = `check-status status-${status}`;
+            statusEl.textContent = status.toUpperCase();
+            
+            if (details) {
+                detailsEl.textContent = details;
+            }
+            
+            if (status === 'pass' || status === 'fail') {
+                checksComplete++;
+                if (status === 'fail') allPassed = false;
+                
+                if (checksComplete === totalChecks) {
+                    updateOverallStatus();
+                }
+            }
+        }
+
+        function updateOverallStatus() {
+            const overallEl = document.getElementById('overallStatus');
+            const runBtn = document.getElementById('runPreflight');
+            
+            if (allPassed) {
+                overallEl.className = 'overall-status status-pass';
+                overallEl.textContent = '✅ Hi-OS Preflight (Dev Page) PASS';
+                console.log('✅ Hi-OS Preflight (Dev Page) PASS');
+            } else {
+                overallEl.className = 'overall-status status-fail';
+                overallEl.textContent = '❌ Hi-OS Preflight FAIL - Check details above';
+            }
+            
+            runBtn.disabled = false;
+            runBtn.textContent = 'Run Preflight Again';
+        }
+
+        async function checkFlags() {
+            try {
+                // Try to load HiFlags
+                const flagsModule = await import./lib/flags/HiFlags.js').catch(() => null);
+                if (!flagsModule || !window.HiFlags) {
+                    throw new Error('HiFlags module not available');
+                }
+
+                await HiFlags.waitUntilReady();
+                const flagCount = Object.keys(HiFlags.getAllFlags()).length;
+                updateStatus('flags', 'pass', `${flagCount} flags loaded and ready`);
+            } catch (error) {
+                updateStatus('flags', 'fail', `Error: ${error.message}`);
+            }
+        }
+
+        async function checkCohort() {
+            try {
+                // Try to load HiRollout
+                const rolloutModule = await import./lib/rollout/HiRollout.js').catch(() => null);
+                if (!rolloutModule || !window.HiRollout) {
+                    throw new Error('HiRollout module not available');
+                }
+
+                const testIdentity = 'test-user-' + Date.now();
+                const hash = HiRollout.getIdentityHash(testIdentity);
+                const sampleFlag = HiRollout.isEnabledForIdentity('test_flag', testIdentity);
+                
+                updateStatus('cohort', 'pass', `Identity hash: ${hash.substring(0, 8)}..., Sample result: ${sampleFlag}`);
+            } catch (error) {
+                updateStatus('cohort', 'fail', `Error: ${error.message}`);
+            }
+        }
+
+        async function checkHiBase() {
+            try {
+                // Try to load HiBase
+                const hibaseModule = await import./lib/hibase/index.js').catch(() => null);
+                if (!hibaseModule || !window.HiBase) {
+                    throw new Error('HiBase module not available');
+                }
+
+                // Test the {data, error} contract
+                const result = await HiBase.stats.getMetrics();
+                if (result && (result.data !== undefined || result.error !== undefined)) {
+                    updateStatus('hibase', 'pass', `{data,error} contract verified`);
+                } else {
+                    throw new Error('Invalid response format - missing {data,error} contract');
+                }
+            } catch (error) {
+                updateStatus('hibase', 'fail', `Error: ${error.message}`);
+            }
+        }
+
+        async function checkTelemetry() {
+            try {
+                // Try to load HiMonitor
+                const monitorModule = await import./lib/monitor/HiMonitor.js').catch(() => null);
+                if (!monitorModule || !window.HiMonitor) {
+                    throw new Error('HiMonitor module not available');
+                }
+
+                // Test no-throw behavior
+                const result = HiMonitor.trackEvent('preflight_dev_page', {
+                    timestamp: Date.now(),
+                    source: 'preflight-page'
+                });
+                
+                updateStatus('telemetry', 'pass', `Event tracked successfully (no-throw verified)`);
+            } catch (error) {
+                updateStatus('telemetry', 'fail', `Error: ${error.message}`);
+            }
+        }
+
+        async function checkPWA() {
+            try {
+                // Check if sw.js exists and hasn't been modified
+                const swResponse = await fetch('/sw.js', { method: 'HEAD' });
+                if (!swResponse.ok) {
+                    throw new Error('Service worker not found');
+                }
+
+                // Check if manifest.json exists
+                const manifestResponse = await fetch('/manifest.json', { method: 'HEAD' });
+                if (!manifestResponse.ok) {
+                    throw new Error('Manifest not found');
+                }
+
+                // For now, just verify files exist
+                // TODO: Add checksum verification against phase4-prod-stable
+                updateStatus('pwa', 'pass', `SW & manifest files present (checksum verification pending)`);
+            } catch (error) {
+                updateStatus('pwa', 'fail', `Error: ${error.message}`);
+            }
+        }
+
+        window.runPreflight = async function() {
+            // Reset state
+            checksComplete = 0;
+            allPassed = true;
+            
+            const overallEl = document.getElementById('overallStatus');
+            overallEl.className = 'overall-status status-running';
+            overallEl.textContent = '🔄 Running Preflight Checks...';
+            
+            const runBtn = document.getElementById('runPreflight');
+            runBtn.disabled = true;
+            runBtn.textContent = 'Running...';
+
+            // Reset all check statuses
+            ['flags', 'cohort', 'hibase', 'telemetry', 'pwa'].forEach(check => {
+                updateStatus(check, 'running', 'Running...');
+            });
+
+            // Run all checks in parallel
+            await Promise.all([
+                checkFlags(),
+                checkCohort(),
+                checkHiBase(),
+                checkTelemetry(),
+                checkPWA()
+            ]);
+        };
+
+        // Auto-run on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => runPreflight(), 500);
+        });
+    </script>
+</body>
+</html>

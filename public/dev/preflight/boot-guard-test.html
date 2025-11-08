@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>P1/Step2: Boot Guard Test</title>
+</head>
+<body>
+  <h1>P1/Step2: Boot Guard Test</h1>
+  <p>This page tests if HiDash.boot.js executes properly with flag-gated anchor injection.</p>
+
+  <pre id="output" style="background: #f5f5f5; padding: 12px; border-radius: 4px; font-family: monospace;"></pre>
+
+  <script type="module">
+    const output = document.getElementById('output');
+    let log = '';
+    
+    function addLog(msg) {
+      log += msg + '\n';
+      output.textContent = log;
+    }
+
+    addLog('=== P1/Step2 Boot Guard Test ===');
+    addLog('Loading HiFlags.js...');
+
+    try {
+      // Import flags system
+      const { hiFlagEnabled, hiFlagsAllTrue } = await import('./../../lib/flags/HiFlags.js');
+      addLog('✅ HiFlags.js loaded successfully');
+      
+      // Test flag normalization
+      const dashStatsFlag = hiFlagEnabled('s-dash-stats-row');
+      const shareFlag = hiFlagEnabled('s-dash-share-cta');
+      addLog(`📊 Flag s-dash-stats-row: ${dashStatsFlag}`);
+      addLog(`🔗 Flag s-dash-share-cta: ${shareFlag}`);
+      
+      // Import boot guard
+      addLog('Loading HiDash.boot.js...');
+      const bootModule = await import('./../../lib/HiDash.boot.js');
+      addLog('✅ HiDash.boot.js loaded successfully');
+      
+      // Check if boot guard executed
+      if (window.hiDashBootComplete) {
+        addLog('🚀 Boot guard executed successfully');
+        addLog(`📝 Execution time: ${window.hiDashBootTime || 'unknown'}`);
+        addLog('🔍 Checking for injected anchors...');
+        
+        const statsAnchor = document.getElementById('s-dash-stats-row');
+        const shareAnchor = document.getElementById('s-dash-share-btn');
+        
+        addLog(`📊 Stats anchor injected: ${!!statsAnchor}`);
+        addLog(`🔗 Share anchor injected: ${!!shareAnchor}`);
+      } else {
+        addLog('⚠️  Boot guard not executed or incomplete');
+      }
+      
+      addLog('=== Test Complete ===');
+      
+    } catch (error) {
+      addLog(`❌ Error: ${error.message}`);
+      console.error('Boot guard test error:', error);
+    }
+  </script>
+</body>
+</html>

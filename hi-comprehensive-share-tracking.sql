@@ -212,11 +212,14 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- GRANT PERMISSIONS
 -- ===============================================
 
--- 🎯 CRITICAL FIX: Grant access to BOTH anonymous AND authenticated users
-GRANT EXECUTE ON FUNCTION process_comprehensive_share_submission(UUID, TEXT, TEXT, TEXT) TO anon, authenticated;
-GRANT EXECUTE ON FUNCTION process_hi_dashboard_share(UUID, TEXT) TO anon, authenticated;
-GRANT EXECUTE ON FUNCTION process_hi_island_share(UUID, TEXT) TO anon, authenticated;
-GRANT EXECUTE ON FUNCTION process_hi_muscle_share(UUID, TEXT) TO anon, authenticated;
+-- 🎯 HI OS COMPLIANT: Share creation blocked for Anonymous Level 0 (shareCreation: false)
+-- Only authenticated members can create and submit Hi shares per HI OS architecture
+GRANT EXECUTE ON FUNCTION process_comprehensive_share_submission(UUID, TEXT, TEXT, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION process_hi_dashboard_share(UUID, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION process_hi_island_share(UUID, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION process_hi_muscle_share(UUID, TEXT) TO authenticated;
+
+-- Analytics viewing allowed for both (stats are view_only for anonymous)
 GRANT EXECUTE ON FUNCTION get_submission_analytics(INTEGER) TO anon, authenticated;
 
 -- ===============================================

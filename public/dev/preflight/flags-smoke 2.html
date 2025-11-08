@@ -1,0 +1,30 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>HI-OS Flags Smoke</title>
+<body style="font-family: system-ui, -apple-system, Segoe UI, Roboto">
+  <h1>HI-OS Flags Smoke</h1>
+  <pre id="out">Running…</pre>
+  <script type="module">
+    import { hiFlagEnabled, hiFlagsAllTrue } from '../../lib/flags/HiFlags.js';
+
+    const keys = [
+      'hi_dash_v3',
+      'hi_dash_stats_row_v1',
+      'hi_dash_medallion_cta_v1',
+      'hi_dash_share_cta_v1',
+      'hi_dash_global_pill_v1',
+    ];
+
+    const result = Object.fromEntries(keys.map(k => [k, hiFlagEnabled(k)]));
+    const ok = hiFlagsAllTrue(keys);
+    const out = document.getElementById('out');
+
+    out.textContent = JSON.stringify({
+      normalized: globalThis.__HI_FLAGS_NORMALIZED__ === true,
+      flags: result,
+      allTrue: ok
+    }, null, 2);
+
+    document.title = ok ? 'GREEN — Flags OK' : 'RED — Flags Fail';
+  </script>
+</body>
