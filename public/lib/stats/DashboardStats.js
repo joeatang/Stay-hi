@@ -78,21 +78,17 @@ async function initializePersonalStats() {
     
     // Get user info
     const user = window.hiAuth?.getCurrentUser();
-    if (!user || user.id === 'anonymous') {
-      console.log('👤 Anonymous user - using default stats');
-      window.personalStats = personalStats;
-      return;
-    }
+    const isAnonymous = !user || user.id === 'anonymous';
     
-    // 🎯 DATABASE-FIRST: Get stats from Supabase user_stats table
+    // 🎯 DATABASE-FIRST: Get stats from Supabase (works for both authenticated and anonymous)
     if (window.supabase) {
       const { data, error } = await window.supabase.rpc('get_user_stats', {
-        p_user_id: user.id
+        p_user_id: isAnonymous ? null : user.id
       });
       
       if (!error && data) {
-        // Update personal stats
-        if (data.personalStats) {
+        // Update personal stats (only for authenticated users)
+        if (!isAnonymous && data.personalStats) {
           const dbStats = data.personalStats;
           personalStats.totalSubmissions = dbStats.totalShares || 0;
           personalStats.weeklySubmissions = dbStats.weeklyShares || 0;
@@ -100,9 +96,11 @@ async function initializePersonalStats() {
           personalStats.personalTaps = dbStats.totalWaves || 0;
           
           console.log('👤 Personal Stats (from database):', personalStats);
+        } else if (isAnonymous) {
+          console.log('👤 Anonymous user - using default personal stats');
         }
         
-        // 🔥 FIX: Update global stats from database (this was missing!)
+        // 🌍 GLOBAL STATS: Always load from database (for all users)
         if (data.globalStats) {
           const globalStats = data.globalStats;
           window.gWaves = globalStats.hiWaves || 0;
