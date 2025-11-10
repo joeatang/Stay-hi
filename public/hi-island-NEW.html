@@ -277,6 +277,67 @@
       }
     }
 
+    /* 🎯 Enhanced Drop Hi Button Styling */
+    #dropHiButton {
+      background: linear-gradient(135deg, #4ECDC4 0%, #44B3AA 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 25px;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+      text-transform: none;
+      letter-spacing: 0.5px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    #dropHiButton:hover {
+      background: linear-gradient(135deg, #5EDDD4 0%, #4ECDC4 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
+    }
+    
+    #dropHiButton:active {
+      transform: translateY(0px);
+      box-shadow: 0 2px 10px rgba(78, 205, 196, 0.3);
+    }
+    
+    #dropHiButton::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+    
+    #dropHiButton:active::after {
+      width: 300px;
+      height: 300px;
+    }
+    
+    /* Mobile responsive Drop Hi button */
+    @media (max-width: 768px) {
+      #dropHiButton {
+        padding: 10px 20px;
+        font-size: 14px;
+      }
+      
+      .mapwrap .hero {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+      }
+    }
+
     /* Responsive adjustments for experience layer */
     @media (max-width: 768px) {
       .hi-experience-section {
@@ -344,7 +405,13 @@
           <div class="title">Hi Island</div>
           <div class="sub">A gentle stream of Hi Shares from around the world</div>
         </div>
-        <button class="hi-btn hi-btn--primary" onclick="window.openHiComposer()">Drop a Hi</button>
+        <button 
+          class="hi-btn hi-btn--primary" 
+          onclick="window.openHiComposer()" 
+          id="dropHiButton"
+          aria-label="Open Hi Share sheet to drop a Hi 5">
+          Drop a Hi
+        </button>
       </div>
       <div id="globe" aria-label="Interactive world map"></div>
     </section>
@@ -860,35 +927,92 @@
       }, 1500);
     };
 
-    // 🏝️ Gold Standard: Drop Hi Functionality
+    // 🏝️ Gold Standard: Drop Hi Functionality - Enhanced with Direct Integration
     window.openHiComposer = function() {
       console.log('🎯 Opening Hi Composer (Drop Hi functionality)...');
       
-      // Try multiple approaches to open the share sheet
-      if (window.hiIslandShareSheet) {
-        // Use the existing Hi-Island share sheet
-        window.hiIslandShareSheet.open();
-        console.log('✅ Opened Hi-Island share sheet');
-      } else if (window.HiComposer) {
-        // Legacy Hi Composer
-        window.HiComposer.open();
-        console.log('✅ Opened legacy Hi Composer');
-      } else if (window.HiShareSheet) {
-        // Direct HiShareSheet class
-        const shareSheet = new window.HiShareSheet({ 
-          origin: 'hi-island',
-          onSuccess: (shareData) => {
-            if (window.handleShareSuccess) {
-              window.handleShareSuccess(shareData);
+      // 🚀 PRIORITY 1: Use the properly initialized Hi-Island share sheet
+      if (window.hiIslandShareSheet && typeof window.hiIslandShareSheet.open === 'function') {
+        try {
+          window.hiIslandShareSheet.open();
+          console.log('✅ Opened Hi-Island share sheet (initialized)');
+          return;
+        } catch (error) {
+          console.warn('⚠️ Hi-Island share sheet error:', error);
+        }
+      }
+      
+      // 🚀 PRIORITY 2: Try to open using the global HiShareSheet modal trigger
+      if (window.openHiShareSheet && typeof window.openHiShareSheet === 'function') {
+        try {
+          window.openHiShareSheet('hi-island');
+          console.log('✅ Opened via global HiShareSheet trigger');
+          return;
+        } catch (error) {
+          console.warn('⚠️ Global HiShareSheet trigger error:', error);
+        }
+      }
+      
+      // 🚀 PRIORITY 3: Create new HiShareSheet instance dynamically
+      if (window.HiShareSheet) {
+        try {
+          const shareSheet = new window.HiShareSheet({ 
+            origin: 'hi-island',
+            onSuccess: (shareData) => {
+              console.log('🎉 Hi-Island share success:', shareData);
+              if (window.handleShareSuccess) {
+                window.handleShareSuccess(shareData);
+              }
+            },
+            onError: (error) => {
+              console.error('❌ Hi-Island share error:', error);
             }
+          });
+          
+          // Initialize and open
+          if (shareSheet.init) {
+            shareSheet.init().then(() => {
+              shareSheet.open();
+              console.log('✅ Created and opened new Hi Share Sheet instance');
+            }).catch(error => {
+              console.error('❌ Failed to initialize new share sheet:', error);
+              this.showFallbackAlert();
+            });
+          } else {
+            shareSheet.open();
+            console.log('✅ Opened new Hi Share Sheet instance (no init required)');
           }
-        });
-        shareSheet.open();
-        console.log('✅ Opened new Hi Share Sheet instance');
+          return;
+        } catch (error) {
+          console.error('❌ Error creating new HiShareSheet:', error);
+        }
+      }
+      
+      // 🚀 PRIORITY 4: Legacy fallback
+      if (window.HiComposer && typeof window.HiComposer.open === 'function') {
+        try {
+          window.HiComposer.open();
+          console.log('✅ Opened legacy Hi Composer');
+          return;
+        } catch (error) {
+          console.warn('⚠️ Legacy Hi Composer error:', error);
+        }
+      }
+      
+      // 🚀 FINAL FALLBACK: User-friendly message with retry
+      this.showFallbackAlert();
+    };
+    
+    // Enhanced fallback alert with retry mechanism
+    window.openHiComposer.showFallbackAlert = function() {
+      console.warn('⚠️ No Hi Share functionality available - showing fallback');
+      
+      if (confirm('Hi Share is loading... Would you like to try again?')) {
+        setTimeout(() => {
+          window.openHiComposer();
+        }, 1000);
       } else {
-        console.warn('⚠️ No Hi Composer/Share Sheet available - initializing fallback');
-        // Create a simple fallback
-        alert('Hi Share functionality is loading... Please try again in a moment!');
+        console.log('ℹ️ User cancelled Hi Share attempt');
       }
     };
 
@@ -943,11 +1067,38 @@
       // Store reference for external access
       window.hiIslandShareSheet = shareSheet;
       
+      // 🎯 GLOBAL HI SHARE MODAL TRIGGER: Create universal function for opening share sheet
+      window.openHiShareSheet = function(origin = 'hi-island', options = {}) {
+        console.log(`🚀 Opening Hi Share Sheet from ${origin}...`, options);
+        
+        if (shareSheet && typeof shareSheet.open === 'function') {
+          try {
+            shareSheet.open(options);
+            console.log('✅ Hi Share Sheet opened successfully');
+            return true;
+          } catch (error) {
+            console.error('❌ Failed to open Hi Share Sheet:', error);
+            return false;
+          }
+        } else {
+          console.warn('⚠️ Hi Share Sheet not available');
+          return false;
+        }
+      };
+      
       // Initialize share sheet
       shareSheet.init().then(() => {
         console.log('✅ Hi-Island share sheet initialized with Social Hi 5 integration');
+        console.log('✅ Global openHiShareSheet() function ready');
       }).catch(error => {
         console.error('❌ Failed to initialize Hi-Island share sheet:', error);
+        
+        // Even if initialization fails, provide a fallback
+        window.openHiShareSheet = function(origin = 'hi-island') {
+          console.warn('⚠️ Share sheet not initialized, using fallback');
+          alert('Hi Share functionality is loading... Please try again in a moment!');
+          return false;
+        };
       });
     });
   </script>
