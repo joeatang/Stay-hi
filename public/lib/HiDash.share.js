@@ -139,6 +139,20 @@ async function handleShareSubmission(shareData) {
     if (success) {
       // Success: update local UI and emit telemetry
       updateLocalUI();
+      
+      // 🎯 TRACK TOTAL HIS: Call trackShareSubmission for database tracking
+      if (window.trackShareSubmission) {
+        window.trackShareSubmission('hi-dash-share-cta', {
+          submissionType: payload.visibility,
+          pageOrigin: 'hi-dashboard',
+          type: 'Hi5',
+          timestamp: timestamp
+        });
+      }
+      
+      // 🎉 GOLD STANDARD TOAST: Confirm successful submission
+      showSubmissionToast(`Hi successfully shared (${payload.visibility})!`, 'success');
+      
       console.log('hibase.share.submit', { 
         queued: false, 
         ts: timestamp,
@@ -281,4 +295,54 @@ async function replayQueuedShares() {
   } catch (error) {
     console.error('[S-DASH/5] Queue replay failed:', error);
   }
+}
+
+// 🎉 GOLD STANDARD TOAST: Visual confirmation system
+function showSubmissionToast(message, type = 'success') {
+  // Create toast element
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    padding: 16px 20px;
+    border-radius: 8px;
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+    background: ${type === 'success' ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #ef4444, #dc2626)'};
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+    max-width: 320px;
+  `;
+  
+  toast.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span style="font-size: 18px;">${type === 'success' ? '✅' : '❌'}</span>
+      <span>${message}</span>
+    </div>
+  `;
+  
+  // Add to page
+  document.body.appendChild(toast);
+  
+  // Animate in
+  setTimeout(() => {
+    toast.style.transform = 'translateX(0)';
+  }, 100);
+  
+  // Auto-remove after 4 seconds
+  setTimeout(() => {
+    toast.style.transform = 'translateX(400px)';
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+    }, 300);
+  }, 4000);
+  
+  console.log('🎉 [Toast] Displayed:', message);
 }

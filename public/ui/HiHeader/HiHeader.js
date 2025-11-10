@@ -42,7 +42,7 @@
             <circle cx="16" cy="16" r="1.5" fill="currentColor"></circle>
           </svg>
         </button>
-        <a class="brand" href="index.html" aria-label="Stay Hi home">
+        <a class="brand" href="hi-dashboard.html" aria-label="Stay Hi dashboard">
           <img class="logo" src="assets/brand/hi-logo-light.png" alt="" />
           <span class="brand-name">Stay Hi</span>
         </a>
@@ -55,7 +55,7 @@
             </svg>
           </button>
           <div id="menuSheet" class="menu-sheet" role="menu" aria-hidden="true" style="display: none;">
-            <a href="index.html" role="menuitem">🏠 Hi Today</a>
+            <a href="hi-dashboard.html" role="menuitem">🏠 Hi Today</a>
             <a href="hi-muscle.html" role="menuitem">💪 Hi Gym</a>
             <a href="hi-island-NEW.html" role="menuitem">🏝️ Hi Island</a>
             <a href="profile.html?from=${getCurrentPageName()}" role="menuitem">👤 Profile</a>

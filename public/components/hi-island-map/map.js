@@ -49,14 +49,31 @@ class HiIslandMap {
   // Attach event listeners
   attachEventListeners() {
     const dropBtn = this.root.querySelector('#hi-map-drop-btn');
+    console.log('🔍 [Hi-Island Map] Drop button search result:', {
+      found: !!dropBtn,
+      buttonElement: dropBtn,
+      rootHTML: this.root.innerHTML.substring(0, 200) + '...'
+    });
+    
     if (dropBtn) {
+      console.log('✅ [Hi-Island Map] Drop button found, attaching click listener');
       dropBtn.addEventListener('click', () => {
+        console.log('🏝️ [Hi-Island] Drop a Hi button clicked!');
         // Open share sheet with hi-island origin
         if (window.openHiShareSheet) {
+          console.log('✅ Opening Hi-Island share sheet...');
           window.openHiShareSheet('hi-island');
         } else {
-          console.warn('Share sheet not initialized');
+          console.error('❌ Share sheet not initialized - window.openHiShareSheet not found');
+          console.log('🔍 Available globals:', Object.keys(window).filter(k => k.includes('Hi')));
         }
+      });
+    } else {
+      console.error('❌ [Hi-Island Map] Drop button #hi-map-drop-btn NOT FOUND in DOM');
+      console.log('🔍 Available elements in root:', {
+        allButtons: this.root.querySelectorAll('button'),
+        allElements: this.root.children,
+        rootOuterHTML: this.root.outerHTML.substring(0, 300) + '...'
       });
     }
   }

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drop Hi Debug Test</title>
+</head>
+<body>
+    <h1>Drop Hi Debug Test</h1>
+    <button onclick="testDropHi()" style="padding: 20px; font-size: 18px; margin: 20px;">Test Drop Hi</button>
+    <button onclick="testModule()" style="padding: 20px; font-size: 18px; margin: 20px;">Test Module Load</button>
+    <div id="results" style="margin: 20px; padding: 20px; background: #f5f5f5; white-space: pre-wrap;"></div>
+
+    <script>
+        const log = (message) => {
+            console.log(message);
+            const results = document.getElementById('results');
+            results.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+        };
+
+        function testDropHi() {
+            log('🧪 Testing Drop Hi functionality...');
+            
+            // Test what exists
+            log('window.openHiComposer exists: ' + (typeof window.openHiComposer === 'function'));
+            log('window.openHiShareSheet exists: ' + (typeof window.openHiShareSheet === 'function'));
+            log('window.HiShareSheet exists: ' + (typeof window.HiShareSheet !== 'undefined'));
+            log('window.hiIslandShareSheet exists: ' + (typeof window.hiIslandShareSheet !== 'undefined'));
+            
+            // Try calling openHiComposer
+            if (typeof window.openHiComposer === 'function') {
+                try {
+                    window.openHiComposer();
+                    log('✅ openHiComposer() called successfully');
+                } catch (error) {
+                    log('❌ openHiComposer() error: ' + error.message);
+                }
+            } else {
+                log('❌ openHiComposer is not available');
+            }
+        }
+
+        async function testModule() {
+            log('🧪 Testing HiShareSheet module loading...');
+            
+            try {
+                const module = await import('./ui/HiShareSheet/HiShareSheet.js');
+                log('✅ Module imported successfully');
+                log('HiShareSheet class available: ' + (typeof module.HiShareSheet === 'function'));
+                
+                if (module.HiShareSheet) {
+                    const sheet = new module.HiShareSheet({ origin: 'test' });
+                    log('✅ HiShareSheet instance created');
+                    
+                    try {
+                        await sheet.init();
+                        log('✅ HiShareSheet initialized');
+                    } catch (initError) {
+                        log('❌ HiShareSheet init error: ' + initError.message);
+                    }
+                }
+            } catch (error) {
+                log('❌ Module import error: ' + error.message);
+            }
+        }
+
+        // Test on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🚀 Page loaded, starting tests...');
+            setTimeout(() => {
+                testDropHi();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

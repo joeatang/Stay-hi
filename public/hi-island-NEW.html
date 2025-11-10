@@ -24,6 +24,13 @@
   
   <!-- 🔐 Authentication System (Tesla-Grade Progressive Auth) -->
   <script src="assets/progressive-auth.js" async></script>
+  
+  <!-- 🎯 Tesla-Grade Tier System -->
+  <script src="assets/hi-tier-system.js" async></script>
+  
+  <!-- 🚀 Hi Upgrade Modal System -->
+  <link rel="stylesheet" href="ui/HiUpgradeModal/HiUpgradeModal.css">
+  <script src="ui/HiUpgradeModal/HiUpgradeModal.js" defer></script>
 
   <!-- Design System -->
   <link rel="stylesheet" href="styles/tokens.css"/>
@@ -689,6 +696,12 @@
         tab.addEventListener('click', (e) => {
           const targetTab = e.target.dataset.target;
           
+          // 🎯 TIER CHECK: Verify access for protected tabs
+          if (!checkTabAccess(targetTab)) {
+            console.log(`🔒 Tab access denied: ${targetTab}`);
+            return; // Access check handles showing upgrade modal
+          }
+          
           // Update tab states
           tabs.forEach(t => {
             t.setAttribute('aria-selected', 'false');
@@ -704,6 +717,30 @@
       
       // Initialize with general tab active
       handleTabSwitch('general');
+    }
+
+    // 🎯 Tesla-Grade Tab Access Control
+    function checkTabAccess(tabName) {
+      switch(tabName) {
+        case 'general':
+          // General shares always accessible
+          return true;
+          
+        case 'archive':
+          return window.checkHiFeatureAccess?.('view_archive', 'archive') ?? false;
+          
+        case 'trends':
+          return window.checkHiFeatureAccess?.('view_trends', 'trends') ?? false;
+          
+        case 'milestones':
+          return window.checkHiFeatureAccess?.('view_milestones', 'milestones') ?? false;
+          
+        case 'show':
+          return window.checkHiFeatureAccess?.('view_hi_show', 'show') ?? false;
+          
+        default:
+          return true;
+      }
     }
 
     function handleTabSwitch(tabName) {
@@ -727,29 +764,41 @@
           }
           break;
         case 'trends':
+          // Enhanced feature - show premium placeholder
           feedRoot.innerHTML = `
-            <div style="padding: 40px; text-align: center; background: white; color: #666;">
+            <div style="padding: 40px; text-align: center; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); color: #495057; border-radius: 16px; margin: 20px; border: 1px solid #dee2e6;">
               <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
-              <h3 style="margin: 0 0 8px 0; color: #333;">Emotional Trends</h3>
-              <p style="margin: 0; font-size: 14px;">Coming soon - analyze emotional patterns in Hi shares</p>
+              <h3 style="margin: 0 0 12px 0; color: #333; font-size: 20px;">Emotional Trends Analytics</h3>
+              <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 1.4;">Track emotional patterns, mood correlations, and personal growth insights over time.</p>
+              <div style="font-size: 12px; color: #6c757d; background: rgba(111, 66, 193, 0.1); padding: 8px 16px; border-radius: 20px; display: inline-block; border: 1px solid rgba(111, 66, 193, 0.2);">
+                ✨ Enhanced Tier Feature
+              </div>
             </div>
           `;
           break;
         case 'milestones':
+          // Enhanced feature - show premium placeholder
           feedRoot.innerHTML = `
-            <div style="padding: 40px; text-align: center; background: white; color: #666;">
+            <div style="padding: 40px; text-align: center; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); color: #495057; border-radius: 16px; margin: 20px; border: 1px solid #dee2e6;">
               <div style="font-size: 48px; margin-bottom: 16px;">🎯</div>
-              <h3 style="margin: 0 0 8px 0; color: #333;">Points Milestones</h3>
-              <p style="margin: 0; font-size: 14px;">Coming soon - track your Hi points and achievements</p>
+              <h3 style="margin: 0 0 12px 0; color: #333; font-size: 20px;">Hi Points & Milestones</h3>
+              <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 1.4;">Celebrate achievements, track streaks, and unlock badges as you build your Hi journey.</p>
+              <div style="font-size: 12px; color: #6c757d; background: rgba(253, 126, 20, 0.1); padding: 8px 16px; border-radius: 20px; display: inline-block; border: 1px solid rgba(253, 126, 20, 0.2);">
+                🏆 Enhanced Tier Feature
+              </div>
             </div>
           `;
           break;
         case 'show':
+          // Lifetime feature - show premium placeholder
           feedRoot.innerHTML = `
-            <div style="padding: 40px; text-align: center; background: white; color: #666;">
+            <div style="padding: 40px; text-align: center; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); color: #495057; border-radius: 16px; margin: 20px; border: 1px solid #dee2e6;">
               <div style="font-size: 48px; margin-bottom: 16px;">🎭</div>
-              <h3 style="margin: 0 0 8px 0; color: #333;">Hi Show Shares</h3>
-              <p style="margin: 0; font-size: 14px;">Coming soon - curated Hi content and featured shares</p>
+              <h3 style="margin: 0 0 12px 0; color: #333; font-size: 20px;">Hi Show Premium</h3>
+              <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 1.4;">Exclusive curated content, featured stories, and premium community highlights.</p>
+              <div style="font-size: 12px; color: #6c757d; background: rgba(111, 66, 193, 0.15); padding: 8px 16px; border-radius: 20px; display: inline-block; border: 1px solid rgba(111, 66, 193, 0.3);">
+                ⭐ Lifetime Tier Feature
+              </div>
             </div>
           `;
           break;
@@ -927,9 +976,15 @@
       }, 1500);
     };
 
-    // 🏝️ Gold Standard: Drop Hi Functionality - Enhanced with Direct Integration
+    // 🏝️ Gold Standard: Drop Hi Functionality - Tesla-Grade Tier Integration
     window.openHiComposer = function() {
       console.log('🎯 Opening Hi Composer (Drop Hi functionality)...');
+      
+      // 🎯 TIER CHECK: Verify user has drop_hi capability
+      if (!window.checkHiFeatureAccess?.('drop_hi', 'drop-hi')) {
+        console.log('🔒 Drop Hi access denied - showing upgrade modal');
+        return; // Tier system handles showing upgrade modal
+      }
       
       // 🚀 PRIORITY 1: Use the properly initialized Hi-Island share sheet
       if (window.hiIslandShareSheet && typeof window.hiIslandShareSheet.open === 'function') {

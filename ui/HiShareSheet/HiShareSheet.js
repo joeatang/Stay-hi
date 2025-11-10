@@ -417,6 +417,9 @@ export class HiShareSheet {
 
   // Increment global counter with COMPREHENSIVE TRACKING
   incrementGlobalCounter(submissionType = 'public') {
+    console.log('🔍 [ShareSheet] incrementGlobalCounter called:', submissionType);
+    console.log('🔍 [ShareSheet] window.trackShareSubmission available:', !!window.trackShareSubmission);
+    
     // 🎯 DATABASE-FIRST: Use comprehensive share tracking
     if (window.trackShareSubmission) {
       const pageOrigin = this.detectPageOrigin();
@@ -630,7 +633,7 @@ export class HiShareSheet {
 
     try {
       // Check if HiBase shares integration is enabled
-      const { isEnabledCohort } = await import('../lib/flags/HiFlags.js');
+      const { isEnabledCohort } = await import('../../public/lib/flags/HiFlags.js');
       const hibaseEnabled = await isEnabledCohort('hibase_shares_enabled');
       
       let shareResult = null;

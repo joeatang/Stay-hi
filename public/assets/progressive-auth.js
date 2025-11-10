@@ -15,11 +15,31 @@ class ProgressiveAuth {
   // Detect current authentication state
   async detectAuthState() {
     try {
-      const supa = window.getSupabase?.() || window.supabaseClient || window.sb;
+      // Retry logic for Supabase client detection (timing issues)
+      let supa = window.getSupabase?.() || window.supabaseClient || window.sb;
+      
       if (!supa) {
+        // Wait up to 2 seconds for Supabase to initialize
+        console.log('🔄 Waiting for Supabase client...');
+        for (let i = 0; i < 20; i++) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          supa = window.getSupabase?.() || window.supabaseClient || window.sb;
+          if (supa) break;
+        }
+      }
+      
+      if (!supa) {
+        console.log('❌ Supabase client still not available after waiting. Available:', {
+          getSupabase: !!window.getSupabase,
+          supabaseClient: !!window.supabaseClient,
+          sb: !!window.sb,
+          supabase: !!window.supabase
+        });
         this.setAuthTier(0, 'No Supabase client');
         return;
       }
+      
+      console.log('✅ Supabase client found:', supa.constructor.name);
       
       const { data: { session }, error } = await supa.auth.getSession();
       

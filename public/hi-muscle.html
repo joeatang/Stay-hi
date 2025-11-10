@@ -21,6 +21,9 @@
   <script src="./lib/HiSupabase.js"></script>
   <!-- 🚀 Tesla-Grade Anonymous Access Modal System -->
   <script src="assets/anonymous-access-modal.js"></script>
+  
+  <!-- 🔐 Authentication System (Tesla-Grade Progressive Auth) -->
+  <script src="assets/progressive-auth.js" async></script>
 
   <!-- Global brand & Tesla performance -->
   <link rel="stylesheet" href="assets/theme.css"/>
@@ -32,6 +35,9 @@
   <!-- 🌟 Unified Share Sheet System -->
   <link rel="stylesheet" href="ui/HiShareSheet/HiShareSheet.css"/>
   <script src="ui/HiShareSheet/HiShareSheet.js" type="module"></script>
+  
+  <!-- 🎯 TESLA-GRADE: Total His Tracking System (Hi-Muscle Support) -->
+  <script src="lib/stats/GoldStandardTracker.js" type="module"></script>
 
   <style>
     /* Tesla-Grade Hi Gym Styling - Mobile First */
@@ -269,44 +275,363 @@
     .search input{border:0;outline:0;width:100%;font-size:16px;color:#111;background:transparent}
     .search input::placeholder{color:#6b7280}
 
-    /* grid - responsive */
-    .grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:16px}
+    /* Hi Energy grid - perfect responsive scaling */
+    .grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+      margin-top:16px;
+      padding:0 4px;
+    }
     
     @media (min-width: 480px) { 
-      .grid{grid-template-columns:repeat(2,1fr);} 
+      .grid{
+        grid-template-columns:repeat(2,1fr);
+        gap:12px;
+      } 
     }
     
     @media (min-width: 768px) { 
-      .grid{grid-template-columns:repeat(3,1fr);gap:14px;} 
+      .grid{
+        grid-template-columns:repeat(3,1fr);
+        gap:14px;
+        padding:0;
+      } 
     }
     
-    .chip{
-      display:flex;gap:12px;align-items:center;
-      background:#fff; border:2px solid var(--hi-border); border-radius:16px;
-      padding:16px; cursor:pointer; text-align:left;
-      transition:all .15s ease;
-      min-height:72px;
-      box-shadow:0 2px 8px rgba(0,0,0,.1);
+    @media (min-width: 1024px) {
+      .grid{
+        grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+        gap:16px;
+      }
     }
-    .chip:hover{transform:translateY(-2px); box-shadow:0 12px 24px rgba(0,0,0,.2)}
-    .chip:active{transform:translateY(0);transition:transform 0.1s ease}
-    .chip .emo{font-size:24px;min-width:24px}
-    .chip .name{font-weight:900;color:#111;font-size:1rem;line-height:1.2}
-    .chip .desc{font-size:13px;color:#6b7280;line-height:1.3;margin-top:2px}
-    .chip.selected{outline:3px solid var(--ring); border-color:#ffefc7; background:#fffaf0;transform:translateY(-2px)}
+    
+    /* 🌟 HI ENERGY EMOTIONAL BUTTONS: Perfectly Sized with Hi Vibe Colors */
+    .chip{
+      display:flex;gap:8px;align-items:center;
+      background:rgba(15, 16, 36, 0.8);
+      border:1px solid rgba(255, 209, 102, 0.2);
+      border-radius:12px;
+      padding:12px 16px;
+      cursor:pointer;
+      text-align:left;
+      transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      min-height:56px;
+      box-shadow:
+        0 2px 8px rgba(255, 209, 102, 0.1),
+        0 1px 2px rgba(0,0,0,0.1);
+      backdrop-filter:blur(10px);
+      position:relative;
+      overflow:hidden;
+    }
 
+    /* Hi Energy color scheme based on app's golden theme */
+    .chip[data-category="hi"] {
+      border-color:rgba(255, 209, 102, 0.4);
+      background:linear-gradient(135deg, 
+        rgba(255, 209, 102, 0.15) 0%, 
+        rgba(15, 16, 36, 0.9) 100%);
+    }
+    
+    .chip[data-category="neutral"] {
+      border-color:rgba(207, 210, 234, 0.3);
+      background:linear-gradient(135deg, 
+        rgba(207, 210, 234, 0.1) 0%, 
+        rgba(15, 16, 36, 0.9) 100%);
+    }
+    
+    .chip[data-category="opportunity"] {
+      border-color:rgba(78, 205, 196, 0.4);
+      background:linear-gradient(135deg, 
+        rgba(78, 205, 196, 0.15) 0%, 
+        rgba(15, 16, 36, 0.9) 100%);
+    }
+
+    /* Hi Energy hover states with golden glow */
+    .chip:hover{
+      transform:translateY(-2px) scale(1.02);
+      box-shadow:
+        0 8px 25px rgba(255, 209, 102, 0.3),
+        0 4px 12px rgba(0,0,0,0.2);
+      border-color:rgba(255, 209, 102, 0.6);
+    }
+
+    .chip[data-category="hi"]:hover {
+      border-color:rgba(255, 209, 102, 0.8);
+      background:linear-gradient(135deg, 
+        rgba(255, 209, 102, 0.25) 0%, 
+        rgba(15, 16, 36, 0.95) 100%);
+      box-shadow:
+        0 8px 25px rgba(255, 209, 102, 0.4),
+        0 4px 12px rgba(255, 209, 102, 0.2);
+    }
+
+    .chip[data-category="neutral"]:hover {
+      border-color:rgba(207, 210, 234, 0.6);
+      background:linear-gradient(135deg, 
+        rgba(207, 210, 234, 0.2) 0%, 
+        rgba(15, 16, 36, 0.95) 100%);
+    }
+
+    .chip[data-category="opportunity"]:hover {
+      border-color:rgba(78, 205, 196, 0.7);
+      background:linear-gradient(135deg, 
+        rgba(78, 205, 196, 0.25) 0%, 
+        rgba(15, 16, 36, 0.95) 100%);
+      box-shadow:
+        0 8px 25px rgba(78, 205, 196, 0.3),
+        0 4px 12px rgba(78, 205, 196, 0.15);
+    }
+
+    .chip:active{transform:translateY(-1px) scale(1.01);transition:transform 0.15s ease}
+    
+    /* Properly sized emoji */
+    .chip .emo{
+      font-size:20px;
+      min-width:20px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transition:transform 0.3s ease;
+      flex-shrink:0;
+    }
+    
+    .chip:hover .emo {
+      transform:scale(1.1);
+    }
+    
+    /* Hi Energy text styling that fits properly */
+    .chip .name{
+      font-weight:700;
+      color:#FFD166;
+      font-size:0.9rem;
+      line-height:1.2;
+      letter-spacing:-0.01em;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    
+    .chip .desc{
+      font-size:0.75rem;
+      color:#cfd2ea;
+      line-height:1.3;
+      margin-top:2px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      line-clamp:2;
+      -webkit-box-orient:vertical;
+    }
+
+    /* Hi Energy selected state with golden highlight */
+    .chip.selected{
+      transform:translateY(-3px) scale(1.05);
+      border-width:2px;
+      box-shadow:
+        0 12px 30px rgba(255, 209, 102, 0.4),
+        0 6px 15px rgba(255, 209, 102, 0.2);
+    }
+
+    .chip.selected[data-category="hi"] {
+      border-color:#FFD166;
+      background:linear-gradient(135deg, 
+        rgba(255, 209, 102, 0.3) 0%, 
+        rgba(15, 16, 36, 0.95) 100%);
+      box-shadow:
+        0 12px 30px rgba(255, 209, 102, 0.5),
+        0 6px 15px rgba(255, 209, 102, 0.3);
+    }
+
+    .chip.selected[data-category="neutral"] {
+      border-color:#cfd2ea;
+      background:linear-gradient(135deg, 
+        rgba(207, 210, 234, 0.2) 0%, 
+        rgba(15, 16, 36, 0.95) 100%);
+      box-shadow:
+        0 12px 30px rgba(207, 210, 234, 0.3),
+        0 6px 15px rgba(207, 210, 234, 0.2);
+    }
+
+    .chip.selected[data-category="opportunity"] {
+      border-color:#4ECDC4;
+      background:linear-gradient(135deg, 
+        rgba(78, 205, 196, 0.3) 0%, 
+        rgba(15, 16, 36, 0.95) 100%);
+      box-shadow:
+        0 12px 30px rgba(78, 205, 196, 0.4),
+        0 6px 15px rgba(78, 205, 196, 0.2);
+    }
+
+    .chip.selected .emo {
+      transform:scale(1.15);
+      filter:drop-shadow(0 2px 4px rgba(255, 209, 102, 0.3));
+    }
+
+    .chip.selected .name {
+      color:#ffffff;
+      font-weight:800;
+      text-shadow:0 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .chip.selected .desc {
+      color:#e8ebff;
+    }
+
+    /* Hi Energy pulse animation */
+    .chip.selected::before {
+      content:'';
+      position:absolute;
+      top:-1px;left:-1px;right:-1px;bottom:-1px;
+      border-radius:13px;
+      background:linear-gradient(45deg, transparent, rgba(255, 209, 102, 0.2), transparent);
+      animation:hiEnergyPulse 2s ease-in-out infinite;
+      z-index:-1;
+    }
+
+    @keyframes hiEnergyPulse {
+      0%, 100% { opacity:0.5; transform:scale(1); }
+      50% { opacity:0.8; transform:scale(1.01); }
+    }
+
+    /* Perfect responsive scaling */
     @media (min-width: 768px) {
       .chip { 
-        padding: 18px;
-        min-height: 80px;
+        padding: 14px 18px;
+        min-height: 64px;
+        border-radius: 14px;
       }
-      .chip .emo { font-size: 26px; }
-      .chip .name { font-size: 1.1rem; }
-      .chip .desc { font-size: 14px; }
+      .chip .emo { font-size: 22px; min-width: 22px; }
+      .chip .name { font-size: 1rem; }
+      .chip .desc { font-size: 0.8rem; }
+      .chip.selected::before { border-radius: 15px; }
     }
 
-    .badges{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:16px 0}
-    .pickTitle{font-weight:900;color:#fff;margin:20px 0 8px;font-size:1.1rem}
+    @media (min-width: 1024px) {
+      .chip {
+        padding: 16px 20px;
+        min-height: 68px;
+        border-radius: 16px;
+      }
+      .chip .emo { font-size: 24px; }
+      .chip .name { font-size: 1.05rem; }
+      .chip .desc { font-size: 0.85rem; }
+    }
+
+    /* Touch optimizations */
+    @media (hover: none) and (pointer: coarse) {
+      .chip:hover {
+        transform: none;
+      }
+      
+      .chip:active {
+        transform: translateY(0) scale(0.98);
+      }
+    }
+
+    /* Hi Energy accessibility */
+    .chip:focus-visible {
+      outline: 2px solid #FFD166;
+      outline-offset: 2px;
+    }
+
+    /* Loading state with Hi colors */
+    .chip.loading {
+      opacity: 0.7;
+      cursor: wait;
+      pointer-events: none;
+    }
+
+    .chip.loading .emo::after {
+      content: '';
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(255, 209, 102, 0.3);
+      border-top: 2px solid #FFD166;
+      border-radius: 50%;
+      animation: hiEnergySpinner 1s linear infinite;
+    }
+
+    @keyframes hiEnergySpinner {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* 🌟 HI ENERGY EMOTIONAL JOURNEY BADGES */
+    .badges{
+      display:flex;
+      gap:12px;
+      justify-content:center;
+      flex-wrap:wrap;
+      margin:16px 0;
+      padding:12px 0;
+    }
+    
+    .hi-chip {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:8px 16px;
+      border-radius:20px;
+      font-weight:700;
+      font-size:0.85rem;
+      letter-spacing:-0.01em;
+      transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter:blur(10px);
+      box-shadow:0 2px 8px rgba(255, 209, 102, 0.2);
+      border:1px solid rgba(255, 209, 102, 0.3);
+      max-width:160px;
+    }
+    
+    #badge-current {
+      background:linear-gradient(135deg, 
+        rgba(255, 209, 102, 0.2) 0%, 
+        rgba(15, 16, 36, 0.9) 100%);
+      color:#FFD166;
+      border-color:rgba(255, 209, 102, 0.4);
+    }
+    
+    #badge-desired {
+      background:linear-gradient(135deg, 
+        rgba(78, 205, 196, 0.2) 0%, 
+        rgba(15, 16, 36, 0.9) 100%);
+      color:#4ECDC4;
+      border-color:rgba(78, 205, 196, 0.4);
+    }
+    
+    .hi-chip:hover {
+      transform:translateY(-1px) scale(1.02);
+      box-shadow:0 4px 16px rgba(255, 209, 102, 0.3);
+    }
+    
+    /* Hi Energy journey arrow animation */
+    .badges::after {
+      content:'→';
+      font-size:1.2rem;
+      font-weight:900;
+      color:#FFD166;
+      opacity:0;
+      transform:translateX(-8px);
+      transition:all 0.3s ease;
+      position:absolute;
+      margin-left:-6px;
+    }
+    
+    .badges.show-arrow::after {
+      opacity:1;
+      transform:translateX(0);
+    }
+    
+    .pickTitle{
+      font-weight:800;
+      color:#FFD166;
+      margin:20px 0 10px;
+      font-size:1.1rem;
+      text-align:center;
+      letter-spacing:-0.01em;
+    }
 
     /* Mobile-first action buttons */
     .actions{display:flex;gap:12px;justify-content:center;margin:24px 0;flex-wrap:wrap}
@@ -696,9 +1021,31 @@
 
   <script>
   (async function(){
-    console.log('� Hi-Muscle loading...');
+    console.log('💪 Hi-Muscle loading...');
     
     try { await hiAuth.ensureSessionMaybe?.(); } catch {}
+
+    // 🎯 Initialize global stats variables (required for Total His tracking)
+    if (window.gTotalHis === undefined) window.gTotalHis = 0;
+    if (window.gWaves === undefined) window.gWaves = 0; 
+    if (window.gUsers === undefined) window.gUsers = 0;
+    console.log('✅ Global stats initialized:', { gTotalHis: window.gTotalHis, gWaves: window.gWaves, gUsers: window.gUsers });
+
+    // ---------- Wait for emotions.js to load ----------
+    await waitForEmotions();
+    
+    async function waitForEmotions() {
+      let attempts = 0;
+      while (!window.HI_EMOTIONS && attempts < 50) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+      if (!window.HI_EMOTIONS) {
+        console.warn('⚠️ emotions.js failed to load, using fallback data');
+      } else {
+        console.log('✅ HI_EMOTIONS loaded:', window.HI_EMOTIONS);
+      }
+    }
 
     // ---------- Emotion data adapter ----------
     function getEmotionCatalog(){
@@ -824,15 +1171,18 @@
           // 🌟 TESLA-GRADE: Use unified share sheet with Hi Muscle journal data
           const journalText = journal.value.trim();
           
+          console.log('💪 [Hi-Muscle] Share button clicked!');
           // Pre-populate the share sheet with the Hi Muscle reflection
           if (window.openHiShareSheet) {
-            window.openHiShareSheet('higym', { 
+            console.log('✅ Opening Hi-Muscle share sheet with data:', { journalText, currentEmoji: state.current?.emoji, desiredEmoji: state.desired?.emoji });
+            window.openHiShareSheet('hi-muscle', { 
               prefilledText: journalText,
               currentEmoji: state.current?.emoji,
               desiredEmoji: state.desired?.emoji 
             });
           } else {
             console.error('❌ CRITICAL: Unified share sheet failed to initialize. Check console for module loading errors.');
+            console.log('🔍 Available globals:', Object.keys(window).filter(k => k.includes('Hi')));
             toast('Share system unavailable. Please refresh the page.', 'warning');
           }
         } catch (error) {
@@ -956,7 +1306,7 @@
           }
 
           // 📊 Track HiBase usage
-          import./lib/monitoring/HiMonitor.js').then(m => 
+          import('./lib/monitoring/HiMonitor.js').then(m => 
             m.trackEvent('hibase_share_success', { 
               source: 'higym', 
               path: 'hibase'
@@ -999,7 +1349,7 @@
               }
 
               // 📊 Track HiBase streak usage for HiGYM
-              import./lib/monitoring/HiMonitor.js').then(m => 
+              import('./lib/monitoring/HiMonitor.js').then(m => 
                 m.trackEvent('streak_update', { 
                   path: 'hibase', 
                   type: 'HiGYM',
@@ -1019,7 +1369,7 @@
             // Legacy streak logic for HiGYM would go here
             
             // 📊 Track legacy streak usage
-            import./lib/monitoring/HiMonitor.js').then(m => 
+            import('./lib/monitoring/HiMonitor.js').then(m => 
               m.trackEvent('streak_update', { 
                 path: 'legacy', 
                 type: 'HiGYM',
@@ -1062,7 +1412,7 @@
           });
 
           // 📊 Track legacy usage
-          import./lib/monitoring/HiMonitor.js').then(m => 
+          import('./lib/monitoring/HiMonitor.js').then(m => 
             m.trackEvent('hibase_share_success', { 
               source: 'higym', 
               path: 'legacy'
@@ -1095,7 +1445,7 @@
               }
 
               // 📊 Track HiBase streak usage in legacy share context
-              import./lib/monitoring/HiMonitor.js').then(m => 
+              import('./lib/monitoring/HiMonitor.js').then(m => 
                 m.trackEvent('streak_update', { 
                   path: 'hibase', 
                   type: 'HiGYM',
@@ -1111,7 +1461,7 @@
             }
           } else {
             // 📊 Track legacy streak usage
-            import./lib/monitoring/HiMonitor.js').then(m => 
+            import('./lib/monitoring/HiMonitor.js').then(m => 
               m.trackEvent('streak_update', { 
                 path: 'legacy', 
                 type: 'HiGYM',
@@ -1125,7 +1475,7 @@
         closeSheet();
         
         // 📊 Analytics: Track successful gym submission
-        import./lib/monitoring/HiMonitor.js').then(m => 
+        import('./lib/monitoring/HiMonitor.js').then(m => 
           m.trackEvent('gym_submit', { 
             moodFrom: state.current?.name,
             moodTo: state.desired?.name,
@@ -1197,76 +1547,166 @@
         const q = state.q.toLowerCase();
         list = list.filter(x => x.name?.toLowerCase().includes(q) || (x.desc||'').toLowerCase().includes(q));
       }
+      
       return list;
     }
 
+    /* 🌟 HI ENERGY EMOTIONAL BUTTON RENDERING: Enhanced UX with Smart Interactions */
     function renderGrid(){
       const list = currentList();
       grid.innerHTML = '';
+      
       if (!list.length){
+        // Tesla-grade empty state design
         const empty = document.createElement('div');
-        empty.className = 'hi-hint';
-        empty.style.margin = '10px 0';
-        empty.textContent = 'No emotions found here. Try another tab or search.';
+        empty.className = 'empty-state';
+        empty.style.cssText = `
+          text-align: center;
+          padding: 40px 20px;
+          background: rgba(255,255,255,0.05);
+          border: 2px dashed rgba(255,255,255,0.2);
+          border-radius: 20px;
+          margin: 20px 0;
+          color: #cfd2ea;
+        `;
+        empty.innerHTML = `
+          <div style="font-size: 2rem; margin-bottom: 12px;">🔍</div>
+          <div style="font-weight: 600; margin-bottom: 4px;">No emotions found</div>
+          <div style="font-size: 0.9rem; opacity: 0.8;">Try another category or search term</div>
+        `;
         grid.appendChild(empty);
-        validate(); return;
+        validate(); 
+        return;
       }
 
-      list.forEach(item=>{
+      // Tesla-grade staggered animation entrance
+      list.forEach((item, index) => {
         const div = document.createElement('button');
-        div.type='button'; div.className='chip'; div.title=item.desc||item.name;
+        div.type = 'button';
+        div.className = 'chip';
+        div.title = item.desc || item.name;
+        
+        // Enhanced category data attribute for styling
+        const category = findEmotionCategory(item.name);
+        div.setAttribute('data-category', category);
+        
+        // Tesla-grade enhanced button structure
         div.innerHTML = `
-          <span class="emo">${item.emoji||'✨'}</span>
-          <div style="display:flex;flex-direction:column;align-items:flex-start">
+          <span class="emo" role="img" aria-label="${item.name} emoji">${item.emoji||'✨'}</span>
+          <div style="display:flex;flex-direction:column;align-items:flex-start;min-width:0;flex:1;">
             <span class="name">${item.name}</span>
             <span class="desc">${item.desc||''}</span>
-          </div>`;
-        const isSelected = (state.step===1 && state.current?.name===item.name) ||
-                           (state.step===2 && state.desired?.name===item.name);
+          </div>
+        `;
+        
+        // Enhanced selection state detection
+        const isSelected = (state.step === 1 && state.current?.name === item.name) ||
+                           (state.step === 2 && state.desired?.name === item.name);
+        
         if (isSelected) {
           div.classList.add('selected');
-          // Tesla-Grade Debug: Log selection state
-          console.log(`🎯 Selected: ${item.name} (Step ${state.step}, Current: ${state.current?.name}, Desired: ${state.desired?.name})`);
+          div.setAttribute('aria-selected', 'true');
+          console.log(`🎯 [Tesla-UI] Selected: ${item.name} (Step ${state.step})`);
+        } else {
+          div.setAttribute('aria-selected', 'false');
         }
 
-        div.addEventListener('click', ()=>{
-          let targetEmotion = item;
-          
-          if (state.step === 1) {
-            state.current = targetEmotion;
-            // Tesla-Grade Fix: Clear desired emotion when selecting new current emotion
-            state.desired = null;
-            setStep(2);
-            // Ensure UI updates immediately
-            renderGrid();
-          } else if (state.step === 2) {
-            // Tesla-grade smart validation
-            const validation = window.HiGym.validateEmotionalSelection(state.current, targetEmotion);
-            if (!validation.valid) {
-              toast(validation.reason);
-              if (validation.suggestion) {
-                // Auto-suggest better emotions
-                setTimeout(() => {
-                  state.q = validation.suggestion[0];
-                  search.value = state.q;
-                  renderGrid();
-                }, 1000);
-              }
-              return;
-            }
-            
-            state.desired = targetEmotion;
-            setStep(3);
-            // Ensure UI updates immediately
-            renderGrid();
-          } else {
-            // Step 3: Allow changing current emotion
-            state.current = targetEmotion;
-            state.desired = null;
-            setStep(2);
+        // Tesla-grade staggered entrance animation
+        div.style.opacity = '0';
+        div.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+          div.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+          div.style.opacity = '1';
+          div.style.transform = 'translateY(0)';
+        }, index * 50); // Stagger by 50ms per item
+
+        // Enhanced click handler with haptic feedback
+        div.addEventListener('click', async () => {
+          // Tesla-grade haptic feedback
+          if (window.PremiumUX?.triggerHapticFeedback) {
+            window.PremiumUX.triggerHapticFeedback('selection');
           }
           
-          saveDraft();
+          // Loading state
+          div.classList.add('loading');
+          
+          let targetEmotion = item;
+          let shouldProceed = true;
+          
+          if (state.step === 1) {
+            // Step 1: Select current emotion
+            state.current = targetEmotion;
+            state.desired = null; // Clear any previous desired selection
+            console.log(`🌟 Current emotion selected: ${targetEmotion.name}`);
+            
+            setTimeout(() => {
+              div.classList.remove('loading');
+              setStep(2);
+              renderGrid(); // Re-render with new selection
+            }, 200);
+            
+          } else if (state.step === 2) {
+            // Step 2: Select desired emotion with smart validation
+            if (window.HiGym?.validateEmotionalSelection) {
+              const validation = window.HiGym.validateEmotionalSelection(state.current, targetEmotion);
+              if (!validation.valid) {
+                div.classList.remove('loading');
+                toast(validation.reason, 'warning');
+                
+                // Smart suggestion system
+                if (validation.suggestion) {
+                  setTimeout(() => {
+                    state.q = validation.suggestion[0];
+                    search.value = state.q;
+                    renderGrid();
+                  }, 1500);
+                }
+                shouldProceed = false;
+              }
+            }
+            
+            if (shouldProceed) {
+              state.desired = targetEmotion;
+              console.log(`🎯 Emotional journey: ${state.current.name} → ${targetEmotion.name}`);
+              
+              setTimeout(() => {
+                div.classList.remove('loading');
+                setStep(3);
+                renderGrid(); // Re-render with new selection
+              }, 200);
+            }
+            
+          } else if (state.step === 3) {
+            // Step 3: Allow changing current emotion (reset journey)
+            state.current = targetEmotion;
+            state.desired = null;
+            console.log(`🔄 Journey reset with new current: ${targetEmotion.name}`);
+            
+            setTimeout(() => {
+              div.classList.remove('loading');
+              setStep(2);
+              renderGrid();
+            }, 200);
+          }
+          
+          if (shouldProceed) {
+            saveDraft(); // Save progress
+          }
+        });
+
+        // Tesla-grade accessibility enhancements
+        div.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            div.click();
+          }
+        });
+
+        // Enhanced hover states for better UX feedback
+        div.addEventListener('mouseenter', () => {
+          if (window.PremiumUX?.triggerHapticFeedback) {
+            window.PremiumUX.triggerHapticFeedback('light');
+          }
         });
 
         grid.appendChild(div);
@@ -1275,16 +1715,52 @@
       validate();
     }
 
+    /* 🌟 TESLA-GRADE ENHANCED BADGES RENDERING */
     function renderBadges(){
+      const badgesContainer = document.querySelector('.badges');
+      
       if (state.current){
-        badgeCur.style.display='';
-        badgeCur.innerHTML = `Current: ${state.current.emoji} <b>${state.current.name}</b>`;
-      } else badgeCur.style.display='none';
+        badgeCur.style.display = '';
+        badgeCur.innerHTML = `
+          <span style="font-size:1.2rem;">${state.current.emoji}</span>
+          <span>Current: <strong>${state.current.name}</strong></span>
+        `;
+        badgeCur.style.animation = 'badgeSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+      } else {
+        badgeCur.style.display = 'none';
+      }
 
       if (state.desired){
-        badgeDes.style.display='';
-        badgeDes.innerHTML = `Desired: ${state.desired.emoji} <b>${state.desired.name}</b>`;
-      } else badgeDes.style.display='none';
+        badgeDes.style.display = '';
+        badgeDes.innerHTML = `
+          <span style="font-size:1.2rem;">${state.desired.emoji}</span>
+          <span>Desired: <strong>${state.desired.name}</strong></span>
+        `;
+        badgeDes.style.animation = 'badgeSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+        badgeDes.style.animationDelay = '0.1s';
+      } else {
+        badgeDes.style.display = 'none';
+      }
+      
+      // Tesla-grade journey arrow animation
+      if (state.current && state.desired && badgesContainer) {
+        badgesContainer.classList.add('show-arrow');
+      } else if (badgesContainer) {
+        badgesContainer.classList.remove('show-arrow');
+      }
+      
+      // Add badge entrance animations
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes badgeSlideIn {
+          0% { opacity: 0; transform: translateY(-10px) scale(0.95); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+      `;
+      if (!document.head.querySelector('#badge-animations')) {
+        style.id = 'badge-animations';
+        document.head.appendChild(style);
+      }
     }
 
     function setStep(n){
@@ -1520,7 +1996,7 @@
       }
     }
 
-    // Initialize
+    // Initialize Hi-Muscle emotional journey
     state.startTime = Date.now(); // Track session duration
     loadDraft();
     loadUserLocation();
@@ -1538,8 +2014,86 @@
       }
     });
 
+    // 🎯 INITIALIZE HISHAREE SHEET WITH PROPER SCOPE ACCESS
+    // Load and initialize HiShareSheet with access to local variables
+    import('./ui/HiShareSheet/HiShareSheet.js').then(({ HiShareSheet }) => {
+      // 🏆 GOLD STANDARD: Load clean tracker + Hi OS Enhancement
+      import('./lib/stats/GoldStandardTracker.js').then(async ({ trackShareSubmission }) => {
+        try {
+          // Make tracker globally available
+          window.trackShareSubmission = trackShareSubmission;
+          console.log('✅ Gold Standard tracker loaded for Hi-Muscle');
+          
+          // 🚀 HI OS ENHANCEMENT: Load enhancement layer
+          try {
+            await import('./lib/stats/HiOSEnhancementLayer.js');
+            console.log('🚀 Hi OS Enhancement Layer loaded for Hi-Muscle');
+          } catch (error) {
+            console.warn('⚠️ Hi OS enhancement optional - continuing without:', error);
+          }
+        } catch (error) {
+          console.warn('⚠️ Failed to load tracker:', error);
+        }
+        
+        const shareSheet = new HiShareSheet({ 
+          origin: 'hi-muscle',
+          onSuccess: (shareData) => {
+            console.log('✅ Hi-Muscle share successful!', shareData);
+            
+            // 🎯 GOLD STANDARD: Direct tracker call
+            if (window.trackShareSubmission) {
+              console.log('🎯 Using Gold Standard tracker...');
+              window.trackShareSubmission('hi-muscle', {
+                submissionType: shareData.visibility || 'public',
+                pageOrigin: 'hi-muscle', 
+                origin: 'hi-muscle',
+                timestamp: Date.now()
+              });
+            } else {
+              console.log('⚠️ Gold Standard tracker not available');
+            }
+            
+            // Reset Hi-Muscle form after successful submission - NOW WITH PROPER SCOPE ACCESS
+            console.log('🔄 Resetting Hi-Muscle form for new journey...');
+            state.current = null;
+            state.desired = null;
+            state.step = 1;
+            journal.value = '';
+            localStorage.removeItem('hi-gym-draft');
+            setStep(1);
+            updateCharCount();
+            
+            // Clear any selected emotion visual states
+            document.querySelectorAll('.emotion.selected').forEach(el => el.classList.remove('selected'));
+            
+            // Show success message
+            toast('✨ Journey shared successfully! Ready for your next emotional journey.', 'success');
+            
+            console.log('✅ Hi-Muscle form completely reset - ready for new journey');
+          }
+        });
+        shareSheet.init();
+        
+        // 🔧 CRITICAL FIX: Override window.openHiShareSheet to use OUR instance with tracking
+        // MATCH EXACT PATTERN: Use same signature as original HiShareSheet.init()
+        window.openHiShareSheet = (origin = 'hi-muscle', options = {}) => {
+          console.log('💪 [Hi-Muscle] Opening share sheet with tracking-enabled instance:', { origin, options });
+          
+          // Match original HiShareSheet pattern exactly:
+          shareSheet.origin = origin;
+          shareSheet.prefilledData = options; // Store prefilled data for Hi Muscle integration
+          shareSheet.open(); // Call without parameters - data comes from this.prefilledData
+        };
+        
+        console.log('✅ Hi-Muscle HiShareSheet initialized with Total His tracking');
+      });
+    });
+
     })();
   </script>
+
+  <!-- HiShareSheet now initialized within main script scope for proper variable access -->
+
   <script src="assets/premium-ux.js"></script>
   <script src="./ui/HiFooter/HiFooter.js" defer></script>
   

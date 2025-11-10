@@ -24,7 +24,7 @@ class AnonymousAccessModal {
     await this.waitForAuth();
     
     // Check if current page requires authentication
-    const protectedPages = ['/profile.html', '/hi-muscle.html'];
+    const protectedPages = ['/profile.html'];
     const currentPath = window.location.pathname;
     
     if (protectedPages.some(page => currentPath.includes(page))) {

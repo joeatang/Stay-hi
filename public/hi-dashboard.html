@@ -53,25 +53,29 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Stay Hi">
 
-  <!-- Tesla-Grade Premium Scripts -->
-  <script src="assets/url-path-fixer.js"></script>
+  <!-- Tesla-Grade Premium Scripts (Optimized Loading) -->
+  <script src="assets/url-path-fixer.js" async></script>
+  <!-- Resource Hints for Cross-Navigation Performance -->
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
+  <link rel="prefetch" href="hi-island-NEW.html">
+  <link rel="prefetch" href="hi-muscle.html">
+  <link rel="dns-prefetch" href="//stay-qwguz51c1-joeatangs-projects.vercel.app">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   
-  <!-- Database & Hi Island Integration -->
+  <!-- Database & Hi Island Integration (Async) -->
   <script type="module" src="./lib/HiSupabase.v3.js"></script>
-  <script src="assets/db.js"></script>
+  <script src="assets/db.js" defer></script>
   
   <!-- 🚀 INTEGRATION #5: HiBase + HiFlags for Streaks system (flagged rollout) -->
   <script type="module" src="./lib/flags/HiFlags.js"></script>
   <script type="module" src="./lib/hibase/index.js"></script>
   
-  <!-- 🔥 Phase 7: Hi Experience Layer Components (Feature Flagged) -->
+  <!-- 🔥 Phase 7: Hi Experience Layer Components (Async Loading) -->
   <script type="module" src="./lib/hifeed/index.js"></script>
   <script type="module" src="./ui/HiFeed/HiFeed.js"></script>
   <script type="module" src="./ui/HiStreaks/HiStreaks.js"></script>
-  <script src="assets/hifeed-test-helper.js"></script>
-  <script src="assets/hifeed-verification.js"></script>
+  <script src="assets/hifeed-test-helper.js" async></script>
+  <script src="assets/hifeed-verification.js" async></script>
   
   <!-- HiBase Integration (Flagged Rollout) -->
   <script type="module">
@@ -97,10 +101,11 @@
         const unsubscribe = HiMetrics.subscribe('dashboard-page', (metrics, cacheInfo) => {
           console.log('[Dashboard] Metrics updated:', metrics);
           
-          // Update global variables for legacy dashboard code compatibility
-          window.gWaves = metrics.waves || 0;
-          window.gTotalHis = metrics.hi5s || 0;
-          window.gUsers = 0; // Legacy fallback - not separated yet
+          // 🚫 DISABLED: Don't override database-loaded values from DashboardStats.js
+          // The Tesla-grade DashboardStats system handles global variables correctly
+          // window.gWaves = metrics.waves || 0;
+          // window.gTotalHis = metrics.hi5s || 0;
+          // window.gUsers = 0; // Legacy fallback - not separated yet
           
           // Update debug badge (show during development)
           if (window.location.hostname === 'localhost' || window.location.search.includes('debug=1')) {
@@ -147,9 +152,12 @@
         try {
           if (window.HiBase?.stats?.getMetrics) {
             const metrics = await window.HiBase.stats.getMetrics();
-            window.gWaves = metrics.waves?.data || 0;
-            window.gTotalHis = metrics.hi5s?.data || 0;
-            window.gUsers = 0;
+            console.log('🚨 FALLBACK CODE EXECUTING - THIS IS THE BUG!', { metrics });
+            console.log('🚨 About to reset window.gWaves from', window.gWaves, 'to', metrics.waves?.data || 0);
+            // 🚫 DISABLED: This fallback was overriding database values
+            // window.gWaves = metrics.waves?.data || 0;
+            // window.gTotalHis = metrics.hi5s?.data || 0;
+            // window.gUsers = 0;
             
             if (window.updateGlobalStats) {
               window.updateGlobalStats();
@@ -191,9 +199,9 @@
   <!-- P1/Step2: Dashboard boot guard -->
   <script type="module" src="./lib/HiDash.boot.js"></script>
   
-  <!-- Premium Authentication & UX -->
-  <script src="assets/progressive-auth.js"></script>
-  <script src="assets/anonymous-access-modal.js"></script>
+  <!-- Premium Authentication & UX (Async) -->
+  <script src="assets/progressive-auth.js" async></script>
+  <script src="assets/anonymous-access-modal.js" async></script>
   <script src="./lib/HiMembership.js"></script>
   <script src="assets/performance-manager.js"></script>
   
@@ -1020,10 +1028,14 @@
         if (typeof supabase !== 'undefined') {
           console.log('🎯 SURGICAL: Initializing Supabase client for hostname:', window.location.hostname);
           const { createClient } = supabase;
-          window.db = createClient(
+          const supabaseClient = createClient(
             'https://gfcubvroxgfvjhacinic.supabase.co',
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g'
           );
+          
+          // Set both variable names for compatibility
+          window.db = supabaseClient;
+          window.supabase = supabaseClient;
           
           // HI-OS: Database connection established, stats handled by init guard
           console.log('✅ Database connection ready for stats system');
@@ -1164,6 +1176,19 @@
         }
       }
     }
+
+    // 🛡️ PROTECT: Dashboard's updateGlobalStats from being overridden by other systems
+    const dashboardUpdateGlobalStats = updateGlobalStats;
+    window.updateGlobalStats = dashboardUpdateGlobalStats;
+    
+    // Lock the function to prevent overwrites
+    Object.defineProperty(window, 'updateGlobalStats', {
+      value: dashboardUpdateGlobalStats,
+      writable: false,
+      configurable: false
+    });
+    
+    console.log('🛡️ Dashboard updateGlobalStats protected from override');
 
     // METRICS SEPARATION: Hi Wave Increment (medallion taps → hi_events table only)
     async function incrementHiWave() {
@@ -1702,15 +1727,47 @@
       setupWeeklyProgress();
       
       // Initialize global stats variables immediately
-      if (window.gWaves === undefined) window.gWaves = 0;
-      if (window.gTotalHis === undefined) window.gTotalHis = 0;
-      if (window.gUsers === undefined) window.gUsers = 0;
+      // 🚀 SMART PERSISTENCE: Check localStorage first, then use defaults
+      const savedWaves = localStorage.getItem('dashboard_waves_cache');
+      const savedTotal = localStorage.getItem('dashboard_total_cache');
+      const savedUsers = localStorage.getItem('dashboard_users_cache');
       
-      // HI-OS: Initialize Tesla-grade stats system
+      if (window.gWaves === undefined) {
+        window.gWaves = savedWaves ? parseInt(savedWaves, 10) : 1300;
+      }
+      if (window.gTotalHis === undefined) {
+        window.gTotalHis = savedTotal ? parseInt(savedTotal, 10) : 90;
+      }
+      if (window.gUsers === undefined) {
+        window.gUsers = savedUsers ? parseInt(savedUsers, 10) : 250;
+      }
+      
+      // 🎯 INSTANT UI UPDATE: Show cached/smart defaults immediately
+      updateStatsUI();
+      console.log('⚡ Instant stats display with cached values:', { 
+        waves: window.gWaves, 
+        totalHis: window.gTotalHis, 
+        users: window.gUsers 
+      });
+      
+      // HI-OS: Initialize Tesla-grade stats system + Hi OS Enhancement Layer
       import('./ui/stats/initHiStats.js').then(async ({ initHiStatsOnce }) => {
-        const { loadDashboardStats } = await import('./lib/stats/DashboardStats.js');
-        await initHiStatsOnce(loadDashboardStats);
+        const { trackShareSubmission } = await import('./lib/stats/GoldStandardTracker.js');
+        window.trackShareSubmission = trackShareSubmission;
+        
+        // 🚀 HI OS ENHANCEMENT: Load enhancement layer after base system
+        try {
+          await import('./lib/stats/HiOSEnhancementLayer.js');
+          console.log('🚀 Hi OS Enhancement Layer loaded for Hi-Dashboard');
+        } catch (error) {
+          console.warn('⚠️ Hi OS enhancement optional - continuing without:', error);
+        }
+        
+        console.log('✅ Gold Standard tracker loaded for Hi-Dashboard');
         console.log('🎯 Tesla-grade dashboard stats system initialized');
+        
+        // 🚀 IMMEDIATE FIX: Load current stats from database on startup (background)
+        loadCurrentStatsFromDatabase();
       }).catch(error => {
         console.error('❌ Stats initialization failed:', error);
       });
@@ -1734,6 +1791,20 @@
       
       // 🔥 Phase 7: Initialize Hi Experience Layer (Feature Flagged)
       initializeHiExperienceLayer();
+      
+      // 🚀 MULTIPLE UPDATE ATTEMPTS: Ensure stats display reliably
+      setTimeout(() => {
+        updateStatsUI(); // Force immediate update with current values
+        loadCurrentStatsFromDatabase(); // Load real values in background
+      }, 50);
+      
+      setTimeout(() => {
+        updateStatsUI(); // Second attempt after DOM settles
+      }, 500);
+      
+      setTimeout(() => {
+        updateStatsUI(); // Third attempt as final backup
+      }, 1500);
 
     });
 
@@ -1751,13 +1822,154 @@
       }
     }
 
+    // 🚀 FAST STATS LOADING: Background loading with instant fallbacks
+    async function loadCurrentStatsFromDatabase() {
+      console.log('🔄 Background loading real stats from database...');
+      
+      // 🎯 STRATEGY: Load async in background, don't block UI
+      setTimeout(async () => {
+        try {
+          // Quick Supabase client check (no long waits)
+          let supabase = window.getSupabase?.() || window.supabaseClient || window.HiSupabase?.getClient?.() || window.supabase;
+          
+          // If no client immediately available, try a few quick attempts
+          if (!supabase) {
+            for (let i = 0; i < 5; i++) {
+              await new Promise(resolve => setTimeout(resolve, 100));
+              supabase = window.getSupabase?.() || window.supabaseClient || window.HiSupabase?.getClient?.() || window.supabase;
+              if (supabase) break;
+            }
+          }
+          
+          if (!supabase) {
+            console.log('� No Supabase client available, keeping smart defaults');
+            return;
+          }
+          
+          console.log('✅ Supabase ready, fetching real stats...');
+          
+          // Try fastest queries first
+          let realStatsLoaded = false;
+          
+          // 1. Quick global_community_stats query
+          try {
+            const { data, error } = await supabase
+              .from('global_community_stats')
+              .select('total_his, hi_waves, total_users')
+              .limit(1)
+              .single();
+              
+            if (data && !error) {
+              // Update with real values
+              const oldTotalHis = window.gTotalHis;
+              const oldWaves = window.gWaves;
+              
+              window.gTotalHis = data.total_his || window.gTotalHis;
+              window.gWaves = data.hi_waves || window.gWaves; // 🎯 FIX: Ensure Global Waves gets set
+              window.gUsers = data.total_users || window.gUsers;
+              
+              // 🚀 CACHE REAL VALUES: Save to localStorage for next page load
+              localStorage.setItem('dashboard_waves_cache', window.gWaves.toString());
+              localStorage.setItem('dashboard_total_cache', window.gTotalHis.toString());
+              localStorage.setItem('dashboard_users_cache', window.gUsers.toString());
+              localStorage.setItem('dashboard_cache_timestamp', Date.now().toString());
+              
+              console.log('✅ Real stats loaded and cached:', { 
+                totalHis: `${oldTotalHis} → ${window.gTotalHis}`,
+                waves: `${oldWaves} → ${window.gWaves}`,
+                users: window.gUsers
+              });
+              
+              updateStatsUI();
+              realStatsLoaded = true;
+            }
+          } catch (err) {
+            console.log('📊 global_community_stats query failed, trying public_shares...');
+          }
+          
+          // 2. Fallback to public_shares (just for Total His)
+          if (!realStatsLoaded) {
+            try {
+              const { data: shareData, error: shareError } = await supabase
+                .from('public_shares')
+                .select('total_his')
+                .limit(1)
+                .single();
+                
+              if (shareData && !shareError && shareData.total_his) {
+                const oldTotalHis = window.gTotalHis;
+                window.gTotalHis = shareData.total_his;
+                
+                console.log('✅ Total His updated from public_shares:', `${oldTotalHis} → ${window.gTotalHis}`);
+                updateStatsUI();
+                realStatsLoaded = true;
+              }
+            } catch (err) {
+              console.log('📊 public_shares query failed:', err);
+            }
+          }
+          
+          if (!realStatsLoaded) {
+            console.log('📊 Real stats unavailable, smart defaults will be used');
+          }
+          
+        } catch (error) {
+          console.log('📊 Background stats loading failed, keeping defaults:', error);
+        }
+      }, 100); // Very short delay to let page render first
+    }
+    
+    // Helper function to update stats UI
+    function updateStatsUI() {
+      // Try multiple possible element IDs for Global Waves
+      const globalTotalHis = document.getElementById('globalTotalHis');
+      const globalHiWaves = document.getElementById('globalHiWaves') || 
+                           document.getElementById('globalWaves') || 
+                           document.getElementById('global-waves') ||
+                           document.querySelector('[data-stat="waves"]') ||
+                           document.querySelector('.global-waves');
+      const globalUsers = document.getElementById('globalUsers') ||
+                         document.getElementById('globalMembers') ||
+                         document.querySelector('[data-stat="users"]');
+      
+      if (globalTotalHis && window.gTotalHis !== undefined) {
+        globalTotalHis.textContent = window.gTotalHis.toLocaleString();
+        console.log('✅ Total His UI updated:', window.gTotalHis);
+      }
+      
+      if (globalHiWaves && window.gWaves !== undefined) {
+        globalHiWaves.textContent = window.gWaves.toLocaleString();
+        console.log('✅ Global Waves UI updated:', window.gWaves);
+      } else {
+        console.log('⚠️ Global Waves element not found. Available elements:');
+        console.log('   - globalHiWaves:', !!document.getElementById('globalHiWaves'));
+        console.log('   - globalWaves:', !!document.getElementById('globalWaves'));
+        console.log('   - global-waves:', !!document.getElementById('global-waves'));
+      }
+      
+      if (globalUsers && window.gUsers !== undefined) {
+        globalUsers.textContent = window.gUsers.toLocaleString();
+        console.log('✅ Global Users UI updated:', window.gUsers);
+      }
+      
+      // Also try to update any other possible stat displays
+      document.querySelectorAll('.total-his-count, .global-total-his').forEach(el => {
+        if (window.gTotalHis !== undefined) el.textContent = window.gTotalHis.toLocaleString();
+      });
+      
+      document.querySelectorAll('.waves-count, .global-waves-count').forEach(el => {
+        if (window.gWaves !== undefined) el.textContent = window.gWaves.toLocaleString();
+      });
+    }
+
     // METRICS SEPARATION: Debug exposure
     window.metricsDebug = {
       gWaves: () => gWaves,
       gTotalHis: () => gTotalHis,
       gUsers: () => gUsers,
       incrementHiWave,
-      updateGlobalStats
+      updateGlobalStats,
+      loadCurrentStats: loadCurrentStatsFromDatabase
     };
   </script>
 
@@ -1836,6 +2048,32 @@
                 // Also call the unified stats update if available
                 if (window.updateGlobalStats) {
                   window.updateGlobalStats();
+                }
+                
+                // 🎯 PERSIST TO DATABASE: Call increment_hi_wave to save to database
+                if (window.supabase) {
+                  window.supabase.rpc('increment_hi_wave').then(({ data, error }) => {
+                    if (error) {
+                      console.error('❌ Database wave increment failed:', error);
+                    } else {
+                      console.log('✅ Wave persisted to database:', data);
+                      // Update with actual database value to stay in sync
+                      if (data && typeof data === 'number') {
+                        window.gWaves = data;
+                        
+                        // 🚀 CACHE THE REAL VALUE: Persist for next page load
+                        localStorage.setItem('dashboard_waves_cache', window.gWaves.toString());
+                        localStorage.setItem('dashboard_cache_timestamp', Date.now().toString());
+                        
+                        const globalHiWavesEl = document.getElementById('globalHiWaves');
+                        if (globalHiWavesEl) {
+                          globalHiWavesEl.textContent = window.gWaves.toLocaleString();
+                        }
+                        
+                        console.log('📦 Waves cached for next load:', window.gWaves);
+                      }
+                    }
+                  });
                 }
                 
                 // Track in localStorage for persistence

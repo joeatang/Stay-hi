@@ -1,0 +1,348 @@
+/* ===================================================================
+   🎯 HI UPGRADE MODAL STYLES
+   Tesla-grade promotional modals with Hi Share Sheet design consistency
+=================================================================== */
+
+/* Modal Overlay */
+.hi-upgrade-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.hi-upgrade-modal-overlay.hi-upgrade-modal-open {
+  opacity: 1;
+}
+
+.hi-upgrade-modal-overlay.hi-upgrade-modal-closing {
+  opacity: 0;
+}
+
+/* Main Modal Container */
+.hi-upgrade-modal {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  transform: scale(0.9) translateY(20px);
+  transition: transform 0.3s ease;
+  position: relative;
+}
+
+.hi-upgrade-modal-open .hi-upgrade-modal {
+  transform: scale(1) translateY(0);
+}
+
+.hi-upgrade-modal-closing .hi-upgrade-modal {
+  transform: scale(0.9) translateY(20px);
+}
+
+/* Header Section */
+.hi-upgrade-header {
+  padding: 32px 32px 24px;
+  text-align: center;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 1px solid #e9ecef;
+  position: relative;
+}
+
+.hi-upgrade-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+
+.hi-upgrade-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #212529;
+  margin: 0 0 8px;
+  line-height: 1.2;
+}
+
+.hi-upgrade-subtitle {
+  font-size: 16px;
+  color: #6c757d;
+  margin: 0;
+  font-weight: 500;
+}
+
+.hi-upgrade-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.hi-upgrade-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #495057;
+}
+
+/* Content Section */
+.hi-upgrade-content {
+  padding: 24px 32px;
+}
+
+.hi-upgrade-description {
+  font-size: 16px;
+  color: #495057;
+  line-height: 1.5;
+  margin: 0 0 24px;
+  text-align: center;
+}
+
+/* Benefits List */
+.hi-upgrade-benefits {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hi-upgrade-benefit {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.hi-upgrade-benefit-icon {
+  color: #28a745;
+  font-weight: bold;
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.hi-upgrade-benefit-text {
+  font-size: 14px;
+  color: #495057;
+  line-height: 1.4;
+}
+
+/* Actions Section */
+.hi-upgrade-actions {
+  padding: 24px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Button Styles */
+.hi-upgrade-btn {
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Primary CTA (Drop Hi context) */
+.hi-upgrade-btn--primary {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.hi-upgrade-btn--primary:hover {
+  background: linear-gradient(135deg, #0056b3 0%, #003d82 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4);
+}
+
+/* Secondary CTA (Archive context) */
+.hi-upgrade-btn--secondary {
+  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+  color: white;
+}
+
+.hi-upgrade-btn--secondary:hover {
+  background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+  transform: translateY(-2px);
+}
+
+/* Premium CTA (Trends, Hi Show contexts) */
+.hi-upgrade-btn--premium {
+  background: linear-gradient(135deg, #6f42c1 0%, #5a2d91 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(111, 66, 193, 0.3);
+}
+
+.hi-upgrade-btn--premium:hover {
+  background: linear-gradient(135deg, #5a2d91 0%, #4c1d7e 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(111, 66, 193, 0.4);
+}
+
+/* Tertiary CTA (Milestones context) */
+.hi-upgrade-btn--tertiary {
+  background: linear-gradient(135deg, #fd7e14 0%, #e55100 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(253, 126, 20, 0.3);
+}
+
+.hi-upgrade-btn--tertiary:hover {
+  background: linear-gradient(135deg, #e55100 0%, #cc4400 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(253, 126, 20, 0.4);
+}
+
+/* Cancel/Secondary Button */
+.hi-upgrade-btn[data-action="cancel"] {
+  background: transparent;
+  color: #6c757d;
+  border: 1px solid #dee2e6;
+  box-shadow: none;
+}
+
+.hi-upgrade-btn[data-action="cancel"]:hover {
+  background: #f8f9fa;
+  color: #495057;
+  border-color: #adb5bd;
+  transform: none;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 576px) {
+  .hi-upgrade-modal-overlay {
+    padding: 16px;
+  }
+  
+  .hi-upgrade-modal {
+    border-radius: 16px;
+  }
+  
+  .hi-upgrade-header {
+    padding: 24px 20px 20px;
+  }
+  
+  .hi-upgrade-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+  
+  .hi-upgrade-title {
+    font-size: 20px;
+  }
+  
+  .hi-upgrade-subtitle {
+    font-size: 14px;
+  }
+  
+  .hi-upgrade-content {
+    padding: 20px;
+  }
+  
+  .hi-upgrade-description {
+    font-size: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .hi-upgrade-benefit {
+    padding: 10px 12px;
+  }
+  
+  .hi-upgrade-benefit-text {
+    font-size: 13px;
+  }
+  
+  .hi-upgrade-actions {
+    padding: 20px;
+  }
+  
+  .hi-upgrade-btn {
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .hi-upgrade-modal {
+    border: 2px solid #000;
+  }
+  
+  .hi-upgrade-benefit {
+    border: 1px solid #000;
+  }
+  
+  .hi-upgrade-btn[data-action="cancel"] {
+    border: 2px solid #000;
+    color: #000;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .hi-upgrade-modal-overlay,
+  .hi-upgrade-modal,
+  .hi-upgrade-btn {
+    transition: none;
+  }
+  
+  .hi-upgrade-btn:hover {
+    transform: none;
+  }
+}
+
+/* Focus States for Accessibility */
+.hi-upgrade-btn:focus,
+.hi-upgrade-close:focus {
+  outline: 3px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* Animation for benefit reveal (optional enhancement) */
+@keyframes benefitReveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hi-upgrade-modal-open .hi-upgrade-benefit {
+  animation: benefitReveal 0.3s ease forwards;
+}
+
+.hi-upgrade-benefit:nth-child(1) { animation-delay: 0.1s; }
+.hi-upgrade-benefit:nth-child(2) { animation-delay: 0.2s; }
+.hi-upgrade-benefit:nth-child(3) { animation-delay: 0.3s; }
+.hi-upgrade-benefit:nth-child(4) { animation-delay: 0.4s; }

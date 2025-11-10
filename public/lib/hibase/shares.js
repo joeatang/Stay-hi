@@ -17,12 +17,26 @@ import hiAuthCore from '../auth/HiAuthCore.js';
  */
 async function _insertShare(shareData) {
     return hiBaseClient.execute(async (client) => {
+        // 🔧 BACKEND PLUMBING: Map visibility to database columns
+        const dbPayload = {
+            ...shareData,
+            created_at: new Date().toISOString()
+        };
+
+        // Map visibility field to database schema (backward compatibility)
+        if (shareData.visibility) {
+            dbPayload.visibility = shareData.visibility;
+            // Also set legacy boolean columns for compatibility
+            dbPayload.is_public = shareData.visibility === 'public';
+            dbPayload.is_anonymous = shareData.visibility === 'anonymous';
+        } else {
+            // Handle legacy format
+            dbPayload.visibility = shareData.is_anonymous ? 'anonymous' : (shareData.is_public ? 'public' : 'private');
+        }
+
         const { data, error } = await client
             .from('hi_shares')
-            .insert([{
-                ...shareData,
-                created_at: new Date().toISOString()
-            }])
+            .insert([dbPayload])
             .select();
 
         return { data, error };

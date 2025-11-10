@@ -357,8 +357,7 @@ export class HiShareSheet {
       window.PremiumUX.triggerHapticFeedback('medium');
     }
 
-    // Increment global Hi5 counter
-    this.incrementGlobalCounter();
+    // 🚫 LEGACY REMOVED: incrementGlobalCounter() - using Tesla-grade database tracking only
 
     await this.persist({ toIsland: false, anon: false });
 
@@ -379,8 +378,7 @@ export class HiShareSheet {
       window.PremiumUX.triggerHapticFeedback('medium');
     }
 
-    // Increment global Hi5 counter
-    this.incrementGlobalCounter();
+    // 🚫 LEGACY REMOVED: incrementGlobalCounter() - using Tesla-grade database tracking only
 
     await this.persist({ toIsland: true, anon: true });
 
@@ -405,8 +403,7 @@ export class HiShareSheet {
       window.PremiumUX.triggerHapticFeedback('celebration');
     }
 
-    // Increment global Hi5 counter
-    this.incrementGlobalCounter();
+    // 🚫 LEGACY REMOVED: incrementGlobalCounter() - using Tesla-grade database tracking only
 
     await this.persist({ toIsland: true, anon: false });
 
@@ -415,22 +412,9 @@ export class HiShareSheet {
     }, 800);
   }
 
-  // Increment global counter
-  incrementGlobalCounter() {
-    const LS_TOTAL = 'hi_total_count';
-    const LS_GLOBAL = 'hi_global_shares';
-    
-    let total = parseInt(localStorage.getItem(LS_TOTAL) || '0', 10);
-    let gStarts = parseInt(localStorage.getItem(LS_GLOBAL) || '0', 10);
-    
-    total += 1;
-    gStarts += 1;
-    
-    localStorage.setItem(LS_TOTAL, String(total));
-    localStorage.setItem(LS_GLOBAL, String(gStarts));
-    
-    console.log('📊 Global Hi5 counter incremented:', { total, gStarts });
-  }
+  // 🚫 LEGACY METHOD REMOVED: incrementGlobalCounter()
+  // Tesla-grade database tracking is handled by persist() → trackShareSubmission() → database RPCs
+  // No more localStorage-only fallbacks - database-first architecture only
 
   // Get user's location (Gold Standard: Profile-First Architecture)
   async getUserLocation() {
@@ -605,7 +589,7 @@ export class HiShareSheet {
 
     try {
       // Check if HiBase shares integration is enabled
-      const { isEnabledCohort } = await import('../lib/flags/HiFlags.js');
+      const { isEnabledCohort } = await import('../../lib/flags/HiFlags.js');
       const hibaseEnabled = await isEnabledCohort('hibase_shares_enabled');
       
       let shareResult = null;
@@ -649,7 +633,7 @@ export class HiShareSheet {
         
         // ALWAYS write to My Archive (private storage)
         // 🌟 TESLA-GRADE: Use emotional journey data if available (Hi Muscle integration)
-        const currentEmoji = this.emotionalJourney?.current || '�';
+        const currentEmoji = this.emotionalJourney?.current || '🙌';
         const desiredEmoji = this.emotionalJourney?.desired || '✨';
         
         const archivePayload = {
@@ -661,6 +645,9 @@ export class HiShareSheet {
           type: this.shareType || (this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : 'Hi5'))
         };
         
+        const archiveResult = await window.hiDB?.insertArchive?.(archivePayload);
+        console.log('📝 Archive saved:', archiveResult);
+        
         // Call success callback with legacy info
         this.onSuccess({ 
           ...archivePayload,
@@ -668,9 +655,6 @@ export class HiShareSheet {
           visibility: anon ? 'anonymous' : (toIsland ? 'public' : 'private')
         });
       }
-      
-      const archiveResult = await window.hiDB?.insertArchive?.(archivePayload);
-      console.log('📝 Archive saved:', archiveResult);
 
       // If sharing to island (public or anon), ALSO write to public_shares
       if (toIsland) {
@@ -703,6 +687,73 @@ export class HiShareSheet {
       // Trigger success callback
       this.onSuccess({ toIsland, anon, origin: this.origin });
 
+      // Track share submission for Total His (Tesla-grade unified tracking)
+      if (window.trackShareSubmission) {
+        const shareType = anon ? 'anonymous' : (toIsland ? 'public' : 'private');
+        console.log('✅ trackShareSubmission found, calling with shareType:', shareType);
+        await window.trackShareSubmission(this.origin, {
+          submissionType: shareType,
+          pageOrigin: this.origin,
+          origin: this.origin,
+          timestamp: Date.now()
+        });
+      } else {
+        console.warn('⚠️ trackShareSubmission not available - trying fallback approaches');
+        console.log('🔍 Debug context:', { 
+          origin: this.origin, 
+          toIsland, 
+          anon, 
+          currentURL: window.location.href,
+          currentPath: window.location.pathname 
+        });
+        
+        // Approach 1: Try to load stats module
+        try {
+          console.log('🔄 Approach 1: Attempting to load DashboardStats manually...');
+          const { trackShareSubmission } = await import('../../lib/stats/DashboardStats.js');
+          const shareType = anon ? 'anonymous' : (toIsland ? 'public' : 'private');
+          console.log('✅ DashboardStats loaded manually, calling trackShareSubmission with:', shareType);
+          await trackShareSubmission(this.origin, { 
+            submissionType: shareType,
+            origin: this.origin, 
+            pageOrigin: this.origin,
+            fallbackLoaded: true 
+          });
+          console.log('🎉 Approach 1 SUCCESS: DashboardStats fallback worked');
+        } catch (error) {
+          console.warn('❌ Approach 1 FAILED:', error.message);
+          
+          // Approach 2: Direct Supabase call
+          try {
+            console.log('🔄 Approach 2: Direct Supabase increment_total_hi call...');
+            if (window.supabase) {
+              const { data, error } = await window.supabase.rpc('increment_total_hi');
+              if (error) throw error;
+              console.log('✅ Approach 2 SUCCESS: Direct Supabase call worked:', { data });
+              
+              // Show success toast
+              if (window.showToast) {
+                window.showToast('🎉 Hi tracked successfully!');
+              }
+            } else {
+              throw new Error('No Supabase client available');
+            }
+          } catch (directError) {
+            console.warn('❌ Approach 2 FAILED:', directError.message);
+            
+            // Approach 3: Legacy localStorage increment
+            console.log('🔄 Approach 3: Legacy localStorage fallback...');
+            try {
+              const current = parseInt(localStorage.getItem('total_his_fallback') || '0');
+              localStorage.setItem('total_his_fallback', String(current + 1));
+              console.log('✅ Approach 3 SUCCESS: Local fallback incremented to:', current + 1);
+            } catch (localError) {
+              console.error('❌ All approaches failed:', localError);
+            }
+          }
+        }
+      }
+
       // Close sheet
       this.close();
 
@@ -716,6 +767,55 @@ export class HiShareSheet {
     } catch (e) {
       console.warn('Save error:', e);
       this.showToast('Saved locally. Will sync when online.');
+      
+      // Track failed submission for Total His (Tesla-grade fallback)
+      if (window.trackShareSubmission) {
+        const shareType = anon ? 'anonymous' : (toIsland ? 'public' : 'private');
+        console.log('✅ trackShareSubmission found (catch block), calling with shareType:', shareType);
+        await window.trackShareSubmission(shareType);
+      } else {
+        console.warn('⚠️ trackShareSubmission not available in catch block - trying fallback approaches');
+        
+        // Approach 1: Try to load stats module
+        try {
+          console.log('🔄 Catch Approach 1: Loading DashboardStats...');
+          const { trackShareSubmission } = await import('../../lib/stats/DashboardStats.js');
+          const shareType = anon ? 'anonymous' : (toIsland ? 'public' : 'private');
+          console.log('✅ DashboardStats loaded in catch, calling with:', shareType);
+          await trackShareSubmission(shareType, { 
+            origin: this.origin, 
+            pageOrigin: this.origin,
+            fallbackLoaded: true,
+            fromCatchBlock: true 
+          });
+          console.log('🎉 Catch Approach 1 SUCCESS');
+        } catch (importError) {
+          console.warn('❌ Catch Approach 1 FAILED:', importError.message);
+          
+          // Approach 2: Direct Supabase call
+          try {
+            console.log('🔄 Catch Approach 2: Direct Supabase call...');
+            if (window.supabase) {
+              const { data, error } = await window.supabase.rpc('increment_total_hi');
+              if (error) throw error;
+              console.log('✅ Catch Approach 2 SUCCESS:', { data });
+            } else {
+              throw new Error('No Supabase client available');
+            }
+          } catch (directError) {
+            console.warn('❌ Catch Approach 2 FAILED:', directError.message);
+            console.log('🔄 Catch Approach 3: Local fallback (failed save still counts)');
+            try {
+              const current = parseInt(localStorage.getItem('total_his_fallback') || '0');
+              localStorage.setItem('total_his_fallback', String(current + 1));
+              console.log('✅ Catch Approach 3 SUCCESS: Local fallback incremented to:', current + 1);
+            } catch (localError) {
+              console.error('❌ All catch approaches failed:', localError);
+            }
+          }
+        }
+      }
+      
       this.close();
     }
   }
