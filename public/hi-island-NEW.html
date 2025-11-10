@@ -1024,83 +1024,120 @@
     }
   </script>
 
+  <!-- 🎯 BULLETPROOF FIX: Immediate global function setup -->
+  <script>
+    // 🚀 IMMEDIATE: Create fallback function that gets replaced when module loads
+    window.openHiShareSheet = function(origin = 'hi-island', options = {}) {
+      console.log('🔄 Share sheet loading... Please wait...');
+      if (confirm('Hi Share is initializing... Would you like to try again?')) {
+        setTimeout(() => window.openHiShareSheet(origin, options), 1000);
+      }
+      return false;
+    };
+    
+    // 🚀 IMMEDIATE: Set up placeholder
+    window.hiIslandShareSheet = null;
+    
+    console.log('✅ Global share sheet placeholders installed');
+  </script>
+
   <!-- 🎯 TESLA FIX: Initialize HiShareSheet with Social Hi 5 Integration -->
   <script type="module">
     import { HiShareSheet } from './ui/HiShareSheet/HiShareSheet.js';
     
-    // Initialize Hi Share Sheet for hi-island functionality with social integration
-    document.addEventListener('DOMContentLoaded', () => {
-      const shareSheet = new HiShareSheet({ 
-        origin: 'hi-island',
-        onSuccess: (shareData) => {
-          // Use the social system handler
-          if (window.handleShareSuccess) {
-            window.handleShareSuccess(shareData);
-          }
-          
-          // Legacy tracking for compatibility
-          setTimeout(() => {
-            try {
-              if (window.trackShareSubmission) {
-                console.log('🎯 Using Gold Standard tracker (safe mode)...');
-                window.trackShareSubmission('hi-island', {
-                  submissionType: shareData.visibility || 'public',
-                  pageOrigin: 'hi-island',
-                  origin: 'hi-island',
-                  shareType: shareData.type || 'hi5',
-                  hiOSEnabled: true
-                });
-              } else if (window.HiOSTracker?.trackShareSubmission) {
-                console.log('🎯 Using Hi OS tracker (safe mode)...');
-                window.HiOSTracker.trackShareSubmission('hi-island', {
-                  submissionType: shareData.visibility || 'public',
-                  pageOrigin: 'hi-island'
-                });
-              }
-            } catch (error) {
-              console.warn('⚠️ Tracking error (non-critical):', error);
-            }
-          }, 10);
-        }
-      });
-      
-      // Store reference for external access
-      window.hiIslandShareSheet = shareSheet;
-      
-      // 🎯 GLOBAL HI SHARE MODAL TRIGGER: Create universal function for opening share sheet
-      window.openHiShareSheet = function(origin = 'hi-island', options = {}) {
-        console.log(`🚀 Opening Hi Share Sheet from ${origin}...`, options);
+    console.log('🚀 HiShareSheet module loaded successfully');
+    
+    // 🎯 BULLETPROOF: Initialize immediately
+    const initializeShareSheet = async () => {
+      try {
+        console.log('🎯 Creating Hi Share Sheet instance...');
         
-        if (shareSheet && typeof shareSheet.open === 'function') {
-          try {
-            shareSheet.open(options);
-            console.log('✅ Hi Share Sheet opened successfully');
-            return true;
-          } catch (error) {
-            console.error('❌ Failed to open Hi Share Sheet:', error);
+        const shareSheet = new HiShareSheet({ 
+          origin: 'hi-island',
+          onSuccess: (shareData) => {
+            // Use the social system handler
+            if (window.handleShareSuccess) {
+              window.handleShareSuccess(shareData);
+            }
+            
+            // Legacy tracking for compatibility
+            setTimeout(() => {
+              try {
+                if (window.trackShareSubmission) {
+                  console.log('🎯 Using Gold Standard tracker (safe mode)...');
+                  window.trackShareSubmission('hi-island', {
+                    submissionType: shareData.visibility || 'public',
+                    pageOrigin: 'hi-island',
+                    origin: 'hi-island',
+                    shareType: shareData.type || 'hi5',
+                    hiOSEnabled: true
+                  });
+                } else if (window.HiOSTracker?.trackShareSubmission) {
+                  console.log('🎯 Using Hi OS tracker (safe mode)...');
+                  window.HiOSTracker.trackShareSubmission('hi-island', {
+                    submissionType: shareData.visibility || 'public',
+                    pageOrigin: 'hi-island'
+                  });
+                }
+              } catch (error) {
+                console.warn('⚠️ Tracking error (non-critical):', error);
+              }
+            }, 10);
+          },
+          onError: (error) => {
+            console.error('❌ Hi-Island share error:', error);
+          }
+        });
+
+        console.log('✅ Hi Share Sheet instance created');
+
+        // Store reference for Hi Island functionality
+        window.hiIslandShareSheet = shareSheet;
+        
+        // 🎯 BULLETPROOF: Replace the placeholder function immediately
+        window.openHiShareSheet = function(origin = 'hi-island', options = {}) {
+          console.log(`🚀 Opening Hi Share Sheet from ${origin}...`, options);
+          
+          if (shareSheet && typeof shareSheet.open === 'function') {
+            try {
+              shareSheet.open(options);
+              console.log('✅ Hi Share Sheet opened successfully');
+              return true;
+            } catch (error) {
+              console.error('❌ Failed to open Hi Share Sheet:', error);
+              return false;
+            }
+          } else {
+            console.warn('⚠️ Hi Share Sheet not available');
             return false;
           }
-        } else {
-          console.warn('⚠️ Hi Share Sheet not available');
-          return false;
-        }
-      };
-      
-      // Initialize share sheet
-      shareSheet.init().then(() => {
-        console.log('✅ Hi-Island share sheet initialized with Social Hi 5 integration');
-        console.log('✅ Global openHiShareSheet() function ready');
-      }).catch(error => {
-        console.error('❌ Failed to initialize Hi-Island share sheet:', error);
+        };
         
-        // Even if initialization fails, provide a fallback
+        console.log('✅ Global openHiShareSheet() function installed');
+        
+        // Initialize share sheet
+        await shareSheet.init();
+        console.log('✅ Hi-Island share sheet initialized with Social Hi 5 integration');
+        console.log('🎉 Drop Hi functionality is now fully operational');
+        
+      } catch (error) {
+        console.error('❌ Critical error initializing Hi Share Sheet:', error);
+        
+        // Provide error fallback
         window.openHiShareSheet = function(origin = 'hi-island') {
-          console.warn('⚠️ Share sheet not initialized, using fallback');
-          alert('Hi Share functionality is loading... Please try again in a moment!');
+          console.error('❌ Share sheet failed to initialize:', error);
+          alert('Sorry, Hi Share functionality is currently unavailable. Please refresh the page and try again.');
           return false;
         };
-      });
-    });
+      }
+    };
+
+    // 🚀 Initialize immediately if DOM is ready, otherwise wait
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeShareSheet);
+    } else {
+      initializeShareSheet();
+    }
   </script>
 
   <!-- S-ISL/3: Feed system module imports (for PROD_CHECK detection) -->
