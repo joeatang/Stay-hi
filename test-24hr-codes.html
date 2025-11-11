@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 24hr Access Code Testing - Tesla Grade</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; 
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white; 
+            min-height: 100vh; 
+            padding: 20px; 
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        .card { 
+            background: rgba(255,255,255,0.1); 
+            backdrop-filter: blur(10px); 
+            border-radius: 15px; 
+            padding: 25px; 
+            margin: 20px 0; 
+            border: 1px solid rgba(255,255,255,0.2); 
+        }
+        h1 { text-align: center; margin-bottom: 30px; font-size: 2.5em; }
+        h2 { color: #FFD700; margin-bottom: 15px; font-size: 1.5em; }
+        button { 
+            background: linear-gradient(45deg, #FFD700, #FFA500); 
+            color: #1e3c72; 
+            border: none; 
+            padding: 12px 20px; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin: 5px; 
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        button:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 5px 15px rgba(255,215,0,0.4); 
+        }
+        input[type="text"] { 
+            padding: 12px; 
+            border-radius: 8px; 
+            border: 1px solid rgba(255,255,255,0.3); 
+            background: rgba(255,255,255,0.1); 
+            color: white; 
+            margin: 5px; 
+            font-size: 14px;
+            width: 250px;
+        }
+        input[type="text"]::placeholder { color: rgba(255,255,255,0.7); }
+        .result { 
+            background: rgba(0,0,0,0.3); 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin: 10px 0; 
+            font-family: 'Courier New', monospace; 
+            font-size: 13px;
+            border-left: 4px solid #FFD700;
+        }
+        .success { border-left-color: #00ff88; color: #00ff88; }
+        .error { border-left-color: #ff4757; color: #ff4757; }
+        .info { border-left-color: #74b9ff; color: #74b9ff; }
+        .test-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+        .code-display {
+            background: rgba(0,0,0,0.5);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            text-align: center;
+            margin: 15px 0;
+            border: 2px solid #FFD700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 24hr Access Code Testing</h1>
+        <div class="test-status" id="testStatus">Connecting to Supabase...</div>
+        
+        <!-- Code Generation Section -->
+        <div class="card">
+            <h2>🎫 Generate 24hr Discovery Codes</h2>
+            <p style="margin-bottom: 15px; opacity: 0.8;">
+                Generate temporary access codes that grant Starter tier (Tier 1) access for 24 hours.
+            </p>
+            
+            <div style="margin: 15px 0;">
+                <input type="text" id="codeSuffix" placeholder="Optional suffix (e.g. BETA, DEMO)" />
+                <input type="number" id="batchSize" value="1" min="1" max="10" style="width: 100px;" />
+                <button onclick="generate24hrCodes()">🎯 Generate Codes</button>
+            </div>
+            
+            <div id="generationResults"></div>
+        </div>
+        
+        <!-- Code Redemption Section -->
+        <div class="card">
+            <h2>🎁 Test Code Redemption</h2>
+            <p style="margin-bottom: 15px; opacity: 0.8;">
+                Test redeeming access codes and verify tier upgrade functionality.
+            </p>
+            
+            <div style="margin: 15px 0;">
+                <input type="text" id="redeemCode" placeholder="Enter access code to redeem" />
+                <button onclick="redeemAccessCode()">🎁 Redeem Code</button>
+                <button onclick="checkCurrentTier()">📊 Check Current Tier</button>
+            </div>
+            
+            <div id="redemptionResults"></div>
+        </div>
+        
+        <!-- Tier Status Section -->
+        <div class="card">
+            <h2>📊 Tier Status & Testing</h2>
+            <p style="margin-bottom: 15px; opacity: 0.8;">
+                Monitor current tier status, expiry times, and test tier-specific features.
+            </p>
+            
+            <div style="margin: 15px 0;">
+                <button onclick="testFeatureAccess()">🔓 Test Feature Access</button>
+                <button onclick="simulateExpiry()">⏰ Simulate Expiry</button>
+                <button onclick="viewActivecodes()">📋 View Active Codes</button>
+            </div>
+            
+            <div id="tierResults"></div>
+        </div>
+        
+        <!-- Test Console -->
+        <div class="card">
+            <h2>🔧 Test Console</h2>
+            <div id="testConsole" style="max-height: 300px; overflow-y: auto;"></div>
+            <button onclick="clearConsole()" style="background: rgba(255,255,255,0.2);">Clear Console</button>
+        </div>
+    </div>
+
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(
+            'https://hiupwddeflbbuwatqenp.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpdXB3ZGRlZmxiYnV3YXRxZW5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjk4MDI1NzEsImV4cCI6MjA0NTM3ODU3MX0.fYjKDWnzQUaQJJ2NJWuXrm5IXv0WGGRlhrhR28XxheU'
+        );
+
+        let testSession = null;
+
+        // Log function for test console
+        function log(message, type = 'info') {
+            const console = document.getElementById('testConsole');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = `result ${className}`;
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            console.appendChild(logEntry);
+            console.scrollTop = console.scrollHeight;
+            
+            // Also console.log for debugging
+            if (type === 'error') console.error(message);
+            else console.log(message);
+        }
+
+        // Initialize test session
+        async function initializeTest() {
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
+                
+                if (error) {
+                    log(`❌ Auth error: ${error.message}`, 'error');
+                    document.getElementById('testStatus').textContent = 'Auth Error';
+                    return;
+                }
+                
+                testSession = session;
+                
+                if (session) {
+                    log(`✅ Authenticated as: ${session.user.email}`, 'success');
+                    document.getElementById('testStatus').textContent = `✅ Authenticated: ${session.user.email}`;
+                } else {
+                    log(`ℹ️ Anonymous session - some tests will be limited`, 'info');
+                    document.getElementById('testStatus').textContent = '👤 Anonymous Session';
+                }
+                
+            } catch (error) {
+                log(`❌ Initialization failed: ${error.message}`, 'error');
+                document.getElementById('testStatus').textContent = 'Connection Failed';
+            }
+        }
+
+        // Generate 24hr discovery codes
+        async function generate24hrCodes() {
+            const suffix = document.getElementById('codeSuffix').value.trim();
+            const batchSize = parseInt(document.getElementById('batchSize').value) || 1;
+            const resultsDiv = document.getElementById('generationResults');
+            
+            try {
+                log(`🎯 Generating ${batchSize} 24hr discovery code(s)...`);
+                
+                // Call the database function
+                const { data, error } = await supabase.rpc('generate_24hr_discovery_code', {
+                    code_suffix: suffix || null,
+                    batch_size: batchSize
+                });
+                
+                if (error) {
+                    throw error;
+                }
+                
+                resultsDiv.innerHTML = '';
+                
+                if (data && data.length > 0) {
+                    log(`✅ Generated ${data.length} access code(s)`, 'success');
+                    
+                    data.forEach((codeInfo, index) => {
+                        const codeDiv = document.createElement('div');
+                        codeDiv.className = 'code-display';
+                        codeDiv.innerHTML = `
+                            <strong>Code ${index + 1}:</strong> ${codeInfo.code}<br>
+                            <small>Expires: ${new Date(codeInfo.expires_at).toLocaleString()}</small>
+                        `;
+                        resultsDiv.appendChild(codeDiv);
+                    });
+                } else {
+                    log(`⚠️ No codes were generated`, 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Code generation failed: ${error.message}`, 'error');
+                resultsDiv.innerHTML = `<div class="result error">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Redeem access code
+        async function redeemAccessCode() {
+            const code = document.getElementById('redeemCode').value.trim();
+            const resultsDiv = document.getElementById('redemptionResults');
+            
+            if (!code) {
+                log('⚠️ Please enter an access code', 'error');
+                return;
+            }
+            
+            if (!testSession) {
+                log('⚠️ Please log in to redeem codes', 'error');
+                return;
+            }
+            
+            try {
+                log(`🎁 Redeeming code: ${code}...`);
+                
+                // Get member ID first
+                const { data: memberData, error: memberError } = await supabase
+                    .from('hi_members')
+                    .select('id')
+                    .eq('user_id', testSession.user.id)
+                    .single();
+                
+                if (memberError || !memberData) {
+                    throw new Error('Member profile not found. Please create a profile first.');
+                }
+                
+                // Call redeem function
+                const { data, error } = await supabase.rpc('redeem_access_code', {
+                    user_member_id: memberData.id,
+                    access_code: code
+                });
+                
+                if (error) {
+                    throw error;
+                }
+                
+                const result = data[0];
+                
+                if (result.success) {
+                    log(`✅ Code redeemed successfully!`, 'success');
+                    log(`🎯 New tier: ${result.new_tier}`, 'success');
+                    log(`⏰ Expires: ${new Date(result.expires_at).toLocaleString()}`, 'info');
+                    
+                    resultsDiv.innerHTML = `
+                        <div class="result success">
+                            <strong>✅ Success!</strong><br>
+                            New Tier: ${result.new_tier}<br>
+                            Expires: ${new Date(result.expires_at).toLocaleString()}<br>
+                            Message: ${result.message}
+                        </div>
+                    `;
+                } else {
+                    log(`❌ Redemption failed: ${result.message}`, 'error');
+                    resultsDiv.innerHTML = `<div class="result error">❌ ${result.message}</div>`;
+                }
+                
+            } catch (error) {
+                log(`❌ Redemption error: ${error.message}`, 'error');
+                resultsDiv.innerHTML = `<div class="result error">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Check current tier
+        async function checkCurrentTier() {
+            const resultsDiv = document.getElementById('tierResults');
+            
+            try {
+                log(`📊 Checking current tier status...`);
+                
+                if (!testSession) {
+                    log(`👤 Anonymous user - Tier 0 (Discovery)`, 'info');
+                    resultsDiv.innerHTML = `<div class="result info">👤 Anonymous - Tier 0 (Discovery)</div>`;
+                    return;
+                }
+                
+                // Get member data
+                const { data: memberData, error } = await supabase
+                    .from('hi_members')
+                    .select('*')
+                    .eq('user_id', testSession.user.id)
+                    .single();
+                
+                if (error || !memberData) {
+                    log(`⚠️ No member profile found`, 'error');
+                    return;
+                }
+                
+                const tierNames = {
+                    0: 'Discovery (Anonymous)',
+                    1: 'Starter (Email Verified)',
+                    2: 'Enhanced (Temporal Access)', 
+                    3: 'Lifetime (Special Access)'
+                };
+                
+                const tierName = tierNames[memberData.access_tier] || 'Unknown';
+                const isExpired = memberData.tier_expires_at && new Date(memberData.tier_expires_at) < new Date();
+                
+                log(`📊 Current tier: ${memberData.access_tier} (${tierName})`, 'success');
+                
+                if (memberData.tier_expires_at) {
+                    const expiryDate = new Date(memberData.tier_expires_at);
+                    const timeUntilExpiry = expiryDate - new Date();
+                    const hoursLeft = Math.max(0, Math.floor(timeUntilExpiry / (1000 * 60 * 60)));
+                    
+                    log(`⏰ Expires: ${expiryDate.toLocaleString()} (${hoursLeft}h remaining)`, isExpired ? 'error' : 'info');
+                }
+                
+                resultsDiv.innerHTML = `
+                    <div class="result ${isExpired ? 'error' : 'success'}">
+                        <strong>📊 Tier Status</strong><br>
+                        Current Tier: ${memberData.access_tier} (${tierName})<br>
+                        ${memberData.tier_expires_at ? `Expires: ${new Date(memberData.tier_expires_at).toLocaleString()}<br>` : ''}
+                        ${memberData.access_code_used ? `Last Code Used: ${memberData.access_code_used}<br>` : ''}
+                        ${isExpired ? '<strong style="color: #ff4757;">⚠️ EXPIRED - Should downgrade to Tier 1</strong>' : ''}
+                    </div>
+                `;
+                
+            } catch (error) {
+                log(`❌ Tier check failed: ${error.message}`, 'error');
+                resultsDiv.innerHTML = `<div class="result error">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Test feature access
+        async function testFeatureAccess() {
+            log(`🔓 Testing tier-specific feature access...`);
+            
+            // This would integrate with the HiTierSystem if loaded
+            if (window.HiTierSystem) {
+                const features = ['drop_hi', 'view_archive', 'share_public', 'view_trends', 'premium_analytics'];
+                
+                features.forEach(feature => {
+                    const hasAccess = window.HiTierSystem.hasCapability(feature);
+                    log(`${hasAccess ? '✅' : '❌'} ${feature}: ${hasAccess ? 'ALLOWED' : 'RESTRICTED'}`, hasAccess ? 'success' : 'info');
+                });
+            } else {
+                log(`⚠️ HiTierSystem not loaded - cannot test feature access`, 'error');
+            }
+        }
+
+        // View active codes
+        async function viewActivecodes() {
+            const resultsDiv = document.getElementById('tierResults');
+            
+            try {
+                log(`📋 Querying active access codes...`);
+                
+                const { data, error } = await supabase
+                    .from('hi_access_codes')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+                
+                if (error) {
+                    throw error;
+                }
+                
+                if (data && data.length > 0) {
+                    log(`📋 Found ${data.length} active code(s)`, 'success');
+                    
+                    let html = '<div class="result info"><strong>📋 Active Access Codes</strong><br><br>';
+                    data.forEach(code => {
+                        const expiryDate = new Date(code.expires_at);
+                        const isExpired = expiryDate < new Date();
+                        const hoursLeft = Math.max(0, Math.floor((expiryDate - new Date()) / (1000 * 60 * 60)));
+                        
+                        html += `
+                            <div style="margin: 10px 0; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 5px;">
+                                Code: <strong>${code.code}</strong><br>
+                                Type: ${code.code_type} | Tier: ${code.grants_tier}<br>
+                                Uses: ${code.current_uses}/${code.max_uses}<br>
+                                Duration: ${code.duration_hours || 0}h / ${code.duration_days || 0}d<br>
+                                Expires: ${expiryDate.toLocaleString()} ${isExpired ? '(EXPIRED)' : `(${hoursLeft}h left)`}
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    
+                    resultsDiv.innerHTML = html;
+                } else {
+                    log(`📋 No active codes found`, 'info');
+                    resultsDiv.innerHTML = `<div class="result info">📋 No active access codes found</div>`;
+                }
+                
+            } catch (error) {
+                log(`❌ Failed to query codes: ${error.message}`, 'error');
+                resultsDiv.innerHTML = `<div class="result error">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Clear console
+        function clearConsole() {
+            document.getElementById('testConsole').innerHTML = '';
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            log('🎯 24hr Access Code Testing initialized');
+            initializeTest();
+        });
+    </script>
+</body>
+</html>

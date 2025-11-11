@@ -357,14 +357,10 @@ export class HiShareSheet {
       window.PremiumUX.triggerHapticFeedback('medium');
     }
 
-    // � EMERGENCY FIX: Non-blocking persist (don't await - fire and forget)
-    this.persist({ toIsland: false, anon: false }).catch(err => {
-      console.error('❌ Private save failed:', err);
-      this.showToast('❌ Save failed. Please try again.');
-    });
-    
-    // Close immediately for responsiveness
-    this.close();
+    // Increment global Hi5 counter (PRIVATE submission)
+    this.incrementGlobalCounter('private');
+
+    await this.persist({ toIsland: false, anon: false });
 
     setTimeout(() => {
       button.dataset.animating = 'false';
@@ -383,14 +379,10 @@ export class HiShareSheet {
       window.PremiumUX.triggerHapticFeedback('medium');
     }
 
-    // � EMERGENCY FIX: Non-blocking persist (don't await - fire and forget)
-    this.persist({ toIsland: true, anon: true }).catch(err => {
-      console.error('❌ Anonymous share failed:', err);
-      this.showToast('❌ Share failed. Please try again.');
-    });
-    
-    // Close immediately for responsiveness
-    this.close();
+    // Increment global Hi5 counter (ANONYMOUS submission)
+    this.incrementGlobalCounter('anonymous');
+
+    await this.persist({ toIsland: true, anon: true });
 
     setTimeout(() => {
       button.dataset.animating = 'false';
@@ -413,23 +405,60 @@ export class HiShareSheet {
       window.PremiumUX.triggerHapticFeedback('celebration');
     }
 
-    // � EMERGENCY FIX: Non-blocking persist (don't await - fire and forget)
-    this.persist({ toIsland: true, anon: false }).catch(err => {
-      console.error('❌ Public share failed:', err);
-      this.showToast('❌ Share failed. Please try again.');
-    });
-    
-    // Close immediately for responsiveness
-    this.close();
+    // Increment global Hi5 counter (PUBLIC submission)  
+    this.incrementGlobalCounter('public');
+
+    await this.persist({ toIsland: true, anon: false });
 
     setTimeout(() => {
       button.dataset.animating = 'false';
     }, 800);
   }
 
-  // 🚫 LEGACY METHOD REMOVED: incrementGlobalCounter()
-  // Tesla-grade database tracking is handled by persist() → trackShareSubmission() → database RPCs
-  // No more localStorage-only fallbacks - database-first architecture only
+  // Increment global counter with COMPREHENSIVE TRACKING
+  incrementGlobalCounter(submissionType = 'public') {
+    console.log('🔍 [ShareSheet] incrementGlobalCounter called:', submissionType);
+    console.log('🔍 [ShareSheet] window.trackShareSubmission available:', !!window.trackShareSubmission);
+    
+    // 🎯 DATABASE-FIRST: Use comprehensive share tracking
+    if (window.trackShareSubmission) {
+      const pageOrigin = this.detectPageOrigin();
+      window.trackShareSubmission('share_sheet', {
+        submissionType: submissionType,
+        pageOrigin: pageOrigin,
+        origin: this.origin || pageOrigin
+      });
+    } else {
+      // Legacy localStorage fallback
+      const LS_TOTAL = 'hi_total_count';
+      const LS_GLOBAL = 'hi_global_shares';
+      
+      let total = parseInt(localStorage.getItem(LS_TOTAL) || '0', 10);
+      let gStarts = parseInt(localStorage.getItem(LS_GLOBAL) || '0', 10);
+      
+      total += 1;
+      gStarts += 1;
+      
+      localStorage.setItem(LS_TOTAL, String(total));
+      localStorage.setItem(LS_GLOBAL, String(gStarts));
+    }
+  }
+
+  // Detect current page origin
+  detectPageOrigin() {
+    const pathname = window.location.pathname;
+    const filename = pathname.split('/').pop() || '';
+    
+    if (filename.includes('island') || pathname.includes('island')) {
+      return 'hi-island';
+    } else if (filename.includes('muscle') || pathname.includes('muscle') || filename.includes('gym')) {
+      return 'hi-muscle';
+    } else {
+      return 'hi-dashboard';
+    }
+    
+    console.log('📊 Global Hi5 counter incremented:', { total, gStarts });
+  }
 
   // Get user's location (Gold Standard: Profile-First Architecture)
   async getUserLocation() {
@@ -455,19 +484,13 @@ export class HiShareSheet {
         return 'Location unavailable';
       }
       
-      // 🚨 EMERGENCY: 4-second timeout for GPS detection
-      const detected = await Promise.race([
-        window.GeocodingService.getUserLocation(),
-        new Promise(resolve => setTimeout(() => resolve('Location unavailable'), 4000))
-      ]);
+      const detected = await window.GeocodingService.getUserLocation();
       
       if (detected && detected !== 'Location unavailable') {
         console.log('📍 Location detected:', detected);
         
-        // Save to profile for future shares (non-blocking)
-        this.saveLocationToProfile(detected).catch(err => 
-          console.warn('⚠️ Background profile save failed:', err)
-        );
+        // Save to profile for future shares (gold standard)
+        await this.saveLocationToProfile(detected);
         
         this.currentLocation = detected;
         this.locationSource = 'detected';
@@ -493,18 +516,11 @@ export class HiShareSheet {
         return null;
       }
       
-      // 🚨 EMERGENCY: 3-second timeout for profile fetch
-      const profile = await Promise.race([
-        window.hiDB.fetchUserProfile(),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Profile fetch timeout')), 3000)
-        )
-      ]);
-      
+      const profile = await window.hiDB.fetchUserProfile();
       return profile;
       
     } catch (error) {
-      console.warn('⚠️ Failed to fetch profile (timeout or error):', error);
+      console.warn('⚠️ Failed to fetch profile:', error);
       return null;
     }
   }
@@ -605,103 +621,87 @@ export class HiShareSheet {
     }
   }
 
-  // 🚀 TESLA METHOD: Get authenticated user ID
-  async getUserId() {
-    try {
-      // Use existing auth system to get user ID
-      if (window.HiSupabase && window.HiSupabase.getClient) {
-        const client = window.HiSupabase.getClient();
-        const { data: { user } } = await client.auth.getUser();
-        return user?.id || null;
-      }
-      return null;
-    } catch (error) {
-      console.warn('Tesla getUserId failed:', error);
-      return null;
-    }
-  }
-
-  // 🎯 TESLA METHOD: Anonymous User Session Management
-  // Creates consistent anonymous user IDs for session-based archiving
-  async getOrCreateAnonymousUser() {
-    const storageKey = 'tesla_anonymous_user_id';
-    let anonymousUserId = sessionStorage.getItem(storageKey);
-    
-    if (!anonymousUserId) {
-      // Generate Tesla-grade session ID
-      const timestamp = Date.now();
-      const randomPart = Math.random().toString(36).substring(2, 15);
-      anonymousUserId = `anonymous-${timestamp}-${randomPart}`;
-      sessionStorage.setItem(storageKey, anonymousUserId);
-      console.log('🎯 Tesla generated new anonymous user ID:', anonymousUserId);
-    } else {
-      console.log('🔑 Tesla using existing anonymous user ID:', anonymousUserId);
-    }
-    
-    return anonymousUserId;
-  }
-
-  // � TESLA-GRADE REBUILT: Ultimate share persistence with bug fixes
+  // Persist data to Supabase
   async persist({ toIsland = false, anon = false }) {
     const journal = document.getElementById('hi-share-journal');
     const raw = (journal.value || '').trim();
     const text = raw || 'Marked a Hi-5 ✨';
     
-    console.log('� Tesla persist:', { text, toIsland, anon, origin: this.origin, type: this.shareType });
+    console.log('💾 Saving Hi-5:', { text, toIsland, anon, origin: this.origin, type: this.shareType });
     
-    // 🚨 TESLA FIX: Make location completely non-blocking
-    let location = 'Location unavailable';
-    
-    // Fire location detection in background (don't await)
-    Promise.race([
-      this.getUserLocation(),
-      new Promise(resolve => setTimeout(() => resolve('Location unavailable'), 1000))
-    ]).then(result => {
-      location = result || 'Location unavailable';
-      console.log('📍 Tesla location result:', location);
-    }).catch(err => {
-      console.warn('Tesla location failed:', err);
-    });
-    
-    // 🎯 TESLA CRITICAL FIX: Get or create anonymous user ID for consistent archiving
-    let userId = null;
-    if (!anon) {
-      // Authenticated users get real user ID
-      userId = await this.getUserId();
-    } else {
-      // Anonymous users get session-consistent ID for archiving
-      userId = await this.getOrCreateAnonymousUser();
-      console.log('🔑 Tesla anonymous user ID:', userId);
-    }
-    
+    const location = await this.getUserLocation();
+
     try {
-      // 🌟 TESLA: Use emotional journey data if available (Hi Muscle integration)
-      const currentEmoji = this.emotionalJourney?.current || '🙌';
-      const desiredEmoji = this.emotionalJourney?.desired || '✨';
+      // Check if HiBase shares integration is enabled
+      const { isEnabledCohort } = await import('../../public/lib/flags/HiFlags.js');
+      const hibaseEnabled = await isEnabledCohort('hibase_shares_enabled');
       
-      // 🎯 TESLA FIX #1: ALL users (including anonymous) get archives with proper user IDs
-      const archivePayload = {
-        currentEmoji,
-        desiredEmoji,
-        journal: text,
-        location,
-        origin: this.origin, // 'hi5', 'higym', or 'hi-island'
-        type: this.shareType || (this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : 'Hi5')),
-        user_id: userId // Tesla: Always include user_id (even for anonymous)
-      };
+      let shareResult = null;
       
-      // Tesla: ALL shares get archived (fixes anonymous archive bug)
-      if (window.hiDB?.insertArchive) {
-        Promise.race([
-          window.hiDB.insertArchive(archivePayload),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Archive timeout')), 5000))
-        ]).catch(err => {
-          console.warn('Tesla archive save failed:', err);
+      // Use HiBase if enabled, otherwise fall back to legacy hiDB
+      if (hibaseEnabled && window.HiBase?.shares) {
+        console.log('📡 Using HiBase shares integration');
+        
+        // Get current user (HI DEV: null for anonymous, not 'anonymous' string)
+        const currentUser = window.hiAuth?.getCurrentUser?.() || { id: null };
+        
+        // HI DEV: Prepare payload per specifications
+        const sharePayload = {
+          type: 'Hi5',
+          text: text,
+          visibility: anon ? 'anonymous' : (toIsland ? 'public' : 'private'),
+          user_id: currentUser.id || null, // null for anonymous
+          location: location?.name || null,
+          metadata: { 
+            origin: 'dashboard', 
+            tags: ['hi5'],
+            latitude: location?.lat || null,
+            longitude: location?.lng || null,
+            currentEmoji: this.emotionalJourney?.current || '🙌',
+            desiredEmoji: this.emotionalJourney?.desired || '✨'
+          }
+        };
+        
+        shareResult = await window.HiBase.shares.insertShare(sharePayload);
+        console.log('📤 HiBase share result:', shareResult);
+        
+        // Call success callback with HiBase info
+        this.onSuccess({ 
+          ...sharePayload, 
+          hibaseEnabled: true,
+          visibility: sharePayload.visibility
+        });
+        
+      } else {
+        console.log('📝 Using legacy hiDB integration');
+        
+        // ALWAYS write to My Archive (private storage)
+        // 🌟 TESLA-GRADE: Use emotional journey data if available (Hi Muscle integration)
+        const currentEmoji = this.emotionalJourney?.current || '�';
+        const desiredEmoji = this.emotionalJourney?.desired || '✨';
+        
+        const archivePayload = {
+          currentEmoji,
+          desiredEmoji,
+          journal: text,
+          location,
+          origin: this.origin, // 'hi5', 'higym', or 'hi-island'
+          type: this.shareType || (this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : 'Hi5'))
+        };
+        
+        // Call success callback with legacy info
+        this.onSuccess({ 
+          ...archivePayload,
+          hibaseEnabled: false,
+          visibility: anon ? 'anonymous' : (toIsland ? 'public' : 'private')
         });
       }
+      
+      const archiveResult = await window.hiDB?.insertArchive?.(archivePayload);
+      console.log('📝 Archive saved:', archiveResult);
 
-      // 🎯 TESLA FIX #2: Only public/anonymous shares go to island (NO private leaks)
-      if (toIsland && window.hiDB?.insertPublicShare) {
+      // If sharing to island (public or anon), ALSO write to public_shares
+      if (toIsland) {
         const publicPayload = {
           currentEmoji,
           currentName: this.origin === 'higym' ? 'Hi GYM' : (this.origin === 'hi-island' ? 'Hi Island' : 'Hi-5'),
@@ -711,102 +711,42 @@ export class HiShareSheet {
           isAnonymous: anon,
           location,
           isPublic: true,
-          type: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : 'self_hi5'),
-          user_id: anon ? null : userId // Tesla: Proper user_id handling
+          origin: this.origin,
+          type: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : 'self_hi5')
         };
         
-        // Tesla: Enhanced public share with proper error handling
-        Promise.race([
-          window.hiDB.insertPublicShare(publicPayload),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Public share timeout')), 5000))
-        ]).catch(err => {
-          console.warn('Tesla public share failed:', err);
-        });
+        const publicResult = await window.hiDB?.insertPublicShare?.(publicPayload);
+        console.log('🌟 Public share saved:', publicResult);
 
-        // Update map (fire and forget with timeout)
-        if (window.hiDB?.updateMap) {
-          Promise.race([
-            window.hiDB.updateMap(publicPayload),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Map update timeout')), 3000))
-          ]).catch(() => {});
-        }
-      }
+        // Update map
+        try {
+          await window.hiDB?.updateMap?.(publicPayload);
+        } catch {}
 
-      // Show success toast immediately
-      if (toIsland) {
         this.showToast(anon ? '✨ Shared anonymously!' : '🌟 Shared publicly!');
       } else {
         this.showToast('🔒 Saved privately to your archive ✨');
       }
 
-      // Track stats (non-blocking with timeout)
-      if (window.trackShareSubmission) {
-        const shareType = anon ? 'anonymous' : (toIsland ? 'public' : 'private');
-        Promise.race([
-          window.trackShareSubmission(this.origin, {
-            submissionType: shareType,
-            pageOrigin: this.origin,
-            origin: this.origin,
-            timestamp: Date.now()
-          }),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Tracking timeout')), 3000))
-        ]).catch(err => console.warn('Stats tracking failed:', err));
+      // Trigger success callback
+      this.onSuccess({ toIsland, anon, origin: this.origin });
+
+      // Close sheet
+      this.close();
+
+      // Refresh feed if on Hi Island page
+      if (document.body.dataset.page === 'hi-island') {
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       }
 
-      // Trigger success callback
-      this.onSuccess({ 
-        toIsland, 
-        anon, 
-        origin: this.origin,
-        visibility: anon ? 'anonymous' : (toIsland ? 'public' : 'private')
-      });
-
-      console.log('✅ Share persistence complete, closing sheet...');
-      
-    } catch (error) {
-      console.error('❌ Share persistence failed:', error);
-      this.showToast('❌ Failed to save. Please try again.');
-      return; // Don't close on error
-    }
-    
-    // 🔧 EMERGENCY FIX: Don't close here - button handlers close immediately for responsiveness
-    // this.close(); // Moved to button handlers for non-blocking UX
-
-    // 🔧 LONG-TERM SOLUTION: Proper feed refresh after share
-    if (document.body.dataset.page === 'hi-island' || window.location.pathname.includes('hi-island')) {
-      setTimeout(async () => {
-        try {
-          if (window.hiRealFeed) {
-            console.log('🔄 Refreshing Hi-Island feed after share submission...');
-            
-            // Clear cached data to force fresh load
-            if (toIsland) {
-              window.hiRealFeed.feedData.general = [];
-              window.hiRealFeed.pagination.general.page = 0;
-            }
-            
-            // Always refresh archives (user's personal data)
-            window.hiRealFeed.feedData.archives = [];
-            window.hiRealFeed.pagination.archives.page = 0;
-            
-            // Refresh current tab
-            const currentTab = window.hiRealFeed.currentTab || 'general';
-            await window.hiRealFeed.loadFeedData(currentTab);
-            
-            console.log('✅ Hi-Island feed refreshed successfully');
-          }
-          
-          // Update global stats
-          if (window.loadCurrentStatsFromDatabase) {
-            window.loadCurrentStatsFromDatabase();
-          }
-        } catch (error) {
-          console.error('❌ Feed refresh failed:', error);
-        }
-      }, 1000);
+    } catch (e) {
+      console.warn('Save error:', e);
+      this.showToast('Saved locally. Will sync when online.');
+      this.close();
     }
   }
-
 
   // 🎉 TESLA-GRADE: Premium celebration toast system
   showToast(message, type = 'info') {

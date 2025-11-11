@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Tesla Database Connection Fix</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .fix-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .fix-button {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+        .fix-button:hover {
+            transform: translateY(-2px);
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .status.success { background: rgba(76, 175, 80, 0.3); }
+        .status.error { background: rgba(244, 67, 54, 0.3); }
+        .status.info { background: rgba(33, 150, 243, 0.3); }
+        .log {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Tesla Database Connection Fix</h1>
+        <p>Let's fix the Supabase connection so your Tesla shares appear in the live feed!</p>
+
+        <div class="fix-card">
+            <h3>🎯 Problem Identified</h3>
+            <p>Your Tesla enhancements are working perfectly, but the Supabase client isn't loading properly. This means shares are stored locally instead of in the live database.</p>
+            <div class="status info">✅ Tesla System: Working<br>❌ Database Connection: Failed</div>
+        </div>
+
+        <div class="fix-card">
+            <h3>🚀 Quick Fix Solutions</h3>
+            <button class="fix-button" onclick="fixSupabaseClient()">Fix Supabase Client</button>
+            <button class="fix-button" onclick="testDatabaseConnection()">Test Database</button>
+            <button class="fix-button" onclick="reinitializeSystem()">Reinitialize System</button>
+            <div id="fix-status"></div>
+        </div>
+
+        <div class="fix-card">
+            <h3>📋 Step-by-Step Manual Fix</h3>
+            <ol>
+                <li><strong>Reload Hi-Island:</strong> <a href="/public/hi-island-NEW.html" target="_blank" style="color: #FFD700;">Open Fresh Hi-Island Page</a></li>
+                <li><strong>Check Console:</strong> Look for "✅ Supabase client initialized" message</li>
+                <li><strong>Try Share Again:</strong> Submit a Hi moment and check if it appears in feed</li>
+                <li><strong>Monitor Tesla Logs:</strong> Look for "Tesla" messages in console</li>
+            </ol>
+        </div>
+
+        <div class="log" id="fix-log">
+            Ready to fix database connection...
+        </div>
+    </div>
+
+    <script type="module">
+        let logMessages = [];
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            logMessages.unshift(logEntry);
+            document.getElementById('fix-log').innerHTML = logMessages.join('\\n');
+            console.log(logEntry);
+        }
+
+        function updateStatus(message, type = 'info') {
+            const element = document.getElementById('fix-status');
+            element.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        // Fix Supabase Client
+        window.fixSupabaseClient = async function() {
+            log('🔧 Starting Supabase client fix...');
+            updateStatus('Fixing Supabase client...', 'info');
+
+            try {
+                // Import Supabase
+                const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+                
+                const url = 'https://gfcubvroxgfvjhacinic.supabase.co';
+                const key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g';
+                
+                // Create fresh client
+                const client = createClient(url, key, {
+                    auth: { 
+                        persistSession: true, 
+                        autoRefreshToken: true 
+                    }
+                });
+
+                // Set up all the global references
+                window.__HI_SUPABASE_CLIENT = client;
+                window.supabaseClient = client;
+                window.sb = client;
+                window.supabase = { createClient: () => client };
+                
+                // Set up HiSupabase module
+                window.HiSupabase = {
+                    getClient: () => client
+                };
+
+                log('✅ Supabase client created and configured');
+                log('✅ Global references established');
+                
+                // Test the connection
+                const { data, error } = await client.from('public_shares').select('count', { count: 'exact', head: true });
+                if (error) {
+                    throw error;
+                }
+                
+                log(`✅ Database connection verified (${data} records)`);
+                updateStatus('✅ Supabase Client Fixed Successfully!', 'success');
+                
+            } catch (error) {
+                log(`❌ Fix failed: ${error.message}`);
+                updateStatus(`❌ Fix Failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Test Database Connection
+        window.testDatabaseConnection = async function() {
+            log('🔍 Testing database connection...');
+            updateStatus('Testing connection...', 'info');
+
+            try {
+                const client = window.HiSupabase?.getClient() || window.supabaseClient || window.sb;
+                
+                if (!client) {
+                    throw new Error('No Supabase client available');
+                }
+
+                log('✅ Supabase client found');
+
+                // Test public_shares query
+                const { data: shares, error: sharesError } = await client
+                    .from('public_shares')
+                    .select('*')
+                    .limit(1);
+
+                if (sharesError) {
+                    throw sharesError;
+                }
+
+                log(`✅ public_shares accessible (${shares.length} test records)`);
+
+                // Test hi_archives query  
+                const { data: archives, error: archivesError } = await client
+                    .from('hi_archives')
+                    .select('*')
+                    .limit(1);
+
+                if (archivesError) {
+                    throw archivesError;
+                }
+
+                log(`✅ hi_archives accessible (${archives.length} test records)`);
+                updateStatus('✅ Database Connection Working!', 'success');
+
+            } catch (error) {
+                log(`❌ Database test failed: ${error.message}`);
+                updateStatus(`❌ Database Test Failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Reinitialize System
+        window.reinitializeSystem = async function() {
+            log('🚀 Reinitializing complete system...');
+            updateStatus('Reinitializing system...', 'info');
+
+            try {
+                // First fix Supabase
+                await window.fixSupabaseClient();
+                
+                // Wait a moment
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Test database
+                await window.testDatabaseConnection();
+                
+                // Reinitialize HiDB
+                if (window.hiDB) {
+                    log('✅ HiDB already available');
+                } else {
+                    log('⚠️ HiDB not found - may need page reload');
+                }
+
+                log('🎯 System reinitialization complete');
+                updateStatus('✅ System Reinitialized - Try Sharing Now!', 'success');
+                
+            } catch (error) {
+                log(`❌ Reinitialize failed: ${error.message}`);
+                updateStatus(`❌ Reinitialize Failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Auto-run diagnostics on load
+        window.addEventListener('load', function() {
+            log('🔧 Tesla Database Connection Fix loaded');
+            log('🎯 Ready to diagnose and fix Supabase connection issues');
+        });
+    </script>
+</body>
+</html>

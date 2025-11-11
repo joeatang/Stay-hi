@@ -1,0 +1,8 @@
+::1 - - [10/Nov/2025 23:04:06] "HEAD / HTTP/1.1" 200 -
+::1 - - [10/Nov/2025 23:04:16] "GET / HTTP/1.1" 200 -
+::1 - - [10/Nov/2025 23:04:16] code 404, message File not found
+::1 - - [10/Nov/2025 23:04:16] "GET /welcome.html HTTP/1.1" 404 -
+::1 - - [10/Nov/2025 23:04:17] code 404, message File not found
+::1 - - [10/Nov/2025 23:04:17] "GET /favicon.ico HTTP/1.1" 404 -
+::1 - - [10/Nov/2025 23:04:17] code 404, message File not found
+::1 - - [10/Nov/2025 23:04:17] "GET /favicon.ico HTTP/1.1" 404 -

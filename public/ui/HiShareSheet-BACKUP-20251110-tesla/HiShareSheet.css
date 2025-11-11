@@ -1,0 +1,628 @@
+/* ===================================================================
+   🎨 HI SHARE SHEET COMPONENT STYLES
+   Tesla-grade unified sharing modal for Hi moments
+   Used by: Index (Self Hi5), Hi Island, Hi Muscle
+=================================================================== */
+
+/* Tesla-Grade Design Variables */
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --shadow-premium: 0 20px 40px rgba(0, 0, 0, 0.1), 0 8px 20px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  --gradient-premium: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+}
+
+/* Tesla-Grade Modal Body Lock */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* ===================================================================
+   🚀 TESLA-GRADE CONTAINER - ANTI-GLITCH POSITIONING SYSTEM
+   Prevents bottom-left hover glitching with stable positioning foundation
+=================================================================== */
+.hi-share-sheet-container {
+  /* Foundation: Absolute positioning context */
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9997 !important;
+  
+  /* Anti-Glitch: Stable transform foundation */
+  transform-origin: center center !important;
+  transform-style: preserve-3d !important;
+  
+  /* Performance: GPU acceleration without side effects */
+  will-change: auto !important;
+  contain: layout style paint !important;
+  
+  /* Isolation: Prevent transform inheritance issues */
+  isolation: isolate !important;
+  
+  /* Pointer Events: Dynamic (managed by JavaScript) */
+  pointer-events: none; /* Default: don't block interactions */
+}
+
+/* Tesla-Grade Anti-Glitch: Ensure no conflicting transforms on child elements */
+.hi-share-sheet-container * {
+  transform-origin: center center !important;
+}
+
+/* Tesla-Grade Backdrop - Enhanced blur and depth */
+.premium-share-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 100;
+  display: none;
+}
+
+.premium-share-backdrop.active {
+  display: block;
+  pointer-events: auto; /* 🔧 Ensure backdrop can receive click events when active */
+}
+
+/* Share Sheet Modal - Tesla-Grade Glass Card Design */
+.premium-share-sheet {
+  /* TESLA POSITIONING: Ultra-stable centering system */
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: min(480px, 95vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  
+  /* Anti-Glitch: Stable transform foundation */
+  transform-origin: center center !important;
+  transform-style: flat !important;
+  
+  /* TESLA GLASS EFFECT: Premium backdrop blur with gradient border */
+  background: var(--glass-bg, rgba(255, 255, 255, 0.08));
+  backdrop-filter: blur(25px) saturate(180%);
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.15));
+  border-radius: 24px;
+  
+  /* TESLA SHADOWS: Multi-layer depth with premium glow */
+  box-shadow: var(--shadow-premium, 0 20px 40px rgba(0, 0, 0, 0.1),
+              0 8px 20px rgba(0, 0, 0, 0.08),
+              inset 0 1px 0 rgba(255, 255, 255, 0.3));
+  
+  /* TESLA PERFORMANCE: Optimized rendering */
+  z-index: 101;
+  padding: 24px;
+  color: white;
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  contain: layout style;
+  isolation: isolate;
+  will-change: opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  visibility: hidden;
+}
+
+.premium-share-sheet.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Mobile Responsive - Tesla-Grade Adaptive Positioning */
+@media (max-width: 540px) {
+  .premium-share-sheet {
+    width: 90vw;
+    max-width: 400px;
+    padding: 16px;
+    /* Mobile: Ultra-stable centering system */
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    transform-origin: center center !important;
+    max-height: 85vh;
+    margin: 0 5vw; /* Ensure minimum edge spacing */
+  }
+}
+
+/* Extra small screens - ultra mobile optimization */
+@media (max-width: 380px) {
+  .premium-share-sheet {
+    width: 95vw;
+    padding: 12px;
+    max-height: 90vh;
+  }
+  
+  .share-header {
+    margin-bottom: 16px;
+  }
+  
+  .share-header h3 {
+    font-size: 18px;
+  }
+  
+  .share-input-container {
+    margin-bottom: 20px;
+  }
+  
+  .premium-textarea {
+    min-height: 70px;
+    padding: 12px;
+  }
+  
+  .share-options {
+    gap: 8px;
+  }
+  
+  .share-option {
+    padding: 12px;
+    gap: 10px;
+  }
+  
+  .option-icon {
+    font-size: 18px;
+  }
+  
+  .option-title {
+    font-size: 14px;
+  }
+  
+  .option-desc {
+    font-size: 12px;
+  }
+  
+  .emotional-journey {
+    margin-bottom: 16px;
+    padding: 12px;
+  }
+  
+  .emotional-journey h4 {
+    font-size: 12px;
+  }
+  
+  .journey-flow {
+    gap: 6px;
+    font-size: 16px;
+  }
+  
+  .journey-current,
+  .journey-desired {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+  
+  /* Mobile close button optimization */
+  .btn-premium-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+}
+
+/* Tesla-Grade Header */
+.share-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.share-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.share-header h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+}
+
+.share-subtitle {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+}
+
+.btn-premium-icon {
+  /* Tesla-Grade Close Button - Guaranteed Top Layer */
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.8);
+  transition: all 0.2s ease;
+  
+  /* Tesla-Grade Z-Index Hierarchy */
+  position: relative;
+  z-index: 9999;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  
+  /* Ensure click events are captured */
+  pointer-events: all !important;
+  isolation: isolate;
+}
+
+.btn-premium-icon:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: white;
+  transform: scale(1.05) !important;
+  transform-origin: center center !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Tesla-Grade Input System */
+.share-input-container {
+  position: relative;
+  margin-bottom: 24px;
+}
+
+.premium-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: white;
+  font: inherit;
+  resize: vertical;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.premium-textarea:focus {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 20px rgba(78, 205, 196, 0.2);
+  outline: none;
+}
+
+.premium-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.character-count {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+}
+
+/* Tesla-Grade Share Options */
+.share-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.share-option {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  backdrop-filter: blur(10px);
+  position: relative;
+  /* 🔧 TESLA-GRADE FIX: Explicitly ensure buttons can receive clicks */
+  pointer-events: auto !important;
+}
+
+.share-option:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  filter: brightness(1.05);
+  
+  /* 🚀 Tesla Anti-Glitch: Prevent transform inheritance on hover */
+  transform: none !important;
+  transform-origin: center center !important;
+}
+
+.option-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.option-content {
+  flex: 1;
+  text-align: left;
+}
+
+.option-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.option-desc {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Tesla-Grade Primary Option */
+.public-option.primary-option {
+  background: var(--gradient-premium, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
+  border-color: transparent;
+}
+
+.public-option.primary-option:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 16px 40px rgba(78, 205, 196, 0.3);
+}
+
+/* Tesla-Grade CSS Variables */
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --gradient-premium: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --shadow-premium: 0 20px 40px rgba(0, 0, 0, 0.1),
+                    0 8px 20px rgba(0, 0, 0, 0.08),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.share-option {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  backdrop-filter: blur(10px);
+  position: relative;
+}
+
+.share-option:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  filter: brightness(1.05);
+}
+
+.option-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.option-content {
+  flex: 1;
+  text-align: left;
+}
+
+.option-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.option-desc {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Tesla Primary Option - Premium Gradient */
+.public-option.primary-option {
+  background: var(--gradient-premium, linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%));
+  border-color: transparent;
+}
+
+.public-option.primary-option:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 16px 40px rgba(78, 205, 196, 0.3);
+}
+
+.privacy-notice {
+  font-size: 11px;
+  color: #777;
+  margin-top: 4px;
+  transition: color 0.2s ease;
+}
+
+.share-option:hover .option-title {
+  color: #000;
+}
+
+.share-option:hover .option-desc {
+  color: #333;
+}
+
+.share-option:hover .privacy-notice {
+  color: #555;
+}
+
+/* ===================================================================
+   🌍 LOCATION STATUS (GOLD STANDARD)
+=================================================================== */
+
+.hi-share-location-status {
+  margin: 0 0 24px 0;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.hi-share-location-status:hover {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.location-text {
+  font-size: 13px;
+  color: #333;
+  font-weight: 500;
+  flex: 1;
+}
+
+.location-source {
+  font-size: 11px;
+  color: #888;
+  font-weight: 400;
+  margin-left: 8px;
+}
+
+.location-loading {
+  font-size: 13px;
+  color: #888;
+  font-style: italic;
+}
+
+.location-update-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.location-update-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.location-update-btn:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .hi-share-location-status {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .location-update-btn {
+    align-self: flex-end;
+  }
+}
+
+/* Primary Option Highlight */
+.primary-option {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(102, 126, 234, 0.35);
+}
+
+.primary-option:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(102, 126, 234, 0.6);
+}
+
+.primary-option .option-title {
+  color: #1a1a1a;
+}
+
+.primary-option .option-desc {
+  color: #555;
+}
+
+.primary-option .privacy-notice {
+  color: #777;
+}
+
+.primary-option:hover .option-title {
+  color: #000;
+}
+
+.primary-option:hover .option-desc {
+  color: #333;
+}
+
+.primary-option:hover .privacy-notice {
+  color: #555;
+}
+
+/* ===================================================================
+   🎭 TESLA-GRADE EMOTIONAL JOURNEY DISPLAY (HiGYM Integration)
+=================================================================== */
+.hi-emotional-journey {
+  background: linear-gradient(135deg, rgba(78, 205, 196, 0.08) 0%, rgba(78, 205, 196, 0.03) 100%);
+  border: 1px solid rgba(78, 205, 196, 0.2);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin: 0 0 16px 0;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.journey-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(78, 205, 196, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+}
+
+.journey-flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 20px;
+}
+
+.journey-current,
+.journey-desired {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+  font-size: 18px;
+  transition: all 0.2s ease;
+}
+
+.journey-current:hover,
+.journey-desired:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.journey-arrow {
+  color: rgba(78, 205, 196, 0.8);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* Tesla-Grade Close Button Supremacy - Prevent Z-Index Conflicts */
+.premium-share-sheet .btn-premium-icon {
+  z-index: 10001 !important; /* Higher than any modal content */
+}
+
+/* Body scroll lock for Tesla-grade modal experience */
+body.modal-open {
+  overflow: hidden;
+}

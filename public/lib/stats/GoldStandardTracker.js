@@ -7,8 +7,8 @@ export async function trackShareSubmission(source = 'dashboard', metadata = {}) 
   console.log(`🎯 [GOLD STANDARD] Share submitted from ${source}:`, metadata);
   console.log('🔍 Current Total His before tracking:', window.gTotalHis || 0);
   
-  // 🚀 TESLA GRADE: Direct database increment - no complexity, just results
-  const supabase = window.getSupabase?.() || window.supabaseClient || window.sb || 
+  // � EMERGENCY FIX: Use unified HiDB client to prevent multiple client creation
+  const supabase = window.hiDB?.getSupabase?.() || window.supabaseClient || window.sb || 
                   window.HiSupabase?.getClient?.() || window.__HI_SUPABASE_CLIENT;
   
   if (supabase) {

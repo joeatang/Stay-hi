@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🕵️ Tesla Schema Detective</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .detective-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .detective-button {
+            background: linear-gradient(45deg, #e74c3c, #f39c12);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 10px 5px;
+        }
+        .schema-result {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 10px 0;
+            white-space: pre-wrap;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .status.success { background: rgba(46, 204, 113, 0.3); }
+        .status.error { background: rgba(231, 76, 60, 0.3); }
+        .status.warning { background: rgba(243, 156, 18, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🕵️ Tesla Schema Detective - Wozniak Style Analysis</h1>
+        <p>Let's reverse engineer the exact database schema to fix Tesla compatibility</p>
+
+        <div class="detective-card">
+            <h3>🔍 Schema Investigation Tools</h3>
+            <button class="detective-button" onclick="investigatePublicShares()">🔬 Investigate public_shares</button>
+            <button class="detective-button" onclick="investigateHiArchives()">📁 Investigate hi_archives</button>
+            <button class="detective-button" onclick="testOriginalInsert()">🧪 Test Original Insert</button>
+            <button class="detective-button" onclick="testTeslaInsert()">⚡ Test Tesla Insert</button>
+            <div id="investigation-status"></div>
+        </div>
+
+        <div class="detective-card">
+            <h3>📊 Schema Analysis Results</h3>
+            <div class="schema-result" id="schema-results">
+Ready to investigate database schema...
+            </div>
+        </div>
+
+        <div class="detective-card">
+            <h3>🎯 Solution Generator</h3>
+            <button class="detective-button" onclick="generateSolution()">🚀 Generate Tesla Fix</button>
+            <div id="solution-output"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        let investigationResults = {};
+        let supabaseClient = null;
+
+        // Initialize Supabase connection
+        async function initSupabase() {
+            try {
+                const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+                const url = 'https://gfcubvroxgfvjhacinic.supabase.co';
+                const key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g';
+                supabaseClient = createClient(url, key);
+                log('✅ Supabase connection established');
+                return true;
+            } catch (error) {
+                log(`❌ Supabase initialization failed: ${error.message}`);
+                return false;
+            }
+        }
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const results = document.getElementById('schema-results');
+            results.textContent = `[${timestamp}] ${message}\\n` + results.textContent;
+            console.log(message);
+        }
+
+        function updateStatus(message, type = 'warning') {
+            const element = document.getElementById('investigation-status');
+            element.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        // Investigate public_shares table structure
+        window.investigatePublicShares = async function() {
+            log('🔍 Starting public_shares schema investigation...');
+            updateStatus('Investigating public_shares schema...', 'warning');
+
+            if (!supabaseClient) {
+                await initSupabase();
+            }
+
+            try {
+                // Method 1: Try to get a single row to see actual column structure
+                log('📊 Method 1: Sampling existing data structure...');
+                const { data: sampleData, error: sampleError } = await supabaseClient
+                    .from('public_shares')
+                    .select('*')
+                    .limit(1);
+
+                if (sampleData && sampleData.length > 0) {
+                    const columns = Object.keys(sampleData[0]);
+                    log(`✅ Found columns: ${columns.join(', ')}`);
+                    investigationResults.publicSharesColumns = columns;
+                    
+                    // Check specific problematic columns
+                    const hasOrigin = columns.includes('origin');
+                    const hasContent = columns.includes('content');
+                    const hasText = columns.includes('text');
+                    const hasVisibility = columns.includes('visibility');
+                    const hasIsAnonymous = columns.includes('is_anonymous');
+                    
+                    log(`🔍 Column Analysis:`);
+                    log(`   origin: ${hasOrigin ? '✅ EXISTS' : '❌ MISSING'}`);
+                    log(`   content: ${hasContent ? '✅ EXISTS' : '❌ MISSING'}`);
+                    log(`   text: ${hasText ? '✅ EXISTS' : '❌ MISSING'}`);
+                    log(`   visibility: ${hasVisibility ? '✅ EXISTS' : '❌ MISSING'}`);
+                    log(`   is_anonymous: ${hasIsAnonymous ? '✅ EXISTS' : '❌ MISSING'}`);
+                    
+                    investigationResults.publicSharesAnalysis = {
+                        hasOrigin, hasContent, hasText, hasVisibility, hasIsAnonymous
+                    };
+                } else {
+                    log('⚠️ No sample data available, trying schema introspection...');
+                }
+
+                // Method 2: Try inserting with different field combinations to see what works
+                log('📊 Method 2: Testing field combinations...');
+                await testFieldCombinations('public_shares');
+
+            } catch (error) {
+                log(`❌ public_shares investigation failed: ${error.message}`);
+                updateStatus(`public_shares investigation failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Investigate hi_archives table structure  
+        window.investigateHiArchives = async function() {
+            log('🔍 Starting hi_archives schema investigation...');
+            updateStatus('Investigating hi_archives schema...', 'warning');
+
+            if (!supabaseClient) {
+                await initSupabase();
+            }
+
+            try {
+                // Check if user_id field expects UUID vs string
+                log('📊 Testing user_id field type...');
+                
+                const testPayloads = [
+                    { user_id: null, journal: 'test', current_emoji: '🙌' },
+                    { user_id: 'test-string', journal: 'test', current_emoji: '🙌' },
+                ];
+
+                for (let i = 0; i < testPayloads.length; i++) {
+                    try {
+                        const { error } = await supabaseClient
+                            .from('hi_archives')
+                            .insert(testPayloads[i])
+                            .select();
+                        
+                        if (error) {
+                            log(`❌ Payload ${i + 1} failed: ${error.message}`);
+                            if (error.message.includes('uuid')) {
+                                log(`🎯 FOUND: user_id field expects UUID type, not string!`);
+                                investigationResults.archivesUserIdType = 'uuid';
+                            }
+                        } else {
+                            log(`✅ Payload ${i + 1} succeeded`);
+                        }
+                    } catch (e) {
+                        log(`❌ Payload ${i + 1} error: ${e.message}`);
+                    }
+                }
+
+            } catch (error) {
+                log(`❌ hi_archives investigation failed: ${error.message}`);
+                updateStatus(`hi_archives investigation failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Test field combinations to determine exact schema
+        async function testFieldCombinations(tableName) {
+            const testCombinations = [
+                { text: 'test', current_emoji: '🙌', is_anonymous: false },
+                { content: 'test', current_emoji: '🙌', visibility: 'public' },
+                { text: 'test', origin: 'hi5', current_emoji: '🙌' },
+                { content: 'test', origin: 'hi5', visibility: 'public' }
+            ];
+
+            for (let i = 0; i < testCombinations.length; i++) {
+                try {
+                    const { error } = await supabaseClient
+                        .from(tableName)
+                        .insert(testCombinations[i])
+                        .select();
+                    
+                    if (error) {
+                        log(`❌ Combination ${i + 1}: ${error.message}`);
+                        if (error.message.includes("Could not find the")) {
+                            const missingColumn = error.message.match(/'([^']+)'/)?.[1];
+                            log(`🎯 MISSING COLUMN: ${missingColumn}`);
+                        }
+                    } else {
+                        log(`✅ Combination ${i + 1} worked!`);
+                        log(`   Fields: ${Object.keys(testCombinations[i]).join(', ')}`);
+                    }
+                } catch (e) {
+                    log(`❌ Combination ${i + 1} error: ${e.message}`);
+                }
+            }
+        }
+
+        // Test original working insert
+        window.testOriginalInsert = async function() {
+            log('🧪 Testing original db.js insert pattern...');
+            updateStatus('Testing original insert...', 'warning');
+
+            if (!supabaseClient) {
+                await initSupabase();
+            }
+
+            // Replicate exact original db.js structure
+            const originalRow = {
+                user_id: null,
+                current_emoji: '🙌',
+                current_name: null,
+                desired_emoji: '✨',
+                desired_name: null,
+                text: 'Original test insert',
+                is_anonymous: true,
+                location: 'Adelaide, Australia',
+                origin: 'hi5',
+                type: 'self_hi5'
+            };
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('public_shares')
+                    .insert(originalRow)
+                    .select();
+
+                if (error) {
+                    log(`❌ Original insert failed: ${error.message}`);
+                } else {
+                    log(`✅ Original insert succeeded!`);
+                    log(`   Data: ${JSON.stringify(data, null, 2)}`);
+                    investigationResults.originalInsertWorks = true;
+                }
+            } catch (error) {
+                log(`❌ Original insert error: ${error.message}`);
+            }
+        };
+
+        // Test Tesla insert
+        window.testTeslaInsert = async function() {
+            log('⚡ Testing Tesla insert pattern...');
+            updateStatus('Testing Tesla insert...', 'warning');
+
+            if (!supabaseClient) {
+                await initSupabase();
+            }
+
+            // Current Tesla structure causing issues
+            const teslaRow = {
+                user_id: null,
+                text: 'Tesla test insert',
+                current_emoji: '🙌',
+                current_name: null,
+                desired_emoji: '✨',
+                desired_name: null,
+                is_anonymous: true,
+                location: 'Adelaide, Australia',
+                origin: 'hi5',
+                type: 'self_hi5'
+            };
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('public_shares')
+                    .insert(teslaRow)
+                    .select();
+
+                if (error) {
+                    log(`❌ Tesla insert failed: ${error.message}`);
+                } else {
+                    log(`✅ Tesla insert succeeded!`);
+                    log(`   Data: ${JSON.stringify(data, null, 2)}`);
+                }
+            } catch (error) {
+                log(`❌ Tesla insert error: ${error.message}`);
+            }
+        };
+
+        // Generate solution based on investigation results
+        window.generateSolution = function() {
+            log('🚀 Generating Tesla solution based on investigation...');
+            
+            let solution = '🎯 TESLA SCHEMA FIX SOLUTION:\\n\\n';
+            
+            if (investigationResults.publicSharesAnalysis) {
+                const analysis = investigationResults.publicSharesAnalysis;
+                solution += 'PUBLIC_SHARES TABLE:\\n';
+                solution += `- Use text field: ${analysis.hasText ? 'YES' : 'NO'}\\n`;
+                solution += `- Use content field: ${analysis.hasContent ? 'YES' : 'NO'}\\n`;
+                solution += `- Use origin field: ${analysis.hasOrigin ? 'YES' : 'NO'}\\n`;
+                solution += `- Use is_anonymous: ${analysis.hasIsAnonymous ? 'YES' : 'NO'}\\n`;
+                solution += `- Use visibility: ${analysis.hasVisibility ? 'YES' : 'NO'}\\n\\n`;
+            }
+            
+            if (investigationResults.archivesUserIdType) {
+                solution += 'HI_ARCHIVES TABLE:\\n';
+                solution += `- user_id expects: ${investigationResults.archivesUserIdType.toUpperCase()}\\n`;
+                solution += '- Tesla anonymous IDs must be NULL for anonymous shares\\n\\n';
+            }
+            
+            solution += 'RECOMMENDED TESLA FIXES:\\n';
+            solution += '1. Remove origin field if missing from schema\\n';
+            solution += '2. Use NULL user_id for anonymous shares in hi_archives\\n';
+            solution += '3. Stick to text/is_anonymous pattern for public_shares\\n';
+            
+            document.getElementById('solution-output').innerHTML = `<div class="schema-result">${solution}</div>`;
+        };
+
+        // Initialize on page load
+        window.addEventListener('load', async function() {
+            log('🕵️ Tesla Schema Detective initialized');
+            log('🎯 Ready to investigate database schema mismatches');
+            await initSupabase();
+        });
+    </script>
+</body>
+</html>

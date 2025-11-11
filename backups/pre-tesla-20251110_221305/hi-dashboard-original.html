@@ -1,0 +1,2113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>Stay Hi — Tesla Simplified</title>
+
+  <!-- HI-OS S-ARCH/1: Webroot Guard (dev-only) -->
+  <script>
+    // Pass criteria: location.pathname must contain "/public/"
+    (function() {
+      const PASS = location.pathname.includes('/public/');
+      const msg  = PASS ? 'GREEN — served from /public (web root OK)'
+                        : 'RED — NOT served from /public (fix dev server root)';
+      // Expose for other verifiers
+      window.__HI_WEBROOT_OK = PASS;
+
+      // Console signal
+      const tag = '[HI-OS][WEBROOT]';
+      if (PASS) {
+        console.log(`${tag} ${msg}`);
+      } else {
+        console.error(`${tag} ${msg}`);
+      }
+
+      // Minimal UI badge injection (dev page only)
+      try {
+        const badge = document.createElement('div');
+        badge.textContent = msg;
+        badge.setAttribute('id', 'hi-webroot-guard');
+        badge.style.position = 'fixed';
+        badge.style.bottom = '12px';
+        badge.style.right = '12px';
+        badge.style.zIndex = '99999';
+        badge.style.padding = '8px 10px';
+        badge.style.fontFamily = 'system-ui,-apple-system,Segoe UI,Roboto,Arial';
+        badge.style.fontSize = '12px';
+        badge.style.borderRadius = '6px';
+        badge.style.border = PASS ? '1px solid #1f7a1f' : '1px solid #a00';
+        badge.style.background = PASS ? '#eaffea' : '#ffecec';
+        badge.style.color = PASS ? '#0c540c' : '#7a0000';
+        document.body.appendChild(badge);
+      } catch (e) {
+        console.warn('[HI-OS][WEBROOT] badge inject failed:', e);
+      }
+    })();
+  </script>
+
+  <!-- 📱 PWA Configuration -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FFD166">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Stay Hi">
+
+  <!-- Tesla-Grade Premium Scripts (Optimized Loading) -->
+  <script src="assets/url-path-fixer.js" async></script>
+  <!-- Resource Hints for Cross-Navigation Performance -->
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
+  <link rel="prefetch" href="hi-island-NEW.html">
+  <link rel="prefetch" href="hi-muscle.html">
+  <link rel="dns-prefetch" href="//stay-qwguz51c1-joeatangs-projects.vercel.app">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  
+  <!-- Database & Hi Island Integration (Async) -->
+  <script type="module" src="./lib/HiSupabase.v3.js"></script>
+  <script src="assets/db.js" defer></script>
+  
+  <!-- 🚀 INTEGRATION #5: HiBase + HiFlags for Streaks system (flagged rollout) -->
+  <script type="module" src="./lib/flags/HiFlags.js"></script>
+  <script type="module" src="./lib/hibase/index.js"></script>
+  
+  <!-- 🔥 Phase 7: Hi Experience Layer Components (Async Loading) -->
+  <script type="module" src="./lib/hifeed/index.js"></script>
+  <script type="module" src="./ui/HiFeed/HiFeed.js"></script>
+  <script type="module" src="./ui/HiStreaks/HiStreaks.js"></script>
+  <script src="assets/hifeed-test-helper.js" async></script>
+  <script src="assets/hifeed-verification.js" async></script>
+  
+  <!-- HiBase Integration (Flagged Rollout) -->
+  <script type="module">
+    // Import HiBase shares for flagged rollout
+    window.HiBase_shares = await import('./lib/hibase/shares.js');
+    console.log('🔥 HiBase shares module loaded for dashboard integration');
+  </script>
+  
+  <!-- HI-OS: Tesla-Grade Systems Integration - DISABLED for database-first system -->
+  <!--
+  <script type="module">
+    // Load membership system first for access control
+    await import('./lib/membership/MembershipSystem.js');
+    
+    import HiMetrics from './lib/HiMetrics.js';
+    
+    // Tesla-grade dashboard metrics with global variable compatibility
+    async function initDashboardMetrics() {
+      try {
+        console.log('[Dashboard] Initializing HiMetrics adapter...');
+        
+        // Subscribe to metric updates for live dashboard
+        const unsubscribe = HiMetrics.subscribe('dashboard-page', (metrics, cacheInfo) => {
+          console.log('[Dashboard] Metrics updated:', metrics);
+          
+          // 🚫 DISABLED: Don't override database-loaded values from DashboardStats.js
+          // The Tesla-grade DashboardStats system handles global variables correctly
+          // window.gWaves = metrics.waves || 0;
+          // window.gTotalHis = metrics.hi5s || 0;
+          // window.gUsers = 0; // Legacy fallback - not separated yet
+          
+          // Update debug badge (show during development)
+          if (window.location.hostname === 'localhost' || window.location.search.includes('debug=1')) {
+            const debugEl = document.getElementById('hiMetricsDebugDash');
+            const statusEl = document.getElementById('dashMetricsStatus');
+            const cacheEl = document.getElementById('dashCacheAge');
+            
+            if (debugEl && statusEl && cacheEl) {
+              debugEl.style.display = 'block';
+              statusEl.textContent = cacheInfo?.fromCache ? '✅' : '🔄';
+              cacheEl.textContent = `Cache: ${cacheInfo?.ageSeconds || 0}s`;
+            }
+          }
+          
+          // Trigger UI update if legacy function exists
+          if (window.updateGlobalStats) {
+            window.updateGlobalStats();
+          }
+          
+          // Load user streak data if function exists
+          if (window.loadUserStreak) {
+            window.loadUserStreak();
+          }
+        });
+        
+        // Load initial metrics (will use cache if available)
+        const metrics = await HiMetrics.load();
+        console.log('[Dashboard] ✅ HiMetrics adapter initialized with globals', {
+          gWaves: window.gWaves,
+          gTotalHis: window.gTotalHis,
+          gUsers: window.gUsers
+        });
+        
+        // Store unsubscribe function for cleanup
+        window.dashboardMetricsCleanup = unsubscribe;
+        
+        // Make legacy loader available for compatibility
+        window.hiStatsLoader = () => HiMetrics.load();
+        
+      } catch (error) {
+        console.error('[Dashboard] HiMetrics initialization failed:', error);
+        
+        // Legacy fallback for safety
+        try {
+          if (window.HiBase?.stats?.getMetrics) {
+            const metrics = await window.HiBase.stats.getMetrics();
+            console.log('🚨 FALLBACK CODE EXECUTING - THIS IS THE BUG!', { metrics });
+            console.log('🚨 About to reset window.gWaves from', window.gWaves, 'to', metrics.waves?.data || 0);
+            // 🚫 DISABLED: This fallback was overriding database values
+            // window.gWaves = metrics.waves?.data || 0;
+            // window.gTotalHis = metrics.hi5s?.data || 0;
+            // window.gUsers = 0;
+            
+            if (window.updateGlobalStats) {
+              window.updateGlobalStats();
+            }
+            
+            console.log('[Dashboard] ✅ Fallback stats loaded');
+          }
+        } catch (fallbackError) {
+          console.error('[Dashboard] Fallback also failed:', fallbackError);
+        }
+      }
+    }
+    
+    // Initialize when DOM is ready
+    window.addEventListener('DOMContentLoaded', initDashboardMetrics);
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      if (window.dashboardMetricsCleanup) {
+        window.dashboardMetricsCleanup();
+        console.log('[Dashboard] HiMetrics subscription cleaned up');
+      }
+    });
+  </script>
+  -->
+  
+  <!-- S-DASH Stats Row Wiring (Flag-Gated) - DISABLED for database-first system -->
+  <!-- <script type="module" src="./lib/HiDash.wire.js"></script> -->
+  
+  <!-- S-DASH Hero CTA Wiring (Flag-Gated) -->
+  <script type="module" src="./lib/HiDash.cta.js"></script>
+  
+  <!-- S-DASH Share CTA Wiring (Flag-Gated) -->
+  <script type="module" src="./lib/HiDash.share.js"></script>
+  
+  <!-- S-DASH/8 Micro-Feedback System (Flag-Gated) -->
+  <script type="module" src="./lib/HiDash.feedback.js"></script>
+  
+  <!-- P1/Step2: Dashboard boot guard -->
+  <script type="module" src="./lib/HiDash.boot.js"></script>
+  
+  <!-- Premium Authentication & UX (Async) -->
+  <script src="assets/progressive-auth.js" async></script>
+  <script src="assets/anonymous-access-modal.js" async></script>
+  <script src="./lib/HiMembership.js"></script>
+  <script src="assets/performance-manager.js"></script>
+  
+  <!-- Tesla-Grade Onboarding System -->
+  <script src="assets/onboarding.js"></script>
+  
+  <!-- Premium CSS Integration -->
+  <link rel="preload" href="assets/premium-ux.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="assets/premium-calendar.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="./ui/HiFooter/HiFooter.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="./ui/HiModal/HiModal.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  
+  <!-- Hi Share Sheet Component -->
+  <link rel="preload" href="ui/HiShareSheet/HiShareSheet.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  
+  <!-- HI DEV: Tesla-Grade HiMedallion Component -->
+  <link rel="preload" href="ui/HiMedallion/HiMedallion.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  
+  <noscript>
+    <link rel="stylesheet" href="assets/premium-ux.css">
+    <link rel="stylesheet" href="assets/premium-calendar.css">
+    <link rel="stylesheet" href="ui/HiFooter/HiFooter.css">
+    <link rel="stylesheet" href="ui/HiModal/HiModal.css">
+    <link rel="stylesheet" href="ui/HiShareSheet/HiShareSheet.css">
+    <link rel="stylesheet" href="ui/HiMedallion/HiMedallion.css">
+  </noscript>
+
+  <!-- S-DASH/7: Hero polish + stats row styling -->
+  <link rel="stylesheet" href="styles/hi-dashboard.css">
+
+  <!-- HI DEV: Fast Brand Controls - Page-Specific Medallion Overrides -->
+  <style>
+    :root {
+      /* Dashboard page flavor - energetic, action-oriented gradient */
+      --hi-medallion-bg1: #FF9A3C;   /* warmer top */
+      --hi-medallion-bg2: #D84B8A;   /* richer bottom */
+      --hi-medallion-halo: rgba(255,255,255,0.22);
+    }
+    
+    body {
+      background: linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #ffd166 100%);
+      min-height: 100vh;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Tesla-Grade Header with Mini Stats */
+    .tesla-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: rgba(15, 16, 34, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      z-index: 1000;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      width: 60px; /* Fixed width for symmetry */
+    }
+
+    .header-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      width: 140px; /* Expanded for tier indicator */
+      gap: 8px;
+    }
+    
+    /* UX-First: Membership Tier Indicator */
+    .tier-indicator {
+      display: flex;
+      align-items: center;
+      padding: 4px 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--hi-tier-color, #6B7280);
+      transition: all 0.3s ease;
+      cursor: default;
+      min-width: 60px;
+      text-align: center;
+    }
+    
+    .tier-indicator:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+    
+    .tier-text {
+      white-space: nowrap;
+    }
+
+    .brand-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-hi-logo {
+      width: 24px;
+      height: 24px;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    }
+
+    .brand-text {
+      font-size: 18px;
+      font-weight: 600;
+      color: #FFD166;
+      letter-spacing: -0.5px;
+    }
+
+    .calendar-btn, .menu-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #FFD166;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .calendar-btn:hover, .menu-btn:hover {
+      background: rgba(255, 209, 102, 0.2);
+      transform: translateY(-1px);
+    }
+
+    /* Global Stats Container */
+    .global-stats-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 20px 0 30px;
+      flex-wrap: wrap;
+    }
+
+    .global-stat {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      min-width: 100px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .global-stat:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-icon {
+      font-size: 18px;
+    }
+
+    .stat-content {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .stat-number {
+      font-size: 18px;
+      font-weight: 700;
+      color: #FFD166;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.7);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    /* Main Content Area */
+    .main-content {
+      margin-top: 80px;
+      padding: 20px 20px 100px; /* Extra bottom padding for footer */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: calc(100vh - 180px); /* Account for header + footer */
+    }
+
+
+
+    /* Hi Medallion Section */
+    .hi-medallion-section {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 200px;
+      margin: 20px 0;
+      padding: 20px;
+    }
+
+    /* Enhanced Self Hi5 Button */
+    .self-hi5-enhanced {
+      margin: 30px 0;
+      padding: 16px 32px;
+      background: linear-gradient(135deg, #FF7A18 0%, #FFD166 100%);
+      border: none;
+      border-radius: 50px;
+      color: #1a1a2e;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 25px rgba(255, 122, 24, 0.3);
+      min-width: 180px;
+    }
+
+    .self-hi5-enhanced:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 35px rgba(255, 122, 24, 0.4);
+    }
+
+    .self-hi5-enhanced:active {
+      transform: translateY(0px);
+    }
+
+    /* Hiffirmations Modal Trigger */
+    .hiffirmations-trigger {
+      margin: 20px 0;
+      padding: 12px 24px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 25px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .hiffirmations-trigger:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Tesla-Grade Animation Classes */
+    .pulse-simplified {
+      animation: pulse-simplified 0.6s ease-out;
+    }
+
+    @keyframes pulse-simplified {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .logo-pop-simplified {
+      animation: logo-pop-simplified 0.4s ease-out;
+    }
+
+    @keyframes logo-pop-simplified {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+
+    /* Tesla-Grade Logo Animation Class */
+    .logo-animation-wrapper.logo-pop-simplified {
+      animation: logo-pop-simplified 0.4s ease-out;
+    }
+
+    /* Emoji Burst Animation */
+    @keyframes waveUp-simplified {
+      0% {
+        transform: translate(-50%, -50%) translateX(0) translateY(0) scale(var(--s, 1));
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-50%, -50%) translateX(var(--dx, 0)) translateY(-80px) scale(0.3);
+        opacity: 0;
+      }
+    }
+
+    /* Mobile Optimizations */
+    @media (max-width: 480px) {
+      .tesla-header {
+        padding: 0 16px;
+      }
+      
+      .header-left {
+        gap: 12px;
+      }
+      
+      .calendar-btn {
+        width: 36px;
+        height: 36px;
+      }
+      
+      .tesla-logo {
+        font-size: 16px;
+      }
+      
+      .mini-stats {
+        gap: 8px;
+        font-size: 11px;
+      }
+      
+      .mini-stat {
+        padding: 3px 6px;
+      }
+      
+      .hi-medal-simplified {
+        width: min(180px, 45vw);
+      }
+      
+      .self-hi5-enhanced {
+        padding: 14px 28px;
+        font-size: 16px;
+        min-width: 160px;
+      }
+      
+      .main-content {
+        padding: 16px 16px 100px;
+      }
+    }
+
+    /* Large screen optimizations */
+    @media (min-width: 768px) {
+      .main-content {
+        padding: 40px 20px 120px;
+      }
+      
+      .hi-medal-simplified {
+        width: min(240px, 35vw);
+      }
+    }
+
+    /* Navigation Modal */
+    .navigation-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .navigation-modal.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .navigation-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .navigation-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(400px, 90vw);
+      background: rgba(15, 16, 34, 0.95);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 24px;
+      padding: 24px;
+      color: white;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .navigation-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .navigation-header h3 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: #FFD166;
+    }
+
+    .close-nav-btn {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .close-nav-btn:hover {
+      background: rgba(255, 0, 0, 0.2);
+    }
+
+    .navigation-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .nav-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: white;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: 1px solid transparent;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-item.admin-item {
+      background: rgba(255, 215, 0, 0.1);
+      border-color: rgba(255, 215, 0, 0.2);
+    }
+
+    .nav-item.admin-item:hover {
+      background: rgba(255, 215, 0, 0.2);
+    }
+
+    .nav-icon {
+      font-size: 18px;
+      width: 24px;
+      text-align: center;
+    }
+
+    /* Enhanced Weekly Progress Strip */
+    .weekstrip {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin: 20px 0 30px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .weekdot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      min-width: 45px;
+      transition: all 0.3s ease;
+    }
+    
+    .weekdot:hover {
+      transform: translateY(-2px);
+    }
+    
+    .weekdot .lbl {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .weekdot .c {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.05);
+      color: rgba(255, 255, 255, 0.6);
+      transition: all 0.3s ease;
+    }
+    
+    .weekdot .c.met {
+      background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.3);
+      box-shadow: 0 4px 12px rgba(78, 205, 196, 0.3);
+    }
+    
+    .weekdot .c.today {
+      border-color: #FFD166;
+      box-shadow: 0 0 0 2px rgba(255, 209, 102, 0.3);
+    }
+
+    /* 🔥 Hi Experience Layer Styles */
+    #hiExperienceLayer {
+      margin: 2rem 0;
+    }
+
+    .hi-experience-section {
+      margin-bottom: 2rem;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      border-radius: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      overflow: hidden;
+    }
+
+    /* Responsive adjustments for experience layer */
+    @media (max-width: 768px) {
+      .hi-experience-section {
+        margin: 1rem 0.5rem;
+        border-radius: 0.75rem;
+      }
+    }
+  </style>
+</head>
+
+<body data-page="hi-dashboard">
+  <!-- Tesla-Grade Header with Centered Branding -->
+  <header class="tesla-header">
+    <div class="header-left">
+      <button id="btnCal" class="calendar-btn" aria-label="Open calendar" title="View Hi Calendar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="3" ry="3"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Centered Brand with Hi Logo -->
+    <div class="header-center">
+      <div class="brand-container">
+        <img src="assets/brand/hi-logo-light.png" alt="Hi" class="brand-hi-logo" />
+        <span class="brand-text">Stay Hi</span>
+      </div>
+    </div>
+    
+    <!-- Navigation Menu -->
+    <div class="header-right">
+      <!-- Membership Tier Indicator (UX-first implementation) -->
+      <div id="hi-tier-indicator" class="tier-indicator" title="Your membership tier">
+        <span class="tier-text">Anonymous</span>
+      </div>
+      
+      <button id="btnMenu" class="menu-btn" aria-label="Open menu" title="Navigation Menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- S-DASH Flag-Gated DOM Anchors (Hidden Placeholders) -->
+  <script>
+    (async function initSDashAnchors() {
+      try {
+        // Wait for HiFlags to be available
+        if (window.HiFlags) {
+          const flags = await Promise.all([
+            window.HiFlags.getFlag('hi_dash_v3', false),
+            window.HiFlags.getFlag('hi_dash_stats_row_v1', false),
+            window.HiFlags.getFlag('hi_dash_medallion_cta_v1', false),
+            window.HiFlags.getFlag('hi_dash_share_cta_v1', false),
+            window.HiFlags.getFlag('hi_dash_global_pill_v1', false)
+          ]);
+          
+          const [dashV3, statsRow, medallionCta, shareCta, globalPill] = flags;
+          
+          // Only add anchors if hi_dash_v3 is enabled
+          if (dashV3) {
+            const container = document.createElement('div');
+            container.id = 'sDashAnchors';
+            container.style.display = 'none'; // Hidden placeholders
+            
+            let html = '';
+            
+            // Add statsRow and its children if flag enabled (S-DASH/7: personal first + global pill)
+            if (statsRow) {
+              html += '<div id="statsRow">';
+              html += '<div id="statTotal"></div>';
+              html += '<div id="stat7d"></div>';
+              html += '<div id="statStreak"></div>';
+              // S-DASH/7: global pill anchor (text populated by S-DASH/3)
+              if (globalPill) {
+                html += '<div id="globalPill" class="hi-global-pill" aria-live="polite"></div>';
+              }
+              html += '</div>';
+            }
+            
+            // Add medallion anchor if flag enabled (S-DASH/7: now a proper button in main DOM)
+            if (medallionCta) {
+              html += '<div id="hiMedallion"></div>';
+            }
+            
+            // Add share button anchor if flag enabled
+            if (shareCta) {
+              html += '<button id="giveHiBtn"></button>';
+            }
+            
+            // S-DASH/7: global pill moved into stats row above
+            
+            container.innerHTML = html;
+            document.body.appendChild(container);
+            
+            console.log('[S-DASH] Flag-gated anchors added:', { dashV3, statsRow, medallionCta, shareCta, globalPill });
+          }
+        }
+      } catch (error) {
+        console.warn('[S-DASH] Flag anchor setup failed:', error);
+      }
+    })();
+  </script>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    
+    <!-- S-DASH DOM Anchors (Required for Production Parity) -->
+    <div id="statsRow" style="display: none;">
+      <div id="statTotal"></div>
+      <div id="stat7d"></div>
+      <div id="statStreak"></div>
+    </div>
+    <div id="giveHiBtn" style="display: none;"></div>
+    <div id="globalPill" class="hi-global-pill" style="display: none;" aria-live="polite"></div>
+    
+    <!-- Global Stats Above Weekly Progress -->
+    <div class="global-stats-container">
+      <div class="global-stat">
+        <span class="stat-icon">👋</span>
+        <div class="stat-content">
+          <span class="stat-number" id="globalHiWaves">...</span>
+          <span class="stat-label">Hi Waves</span>
+        </div>
+      </div>
+      <div class="global-stat">
+        <span class="stat-icon">🔥</span>
+        <div class="stat-content">
+          <span class="stat-number" id="globalTotalHis">...</span>
+          <span class="stat-label">Total His</span>
+        </div>
+      </div>
+      <div class="global-stat">
+        <span class="stat-icon">👥</span>
+        <div class="stat-content">
+          <span class="stat-number" id="globalUsers">...</span>
+          <span class="stat-label">Users</span>
+        </div>
+      </div>
+      <div class="global-stat">
+        <span class="stat-icon">⚡</span>
+        <div class="stat-content">
+          <span class="stat-number" id="userStreak">0</span>
+          <span class="stat-label">Streak</span>
+        </div>
+      </div>
+      <!-- HiMetrics Debug Badge -->
+      <div class="global-stat" id="hiMetricsDebugDash" style="display: none; opacity: 0.7; font-size: 0.8rem;">
+        <span class="stat-icon">🔧</span>
+        <div class="stat-content">
+          <span class="stat-number" id="dashMetricsStatus">init</span>
+          <span class="stat-label" id="dashCacheAge">Cache: 0s</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- HI DEV: Tesla-Grade HiMedallion Component -->
+    <div id="hiMedallionContainer" class="hi-medallion-section">
+      <!-- S-DASH/7: hero medallion -->
+      <button id="hiMedallion"
+              class="hi-medallion-btn"
+              aria-label="Give yourself a Hi-5"
+              aria-pressed="false"
+              title="Give yourself a Hi-5"
+              type="button">
+        <!-- Your actual Hi logo -->
+        <img src="./assets/brand/hi-logo-light.png" alt="Hi logo" class="hi-medallion-emblem">
+      </button>
+      <!-- /S-DASH/7 -->
+    </div>
+    
+    <!-- Weekly Progress Strip -->
+    <div id="weekStrip" class="weekstrip" aria-label="Your week"></div>
+
+    <!-- S-DASH/8: ARIA live region for micro-feedback -->
+    <div id="hiLive" class="sr-only" aria-live="polite"></div>
+
+    <!-- 🔥 NEW: Hi Experience Layer Components (Feature Flagged) -->
+    <div id="hiExperienceLayer" style="display: none;">
+      <!-- HiFeed Component Container -->
+      <div id="hiFeedContainer" class="hi-experience-section"></div>
+      
+      <!-- HiStreaks Component Container -->
+      <div id="hiStreaksContainer" class="hi-experience-section"></div>
+    </div>
+
+
+
+    <!-- Enhanced Self Hi5 Button -->
+    <button class="self-hi5-enhanced" id="selfHi5Enhanced">
+      🙌 Give Yourself a Hi5
+    </button>
+
+    <!-- Hiffirmations Modal Trigger -->
+    <button class="hiffirmations-trigger" id="hiffirmationsTrigger">
+      ✨ Daily Hiffirmations
+    </button>
+  </main>
+
+  <!-- Navigation Menu Modal -->
+  <div id="navigationModal" class="navigation-modal" style="display: none;">
+    <div class="navigation-backdrop" id="navigationBackdrop"></div>
+    <div class="navigation-content">
+      <div class="navigation-header">
+        <h3>Stay Hi Navigation</h3>
+        <button id="closeNavigation" class="close-nav-btn">✕</button>
+      </div>
+      <div class="navigation-menu">
+        <div class="nav-section">
+          <div class="nav-section-title">Navigate</div>
+          <a href="index.html" class="nav-item">
+            <span class="nav-icon">🏠</span>
+            <span>Hi Today</span>
+          </a>
+          <a href="hi-island-NEW.html" class="nav-item">
+            <span class="nav-icon">🏝️</span>
+            <span>Hi Island</span>
+          </a>
+          <a href="hi-muscle.html" class="nav-item">
+            <span class="nav-icon">💪</span>
+            <span>Hi Gym</span>
+          </a>
+          <a href="profile.html?from=hi-dashboard.html" class="nav-item">
+            <span class="nav-icon">👤</span>
+            <span>Profile</span>
+          </a>
+        </div>
+        <div class="nav-section" id="adminSection" style="display: none;">
+          <div class="nav-section-title">Admin</div>
+          <a href="hi-mission-control.html" class="nav-item admin-item">
+            <span class="nav-icon">🎛️</span>
+            <span>Hi Mission Control</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Tesla-Grade Simplified JavaScript
+    // HI-OS: Stats variables now managed by initHiStatsOnce() system
+    // Global variables declared in the init guard module above
+    let clickAnimationFrame = null;
+
+    // DOM Elements
+    const selfHi5Enhanced = document.getElementById('selfHi5Enhanced');
+    const hiffirmationsTrigger = document.getElementById('hiffirmationsTrigger');
+
+    // Header stats elements
+    const headerHiWaves = document.getElementById('headerHiWaves');
+    const headerTotalHis = document.getElementById('headerTotalHis');
+    const headerUsers = document.getElementById('headerUsers');
+
+    // Tesla-Grade Database Integration
+    async function initializeDatabase() {
+      try {
+        if (typeof supabase !== 'undefined') {
+          console.log('🎯 SURGICAL: Initializing Supabase client for hostname:', window.location.hostname);
+          const { createClient } = supabase;
+          const supabaseClient = createClient(
+            'https://gfcubvroxgfvjhacinic.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g'
+          );
+          
+          // Set both variable names for compatibility
+          window.db = supabaseClient;
+          window.supabase = supabaseClient;
+          
+          // HI-OS: Database connection established, stats handled by init guard
+          console.log('✅ Database connection ready for stats system');
+        }
+      } catch (error) {
+        console.error('❌ Database connection failed:', error);
+      }
+      
+      // HI-OS: Stats loading now handled by initHiStatsOnce() guard system
+      // No direct function calls here to prevent duplicates
+      console.log('📊 Dashboard init complete - stats handled by initHiStatsOnce()');
+    }
+
+    // HI-OS: Legacy loadMetricsFromHiBase function - REMOVED
+    // This has been replaced by the unified stats init guard system
+    // All stats loading now happens via initHiStatsOnce() to prevent duplicates
+
+    // 🚀 INTEGRATION #5: Load user streak via HiBase (flagged rollout)
+    async function loadUserStreak() {
+      try {
+        const useHiBaseStreaks = await window.HiFlags?.getFlag('hibase_streaks_enabled');
+        console.log(`🔄 Streak loading via ${useHiBaseStreaks ? 'HiBase' : 'legacy'} path`);
+
+        if (useHiBaseStreaks) {
+          // 🎯 HiBase path: unified streak API
+          console.log('📦 Streak → HiBase.getUserStreak...');
+          const currentUser = window.hiAuth?.getCurrentUser?.() || { id: 'anonymous' };
+          
+          if (currentUser.id && currentUser.id !== 'anonymous') {
+            const streakResult = await window.HiBase.getUserStreak(currentUser.id);
+
+            if (streakResult.error) {
+              console.warn('⚠️ HiBase streak loading failed:', streakResult.error);
+              updateStreakDisplay(0);
+            } else {
+              const currentStreak = streakResult.data.streak?.current || 0;
+              console.log('✅ Streak loaded via HiBase:', currentStreak);
+              updateStreakDisplay(currentStreak);
+            }
+          } else {
+            // Anonymous user - no streak
+            updateStreakDisplay(0);
+          }
+
+          // 📊 Track HiBase streak usage
+          import('./lib/monitoring/HiMonitor.js').then(m => 
+            m.trackEvent('streak_load', { 
+              source: 'dashboard', 
+              path: 'hibase'
+            })
+          ).catch(() => {});
+
+        } else {
+          // 🔄 Legacy path: load from localStorage or other system
+          console.log('📦 Streak → Legacy loading...');
+          
+          // Legacy streak loading - could be from localStorage or existing system
+          const localStreak = localStorage.getItem('user_current_streak') || '0';
+          updateStreakDisplay(parseInt(localStreak, 10));
+          
+          // 📊 Track legacy streak usage
+          import('./lib/monitoring/HiMonitor.js').then(m => 
+            m.trackEvent('streak_load', { 
+              source: 'dashboard', 
+              path: 'legacy'
+            })
+          ).catch(() => {});
+        }
+
+      } catch (error) {
+        console.warn('⚠️ Streak loading failed:', error);
+        updateStreakDisplay(0);
+      }
+    }
+
+    // Update streak display in UI
+    function updateStreakDisplay(streak) {
+      const streakElement = document.getElementById('userStreak');
+      if (streakElement) {
+        streakElement.textContent = streak;
+        
+        // Add visual effects for high streaks
+        if (streak >= 7) {
+          streakElement.style.background = 'linear-gradient(45deg, #ff6b6b, #ffd93d)';
+          streakElement.style.webkitBackgroundClip = 'text';
+          streakElement.style.webkitTextFillColor = 'transparent';
+        } else if (streak >= 3) {
+          streakElement.style.color = '#ffd93d';
+        } else {
+          streakElement.style.color = '';
+          streakElement.style.background = '';
+          streakElement.style.webkitBackgroundClip = '';
+          streakElement.style.webkitTextFillColor = '';
+        }
+      }
+    }
+
+    // Show error state for consistency
+    function showStatsError() {
+      const elements = ['globalHiWaves', 'globalTotalHis', 'globalUsers'];
+      elements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.textContent = 'Error';
+          element.style.color = '#ff6b6b';
+        }
+      });
+    }
+
+    // 🎯 SURGICAL: Anti-lag stats display with instant placeholders
+    function updateGlobalStats() {
+      const globalHiWaves = document.getElementById('globalHiWaves');
+      const globalTotalHis = document.getElementById('globalTotalHis');
+      const globalUsers = document.getElementById('globalUsers');
+      
+      // 🚀 INSTANT DISPLAY: Show placeholders immediately if loading
+      if (globalHiWaves) {
+        if (window.gWaves !== null && window.gWaves !== undefined) {
+          globalHiWaves.textContent = window.gWaves.toLocaleString();
+        } else if (globalHiWaves.textContent === '...' || globalHiWaves.textContent === '') {
+          globalHiWaves.textContent = '...';
+        }
+      }
+      
+      if (globalTotalHis) {
+        if (window.gTotalHis !== null && window.gTotalHis !== undefined) {
+          globalTotalHis.textContent = window.gTotalHis.toLocaleString();
+        } else if (globalTotalHis.textContent === '...' || globalTotalHis.textContent === '') {
+          globalTotalHis.textContent = '...';
+        }
+      }
+      
+      if (globalUsers) {
+        if (window.gUsers !== null && window.gUsers !== undefined) {
+          globalUsers.textContent = window.gUsers.toLocaleString();
+        } else if (globalUsers.textContent === '...' || globalUsers.textContent === '') {
+          globalUsers.textContent = '...';
+        }
+      }
+    }
+
+    // 🛡️ PROTECT: Dashboard's updateGlobalStats from being overridden by other systems
+    const dashboardUpdateGlobalStats = updateGlobalStats;
+    window.updateGlobalStats = dashboardUpdateGlobalStats;
+    
+    // Lock the function to prevent overwrites
+    Object.defineProperty(window, 'updateGlobalStats', {
+      value: dashboardUpdateGlobalStats,
+      writable: false,
+      configurable: false
+    });
+    
+    console.log('🛡️ Dashboard updateGlobalStats protected from override');
+
+    // METRICS SEPARATION: Hi Wave Increment (medallion taps → hi_events table only)
+    async function incrementHiWave() {
+      try {
+        // Check if metrics separation is enabled via feature flag
+        const useMetricsSeparation = await window.HiFlags?.getFlag('metrics_separation_enabled', true);
+        
+        if (!useMetricsSeparation) {
+          console.log('🎯 Metrics separation disabled, using legacy medallion tracking...');
+          // Fallback to legacy system (preserved for rollback)
+          if (window.HiUnifiedStats?.trackMedallionTap) {
+            return await window.HiUnifiedStats.trackMedallionTap();
+          }
+          return;
+        }
+        
+        console.log('🎯 METRICS SEPARATION: Medallion tapped on hi-dashboard');
+        
+        // Use basic medallion tap tracking (Database deployment required)
+        if (window.HiBase?.stats?.insertMedallionTap) {
+          console.log('🎯 Using Hi Medallion tap tracking...');
+          
+          // Get current user (null for anonymous)
+          const user = window.HiBase?.auth?.getCurrentUser();
+          const userId = user?.data?.id || null;
+          
+          const result = await window.HiBase.stats.insertMedallionTap(userId);
+          
+          if (result.error) {
+            console.error('❌ Medallion tap failed:', result.error);
+            return;
+          }
+          
+          console.log('✅ HI MEDALLION TAP SUCCESS:', {
+            newWaveCount: result.data,
+            isAuthenticated: !!userId
+          });
+          
+          // Refresh dashboard metrics to show updated global waves
+          setTimeout(() => initHiStatsOnce('medallion-tap-refresh'), 100);
+          
+        } else {
+          console.error('❌ METRICS SEPARATION ERROR: HiBase.stats not available');
+        }
+      } catch (error) {
+        console.error('💥 METRICS SEPARATION FAILURE: Medallion tap failed:', error);
+      }
+    }
+
+
+
+    // HI DEV: Hi5 Counter (separate from HiWave medallion taps)
+    async function incrementHi5Counter() {
+      try {
+        // Update Hi5 counter in localStorage and database
+        const currentCount = parseInt(localStorage.getItem('hi5_count') || '0');
+        const newCount = currentCount + 1;
+        localStorage.setItem('hi5_count', newCount.toString());
+        
+        // Update database if available
+        if (window.hiDB?.updateUserStats) {
+          await window.hiDB.updateUserStats('hi5_count', newCount);
+        }
+        
+        console.log('[HI DEV] Hi5 counter incremented to:', newCount);
+        
+        // Update UI display if element exists
+        const hi5CountElement = document.querySelector('.hi5-count');
+        if (hi5CountElement) {
+          hi5CountElement.textContent = newCount;
+        }
+        
+      } catch (error) {
+        console.error('[HI DEV] Failed to increment Hi5 counter:', error);
+      }
+    }
+
+    // Enhanced Self Hi5 Handler (HI DEV: Enforced Hi5 flow)
+    function setupSelfHi5Handler() {
+      if (!selfHi5Enhanced) return;
+      
+      // HI DEV: Dedupe handlers - only bind once
+      if (selfHi5Enhanced.__hi5HandlerBound) {
+        console.log('[HI DEV] Hi5 handler already bound, skipping duplicate');
+        return;
+      }
+      selfHi5Enhanced.__hi5HandlerBound = true;
+
+      selfHi5Enhanced.addEventListener('click', async (e) => {
+        e.preventDefault();
+        
+        try { 
+          navigator?.vibrate?.(50); 
+        } catch {}
+
+        // Visual feedback
+        selfHi5Enhanced.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          selfHi5Enhanced.style.transform = '';
+        }, 150);
+
+        // HI DEV: Use existing HiShareSheet instance (Tesla-grade single initialization)
+        try {
+          // Get the globally initialized HiShareSheet instance
+          const shareSheetInstance = window.__hiComponentsInitialized?.shareSheetInstance;
+          
+          if (!shareSheetInstance) {
+            throw new Error('HiShareSheet not initialized');
+          }
+          
+          // Configure success handler for Hi5 flow
+          shareSheetInstance.updateOptions({
+            onSuccess: async (shareData) => {
+              console.log('[HI DEV] Hi5 share submitted via Share Sheet:', shareData);
+              
+              // HI DEV: Increment Hi5 counter on successful submit ONLY
+              await incrementHi5Counter();
+              
+              // HI DEV: Analytics via HiMonitor.trackEvent
+              const { trackEvent } = await import('./lib/monitoring/HiMonitor.js');
+              trackEvent('hi5_submit', {
+                visibility: shareData.visibility,
+                path: shareData.hibaseEnabled ? 'hibase' : 'legacy'
+              });
+            }
+          });
+
+          // Open with Hi5 context (centered modal)
+          shareSheetInstance.open({
+            context: 'dashboard',
+            preset: 'hi5',
+            prefilledText: '🙌 Giving myself a Hi5! ',
+            type: 'Hi5'
+          });
+          
+        } catch (error) {
+          console.error('[HI DEV] Failed to open HiShareSheet for Hi5:', error);
+          // HI DEV: NO fallback to HiWave - Hi5 and HiWave are separate flows
+          // Show error message to user instead
+          const errorMsg = document.createElement('div');
+          errorMsg.style.cssText = 'position:fixed;top:20px;right:20px;background:#ff4444;color:white;padding:12px;border-radius:8px;z-index:9999;';
+          errorMsg.textContent = 'Hi5 Share Sheet failed to load. Please try again.';
+          document.body.appendChild(errorMsg);
+          setTimeout(() => errorMsg.remove(), 3000);
+        }
+        
+        // HI DEV: All Hi5 submission logic moved to HiShareSheet.persist()
+        // This keeps the flow clean and maintains separation of concerns
+      });
+    }
+
+    // Navigation Menu Handler
+    function setupNavigationHandler() {
+      const btnMenu = document.getElementById('btnMenu');
+      const navigationModal = document.getElementById('navigationModal');
+      const navigationBackdrop = document.getElementById('navigationBackdrop');
+      const closeNavigation = document.getElementById('closeNavigation');
+
+      if (!btnMenu || !navigationModal) return;
+
+      const openNavigation = () => {
+        navigationModal.classList.add('show');
+        navigationModal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        
+        // Show admin section if user is admin (basic check)
+        const adminSection = document.getElementById('adminSection');
+        if (adminSection && (localStorage.getItem('isAdmin') === 'true' || window.location.href.includes('admin'))) {
+          adminSection.style.display = 'block';
+        }
+      };
+
+      const closeNavigationModal = () => {
+        navigationModal.classList.remove('show');
+        document.body.style.overflow = '';
+        setTimeout(() => {
+          if (!navigationModal.classList.contains('show')) {
+            navigationModal.style.display = 'none';
+          }
+        }, 300);
+      };
+
+      btnMenu.addEventListener('click', openNavigation);
+      closeNavigation.addEventListener('click', closeNavigationModal);
+      navigationBackdrop.addEventListener('click', closeNavigationModal);
+      
+      // Close on escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && navigationModal.classList.contains('show')) {
+          closeNavigationModal();
+        }
+      });
+    }
+
+    // Hiffirmations Modal Handler
+    function setupHiffirmationsHandler() {
+      if (!hiffirmationsTrigger) return;
+
+      hiffirmationsTrigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        showHiffirmationsModal();
+      });
+    }
+
+    // Tesla-Grade Daily Hiffirmation Generator (Consistent Daily Messages)
+    function getDailyHiffirmation(date = new Date()) {
+      const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      let hash = 0;
+      for (let i = 0; i < key.length; i++) {
+        hash = (hash * 31 + key.charCodeAt(i)) | 0;
+      }
+      
+      const hiffirmations = [
+        "✨ You're radiating positive energy today",
+        "🌟 Your Hi moments create ripples of joy", 
+        "💫 You have the power to brighten someone's day",
+        "🔥 Your authentic self is your superpower",
+        "🌈 Every Hi you share makes the world brighter",
+        "⭐ You're exactly where you need to be",
+        "💝 Your presence is a gift to those around you",
+        "🌺 You're growing stronger with each Hi moment",
+        "🎯 Trust your journey, you're doing amazing",
+        "💎 Your unique light can't be dimmed",
+        "🚀 Your potential is limitless and inspiring",
+        "🌸 You bring beauty to every moment",
+        "⚡ Your energy lights up the room",
+        "🏔️ You're stronger than any challenge",
+        "🎨 Your creativity makes the world more colorful",
+        "🌊 You flow with grace through life's changes",
+        "🔮 Your intuition guides you perfectly",
+        "🦋 You're transforming into your best self",
+        "🌅 Each day brings new opportunities for you",
+        "💪 Your resilience is truly remarkable",
+        "🎵 Your soul sings a beautiful melody",
+        "🌟 You're a beacon of hope for others",
+        "🕊️ Peace follows you wherever you go",
+        "🔥 Your passion ignites positive change",
+        "🌻 You're growing toward the light every day",
+        "⭐ Your dreams are valid and achievable",
+        "🎯 You're aligned with your highest purpose",
+        "💫 Magic happens when you believe in yourself",
+        "🌈 You create your own beautiful reality",
+        "🦄 Your uniqueness is your greatest strength"
+      ];
+      
+      const dailyHiffirmation = hiffirmations[Math.abs(hash % hiffirmations.length)];
+      return dailyHiffirmation;
+    }
+
+    // Get countdown to next Hiffirmation (midnight local time)
+    function getNextHiffirmationCountdown() {
+      const now = new Date();
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      
+      const timeLeft = tomorrow - now;
+      const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+      const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+      
+      return { hours, minutes, timeLeft };
+    }
+
+    // Premium Hiffirmations Modal
+    function showHiffirmationsModal(customDate = null) {
+      const targetDate = customDate || new Date();
+      const dailyHiffirmation = getDailyHiffirmation(targetDate);
+      const countdown = getNextHiffirmationCountdown();
+      
+      // Date display for non-today dates
+      const isToday = !customDate || (
+        targetDate.toDateString() === new Date().toDateString()
+      );
+      const dateLabel = isToday ? 'Today' : targetDate.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+
+      // Create modal with premium styling
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 15000;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px);
+      `;
+      
+      modal.innerHTML = `
+        <div style="
+          background: rgba(15, 16, 34, 0.95); backdrop-filter: blur(25px);
+          border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 24px;
+          padding: 32px; max-width: 400px; width: 90vw; text-align: center; color: white;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); position: relative;
+        ">
+          <h3 style="margin: 0 0 8px; color: #FFD166; font-size: 24px;">✨ ${isToday ? 'Daily' : dateLabel} Hiffirmation</h3>
+          
+          <!-- Countdown Timer (only for today) -->
+          ${isToday ? `
+          <div style="
+            font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-bottom: 20px;
+            padding: 8px 12px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+          ">
+            Next Hiffirmation in ${countdown.hours}h ${countdown.minutes}m
+          </div>
+          ` : ''}
+          
+          <!-- Daily Message -->
+          <div style="font-size: 18px; line-height: 1.5; margin: 24px 0; color: rgba(255, 255, 255, 0.9);">
+            ${dailyHiffirmation}
+          </div>
+          
+          <!-- Action Buttons -->
+          <div style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
+            <button class="hiffirmation-share" style="
+              padding: 12px 20px; background: linear-gradient(135deg, #4ECDC4, #44A08D);
+              border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer;
+              transition: transform 0.2s ease;
+            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+              Share This
+            </button>
+            <button class="hiffirmation-yesterday" style="
+              padding: 12px 20px; background: rgba(255, 255, 255, 0.1);
+              border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; 
+              color: white; font-weight: 600; cursor: pointer;
+              transition: all 0.2s ease;
+            " onmouseover="this.style.background='rgba(255, 255, 255, 0.15)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'">
+              Yesterday's
+            </button>
+          </div>
+          
+          <!-- Close Button -->
+          <button class="close-hiffirmation" style="
+            position: absolute; top: 16px; right: 16px; width: 32px; height: 32px;
+            border: none; border-radius: 8px; background: rgba(255, 255, 255, 0.1);
+            color: white; cursor: pointer; font-size: 16px;
+            transition: background 0.2s ease;
+          " onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'">
+            ✕
+          </button>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+      document.body.style.overflow = 'hidden';
+
+      // Event handlers
+      const closeModal = () => {
+        document.body.removeChild(modal);
+        document.body.style.overflow = '';
+      };
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+      modal.querySelector('.close-hiffirmation').addEventListener('click', closeModal);
+      
+      // Yesterday's Hiffirmation button
+      modal.querySelector('.hiffirmation-yesterday').addEventListener('click', () => {
+        closeModal();
+        setTimeout(() => {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          showHiffirmationsModal(yesterday);
+        }, 100);
+      });
+      
+      // Share button
+      modal.querySelector('.hiffirmation-share').addEventListener('click', () => {
+        if (navigator.share) {
+          navigator.share({
+            title: 'Daily Hiffirmation from Stay Hi',
+            text: dailyHiffirmation,
+            url: window.location.href
+          });
+        } else {
+          navigator.clipboard.writeText(dailyHiffirmation);
+          // Visual feedback
+          const shareBtn = modal.querySelector('.hiffirmation-share');
+          const originalText = shareBtn.textContent;
+          shareBtn.textContent = '✓ Copied!';
+          shareBtn.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
+          setTimeout(() => {
+            shareBtn.textContent = originalText;
+            shareBtn.style.background = 'linear-gradient(135deg, #4ECDC4, #44A08D)';
+          }, 1500);
+        }
+      });
+    }
+
+    // Weekly Progress Strip (Simplified)
+    function setupWeeklyProgress() {
+      const weekStrip = document.getElementById('weekStrip');
+      if (!weekStrip) return;
+
+      const today = new Date();
+      let html = '';
+      
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+        const label = date.toLocaleDateString(undefined, { weekday: 'short' }).toUpperCase();
+        const dayNum = date.getDate();
+        const isToday = i === 0;
+        const metClass = Math.random() > 0.3 ? 'met' : '';  // Simplified logic
+        
+        html += `<div class="weekdot">
+          <div class="lbl">${label}</div>
+          <div class="c ${metClass}">${dayNum}</div>
+        </div>`;
+      }
+      
+      weekStrip.innerHTML = html;
+    }
+
+    // 🌍 Helper: Get current user location for hi island piping
+    async function getCurrentUserLocation() {
+      try {
+        // Check localStorage cache first
+        const cached = localStorage.getItem('hi_user_location');
+        if (cached) {
+          const locationData = JSON.parse(cached);
+          if (Date.now() - locationData.timestamp < 24 * 60 * 60 * 1000) { // 24 hour cache
+            return locationData.location;
+          }
+        }
+        
+        // Default to 'Virtual Hi Island' for dashboard hi5s
+        return 'Virtual Hi Island';
+      } catch (error) {
+        console.warn('Location lookup failed, using default:', error);
+        return 'Virtual Hi Island';
+      }
+    }
+
+    // 🎉 Helper: Show celebration message
+    function showCelebrationMessage(message) {
+      // Create temporary celebration overlay
+      const celebration = document.createElement('div');
+      celebration.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #FFD166, #FF7B24);
+        color: #000;
+        padding: 20px 30px;
+        border-radius: 20px;
+        font-size: 18px;
+        font-weight: 600;
+        box-shadow: 0 10px 30px rgba(255, 123, 24, 0.4);
+        z-index: 10000;
+        animation: celebrationPop 2s ease-out forwards;
+      `;
+      celebration.textContent = message;
+      
+      // Add animation keyframes
+      if (!document.getElementById('celebrationStyles')) {
+        const style = document.createElement('style');
+        style.id = 'celebrationStyles';
+        style.textContent = `
+          @keyframes celebrationPop {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
+      document.body.appendChild(celebration);
+      setTimeout(() => celebration.remove(), 2000);
+    }
+
+    // 🔥 Phase 7: Hi Experience Layer Initialization (Feature Flagged)
+    async function initializeHiExperienceLayer() {
+      try {
+        // Check if hifeed_enabled flag is active (cohort-aware)
+        const { isEnabledCohort } = await import('./lib/flags/HiFlags.js');
+        const { trackEvent } = await import('./lib/monitoring/HiMonitor.js');
+        
+        const hiFeedEnabled = await isEnabledCohort('hifeed_enabled');
+        
+        // Track flag evaluation for telemetry
+        trackEvent('flag_check', {
+          key: 'hifeed_enabled',
+          enabled: hiFeedEnabled,
+          rollout: true,
+          location: 'dashboard'
+        });
+        
+        console.log('🔍 HiFeed flag check (dashboard - cohort):', { 
+          flagEnabled: hiFeedEnabled,
+          rollout: true
+        });
+        
+        if (hiFeedEnabled) {
+          console.log('🔥 HiFeed enabled - initializing experience layer components');
+          
+          // Show the experience layer container
+          const experienceLayer = document.getElementById('hiExperienceLayer');
+          if (experienceLayer) {
+            experienceLayer.style.display = 'block';
+          }
+          
+          // Initialize HiFeed component
+          if (window.HiFeed) {
+            const hiFeed = new window.HiFeed('#hiFeedContainer');
+            await hiFeed.initialize();
+            console.log('✅ HiFeed component initialized');
+          }
+          
+          // Initialize HiStreaks component
+          if (window.HiStreaks) {
+            const hiStreaks = new window.HiStreaks('#hiStreaksContainer');
+            await hiStreaks.initialize();
+            console.log('✅ HiStreaks component initialized');
+          }
+          
+        } else {
+          console.log('🚫 HiFeed disabled - experience layer components not loaded');
+        }
+        
+      } catch (error) {
+        console.error('❌ Hi Experience Layer initialization error:', error);
+      }
+    }
+
+    // Tesla-Grade Initialization
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize all components
+      initializeDatabase();
+      setupSelfHi5Handler();
+      setupNavigationHandler();
+      setupHiffirmationsHandler();
+      setupWeeklyProgress();
+      
+      // Initialize global stats variables immediately
+      // 🚀 SMART PERSISTENCE: Check localStorage first, then use defaults
+      const savedWaves = localStorage.getItem('dashboard_waves_cache');
+      const savedTotal = localStorage.getItem('dashboard_total_cache');
+      const savedUsers = localStorage.getItem('dashboard_users_cache');
+      
+      if (window.gWaves === undefined) {
+        window.gWaves = savedWaves ? parseInt(savedWaves, 10) : 1300;
+      }
+      if (window.gTotalHis === undefined) {
+        window.gTotalHis = savedTotal ? parseInt(savedTotal, 10) : 90;
+      }
+      if (window.gUsers === undefined) {
+        window.gUsers = savedUsers ? parseInt(savedUsers, 10) : 250;
+      }
+      
+      // 🎯 INSTANT UI UPDATE: Show cached/smart defaults immediately
+      updateStatsUI();
+      console.log('⚡ Instant stats display with cached values:', { 
+        waves: window.gWaves, 
+        totalHis: window.gTotalHis, 
+        users: window.gUsers 
+      });
+      
+      // HI-OS: Initialize Tesla-grade stats system + Hi OS Enhancement Layer
+      import('./ui/stats/initHiStats.js').then(async ({ initHiStatsOnce }) => {
+        const { trackShareSubmission } = await import('./lib/stats/GoldStandardTracker.js');
+        window.trackShareSubmission = trackShareSubmission;
+        
+        // 🚀 HI OS ENHANCEMENT: Load enhancement layer after base system
+        try {
+          await import('./lib/stats/HiOSEnhancementLayer.js');
+          console.log('🚀 Hi OS Enhancement Layer loaded for Hi-Dashboard');
+        } catch (error) {
+          console.warn('⚠️ Hi OS enhancement optional - continuing without:', error);
+        }
+        
+        console.log('✅ Gold Standard tracker loaded for Hi-Dashboard');
+        console.log('🎯 Tesla-grade dashboard stats system initialized');
+        
+        // 🚀 IMMEDIATE FIX: Load current stats from database on startup (background)
+        loadCurrentStatsFromDatabase();
+      }).catch(error => {
+        console.error('❌ Stats initialization failed:', error);
+      });
+      
+      // UX-First: Update membership tier indicator when system loads
+      setTimeout(() => {
+        if (window.HiMembership && window.HiMembership.initialized) {
+          const user = window.HiMembership.getCurrentUser();
+          const tierIndicator = document.getElementById('hi-tier-indicator');
+          if (tierIndicator && user) {
+            const tierText = tierIndicator.querySelector('.tier-text');
+            tierText.textContent = user.tierInfo.name;
+            tierIndicator.style.color = user.tierInfo.color || '#6B7280';
+            
+            console.log('🎫 [UX] Membership tier displayed:', user.tierInfo.name);
+          }
+        }
+      }, 1000);
+      
+      console.log('🎯 Stats loading managed by Hi-OS init guard - no direct calls');
+      
+      // 🔥 Phase 7: Initialize Hi Experience Layer (Feature Flagged)
+      initializeHiExperienceLayer();
+      
+      // 🚀 MULTIPLE UPDATE ATTEMPTS: Ensure stats display reliably
+      setTimeout(() => {
+        updateStatsUI(); // Force immediate update with current values
+        loadCurrentStatsFromDatabase(); // Load real values in background
+      }, 50);
+      
+      setTimeout(() => {
+        updateStatsUI(); // Second attempt after DOM settles
+      }, 500);
+      
+      setTimeout(() => {
+        updateStatsUI(); // Third attempt as final backup
+      }, 1500);
+
+    });
+
+    // Calendar Integration
+    function setupCalendarIntegration() {
+      const btnCal = document.getElementById('btnCal');
+      if (btnCal) {
+        btnCal.addEventListener('click', () => {
+          if (window.hiCalendarInstance) {
+            window.hiCalendarInstance.show();
+          } else {
+            console.error('[HI DEV] Calendar not initialized');
+          }
+        });
+      }
+    }
+
+    // 🚀 FAST STATS LOADING: Background loading with instant fallbacks
+    async function loadCurrentStatsFromDatabase() {
+      console.log('🔄 Background loading real stats from database...');
+      
+      // 🎯 STRATEGY: Load async in background, don't block UI
+      setTimeout(async () => {
+        try {
+          // Quick Supabase client check (no long waits)
+          let supabase = window.getSupabase?.() || window.supabaseClient || window.HiSupabase?.getClient?.() || window.supabase;
+          
+          // If no client immediately available, try a few quick attempts
+          if (!supabase) {
+            for (let i = 0; i < 5; i++) {
+              await new Promise(resolve => setTimeout(resolve, 100));
+              supabase = window.getSupabase?.() || window.supabaseClient || window.HiSupabase?.getClient?.() || window.supabase;
+              if (supabase) break;
+            }
+          }
+          
+          if (!supabase) {
+            console.log('� No Supabase client available, keeping smart defaults');
+            return;
+          }
+          
+          console.log('✅ Supabase ready, fetching real stats...');
+          
+          // Try fastest queries first
+          let realStatsLoaded = false;
+          
+          // 1. Quick global_community_stats query
+          try {
+            const { data, error } = await supabase
+              .from('global_community_stats')
+              .select('total_his, hi_waves, total_users')
+              .limit(1)
+              .single();
+              
+            if (data && !error) {
+              // Update with real values
+              const oldTotalHis = window.gTotalHis;
+              const oldWaves = window.gWaves;
+              
+              window.gTotalHis = data.total_his || window.gTotalHis;
+              window.gWaves = data.hi_waves || window.gWaves; // 🎯 FIX: Ensure Global Waves gets set
+              window.gUsers = data.total_users || window.gUsers;
+              
+              // 🚀 CACHE REAL VALUES: Save to localStorage for next page load
+              localStorage.setItem('dashboard_waves_cache', window.gWaves.toString());
+              localStorage.setItem('dashboard_total_cache', window.gTotalHis.toString());
+              localStorage.setItem('dashboard_users_cache', window.gUsers.toString());
+              localStorage.setItem('dashboard_cache_timestamp', Date.now().toString());
+              
+              console.log('✅ Real stats loaded and cached:', { 
+                totalHis: `${oldTotalHis} → ${window.gTotalHis}`,
+                waves: `${oldWaves} → ${window.gWaves}`,
+                users: window.gUsers
+              });
+              
+              updateStatsUI();
+              realStatsLoaded = true;
+            }
+          } catch (err) {
+            console.log('📊 global_community_stats query failed, trying public_shares...');
+          }
+          
+          // 2. Fallback to public_shares (just for Total His)
+          if (!realStatsLoaded) {
+            try {
+              const { data: shareData, error: shareError } = await supabase
+                .from('public_shares')
+                .select('total_his')
+                .limit(1)
+                .single();
+                
+              if (shareData && !shareError && shareData.total_his) {
+                const oldTotalHis = window.gTotalHis;
+                window.gTotalHis = shareData.total_his;
+                
+                console.log('✅ Total His updated from public_shares:', `${oldTotalHis} → ${window.gTotalHis}`);
+                updateStatsUI();
+                realStatsLoaded = true;
+              }
+            } catch (err) {
+              console.log('📊 public_shares query failed:', err);
+            }
+          }
+          
+          if (!realStatsLoaded) {
+            console.log('📊 Real stats unavailable, smart defaults will be used');
+          }
+          
+        } catch (error) {
+          console.log('📊 Background stats loading failed, keeping defaults:', error);
+        }
+      }, 100); // Very short delay to let page render first
+    }
+    
+    // Helper function to update stats UI
+    function updateStatsUI() {
+      // Try multiple possible element IDs for Global Waves
+      const globalTotalHis = document.getElementById('globalTotalHis');
+      const globalHiWaves = document.getElementById('globalHiWaves') || 
+                           document.getElementById('globalWaves') || 
+                           document.getElementById('global-waves') ||
+                           document.querySelector('[data-stat="waves"]') ||
+                           document.querySelector('.global-waves');
+      const globalUsers = document.getElementById('globalUsers') ||
+                         document.getElementById('globalMembers') ||
+                         document.querySelector('[data-stat="users"]');
+      
+      if (globalTotalHis && window.gTotalHis !== undefined) {
+        globalTotalHis.textContent = window.gTotalHis.toLocaleString();
+        console.log('✅ Total His UI updated:', window.gTotalHis);
+      }
+      
+      if (globalHiWaves && window.gWaves !== undefined) {
+        globalHiWaves.textContent = window.gWaves.toLocaleString();
+        console.log('✅ Global Waves UI updated:', window.gWaves);
+      } else {
+        console.log('⚠️ Global Waves element not found. Available elements:');
+        console.log('   - globalHiWaves:', !!document.getElementById('globalHiWaves'));
+        console.log('   - globalWaves:', !!document.getElementById('globalWaves'));
+        console.log('   - global-waves:', !!document.getElementById('global-waves'));
+      }
+      
+      if (globalUsers && window.gUsers !== undefined) {
+        globalUsers.textContent = window.gUsers.toLocaleString();
+        console.log('✅ Global Users UI updated:', window.gUsers);
+      }
+      
+      // Also try to update any other possible stat displays
+      document.querySelectorAll('.total-his-count, .global-total-his').forEach(el => {
+        if (window.gTotalHis !== undefined) el.textContent = window.gTotalHis.toLocaleString();
+      });
+      
+      document.querySelectorAll('.waves-count, .global-waves-count').forEach(el => {
+        if (window.gWaves !== undefined) el.textContent = window.gWaves.toLocaleString();
+      });
+    }
+
+    // METRICS SEPARATION: Debug exposure
+    window.metricsDebug = {
+      gWaves: () => gWaves,
+      gTotalHis: () => gTotalHis,
+      gUsers: () => gUsers,
+      incrementHiWave,
+      updateGlobalStats,
+      loadCurrentStats: loadCurrentStatsFromDatabase
+    };
+  </script>
+
+  <!-- Premium Component Scripts -->
+  <script src="assets/premium-ux.js"></script>
+  <script src="assets/premium-calendar.js"></script>
+  <script src="./ui/HiFooter/HiFooter.js" defer></script>
+  
+  <!-- Hi Components: HiShareSheet + HiMedallion (Tesla-grade initialization) -->
+  <script type="module">
+    import { HiShareSheet } from './ui/HiShareSheet/HiShareSheet.js';
+    import { mountHiMedallion } from './ui/HiMedallion/HiMedallion.js';
+    
+    // Tesla-grade component initialization with guards
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize components only once
+      if (!window.__hiComponentsInitialized) {
+        window.__hiComponentsInitialized = {};
+      }
+      
+      // HiShareSheet - unified initialization (replaces duplicate at line 1008)
+      if (!window.__hiComponentsInitialized.shareSheet) {
+        const shareSheet = new HiShareSheet({ 
+          origin: 'dashboard',
+          onSuccess: (shareData) => {
+            console.log('✅ Dashboard Hi5 shared successfully!');
+            
+            // Track submission for Global Hi's counter (COMPREHENSIVE integration)
+            if (window.trackShareSubmission) {
+              window.trackShareSubmission('hi-dashboard', {
+                submissionType: shareData.privacy || 'public',
+                pageOrigin: 'hi-dashboard',
+                origin: 'hi-dashboard',
+                tag: 'Hi5️⃣',
+                timestamp: Date.now()
+              });
+            }
+          }
+        });
+        shareSheet.init();
+        
+        // Store instance reference for button handlers
+        window.__hiComponentsInitialized.shareSheet = true;
+        window.__hiComponentsInitialized.shareSheetInstance = shareSheet;
+      }
+      
+      // METRICS SEPARATION: Initialize HiMedallion with medallion tap handler
+      const medallionContainer = document.getElementById('hiMedallionContainer');
+      if (medallionContainer) {
+        // Use existing medallion HTML with your logo (don't overwrite)
+        import('./ui/HiMedallion/HiMedallion.js').then(({ mountHiMedallion }) => {
+          // Find the existing medallion button element
+          const medallionElement = medallionContainer.querySelector('#hiMedallion');
+          if (medallionElement) {
+            // Mount interactive behavior with direct tap tracking (UX-first fix)
+            mountHiMedallion(medallionElement, {
+              origin: 'dashboard',
+              ariaLabel: 'Send positive energy to the Stay Hi community',
+              onTap: () => {
+                console.log('🏅 Medallion tapped - tracking wave...');
+                
+                // Increment global waves immediately (initialize if needed)
+                if (window.gWaves === undefined) {
+                  window.gWaves = 0; // Initialize if not set yet
+                }
+                window.gWaves += 1;
+                console.log('🌊 Global waves updated:', window.gWaves);
+                
+                // Update UI immediately
+                const globalHiWavesEl = document.getElementById('globalHiWaves');
+                if (globalHiWavesEl) {
+                  globalHiWavesEl.textContent = window.gWaves.toLocaleString();
+                  console.log('✅ UI updated with new wave count');
+                }
+                
+                // Also call the unified stats update if available
+                if (window.updateGlobalStats) {
+                  window.updateGlobalStats();
+                }
+                
+                // 🎯 PERSIST TO DATABASE: Call increment_hi_wave to save to database
+                if (window.supabase) {
+                  window.supabase.rpc('increment_hi_wave').then(({ data, error }) => {
+                    if (error) {
+                      console.error('❌ Database wave increment failed:', error);
+                    } else {
+                      console.log('✅ Wave persisted to database:', data);
+                      // Update with actual database value to stay in sync
+                      if (data && typeof data === 'number') {
+                        window.gWaves = data;
+                        
+                        // 🚀 CACHE THE REAL VALUE: Persist for next page load
+                        localStorage.setItem('dashboard_waves_cache', window.gWaves.toString());
+                        localStorage.setItem('dashboard_cache_timestamp', Date.now().toString());
+                        
+                        const globalHiWavesEl = document.getElementById('globalHiWaves');
+                        if (globalHiWavesEl) {
+                          globalHiWavesEl.textContent = window.gWaves.toLocaleString();
+                        }
+                        
+                        console.log('📦 Waves cached for next load:', window.gWaves);
+                      }
+                    }
+                  });
+                }
+                
+                // Track in localStorage for persistence
+                const personalTaps = parseInt(localStorage.getItem('user_medallion_taps') || '0', 10) + 1;
+                localStorage.setItem('user_medallion_taps', personalTaps.toString());
+              }
+            });
+            
+            console.log('🎯 Tesla-grade HiMedallion mounted on dashboard with tap tracking');
+          }
+        }).catch(error => {
+          console.error('❌ Failed to load HiMedallion:', error);
+        });
+      }
+    });
+  </script>
+  
+  <!-- Initialize Premium Features -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // HI DEV: Calendar modal stacking fix (P2) - Initialize once only
+      if (window.PremiumCalendar && !window.__hiCalendarInitialized) {
+        window.__hiCalendarInitialized = true;
+        window.hiCalendarInstance = new window.PremiumCalendar();
+        console.log('[HI DEV] Calendar initialized once, stacking prevented');
+        
+        // Setup calendar integration
+        setupCalendarIntegration();
+      }
+    });
+  </script>
+
+  <!-- 🌍 Tesla-Grade Unified Global Stats System -->
+  <!-- DISABLED: Legacy stats system replaced by HiMetrics adapter -->
+  <!-- <script src="assets/hi-unified-global-stats.js"></script> -->
+</body>
+</html>

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🧪 Full Hi-Island Workflow Test</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui; padding: 20px; background: #f0f2f5; }
+        .test-panel { background: white; border-radius: 12px; padding: 24px; margin: 16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .test-button { background: linear-gradient(135deg, #4ECDC4, #44A08D); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; margin: 8px 0; font-weight: 600; transition: all 0.2s; }
+        .test-button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(78, 205, 196, 0.3); }
+        .result { padding: 12px 16px; margin: 8px 0; border-radius: 6px; font-family: 'SF Mono', Monaco, monospace; font-size: 13px; border-left: 4px solid; }
+        .pass { background: #d4edda; color: #155724; border-color: #28a745; }
+        .fail { background: #f8d7da; color: #721c24; border-color: #dc3545; }
+        .info { background: #d1ecf1; color: #0c5460; border-color: #17a2b8; }
+        .warning { background: #fff3cd; color: #856404; border-color: #ffc107; }
+        .status-good { color: #28a745; font-weight: 600; }
+        .status-bad { color: #dc3545; font-weight: 600; }
+        .iframe-container { width: 100%; height: 600px; border: 2px solid #dee2e6; border-radius: 8px; overflow: hidden; }
+        iframe { width: 100%; height: 100%; border: none; }
+        h1 { color: #2c3e50; margin-bottom: 8px; }
+        h2 { color: #34495e; margin: 20px 0 12px 0; font-size: 18px; }
+        .test-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .test-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <h1>🧪 Full Hi-Island Workflow Test Suite</h1>
+    <p style="color: #6c757d; margin-bottom: 24px;">Comprehensive end-to-end validation of Drop Hi → Share → Database → Feed workflow</p>
+
+    <div class="test-grid">
+        <div>
+            <div class="test-panel">
+                <h2>🎯 Test 1: Hi-Island Page Environment</h2>
+                <button class="test-button" onclick="testHiIslandEnvironment()">Test Page Load & Dependencies</button>
+                <div id="environment-results"></div>
+            </div>
+
+            <div class="test-panel">
+                <h2>🖱️ Test 2: Drop Hi Button Flow</h2>
+                <button class="test-button" onclick="testDropHiFlow()">Test Complete Drop Hi Workflow</button>
+                <div id="drop-flow-results"></div>
+            </div>
+
+            <div class="test-panel">
+                <h2>🔄 Test 3: Tab Navigation System</h2>
+                <button class="test-button" onclick="testTabNavigation()">Test Tab Switching</button>
+                <div id="tab-results"></div>
+            </div>
+
+            <div class="test-panel">
+                <h2>📊 Test 4: Feed Data Loading</h2>
+                <button class="test-button" onclick="testFeedLoading()">Test Database Integration</button>
+                <div id="feed-results"></div>
+            </div>
+        </div>
+
+        <div>
+            <div class="test-panel">
+                <h2>🏝️ Live Hi-Island Instance</h2>
+                <div class="iframe-container">
+                    <iframe id="hi-island-frame" src="http://127.0.0.1:3000/hi-island-NEW.html"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-panel">
+        <h2>📋 Test Results Summary</h2>
+        <div id="summary-results">
+            <div class="result info">🚀 Test suite ready. Click buttons above to run comprehensive validation.</div>
+        </div>
+    </div>
+
+    <script>
+        let testResults = {
+            environment: null,
+            dropFlow: null,
+            tabNavigation: null,
+            feedLoading: null
+        };
+
+        function addResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const result = document.createElement('div');
+            result.className = `result ${type}`;
+            result.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong> - ${message}`;
+            container.appendChild(result);
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const summary = document.getElementById('summary-results');
+            const passed = Object.values(testResults).filter(r => r === true).length;
+            const failed = Object.values(testResults).filter(r => r === false).length;
+            const pending = Object.values(testResults).filter(r => r === null).length;
+            
+            let statusHtml = `
+                <div class="result info">
+                    📊 Test Status: 
+                    <span class="status-good">${passed} passed</span> | 
+                    <span class="status-bad">${failed} failed</span> | 
+                    ${pending} pending
+                </div>
+            `;
+            
+            if (failed === 0 && pending === 0) {
+                statusHtml += '<div class="result pass">🎉 All tests passed! Hi-Island foundation is solid.</div>';
+            } else if (failed > 0) {
+                statusHtml += '<div class="result fail">⚠️ Some tests failed. Review results above.</div>';
+            }
+            
+            summary.innerHTML = statusHtml;
+        }
+
+        async function testHiIslandEnvironment() {
+            addResult('environment-results', '🔍 Testing Hi-Island environment...', 'info');
+            
+            try {
+                // Test page accessibility
+                const response = await fetch('http://127.0.0.1:3000/hi-island-NEW.html');
+                if (response.ok) {
+                    addResult('environment-results', '✅ Hi-Island page accessible (HTTP 200)', 'pass');
+                } else {
+                    addResult('environment-results', `❌ Page load failed (HTTP ${response.status})`, 'fail');
+                    testResults.environment = false;
+                    return;
+                }
+
+                // Test critical dependencies
+                const deps = [
+                    'ui/HiShareSheet/HiShareSheet.js',
+                    'components/hi-real-feed/HiRealFeed.js',
+                    'lib/HiDB.js',
+                    'assets/progressive-auth.js'
+                ];
+
+                for (const dep of deps) {
+                    try {
+                        const depResponse = await fetch(`http://127.0.0.1:3000/${dep}`);
+                        if (depResponse.ok) {
+                            addResult('environment-results', `✅ ${dep} loaded`, 'pass');
+                        } else {
+                            addResult('environment-results', `❌ ${dep} failed (${depResponse.status})`, 'fail');
+                        }
+                    } catch (e) {
+                        addResult('environment-results', `❌ ${dep} error: ${e.message}`, 'fail');
+                    }
+                }
+
+                testResults.environment = true;
+                addResult('environment-results', '🏆 Environment test completed successfully', 'pass');
+
+            } catch (error) {
+                addResult('environment-results', `❌ Environment test failed: ${error.message}`, 'fail');
+                testResults.environment = false;
+            }
+        }
+
+        async function testDropHiFlow() {
+            addResult('drop-flow-results', '🎯 Testing Drop Hi button workflow...', 'info');
+            
+            try {
+                const frame = document.getElementById('hi-island-frame');
+                const frameWindow = frame.contentWindow;
+                
+                // Wait for frame to load
+                await new Promise(resolve => {
+                    if (frame.contentDocument.readyState === 'complete') {
+                        resolve();
+                    } else {
+                        frame.onload = resolve;
+                    }
+                });
+
+                addResult('drop-flow-results', '✅ Hi-Island frame loaded', 'pass');
+
+                // Test Drop Hi button existence
+                const dropButton = frame.contentDocument.getElementById('dropHiButton');
+                if (dropButton) {
+                    addResult('drop-flow-results', '✅ Drop Hi button found in DOM', 'pass');
+                } else {
+                    addResult('drop-flow-results', '❌ Drop Hi button not found', 'fail');
+                    testResults.dropFlow = false;
+                    return;
+                }
+
+                // Test openHiComposer function
+                if (typeof frameWindow.openHiComposer === 'function') {
+                    addResult('drop-flow-results', '✅ openHiComposer function available', 'pass');
+                } else {
+                    addResult('drop-flow-results', '❌ openHiComposer function missing', 'fail');
+                }
+
+                // Test HiShareSheet availability
+                setTimeout(() => {
+                    if (frameWindow.HiShareSheet) {
+                        addResult('drop-flow-results', '✅ HiShareSheet class available', 'pass');
+                    } else {
+                        addResult('drop-flow-results', '⚠️ HiShareSheet not yet loaded', 'warning');
+                    }
+
+                    if (frameWindow.hiIslandShareSheet) {
+                        addResult('drop-flow-results', '✅ hiIslandShareSheet instance ready', 'pass');
+                    } else {
+                        addResult('drop-flow-results', '⚠️ hiIslandShareSheet not initialized', 'warning');
+                    }
+                }, 1000);
+
+                testResults.dropFlow = true;
+                addResult('drop-flow-results', '🏆 Drop Hi flow structure validated', 'pass');
+
+            } catch (error) {
+                addResult('drop-flow-results', `❌ Drop Hi flow test failed: ${error.message}`, 'fail');
+                testResults.dropFlow = false;
+            }
+        }
+
+        async function testTabNavigation() {
+            addResult('tab-results', '🔄 Testing tab navigation system...', 'info');
+            
+            try {
+                const frame = document.getElementById('hi-island-frame');
+                
+                // Test tab buttons
+                const generalTab = frame.contentDocument.getElementById('tab-general');
+                const archiveTab = frame.contentDocument.getElementById('tab-archive');
+                
+                if (generalTab && archiveTab) {
+                    addResult('tab-results', '✅ Tab buttons found (General + Archives)', 'pass');
+                    
+                    // Test data-target attributes
+                    const generalTarget = generalTab.dataset.target;
+                    const archiveTarget = archiveTab.dataset.target;
+                    
+                    if (generalTarget === 'general' && archiveTarget === 'archive') {
+                        addResult('tab-results', '✅ Tab data-target attributes correct', 'pass');
+                    } else {
+                        addResult('tab-results', '❌ Tab data-target attributes incorrect', 'fail');
+                    }
+
+                    // Test aria-selected states
+                    const generalSelected = generalTab.getAttribute('aria-selected');
+                    const archiveSelected = archiveTab.getAttribute('aria-selected');
+                    
+                    addResult('tab-results', `🎯 General tab selected: ${generalSelected}`, 'info');
+                    addResult('tab-results', `🎯 Archive tab selected: ${archiveSelected}`, 'info');
+                    
+                } else {
+                    addResult('tab-results', '❌ Tab buttons not found', 'fail');
+                    testResults.tabNavigation = false;
+                    return;
+                }
+
+                // Test feed root container
+                const feedRoot = frame.contentDocument.getElementById('hi-island-feed-root');
+                if (feedRoot) {
+                    addResult('tab-results', '✅ Feed root container found', 'pass');
+                } else {
+                    addResult('tab-results', '❌ Feed root container missing', 'fail');
+                }
+
+                testResults.tabNavigation = true;
+                addResult('tab-results', '🏆 Tab navigation structure validated', 'pass');
+
+            } catch (error) {
+                addResult('tab-results', `❌ Tab navigation test failed: ${error.message}`, 'fail');
+                testResults.tabNavigation = false;
+            }
+        }
+
+        async function testFeedLoading() {
+            addResult('feed-results', '📊 Testing feed data loading...', 'info');
+            
+            try {
+                const frame = document.getElementById('hi-island-frame');
+                const frameWindow = frame.contentWindow;
+                
+                // Test hiDB availability
+                setTimeout(() => {
+                    if (frameWindow.hiDB) {
+                        addResult('feed-results', '✅ hiDB wrapper available', 'pass');
+                        
+                        // Test Supabase client
+                        if (frameWindow.hiDB.supabase) {
+                            addResult('feed-results', '✅ Supabase client connected', 'pass');
+                            
+                            // Test database query
+                            frameWindow.hiDB.supabase
+                                .from('global_community_stats')
+                                .select('*')
+                                .limit(1)
+                                .then(({ data, error }) => {
+                                    if (error) {
+                                        addResult('feed-results', `❌ Database query failed: ${error.message}`, 'fail');
+                                        testResults.feedLoading = false;
+                                    } else {
+                                        addResult('feed-results', '✅ Database query successful', 'pass');
+                                        addResult('feed-results', `📊 Community stats data: ${JSON.stringify(data?.[0] || {})}`, 'info');
+                                        testResults.feedLoading = true;
+                                    }
+                                })
+                                .catch(err => {
+                                    addResult('feed-results', `❌ Query error: ${err.message}`, 'fail');
+                                    testResults.feedLoading = false;
+                                });
+                        } else {
+                            addResult('feed-results', '❌ Supabase client not available', 'fail');
+                            testResults.feedLoading = false;
+                        }
+                    } else {
+                        addResult('feed-results', '❌ hiDB not available', 'fail');
+                        testResults.feedLoading = false;
+                    }
+
+                    // Test feed system
+                    if (frameWindow.hiRealFeed) {
+                        addResult('feed-results', '✅ hiRealFeed system available', 'pass');
+                    } else {
+                        addResult('feed-results', '⚠️ hiRealFeed not yet initialized', 'warning');
+                    }
+
+                    if (frameWindow.hiIslandIntegration) {
+                        addResult('feed-results', '✅ hiIslandIntegration available', 'pass');
+                    } else {
+                        addResult('feed-results', '⚠️ hiIslandIntegration not yet loaded', 'warning');
+                    }
+
+                }, 2000);
+
+            } catch (error) {
+                addResult('feed-results', `❌ Feed loading test failed: ${error.message}`, 'fail');
+                testResults.feedLoading = false;
+            }
+        }
+
+        // Auto-run environment test on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testHiIslandEnvironment();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

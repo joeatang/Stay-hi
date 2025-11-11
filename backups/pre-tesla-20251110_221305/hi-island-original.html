@@ -807,13 +807,7 @@
   <!-- Core Dependencies (Load First) -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-  <!-- 🚀 TESLA FIX: Initialize HiSupabase before HiDB -->
-  <script type="module">
-    // Load HiSupabase synchronously before other modules
-    await import('./lib/HiSupabase.js');
-    console.log('✅ Tesla: HiSupabase initialized before HiDB');
-  </script>
-  
+  <!-- REMOVED: assets/supabase-init.js - using unified HiSupabase.v3.js instead -->
   <script src="assets/db.js"></script>
   <script src="assets/avatar-utils.js"></script>
   <script src="assets/geocoding-service.js"></script>
@@ -861,35 +855,6 @@
   <!-- 🚨 EMERGENCY: Freeze diagnostic tool for Tesla-grade debugging -->
   <script src="lib/diagnostic/HiShareFreezeDiagnostic.js"></script>
   
-  <!-- 🚀 TESLA FIX: Initialize Supabase client before other modules -->
-  <script type="module">
-    // Tesla Database Connection Fix
-    try {
-      console.log('🔧 Tesla: Initializing Supabase client...');
-      
-      // Import and initialize HiSupabase
-      await import('./lib/HiSupabase.js');
-      
-      // Verify client is available
-      if (window.HiSupabase && window.HiSupabase.getClient) {
-        const client = window.HiSupabase.getClient();
-        console.log('✅ Tesla: Supabase client initialized successfully');
-        
-        // Test connection
-        const { data, error } = await client.from('public_shares').select('count', { count: 'exact', head: true });
-        if (!error) {
-          console.log('✅ Tesla: Database connection verified');
-        } else {
-          console.warn('⚠️ Tesla: Database connection issue:', error.message);
-        }
-      } else {
-        console.warn('⚠️ Tesla: HiSupabase module not properly loaded');
-      }
-    } catch (error) {
-      console.error('❌ Tesla: Supabase initialization failed:', error);
-    }
-  </script>
-
   <!-- 🎯 PHASE 1: Validation test for architectural consolidation -->
   <script src="phase1-validation-test.js"></script>
   

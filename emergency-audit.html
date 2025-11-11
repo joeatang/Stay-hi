@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Emergency Table Schema Audit</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Emergency Table Schema Audit</h1>
+    <div id="results"></div>
+
+    <script>
+        // Load the emergency audit script and run it
+        fetch('/emergency-table-audit.js')
+            .then(response => response.text())
+            .then(scriptContent => {
+                // Execute the audit script
+                eval(scriptContent);
+                
+                // Run the audit immediately
+                setTimeout(async () => {
+                    console.log('🚨 Starting emergency table audit...');
+                    await auditTableStructures();
+                }, 1000);
+            })
+            .catch(error => {
+                console.error('Failed to load audit script:', error);
+                
+                // Fallback: create Supabase client and run basic audit
+                const supabase = supabase.createClient(
+                    'https://gfcubvroxgfvjhacinic.supabase.co',
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzY3VidnJveGdmdmpobmVpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTc2Njk1NDQsImV4cCI6MjAxMzI0NTU0NH0.cHZhN0tEUnNOZUpjejJzNjg5cUJ1TmlJZV9oQlhBdGp1' 
+                );
+                
+                // Quick table check
+                setTimeout(async () => {
+                    try {
+                        const { data, error } = await supabase
+                            .from('public_shares')
+                            .select('*')
+                            .limit(1);
+                            
+                        if (data && data.length > 0) {
+                            console.log('📋 public_shares columns:', Object.keys(data[0]));
+                        } else {
+                            console.log('❌ public_shares query error:', error);
+                        }
+                    } catch (err) {
+                        console.error('❌ Fallback audit failed:', err);
+                    }
+                }, 1500);
+            });
+    </script>
+</body>
+</html>

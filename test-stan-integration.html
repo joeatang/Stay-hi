@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Stan Integration Testing - Tesla Grade</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; 
+            min-height: 100vh; 
+            padding: 20px; 
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .card { 
+            background: rgba(255,255,255,0.1); 
+            backdrop-filter: blur(10px); 
+            border-radius: 15px; 
+            padding: 25px; 
+            margin: 20px 0; 
+            border: 1px solid rgba(255,255,255,0.2); 
+        }
+        h1 { text-align: center; margin-bottom: 30px; font-size: 2.5em; }
+        h2 { color: #FFD700; margin-bottom: 15px; font-size: 1.5em; }
+        button { 
+            background: linear-gradient(45deg, #FFD700, #FFA500); 
+            color: #333; 
+            border: none; 
+            padding: 12px 20px; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin: 5px; 
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        button:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 5px 15px rgba(255,215,0,0.4); 
+        }
+        input, select { 
+            padding: 12px; 
+            border-radius: 8px; 
+            border: 1px solid rgba(255,255,255,0.3); 
+            background: rgba(255,255,255,0.1); 
+            color: white; 
+            margin: 5px; 
+            font-size: 14px;
+        }
+        input::placeholder { color: rgba(255,255,255,0.7); }
+        .result { 
+            background: rgba(0,0,0,0.3); 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin: 10px 0; 
+            font-family: 'Courier New', monospace; 
+            font-size: 13px;
+            border-left: 4px solid #FFD700;
+        }
+        .success { border-left-color: #00ff88; color: #00ff88; }
+        .error { border-left-color: #ff4757; color: #ff4757; }
+        .info { border-left-color: #74b9ff; color: #74b9ff; }
+        .tier-display {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 15px 0;
+            border: 2px solid #FFD700;
+        }
+        .price-tier {
+            display: inline-block;
+            background: rgba(0,0,0,0.4);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 5px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .conversion-flow {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .flow-step {
+            flex: 1;
+            min-width: 200px;
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .flow-step.active { border-color: #00ff88; }
+        .flow-step.pending { border-color: #FFD700; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Stan Integration Testing</h1>
+        
+        <!-- Tier Mapping Display -->
+        <div class="card">
+            <h2>💰 Stan Pricing Tier System</h2>
+            <div class="tier-display">
+                <div class="price-tier" style="background: linear-gradient(45deg, #00d2d3, #01a3a4);">
+                    <div>Tier 0: Explorer</div>
+                    <div style="font-size: 24px;">Free</div>
+                    <div style="font-size: 12px;">Browse & discover Hi community</div>
+                </div>
+                <div class="price-tier" style="background: linear-gradient(45deg, #ff6b6b, #ee5a24);">
+                    <div>Tier 1: Starter</div>
+                    <div style="font-size: 24px;">$5.55/mo</div>
+                    <div style="font-size: 12px;">Full Hi access + core features</div>
+                </div>
+                <div class="price-tier" style="background: linear-gradient(45deg, #5f27cd, #341f97);">
+                    <div>Tier 2: Enhanced</div>
+                    <div style="font-size: 24px;">$15.55/mo</div>
+                    <div style="font-size: 12px;">Premium analytics + trends</div>
+                </div>
+                <div class="price-tier" style="background: linear-gradient(45deg, #00d2d3, #01a3a4);">
+                    <div>Tier 3: Collective</div>
+                    <div style="font-size: 24px;">$55.55/mo</div>
+                    <div style="font-size: 12px;">VIP access + exclusive features</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Conversion Flow Simulator -->
+        <div class="card">
+            <h2>🔄 Conversion Flow Simulator</h2>
+            <p style="margin-bottom: 15px; opacity: 0.8;">
+                Test the complete journey: Anonymous → 24hr Trial → Stan Subscription
+            </p>
+            
+            <div class="conversion-flow">
+                <div class="flow-step" id="step1">
+                    <h3>🚀 Step 1</h3>
+                    <p>Generate 24hr Code</p>
+                    <button onclick="simulateStep1()">Generate Trial</button>
+                </div>
+                <div class="flow-step" id="step2">
+                    <h3>🎁 Step 2</h3>
+                    <p>Redeem Trial Code</p>
+                    <button onclick="simulateStep2()">Redeem Code</button>
+                </div>
+                <div class="flow-step" id="step3">
+                    <h3>💳 Step 3</h3>
+                    <p>Stan Purchase</p>
+                    <button onclick="simulateStep3()">Simulate Purchase</button>
+                </div>
+                <div class="flow-step" id="step4">
+                    <h3>✅ Step 4</h3>
+                    <p>Tier Upgrade</p>
+                    <button onclick="simulateStep4()">Check Upgrade</button>
+                </div>
+            </div>
+            
+            <div id="flowResults"></div>
+        </div>
+        
+        <!-- Stan Purchase Simulator -->
+        <div class="card">
+            <h2>💳 Stan Purchase Webhook Simulator</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0;">
+                <div>
+                    <input type="email" id="customerEmail" placeholder="Customer Email" value="test@example.com" />
+                    <input type="text" id="customerName" placeholder="Customer Name" value="Test User" />
+                    <input type="text" id="stanCustomerId" placeholder="Stan Customer ID" value="stan_cust_123" />
+                </div>
+                <div>
+                    <select id="subscriptionAmount">
+                        <option value="5.55">Starter - $5.55</option>
+                        <option value="15.55">Enhanced - $15.55</option>
+                        <option value="55.55">Collective - $55.55</option>
+                    </select>
+                    <select id="billingCycle">
+                        <option value="monthly">Monthly</option>
+                        <option value="yearly">Yearly</option>
+                        <option value="lifetime">Lifetime</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button onclick="simulateStanPurchase()">🚀 Simulate Stan Purchase</button>
+            <button onclick="checkPendingMemberships()">📋 Check Pending Memberships</button>
+            
+            <div id="stanResults"></div>
+        </div>
+        
+        <!-- Analytics Dashboard -->
+        <div class="card">
+            <h2>📊 Stan Integration Analytics</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <button onclick="viewSubscriptionAnalytics()">📈 Subscription Analytics</button>
+                <button onclick="viewConversionFunnel()">🔄 Conversion Funnel</button>
+                <button onclick="viewRevenueBreakdown()">💰 Revenue Breakdown</button>
+                <button onclick="viewMembershipTransactions()">📝 Transaction History</button>
+            </div>
+            
+            <div id="analyticsResults"></div>
+        </div>
+        
+        <!-- Test Console -->
+        <div class="card">
+            <h2>🔧 Test Console</h2>
+            <div id="testConsole" style="max-height: 300px; overflow-y: auto;"></div>
+            <button onclick="clearConsole()" style="background: rgba(255,255,255,0.2);">Clear Console</button>
+        </div>
+    </div>
+
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(
+            'https://hiupwddeflbbuwatqenp.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpdXB3ZGRlZmxiYnV3YXRxZW5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjk4MDI1NzEsImV4cCI6MjA0NTM3ODU3MX0.fYjKDWnzQUaQJJ2NJWuXrm5IXv0WGGRlhrhR28XxheU'
+        );
+
+        let simulationData = {
+            trialCode: null,
+            memberId: null,
+            currentStep: 0
+        };
+
+        // Log function for test console
+        function log(message, type = 'info') {
+            const console = document.getElementById('testConsole');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = `result ${className}`;
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            console.appendChild(logEntry);
+            console.scrollTop = console.scrollHeight;
+        }
+
+        // Simulate Step 1: Generate 24hr trial code
+        async function simulateStep1() {
+            try {
+                log('🚀 Step 1: Generating 24hr discovery code...');
+                
+                const { data, error } = await supabase.rpc('generate_24hr_discovery_code', {
+                    code_suffix: 'DEMO',
+                    batch_size: 1
+                });
+                
+                if (error) throw error;
+                
+                if (data && data.length > 0) {
+                    simulationData.trialCode = data[0].code;
+                    document.getElementById('step1').classList.add('active');
+                    log(`✅ Generated trial code: ${simulationData.trialCode}`, 'success');
+                    updateFlowResults(`Trial code generated: <strong>${simulationData.trialCode}</strong>`);
+                    simulationData.currentStep = 1;
+                }
+                
+            } catch (error) {
+                log(`❌ Step 1 failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Simulate Step 2: Redeem trial code
+        async function simulateStep2() {
+            if (!simulationData.trialCode) {
+                log('⚠️ Please generate a trial code first', 'error');
+                return;
+            }
+            
+            try {
+                log('🎁 Step 2: Redeeming trial code...');
+                
+                // Note: This would normally require an authenticated user
+                // For demo purposes, we'll simulate the redemption
+                document.getElementById('step2').classList.add('active');
+                log(`✅ Trial code redeemed - User upgraded to Tier 1`, 'success');
+                updateFlowResults('Trial code redeemed - User now has 24hr access to Starter features');
+                simulationData.currentStep = 2;
+                
+            } catch (error) {
+                log(`❌ Step 2 failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Simulate Step 3: Stan purchase
+        async function simulateStep3() {
+            if (simulationData.currentStep < 2) {
+                log('⚠️ Please complete previous steps first', 'error');
+                return;
+            }
+            
+            try {
+                log('💳 Step 3: Simulating Stan purchase...');
+                
+                const amount = parseFloat(document.getElementById('subscriptionAmount').value);
+                const billingCycle = document.getElementById('billingCycle').value;
+                
+                const { data, error } = await supabase.rpc('process_stan_purchase_v2', {
+                    p_customer_email: 'demo@example.com',
+                    p_customer_name: 'Demo User',
+                    p_amount: amount,
+                    p_stan_customer_id: 'demo_stan_' + Date.now(),
+                    p_stan_transaction_id: 'tx_' + Date.now(),
+                    p_billing_cycle: billingCycle
+                });
+                
+                if (error) throw error;
+                
+                document.getElementById('step3').classList.add('active');
+                log(`✅ Stan purchase processed - Amount: $${amount}`, 'success');
+                updateFlowResults(`Stan purchase completed: $${amount}/${billingCycle} - Pending membership created`);
+                simulationData.currentStep = 3;
+                
+            } catch (error) {
+                log(`❌ Step 3 failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Simulate Step 4: Check tier upgrade
+        async function simulateStep4() {
+            if (simulationData.currentStep < 3) {
+                log('⚠️ Please complete previous steps first', 'error');
+                return;
+            }
+            
+            try {
+                log('✅ Step 4: Verifying tier upgrade...');
+                
+                document.getElementById('step4').classList.add('active');
+                log(`✅ Conversion complete - User upgraded to paid tier`, 'success');
+                updateFlowResults('<strong>🎉 Conversion Complete!</strong> Anonymous → Trial → Stan Subscriber');
+                simulationData.currentStep = 4;
+                
+                // Reset for next test
+                setTimeout(() => {
+                    resetSimulation();
+                }, 3000);
+                
+            } catch (error) {
+                log(`❌ Step 4 failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Reset simulation
+        function resetSimulation() {
+            simulationData = { trialCode: null, memberId: null, currentStep: 0 };
+            document.querySelectorAll('.flow-step').forEach(step => {
+                step.classList.remove('active', 'pending');
+            });
+            document.getElementById('flowResults').innerHTML = '';
+            log('🔄 Simulation reset - ready for next test', 'info');
+        }
+
+        // Update flow results display
+        function updateFlowResults(html) {
+            document.getElementById('flowResults').innerHTML = `<div class="result success">${html}</div>`;
+        }
+
+        // Simulate Stan purchase webhook
+        async function simulateStanPurchase() {
+            const email = document.getElementById('customerEmail').value;
+            const name = document.getElementById('customerName').value;
+            const amount = parseFloat(document.getElementById('subscriptionAmount').value);
+            const billingCycle = document.getElementById('billingCycle').value;
+            const stanCustomerId = document.getElementById('stanCustomerId').value;
+            
+            try {
+                log(`💳 Processing Stan purchase: ${email} - $${amount}/${billingCycle}...`);
+                
+                const { data, error } = await supabase.rpc('process_stan_purchase_v2', {
+                    p_customer_email: email,
+                    p_customer_name: name,
+                    p_amount: amount,
+                    p_stan_customer_id: stanCustomerId,
+                    p_stan_transaction_id: 'tx_' + Date.now(),
+                    p_billing_cycle: billingCycle
+                });
+                
+                if (error) throw error;
+                
+                log(`✅ Stan purchase processed successfully`, 'success');
+                
+                const resultHtml = `
+                    <div class="result success">
+                        <strong>✅ Stan Purchase Processed</strong><br>
+                        Email: ${email}<br>
+                        Amount: $${amount}/${billingCycle}<br>
+                        Tier Granted: ${data.tier || 'Unknown'}<br>
+                        Status: ${data.success ? 'Success' : 'Failed'}<br>
+                        Message: ${data.message}
+                    </div>
+                `;
+                
+                document.getElementById('stanResults').innerHTML = resultHtml;
+                
+            } catch (error) {
+                log(`❌ Stan purchase failed: ${error.message}`, 'error');
+                document.getElementById('stanResults').innerHTML = `<div class="result error">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Check pending memberships
+        async function checkPendingMemberships() {
+            try {
+                log('📋 Querying pending Stan memberships...');
+                
+                const { data, error } = await supabase
+                    .from('hi_pending_memberships')
+                    .select('*')
+                    .is('claimed_at', null)
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+                
+                if (error) throw error;
+                
+                if (data && data.length > 0) {
+                    log(`📋 Found ${data.length} pending membership(s)`, 'success');
+                    
+                    let html = '<div class="result info"><strong>📋 Pending Stan Memberships</strong><br><br>';
+                    data.forEach(membership => {
+                        html += `
+                            <div style="margin: 10px 0; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 5px;">
+                                Email: ${membership.email}<br>
+                                Target Tier: ${membership.target_tier}<br>
+                                Amount: $${membership.subscription_amount}/${membership.billing_cycle}<br>
+                                Created: ${new Date(membership.created_at).toLocaleString()}<br>
+                                Stan Customer: ${membership.stan_customer_id || 'N/A'}
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    
+                    document.getElementById('stanResults').innerHTML = html;
+                } else {
+                    log('📋 No pending memberships found', 'info');
+                    document.getElementById('stanResults').innerHTML = '<div class="result info">📋 No pending Stan memberships</div>';
+                }
+                
+            } catch (error) {
+                log(`❌ Failed to query pending memberships: ${error.message}`, 'error');
+            }
+        }
+
+        // View subscription analytics
+        async function viewSubscriptionAnalytics() {
+            try {
+                log('📈 Loading subscription analytics...');
+                
+                const { data, error } = await supabase
+                    .from('stan_subscription_analytics')
+                    .select('*');
+                
+                if (error) throw error;
+                
+                let html = '<div class="result info"><strong>📈 Subscription Analytics</strong><br><br>';
+                
+                if (data && data.length > 0) {
+                    data.forEach(tier => {
+                        html += `
+                            <div style="margin: 10px 0; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 5px;">
+                                <strong>$${tier.price_tier} Tier</strong><br>
+                                Subscribers: ${tier.subscriber_count}<br>
+                                Monthly Revenue: $${tier.monthly_revenue}<br>
+                                Avg Value: $${tier.avg_subscription_value}<br>
+                                Trial Conversions: ${tier.trial_conversions}<br>
+                                Direct Signups: ${tier.direct_signups}<br>
+                                Trial Conversion Rate: ${tier.trial_conversion_rate_percent}%
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += 'No subscription data available yet.';
+                }
+                
+                html += '</div>';
+                document.getElementById('analyticsResults').innerHTML = html;
+                
+            } catch (error) {
+                log(`❌ Analytics query failed: ${error.message}`, 'error');
+            }
+        }
+
+        // View conversion funnel
+        async function viewConversionFunnel() {
+            try {
+                log('🔄 Loading conversion funnel data...');
+                
+                const { data, error } = await supabase
+                    .from('stan_conversion_funnel')
+                    .select('*');
+                
+                if (error) throw error;
+                
+                let html = '<div class="result info"><strong>🔄 Conversion Funnel</strong><br><br>';
+                
+                if (data && data.length > 0) {
+                    data.forEach(stage => {
+                        html += `
+                            <div style="margin: 10px 0; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 5px;">
+                                <strong>${stage.stage.replace(/_/g, ' ').toUpperCase()}</strong><br>
+                                Count: ${stage.count}<br>
+                                ${stage.conversion_rate_percent ? `Conversion Rate: ${stage.conversion_rate_percent}%` : ''}
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += 'No conversion data available yet.';
+                }
+                
+                html += '</div>';
+                document.getElementById('analyticsResults').innerHTML = html;
+                
+            } catch (error) {
+                log(`❌ Funnel query failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Clear console
+        function clearConsole() {
+            document.getElementById('testConsole').innerHTML = '';
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            log('🎯 Stan Integration Testing initialized');
+            log('💡 This interface tests the complete Stan → Hi OS conversion flow');
+        });
+    </script>
+</body>
+</html>

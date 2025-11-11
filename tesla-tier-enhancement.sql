@@ -30,11 +30,12 @@ CREATE TABLE IF NOT EXISTS hi_access_codes (
   
   -- Code Details
   code VARCHAR(50) UNIQUE NOT NULL,
-  code_type VARCHAR(20) NOT NULL CHECK (code_type IN ('trial_7d', 'standard_15d', 'standard_30d', 'power_90d')),
+  code_type VARCHAR(20) NOT NULL CHECK (code_type IN ('discovery_24h', 'trial_7d', 'standard_15d', 'standard_30d', 'power_90d')),
   
   -- Access Grants
-  grants_tier INTEGER NOT NULL CHECK (grants_tier BETWEEN 2 AND 3), -- Tier 2 or 3 access
-  duration_days INTEGER NOT NULL, -- 7, 15, 30, 90
+  grants_tier INTEGER NOT NULL CHECK (grants_tier BETWEEN 1 AND 3), -- Tier 1, 2, or 3 access
+  duration_hours INTEGER, -- For 24hr codes: 24
+  duration_days INTEGER, -- For multi-day codes: 7, 15, 30, 90
   
   -- Usage Tracking
   created_by UUID, -- Admin who created the code
@@ -189,7 +190,12 @@ BEGIN
   END IF;
   
   -- Calculate new expiry date
-  new_expiry := now() + (code_record.duration_days || ' days')::INTERVAL;
+  new_expiry := CASE 
+    WHEN code_record.duration_hours > 0 THEN 
+      now() + (code_record.duration_hours || ' hours')::INTERVAL
+    ELSE 
+      now() + (code_record.duration_days || ' days')::INTERVAL
+  END;
   
   -- Update member tier
   UPDATE hi_members 
@@ -279,6 +285,68 @@ CREATE TRIGGER IF NOT EXISTS tier_change_logger
 BEFORE UPDATE ON hi_members
 FOR EACH ROW
 EXECUTE FUNCTION log_tier_change();
+
+-- ===================================================================
+-- 🎯 24HR DISCOVERY CODE GENERATION
+-- ===================================================================
+
+-- Function to generate 24hr discovery access codes
+CREATE OR REPLACE FUNCTION generate_24hr_discovery_code(
+  code_suffix TEXT DEFAULT NULL,
+  batch_size INTEGER DEFAULT 1
+)
+RETURNS TABLE(
+  code TEXT,
+  expires_at TIMESTAMPTZ
+) AS $$
+DECLARE
+  i INTEGER;
+  code_value TEXT;
+  code_expiry TIMESTAMPTZ;
+BEGIN
+  -- Set expiry to 24 hours from generation
+  code_expiry := now() + interval '24 hours';
+  
+  FOR i IN 1..batch_size LOOP
+    -- Generate unique 8-character code
+    code_value := 'HI24' || upper(substring(md5(random()::text), 1, 4));
+    
+    -- Add suffix if provided
+    IF code_suffix IS NOT NULL THEN
+      code_value := code_value || '-' || upper(code_suffix);
+    END IF;
+    
+    -- Insert the code
+    INSERT INTO hi_access_codes (
+      code,
+      code_type,
+      grants_tier,
+      duration_hours,
+      duration_days,
+      max_uses,
+      expires_at,
+      created_by,
+      metadata
+    ) VALUES (
+      code_value,
+      'discovery_24h',
+      1, -- Starter tier
+      24, -- 24 hours
+      0, -- No days (using hours instead)
+      1, -- Single use
+      code_expiry,
+      (SELECT id FROM hi_members WHERE email = 'system@stay-hi.com' LIMIT 1),
+      jsonb_build_object(
+        'purpose', '24hr_discovery',
+        'generated_at', now(),
+        'batch_id', gen_random_uuid()
+      )
+    );
+    
+    RETURN QUERY SELECT code_value, code_expiry;
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ===================================================================
 -- 📊 ANALYTICS VIEWS FOR CONVERSION TRACKING

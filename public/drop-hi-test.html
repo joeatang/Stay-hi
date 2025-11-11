@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🧪 Drop Hi Button Test - Isolated</title>
+    <style>
+        body { font-family: system-ui; padding: 20px; background: #f5f5f5; }
+        .test-container { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .test-button { background: #4ECDC4; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; margin: 8px; }
+        .result { padding: 8px 12px; margin: 8px 0; border-radius: 4px; font-family: monospace; }
+        .pass { background: #d4edda; color: #155724; }
+        .fail { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Drop Hi Button Test (Isolated)</h1>
+    
+    <div class="test-container">
+        <h3>Test 1: Module Loading</h3>
+        <button class="test-button" onclick="testModuleLoading()">Test HiShareSheet Module</button>
+        <div id="module-results"></div>
+    </div>
+
+    <div class="test-container">
+        <h3>Test 2: Direct Button Test</h3>
+        <button class="test-button" id="testDropButton" onclick="testDropHi()">Drop a Hi (Test)</button>
+        <div id="drop-results"></div>
+    </div>
+
+    <script type="module">
+        // Test the HiShareSheet import directly
+        let HiShareSheetClass = null;
+        
+        try {
+            const module = await import('./ui/HiShareSheet/HiShareSheet.js');
+            HiShareSheetClass = module.HiShareSheet;
+            window.HiShareSheet = HiShareSheetClass; // Make globally available
+            
+            addResult('module-results', '✅ HiShareSheet module loaded successfully', 'pass');
+            addResult('module-results', `✅ HiShareSheet constructor: ${typeof HiShareSheetClass}`, 'info');
+            
+            // Test instantiation
+            const testInstance = new HiShareSheetClass({ origin: 'test' });
+            addResult('module-results', '✅ HiShareSheet instance created successfully', 'pass');
+            
+        } catch (error) {
+            addResult('module-results', `❌ Module loading failed: ${error.message}`, 'fail');
+        }
+
+        // Make test functions global
+        window.testDropHi = function() {
+            addResult('drop-results', '🧪 Testing Drop Hi functionality...', 'info');
+            
+            if (window.HiShareSheet) {
+                try {
+                    const shareSheet = new window.HiShareSheet({
+                        origin: 'hi-island-test',
+                        onSuccess: (data) => {
+                            addResult('drop-results', '🎉 Share success callback triggered!', 'pass');
+                            console.log('Share data:', data);
+                        },
+                        onError: (error) => {
+                            addResult('drop-results', `❌ Share error: ${error.message}`, 'fail');
+                        }
+                    });
+                    
+                    addResult('drop-results', '✅ HiShareSheet instance created', 'pass');
+                    
+                    // Test opening (if method exists)
+                    if (typeof shareSheet.open === 'function') {
+                        shareSheet.open();
+                        addResult('drop-results', '✅ Share sheet opened successfully', 'pass');
+                    } else {
+                        addResult('drop-results', '⚠️ Share sheet open method not found', 'fail');
+                    }
+                    
+                } catch (error) {
+                    addResult('drop-results', `❌ Drop Hi test failed: ${error.message}`, 'fail');
+                }
+            } else {
+                addResult('drop-results', '❌ HiShareSheet not available globally', 'fail');
+            }
+        };
+
+        window.testModuleLoading = function() {
+            addResult('module-results', '🔄 Re-testing module loading...', 'info');
+            addResult('module-results', `HiShareSheet available: ${typeof window.HiShareSheet}`, 'info');
+        };
+    </script>
+
+    <script>
+        function addResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const result = document.createElement('div');
+            result.className = `result ${type}`;
+            result.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong> - ${message}`;
+            container.appendChild(result);
+        }
+
+        // Auto-test on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if (window.testModuleLoading) {
+                    window.testModuleLoading();
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>

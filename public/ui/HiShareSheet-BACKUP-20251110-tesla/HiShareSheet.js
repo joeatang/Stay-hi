@@ -605,51 +605,15 @@ export class HiShareSheet {
     }
   }
 
-  // 🚀 TESLA METHOD: Get authenticated user ID
-  async getUserId() {
-    try {
-      // Use existing auth system to get user ID
-      if (window.HiSupabase && window.HiSupabase.getClient) {
-        const client = window.HiSupabase.getClient();
-        const { data: { user } } = await client.auth.getUser();
-        return user?.id || null;
-      }
-      return null;
-    } catch (error) {
-      console.warn('Tesla getUserId failed:', error);
-      return null;
-    }
-  }
-
-  // 🎯 TESLA METHOD: Anonymous User Session Management
-  // Creates consistent anonymous user IDs for session-based archiving
-  async getOrCreateAnonymousUser() {
-    const storageKey = 'tesla_anonymous_user_id';
-    let anonymousUserId = sessionStorage.getItem(storageKey);
-    
-    if (!anonymousUserId) {
-      // Generate Tesla-grade session ID
-      const timestamp = Date.now();
-      const randomPart = Math.random().toString(36).substring(2, 15);
-      anonymousUserId = `anonymous-${timestamp}-${randomPart}`;
-      sessionStorage.setItem(storageKey, anonymousUserId);
-      console.log('🎯 Tesla generated new anonymous user ID:', anonymousUserId);
-    } else {
-      console.log('🔑 Tesla using existing anonymous user ID:', anonymousUserId);
-    }
-    
-    return anonymousUserId;
-  }
-
-  // � TESLA-GRADE REBUILT: Ultimate share persistence with bug fixes
+  // 🔧 TESLA-GRADE FIXED: Persist data to Supabase (no freezing)
   async persist({ toIsland = false, anon = false }) {
     const journal = document.getElementById('hi-share-journal');
     const raw = (journal.value || '').trim();
     const text = raw || 'Marked a Hi-5 ✨';
     
-    console.log('� Tesla persist:', { text, toIsland, anon, origin: this.origin, type: this.shareType });
+    console.log('💾 Saving Hi-5:', { text, toIsland, anon, origin: this.origin, type: this.shareType });
     
-    // 🚨 TESLA FIX: Make location completely non-blocking
+    // 🚨 EMERGENCY FIX: Make location completely non-blocking
     let location = 'Location unavailable';
     
     // Fire location detection in background (don't await)
@@ -658,49 +622,41 @@ export class HiShareSheet {
       new Promise(resolve => setTimeout(() => resolve('Location unavailable'), 1000))
     ]).then(result => {
       location = result || 'Location unavailable';
-      console.log('📍 Tesla location result:', location);
+      console.log('📍 Background location result:', location);
     }).catch(err => {
-      console.warn('Tesla location failed:', err);
+      console.warn('Background location failed:', err);
     });
     
-    // 🎯 TESLA CRITICAL FIX: Get or create anonymous user ID for consistent archiving
-    let userId = null;
-    if (!anon) {
-      // Authenticated users get real user ID
-      userId = await this.getUserId();
-    } else {
-      // Anonymous users get session-consistent ID for archiving
-      userId = await this.getOrCreateAnonymousUser();
-      console.log('🔑 Tesla anonymous user ID:', userId);
-    }
-    
     try {
-      // 🌟 TESLA: Use emotional journey data if available (Hi Muscle integration)
+
+      // 🌟 TESLA-GRADE: Use emotional journey data if available (Hi Muscle integration)
       const currentEmoji = this.emotionalJourney?.current || '🙌';
       const desiredEmoji = this.emotionalJourney?.desired || '✨';
       
-      // 🎯 TESLA FIX #1: ALL users (including anonymous) get archives with proper user IDs
+      // ALWAYS write to My Archive (private storage) first
       const archivePayload = {
         currentEmoji,
         desiredEmoji,
         journal: text,
         location,
         origin: this.origin, // 'hi5', 'higym', or 'hi-island'
-        type: this.shareType || (this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : 'Hi5')),
-        user_id: userId // Tesla: Always include user_id (even for anonymous)
+        type: this.shareType || (this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : 'Hi5'))
       };
       
-      // Tesla: ALL shares get archived (fixes anonymous archive bug)
-      if (window.hiDB?.insertArchive) {
+      // 🔧 TESLA-GRADE FIX: Only save to archive if NOT anonymous (archives need user_id)
+      if (!anon && window.hiDB?.insertArchive) {
+        // 🚨 EMERGENCY: Add timeout to archive save
         Promise.race([
           window.hiDB.insertArchive(archivePayload),
           new Promise((_, reject) => setTimeout(() => reject(new Error('Archive timeout')), 5000))
         ]).catch(err => {
-          console.warn('Tesla archive save failed:', err);
+          console.warn('Archive save failed:', err);
         });
+      } else if (anon) {
+        console.log('🔒 Anonymous share - skipping archive (no user_id)');
       }
 
-      // 🎯 TESLA FIX #2: Only public/anonymous shares go to island (NO private leaks)
+      // If sharing to island, write to public_shares
       if (toIsland && window.hiDB?.insertPublicShare) {
         const publicPayload = {
           currentEmoji,
@@ -711,16 +667,16 @@ export class HiShareSheet {
           isAnonymous: anon,
           location,
           isPublic: true,
-          type: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : 'self_hi5'),
-          user_id: anon ? null : userId // Tesla: Proper user_id handling
+          // REMOVED: origin field (doesn't exist in database schema)
+          type: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : 'self_hi5')
         };
         
-        // Tesla: Enhanced public share with proper error handling
+        // 🚨 EMERGENCY: Add timeout to public share save (non-blocking)
         Promise.race([
           window.hiDB.insertPublicShare(publicPayload),
           new Promise((_, reject) => setTimeout(() => reject(new Error('Public share timeout')), 5000))
         ]).catch(err => {
-          console.warn('Tesla public share failed:', err);
+          console.warn('Public share failed:', err);
         });
 
         // Update map (fire and forget with timeout)

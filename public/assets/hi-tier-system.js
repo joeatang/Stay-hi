@@ -87,10 +87,20 @@ class HiAuthTierSystem {
 
       this.memberData = memberData;
       
+      // Check for pending Stan membership
+      await this.checkPendingStanMembership(session.user.email);
+      
       // Check if temporal access has expired
       if (memberData.tier_expires_at) {
         const expiryDate = new Date(memberData.tier_expires_at);
         if (expiryDate < new Date()) {
+          // Check if it's a Stan subscription that needs renewal
+          if (memberData.stan_customer_id && memberData.subscription_status === 'active') {
+            console.log('⚠️ Stan subscription expired - checking for renewal...');
+            // Don't auto-downgrade Stan customers - they need to renew
+            this.setTier(1); // Keep basic access until renewal
+            return;
+          }
           // Expired - downgrade to Tier 1
           await this.handleTierExpiry();
           return;
@@ -124,7 +134,7 @@ class HiAuthTierSystem {
     this.capabilities.clear();
     
     switch (this.currentTier) {
-      case 0: // Anonymous/Discovery
+      case 0: // Explorer (Browse & Discover)
         this.capabilities.add('view_public_feeds');
         this.capabilities.add('tap_medallion');
         break;
@@ -243,13 +253,59 @@ class HiAuthTierSystem {
     }
   }
 
-  // Get tier name for display
+  // Check for pending Stan membership and auto-upgrade
+  async checkPendingStanMembership(userEmail) {
+    try {
+      const supabase = this.getSupabaseClient();
+      
+      // Check if user has pending Stan membership
+      const { data: pendingMembership, error } = await supabase.rpc('claim_pending_membership', {
+        p_user_id: this.session.user.id,
+        p_email: userEmail
+      });
+      
+      if (error) {
+        console.log('ℹ️ No pending Stan membership found');
+        return false;
+      }
+      
+      if (pendingMembership) {
+        console.log('🎉 Stan membership claimed successfully!');
+        // Refresh member data to get updated tier
+        await this.detectCurrentTier();
+        return true;
+      }
+      
+    } catch (error) {
+      console.error('❌ Error checking Stan membership:', error);
+    }
+    return false;
+  }
+
+  // Get tier name for display (enhanced for Stan tiers)
   getTierName() {
+    const memberData = this.memberData;
+    
+    // Enhanced tier names for Stan subscribers
+    if (memberData?.stan_customer_id) {
+      const stanTierNames = {
+        0: 'Explorer',
+        1: 'Starter ($5.55/mo)', 
+        2: 'Enhanced ($15.55/mo)',
+        3: 'Collective ($55.55/mo)'
+      };
+      const tierName = stanTierNames[this.currentTier];
+      if (tierName) {
+        return `${tierName} - Stan Member`;
+      }
+    }
+    
+    // Standard tier names
     const names = {
-      0: 'Discovery (Anonymous)',
+      0: 'Explorer',
       1: 'Starter (Email Verified)', 
       2: 'Enhanced (Temporal Access)',
-      3: 'Lifetime (Special Access)'
+      3: 'Collective (Special Access)'
     };
     return names[this.currentTier] || 'Unknown';
   }

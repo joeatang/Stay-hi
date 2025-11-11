@@ -15,15 +15,15 @@ class ProgressiveAuth {
   // Detect current authentication state
   async detectAuthState() {
     try {
-      // Retry logic for Supabase client detection (timing issues)
-      let supa = window.getSupabase?.() || window.supabaseClient || window.sb;
+      // 🚨 EMERGENCY FIX: Use HiDB unified client to prevent multiple instances
+      let supa = window.hiDB?.getSupabase?.() || window.supabaseClient || window.sb;
       
       if (!supa) {
         // Wait up to 2 seconds for Supabase to initialize
         console.log('🔄 Waiting for Supabase client...');
         for (let i = 0; i < 20; i++) {
           await new Promise(resolve => setTimeout(resolve, 100));
-          supa = window.getSupabase?.() || window.supabaseClient || window.sb;
+          supa = window.hiDB?.getSupabase?.() || window.supabaseClient || window.sb;
           if (supa) break;
         }
       }
