@@ -107,8 +107,8 @@
           // window.gTotalHis = metrics.hi5s || 0;
           // window.gUsers = 0; // Legacy fallback - not separated yet
           
-          // Update debug badge (show during development)
-          if (window.location.hostname === 'localhost' || window.location.search.includes('debug=1')) {
+          // Update debug badge (show during development only)
+          if ((window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1')) || window.location.search.includes('debug=1')) {
             const debugEl = document.getElementById('hiMetricsDebugDash');
             const statusEl = document.getElementById('dashMetricsStatus');
             const cacheEl = document.getElementById('dashCacheAge');
@@ -929,8 +929,8 @@
           <span class="stat-label">Streak</span>
         </div>
       </div>
-      <!-- HiMetrics Debug Badge -->
-      <div class="global-stat" id="hiMetricsDebugDash" style="display: none; opacity: 0.7; font-size: 0.8rem;">
+      <!-- HiMetrics Debug Badge (Development Only) -->
+      <div class="global-stat" id="hiMetricsDebugDash" style="display: none !important; opacity: 0.7; font-size: 0.8rem;">
         <span class="stat-icon">🔧</span>
         <div class="stat-content">
           <span class="stat-number" id="dashMetricsStatus">init</span>
