@@ -1234,11 +1234,17 @@
       let userId = null;
       
       try {
-        const { data: { user } } = await window.HiSupabase.getClient().auth.getUser();
-        isAuthenticated = !!user;
-        userId = user?.id;
+        // Ensure HiSupabase is available before attempting auth check
+        if (window.HiSupabase && window.HiSupabase.getClient) {
+          const { data: { user } } = await window.HiSupabase.getClient().auth.getUser();
+          isAuthenticated = !!user;
+          userId = user?.id;
+        } else {
+          console.log('HiSupabase not initialized, user is anonymous');
+          isAuthenticated = false;
+        }
       } catch (error) {
-        console.log('Authentication check failed, user is anonymous');
+        console.log('Authentication check failed, user is anonymous:', error.message);
         isAuthenticated = false;
       }
       

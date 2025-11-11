@@ -1208,8 +1208,9 @@
             globalHiWaves.textContent = formattedWaves;
           }
         } else {
-          // Show elegant loading state instead of hardcoded numbers
-          if (!globalHiWaves.textContent || globalHiWaves.textContent === '0') {
+          // Show elegant loading state for null/undefined values
+          const currentText = globalHiWaves.textContent || globalHiWaves.innerText || '';
+          if (!currentText.includes('...') && !currentText.includes('shimmer')) {
             globalHiWaves.innerHTML = '<span class="loading-shimmer">...</span>';
           }
         }
@@ -1808,15 +1809,22 @@
       const savedUsers = localStorage.getItem('dashboard_users_cache');
       
       if (window.gWaves === undefined) {
-        // Gold standard: Only use cached value if recent (< 30 seconds)
+        // Gold standard: Use cached value if recent, otherwise start with loading state
         const cacheTimestamp = localStorage.getItem('dashboard_waves_cache_time');
         const isRecentCache = cacheTimestamp && (Date.now() - parseInt(cacheTimestamp, 10)) < 30000;
         
         if (savedWaves && isRecentCache) {
           window.gWaves = parseInt(savedWaves, 10);
         } else {
-          // No jarring default - let real-time system handle it
-          window.gWaves = null; // Triggers loading state
+          // Start with undefined to trigger immediate HiWavesRealtime fetch
+          window.gWaves = undefined;
+          // Force initial display update
+          setTimeout(() => {
+            const wavesEl = document.getElementById('globalHiWaves');
+            if (wavesEl && window.gWaves === undefined) {
+              wavesEl.innerHTML = '<span class="loading-shimmer">...</span>';
+            }
+          }, 100);
         }
       }
       if (window.gTotalHis === undefined) {
@@ -2012,7 +2020,7 @@
           setTimeout(async () => {
             const success = await window.hiWavesRealtime.initialize();
             if (success) {
-              window.hiWavesRealtime.startRealTimeUpdates(8000); // Every 8 seconds for near real-time
+              window.hiWavesRealtime.startRealTimeUpdates(5000); // Every 5 seconds for responsive updates
               console.log('🌊 Hi Waves real-time system active');
             }
           }, 2000);
