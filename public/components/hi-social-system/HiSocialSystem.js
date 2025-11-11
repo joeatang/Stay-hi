@@ -137,10 +137,93 @@ class HiIslandSocialSystem {
                   <p>Loading your archives...</p>
                 </div>
               ` : `
-                <div class="empty-state">
-                  <div class="empty-icon">🔐</div>
-                  <h4>Sign In Required</h4>
-                  <p>Please sign in to view your personal Hi 5 archives</p>
+                <div class="archive-preview-experience">
+                  <!-- Header -->
+                  <div class="archive-preview-header">
+                    <div class="preview-icon">📚</div>
+                    <h3>Your Personal Hi Archive</h3>
+                    <p>A private collection of your emotional journey and insights</p>
+                  </div>
+                  
+                  <!-- Sample Archive Entries (Demo Mode) -->
+                  <div class="preview-sample-entries">
+                    <div class="sample-entry">
+                      <div class="entry-header">
+                        <span class="entry-date">3 days ago</span>
+                        <span class="entry-type">🧘 HiGYM Journey</span>
+                      </div>
+                      <div class="entry-content">
+                        <div class="emotional-journey">
+                          <span class="emotion-from">😰 Anxious</span>
+                          <span class="journey-arrow">→</span>
+                          <span class="emotion-to">😌 Calm</span>
+                        </div>
+                        <p class="entry-text">"Feeling overwhelmed with work, but taking time to breathe and focus on what I can control..."</p>
+                      </div>
+                      <div class="entry-insights">
+                        <span class="insight-tag">Growth Pattern</span>
+                        <span class="insight-tag">Mindfulness Practice</span>
+                      </div>
+                    </div>
+                    
+                    <div class="sample-entry">
+                      <div class="entry-header">
+                        <span class="entry-date">1 week ago</span>
+                        <span class="entry-type">🌟 Hi Moment</span>
+                      </div>
+                      <div class="entry-content">
+                        <p class="entry-text">"Celebrated a small win today - finally finished that project I've been putting off. Sometimes progress is just showing up..."</p>
+                        <div class="entry-location">📍 Coffee shop downtown</div>
+                      </div>
+                      <div class="entry-insights">
+                        <span class="insight-tag">Achievement</span>
+                        <span class="insight-tag">Self-Recognition</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Benefits Section -->
+                  <div class="archive-benefits">
+                    <h4>🌟 Join Hi to unlock your Archive:</h4>
+                    <div class="benefits-grid">
+                      <div class="benefit-item">
+                        <div class="benefit-icon">💾</div>
+                        <div class="benefit-text">
+                          <strong>Save Forever</strong>
+                          <p>Keep your moments safe and private</p>
+                        </div>
+                      </div>
+                      <div class="benefit-item">
+                        <div class="benefit-icon">📈</div>
+                        <div class="benefit-text">
+                          <strong>Track Growth</strong>
+                          <p>See your emotional patterns and progress</p>
+                        </div>
+                      </div>
+                      <div class="benefit-item">
+                        <div class="benefit-icon">🔍</div>
+                        <div class="benefit-text">
+                          <strong>Personalized Insights</strong>
+                          <p>Discover what helps you thrive</p>
+                        </div>
+                      </div>
+                      <div class="benefit-item">
+                        <div class="benefit-icon">🎯</div>
+                        <div class="benefit-text">
+                          <strong>Private & Secure</strong>
+                          <p>Your archive is for you alone</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Call to Action -->
+                  <div class="archive-cta">
+                    <button class="upgrade-btn" onclick="window.location.href='/auth.html?redirect=' + encodeURIComponent(window.location.pathname)">
+                      🚀 Start Your Hi Archive
+                    </button>
+                    <p class="cta-subtitle">Free to join • Takes 30 seconds</p>
+                  </div>
                 </div>
               `}
             </div>
@@ -763,6 +846,199 @@ class HiIslandSocialSystem {
         
         .share-actions {
           flex-wrap: wrap;
+        }
+      }
+      
+      /* Tesla-Grade Archive Preview Experience */
+      .archive-preview-experience {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      
+      .archive-preview-header {
+        text-align: center;
+        margin-bottom: 32px;
+      }
+      
+      .preview-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+      }
+      
+      .archive-preview-header h3 {
+        margin: 0 0 8px 0;
+        font-size: 28px;
+        color: white;
+      }
+      
+      .archive-preview-header p {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 16px;
+      }
+      
+      .preview-sample-entries {
+        margin-bottom: 32px;
+      }
+      
+      .sample-entry {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 16px;
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+      
+      .entry-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      
+      .entry-date {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.7);
+      }
+      
+      .entry-type {
+        font-size: 12px;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 4px 8px;
+        border-radius: 12px;
+        color: white;
+      }
+      
+      .emotional-journey {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        font-size: 14px;
+      }
+      
+      .emotion-from, .emotion-to {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 4px 8px;
+        border-radius: 8px;
+        color: white;
+      }
+      
+      .journey-arrow {
+        color: rgba(255, 255, 255, 0.7);
+      }
+      
+      .entry-text {
+        color: white;
+        line-height: 1.5;
+        margin: 12px 0;
+      }
+      
+      .entry-location {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.7);
+        margin-top: 8px;
+      }
+      
+      .entry-insights {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+      
+      .insight-tag {
+        background: rgba(255, 220, 102, 0.2);
+        color: #FFD166;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      
+      .archive-benefits {
+        margin-bottom: 32px;
+      }
+      
+      .archive-benefits h4 {
+        text-align: center;
+        color: white;
+        margin-bottom: 24px;
+        font-size: 20px;
+      }
+      
+      .benefits-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      
+      .benefit-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 16px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      
+      .benefit-icon {
+        font-size: 24px;
+        flex-shrink: 0;
+      }
+      
+      .benefit-text strong {
+        display: block;
+        color: white;
+        margin-bottom: 4px;
+        font-size: 14px;
+      }
+      
+      .benefit-text p {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+      
+      .archive-cta {
+        text-align: center;
+      }
+      
+      .upgrade-btn {
+        background: linear-gradient(135deg, #FFD166 0%, #F77F00 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 16px 32px;
+        color: #1a1a1a;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 16px rgba(255, 209, 102, 0.3);
+      }
+      
+      .upgrade-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 209, 102, 0.4);
+      }
+      
+      .cta-subtitle {
+        margin: 12px 0 0 0;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 14px;
+      }
+      
+      @media (max-width: 768px) {
+        .benefits-grid {
+          grid-template-columns: 1fr;
+        }
+        
+        .archive-preview-experience {
+          padding: 16px;
         }
       }
     `;
