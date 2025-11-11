@@ -643,13 +643,23 @@ export class HiShareSheet {
 
   // � TESLA-GRADE REBUILT: Ultimate share persistence with bug fixes
   async persist({ toIsland = false, anon = false }) {
-    const journal = document.getElementById('hi-share-journal');
-    const raw = (journal.value || '').trim();
-    const text = raw || 'Marked a Hi-5 ✨';
+    // 🔒 DOUBLE SUBMISSION GUARD: Prevent multiple simultaneous submissions
+    if (this._persisting) {
+      console.warn('⚠️ Submission already in progress, blocking duplicate');
+      return;
+    }
     
-    console.log('� Tesla persist:', { text, toIsland, anon, origin: this.origin, type: this.shareType });
+    this._persisting = true;
+    const submissionId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
     
-    // 🚨 TESLA FIX: Make location completely non-blocking
+    try {
+      const journal = document.getElementById('hi-share-journal');
+      const raw = (journal.value || '').trim();
+      const text = raw || 'Marked a Hi-5 ✨';
+      
+      console.log('🎯 Tesla persist:', { submissionId, text, toIsland, anon, origin: this.origin, type: this.shareType });
+    
+      // 🚨 TESLA FIX: Make location completely non-blocking
     let location = 'Location unavailable';
     
     // Fire location detection in background (don't await)
@@ -767,6 +777,9 @@ export class HiShareSheet {
       console.error('❌ Share persistence failed:', error);
       this.showToast('❌ Failed to save. Please try again.');
       return; // Don't close on error
+    } finally {
+      // 🔒 Reset submission guard
+      this._persisting = false;
     }
     
     // 🔧 EMERGENCY FIX: Don't close here - button handlers close immediately for responsiveness
