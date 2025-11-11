@@ -1332,33 +1332,29 @@
           selfHi5Enhanced.style.transform = '';
         }, 150);
 
-        // HI DEV: Use existing HiShareSheet instance (Tesla-grade single initialization)
+        // 🎯 TESLA GRADE: Use unified HiShareSheet instance (preventing duplicate shares)
         try {
           // Get the globally initialized HiShareSheet instance
           const shareSheetInstance = window.__hiComponentsInitialized?.shareSheetInstance;
           
           if (!shareSheetInstance) {
-            throw new Error('HiShareSheet not initialized');
+            console.warn('⚠️ HiShareSheet not yet initialized, waiting for unified initialization...');
+            // Wait briefly for unified initialization
+            setTimeout(() => {
+              const retryInstance = window.__hiComponentsInitialized?.shareSheetInstance;
+              if (retryInstance) {
+                retryInstance.open({
+                  context: 'dashboard',
+                  preset: 'hi5',
+                  prefilledText: '🙌 Giving myself a Hi5! ',
+                  type: 'Hi5'
+                });
+              }
+            }, 100);
+            return;
           }
           
-          // Configure success handler for Hi5 flow
-          shareSheetInstance.updateOptions({
-            onSuccess: async (shareData) => {
-              console.log('[HI DEV] Hi5 share submitted via Share Sheet:', shareData);
-              
-              // HI DEV: Increment Hi5 counter on successful submit ONLY
-              await incrementHi5Counter();
-              
-              // HI DEV: Analytics via HiMonitor.trackEvent
-              const { trackEvent } = await import('./lib/monitoring/HiMonitor.js');
-              trackEvent('hi5_submit', {
-                visibility: shareData.visibility,
-                path: shareData.hibaseEnabled ? 'hibase' : 'legacy'
-              });
-            }
-          });
-
-          // Open with Hi5 context (centered modal)
+          // Open with Hi5 context (success handler configured in unified initialization)
           shareSheetInstance.open({
             context: 'dashboard',
             preset: 'hi5',
@@ -2053,8 +2049,14 @@
       if (!window.__hiComponentsInitialized.shareSheet) {
         const shareSheet = new HiShareSheet({ 
           origin: 'dashboard',
-          onSuccess: (shareData) => {
+          onSuccess: async (shareData) => {
             console.log('✅ Dashboard Hi5 shared successfully!');
+            
+            // 🎯 TESLA GRADE: Increment Hi5 counter for Hi5 type shares
+            if (shareData.type === 'Hi5') {
+              await incrementHi5Counter();
+              console.log('✅ Hi5 counter incremented');
+            }
             
             // 🚀 TESLA GRADE: Refresh user count after new share
             if (window.loadRealUserCount) {
@@ -2067,9 +2069,21 @@
                 submissionType: shareData.privacy || 'public',
                 pageOrigin: 'hi-dashboard',
                 origin: 'hi-dashboard',
-                tag: 'Hi5️⃣',
+                tag: shareData.type === 'Hi5' ? 'Hi5️⃣' : 'Hi Dashboard',
                 timestamp: Date.now()
               });
+            }
+            
+            // 📊 Analytics tracking
+            try {
+              const { trackEvent } = await import('./lib/monitoring/HiMonitor.js');
+              trackEvent('share_submit', {
+                visibility: shareData.visibility || shareData.privacy,
+                type: shareData.type || 'standard',
+                origin: 'dashboard'
+              });
+            } catch (err) {
+              console.log('Analytics tracking failed:', err);
             }
           }
         });

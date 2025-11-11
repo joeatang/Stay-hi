@@ -364,11 +364,11 @@ class HiIslandFeed {
     // Map origin to badge with emoji
     let originBadge = '';
     let badgeClass = '';
-    if (share.origin === 'hi5' || share.origin === 'quick' || share.origin === 'hi-island') {
-      // 🚀 TESLA-GRADE FIX: Hi-Island shares should be tagged as Hi5
+    if (share.origin === 'hi5' || share.origin === 'quick' || share.origin === 'hi-island' || share.origin === 'dashboard') {
+      // 🚀 TESLA-GRADE FIX: Dashboard and Hi-Island shares should be tagged as Hi5
       originBadge = '👋 Hi5';
       badgeClass = 'badge-hi5';
-    } else if (share.origin === 'higym' || share.origin === 'guided') {
+    } else if (share.origin === 'higym' || share.origin === 'guided' || share.origin === 'hi-muscle') {
       originBadge = '💪 HiGYM';
       badgeClass = 'badge-higym';
     }
