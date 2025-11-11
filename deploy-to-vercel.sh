@@ -76,7 +76,7 @@ health_check "http://localhost:8000/signin.html" "Sign In Page" || ((FAILED_TEST
 health_check "http://localhost:8000/signup.html" "Sign Up Page" || ((FAILED_TESTS++))
 health_check "http://localhost:8000/hi-island-NEW.html" "Hi Island" || ((FAILED_TESTS++))
 health_check "http://localhost:8000/assets/auth-guard.js" "Auth Guard" || ((FAILED_TESTS++))
-health_check "http://localhost:8000/components/hi-share-sheet/share-sheet.js" "Share Sheet" || ((FAILED_TESTS++))
+health_check "http://localhost:8000/ui/HiShareSheet/HiShareSheet.js" "Share Sheet" || ((FAILED_TESTS++))
 
 # Stop local server
 kill $SERVER_PID 2>/dev/null || true
