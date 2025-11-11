@@ -2069,12 +2069,14 @@
         const shareSheet = new HiShareSheet({ 
           origin: 'dashboard',
           onSuccess: async (shareData) => {
-            console.log('✅ Dashboard Hi5 shared successfully!');
+            const submissionId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            console.log('✅ Dashboard share success handler called:', { submissionId, shareData });
             
             // 🎯 TESLA GRADE: Increment Hi5 counter for Hi5 type shares
             if (shareData.type === 'Hi5') {
+              console.log('🎯 Incrementing Hi5 counter for submission:', submissionId);
               await incrementHi5Counter();
-              console.log('✅ Hi5 counter incremented');
+              console.log('✅ Hi5 counter incremented for submission:', submissionId);
             }
             
             // 🚀 TESLA GRADE: Refresh user count after new share

@@ -140,6 +140,13 @@ class HiIslandFeed {
 
   // Switch active tab
   switchTab(tabName) {
+    // 🔒 Access Control: Check if user can access this tab
+    if (!this.canAccessTab(tabName)) {
+      console.log(`🔒 Access denied to tab: ${tabName}`);
+      this.showUpgradePrompt(tabName);
+      return;
+    }
+
     this.currentTab = tabName;
 
     // Update tab buttons
@@ -169,7 +176,44 @@ class HiIslandFeed {
     // CRITICAL: Render the list for the new tab
     this.renderList(tabName);
 
-    console.log(`🔄 Switched to tab: ${tabName}`);
+    console.log(`� Switched tab: ${tabName}`);
+  }
+
+  // 🔒 Check if user can access specific tab
+  canAccessTab(tabName) {
+    // Anonymous users can only access 'general' tab
+    const isAnonymous = !window.hiAuth?.getCurrentUser?.() || 
+                       window.hiAuth?.getCurrentUser?.()?.id === 'anonymous';
+    
+    if (isAnonymous) {
+      return tabName === 'general';
+    }
+    
+    // Authenticated users can access general and archive
+    // Future: Add tier-based access for trends, milestones, show
+    const allowedTabs = ['general', 'archive'];
+    return allowedTabs.includes(tabName);
+  }
+
+  // 🔒 Show upgrade prompt for restricted features
+  showUpgradePrompt(tabName) {
+    const messages = {
+      archive: 'Sign in to view your personal Hi archive! 📚',
+      trends: 'Upgrade to access emotional trends and insights! 📊', 
+      milestones: 'Upgrade to track your Hi journey milestones! 🏆',
+      show: 'Coming soon: Hi Show community features! 📺'
+    };
+
+    const message = messages[tabName] || 'This feature requires authentication.';
+    
+    if (window.showHiUpgradeModal) {
+      window.showHiUpgradeModal('tab_access', {
+        message,
+        feature: `${tabName.charAt(0).toUpperCase() + tabName.slice(1)} Tab`
+      });
+    } else {
+      alert(message);
+    }
   }
 
   // Switch active filter
@@ -361,17 +405,28 @@ class HiIslandFeed {
 
     const timeAgo = this.formatTimeAgo(share.createdAt);
     
+    // 🐛 DEBUG: Log share data to investigate missing badges
+    console.log('🔍 Feed item data:', {
+      text: share.text?.substring(0, 30) + '...',
+      origin: share.origin,
+      userId: share.userId,
+      location: share.location
+    });
+
     // Map origin to badge with emoji
     let originBadge = '';
     let badgeClass = '';
     if (share.origin === 'hi5' || share.origin === 'quick' || share.origin === 'hi-island' || share.origin === 'dashboard') {
-      // 🚀 TESLA-GRADE FIX: Dashboard and Hi-Island shares should be tagged as Hi5
+      // 🚀 TESLA-GRADE FIX: Hi-Island shares should be tagged as Hi5
       originBadge = '👋 Hi5';
       badgeClass = 'badge-hi5';
     } else if (share.origin === 'higym' || share.origin === 'guided') {
       originBadge = '💪 HiGYM';
       badgeClass = 'badge-higym';
     }
+    
+    // 🐛 DEBUG: Log badge result
+    console.log('🏷️ Badge result:', { originBadge, badgeClass, origin: share.origin });
 
     // For HiGYM, show emotional journey prominently
     const isHiGym = share.origin === 'higym' || share.origin === 'guided';
