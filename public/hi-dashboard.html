@@ -203,6 +203,8 @@
   <script src="assets/progressive-auth.js" async></script>
   <script src="assets/anonymous-access-modal.js" async></script>
   <script src="./lib/HiMembership.js"></script>
+  <script src="./lib/RealUserCount.js"></script>
+  <script src="./lib/HiWavesRealtime.js"></script>
   <script src="assets/performance-manager.js"></script>
   
   <!-- Tesla-Grade Onboarding System -->
@@ -1076,8 +1078,9 @@
               updateStreakDisplay(currentStreak);
             }
           } else {
-            // Anonymous user - no streak
-            updateStreakDisplay(0);
+            // 🎯 TESLA GRADE: Hide streak UI for anonymous users (gold standard UX)
+            console.log('🔒 Anonymous user - hiding streak UI');
+            hideStreakUI();
           }
 
           // 📊 Track HiBase streak usage
@@ -1092,9 +1095,17 @@
           // 🔄 Legacy path: load from localStorage or other system
           console.log('📦 Streak → Legacy loading...');
           
-          // Legacy streak loading - could be from localStorage or existing system
-          const localStreak = localStorage.getItem('user_current_streak') || '0';
-          updateStreakDisplay(parseInt(localStreak, 10));
+          const currentUser = window.hiAuth?.getCurrentUser?.() || { id: 'anonymous' };
+          
+          if (currentUser.id && currentUser.id !== 'anonymous') {
+            // Authenticated user - show streak
+            const localStreak = localStorage.getItem('user_current_streak') || '0';
+            updateStreakDisplay(parseInt(localStreak, 10));
+          } else {
+            // 🎯 TESLA GRADE: Hide streak UI for anonymous users (gold standard UX)
+            console.log('🔒 Anonymous user - hiding streak UI (legacy path)');
+            hideStreakUI();
+          }
           
           // 📊 Track legacy streak usage
           import('./lib/monitoring/HiMonitor.js').then(m => 
@@ -1131,6 +1142,32 @@
           streakElement.style.webkitTextFillColor = '';
         }
       }
+    }
+
+    // 🎯 TESLA GRADE: Hide streak UI for anonymous users (gold standard UX)
+    function hideStreakUI() {
+      // Hide individual streak stat
+      const streakStat = document.querySelector('.user-stat:has(#userStreak)');
+      if (streakStat) {
+        streakStat.style.display = 'none';
+        console.log('✅ Streak stat hidden for anonymous user');
+      }
+      
+      // Hide HiStreaks component container
+      const streaksContainer = document.getElementById('hiStreaksContainer');
+      if (streaksContainer) {
+        streaksContainer.style.display = 'none';
+        console.log('✅ HiStreaks container hidden for anonymous user');
+      }
+      
+      // Hide any other streak-related elements
+      const streakElements = document.querySelectorAll('[id*="streak"], [class*="streak"]');
+      streakElements.forEach(el => {
+        // Only hide if it's specifically about user streaks, not global streaks
+        if (el.id !== 'globalStreak' && !el.classList.contains('global-streak')) {
+          el.style.display = 'none';
+        }
+      });
     }
 
     // Show error state for consistency
@@ -1226,6 +1263,11 @@
             newWaveCount: result.data,
             isAuthenticated: !!userId
           });
+          
+          // 🌊 TESLA GRADE: Force immediate Hi Waves refresh for real-time accuracy
+          if (window.hiWavesRealtime) {
+            await window.hiWavesRealtime.forceRefresh();
+          }
           
           // Refresh dashboard metrics to show updated global waves
           setTimeout(() => initHiStatsOnce('medallion-tap-refresh'), 100);
@@ -1739,7 +1781,8 @@
         window.gTotalHis = savedTotal ? parseInt(savedTotal, 10) : 90;
       }
       if (window.gUsers === undefined) {
-        window.gUsers = savedUsers ? parseInt(savedUsers, 10) : 250;
+        // 🎯 TESLA GRADE: Initialize smart user count system
+        window.initializeSmartUserCount?.() || (window.gUsers = savedUsers ? parseInt(savedUsers, 10) : 5);
       }
       
       // 🎯 INSTANT UI UPDATE: Show cached/smart defaults immediately
@@ -1851,40 +1894,45 @@
           // Try fastest queries first
           let realStatsLoaded = false;
           
-          // 1. Quick global_community_stats query
+          // 1. 🚀 TESLA GRADE: Enhanced stats loading with real user count
           try {
-            const { data, error } = await supabase
-              .from('global_community_stats')
-              .select('total_his, hi_waves, total_users')
-              .limit(1)
-              .single();
-              
-            if (data && !error) {
-              // Update with real values
-              const oldTotalHis = window.gTotalHis;
-              const oldWaves = window.gWaves;
-              
-              window.gTotalHis = data.total_his || window.gTotalHis;
-              window.gWaves = data.hi_waves || window.gWaves; // 🎯 FIX: Ensure Global Waves gets set
-              window.gUsers = data.total_users || window.gUsers;
-              
-              // 🚀 CACHE REAL VALUES: Save to localStorage for next page load
-              localStorage.setItem('dashboard_waves_cache', window.gWaves.toString());
-              localStorage.setItem('dashboard_total_cache', window.gTotalHis.toString());
-              localStorage.setItem('dashboard_users_cache', window.gUsers.toString());
-              localStorage.setItem('dashboard_cache_timestamp', Date.now().toString());
-              
-              console.log('✅ Real stats loaded and cached:', { 
-                totalHis: `${oldTotalHis} → ${window.gTotalHis}`,
-                waves: `${oldWaves} → ${window.gWaves}`,
-                users: window.gUsers
-              });
-              
-              updateStatsUI();
+            if (window.loadEnhancedGlobalStats) {
+              await window.loadEnhancedGlobalStats();
               realStatsLoaded = true;
+            } else {
+              // Fallback to standard loading
+              const { data, error } = await supabase
+                .from('global_community_stats')
+                .select('total_his, hi_waves, total_users')
+                .limit(1)
+                .single();
+                
+              if (data && !error) {
+                // Update with real values
+                const oldTotalHis = window.gTotalHis;
+                const oldWaves = window.gWaves;
+                
+                window.gTotalHis = data.total_his || window.gTotalHis;
+                window.gWaves = data.hi_waves || window.gWaves;
+                // User count handled by RealUserCount.js system
+                
+                // Cache other stats
+                localStorage.setItem('dashboard_waves_cache', window.gWaves.toString());
+                localStorage.setItem('dashboard_total_cache', window.gTotalHis.toString());
+                localStorage.setItem('dashboard_cache_timestamp', Date.now().toString());
+                
+                console.log('✅ Stats loaded (fallback mode):', { 
+                  totalHis: `${oldTotalHis} → ${window.gTotalHis}`,
+                  waves: `${oldWaves} → ${window.gWaves}`,
+                  users: window.gUsers
+                });
+                
+                updateStatsUI();
+                realStatsLoaded = true;
+              }
             }
           } catch (err) {
-            console.log('📊 global_community_stats query failed, trying public_shares...');
+            console.log('📊 Enhanced stats loading failed, trying fallback...');
           }
           
           // 2. Fallback to public_shares (just for Total His)
@@ -1915,6 +1963,17 @@
           
         } catch (error) {
           console.log('📊 Background stats loading failed, keeping defaults:', error);
+        }
+        
+        // 🌊 TESLA GRADE: Start Hi Waves real-time system
+        if (window.hiWavesRealtime) {
+          setTimeout(async () => {
+            const success = await window.hiWavesRealtime.initialize();
+            if (success) {
+              window.hiWavesRealtime.startRealTimeUpdates(8000); // Every 8 seconds for near real-time
+              console.log('🌊 Hi Waves real-time system active');
+            }
+          }, 2000);
         }
       }, 100); // Very short delay to let page render first
     }
@@ -1997,6 +2056,11 @@
           onSuccess: (shareData) => {
             console.log('✅ Dashboard Hi5 shared successfully!');
             
+            // 🚀 TESLA GRADE: Refresh user count after new share
+            if (window.loadRealUserCount) {
+              setTimeout(window.loadRealUserCount, 1000);
+            }
+            
             // Track submission for Global Hi's counter (COMPREHENSIVE integration)
             if (window.trackShareSubmission) {
               window.trackShareSubmission('hi-dashboard', {
@@ -2064,6 +2128,11 @@
                         // 🚀 CACHE THE REAL VALUE: Persist for next page load
                         localStorage.setItem('dashboard_waves_cache', window.gWaves.toString());
                         localStorage.setItem('dashboard_cache_timestamp', Date.now().toString());
+                        
+                        // 🌊 TESLA GRADE: Update Hi Waves real-time system
+                        if (window.hiWavesRealtime) {
+                          window.hiWavesRealtime.updateWavesUI(window.gWaves);
+                        }
                         
                         const globalHiWavesEl = document.getElementById('globalHiWaves');
                         if (globalHiWavesEl) {

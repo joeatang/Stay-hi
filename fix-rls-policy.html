@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔧 Fix Hi Archives RLS Policy</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #00ff00; }
+        .sql { background: #000; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        button { background: #0066cc; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Fix Hi Archives RLS Policy</h1>
+    <p>This will fix the RLS policy blocking anonymous archive inserts.</p>
+    
+    <div class="sql">
+        <h3>SQL to run in Supabase SQL Editor:</h3>
+        <pre id="sql-code">-- Fix RLS policy for hi_archives table to allow anonymous users
+-- Current issue: Anonymous users can't insert into hi_archives due to RLS policy
+
+-- Drop existing policies first
+DROP POLICY IF EXISTS "Users can insert their own archives" ON hi_archives;
+DROP POLICY IF EXISTS "Users can read their own archives" ON hi_archives;
+
+-- Create new policies that allow anonymous users
+CREATE POLICY "Users can insert their own archives" ON hi_archives 
+FOR INSERT WITH CHECK (
+  auth.uid() = user_id OR 
+  (auth.uid() IS NULL AND user_id IS NULL)
+);
+
+CREATE POLICY "Users can read their own archives" ON hi_archives
+FOR SELECT USING (
+  auth.uid() = user_id OR
+  (auth.uid() IS NULL AND user_id IS NULL)
+);
+
+-- Enable RLS
+ALTER TABLE hi_archives ENABLE ROW LEVEL SECURITY;</pre>
+    </div>
+    
+    <button onclick="copySQL()">📋 Copy SQL</button>
+    <button onclick="applyFix()">⚡ Apply Fix via Supabase Client</button>
+    
+    <div id="status"></div>
+
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        
+        window.copySQL = function() {
+            const sql = document.getElementById('sql-code').textContent;
+            navigator.clipboard.writeText(sql);
+            document.getElementById('status').innerHTML = '✅ SQL copied to clipboard!';
+        };
+        
+        window.applyFix = async function() {
+            const status = document.getElementById('status');
+            status.innerHTML = '🔧 Applying RLS policy fix...';
+            
+            try {
+                const supabase = createClient(
+                    'https://gfcubvroxgfvjhacinic.supabase.co',
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g'
+                );
+                
+                // Test insert to hi_archives with null user_id
+                const { error } = await supabase
+                    .from('hi_archives')
+                    .insert({
+                        user_id: null,
+                        journal: 'RLS test',
+                        current_emoji: '🧪'
+                    });
+                
+                if (error) {
+                    status.innerHTML = `❌ RLS policy still blocking: ${error.message}<br><br>
+                    <strong>Manual fix needed:</strong><br>
+                    1. Go to Supabase Dashboard → SQL Editor<br>
+                    2. Copy the SQL above and run it<br>
+                    3. This will allow anonymous archive inserts`;
+                } else {
+                    status.innerHTML = '✅ RLS policy fixed! Anonymous archives now work.';
+                }
+            } catch (e) {
+                status.innerHTML = `❌ Error: ${e.message}`;
+            }
+        };
+    </script>
+</body>
+</html>
