@@ -368,7 +368,7 @@ class HiIslandFeed {
       // 🚀 TESLA-GRADE FIX: Dashboard and Hi-Island shares should be tagged as Hi5
       originBadge = '👋 Hi5';
       badgeClass = 'badge-hi5';
-    } else if (share.origin === 'higym' || share.origin === 'guided' || share.origin === 'hi-muscle') {
+    } else if (share.origin === 'higym' || share.origin === 'guided') {
       originBadge = '💪 HiGYM';
       badgeClass = 'badge-higym';
     }

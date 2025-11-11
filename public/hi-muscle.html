@@ -2036,17 +2036,17 @@
         }
         
         const shareSheet = new HiShareSheet({ 
-          origin: 'hi-muscle',
+          origin: 'higym',
           onSuccess: (shareData) => {
-            console.log('✅ Hi-Muscle share successful!', shareData);
+            console.log('✅ HiGYM share successful!', shareData);
             
             // 🎯 GOLD STANDARD: Direct tracker call
             if (window.trackShareSubmission) {
               console.log('🎯 Using Gold Standard tracker...');
-              window.trackShareSubmission('hi-muscle', {
+              window.trackShareSubmission('higym', {
                 submissionType: shareData.visibility || 'public',
                 pageOrigin: 'hi-muscle', 
-                origin: 'hi-muscle',
+                origin: 'higym',
                 timestamp: Date.now()
               });
             } else {
@@ -2076,8 +2076,8 @@
         
         // 🔧 CRITICAL FIX: Override window.openHiShareSheet to use OUR instance with tracking
         // MATCH EXACT PATTERN: Use same signature as original HiShareSheet.init()
-        window.openHiShareSheet = (origin = 'hi-muscle', options = {}) => {
-          console.log('💪 [Hi-Muscle] Opening share sheet with tracking-enabled instance:', { origin, options });
+        window.openHiShareSheet = (origin = 'higym', options = {}) => {
+          console.log('💪 [HiGYM] Opening share sheet with tracking-enabled instance:', { origin, options });
           
           // Match original HiShareSheet pattern exactly:
           shareSheet.origin = origin;
