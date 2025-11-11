@@ -1332,6 +1332,25 @@
           selfHi5Enhanced.style.transform = '';
         }, 150);
 
+        // 🔒 ANONYMOUS ACCESS CONTROL: Check if user can share
+        const canShare = window.hiAccessManager?.canAccess?.('shareCreation') || 
+                        window.HiTierSystem?.hasCapability?.('drop_hi') ||
+                        window.unifiedMembership?.hasAccess?.('shareCreation');
+                        
+        if (!canShare) {
+          console.log('🔒 Anonymous users cannot create shares - showing upgrade prompt');
+          // Show upgrade modal or sign-in prompt
+          if (window.showHiUpgradeModal) {
+            window.showHiUpgradeModal('share_creation', {
+              message: 'Sign in to share your Hi5 moments with the community! ✨',
+              feature: 'Hi5 Sharing'
+            });
+          } else {
+            alert('Please sign in to share Hi5 moments! 🙌');
+          }
+          return;
+        }
+
         // 🎯 TESLA GRADE: Use unified HiShareSheet instance (preventing duplicate shares)
         try {
           // Get the globally initialized HiShareSheet instance
