@@ -251,6 +251,18 @@
       overflow-x: hidden;
     }
 
+    /* Tesla-Grade Loading Shimmer Animation */
+    .loading-shimmer {
+      opacity: 0.7;
+      animation: shimmer 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes shimmer {
+      0% { opacity: 0.7; }
+      50% { opacity: 1; }
+      100% { opacity: 0.7; }
+    }
+
     /* Tesla-Grade Header with Mini Stats */
     .tesla-header {
       position: fixed;
@@ -1188,12 +1200,18 @@
       const globalTotalHis = document.getElementById('globalTotalHis');
       const globalUsers = document.getElementById('globalUsers');
       
-      // 🚀 INSTANT DISPLAY: Show placeholders immediately if loading
+      // 🚀 TESLA GRADE: Smooth loading states without jarring jumps
       if (globalHiWaves) {
         if (window.gWaves !== null && window.gWaves !== undefined) {
-          globalHiWaves.textContent = window.gWaves.toLocaleString();
-        } else if (globalHiWaves.textContent === '...' || globalHiWaves.textContent === '') {
-          globalHiWaves.textContent = '...';
+          const formattedWaves = window.gWaves.toLocaleString();
+          if (globalHiWaves.textContent !== formattedWaves) {
+            globalHiWaves.textContent = formattedWaves;
+          }
+        } else {
+          // Show elegant loading state instead of hardcoded numbers
+          if (!globalHiWaves.textContent || globalHiWaves.textContent === '0') {
+            globalHiWaves.innerHTML = '<span class="loading-shimmer">...</span>';
+          }
         }
       }
       
@@ -1784,13 +1802,22 @@
       setupWeeklyProgress();
       
       // Initialize global stats variables immediately
-      // 🚀 SMART PERSISTENCE: Check localStorage first, then use defaults
+      // 🚀 TESLA GRADE: Smart loading states without jarring jumps
       const savedWaves = localStorage.getItem('dashboard_waves_cache');
       const savedTotal = localStorage.getItem('dashboard_total_cache');
       const savedUsers = localStorage.getItem('dashboard_users_cache');
       
       if (window.gWaves === undefined) {
-        window.gWaves = savedWaves ? parseInt(savedWaves, 10) : 1300;
+        // Gold standard: Only use cached value if recent (< 30 seconds)
+        const cacheTimestamp = localStorage.getItem('dashboard_waves_cache_time');
+        const isRecentCache = cacheTimestamp && (Date.now() - parseInt(cacheTimestamp, 10)) < 30000;
+        
+        if (savedWaves && isRecentCache) {
+          window.gWaves = parseInt(savedWaves, 10);
+        } else {
+          // No jarring default - let real-time system handle it
+          window.gWaves = null; // Triggers loading state
+        }
       }
       if (window.gTotalHis === undefined) {
         window.gTotalHis = savedTotal ? parseInt(savedTotal, 10) : 90;

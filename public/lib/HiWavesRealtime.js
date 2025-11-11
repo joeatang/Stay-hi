@@ -31,7 +31,7 @@ class HiWavesRealtime {
   }
   
   // Start real-time polling for Hi Waves
-  startRealTimeUpdates(intervalMs = 10000) { // Every 10 seconds
+  startRealTimeUpdates(intervalMs = 5000) { // Every 5 seconds (Tesla grade)
     if (!this.isEnabled) {
       console.warn('⚠️ Hi Waves real-time not enabled');
       return;
@@ -42,8 +42,8 @@ class HiWavesRealtime {
     
     console.log(`🌊 Starting Hi Waves real-time updates (${intervalMs}ms interval)`);
     
-    // Initial load
-    this.refreshHiWaves();
+    // Immediate initial load for responsive UX
+    setTimeout(() => this.refreshHiWaves(), 100);
     
     // Set up polling
     this.refreshInterval = setInterval(() => {
@@ -82,10 +82,11 @@ class HiWavesRealtime {
           // Update UI immediately
           this.updateWavesUI(newCount);
           
-          // Cache the new value
+          // Cache the new value with timestamp
           localStorage.setItem('dashboard_waves_cache', newCount.toString());
+          localStorage.setItem('dashboard_waves_cache_time', Date.now().toString());
           
-          console.log(`🌊 Hi Waves updated: ${oldCount} → ${newCount}`);
+          console.log(`🌊 Hi Waves updated: ${oldCount || '...'} → ${newCount}`);
         }
       }
       
@@ -96,16 +97,23 @@ class HiWavesRealtime {
   
   // Update UI elements with new Hi Waves count
   updateWavesUI(count) {
-    // Update global waves display
-    const wavesEl = document.getElementById('globalWaves');
+    // Update global waves display with smooth transition
+    const wavesEl = document.getElementById('globalWaves') || document.getElementById('globalHiWaves');
     if (wavesEl) {
-      wavesEl.textContent = count.toLocaleString();
+      const formattedCount = count.toLocaleString();
+      if (wavesEl.textContent !== formattedCount) {
+        wavesEl.style.opacity = '0.7';
+        setTimeout(() => {
+          wavesEl.textContent = formattedCount;
+          wavesEl.style.opacity = '1';
+        }, 150);
+      }
     }
     
     // Update any other waves displays
-    const allWavesElements = document.querySelectorAll('[data-waves-count]');
+    const allWavesElements = document.querySelectorAll('[data-waves-count], #globalHiWaves');
     allWavesElements.forEach(el => {
-      el.textContent = count.toLocaleString();
+      if (el !== wavesEl) el.textContent = count.toLocaleString();
     });
     
     // Dispatch custom event for other components
