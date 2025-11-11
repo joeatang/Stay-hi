@@ -1229,7 +1229,33 @@
       e.preventDefault();
       console.log('Share Journey button clicked');
       
-      // Disable button to prevent double-clicks
+      // 🚀 TESLA-GRADE: Check authentication FIRST for proper UX
+      let isAuthenticated = false;
+      let userId = null;
+      
+      try {
+        const { data: { user } } = await window.HiSupabase.getClient().auth.getUser();
+        isAuthenticated = !!user;
+        userId = user?.id;
+      } catch (error) {
+        console.log('Authentication check failed, user is anonymous');
+        isAuthenticated = false;
+      }
+      
+      if (!isAuthenticated) {
+        // Anonymous user - show upgrade prompt
+        confirmShare.disabled = false;
+        confirmShare.textContent = 'Share Journey';
+        
+        const shouldUpgrade = confirm(`🌟 Your emotional journey looks amazing!\n\nJoin Hi to:\n• Save your journey forever\n• Share with the community\n• Track your emotional growth\n• Get personalized insights\n\nWould you like to sign up or log in?`);
+        
+        if (shouldUpgrade) {
+          window.location.href = '/auth.html?redirect=' + encodeURIComponent(window.location.pathname + '?journey=completed');
+        }
+        return;
+      }
+      
+      // Authenticated user - proceed with sharing
       confirmShare.disabled = true;
       confirmShare.textContent = 'Sharing...';
       
@@ -1288,7 +1314,7 @@
             type: 'HiGYM',
             text: text,
             visibility: isAnon ? 'anonymous' : 'public',
-            user_id: (await window.HiSupabase.getClient().auth.getUser()).data?.user?.id,
+            user_id: userId, // Already retrieved above
             emotion_from: state.current?.name,
             emotion_to: state.desired?.name,
             location: loc || null,
@@ -1321,7 +1347,7 @@
             try {
               // 🎯 HiBase streak path for HiGYM completion
               console.log('📦 HiGYM Streak → HiBase.updateStreak...');
-              const userId = (await window.HiSupabase.getClient().auth.getUser()).data?.user?.id;
+              // Use userId from earlier authentication check
               
               if (userId && userId !== 'anonymous') {
                 const streakResult = await window.HiBase.updateStreak(userId, {
@@ -1427,7 +1453,7 @@
             try {
               // Even in legacy share mode, we can still use HiBase streaks if enabled
               console.log('📦 HiGYM Streak → HiBase.updateStreak (legacy share context)...');
-              const userId = (await window.HiSupabase.getClient().auth.getUser()).data?.user?.id;
+              // Use userId from earlier authentication check
               
               if (userId && userId !== 'anonymous') {
                 const streakResult = await window.HiBase.updateStreak(userId, {

@@ -1494,11 +1494,32 @@
 
   <!-- 🎯 BULLETPROOF FIX: Immediate global function setup -->
   <script>
-    // 🚀 IMMEDIATE: Create fallback function that gets replaced when module loads
+    // 🚀 TESLA-GRADE: Immediate user tier detection instead of confusion
     window.openHiShareSheet = function(origin = 'hi-island', options = {}) {
-      console.log('🔄 Share sheet loading... Please wait...');
-      if (confirm('Hi Share is initializing... Would you like to try again?')) {
-        setTimeout(() => window.openHiShareSheet(origin, options), 1000);
+      console.log('🔄 Checking user authentication status...');
+      
+      // Check if user is authenticated
+      const isAuthenticated = window.supabase?.auth?.getUser || 
+                             window.HiFlags?.isAuthenticated?.() || 
+                             localStorage.getItem('supabase.auth.token') ||
+                             sessionStorage.getItem('supabase.auth.token');
+      
+      if (!isAuthenticated) {
+        // Anonymous user - immediate login prompt
+        const shouldLogin = confirm('🌟 Join Hi to share your moments! Would you like to sign up or log in?');
+        if (shouldLogin) {
+          window.location.href = '/auth.html?redirect=' + encodeURIComponent(window.location.pathname);
+        }
+      } else {
+        // Authenticated user - retry after short delay
+        console.log('✅ User authenticated, retrying share modal...');
+        setTimeout(() => {
+          if (window.hiIslandShareSheet?.open) {
+            window.hiIslandShareSheet.open();
+          } else {
+            console.log('📱 Share system still loading, please try again in a moment');
+          }
+        }, 500);
       }
       return false;
     };
@@ -1562,23 +1583,52 @@
         // Store reference for Hi Island functionality
         window.hiIslandShareSheet = shareSheet;
         
-        // 🎯 BULLETPROOF: Replace the placeholder function immediately
+        // 🎯 TESLA-GRADE: Replace placeholder with auth-aware function
         window.openHiShareSheet = function(origin = 'hi-island', options = {}) {
           console.log(`🚀 Opening Hi Share Sheet from ${origin}...`, options);
           
-          if (shareSheet && typeof shareSheet.open === 'function') {
+          // Check authentication immediately for better UX
+          const checkAuth = async () => {
             try {
-              shareSheet.open(options);
-              console.log('✅ Hi Share Sheet opened successfully');
-              return true;
+              if (window.supabase?.auth?.getUser) {
+                const { data: { user } } = await window.supabase.auth.getUser();
+                return !!user;
+              }
             } catch (error) {
-              console.error('❌ Failed to open Hi Share Sheet:', error);
+              console.log('Auth check via alternative methods...');
+            }
+            
+            // Fallback checks
+            return !!(window.HiFlags?.isAuthenticated?.() || 
+                     localStorage.getItem('supabase.auth.token') ||
+                     sessionStorage.getItem('supabase.auth.token'));
+          };
+          
+          checkAuth().then(isAuthenticated => {
+            if (!isAuthenticated) {
+              // Anonymous user - immediate redirect
+              const shouldLogin = confirm('🌟 Join Hi to share your moments! Would you like to sign up or log in?');
+              if (shouldLogin) {
+                window.location.href = '/auth.html?redirect=' + encodeURIComponent(window.location.pathname);
+              }
               return false;
             }
-          } else {
-            console.warn('⚠️ Hi Share Sheet not available');
-            return false;
-          }
+            
+            // Authenticated user - open share sheet
+            if (shareSheet && typeof shareSheet.open === 'function') {
+              try {
+                shareSheet.open(options);
+                console.log('✅ Hi Share Sheet opened successfully');
+                return true;
+              } catch (error) {
+                console.error('❌ Failed to open Hi Share Sheet:', error);
+                return false;
+              }
+            } else {
+              console.warn('⚠️ Hi Share Sheet not available');
+              return false;
+            }
+          });
         };
         
         console.log('✅ Global openHiShareSheet() function installed');
