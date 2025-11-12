@@ -905,6 +905,10 @@
   <!-- 🎯 TESLA-GRADE: Total His Tracking System (Hi-Island Support) -->
   <script src="lib/stats/GoldStandardTracker.js" type="module"></script>
   
+  <!-- 🚀 TESLA-GRADE STATS: HiMetrics System for Dashboard Parity -->
+  <script src="lib/stats/HiMetrics.js" type="module"></script>
+  <script src="lib/stats/DashboardStats.js" type="module"></script>
+  
   <!-- 🚀 HI OS ENHANCEMENT: Optional enhancement layer -->
   <script type="module">
     // Load Hi OS enhancement layer after base tracker
@@ -1278,46 +1282,52 @@
       }
     }
 
-    // 🚀 BACKGROUND REFRESH: Load fresh stats from database
+    // 🚀 TESLA-GRADE STATS: Load fresh stats using HiMetrics (Dashboard Parity)
     async function loadCurrentStatsFromDatabase() {
       try {
+        console.log('🔄 Loading Tesla-grade stats for Hi Island...');
+        
+        // 🎯 Use Tesla-grade HiMetrics system for consistency with dashboard
+        if (window.HiMetrics && typeof window.HiMetrics.getStats === 'function') {
+          const metrics = await window.HiMetrics.getStats();
+          
+          if (metrics) {
+            // Update UI with real database values
+            document.getElementById('globalHiWaves').textContent = (metrics.waves || 0).toLocaleString();
+            document.getElementById('globalTotalHis').textContent = (metrics.totalHis || 0).toLocaleString();
+            document.getElementById('globalTotalUsers').textContent = (metrics.users || 5).toLocaleString(); // Use real count, not 1000
+            
+            console.log('✅ Hi-Island Tesla-grade stats loaded:', metrics);
+            return;
+          }
+        }
+        
+        // 🔄 Fallback to direct database query if HiMetrics not available
         if (!window.hiDB?.supabase) {
           console.warn('⚠️ Database not ready for stats refresh');
           return;
         }
-
-        console.log('🔄 Loading fresh stats from database...');
         
         const { data: stats, error } = await window.hiDB.supabase
-          .from('global_community_stats')
-          .select('*')
-          .order('updated_at', { ascending: false })
-          .limit(1);
+          .rpc('get_user_stats');
 
         if (error) throw error;
 
-        if (stats && stats.length > 0) {
-          const currentStats = stats[0];
-          
-          // Update UI elements
-          const globalWaves = Math.max(0, currentStats.total_waves || 0);
-          const totalHis = Math.max(0, currentStats.total_his || 0);
-          const totalUsers = Math.max(0, currentStats.total_users || 0);
+        if (stats) {
+          // Update UI elements with real database values (no more hardcoded fallbacks)
+          const globalWaves = Math.max(0, stats.waves || 0);
+          const totalHis = Math.max(0, stats.total_his || 0);
+          const totalUsers = Math.max(5, stats.users || 5); // Real count, conservative fallback to 5
           
           document.getElementById('globalHiWaves').textContent = globalWaves.toLocaleString();
           document.getElementById('globalTotalHis').textContent = totalHis.toLocaleString();
           document.getElementById('globalTotalUsers').textContent = totalUsers.toLocaleString();
           
-          // Cache for next instant load
-          localStorage.setItem('globalHiWaves', globalWaves.toLocaleString());
-          localStorage.setItem('globalTotalHis', totalHis.toLocaleString());
-          localStorage.setItem('globalTotalUsers', totalUsers.toLocaleString());
-          
-          console.log('✅ Hi-Island stats refreshed:', { globalWaves, totalHis, totalUsers });
+          console.log('✅ Hi-Island stats refreshed (fallback):', { globalWaves, totalHis, totalUsers });
         }
       } catch (error) {
         console.warn('⚠️ Stats refresh failed (non-blocking):', error);
-        // Fallback to smart defaults if no cache available
+        // Conservative fallback values (no more 1000s)
         setFallbackStats();
       }
     }
@@ -1432,11 +1442,35 @@
       button.disabled = true;
       
       try {
-        // 🧪 BASE UX TESTING: Tier check temporarily disabled for validation
-        // if (!window.checkHiFeatureAccess?.('drop_hi', 'drop-hi')) {
-        //   console.log('🔒 Drop Hi access denied - showing upgrade modal');
-        //   return;
-        // }
+        // 🔐 GOLD STANDARD UX: Check authentication first
+        const isAuthenticated = await window.checkAuthentication?.();
+        
+        if (!isAuthenticated) {
+          console.log('🔒 User not authenticated - showing sign-in prompt');
+          
+          // Remove loading state
+          button.classList.remove('loading');
+          button.disabled = false;
+          
+          // 🎯 GOLD STANDARD: Show sign-in modal instead of composer
+          if (window.showAuthModal && typeof window.showAuthModal === 'function') {
+            await window.showAuthModal('To drop a Hi on the island, please sign in first.');
+            return;
+          }
+          
+          // Fallback: redirect to sign-in
+          window.location.href = '/auth.html?redirect=hi-island.html&action=drop-hi';
+          return;
+        }
+        
+        // 🎯 Check Hi feature access for authenticated users
+        if (!window.checkHiFeatureAccess?.('drop_hi', 'drop-hi')) {
+          console.log('🔒 Drop Hi access denied - showing upgrade modal');
+          // Remove loading state
+          button.classList.remove('loading');
+          button.disabled = false;
+          return;
+        }
         
         // 🚀 PRIORITY 1: Use the properly initialized Hi-Island share sheet
         if (window.hiIslandShareSheet && typeof window.hiIslandShareSheet.open === 'function') {
