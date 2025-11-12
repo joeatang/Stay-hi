@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>🚀 Hi Gold Standard Modal Test</title>
+    <style>
+        body {
+            background: #0f1024;
+            color: #e8ebff;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui;
+            padding: 40px;
+            text-align: center;
+        }
+        .test-button {
+            background: linear-gradient(135deg, #FF7A18, #FFD166);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            padding: 16px 32px;
+            margin: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(255, 122, 24, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <h1>🌟 Hi Gold Standard Modal System Test</h1>
+    <p>Test the unified modal system for authentication and share prompts</p>
+    
+    <div>
+        <button class="test-button" onclick="testDropHiModal()">Test Drop Hi Auth Modal</button>
+        <button class="test-button" onclick="testShareAuthModal()">Test Share Auth Modal</button>
+        <button class="test-button" onclick="testUpgradeModal()">Test Upgrade Modal</button>
+        <button class="test-button" onclick="testHiShareSheet()">Test Hi Share Sheet</button>
+    </div>
+
+    <div id="output" style="margin-top: 40px; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 12px; text-align: left;"></div>
+
+    <!-- Load our gold standard modal system -->
+    <script src="lib/HiGoldStandardModal.js"></script>
+    
+    <!-- Load HiShareSheet for testing -->
+    <link rel="stylesheet" href="ui/HiShareSheet/HiShareSheet.css">
+    <script type="module" src="ui/HiShareSheet/HiShareSheet.js"></script>
+
+    <script>
+        function log(message) {
+            const output = document.getElementById('output');
+            output.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${message}</div>`;
+        }
+
+        function testDropHiModal() {
+            log('🧪 Testing Drop Hi Auth Modal...');
+            if (window.showAuthModal) {
+                window.showAuthModal('hi-island');
+                log('✅ showAuthModal called successfully');
+            } else {
+                log('❌ showAuthModal not found - HiGoldStandardModal may not be loaded');
+            }
+        }
+
+        function testShareAuthModal() {
+            log('🧪 Testing Share Auth Modal...');
+            if (window.showShareAuthModal) {
+                window.showShareAuthModal('general', {
+                    onPrimary: () => log('📱 Primary action: Sign In clicked'),
+                    onSecondary: () => log('🆕 Secondary action: Sign Up clicked')
+                });
+                log('✅ showShareAuthModal called successfully');
+            } else {
+                log('❌ showShareAuthModal not found - HiGoldStandardModal may not be loaded');
+            }
+        }
+
+        function testUpgradeModal() {
+            log('🧪 Testing Upgrade Modal...');
+            if (window.showUpgradeModal) {
+                window.showUpgradeModal('premium-feature');
+                log('✅ showUpgradeModal called successfully');
+            } else {
+                log('❌ showUpgradeModal not found - HiGoldStandardModal may not be loaded');
+            }
+        }
+
+        function testHiShareSheet() {
+            log('🧪 Testing HiShareSheet with auth prompt...');
+            
+            // Import and test HiShareSheet
+            import('./ui/HiShareSheet/HiShareSheet.js').then(({ HiShareSheet }) => {
+                const shareSheet = new HiShareSheet({ origin: 'test' });
+                shareSheet.init();
+                
+                shareSheet.open({
+                    content: 'Test share content from modal test page',
+                    origin: 'modal-test'
+                });
+                
+                log('✅ HiShareSheet opened - try clicking "Join Community to Share"');
+            }).catch(error => {
+                log(`❌ Failed to load HiShareSheet: ${error.message}`);
+            });
+        }
+
+        // Log system status on load
+        window.addEventListener('load', () => {
+            log('🚀 Modal test page loaded');
+            log(`📊 HiGoldStandardModal loaded: ${!!window.showAuthModal}`);
+            log(`📊 Available functions: ${Object.keys(window).filter(k => k.startsWith('show')).join(', ')}`);
+        });
+    </script>
+</body>
+</html>

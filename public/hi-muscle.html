@@ -25,6 +25,9 @@
   <!-- 🔐 Authentication System (Tesla-Grade Progressive Auth) -->
   <script src="assets/progressive-auth.js" async></script>
 
+  <!-- 🌟 WOZNIAK-GRADE: Gold Standard Modal System (Unified Auth/Share Modals) -->
+  <script src="lib/HiGoldStandardModal.js" async></script>
+
   <!-- Global brand & Tesla performance -->
   <link rel="stylesheet" href="assets/theme.css"/>
   <link rel="stylesheet" href="assets/create-parity.css"/>
@@ -32,9 +35,9 @@
   <link rel="stylesheet" href="./ui/HiFooter/HiFooter.css"/>
   <link rel="stylesheet" href="./ui/HiModal/HiModal.css">
   
-  <!-- 🌟 Unified Share Sheet System -->
-  <link rel="stylesheet" href="ui/HiShareSheet/HiShareSheet.css"/>
-  <script src="ui/HiShareSheet/HiShareSheet.js" type="module"></script>
+  <!-- 🌟 WOZNIAK-GRADE: Unified Share Sheet System (Auth Required v2.1.0) -->
+  <link rel="stylesheet" href="ui/HiShareSheet/HiShareSheet.css?v=2.1.0"/>
+  <script src="ui/HiShareSheet/HiShareSheet.js?v=2.1.0-auth" type="module"></script>
   
   <!-- 🎯 TESLA-GRADE: Total His Tracking System (Hi-Muscle Support) -->
   <script src="lib/stats/GoldStandardTracker.js" type="module"></script>
@@ -2046,9 +2049,9 @@
       }
     });
 
-    // 🎯 INITIALIZE HISHAREE SHEET WITH PROPER SCOPE ACCESS
+    // 🎯 WOZNIAK-GRADE: Initialize HiShareSheet v2.1.0-auth (No Anonymous Sharing)
     // Load and initialize HiShareSheet with access to local variables
-    import('./ui/HiShareSheet/HiShareSheet.js').then(({ HiShareSheet }) => {
+    import('./ui/HiShareSheet/HiShareSheet.js?v=2.1.0-auth').then(({ HiShareSheet }) => {
       // 🏆 GOLD STANDARD: Load clean tracker + Hi OS Enhancement
       import('./lib/stats/GoldStandardTracker.js').then(async ({ trackShareSubmission }) => {
         try {

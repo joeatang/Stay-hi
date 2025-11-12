@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>🔍 HiShareSheet Version Checker</title>
+    <style>
+        body {
+            background: #0f1024;
+            color: #e8ebff;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui;
+            padding: 40px;
+            line-height: 1.6;
+        }
+        .version-check {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #FFD166;
+        }
+        .success { border-left-color: #4ECDC4; }
+        .warning { border-left-color: #FF7B24; }
+        .error { border-left-color: #FF4757; }
+        .test-button {
+            background: linear-gradient(135deg, #FF7A18, #FFD166);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            padding: 16px 32px;
+            margin: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(255, 122, 24, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 HiShareSheet Future-Proof Version Checker</h1>
+    <p>This tool helps verify that all pages are using the latest auth-required version of HiShareSheet.</p>
+    
+    <button class="test-button" onclick="checkAllVersions()">🧪 Check All Versions</button>
+    <button class="test-button" onclick="testHiMuscle()">🏋️ Test Hi Muscle Specifically</button>
+    <button class="test-button" onclick="clearCache()">🗑️ Clear Cache & Reload</button>
+    
+    <div id="results"></div>
+
+    <script>
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `version-check ${type}`;
+            div.innerHTML = `<div>[${new Date().toLocaleTimeString()}] ${message}</div>`;
+            results.appendChild(div);
+        }
+
+        async function checkAllVersions() {
+            log('🔍 Starting comprehensive version check...', 'info');
+            
+            const pages = [
+                { name: 'Hi Island', path: './hi-island-NEW.html' },
+                { name: 'Hi Dashboard', path: './hi-dashboard.html' },
+                { name: 'Hi Muscle', path: './hi-muscle.html' }
+            ];
+            
+            for (const page of pages) {
+                try {
+                    // Check if HiShareSheet is loaded and what version
+                    const module = await import('./ui/HiShareSheet/HiShareSheet.js?v=' + Date.now());
+                    const sheet = new module.HiShareSheet({ origin: 'version-check' });
+                    
+                    if (sheet.version && sheet.version.includes('2.1.0-auth-required')) {
+                        log(`✅ ${page.name}: Using correct version ${sheet.version}`, 'success');
+                    } else if (sheet.version) {
+                        log(`⚠️ ${page.name}: Using outdated version ${sheet.version}`, 'warning');
+                    } else {
+                        log(`❌ ${page.name}: No version info (old file)`, 'error');
+                    }
+                } catch (error) {
+                    log(`❌ ${page.name}: Failed to load - ${error.message}`, 'error');
+                }
+            }
+            
+            // Check for anonymous sharing buttons (should not exist)
+            setTimeout(() => {
+                const anonBtns = document.querySelectorAll('#hi-share-anon, .anonymous-option');
+                if (anonBtns.length === 0) {
+                    log('✅ No anonymous sharing buttons found - system is clean!', 'success');
+                } else {
+                    log(`❌ Found ${anonBtns.length} anonymous sharing buttons - cleanup needed!`, 'error');
+                }
+            }, 1000);
+        }
+
+        async function testHiMuscle() {
+            log('🏋️ Testing Hi Muscle specifically...', 'info');
+            
+            try {
+                // Force fresh load of Hi Muscle's HiShareSheet
+                const module = await import('./ui/HiShareSheet/HiShareSheet.js?cache-bust=' + Date.now());
+                const hiMuscleSheet = new module.HiShareSheet({ origin: 'higym' });
+                
+                log(`📊 Hi Muscle Version: ${hiMuscleSheet.version || 'Unknown'}`, 'info');
+                
+                if (hiMuscleSheet.version && hiMuscleSheet.version.includes('auth-required')) {
+                    log('✅ Hi Muscle is using auth-required version!', 'success');
+                    
+                    // Test that it has the new auth prompt method
+                    if (typeof hiMuscleSheet.handleShareAuthPrompt === 'function') {
+                        log('✅ Hi Muscle has handleShareAuthPrompt method', 'success');
+                    } else {
+                        log('❌ Hi Muscle missing handleShareAuthPrompt method', 'error');
+                    }
+                } else {
+                    log('❌ Hi Muscle is NOT using the auth-required version', 'error');
+                }
+                
+                // Open Hi Muscle in new tab for manual testing
+                window.open('./hi-muscle.html', '_blank');
+                log('🚀 Opened Hi Muscle in new tab - test the share modal manually', 'info');
+                
+            } catch (error) {
+                log(`❌ Hi Muscle test failed: ${error.message}`, 'error');
+            }
+        }
+
+        function clearCache() {
+            log('🗑️ Clearing cache and reloading...', 'info');
+            
+            // Clear any module cache
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    for (let registration of registrations) {
+                        registration.unregister();
+                    }
+                });
+            }
+            
+            // Force reload without cache
+            setTimeout(() => {
+                window.location.reload(true);
+            }, 1000);
+        }
+
+        // Auto-run check on page load
+        window.addEventListener('load', () => {
+            log('🚀 HiShareSheet Version Checker loaded', 'info');
+            log('💡 Tips: Look for version "2.1.0-auth-required" and NO anonymous sharing options', 'info');
+        });
+    </script>
+</body>
+</html>

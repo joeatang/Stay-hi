@@ -2,14 +2,19 @@
    🎨 HI SHARE SHEET COMPONENT
    Tesla-grade unified sharing modal for Hi moments
    Used by: Index (Self Hi5), Hi Island, Hi Muscle
+   Version: 2.1.0-auth-required (No Anonymous Sharing)
 =================================================================== */
 
 export class HiShareSheet {
   constructor(options = {}) {
+    this.version = '2.1.0-auth-required';
     this.origin = options.origin || 'hi5'; // 'hi5', 'higym', or 'hi-island'
     this.onSuccess = options.onSuccess || (() => {});
     this.isOpen = false;
     this._isReady = false; // A2: Readiness state tracking
+    
+    // 🔒 WOZNIAK-GRADE: Log version for debugging
+    console.log(`🚀 HiShareSheet ${this.version} initialized for origin: ${this.origin}`);
   }
 
   // Tesla-grade: Update options after initialization
@@ -111,13 +116,13 @@ export class HiShareSheet {
             </div>
           </button>
           
-          <button id="hi-share-anon" class="share-option anonymous-option">
-            <div class="option-icon">🥸</div>
+          <button id="hi-share-auth-prompt" class="share-option auth-prompt-option">
+            <div class="option-icon">✨</div>
             <div class="option-content">
-              <div class="option-title">Share Anonymously</div>
-              <div class="option-desc">Hi Island • General Shares • Anonymous</div>
+              <div class="option-title">Join Community to Share</div>
+              <div class="option-desc">Hi Island • Connect & Share • Sign In Required</div>
               <div class="privacy-notice">
-                🔒 Privacy: Only city/state location shared
+                🌟 Create account to share with the community</div>
               </div>
             </div>
           </button>
@@ -149,7 +154,7 @@ export class HiShareSheet {
     const journal = document.getElementById('hi-share-journal');
     const charCount = document.getElementById('hi-share-char-count');
     const savePrivateBtn = document.getElementById('hi-save-private');
-    const shareAnonBtn = document.getElementById('hi-share-anon');
+    const shareAuthPromptBtn = document.getElementById('hi-share-auth-prompt');
     const sharePublicBtn = document.getElementById('hi-share-public');
 
     // 🔧 DEBUG: Log which elements are found
@@ -159,12 +164,12 @@ export class HiShareSheet {
       journal: !!journal,
       charCount: !!charCount,
       savePrivateBtn: !!savePrivateBtn,
-      shareAnonBtn: !!shareAnonBtn,
+      shareAuthPromptBtn: !!shareAuthPromptBtn,
       sharePublicBtn: !!sharePublicBtn
     });
 
     // 🔧 SAFETY CHECK: Ensure all elements exist before attaching listeners
-    if (!savePrivateBtn || !shareAnonBtn || !sharePublicBtn) {
+    if (!savePrivateBtn || !shareAuthPromptBtn || !sharePublicBtn) {
       console.error('❌ Critical share buttons not found! Retrying in 100ms...');
       setTimeout(() => this.attachEventListeners(), 100);
       return;
@@ -200,7 +205,7 @@ export class HiShareSheet {
 
     // Privacy option handlers
     savePrivateBtn.addEventListener('click', (e) => this.handleSavePrivate(e));
-    shareAnonBtn.addEventListener('click', (e) => this.handleShareAnonymous(e));
+    shareAuthPromptBtn.addEventListener('click', (e) => this.handleShareAuthPrompt(e));
     sharePublicBtn.addEventListener('click', (e) => this.handleSharePublic(e));
     
     // Location update handler (delegated event)
@@ -368,26 +373,66 @@ export class HiShareSheet {
 
     setTimeout(() => {
       button.dataset.animating = 'false';
-    }, 500);
+    }, 600);
   }
 
-  // Handle Share Anonymously
-  async handleShareAnonymous(e) {
+  // 🚀 WOZNIAK-GRADE: Store share context for post-auth completion
+  storeShareForAfterAuth() {
+    try {
+      const shareContext = {
+        content: this.content,
+        origin: this.origin,
+        timestamp: Date.now(),
+        action: 'share'
+      };
+      localStorage.setItem('pendingShareAfterAuth', JSON.stringify(shareContext));
+      console.log('💾 [SHARE] Stored share context for post-auth:', this.origin);
+    } catch (error) {
+      console.error('❌ Failed to store share context:', error);
+    }
+  }
+
+  // 🚀 WOZNIAK-GRADE: Handle Share Auth Prompt (Replaces Anonymous Sharing)
+  async handleShareAuthPrompt(e) {
     if (e.target.closest('button').dataset.animating === 'true') return;
     const button = e.target.closest('button');
     button.dataset.animating = 'true';
 
-    // 🎉 TESLA-GRADE: Premium celebration for anonymous share
+    console.log('🔒 [SHARE] Auth required - showing gold standard modal');
+
+    // 🎉 Visual feedback
     if (window.PremiumUX) {
-      window.PremiumUX.burst(button, { count: 8, colors: ['#8A2BE2', '#FFD700'] });
+      window.PremiumUX.burst(button, { count: 12, colors: ['#FF7A18', '#FFD166'] });
       window.PremiumUX.triggerHapticFeedback('medium');
     }
 
-    // � EMERGENCY FIX: Non-blocking persist (don't await - fire and forget)
-    this.persist({ toIsland: true, anon: true }).catch(err => {
-      console.error('❌ Anonymous share failed:', err);
-      this.showToast('❌ Share failed. Please try again.');
-    });
+    // Close share sheet first
+    this.close();
+
+    // 🚀 Show gold standard auth modal with share context
+    setTimeout(() => {
+      if (window.showShareAuthModal) {
+        window.showShareAuthModal(this.origin || 'general', {
+          onPrimary: () => {
+            // Store the share content for after auth
+            this.storeShareForAfterAuth();
+            window.location.href = `/auth.html?mode=signin&redirect=${encodeURIComponent(window.location.pathname)}&action=share`;
+          },
+          onSecondary: () => {
+            this.storeShareForAfterAuth();
+            window.location.href = `/auth.html?mode=signup&redirect=${encodeURIComponent(window.location.pathname)}&action=share`;
+          }
+        });
+      } else {
+        // Fallback: use the Drop Hi modal style
+        if (window.showAuthModal) {
+          window.showAuthModal(this.origin || 'general');
+        } else {
+          // Last resort: redirect
+          window.location.href = '/auth.html?action=share';
+        }
+      }
+    }, 300); // Allow close animation to finish
     
     // Close immediately for responsiveness
     this.close();
