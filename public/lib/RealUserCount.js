@@ -13,20 +13,36 @@ async function loadRealUserCount() {
       return null;
     }
     
-    // Call the real user count function
+    // Call the real user count function (updated to use existing get_user_stats)
     const { data, error } = await supabase
-      .rpc('get_real_user_count');
+      .rpc('get_user_stats');
     
     if (error) {
       console.error('❌ User count query failed:', error);
       return null;
     }
     
-    const realCount = data || 1;
-    console.log('✅ Real user count loaded:', realCount);
+    // Parse the response structure: data has globalStats and personalStats
+    if (data && data.globalStats) {
+      // Set all global stats from the response
+      window.gWaves = data.globalStats.hiWaves || window.gWaves || 0;
+      window.gTotalHis = data.globalStats.totalHis || window.gTotalHis || 0; 
+      window.gUsers = data.globalStats.totalUsers || window.gUsers || 0;
+      
+      console.log('✅ Global stats updated from get_user_stats:', {
+        waves: window.gWaves,
+        totalHis: window.gTotalHis,
+        users: window.gUsers
+      });
+      
+      // Trigger UI update for all stats
+      if (window.updateGlobalStats) {
+        window.updateGlobalStats();
+      }
+    }
     
-    // Update global variable
-    window.gUsers = realCount;
+    const realCount = data?.globalStats?.totalUsers || 1;
+    console.log('✅ Real user count loaded:', realCount);
     
     // Cache the result
     localStorage.setItem('dashboard_users_cache', realCount.toString());

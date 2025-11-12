@@ -782,19 +782,28 @@ class HiIslandRealFeed {
   }
 
   showArchivesAuthRequired() {
-    const container = document.getElementById('archivesFeed');
-    if (!container) return;
+    const container = document.getElementById('archivesFeed') || document.querySelector('.feed-content');
+    if (!container) {
+      console.warn('⚠️ No archive container found');
+      return;
+    }
 
+    // Tesla-grade placeholder matching Emotional Trends styling
     container.innerHTML = `
-      <div class="auth-required-state">
-        <div class="auth-icon">🔒</div>
-        <h4>Personal Archives</h4>
-        <p>Sign in to view your personal Hi moments and build your archive</p>
-        <div class="auth-actions">
-          <button class="hi-btn hi-btn-primary" onclick="window.location.href='/signin.html'">
+      <div style="padding: 40px; text-align: center; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); color: #495057; border-radius: 16px; margin: 20px; border: 1px solid #dee2e6;">
+        <div style="font-size: 48px; margin-bottom: 16px;">�</div>
+        <h3 style="margin: 0 0 12px 0; color: #333; font-size: 20px;">Your Personal Hi Archive</h3>
+        <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 1.4;">Keep track of your Hi moments, emotional journeys, and personal growth over time.</p>
+        <div style="margin-bottom: 24px;">
+          <div style="font-size: 12px; color: #6c757d; background: rgba(111, 66, 193, 0.1); padding: 8px 16px; border-radius: 20px; display: inline-block; border: 1px solid rgba(111, 66, 193, 0.2);">
+            🔑 Account Required
+          </div>
+        </div>
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+          <button onclick="window.location.href='/signin.html'" style="background: #6f42c1; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 500;">
             Sign In
           </button>
-          <button class="hi-btn hi-btn-secondary" onclick="window.location.href='/signup.html'">
+          <button onclick="window.location.href='/signup.html'" style="background: transparent; color: #6f42c1; border: 2px solid #6f42c1; padding: 10px 24px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 500;">
             Create Account
           </button>
         </div>

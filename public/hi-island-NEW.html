@@ -939,6 +939,9 @@
       // 🚀 INSTANT DISPLAY: Load cached stats immediately (Dashboard Parity)
       loadCachedStats();
       
+      // 🎯 TESLA-GRADE: Load real stats from Supabase (non-blocking)
+      loadRealStats().catch(err => console.warn('Stats loading failed:', err));
+      
       // Wait for hiDB
       await new Promise(resolve => {
         if (window.hiDB) {
@@ -1319,7 +1322,51 @@
       }
     }
 
-    // 🚀 SMART FALLBACK: Set intelligent defaults
+    // 🚀 TESLA-GRADE: Load real stats from Supabase
+    async function loadRealStats() {
+      try {
+        const supabase = window.supabase || (await import('/lib/HiSupabase.v3.js')).supabase;
+        if (!supabase) {
+          console.warn('⚠️ No Supabase client, using cached stats');
+          setFallbackStats();
+          return;
+        }
+
+        // Use same get_user_stats function as dashboard
+        const { data, error } = await supabase.rpc('get_user_stats');
+        
+        if (data && data.globalStats && !error) {
+          // Set real data immediately
+          const waves = data.globalStats.hiWaves || 0;
+          const his = data.globalStats.totalHis || 0;  
+          const users = data.globalStats.totalUsers || 0;
+          
+          // Update UI
+          const wavesEl = document.getElementById('globalHiWaves');
+          const hisEl = document.getElementById('globalTotalHis');
+          const usersEl = document.getElementById('globalTotalUsers');
+          
+          if (wavesEl) wavesEl.textContent = waves.toLocaleString();
+          if (hisEl) hisEl.textContent = his.toLocaleString();
+          if (usersEl) usersEl.textContent = users.toLocaleString();
+          
+          // Cache for fast loading
+          localStorage.setItem('globalHiWaves', waves.toString());
+          localStorage.setItem('globalTotalHis', his.toString());
+          localStorage.setItem('globalTotalUsers', users.toString());
+          
+          console.log('✅ Hi Island stats loaded:', { waves, his, users });
+        } else {
+          console.warn('⚠️ Stats query failed, using fallbacks:', error);
+          setFallbackStats();
+        }
+      } catch (err) {
+        console.error('❌ Stats loading error:', err);
+        setFallbackStats(); 
+      }
+    }
+
+    // Smart fallback with cached values
     function setFallbackStats() {
       const elements = {
         globalHiWaves: document.getElementById('globalHiWaves'),
@@ -1327,14 +1374,19 @@
         globalTotalUsers: document.getElementById('globalTotalUsers')
       };
       
+      // Try cached values first
+      const cachedWaves = localStorage.getItem('globalHiWaves');
+      const cachedHis = localStorage.getItem('globalTotalHis');  
+      const cachedUsers = localStorage.getItem('globalTotalUsers');
+      
       if (elements.globalHiWaves?.textContent === '...') {
-        elements.globalHiWaves.textContent = '127';
+        elements.globalHiWaves.textContent = cachedWaves || '1554';
       }
       if (elements.globalTotalHis?.textContent === '...') {
-        elements.globalTotalHis.textContent = '86';
+        elements.globalTotalHis.textContent = cachedHis || '108';
       }
       if (elements.globalTotalUsers?.textContent === '...') {
-        elements.globalTotalUsers.textContent = '1';
+        elements.globalTotalUsers.textContent = cachedUsers || '1000';
       }
     }
 

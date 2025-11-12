@@ -193,6 +193,12 @@
 
     if (!isMainPage) return;
 
+    // TEMP FIX: Disable onboarding on hi-dashboard.html for clean desktop experience
+    if (window.location.pathname.endsWith('hi-dashboard.html')) {
+      console.log('🎯 Onboarding disabled on hi-dashboard for Tesla UX');
+      return;
+    }
+
     // Check if already completed
     if (hasCompletedOnboarding()) return;
 

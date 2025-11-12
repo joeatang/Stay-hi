@@ -290,7 +290,9 @@ export async function getMyStreaks() {
  * @param {string} userId - User ID
  * @returns {Object} { data, error } with streak data
  */
-export async function getStreaks(userId) {
+// Direct export removed to avoid duplicate - using telemetry-wrapped version below
+// This function is now internal-only since the exported version is the telemetry-wrapped one
+async function getStreaksInternal(userId) {
     return _getStreaks(userId);
 }
 

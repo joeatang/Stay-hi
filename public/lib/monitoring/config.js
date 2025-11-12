@@ -15,4 +15,7 @@ export const config = {
     }
 };
 
+// Alias for backward compatibility with HiMonitor.js
+export const MONITORING = config;
+
 export default config;

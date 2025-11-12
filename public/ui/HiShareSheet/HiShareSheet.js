@@ -774,6 +774,12 @@ export class HiShareSheet {
       console.log('✅ Share persistence complete, closing sheet...');
       
     } catch (error) {
+      console.error('❌ Inner share operation failed:', error);
+      this.showToast('❌ Share failed. Please try again.');
+      throw error; // Re-throw to be caught by outer catch
+    }
+      
+    } catch (error) {
       console.error('❌ Share persistence failed:', error);
       this.showToast('❌ Failed to save. Please try again.');
       return; // Don't close on error
