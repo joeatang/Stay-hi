@@ -6,38 +6,34 @@
       "use": "@vercel/static"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/",
-      "dest": "/public/index.html"
+      "source": "/",
+      "destination": "/public/index.html"
     },
     {
-      "src": "/welcome",
-      "dest": "/public/welcome.html"
+      "source": "/welcome",
+      "destination": "/public/welcome.html"
     },
     {
-      "src": "/dashboard", 
-      "dest": "/public/hi-dashboard.html"
+      "source": "/dashboard", 
+      "destination": "/public/hi-dashboard.html"
     },
     {
-      "src": "/hi-island",
-      "dest": "/public/hi-island-NEW.html"
+      "source": "/hi-island",
+      "destination": "/public/hi-island-NEW.html"
     },
     {
-      "src": "/hi-muscle",
-      "dest": "/public/hi-muscle.html"
+      "source": "/hi-muscle",
+      "destination": "/public/hi-muscle.html"
     },
     {
-      "src": "/profile",
-      "dest": "/public/profile.html"
+      "source": "/profile",
+      "destination": "/public/profile.html"
     },
     {
-      "src": "/(.*\\.(css|js|json|png|jpg|jpeg|gif|svg|ico|woff|woff2))",
-      "dest": "/public/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/public/$1"
+      "source": "/(.*)",
+      "destination": "/public/$1"
     }
   ],
   "headers": [
