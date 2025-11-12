@@ -185,7 +185,117 @@
       background: #1a1a2e;
     }
 
-    /* 📊 FEED CONTAINER */
+    /* � GOLD STANDARD: Drop a Hi Button - Orange Glassmorphic */
+    .drop-hi-button-gold-standard {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 24px;
+      background: linear-gradient(135deg, 
+        rgba(255, 122, 24, 0.9) 0%,
+        rgba(255, 209, 102, 0.95) 50%,
+        rgba(255, 179, 71, 0.9) 100%
+      );
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 2px solid rgba(255, 209, 102, 0.4);
+      border-radius: 16px;
+      color: #1a1a1a;
+      font-weight: 700;
+      font-size: 16px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      box-shadow: 
+        0 8px 32px rgba(255, 122, 24, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: translateY(0px);
+      z-index: 10;
+      overflow: hidden;
+    }
+
+    .drop-hi-button-gold-standard::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: linear-gradient(135deg, 
+        rgba(255, 122, 24, 0.6) 0%,
+        rgba(255, 209, 102, 0.8) 50%,
+        rgba(255, 179, 71, 0.6) 100%
+      );
+      border-radius: 18px;
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .drop-hi-button-gold-standard:hover {
+      transform: translateY(-2px);
+      box-shadow: 
+        0 12px 40px rgba(255, 122, 24, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+      border-color: rgba(255, 209, 102, 0.6);
+    }
+
+    .drop-hi-button-gold-standard:hover::before {
+      opacity: 1;
+    }
+
+    .drop-hi-button-gold-standard:active {
+      transform: translateY(-1px);
+      box-shadow: 
+        0 6px 24px rgba(255, 122, 24, 0.3),
+        inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .drop-hi-button-gold-standard.loading {
+      animation: pulse-orange 2s infinite;
+    }
+
+    .drop-hi-button-gold-standard .button-icon {
+      font-size: 18px;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+    }
+
+    .drop-hi-button-gold-standard .button-glow {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at center, 
+        rgba(255, 209, 102, 0.4) 0%,
+        rgba(255, 209, 102, 0.2) 40%,
+        transparent 70%
+      );
+      border-radius: inherit;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    .drop-hi-button-gold-standard:hover .button-glow {
+      opacity: 1;
+    }
+
+    @keyframes pulse-orange {
+      0%, 100% { 
+        box-shadow: 0 8px 32px rgba(255, 122, 24, 0.3);
+        border-color: rgba(255, 209, 102, 0.4);
+      }
+      50% { 
+        box-shadow: 0 8px 32px rgba(255, 122, 24, 0.6);
+        border-color: rgba(255, 209, 102, 0.8);
+      }
+    }
+
+    /* �📊 FEED CONTAINER */
     .feed-container {
       background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(20px);
@@ -667,12 +777,14 @@
           <div class="sub">A gentle stream of Hi Shares from around the world</div>
         </div>
         <button 
-          class="hi-btn hi-btn--primary" 
+          class="hi-btn drop-hi-button-gold-standard" 
           onclick="handleDropHiClick()" 
           id="dropHiButton"
-          aria-label="Open Hi Share composer to drop a Hi moment"
+          aria-label="Drop a Hi moment on the island"
           type="button">
+          <span class="button-icon">🏝️</span>
           <span class="button-text">Drop a Hi</span>
+          <span class="button-glow"></span>
         </button>
       </div>
       <div id="globe" aria-label="Interactive world map"></div>
@@ -1435,15 +1547,27 @@
         return;
       }
       
-      console.log('🎯 Opening Hi Composer (Drop Hi functionality)...');
+      console.log('🎯 [DROP HI] Starting comprehensive user type audit...');
       
       // Add loading state
       button.classList.add('loading');
       button.disabled = true;
       
       try {
-        // 🔐 GOLD STANDARD UX: Check authentication first
-        const isAuthenticated = await window.checkAuthentication?.();
+        // � WOZNIAK-GRADE: Comprehensive User Type Detection with Fallbacks
+        const userType = await getUserTypeWithFallbacks();
+        console.log('🔍 [DROP HI] User type detected:', userType);
+        
+        // 🚨 Anonymous User Flow - Gold Standard UX
+        if (userType === 'anonymous') {
+          console.log('🔒 [DROP HI] Anonymous user - showing auth modal');
+          button.classList.remove('loading');
+          button.disabled = false;
+          return await handleAnonymousDropHi();
+        }
+        
+        // 🔍 Authenticated User Access Control
+        const isAuthenticated = userType !== 'anonymous';
         
         if (!isAuthenticated) {
           console.log('🔒 User not authenticated - showing sign-in prompt');
@@ -1554,7 +1678,172 @@
       }
     };
 
-    // 🔄 Legacy compatibility
+    // � WOZNIAK-GRADE: Future-Proof User Type Detection System
+    async function getUserTypeWithFallbacks() {
+      try {
+        // Priority 1: Check modern authentication system
+        if (window.checkAuthentication && typeof window.checkAuthentication === 'function') {
+          const isAuth = await window.checkAuthentication();
+          if (isAuth) {
+            // Further check user tier
+            const userTier = await window.getUserTier?.() || 'basic';
+            return userTier === 'premium' ? 'premium' : 'authenticated';
+          }
+        }
+        
+        // Priority 2: Check Supabase auth
+        if (window.hiDB?.supabase?.auth) {
+          const { data: { user } } = await window.hiDB.supabase.auth.getUser();
+          if (user) {
+            return 'authenticated';
+          }
+        }
+        
+        // Priority 3: Check localStorage session
+        const session = localStorage.getItem('hiUserSession');
+        if (session && session !== 'null') {
+          return 'authenticated';
+        }
+        
+        return 'anonymous';
+      } catch (error) {
+        console.warn('⚠️ [DROP HI] User type detection failed:', error);
+        return 'anonymous'; // Safe fallback
+      }
+    }
+
+    // 🚨 Anonymous User Handler - Gold Standard UX
+    async function handleAnonymousDropHi() {
+      console.log('🎯 [DROP HI] Showing anonymous auth modal');
+      
+      // Priority 1: Use showAuthModal if available
+      if (window.showAuthModal && typeof window.showAuthModal === 'function') {
+        await window.showAuthModal('🏝️ Join Hi Island to drop your moments and connect with the community!');
+        return;
+      }
+      
+      // Priority 2: Use anonymous access modal
+      if (window.showAnonymousAccessModal && typeof window.showAnonymousAccessModal === 'function') {
+        await window.showAnonymousAccessModal('drop_hi');
+        return;
+      }
+      
+      // Priority 3: Custom gold standard modal
+      const modalHTML = `
+        <div id="dropHiAuthModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); display: flex; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(10px);">
+          <div style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%); border-radius: 24px; padding: 48px; max-width: 480px; margin: 20px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 209, 102, 0.3);">
+            <div style="text-align: center;">
+              <div style="font-size: 64px; margin-bottom: 24px;">🏝️</div>
+              <h2 style="color: #1e293b; font-size: 24px; font-weight: 700; margin: 0 0 16px 0;">Drop Your Hi on the Island</h2>
+              <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 0 0 32px 0;">Join our community to share your moments, connect with others, and be part of the Hi Island experience.</p>
+              <div style="display: flex; gap: 16px; justify-content: center;">
+                <button onclick="handleAuthAction('signin')" style="background: linear-gradient(135deg, #FF7A18 0%, #FFD166 100%); color: #1a1a1a; border: none; padding: 16px 24px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer;">Sign In</button>
+                <button onclick="handleAuthAction('signup')" style="background: rgba(255, 122, 24, 0.1); color: #FF7A18; border: 2px solid rgba(255, 122, 24, 0.3); padding: 14px 24px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer;">Create Account</button>
+              </div>
+              <button onclick="closeAuthModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; color: #64748b; cursor: pointer;">×</button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+      
+      // Add modal handlers
+      window.handleAuthAction = (action) => {
+        closeAuthModal();
+        if (action === 'signin') {
+          window.location.href = '/auth.html?mode=signin&redirect=hi-island.html&action=drop-hi';
+        } else {
+          window.location.href = '/auth.html?mode=signup&redirect=hi-island.html&action=drop-hi';
+        }
+      };
+      
+      window.closeAuthModal = () => {
+        const modal = document.getElementById('dropHiAuthModal');
+        if (modal) modal.remove();
+      };
+    }
+
+    // 🔍 Access Level Checker for Authenticated Users
+    async function getDropHiAccessLevel(userType) {
+      try {
+        // Check feature access
+        if (window.checkHiFeatureAccess && typeof window.checkHiFeatureAccess === 'function') {
+          const hasAccess = await window.checkHiFeatureAccess('drop_hi', 'drop-hi');
+          if (hasAccess) {
+            return { allowed: true, level: userType };
+          } else {
+            return { allowed: false, reason: 'tier_limitation', userType };
+          }
+        }
+        
+        // Default: allow for authenticated users
+        return { allowed: true, level: userType };
+      } catch (error) {
+        console.warn('⚠️ [DROP HI] Access check failed:', error);
+        return { allowed: true, level: userType }; // Permissive fallback
+      }
+    }
+
+    // 🚫 Access Denied Handler
+    async function handleAccessDenied(accessLevel) {
+      console.log('🔒 [DROP HI] Handling access denied:', accessLevel);
+      
+      if (window.showUpgradeModal && typeof window.showUpgradeModal === 'function') {
+        await window.showUpgradeModal('drop_hi');
+      } else {
+        alert('⭐ Upgrade to Premium to drop unlimited Hi moments on the island!');
+      }
+    }
+
+    // 🎯 Open Hi Composer with User Context
+    async function openHiComposerWithUserContext(userType, accessLevel) {
+      console.log('✅ [DROP HI] Opening composer for', userType, accessLevel);
+      
+      try {
+        // Priority 1: Hi Island Share Sheet
+        if (window.hiIslandShareSheet && typeof window.hiIslandShareSheet.open === 'function') {
+          await window.hiIslandShareSheet.open();
+          return;
+        }
+        
+        // Priority 2: Global Share Sheet
+        if (window.openHiShareSheet && typeof window.openHiShareSheet === 'function') {
+          await window.openHiShareSheet('hi-island');
+          return;
+        }
+        
+        // Priority 3: Create new instance
+        if (window.HiShareSheet) {
+          const shareSheet = new window.HiShareSheet({ 
+            origin: 'hi-island',
+            userType: userType,
+            onSuccess: (shareData) => {
+              console.log('🎉 Hi-Island share success:', shareData);
+            }
+          });
+          await shareSheet.open();
+          return;
+        }
+        
+        // Fallback
+        console.warn('⚠️ [DROP HI] No share system available');
+        alert('Hi Share system is loading... Please try again in a moment.');
+        
+      } catch (error) {
+        console.error('❌ [DROP HI] Composer error:', error);
+        alert('Something went wrong. Please try again.');
+      } finally {
+        // Always remove loading state
+        const button = document.getElementById('dropHiButton');
+        if (button) {
+          button.classList.remove('loading');
+          button.disabled = false;
+        }
+      }
+    }
+
+    // �🔄 Legacy compatibility
     window.openHiComposer = window.handleDropHiClick;
     
     // Enhanced fallback alert with retry mechanism
