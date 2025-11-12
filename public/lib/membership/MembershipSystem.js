@@ -20,17 +20,44 @@
 export class HiMembershipSystem {
   constructor() {
     this.tiers = {
-      ANONYMOUS: { level: 0, price: 0, name: 'Anonymous' },
-      TIER_1: { level: 1, price: 5.55, name: 'Hi Starter', color: '#FF9A3C' },
-      TIER_2: { level: 2, price: 15.55, name: 'Hi Explorer', color: '#D84B8A' },  
-      TIER_3: { level: 3, price: 55.55, name: 'Hi Collective', color: '#8B5CF6' },
+      // Public Access
+      ANONYMOUS: { level: 0, price: 0, name: 'Anonymous', color: '#6B7280' },
+      
+      // Stan Membership Entry Point  
+      STAN_MEMBER: { level: 1, price: 0, name: 'Stan Member', color: '#3B82F6', source: 'stan' },
+      
+      // Hi Network Paid Tiers
+      TIER_1: { level: 2, price: 5.55, name: 'Hi Starter', color: '#FF9A3C' },
+      TIER_2: { level: 3, price: 15.55, name: 'Hi Explorer', color: '#D84B8A' },  
+      TIER_3: { level: 4, price: 55.55, name: 'Hi Collective', color: '#8B5CF6' },
+      
+      // Woz + Jobs 7th Tier: Creator/Community Builder
+      HI_ARCHITECT: { 
+        level: 5, 
+        price: 155.55, 
+        name: 'Hi Architect', 
+        color: '#F59E0B',
+        capabilities: ['generate_codes', 'community_analytics', 'referral_system', 'beta_features']
+      },
+      
+      // System Administration
       ADMIN: { level: 99, price: 0, name: 'Hi Council', color: '#10B981' }
     };
     
     this.accessModes = {
       ANONYMOUS: 'anonymous',
       TEMPORARY: 'temporary', 
-      ACTIVE: 'active'
+      ACTIVE: 'active',
+      STAN_LINKED: 'stan_linked'
+    };
+    
+    // Code Generation Capabilities (Hi Architect tier)
+    this.codeTypes = {
+      TRIAL_24H: { duration: 24 * 60 * 60 * 1000, name: '24 Hour Trial', tier: 'TIER_1' },
+      TRIAL_7D: { duration: 7 * 24 * 60 * 60 * 1000, name: '7 Day Trial', tier: 'TIER_1' },
+      TRIAL_30D: { duration: 30 * 24 * 60 * 60 * 1000, name: '30 Day Trial', tier: 'TIER_2' },
+      TRIAL_90D: { duration: 90 * 24 * 60 * 60 * 1000, name: '90 Day Trial', tier: 'TIER_3' },
+      STAN_REGISTER: { duration: null, name: 'Stan Registration', tier: 'STAN_MEMBER' }
     };
     
     this.currentUser = null;
@@ -177,22 +204,27 @@ export class HiMembershipSystem {
    */
   getPageRestrictions() {
     const tier = this.currentUser.membershipTier;
+    const level = this.currentUser.tierInfo.level;
     
     const baseRestrictions = {
       'welcome.html': false, // Always accessible
       'hi-dashboard.html': false, // Always accessible (view-only for anonymous)
-      'hi-island.html': tier === 'ANONYMOUS', // Restricted for anonymous
-      'profile.html': tier === 'ANONYMOUS', // Restricted for anonymous  
-      'hi-muscle.html': tier === 'ANONYMOUS' || tier === 'TIER_1', // Tier 2+ only
+      'hi-island.html': level < 1, // Requires Stan Member+ 
+      'profile.html': level < 1, // Requires Stan Member+
+      'hi-muscle.html': level < 3, // Requires Hi Explorer+ (Tier 2)
+      'hi-architect.html': level < 5, // Requires Hi Architect tier
       'admin.html': tier !== 'ADMIN' // Admin only
     };
     
-    // Temporary access gets Tier 1 permissions
+    // Temporary access inherits granted tier permissions
     if (this.currentUser.accessMode === 'temporary') {
+      const tempLevel = this.tiers[this.currentUser.grantedTier || 'TIER_1'].level;
       return {
         ...baseRestrictions,
-        'hi-island.html': false,
-        'profile.html': false
+        'hi-island.html': tempLevel < 1,
+        'profile.html': tempLevel < 1,
+        'hi-muscle.html': tempLevel < 3,
+        'hi-architect.html': tempLevel < 5
       };
     }
     
@@ -345,12 +377,102 @@ export class HiMembershipSystem {
   }
 
   /**
+   * Generate access codes (Hi Architect capability)
+   */
+  async generateAccessCode(codeType, quantity = 1, customDuration = null) {
+    if (!this.hasAccess('generate_codes')) {
+      throw new Error('Code generation requires Hi Architect tier or higher');
+    }
+    
+    const codeInfo = this.codeTypes[codeType];
+    if (!codeInfo) {
+      throw new Error('Invalid code type');
+    }
+    
+    const codes = [];
+    const duration = customDuration || codeInfo.duration;
+    
+    for (let i = 0; i < quantity; i++) {
+      const code = this.generateUniqueCode();
+      codes.push({
+        code,
+        type: codeType,
+        tier: codeInfo.tier,
+        duration,
+        generatedBy: this.currentUser.id,
+        generatedAt: Date.now(),
+        expiresAt: duration ? Date.now() + duration : null,
+        usedAt: null,
+        usedBy: null
+      });
+    }
+    
+    // Store codes (would sync to Supabase in production)
+    const existingCodes = JSON.parse(localStorage.getItem('hi_generated_codes') || '[]');
+    existingCodes.push(...codes);
+    localStorage.setItem('hi_generated_codes', JSON.stringify(existingCodes));
+    
+    console.log(`🎫 [Hi Architect] Generated ${quantity} ${codeType} codes`);
+    return codes;
+  }
+
+  /**
+   * Generate unique alphanumeric code
+   */
+  generateUniqueCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = 'HI';
+    for (let i = 0; i < 6; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+
+  /**
+   * Link Stan membership
+   */
+  async linkStanMembership(stanUserId, stanSubscriptionId) {
+    try {
+      console.log('🔗 [Membership] Linking Stan membership...');
+      
+      this.currentUser.membershipTier = 'STAN_MEMBER';
+      this.currentUser.accessMode = 'stan_linked';
+      this.currentUser.tierInfo = this.tiers.STAN_MEMBER;
+      this.currentUser.stanUserId = stanUserId;
+      this.currentUser.stanSubscriptionId = stanSubscriptionId;
+      
+      await this.applyAccessControls();
+      
+      console.log('✅ [Membership] Stan membership linked');
+      return { success: true };
+      
+    } catch (error) {
+      console.error('❌ [Membership] Stan linking failed:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
    * Check if user has access to specific feature
    */
   hasAccess(feature, minTier = 'TIER_1') {
-    const tierLevels = { 'ANONYMOUS': 0, 'TIER_1': 1, 'TIER_2': 2, 'TIER_3': 3, 'ADMIN': 99 };
+    const tierLevels = { 
+      'ANONYMOUS': 0, 
+      'STAN_MEMBER': 1, 
+      'TIER_1': 2, 
+      'TIER_2': 3, 
+      'TIER_3': 4, 
+      'HI_ARCHITECT': 5, 
+      'ADMIN': 99 
+    };
     const userLevel = tierLevels[this.currentUser.membershipTier] || 0;
     const requiredLevel = tierLevels[minTier] || 1;
+    
+    // Special capabilities check
+    if (feature === 'generate_codes' || feature === 'community_analytics' || 
+        feature === 'referral_system' || feature === 'beta_features') {
+      return userLevel >= 5; // Hi Architect+ only
+    }
     
     return userLevel >= requiredLevel;
   }

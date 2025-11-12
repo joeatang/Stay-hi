@@ -14,8 +14,8 @@
 }
 
 .hi-medallion {
-  /* HI DEV: Responsive sizing - mobile-first, scales to desktop */
-  --size: clamp(180px, 28vw, 320px);
+  /* HI DEV: Enhanced responsive sizing - mobile-first, more prominent */
+  --size: clamp(240px, 40vw, 400px);
   width: var(--size);
   height: var(--size);
   
@@ -142,12 +142,24 @@
 
 @keyframes hiHalo {
   0% { 
-    opacity: 0.9; 
-    transform: scale(1.02); 
+    opacity: 1; 
+    transform: scale(1.05);
+    filter: hue-rotate(0deg) brightness(1.1) saturate(1.2);
+  }
+  20% {
+    opacity: 1.2;
+    transform: scale(1.15);
+    filter: hue-rotate(12deg) brightness(1.25) saturate(1.4);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.35);
+    filter: hue-rotate(25deg) brightness(1.4) saturate(1.5);
   }
   100% { 
     opacity: 0; 
-    transform: scale(1.25); 
+    transform: scale(1.6);
+    filter: hue-rotate(35deg) brightness(1.6) saturate(1.7);
   }
 }
 
@@ -239,9 +251,9 @@
   }
   
   .hi-medallion.is-pulsing .hi-medallion__halo {
-    animation: none;
-    opacity: 0.5;
-    transform: scale(1.02);
+    animation: hiHalo 0.6s ease-out forwards; /* Override: Keep sunrise animation even with reduced motion */
+    opacity: 0.9;
+    transform: scale(1.06);
   }
 }
 

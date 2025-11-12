@@ -867,11 +867,343 @@
       0%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
       100%{opacity:0;transform:translateX(-50%) translateY(-20px) scale(0.95)}
     }
+    
+    /* Tesla-Grade Header - Dashboard Standard */
+    .tesla-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: rgba(15, 16, 34, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      z-index: 1000;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      width: 60px;
+    }
+
+    .header-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      width: 140px;
+      gap: 8px;
+    }
+    
+    .tier-indicator {
+      display: flex;
+      align-items: center;
+      padding: 4px 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--hi-tier-color, #6B7280);
+      transition: all 0.3s ease;
+      cursor: default;
+      min-width: 60px;
+      text-align: center;
+    }
+    
+    .tier-indicator:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+    
+    .tier-text {
+      white-space: nowrap;
+    }
+    
+    .hiffirmations-header-pill {
+      display: flex;
+      align-items: center;
+      padding: 4px 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 11px;
+      font-weight: 600;
+      color: #6B7280;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      min-width: 90px;
+      text-align: center;
+      margin-left: 8px;
+    }
+    
+    .hiffirmations-header-pill:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .brand-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-hi-logo {
+      width: 24px;
+      height: 24px;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    }
+
+    .brand-text {
+      font-size: 18px;
+      font-weight: 600;
+      color: #FFD166;
+      letter-spacing: -0.5px;
+    }
+
+    .calendar-btn, .menu-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #FFD166;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .calendar-btn:hover, .menu-btn:hover {
+      background: rgba(255, 209, 102, 0.2);
+      transform: translateY(-1px);
+    }
+
+    /* Navigation Modal */
+    .navigation-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .navigation-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    .navigation-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(400px, 90vw);
+      background: rgba(15, 16, 34, 0.95);
+      backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 24px;
+      padding: 24px;
+      color: white;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .navigation-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .navigation-header h3 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: #FFD166;
+    }
+
+    .close-nav-btn {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .close-nav-btn:hover {
+      background: rgba(255, 0, 0, 0.2);
+    }
+
+    .navigation-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .nav-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: white;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: 1px solid transparent;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-item.admin-item {
+      background: rgba(255, 215, 0, 0.1);
+      border-color: rgba(255, 215, 0, 0.2);
+    }
+
+    .nav-item.admin-item:hover {
+      background: rgba(255, 215, 0, 0.2);
+    }
+
+    .nav-icon {
+      font-size: 18px;
+      width: 24px;
+      text-align: center;
+    }
+
+    /* Account for fixed header */
+    body[data-page="hi-muscle"] {
+      padding-top: 60px;
+    }
   </style>
 </head>
 <body data-tab="muscle" data-page="hi-muscle">
-  <!-- Premium Enhanced Header -->
-  <header id="app-header" class="premium-header-container"></header>
+  <!-- Tesla-Grade Dashboard Header -->
+  <header class="tesla-header">
+    <div class="header-left">
+      <button class="calendar-btn" onclick="showCalendar()">
+        📅
+      </button>
+    </div>
+    
+    <div class="header-center">
+      <div class="brand-container">
+        <img src="/images/hi-logo.svg" alt="Hi" class="brand-hi-logo">
+        <span class="brand-text">Hi Muscle</span>
+      </div>
+    </div>
+    
+    <div class="header-right">
+      <div class="tier-indicator" id="membershipTier">
+        <span class="tier-text">Standard</span>
+      </div>
+      <div class="hiffirmations-header-pill">
+        Today's Vibes
+      </div>
+      <button class="menu-btn" onclick="openNavigation()">
+        <span style="font-size: 18px;">☰</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Navigation Modal -->
+  <div id="navigationModal" class="navigation-modal">
+    <div class="navigation-backdrop" onclick="closeNavigation()"></div>
+    <div class="navigation-content">
+      <div class="navigation-header">
+        <h3>Hi Navigation</h3>
+        <button class="close-nav-btn" onclick="closeNavigation()">✕</button>
+      </div>
+      
+      <nav class="navigation-menu">
+        <div>
+          <div class="nav-section-title">Core</div>
+          <a href="/public/hi-dashboard.html" class="nav-item">
+            <span class="nav-icon">🏠</span>
+            Dashboard
+          </a>
+          <a href="/public/profile.html" class="nav-item">
+            <span class="nav-icon">👤</span>
+            Profile
+          </a>
+          <a href="/public/hi-island-NEW.html" class="nav-item">
+            <span class="nav-icon">🏝️</span>
+            Hi Island
+          </a>
+          <a href="/public/hi-muscle.html" class="nav-item" style="background: rgba(255, 209, 102, 0.2); border-color: rgba(255, 209, 102, 0.3);">
+            <span class="nav-icon">💪</span>
+            Hi Muscle
+          </a>
+        </div>
+        
+        <div>
+          <div class="nav-section-title">Tools</div>
+          <a href="/public/hi-calendar.html" class="nav-item">
+            <span class="nav-icon">📅</span>
+            Calendar
+          </a>
+          <a href="/public/hi-hiffirmations.html" class="nav-item">
+            <span class="nav-icon">✨</span>
+            Hiffirmations
+          </a>
+          <a href="/public/hi-stats.html" class="nav-item">
+            <span class="nav-icon">📊</span>
+            Hi Stats
+          </a>
+        </div>
+        
+        <div>
+          <div class="nav-section-title">Admin</div>
+          <a href="/public/admin-dashboard.html" class="nav-item admin-item">
+            <span class="nav-icon">⚙️</span>
+            Admin Panel
+          </a>
+        </div>
+      </nav>
+    </div>
+  </div>
 
   <div class="wrap">
     <h1 class="title">Hi Gym</h1>
@@ -1018,7 +1350,7 @@
   <script src="./lib/flags/HiFlags.js"></script>
   <script src="./lib/hibase/index.js"></script>
   <script src="assets/geocoding-service.js"></script>
-  <script src="./ui/HiHeader/HiHeader.js" defer></script>
+  <!-- Header: Using Tesla-Grade Dashboard Header (no HiHeader.js needed) -->
   <script src="assets/emotions.js"></script>
   <script src="assets/hi-gym.js"></script>
 
@@ -1259,7 +1591,7 @@
         const shouldUpgrade = confirm(`🌟 Your emotional journey looks amazing!\n\nJoin Hi to:\n• Save your journey forever\n• Share with the community\n• Track your emotional growth\n• Get personalized insights\n\nWould you like to sign up or log in?`);
         
         if (shouldUpgrade) {
-          window.location.href = '/auth.html?redirect=' + encodeURIComponent(window.location.pathname + '?journey=completed');
+          window.location.href = '/signin.html?redirect=' + encodeURIComponent(window.location.pathname + '?journey=completed');
         }
         return;
       }
@@ -2109,18 +2441,86 @@
         });
         shareSheet.init();
         
-        // 🔧 CRITICAL FIX: Override window.openHiShareSheet to use OUR instance with tracking
+        // 🔧 WOZNIAK-GRADE: Override window.openHiShareSheet with auth check + tracking
         // MATCH EXACT PATTERN: Use same signature as original HiShareSheet.init()
         window.openHiShareSheet = (origin = 'higym', options = {}) => {
           console.log('💪 [HiGYM] Opening share sheet with tracking-enabled instance:', { origin, options });
           
-          // Match original HiShareSheet pattern exactly:
+          // 🔒 WOZNIAK-GRADE: Auth check for anonymous users BEFORE opening share sheet
+          const canShare = window.hiAccessManager?.canAccess?.('shareCreation') || 
+                          window.HiTierSystem?.hasCapability?.('drop_hi') ||
+                          window.unifiedMembership?.hasAccess?.('shareCreation') ||
+                          window.supabase?.auth?.getUser?.()?.data?.user; // Additional auth check
+          
+          if (!canShare) {
+            console.log('🔒 Anonymous user trying to share journey - showing Hi Muscle auth modal');
+            
+            // Store journey data for post-auth continuation
+            localStorage.setItem('pendingHiMuscleJourney', JSON.stringify({
+              origin,
+              options,
+              timestamp: Date.now(),
+              action: 'share-journey'
+            }));
+            
+            // 🌟 Show beautiful Hi Muscle auth modal with fitness benefits
+            if (window.showShareAuthModal) {
+              window.showShareAuthModal('hi-muscle', {
+                title: 'Join Hi Fitness Community',
+                benefits: [
+                  '💪 Track your emotional fitness journey over time',
+                  '🎯 Share breakthrough moments with the community', 
+                  '🏆 Unlock wellness achievements and streaks',
+                  '🌟 Connect with others on similar journeys'
+                ],
+                onPrimary: () => {
+                  window.location.href = '/signin.html?redirect=' + encodeURIComponent(window.location.pathname) + '&action=journey';
+                },
+                onSecondary: () => {
+                  window.location.href = '/signup.html?redirect=' + encodeURIComponent(window.location.pathname) + '&action=journey';
+                }
+              });
+            } else if (window.showAuthModal) {
+              // Fallback to general auth modal
+              window.showAuthModal('hi-muscle');
+            } else {
+              // Last resort
+              console.warn('⚠️ No auth modals available, redirecting to auth');
+              window.location.href = '/signin.html?action=journey';
+            }
+            return; // Stop here for anonymous users
+          }
+          
+          // ✅ Authenticated user - proceed with share sheet
           shareSheet.origin = origin;
           shareSheet.prefilledData = options; // Store prefilled data for Hi Muscle integration
           shareSheet.open(); // Call without parameters - data comes from this.prefilledData
         };
         
         console.log('✅ Hi-Muscle HiShareSheet initialized with Total His tracking');
+
+        // 🌟 WOZNIAK-GRADE: Handle post-auth journey continuation
+        const pendingJourney = localStorage.getItem('pendingHiMuscleJourney');
+        if (pendingJourney) {
+          try {
+            const journeyData = JSON.parse(pendingJourney);
+            console.log('🔄 Processing pending Hi Muscle journey after auth:', journeyData);
+            
+            // Clear the pending journey
+            localStorage.removeItem('pendingHiMuscleJourney');
+            
+            // Auto-continue the journey sharing after successful auth
+            if (journeyData.action === 'share-journey') {
+              setTimeout(() => {
+                console.log('✅ Auto-continuing Hi Muscle journey share after auth');
+                window.openHiShareSheet(journeyData.origin, journeyData.options);
+              }, 1000); // Small delay to ensure everything is loaded
+            }
+          } catch (error) {
+            console.error('❌ Failed to process pending Hi Muscle journey:', error);
+            localStorage.removeItem('pendingHiMuscleJourney'); // Clean up on error
+          }
+        }
       });
     });
 
@@ -2130,7 +2530,103 @@
   <!-- HiShareSheet now initialized within main script scope for proper variable access -->
 
   <script src="assets/premium-ux.js"></script>
+  
+  <!-- Tesla-Grade Header JavaScript -->
+  <script>
+    // Navigation Modal Control
+    function openNavigation() {
+      const modal = document.getElementById('navigationModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        setTimeout(() => {
+          modal.style.opacity = '1';
+          modal.style.visibility = 'visible';
+        }, 10);
+      }
+    }
+
+    function closeNavigation() {
+      const modal = document.getElementById('navigationModal');
+      if (modal) {
+        modal.style.opacity = '0';
+        modal.style.visibility = 'hidden';
+        setTimeout(() => {
+          modal.style.display = 'none';
+        }, 300);
+      }
+    }
+
+    // Calendar functionality (placeholder)
+    function showCalendar() {
+      console.log('📅 Calendar feature - Coming soon!');
+      // TODO: Integrate with existing calendar system
+    }
+
+    // Membership tier management
+    async function updateMembershipTier() {
+      try {
+        if (window.HiMembership && typeof window.HiMembership.getCurrentTier === 'function') {
+          const tierData = await window.HiMembership.getCurrentTier();
+          const tierElement = document.getElementById('membershipTier');
+          const tierText = tierElement?.querySelector('.tier-text');
+          
+          if (tierText && tierData) {
+            tierText.textContent = tierData.name || 'Standard';
+            
+            // Apply tier-specific styling
+            const tierColors = {
+              'Standard': '#6B7280',
+              'Premium': '#FFD166', 
+              'Elite': '#FF6B6B',
+              'Legend': '#4ECDC4'
+            };
+            
+            const color = tierColors[tierData.name] || '#6B7280';
+            document.documentElement.style.setProperty('--hi-tier-color', color);
+          }
+        }
+      } catch (error) {
+        console.log('Membership tier update:', error.message);
+      }
+    }
+
+    // Initialize header on DOM load
+    document.addEventListener('DOMContentLoaded', () => {
+      // Track current page visit for smart navigation
+      try {
+        const currentPage = {
+          url: window.location.href,
+          name: 'Hi Muscle',
+          timestamp: Date.now()
+        };
+        
+        const navHistory = JSON.parse(sessionStorage.getItem('hiNavHistory') || '[]');
+        // Remove any existing entry for this page
+        const filtered = navHistory.filter(page => page.url !== currentPage.url);
+        // Add current page to front
+        filtered.unshift(currentPage);
+        // Keep last 10 pages
+        filtered.splice(10);
+        sessionStorage.setItem('hiNavHistory', JSON.stringify(filtered));
+      } catch (error) {
+        // Silent fail for tracking
+      }
+
+      // Update membership tier
+      updateMembershipTier();
+      
+      // Add keyboard navigation support
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeNavigation();
+        }
+      });
+    });
+  </script>
+
+  <!-- HiFooter Integration -->
   <script src="./ui/HiFooter/HiFooter.js" defer></script>
+  <link rel="stylesheet" href="./ui/HiFooter/HiFooter.css">
   
   <!-- 🚀 PWA Manager -->
   <script src="assets/pwa-manager.js"></script>

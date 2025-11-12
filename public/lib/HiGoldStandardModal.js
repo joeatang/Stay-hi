@@ -290,8 +290,8 @@ class HiGoldStandardModal {
     if (callbacks?.onPrimary) {
       callbacks.onPrimary();
     } else {
-      // Default: redirect to auth
-      window.location.href = '/auth.html?mode=signin&redirect=' + encodeURIComponent(window.location.pathname);
+      // Default: redirect to sign in page
+      window.location.href = '/signin.html?redirect=' + encodeURIComponent(window.location.pathname);
     }
     this.closeModal(id);
   }
@@ -301,8 +301,8 @@ class HiGoldStandardModal {
     if (callbacks?.onSecondary) {
       callbacks.onSecondary();
     } else {
-      // Default: redirect to signup
-      window.location.href = '/auth.html?mode=signup&redirect=' + encodeURIComponent(window.location.pathname);
+      // Default: redirect to sign up page
+      window.location.href = '/signup.html?redirect=' + encodeURIComponent(window.location.pathname);
     }
     this.closeModal(id);
   }

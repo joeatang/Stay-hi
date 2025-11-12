@@ -331,6 +331,30 @@
     .tier-text {
       white-space: nowrap;
     }
+    
+    /* Hiffirmations Header Pill - Brand Consistent */
+    .hiffirmations-header-pill {
+      display: flex;
+      align-items: center;
+      padding: 4px 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 11px;
+      font-weight: 600;
+      color: #6B7280;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      min-width: 90px;
+      text-align: center;
+      margin-left: 8px;
+    }
+    
+    .hiffirmations-header-pill:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
 
     .brand-container {
       display: flex;
@@ -437,35 +461,37 @@
 
 
 
-    /* Hi Medallion Section */
+    /* Hi Medallion Section - Enhanced Prominence */
     .hi-medallion-section {
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 200px;
-      margin: 20px 0;
-      padding: 20px;
+      min-height: 280px; /* Increased from 200px */
+      margin: 40px 0; /* Increased from 20px */
+      padding: 40px 20px; /* Increased top/bottom padding */
     }
 
-    /* Enhanced Self Hi5 Button */
+    /* Enhanced Self Hi5 Button - Distinctive Identity */
     .self-hi5-enhanced {
-      margin: 30px 0;
-      padding: 16px 32px;
-      background: linear-gradient(135deg, #FF7A18 0%, #FFD166 100%);
-      border: none;
+      margin: 40px 0;
+      padding: 18px 36px;
+      background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #EC4899 100%);
+      border: 2px solid rgba(255, 255, 255, 0.2);
       border-radius: 50px;
-      color: #1a1a2e;
+      color: #ffffff;
       font-size: 18px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       transition: all 0.3s ease;
-      box-shadow: 0 8px 25px rgba(255, 122, 24, 0.3);
-      min-width: 180px;
+      box-shadow: 0 12px 40px rgba(79, 70, 229, 0.4);
+      min-width: 220px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     }
 
     .self-hi5-enhanced:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 35px rgba(255, 122, 24, 0.4);
+      transform: translateY(-3px);
+      box-shadow: 0 16px 50px rgba(79, 70, 229, 0.5);
+      border-color: rgba(255, 255, 255, 0.4);
     }
 
     .self-hi5-enhanced:active {
@@ -526,6 +552,35 @@
         transform: translate(-50%, -50%) translateX(var(--dx, 0)) translateY(-80px) scale(0.3);
         opacity: 0;
       }
+    }
+
+    /* 🎯 Mario-Style Number Burst Animation */
+    @keyframes numberBurst {
+      0% {
+        transform: scale(1) translateY(0);
+        color: inherit;
+        text-shadow: none;
+      }
+      20% {
+        transform: scale(1.3) translateY(-8px);
+        color: #FF9A3C;
+        text-shadow: 0 0 12px rgba(255, 154, 60, 0.6), 0 2px 4px rgba(0,0,0,0.3);
+      }
+      40% {
+        transform: scale(1.15) translateY(-4px);
+        color: #FFD166;
+        text-shadow: 0 0 16px rgba(255, 209, 102, 0.8);
+      }
+      100% {
+        transform: scale(1) translateY(0);
+        color: inherit;
+        text-shadow: none;
+      }
+    }
+
+    /* Burst class for triggering animation */
+    .stat-number.burst {
+      animation: numberBurst 0.5s ease-out;
     }
 
     /* Mobile Optimizations */
@@ -803,6 +858,11 @@
           <line x1="3" y1="10" x2="21" y2="10"></line>
         </svg>
       </button>
+      
+      <!-- Hiffirmations Pill -->
+      <button id="hiffirmationsTrigger" class="hiffirmations-header-pill" aria-label="Daily Hiffirmations" title="Daily Hiffirmations">
+        Hiffirmations
+      </button>
     </div>
     
     <!-- Centered Brand with Hi Logo -->
@@ -903,7 +963,10 @@
     <div id="giveHiBtn" style="display: none;"></div>
     <div id="globalPill" class="hi-global-pill" style="display: none;" aria-live="polite"></div>
     
-    <!-- Global Stats Above Weekly Progress -->
+    <!-- Weekly Progress Strip (Context First) -->
+    <div id="weekStrip" class="weekstrip" aria-label="Your week"></div>
+    
+    <!-- Global Stats Above Medallion (Your Favorite Combo!) -->
     <div class="global-stats-container">
       <div class="global-stat">
         <span class="stat-icon">👋</span>
@@ -946,21 +1009,22 @@
     <!-- HI DEV: Tesla-Grade HiMedallion Component -->
     <div id="hiMedallionContainer" class="hi-medallion-section">
       <!-- S-DASH/7: hero medallion -->
-      <button id="hiMedallion"
-              class="hi-medallion-btn"
-              aria-label="Give yourself a Hi-5"
-              aria-pressed="false"
-              title="Give yourself a Hi-5"
-              type="button">
+      <div id="hiMedallion"
+           class="hi-medallion"
+           role="button"
+           tabindex="0"
+           aria-label="Give yourself a Hi-5"
+           aria-pressed="false"
+           title="Give yourself a Hi-5">
+        <div class="hi-medallion__base"></div>
+        <div class="hi-medallion__edge"></div>
+        <div class="hi-medallion__halo"></div>
         <!-- Your actual Hi logo -->
-        <img src="./assets/brand/hi-logo-light.png" alt="Hi logo" class="hi-medallion-emblem">
-      </button>
+        <img src="./assets/brand/hi-logo-light.png" alt="Hi logo" class="hi-medallion__icon">
+      </div>
       <!-- /S-DASH/7 -->
     </div>
     
-    <!-- Weekly Progress Strip -->
-    <div id="weekStrip" class="weekstrip" aria-label="Your week"></div>
-
     <!-- S-DASH/8: ARIA live region for micro-feedback -->
     <div id="hiLive" class="sr-only" aria-live="polite"></div>
 
@@ -978,11 +1042,6 @@
     <!-- Enhanced Self Hi5 Button -->
     <button class="self-hi5-enhanced" id="selfHi5Enhanced">
       🙌 Give Yourself a Hi5
-    </button>
-
-    <!-- Hiffirmations Modal Trigger -->
-    <button class="hiffirmations-trigger" id="hiffirmationsTrigger">
-      ✨ Daily Hiffirmations
     </button>
   </main>
 
@@ -1361,15 +1420,49 @@
                         window.unifiedMembership?.hasAccess?.('shareCreation');
                         
         if (!canShare) {
-          console.log('🔒 Anonymous users cannot create shares - showing upgrade prompt');
-          // Show upgrade modal or sign-in prompt
-          if (window.showHiUpgradeModal) {
+          console.log('🔒 Anonymous users cannot create shares - showing gold standard auth modal');
+          
+          // 🌟 WOZNIAK-GRADE: Use Hi Island-style beautiful auth modal
+          if (window.showShareAuthModal) {
+            window.showShareAuthModal('hi-dashboard', {
+              title: 'Join Hi Dashboard Community',
+              benefits: [
+                '📊 Track your personal Hi streaks and stats',
+                '🎯 Share Hi5 moments with the community', 
+                '🏆 Unlock dashboard achievements and rewards',
+                '💫 Access advanced Hi tracking features'
+              ],
+              onPrimary: () => {
+                // Store context for after auth
+                localStorage.setItem('pendingDashboardAction', JSON.stringify({
+                  action: 'hi5-share',
+                  context: 'dashboard',
+                  timestamp: Date.now()
+                }));
+                window.location.href = '/signin.html?redirect=' + encodeURIComponent(window.location.pathname) + '&action=hi5';
+              },
+              onSecondary: () => {
+                localStorage.setItem('pendingDashboardAction', JSON.stringify({
+                  action: 'hi5-share', 
+                  context: 'dashboard',
+                  timestamp: Date.now()
+                }));
+                window.location.href = '/signup.html?redirect=' + encodeURIComponent(window.location.pathname) + '&action=hi5';
+              }
+            });
+          } else if (window.showAuthModal) {
+            // Fallback to general auth modal
+            window.showAuthModal('hi-dashboard');
+          } else if (window.showHiUpgradeModal) {
+            // Legacy fallback
             window.showHiUpgradeModal('share_creation', {
               message: 'Sign in to share your Hi5 moments with the community! ✨',
               feature: 'Hi5 Sharing'
             });
           } else {
-            alert('Please sign in to share Hi5 moments! 🙌');
+            // Last resort fallback
+            console.warn('⚠️ No auth modals available, redirecting to auth');
+            window.location.href = '/signin.html?action=hi5';
           }
           return;
         }
@@ -1799,6 +1892,26 @@
 
     // Tesla-Grade Initialization
     document.addEventListener('DOMContentLoaded', () => {
+      // Track current page visit for smart navigation
+      try {
+        const currentPage = {
+          url: window.location.href,
+          name: 'Dashboard',
+          timestamp: Date.now()
+        };
+        
+        const navHistory = JSON.parse(sessionStorage.getItem('hiNavHistory') || '[]');
+        // Remove any existing entry for this page
+        const filtered = navHistory.filter(page => page.url !== currentPage.url);
+        // Add current page to front
+        filtered.unshift(currentPage);
+        // Keep last 10 pages
+        filtered.splice(10);
+        sessionStorage.setItem('hiNavHistory', JSON.stringify(filtered));
+      } catch (error) {
+        // Silent fail for tracking
+      }
+
       // Initialize all components
       initializeDatabase();
       setupSelfHi5Handler();
@@ -2149,6 +2262,38 @@
         window.__hiComponentsInitialized.shareSheet = true;
         window.__hiComponentsInitialized.shareSheetInstance = shareSheet;
       }
+
+      // 🌟 WOZNIAK-GRADE: Handle post-auth dashboard actions
+      const pendingAction = localStorage.getItem('pendingDashboardAction');
+      if (pendingAction) {
+        try {
+          const actionData = JSON.parse(pendingAction);
+          console.log('🔄 Processing pending dashboard action after auth:', actionData);
+          
+          // Clear the pending action
+          localStorage.removeItem('pendingDashboardAction');
+          
+          // Execute the pending action based on type
+          if (actionData.action === 'hi5-share' && actionData.context === 'dashboard') {
+            // Auto-trigger Hi5 share after successful auth
+            setTimeout(() => {
+              const shareSheetInstance = window.__hiComponentsInitialized?.shareSheetInstance;
+              if (shareSheetInstance) {
+                shareSheetInstance.open({
+                  context: 'dashboard',
+                  preset: 'hi5',
+                  prefilledText: '🙌 Giving myself a Hi5! ',
+                  type: 'Hi5'
+                });
+                console.log('✅ Auto-opened Hi5 share sheet after auth');
+              }
+            }, 1000); // Small delay to ensure everything is loaded
+          }
+        } catch (error) {
+          console.error('❌ Failed to process pending dashboard action:', error);
+          localStorage.removeItem('pendingDashboardAction'); // Clean up on error
+        }
+      }
       
       // METRICS SEPARATION: Initialize HiMedallion with medallion tap handler
       const medallionContainer = document.getElementById('hiMedallionContainer');
@@ -2172,11 +2317,22 @@
                 window.gWaves += 1;
                 console.log('🌊 Global waves updated:', window.gWaves);
                 
-                // Update UI immediately
+                // Update UI immediately with Mario-style burst
                 const globalHiWavesEl = document.getElementById('globalHiWaves');
                 if (globalHiWavesEl) {
                   globalHiWavesEl.textContent = window.gWaves.toLocaleString();
-                  console.log('✅ UI updated with new wave count');
+                  
+                  // 🎯 Trigger Mario-style number burst
+                  globalHiWavesEl.classList.remove('burst');
+                  void globalHiWavesEl.offsetHeight; // Force reflow
+                  globalHiWavesEl.classList.add('burst');
+                  
+                  // Clean up animation class after completion
+                  setTimeout(() => {
+                    globalHiWavesEl.classList.remove('burst');
+                  }, 500);
+                  
+                  console.log('✅ UI updated with new wave count and burst animation');
                 }
                 
                 // Also call the unified stats update if available

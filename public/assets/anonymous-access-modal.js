@@ -10,8 +10,17 @@ class AnonymousAccessModal {
   }
   
   init() {
-    // Check if user should see anonymous modal on page load
-    this.checkAccessOnLoad();
+    // Check immediately on init
+    setTimeout(() => {
+      this.checkAccessOnLoad();
+    }, 100); // Very short delay to ensure DOM is ready
+    
+    // Also check after a longer delay in case of slow loading
+    setTimeout(() => {
+      if (!this.isShown) {
+        this.checkAccessOnLoad();
+      }
+    }, 2000);
     
     // Listen for access check requests
     window.addEventListener('checkAnonymousAccess', (e) => {
@@ -20,53 +29,204 @@ class AnonymousAccessModal {
   }
   
   async checkAccessOnLoad() {
-    // Wait for auth systems to initialize
-    await this.waitForAuth();
+    console.log('🔍 Anonymous Access Modal: Starting checkAccessOnLoad');
     
     // Check if current page requires authentication
     const protectedPages = ['/profile.html'];
     const currentPath = window.location.pathname;
     
+    console.log(`🛤️ Current path: ${currentPath}`);
+    console.log(`🔒 Protected pages: ${protectedPages}`);
+    
     if (protectedPages.some(page => currentPath.includes(page))) {
-      const hasAuth = await this.checkAuthStatus();
-      if (!hasAuth) {
-        console.log('🔒 Anonymous user accessing protected page, showing access modal');
+      console.log('✅ This is a protected page, checking auth immediately...');
+      
+      // Quick auth check first (no waiting)
+      const quickAuthCheck = await this.quickAuthCheck();
+      
+      if (quickAuthCheck === false) {
+        console.log('🔒 Quick auth check failed - showing modal immediately');
         this.showAccessModal();
+        return;
       }
+      
+      // Wait for auth systems to initialize
+      await this.waitForAuth();
+      
+      // More thorough auth check after systems load
+      const hasAuth = await this.checkAuthStatus();
+      
+      console.log(`🔐 Thorough auth check result: ${hasAuth}`);
+      
+      // Show modal if no clear authentication found
+      if (hasAuth === false) {
+        console.log('🔒 No authentication detected, showing access modal');
+        this.showAccessModal();
+      } else if (hasAuth === true) {
+        console.log('🔓 User is authenticated, allowing access');
+      } else {
+        // If uncertain, check for anonymous exploration mode first
+        const anonymousAccess = localStorage.getItem('anonymous_access_granted');
+        const discoveryMode = localStorage.getItem('hi_discovery_mode');
+        
+        if (anonymousAccess || discoveryMode === 'anonymous') {
+          console.log('🌟 Anonymous exploration mode detected, allowing access');
+        } else {
+          console.log('❓ Auth status uncertain, showing modal for safety');
+          this.showAccessModal();
+        }
+      }
+    } else {
+      console.log('🟢 This is NOT a protected page, no modal needed');
     }
+  }
+
+  async quickAuthCheck() {
+    console.log('⚡ Performing quick auth check...');
+    
+    // Check localStorage tokens immediately (no waiting)
+    const tokenKeys = [
+      'sb-access-token', 
+      'sb-refresh-token',
+      'hiAccess',
+      'supabase.auth.token'
+    ];
+    
+    const hasTokens = tokenKeys.some(key => {
+      const value = localStorage.getItem(key);
+      return value && value !== 'null' && value !== 'undefined' && value.length > 0;
+    });
+    
+    if (hasTokens) {
+      console.log('⚡ Quick check: Auth tokens found');
+      return true;
+    }
+    
+    // Check for anonymous exploration mode
+    const anonymousAccess = localStorage.getItem('anonymous_access_granted');
+    const discoveryMode = localStorage.getItem('hi_discovery_mode');
+    
+    if (anonymousAccess || discoveryMode === 'anonymous') {
+      console.log('⚡ Quick check: Anonymous exploration mode active');
+      return true;
+    }
+    
+    console.log('⚡ Quick check: No authentication found');
+    return false;
   }
   
   async waitForAuth() {
-    // Wait for Supabase and auth systems to load
+    // Wait for Supabase and auth systems to load with better detection
     let attempts = 0;
-    while ((!window.supabase || !window.sb) && attempts < 50) {
+    while (attempts < 100) { // Longer timeout
+      if (window.supabase || window.supabaseClient || window.sb || 
+          (window.HiSupabase && typeof window.HiSupabase.getClient === 'function')) {
+        console.log('🔓 Auth system detected, continuing...');
+        return true;
+      }
       await new Promise(resolve => setTimeout(resolve, 100));
       attempts++;
     }
+    console.log('⚠️ Auth systems not detected after timeout');
+    return false;
   }
   
   async checkAuthStatus() {
     try {
-      // Check multiple auth indicators
+      console.log('🔍 Starting comprehensive auth status check...');
+      
+      // Method 1: Check Supabase user
       if (window.supabase) {
-        const { data: { user } } = await window.supabase.auth.getUser();
-        if (user) return true;
+        try {
+          const { data: { user } } = await window.supabase.auth.getUser();
+          if (user) {
+            console.log('✅ Supabase user found:', user.id);
+            return true;
+          } else {
+            console.log('❌ Supabase user is null');
+          }
+        } catch (e) {
+          console.log('⚠️ Supabase user check failed:', e.message);
+        }
+      } else {
+        console.log('❌ window.supabase not available');
       }
       
-      // Check localStorage tokens
-      const indicators = ['sb-access-token', 'hiAccess', 'unified_membership_cache'];
-      const hasTokens = indicators.some(key => localStorage.getItem(key));
+      if (window.supabaseClient) {
+        try {
+          const { data: { user } } = await window.supabaseClient.auth.getUser();
+          if (user) {
+            console.log('✅ SupabaseClient user found:', user.id);
+            return true;
+          } else {
+            console.log('❌ SupabaseClient user is null');
+          }
+        } catch (e) {
+          console.log('⚠️ SupabaseClient user check failed:', e.message);
+        }
+      } else {
+        console.log('❌ window.supabaseClient not available');
+      }
       
-      return hasTokens;
+      // Method 2: Check localStorage tokens (multiple indicators)
+      const tokenKeys = [
+        'sb-access-token', 
+        'sb-refresh-token',
+        'hiAccess',
+        'supabase.auth.token'
+      ];
+      
+      console.log('🔍 Checking localStorage tokens...');
+      let foundTokens = [];
+      
+      tokenKeys.forEach(key => {
+        const value = localStorage.getItem(key);
+        if (value && value !== 'null' && value !== 'undefined' && value.length > 0) {
+          foundTokens.push(key);
+          console.log(`✅ Found token: ${key}`);
+        }
+      });
+      
+      if (foundTokens.length > 0) {
+        console.log(`✅ Auth tokens found: ${foundTokens.join(', ')}`);
+        return true;
+      }
+      
+      // Method 3: Check session storage
+      const sessionKeys = ['supabase.auth.session'];
+      console.log('🔍 Checking sessionStorage...');
+      
+      let foundSessions = [];
+      sessionKeys.forEach(key => {
+        const value = sessionStorage.getItem(key);
+        if (value && value !== 'null' && value !== 'undefined' && value.length > 0) {
+          foundSessions.push(key);
+          console.log(`✅ Found session: ${key}`);
+        }
+      });
+      
+      if (foundSessions.length > 0) {
+        console.log(`✅ Auth session found: ${foundSessions.join(', ')}`);
+        return true;
+      }
+      
+      // If we get here, no clear authentication found
+      console.log('❌ No authentication found - user appears to be anonymous');
+      return false;
+      
     } catch (error) {
-      console.log('Auth check failed:', error);
+      console.log('⚠️ Auth check failed with error:', error);
       return false;
     }
   }
   
   showAccessModal() {
-    if (this.isShown) return;
+    if (this.isShown) {
+      console.log('⚠️ Modal already shown, skipping duplicate request');
+      return;
+    }
     
+    console.log('🚀 Showing anonymous access modal');
     this.isShown = true;
     this.createModal();
     
@@ -111,6 +271,7 @@ class AnonymousAccessModal {
       text-align: center;
       color: white;
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui;
+      z-index: 10001;
       opacity: 0;
       transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
       box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
@@ -197,6 +358,24 @@ class AnonymousAccessModal {
       }
     });
     
+    // Emergency escape mechanisms
+    const escapeHandler = (e) => {
+      if (e.key === 'Escape' && this.isShown) {
+        console.log('🚪 Emergency escape - Escape key pressed');
+        this.exploreAction(); // Allow exploration instead of blocking
+        document.removeEventListener('keydown', escapeHandler);
+      }
+    };
+    document.addEventListener('keydown', escapeHandler);
+    
+    // Safety timeout - auto-dismiss after 30 seconds to prevent permanent blocking
+    this.safetyTimeout = setTimeout(() => {
+      if (this.isShown) {
+        console.log('🚪 Safety timeout - Auto-dismissing modal after 30 seconds');
+        this.exploreAction();
+      }
+    }, 30000);
+    
     // Append to body
     document.body.appendChild(this.overlay);
     document.body.appendChild(this.modal);
@@ -237,7 +416,7 @@ class AnonymousAccessModal {
     
     // Smooth transition
     await this.hideModal();
-    window.location.href = '/welcome.html';
+    window.location.href = '/public/hi-dashboard.html';
   }
   
   async exploreAction() {
@@ -250,13 +429,21 @@ class AnonymousAccessModal {
   }
   
   async backAction() {
-    // Go back to main app
+    // Go back to main app/dashboard
     await this.hideModal();
-    window.location.href = '/app';
+    window.location.href = '/public/hi-dashboard.html';
   }
   
   async hideModal() {
     if (!this.isShown) return;
+    
+    console.log('🚪 Hiding anonymous access modal');
+    
+    // Clear safety timeout
+    if (this.safetyTimeout) {
+      clearTimeout(this.safetyTimeout);
+      this.safetyTimeout = null;
+    }
     
     // Fade out animation
     this.overlay.style.opacity = '0';

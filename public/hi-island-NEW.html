@@ -82,42 +82,254 @@
        This follows BEM methodology + CSS namespacing for component isolation.
     ============================================================================ */
 
-    /* Tesla-grade header on hi-island: clean minimal layout */
-    body[data-page="hi-island"] header {
-      padding: var(--space-md) !important;
-      backdrop-filter: blur(20px) !important;
-      background: rgba(255, 255, 255, 0.95) !important;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+    /* Tesla-Grade Header - Dashboard Standard */
+    .tesla-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: rgba(15, 16, 34, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      z-index: 1000;
     }
 
-    body[data-page="hi-island"] .appbar {
-      display: flex !important;
-      justify-content: space-between !important;
-      align-items: center !important;
-      max-width: 100% !important;
+    .header-left {
+      display: flex;
+      align-items: center;
+      width: 60px;
     }
 
-    body[data-page="hi-island"] .appbar .brand {
-      position: absolute !important;
-      left: 50% !important;
-      transform: translateX(-50%) !important;
+    .header-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
-    body[data-page="hi-island"] .logo {
-      max-height: 32px !important;
-      width: auto !important;
-      filter: invert(1) brightness(0) !important;
+    .header-right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      width: 140px;
+      gap: 8px;
+    }
+    
+    .tier-indicator {
+      display: flex;
+      align-items: center;
+      padding: 4px 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--hi-tier-color, #6B7280);
+      transition: all 0.3s ease;
+      cursor: default;
+      min-width: 60px;
+      text-align: center;
+    }
+    
+    .tier-indicator:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+    
+    .tier-text {
+      white-space: nowrap;
+    }
+    
+    .hiffirmations-header-pill {
+      display: flex;
+      align-items: center;
+      padding: 4px 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 11px;
+      font-weight: 600;
+      color: #6B7280;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      min-width: 90px;
+      text-align: center;
+      margin-left: 8px;
+    }
+    
+    .hiffirmations-header-pill:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
     }
 
-    body[data-page="hi-island"] .brand-name {
-      color: #000 !important;
-      font-weight: 600 !important;
+    .brand-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    body[data-page="hi-island"] #btnMore {
-      background: rgba(0, 0, 0, 0.08) !important;
-      border-radius: 20px !important;
-      padding: 8px 16px !important;
+    .brand-hi-logo {
+      width: 24px;
+      height: 24px;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    }
+
+    .brand-text {
+      font-size: 18px;
+      font-weight: 600;
+      color: #FFD166;
+      letter-spacing: -0.5px;
+    }
+
+    .calendar-btn, .menu-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #FFD166;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .calendar-btn:hover, .menu-btn:hover {
+      background: rgba(255, 209, 102, 0.2);
+      transform: translateY(-1px);
+    }
+
+    /* Navigation Modal */
+    .navigation-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .navigation-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    .navigation-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(400px, 90vw);
+      background: rgba(15, 16, 34, 0.95);
+      backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 24px;
+      padding: 24px;
+      color: white;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .navigation-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .navigation-header h3 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: #FFD166;
+    }
+
+    .close-nav-btn {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .close-nav-btn:hover {
+      background: rgba(255, 0, 0, 0.2);
+    }
+
+    .navigation-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .nav-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: white;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: 1px solid transparent;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-item.admin-item {
+      background: rgba(255, 215, 0, 0.1);
+      border-color: rgba(255, 215, 0, 0.2);
+    }
+
+    .nav-item.admin-item:hover {
+      background: rgba(255, 215, 0, 0.2);
+    }
+
+    .nav-icon {
+      font-size: 18px;
+      width: 24px;
+      text-align: center;
+    }
+
+    /* Account for fixed header */
+    body[data-page="hi-island"] {
+      padding-top: 60px;
       transition: background 0.2s ease !important;
     }
 
@@ -767,8 +979,90 @@
   <noscript><link rel="stylesheet" href="./ui/HiFooter/HiFooter.css"></noscript>
 </head>
 <body data-page="hi-island">
-  <!-- Header (shared component) -->
-  <header id="app-header" class="premium-header-container"></header>
+  <!-- Tesla-Grade Dashboard Header -->
+  <header class="tesla-header">
+    <div class="header-left">
+      <button class="calendar-btn" onclick="showCalendar()">
+        📅
+      </button>
+    </div>
+    
+    <div class="header-center">
+      <div class="brand-container">
+        <img src="/images/hi-logo.svg" alt="Hi" class="brand-hi-logo">
+        <span class="brand-text">Hi Island</span>
+      </div>
+    </div>
+    
+    <div class="header-right">
+      <div class="tier-indicator" id="membershipTier">
+        <span class="tier-text">Standard</span>
+      </div>
+      <div class="hiffirmations-header-pill">
+        Today's Vibes
+      </div>
+      <button class="menu-btn" onclick="openNavigation()">
+        <span style="font-size: 18px;">☰</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Navigation Modal -->
+  <div id="navigationModal" class="navigation-modal">
+    <div class="navigation-backdrop" onclick="closeNavigation()"></div>
+    <div class="navigation-content">
+      <div class="navigation-header">
+        <h3>Hi Navigation</h3>
+        <button class="close-nav-btn" onclick="closeNavigation()">✕</button>
+      </div>
+      
+      <nav class="navigation-menu">
+        <div>
+          <div class="nav-section-title">Core</div>
+          <a href="/public/hi-dashboard.html" class="nav-item">
+            <span class="nav-icon">🏠</span>
+            Dashboard
+          </a>
+          <a href="/public/profile.html" class="nav-item">
+            <span class="nav-icon">👤</span>
+            Profile
+          </a>
+          <a href="/public/hi-island-NEW.html" class="nav-item" style="background: rgba(255, 209, 102, 0.2); border-color: rgba(255, 209, 102, 0.3);">
+            <span class="nav-icon">🏝️</span>
+            Hi Island
+          </a>
+          <a href="/public/hi-muscle.html" class="nav-item">
+            <span class="nav-icon">💪</span>
+            Hi Muscle
+          </a>
+        </div>
+        
+        <div>
+          <div class="nav-section-title">Tools</div>
+          <a href="/public/hi-calendar.html" class="nav-item">
+            <span class="nav-icon">📅</span>
+            Calendar
+          </a>
+          <a href="/public/hi-hiffirmations.html" class="nav-item">
+            <span class="nav-icon">✨</span>
+            Hiffirmations
+          </a>
+          <a href="/public/hi-stats.html" class="nav-item">
+            <span class="nav-icon">📊</span>
+            Hi Stats
+          </a>
+        </div>
+        
+        <div>
+          <div class="nav-section-title">Admin</div>
+          <a href="/public/admin-dashboard.html" class="nav-item admin-item">
+            <span class="nav-icon">⚙️</span>
+            Admin Panel
+          </a>
+        </div>
+      </nav>
+    </div>
+  </div>
 
   <!-- Main Content -->
   <main class="wrap">
@@ -950,6 +1244,26 @@
     import { mountHiFeed } from './lib/hifeed/index.js';
 
     window.addEventListener('DOMContentLoaded', () => {
+      // Track current page visit for smart navigation
+      try {
+        const currentPage = {
+          url: window.location.href,
+          name: 'Hi Island',
+          timestamp: Date.now()
+        };
+        
+        const navHistory = JSON.parse(sessionStorage.getItem('hiNavHistory') || '[]');
+        // Remove any existing entry for this page
+        const filtered = navHistory.filter(page => page.url !== currentPage.url);
+        // Add current page to front
+        filtered.unshift(currentPage);
+        // Keep last 10 pages
+        filtered.splice(10);
+        sessionStorage.setItem('hiNavHistory', JSON.stringify(filtered));
+      } catch (error) {
+        // Silent fail for tracking
+      }
+
       mountHiFeed();
     });
   </script>
@@ -1037,8 +1351,7 @@
   <!-- 🧪 BACKEND PLUMBING TEST (Temporary) -->
   <script src="test-backend-plumbing.js"></script>
   
-  <!-- Header (Load synchronously - no defer) -->
-  <script src="./ui/HiHeader/HiHeader.js"></script>
+  <!-- Header: Using Tesla-Grade Dashboard Header (no HiHeader.js needed) -->
   
   <!-- Footer - Dashboard Parity -->
   <script src="./ui/HiFooter/HiFooter.js" defer></script>
@@ -2055,5 +2368,83 @@
   -->
 
   <!-- 🎯 PHASE 1: Only UnifiedHiIslandController manages feed -->
+
+  <!-- Tesla-Grade Header JavaScript -->
+  <script>
+    // Navigation Modal Control
+    function openNavigation() {
+      const modal = document.getElementById('navigationModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        setTimeout(() => {
+          modal.style.opacity = '1';
+          modal.style.visibility = 'visible';
+        }, 10);
+      }
+    }
+
+    function closeNavigation() {
+      const modal = document.getElementById('navigationModal');
+      if (modal) {
+        modal.style.opacity = '0';
+        modal.style.visibility = 'hidden';
+        setTimeout(() => {
+          modal.style.display = 'none';
+        }, 300);
+      }
+    }
+
+    // Calendar functionality (placeholder)
+    function showCalendar() {
+      console.log('📅 Calendar feature - Coming soon!');
+      // TODO: Integrate with existing calendar system
+    }
+
+    // Membership tier management
+    async function updateMembershipTier() {
+      try {
+        if (window.HiMembership && typeof window.HiMembership.getCurrentTier === 'function') {
+          const tierData = await window.HiMembership.getCurrentTier();
+          const tierElement = document.getElementById('membershipTier');
+          const tierText = tierElement?.querySelector('.tier-text');
+          
+          if (tierText && tierData) {
+            tierText.textContent = tierData.name || 'Standard';
+            
+            // Apply tier-specific styling
+            const tierColors = {
+              'Standard': '#6B7280',
+              'Premium': '#FFD166', 
+              'Elite': '#FF6B6B',
+              'Legend': '#4ECDC4'
+            };
+            
+            const color = tierColors[tierData.name] || '#6B7280';
+            document.documentElement.style.setProperty('--hi-tier-color', color);
+          }
+        }
+      } catch (error) {
+        console.log('Membership tier update:', error.message);
+      }
+    }
+
+    // Initialize header on DOM load
+    document.addEventListener('DOMContentLoaded', () => {
+      // Update membership tier
+      updateMembershipTier();
+      
+      // Add keyboard navigation support
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeNavigation();
+        }
+      });
+    });
+  </script>
+
+  <!-- HiFooter Integration -->
+  <script src="/ui/HiFooter/HiFooter.js"></script>
+  <link rel="stylesheet" href="/ui/HiFooter/HiFooter.css">
+
 </body>
 </html>

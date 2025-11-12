@@ -15,24 +15,29 @@
   
   <!-- Supabase Integration -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./lib/HiSupabase.js"></script>
+  <script src="./lib/HiSupabase.simple.js"></script>
   
   <!-- 🚀 INTEGRATION #2: HiBase + HiFlags for Profile operations (flagged rollout) -->
-  <script src="./lib/flags/HiFlags.js"></script>
-  <script src="./lib/hibase/index.js"></script>
+  <script type="module" src="./lib/flags/HiFlags.js"></script>
+  <script type="module" src="./lib/hibase/index.js"></script>
   
   <!-- 🚀 Tesla-Grade Anonymous Access Modal System -->
   <script src="assets/anonymous-access-modal.js"></script>
+  
+  <!-- Membership System for Tier Display -->
+  <script type="module" src="./lib/membership/MembershipSystem.js"></script>
   
   <!-- Tesla CSS: Critical + Progressive Enhancement -->
   <link rel="stylesheet" href="assets/location-picker.css">
   <link rel="preload" href="assets/premium-ux.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" href="assets/premium-stats.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" href="assets/premium-calendar.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="./ui/HiFooter/HiFooter.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript>
     <link rel="stylesheet" href="assets/premium-ux.css">
     <link rel="stylesheet" href="assets/premium-stats.css">
     <link rel="stylesheet" href="assets/premium-calendar.css">
+    <link rel="stylesheet" href="ui/HiFooter/HiFooter.css">
   </noscript>
   
   <!-- Tesla-Grade Mobile & Data Fixes -->
@@ -51,6 +56,300 @@
     }
     
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* Tesla-Grade Header with Mini Stats - Dashboard Standard */
+    .tesla-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: rgba(15, 16, 34, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      z-index: 1000;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      width: 60px; /* Fixed width for symmetry */
+    }
+
+    .header-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      width: 140px; /* Expanded for tier indicator */
+      gap: 8px;
+    }
+    
+    /* UX-First: Membership Tier Indicator */
+    .tier-indicator {
+      display: flex;
+      align-items: center;
+      padding: 4px 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--hi-tier-color, #6B7280);
+      transition: all 0.3s ease;
+      cursor: default;
+      min-width: 60px;
+      text-align: center;
+    }
+    
+    .tier-indicator:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+    
+    .tier-text {
+      white-space: nowrap;
+    }
+    
+    /* Hiffirmations Header Pill - Brand Consistent */
+    .hiffirmations-header-pill {
+      display: flex;
+      align-items: center;
+      padding: 4px 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 11px;
+      font-weight: 600;
+      color: #6B7280;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      min-width: 90px;
+      text-align: center;
+      margin-left: 8px;
+    }
+    
+    .hiffirmations-header-pill:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .brand-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-hi-logo {
+      width: 24px;
+      height: 24px;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    }
+
+    .brand-text {
+      font-size: 18px;
+      font-weight: 600;
+      color: #FFD166;
+      letter-spacing: -0.5px;
+    }
+
+    /* Tesla-Grade Smart Navigation Container */
+    .smart-nav-container {
+      background: rgba(15, 15, 35, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 12px 20px;
+      position: sticky;
+      top: 70px;
+      z-index: 999;
+    }
+
+    .smart-back-btn, .menu-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 40px;
+      border: none;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #FFD166;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      padding: 0 12px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .smart-back-btn:hover, .menu-btn:hover {
+      background: rgba(255, 209, 102, 0.2);
+      transform: translateY(-1px);
+    }
+    
+    .smart-back-btn.loading {
+      opacity: 0.6;
+      cursor: wait;
+    }
+    
+    .back-text {
+      white-space: nowrap;
+      max-width: 100px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    @media (max-width: 768px) {
+      .back-text {
+        display: none;
+      }
+      .smart-back-btn {
+        width: 40px;
+        padding: 0;
+      }
+    }
+
+    /* Navigation Modal - Dashboard Standard */
+    .navigation-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .navigation-modal.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .navigation-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .navigation-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(400px, 90vw);
+      background: rgba(15, 16, 34, 0.95);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 24px;
+      padding: 24px;
+      color: white;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .navigation-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .navigation-header h3 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: #FFD166;
+    }
+
+    .close-nav-btn {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .close-nav-btn:hover {
+      background: rgba(255, 0, 0, 0.2);
+    }
+
+    .navigation-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .nav-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: white;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: 1px solid transparent;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-item.admin-item {
+      background: rgba(255, 215, 0, 0.1);
+      border-color: rgba(255, 215, 0, 0.2);
+    }
+
+    .nav-item.admin-item:hover {
+      background: rgba(255, 215, 0, 0.2);
+    }
+
+    .nav-icon {
+      font-size: 18px;
+      width: 24px;
+      text-align: center;
+    }
     
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui;
@@ -58,26 +357,10 @@
       color: white;
       min-height: 100vh;
       overflow-x: hidden;
+      padding-top: 60px; /* Account for fixed header */
     }
     
-    /* Back Navigation - Tesla Grade Mobile First */
-    .back-navigation {
-      position: fixed;
-      top: env(safe-area-inset-top, 20px);
-      left: 16px;
-      z-index: 1000;
-    }
-    
-    .nav-back {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 16px;
-      background: rgba(0,0,0,0.3);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--tesla-border);
-      border-radius: 12px;
-      color: white;
+
       text-decoration: none;
       font-size: 16px;
       font-weight: 500;
@@ -794,12 +1077,93 @@
   </style>
 </head>
 <body>
-  <!-- Tesla Navigation - Bulletproof Simple Architecture -->
-  <div class="back-navigation">
-    <button type="button" class="nav-back" onclick="navigateToHiDashboard()">
-      <span>🚀 Back to Dashboard</span>
+  <!-- Tesla-Grade Header with Centered Branding -->
+  <header class="tesla-header">
+    <div class="header-left">
+      <!-- Hiffirmations Pill -->
+      <button id="hiffirmationsTrigger" class="hiffirmations-header-pill" aria-label="Daily Hiffirmations" title="Daily Hiffirmations">
+        Hiffirmations
+      </button>
+    </div>
+    
+    <!-- Centered Brand with Hi Logo -->
+    <div class="header-center">
+      <div class="brand-container">
+        <img src="assets/brand/hi-logo-light.png" alt="Hi" class="brand-hi-logo" />
+        <span class="brand-text">Stay Hi</span>
+      </div>
+    </div>
+    
+    <!-- Navigation Menu -->
+    <div class="header-right">
+      <!-- Membership Tier Indicator (UX-first implementation) -->
+      <div id="hi-tier-indicator" class="tier-indicator" title="Your membership tier">
+        <span class="tier-text">Anonymous</span>
+      </div>
+      
+      <button id="btnMenu" class="menu-btn" aria-label="Open menu" title="Navigation Menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Tesla-Grade Smart Back Navigation (Below Header) -->
+  <div class="smart-nav-container">
+    <button id="smartBackBtn" class="smart-back-btn" aria-label="Go back" title="Back to previous page">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5"></path>
+        <path d="m12 19-7-7 7-7"></path>
+      </svg>
+      <span class="back-text" id="backDestination">Back</span>
     </button>
   </div>
+
+  <!-- Debug indicator removed for production -->
+
+  <!-- Navigation Menu Modal -->
+  <div id="navigationModal" class="navigation-modal" style="display: none;">
+    <div class="navigation-backdrop" id="navigationBackdrop"></div>
+    <div class="navigation-content">
+      <div class="navigation-header">
+        <h3>Stay Hi Navigation</h3>
+        <button id="closeNavigation" class="close-nav-btn">✕</button>
+      </div>
+      <div class="navigation-menu">
+        <div class="nav-section">
+          <div class="nav-section-title">Navigate</div>
+          <a href="index.html" class="nav-item">
+            <span class="nav-icon">🏠</span>
+            <span>Hi Today</span>
+          </a>
+          <a href="hi-island-NEW.html" class="nav-item">
+            <span class="nav-icon">🏝️</span>
+            <span>Hi Island</span>
+          </a>
+          <a href="hi-muscle.html" class="nav-item">
+            <span class="nav-icon">💪</span>
+            <span>Hi Gym</span>
+          </a>
+          <a href="profile.html?from=profile.html" class="nav-item" style="opacity: 0.7; font-weight: 700;">
+            <span class="nav-icon">👤</span>
+            <span>Profile (Current)</span>
+          </a>
+        </div>
+        <div class="nav-section" id="adminSection" style="display: none;">
+          <div class="nav-section-title">Administration</div>
+          <a href="hi-mission-control.html" class="nav-item admin-item">
+            <span class="nav-icon">🚀</span>
+            <span>Hi Mission Control</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
   
   <!-- Profile Container -->
   <div class="profile-container">
@@ -1094,7 +1458,7 @@
         console.log('✅ Avatar uploaded via HiBase:', uploadResult.data.avatarUrl);
         
         // 📊 Track HiBase usage
-        import./lib/monitoring/HiMonitor.js').then(m => 
+        import('./lib/monitoring/HiMonitor.js').then(m => 
           m.trackEvent('profile_avatar_upload', { 
             source: 'profile', 
             path: 'hibase'
@@ -1202,7 +1566,7 @@
         console.log('🔗 Generated URL:', urlData.publicUrl);
         
         // 📊 Track legacy usage
-        import./lib/monitoring/HiMonitor.js').then(m => 
+        import('./lib/monitoring/HiMonitor.js').then(m => 
           m.trackEvent('profile_avatar_upload', { 
             source: 'profile', 
             path: 'legacy'
@@ -1240,7 +1604,7 @@
         }
 
         // 📊 Track HiBase usage
-        import./lib/monitoring/HiMonitor.js').then(m => 
+        import('./lib/monitoring/HiMonitor.js').then(m => 
           m.trackEvent('profile_save', { 
             source: 'profile', 
             path: 'hibase'
@@ -1265,7 +1629,7 @@
         }
 
         // 📊 Track legacy usage
-        import./lib/monitoring/HiMonitor.js').then(m => 
+        import('./lib/monitoring/HiMonitor.js').then(m => 
           m.trackEvent('profile_save', { 
             source: 'profile', 
             path: 'legacy'
@@ -1608,7 +1972,7 @@
         showToast('Tesla-grade avatar saved successfully! 🚀');
         
         // 📊 Analytics: Track successful profile save
-        import./lib/monitoring/HiMonitor.js').then(m => 
+        import('./lib/monitoring/HiMonitor.js').then(m => 
           m.trackEvent('profile_save', { avatar: true })
         ).catch(() => {}); // Silent fail
         
@@ -2153,10 +2517,7 @@ FOR INSERT WITH CHECK (
       }, 100);
     }
     
-    // Auto-initialize on load
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(initializeTeslaAvatarSystem, 100);
-    });
+    // Avatar system will be initialized from main DOMContentLoaded handler
     
     // Tesla-Grade Secure Data Loading
     async function loadProfileData() {
@@ -2243,7 +2604,7 @@ FOR INSERT WITH CHECK (
           data = profileResult.data?.profile ? [profileResult.data.profile] : [];
           
           // 📊 Track HiBase usage
-          import./lib/monitoring/HiMonitor.js').then(m => 
+          import('./lib/monitoring/HiMonitor.js').then(m => 
             m.trackEvent('profile_load', { 
               source: 'profile', 
               path: 'hibase'
@@ -2270,7 +2631,7 @@ FOR INSERT WITH CHECK (
           }
 
           // 📊 Track legacy usage
-          import./lib/monitoring/HiMonitor.js').then(m => 
+          import('./lib/monitoring/HiMonitor.js').then(m => 
             m.trackEvent('profile_load', { 
               source: 'profile', 
               path: 'legacy'
@@ -2312,24 +2673,16 @@ FOR INSERT WITH CHECK (
       updateProfileDisplay(currentProfile);
       populateEditForm(currentProfile);
       
-      // Show membership signup modal after short delay
-      setTimeout(() => {
-        console.log('🚪 Triggering membership modal for anonymous user');
-        // Trigger the anonymous access modal
-        if (window.anonymousAccessModal) {
-          window.anonymousAccessModal.showAccessModal();
-        } else {
-          console.warn('⚠️ Anonymous access modal not loaded');
-        }
-      }, 1500);
+      // Modal will be triggered automatically by anonymous access modal system
       
       console.log('✅ Anonymous demo profile loaded safely');
     }
 
     // Legacy function - DEPRECATED FOR SECURITY
     async function loadProfileFromSupabase() {
-      console.warn('🚨 DEPRECATED: loadProfileFromSupabase() bypasses authentication!');
-      return null;
+      try {
+        console.warn('🚨 DEPRECATED: loadProfileFromSupabase() bypasses authentication!');
+        return null;
       } catch (error) {
         console.warn('⚠️ Supabase unavailable:', error.message);
         return null;
@@ -2391,50 +2744,7 @@ FOR INSERT WITH CHECK (
       });
     }
 
-    // Tesla-Grade Profile Display Update System (consolidated)
-    function updateProfileDisplay(profileData) {
-      console.log('🔄 Updating profile display...', profileData);
-      
-      // Update username
-      const usernameEl = document.getElementById('profileUsername');
-      if (usernameEl && profileData.username) {
-        usernameEl.textContent = `@${profileData.username}`;
-      }
-      
-      // Update display name
-      const displayNameEl = document.getElementById('profileDisplayName');
-      if (displayNameEl && profileData.display_name) {
-        displayNameEl.textContent = profileData.display_name;
-      }
-      
-      // Update bio
-      const bioEl = document.getElementById('profileBio');
-      if (bioEl) {
-        bioEl.textContent = profileData.bio || 'No bio yet. Click edit to add one!';
-      }
-      
-      // Update location
-      const locationEl = document.getElementById('profileLocation');
-      if (locationEl) {
-        locationEl.textContent = profileData.location || 'Location not set';
-      }
-      
-      // Update joined date
-      const joinedEl = document.getElementById('profileJoined');
-      if (joinedEl && profileData.created_at) {
-        const joinDate = new Date(profileData.created_at);
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        joinedEl.textContent = `Joined ${monthNames[joinDate.getMonth()]} ${joinDate.getFullYear()}`;
-      }
-      
-      // Update avatar if available
-      if (profileData.avatar_url) {
-        updateProfileAvatar(profileData.avatar_url);
-      }
-      
-      console.log('✅ Profile display updated');
-    }
+    // Tesla-Grade Profile Display Update System (consolidated) - DUPLICATE REMOVED
     
     function updateStatsDisplay(stats) {
       const statsGrid = document.getElementById('statsGrid');
@@ -2469,157 +2779,10 @@ FOR INSERT WITH CHECK (
     // Expose globally for onclick handler
     window.navigateToHiDashboard = navigateToHiDashboard;
     
-    // Legacy function for compatibility (no longer used)
-    function initDynamicNavigation() {
-      // This function is deprecated - using simple onclick navigation now
-      return;
-      
-      // Navigation mapping - Tesla-grade contextual routing
-      const navigationMap = {
-        'hi-island-NEW.html': {
-          url: 'hi-island-NEW.html',
-          text: 'Back to Hi Island',
-          icon: '🏝️'
-        },
-        'hi-island.html': {
-          url: 'hi-island-NEW.html', // Always use NEW version
-          text: 'Back to Hi Island',
-          icon: '🏝️'
-        },
-        'index.html': {
-          url: 'index.html',
-          text: 'Back to Home',
-          icon: '🏠'
-        },
-        'calendar.html': {
-          url: 'calendar.html', 
-          text: 'Back to Calendar',
-          icon: '📅'
-        },
-        'hi-muscle.html': {
-          url: 'hi-muscle.html',
-          text: 'Back to Hi Muscle',
-          icon: '💪'
-        },
-        'welcome.html': {
-          url: 'index.html', // Welcome redirects to home
-          text: 'Back to Home',
-          icon: '🏠'
-        },
-        'app.html': {
-          url: 'hi-dashboard.html',  // Updated to use new hi-dashboard
-          text: 'Back to Dashboard',
-          icon: '📱'
-        },
-        'hi-dashboard.html': {
-          url: 'hi-dashboard.html',
-          text: 'Back to Dashboard',
-          icon: '�'
-        }
-      };
-      
-      // Default fallback navigation
-      const defaultNav = {
-        url: 'hi-dashboard.html', // Most users come from hi-dashboard
-        text: 'Back to Dashboard', 
-        icon: '�'
-      };
-      
-      let targetNav = defaultNav;
-      
-      // Method 1: Check URL parameters (highest priority)
-      const urlParams = new URLSearchParams(window.location.search);
-      const fromParam = urlParams.get('from');
-      if (fromParam && navigationMap[fromParam]) {
-        targetNav = navigationMap[fromParam];
-        console.log('🎯 Navigation from URL param:', fromParam);
-      } 
-      // Method 2: Check document.referrer (medium priority)
-      else if (document.referrer) {
-        try {
-          const referrerUrl = new URL(document.referrer);
-          const referrerPath = referrerUrl.pathname.split('/').pop() || 'index.html';
-          
-          if (navigationMap[referrerPath]) {
-            targetNav = navigationMap[referrerPath];
-            console.log('🔍 Navigation from referrer:', referrerPath);
-          } else {
-            console.log('🤔 Unknown referrer, using default:', referrerPath);
-          }
-        } catch (error) {
-          console.log('📝 Invalid referrer URL, using default');
-        }
-      }
-      // Method 3: Check localStorage for last page (lowest priority) 
-      else {
-        const lastPage = localStorage.getItem('stayhi_last_page');
-        if (lastPage && navigationMap[lastPage]) {
-          targetNav = navigationMap[lastPage];
-          console.log('💾 Navigation from localStorage:', lastPage);
-        }
-      }
-      
-      // Apply navigation configuration - store target for button click
-      backNav.setAttribute('data-target-url', targetNav.url);
-      backNavText.textContent = targetNav.text;
-      
-      // Add icon if available
-      if (targetNav.icon) {
-        backNavText.innerHTML = `${targetNav.icon} ${targetNav.text}`;
-      }
-      
-      console.log('🧭 Dynamic navigation configured:', targetNav);
-      
-      // Visual feedback that navigation is ready
-      backNav.style.opacity = '1';
-      backNav.setAttribute('title', `Navigate to ${targetNav.text}`);
-      
-      // Add Tesla-grade click handler to back navigation
-      console.log('🎯 Attaching click handler to back navigation button');
-      backNav.addEventListener('click', (e) => {
-        e.preventDefault();
-        
-        const targetUrl = backNav.getAttribute('data-target-url') || targetNav.url;
-        console.log('🔙 Back button clicked, navigating to:', targetUrl);
-        
-        // Tesla-grade SIMPLE navigation - direct to hi-dashboard as requested
-        console.log('🎯 Direct navigation to hi-dashboard.html');
-        window.location.href = 'hi-dashboard.html';
-      });
-      
-      // Track this page visit for future navigation
-      localStorage.setItem('stayhi_last_page', 'profile.html');
-    }
+    // Old navigation system removed - using Tesla-grade SmartNavigation class instead
     
-    // Tesla-Grade Initialization
-    document.addEventListener('DOMContentLoaded', () => {
-      console.log('🚀 Tesla Profile System Initialized');
-      
-      // Initialize anonymous access modal FIRST
-      if (typeof AnonymousAccessModal !== 'undefined') {
-        window.anonymousAccessModal = new AnonymousAccessModal();
-        console.log('🔒 Anonymous access modal initialized');
-      } else {
-        console.warn('⚠️ AnonymousAccessModal not loaded');
-      }
-      
-      // Initialize dynamic navigation first
-      initDynamicNavigation();
-      
-      // Initialize profile display immediately
-      updateProfileDisplay(currentProfile);
-      updateStatsDisplay(userStats);
-      
-      showToast('Profile loaded successfully! 🎉');
-      
-      // Tesla-Grade Security: Load data with authentication check
-      setTimeout(() => {
-        console.log('🔒 Initializing secure profile loading...');
-        loadProfileData();
-      }, 500);
-      
-      // Avatar file input handler
-      const avatarInput = document.getElementById('avatarFileInput');
+    // Tesla-Grade Initialization - CONSOLIDATED
+    // Note: This handler was moved to the main DOMContentLoaded handler to avoid conflicts
       if (avatarInput) {
         avatarInput.addEventListener('change', (e) => {
           if (e.target.files && e.target.files[0]) {
@@ -2627,7 +2790,6 @@ FOR INSERT WITH CHECK (
           }
         });
       }
-    });
     
     // Global exposure for debugging and integration
     window.currentProfile = currentProfile;
@@ -2670,17 +2832,9 @@ FOR INSERT WITH CHECK (
   <!-- Location Picker Functions -->
   <script>
     // Gold-standard global location data for worldwide users
-    // Tesla-Grade: LocationPicker handles all global locations - eliminated 140+ lines of duplicate data
-        'California': ['Los Angeles', 'San Francisco', 'San Diego', 'Sacramento', 'Oakland', 'Fresno', 'Long Beach', 'Riverside', 'Santa Ana', 'Irvine'],
-        'New York': ['New York City', 'Buffalo', 'Rochester', 'Syracuse', 'Albany', 'Yonkers', 'New Rochelle', 'Mount Vernon', 'Schenectady', 'Utica'],
-        'Texas': ['Houston', 'Dallas', 'Austin', 'San Antonio', 'Fort Worth', 'El Paso', 'Arlington', 'Corpus Christi', 'Plano', 'Irving'],
-        'Florida': ['Miami', 'Orlando', 'Tampa', 'Jacksonville', 'St. Petersburg', 'Hialeah', 'Tallahassee', 'Fort Lauderdale', 'Port St. Lucie'],
-        'Illinois': ['Chicago', 'Aurora', 'Rockford', 'Joliet', 'Naperville', 'Springfield', 'Peoria', 'Elgin', 'Waukegan'],
-        'Pennsylvania': ['Philadelphia', 'Pittsburgh', 'Allentown', 'Erie', 'Reading', 'Scranton', 'Bethlehem', 'Lancaster', 'Harrisburg'],
-        'Ohio': ['Columbus', 'Cleveland', 'Cincinnati', 'Toledo', 'Akron', 'Dayton', 'Parma', 'Canton', 'Youngstown'],
-        'Georgia': ['Atlanta', 'Columbus', 'Augusta', 'Savannah', 'Athens', 'Sandy Springs', 'Roswell', 'Johns Creek', 'Albany'],
-        'North Carolina': ['Charlotte', 'Raleigh', 'Greensboro', 'Durham', 'Winston-Salem', 'Fayetteville', 'Cary', 'Wilmington', 'High Point'],
-        'Michigan': ['Detroit', 'Grand Rapids', 'Warren', 'Sterling Heights', 'Lansing', 'Ann Arbor', 'Flint', 'Dearborn', 'Livonia']
+    // Tesla-Grade: LocationPicker handles all global locations
+    console.log('📍 Location picker script loaded - delegating to external component');
+  </script>
       },
       'Canada': {
         'Ontario': ['Toronto', 'Ottawa', 'Mississauga', 'Brampton', 'Hamilton', 'London', 'Markham', 'Vaughan', 'Kitchener', 'Windsor'],
@@ -2818,6 +2972,299 @@ FOR INSERT WITH CHECK (
     // Tesla-Grade Location System - Streamlined with LocationPicker Modal
   </script>
   
+  <!-- Tesla-Grade Navigation System -->
+  <script>
+    // Tesla-Grade Smart Back Navigation System
+    class SmartNavigation {
+      constructor() {
+        this.backBtn = document.getElementById('smartBackBtn');
+        this.backText = document.getElementById('backDestination');
+        this.defaultDestination = '/public/hi-dashboard.html';
+        this.validSources = [
+          '/public/hi-dashboard.html',
+          '/public/hi-island-NEW.html', 
+          '/public/hi-muscle.html',
+          '/public/hi-calendar.html',
+          '/public/hi-hiffirmations.html',
+          '/public/hi-stats.html'
+        ];
+        this.init();
+      }
+
+      init() {
+        if (!this.backBtn) return;
+        
+        this.setupBackDestination();
+        this.backBtn.addEventListener('click', (e) => this.handleBackNavigation(e));
+      }
+
+      setupBackDestination() {
+        try {
+          // Method 1: Check referrer
+          const referrer = document.referrer;
+          if (referrer && this.isValidSource(referrer)) {
+            const sourceName = this.getSourceName(referrer);
+            this.updateBackButton(`Back to ${sourceName}`, referrer);
+            return;
+          }
+
+          // Method 2: Check session storage for navigation history
+          const navHistory = JSON.parse(sessionStorage.getItem('hiNavHistory') || '[]');
+          const lastValidPage = navHistory.find(page => 
+            page.url !== window.location.href && this.isValidSource(page.url)
+          );
+          
+          if (lastValidPage) {
+            this.updateBackButton(`Back to ${lastValidPage.name}`, lastValidPage.url);
+            return;
+          }
+
+          // Method 3: Browser history check (limited but safe)
+          if (history.length > 1) {
+            this.updateBackButton('Back', 'history');
+            return;
+          }
+
+          // Fallback: Dashboard
+          this.updateBackButton('Back to Dashboard', this.defaultDestination);
+
+        } catch (error) {
+          console.log('Smart navigation setup:', error.message);
+          this.updateBackButton('Back to Dashboard', this.defaultDestination);
+        }
+      }
+
+      isValidSource(url) {
+        if (!url) return false;
+        return this.validSources.some(source => url.includes(source));
+      }
+
+      getSourceName(url) {
+        if (url.includes('hi-dashboard')) return 'Dashboard';
+        if (url.includes('hi-island')) return 'Hi Island';
+        if (url.includes('hi-muscle')) return 'Hi Muscle';
+        if (url.includes('hi-calendar')) return 'Calendar';
+        if (url.includes('hi-hiffirmations')) return 'Hiffirmations';
+        if (url.includes('hi-stats')) return 'Hi Stats';
+        return 'Previous Page';
+      }
+
+      updateBackButton(text, destination) {
+        if (this.backText) {
+          this.backText.textContent = text;
+        }
+        this.backBtn.setAttribute('data-destination', destination);
+        this.backBtn.setAttribute('title', text);
+      }
+
+      handleBackNavigation(e) {
+        e.preventDefault();
+        
+        const destination = this.backBtn.getAttribute('data-destination');
+        
+        try {
+          this.backBtn.classList.add('loading');
+          
+          if (destination === 'history') {
+            // Use browser history if available and safe
+            if (history.length > 1 && document.referrer) {
+              history.back();
+            } else {
+              // Fallback to dashboard
+              window.location.href = this.defaultDestination;
+            }
+          } else if (destination) {
+            // Direct navigation to specific page
+            window.location.href = destination;
+          } else {
+            // Ultimate fallback
+            window.location.href = this.defaultDestination;
+          }
+          
+          // Track navigation for analytics
+          this.trackNavigation(destination);
+          
+        } catch (error) {
+          console.log('Navigation error:', error.message);
+          // Error fallback - always go to dashboard
+          window.location.href = this.defaultDestination;
+        }
+      }
+
+      trackNavigation(destination) {
+        try {
+          // Store navigation event for future smart routing
+          const navEvent = {
+            from: window.location.href,
+            to: destination,
+            timestamp: Date.now(),
+            type: 'smart_back'
+          };
+          
+          const navHistory = JSON.parse(sessionStorage.getItem('hiNavHistory') || '[]');
+          navHistory.unshift(navEvent);
+          // Keep last 10 navigation events
+          navHistory.splice(10);
+          sessionStorage.setItem('hiNavHistory', JSON.stringify(navHistory));
+        } catch (error) {
+          // Silent fail for analytics
+        }
+      }
+    }
+
+    // Tesla-Grade Unified Initialization - All Systems
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🚀 Tesla Profile System Initializing...');
+      
+      // Debug code removed for production
+      
+      // Track current page visit for smart navigation
+      try {
+        const currentPage = {
+          url: window.location.href,
+          name: 'Profile',
+          timestamp: Date.now()
+        };
+        
+        const navHistory = JSON.parse(sessionStorage.getItem('hiNavHistory') || '[]');
+        // Remove any existing entry for this page
+        const filtered = navHistory.filter(page => page.url !== currentPage.url);
+        // Add current page to front
+        filtered.unshift(currentPage);
+        // Keep last 10 pages
+        filtered.splice(10);
+        sessionStorage.setItem('hiNavHistory', JSON.stringify(filtered));
+      } catch (error) {
+        // Silent fail for tracking
+      }
+
+      // Initialize Tesla-Grade Smart Navigation
+      const smartNav = new SmartNavigation();
+      
+      // Initialize anonymous access modal AFTER auth systems are ready
+      setTimeout(async () => {
+        if (typeof AnonymousAccessModal !== 'undefined') {
+          // Wait for auth systems to be ready
+          let authReady = false;
+          let attempts = 0;
+          
+          while (!authReady && attempts < 30) {
+            if (window.supabaseClient || window.supabase || window.sb) {
+              authReady = true;
+              break;
+            }
+            await new Promise(resolve => setTimeout(resolve, 200));
+            attempts++;
+          }
+          
+          if (authReady) {
+            window.anonymousAccessModal = new AnonymousAccessModal();
+            console.log('🔒 Anonymous access modal initialized after auth ready');
+          } else {
+            console.log('⚠️ Auth systems not ready, skipping anonymous modal');
+          }
+        } else {
+          console.warn('⚠️ AnonymousAccessModal not loaded');
+        }
+      }, 2000); // Wait 2 seconds for all systems to initialize
+      
+      // Initialize profile display
+      if (typeof updateProfileDisplay === 'function' && currentProfile) {
+        updateProfileDisplay(currentProfile);
+      } else {
+        console.warn('⚠️ updateProfileDisplay function or currentProfile not available');
+      }
+      
+      if (typeof updateStatsDisplay === 'function' && userStats) {
+        updateStatsDisplay(userStats);
+      }
+      
+      // Tesla-Grade Security: Load data with authentication check
+      setTimeout(() => {
+        console.log('🔒 Initializing secure profile loading...');
+        loadProfileData();
+      }, 500);
+      
+      // Avatar file input handler
+      const avatarInput = document.getElementById('avatarFileInput');
+      if (avatarInput) {
+        avatarInput.addEventListener('change', (e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            handleImageUpload(e);
+          }
+        });
+      }
+      
+      // Initialize Tesla Avatar System
+      setTimeout(() => {
+        initializeTeslaAvatarSystem();
+      }, 100);
+      
+      showToast('Profile loaded successfully! 🎉');
+      console.log('✅ Tesla Profile System fully initialized');
+      
+      const menuBtn = document.getElementById('btnMenu');
+      const navigationModal = document.getElementById('navigationModal');
+      const closeBtn = document.getElementById('closeNavigation');
+      const backdrop = document.getElementById('navigationBackdrop');
+
+      if (menuBtn && navigationModal) {
+        menuBtn.addEventListener('click', () => {
+          navigationModal.style.display = 'flex';
+          document.body.style.overflow = 'hidden';
+        });
+
+        [closeBtn, backdrop].forEach(el => {
+          if (el) {
+            el.addEventListener('click', () => {
+              navigationModal.style.display = 'none';
+              document.body.style.overflow = 'auto';
+            });
+          }
+        });
+      }
+
+      // Calendar button
+      const calBtn = document.getElementById('btnCal');
+      if (calBtn) {
+        calBtn.addEventListener('click', () => {
+          console.log('📅 Calendar clicked - would open Hi Calendar');
+          // TODO: Implement Hi Calendar modal
+        });
+      }
+
+      // Hiffirmations button  
+      const hiffirmationsBtn = document.getElementById('hiffirmationsTrigger');
+      if (hiffirmationsBtn) {
+        hiffirmationsBtn.addEventListener('click', () => {
+          console.log('✨ Hiffirmations clicked');
+          // TODO: Open hiffirmations modal (existing functionality)
+        });
+      }
+
+      // Update tier indicator when membership loads
+      setTimeout(() => {
+        if (window.HiMembership && window.HiMembership.isInitialized()) {
+          const user = window.HiMembership.getCurrentUser();
+          const tierIndicator = document.getElementById('hi-tier-indicator');
+          if (tierIndicator && user) {
+            const tierText = tierIndicator.querySelector('.tier-text');
+            tierText.textContent = user.tierInfo.name;
+            tierIndicator.style.color = user.tierInfo.color || '#6B7280';
+            
+            // Show admin section if admin
+            if (user.membershipTier === 'ADMIN') {
+              const adminSection = document.getElementById('adminSection');
+              if (adminSection) adminSection.style.display = 'block';
+            }
+            
+            console.log('🎫 [Profile] Membership tier displayed:', user.tierInfo.name);
+          }
+        }
+      }, 1000);
+    });
+  </script>
+
   <!-- Progressive Enhancement Scripts -->
   <script>
     // Load premium features if available
@@ -2836,5 +3283,8 @@ FOR INSERT WITH CHECK (
       console.log('⚡ Performance manager active');
     }
   </script>
+
+  <!-- HiFooter Component -->
+  <script src="./ui/HiFooter/HiFooter.js" defer></script>
 </body>
 </html>
