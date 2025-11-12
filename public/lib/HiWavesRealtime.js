@@ -31,7 +31,7 @@ class HiWavesRealtime {
   }
   
   // Start real-time polling for Hi Waves
-  startRealTimeUpdates(intervalMs = 5000) { // Every 5 seconds (Tesla grade)
+  startRealTimeUpdates(intervalMs = 3000) { // Every 3 seconds (Gold standard smooth)
     if (!this.isEnabled) {
       console.warn('⚠️ Hi Waves real-time not enabled');
       return;
