@@ -4,11 +4,11 @@
 =================================================================== */
 
 :root {
-  /* 🎯 JOBS-APPROVED: Brand-aligned golden medallion system */
-  --hi-medallion-bg1: #FFD166; /* Brand golden - consistent with app */
-  --hi-medallion-bg2: #FFA724; /* Deeper gold for gradient depth */
-  --hi-medallion-halo: rgba(255, 209, 102, 0.25); /* Golden halo */
-  --hi-medallion-edge: rgba(139, 92, 0, 0.35); /* Rich gold edge */
+  /* �️ TESLA-GRADE: Premium contrast medallion against sunrise orange */
+  --hi-medallion-bg1: #4A90E2; /* Tesla-inspired deep blue for premium contrast */
+  --hi-medallion-bg2: #2E5BBA; /* Deeper blue for sophisticated depth */
+  --hi-medallion-halo: rgba(74, 144, 226, 0.25); /* Blue ambient halo */
+  --hi-medallion-edge: rgba(46, 91, 186, 0.4); /* Strong blue edge definition */
   --hi-medallion-hand: #FFFFFF;
   --hi-medallion-surface: #1A0F0A;
 }
@@ -127,9 +127,9 @@
   }
 }
 
-/* HI DEV: Focus state for accessibility */
+/* HI DEV: Focus state for accessibility - Tesla blue theme */
 .hi-medallion:focus-visible {
-  outline: 3px solid rgba(255, 138, 0, 0.6);
+  outline: 3px solid rgba(74, 144, 226, 0.6);
   outline-offset: 4px;
 }
 
