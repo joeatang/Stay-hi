@@ -341,13 +341,10 @@ class HiOSCompleteTracker {
     console.log(`💾 Using local fallback for ${actionType} from ${sourcePage}`);
     
     if (actionType === 'medallion_tap') {
-      window.gWaves = (window.gWaves || 0) + 1;
+      // 🎯 WOZNIAK FIX: NO local increment - database-only accuracy
+      console.log('❌ Medallion tap failed - no local fallback to maintain database accuracy');
       
-      document.querySelectorAll('.global-hi-waves, #globalHiWaves').forEach(el => {
-        el.textContent = window.gWaves.toLocaleString();
-      });
-      
-      return { success: false, fallback: true, globalHiWaves: window.gWaves };
+      return { success: false, fallback: false, globalHiWaves: window.gWaves };
     }
     
     if (actionType === 'share_submission') {

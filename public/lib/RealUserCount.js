@@ -13,7 +13,14 @@ async function loadRealUserCount() {
       return null;
     }
     
-    // Call the real user count function (updated to use existing get_user_stats)
+    // 🎯 WOZNIAK FIX: Use cached result from initHiStatsOnce() to prevent duplicate calls
+    // Check if stats are already loaded by main system
+    if (window._hiStatsLoadedRecently) {
+      console.log('⚡ Using cached user count from main stats system');
+      return;
+    }
+    
+    // Call the real user count function (only if not already loaded)
     const { data, error } = await supabase
       .rpc('get_user_stats');
     
@@ -35,6 +42,10 @@ async function loadRealUserCount() {
         totalHis: window.gTotalHis,
         users: window.gUsers
       });
+      
+      // Mark stats as recently loaded to prevent duplicates
+      window._hiStatsLoadedRecently = true;
+      setTimeout(() => window._hiStatsLoadedRecently = false, 5000);
       
       // Trigger UI update for all stats
       if (window.updateGlobalStats) {
