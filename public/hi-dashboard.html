@@ -219,6 +219,9 @@
   <link rel="preload" href="./ui/HiFooter/HiFooter.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" href="./ui/HiModal/HiModal.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   
+  <!-- Tesla-Grade Navigation System -->
+  <link rel="preload" href="./lib/navigation/HiNavigationSystem.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  
   <!-- Hi Share Sheet Component -->
   <link rel="preload" href="ui/HiShareSheet/HiShareSheet.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   
@@ -233,6 +236,7 @@
     <link rel="stylesheet" href="ui/HiModal/HiModal.css">
     <link rel="stylesheet" href="ui/HiShareSheet/HiShareSheet.css">
     <link rel="stylesheet" href="ui/HiMedallion/HiMedallion.css">
+    <link rel="stylesheet" href="./lib/navigation/HiNavigationSystem.css">
   </noscript>
 
   <!-- S-DASH/7: Hero polish + stats row styling -->
@@ -2856,5 +2860,31 @@
   <!-- 🌍 Tesla-Grade Unified Global Stats System -->
   <!-- DISABLED: Legacy stats system replaced by HiMetrics adapter -->
   <!-- <script src="assets/hi-unified-global-stats.js"></script> -->
+  
+  <!-- 🚀 Tesla-Grade Navigation System - CRITICAL for PWA session management -->
+  <script src="./lib/navigation/HiNavigationSystem.js"></script>
+  <script>
+    // Navigation system integration
+    document.addEventListener('DOMContentLoaded', () => {
+      // Update app state when dashboard is ready
+      if (window.hiNavSystem) {
+        window.hiNavSystem.updateAppState('ready');
+        console.log('🧭 Dashboard ready, navigation system active');
+      }
+      
+      // Track dashboard page view
+      if (window.hiNavSystem) {
+        window.hiNavSystem.trackNavigation('dashboard_load');
+      }
+    });
+    
+    // Loading protection - if page takes too long, activate escape
+    setTimeout(() => {
+      if (window.hiNavSystem && document.querySelector('.loading, .loader, [data-loading="true"]')) {
+        console.log('⚠️ Dashboard loading timeout detected');
+        window.hiNavSystem.updateAppState('stuck');
+      }
+    }, 12000); // 12 second timeout for dashboard
+  </script>
 </body>
 </html>

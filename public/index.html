@@ -129,6 +129,14 @@
                 }, 1000);
             }
         });
+        
+        // 🚀 Load Tesla Navigation System for index routing
+        const navScript = document.createElement('script');
+        navScript.src = './lib/navigation/HiNavigationSystem.js';
+        navScript.onload = () => {
+            console.log('🧭 Navigation system loaded for index routing');
+        };
+        document.head.appendChild(navScript);
     </script>
 </body>
 </html>

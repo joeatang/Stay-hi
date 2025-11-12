@@ -1,0 +1,333 @@
+/* 🚀 TESLA-GRADE NAVIGATION SYSTEM STYLES */
+/* Hi Navigation System - Visual Components & Animations */
+
+/* PWA Mode Enhancements */
+.pwa-mode {
+  /* Enhanced safe area support */
+  --nav-safe-top: env(safe-area-inset-top, 0px);
+  --nav-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --nav-safe-left: env(safe-area-inset-left, 0px);
+  --nav-safe-right: env(safe-area-inset-right, 0px);
+}
+
+.pwa-mode .tesla-header {
+  padding-top: calc(20px + var(--nav-safe-top));
+}
+
+.pwa-mode .tesla-footer,
+.pwa-mode .hi-footer {
+  padding-bottom: calc(20px + var(--nav-safe-bottom));
+}
+
+/* Escape Button Styles */
+#hiEscapeButton {
+  /* Enhanced touch target for Tesla-grade accessibility */
+  min-width: 44px !important;
+  min-height: 44px !important;
+  
+  /* Smooth animations */
+  transform: scale(1);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  
+  /* Subtle glow effect */
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+#hiEscapeButton:hover {
+  transform: scale(1.1);
+  opacity: 1 !important;
+  box-shadow: 
+    0 6px 30px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+#hiEscapeButton:active {
+  transform: scale(0.95);
+}
+
+/* Loading State Protection */
+.hi-loading-stuck {
+  position: relative;
+}
+
+.hi-loading-stuck::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    rgba(255, 187, 102, 0.1) 0%,
+    rgba(255, 123, 36, 0.1) 50%,
+    rgba(255, 187, 102, 0.1) 100%
+  );
+  animation: stuckIndicator 2s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+@keyframes stuckIndicator {
+  0%, 100% { opacity: 0.1; }
+  50% { opacity: 0.3; }
+}
+
+/* Escape Modal Enhancements */
+#hiEscapeModal {
+  /* Smooth entrance */
+  animation: escapeModalIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+#hiEscapeModal > div > div {
+  /* Content slide-in */
+  animation: escapeContentIn 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) 0.1s both;
+}
+
+@keyframes escapeModalIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(10px);
+  }
+}
+
+@keyframes escapeContentIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Button hover states */
+#hiEscapeModal button {
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+#hiEscapeModal button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+#hiEscapeModal button:hover::before {
+  left: 100%;
+}
+
+#hiEscapeModal button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+#hiEscapeModal button:active {
+  transform: translateY(0);
+}
+
+/* Navigation State Indicators */
+.nav-state-loading {
+  position: relative;
+}
+
+.nav-state-loading::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  background: #fbbf24;
+  border-radius: 50%;
+  animation: navStatePulse 1.5s ease-in-out infinite;
+}
+
+.nav-state-ready::after {
+  background: #10b981;
+  animation: none;
+}
+
+.nav-state-error::after {
+  background: #ef4444;
+  animation: navStateAlert 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes navStatePulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes navStateAlert {
+  0% { opacity: 0.3; }
+  100% { opacity: 1; }
+}
+
+/* Back Button Enhancements */
+.tesla-back-button {
+  /* Enhanced back button styling */
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(20px);
+}
+
+.tesla-back-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateX(-2px);
+}
+
+.tesla-back-button svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.3s ease;
+}
+
+.tesla-back-button:hover svg {
+  transform: translateX(-2px);
+}
+
+/* Loading Screen Timeout Indicator */
+.loading-timeout-warning {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(239, 68, 68, 0.95);
+  color: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  z-index: 999997;
+  backdrop-filter: blur(10px);
+  animation: warningPulse 1s ease-in-out infinite;
+}
+
+@keyframes warningPulse {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 1; }
+}
+
+/* Navigation Breadcrumbs */
+.nav-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.nav-breadcrumb-separator {
+  opacity: 0.5;
+}
+
+.nav-breadcrumb-current {
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 640px) {
+  #hiEscapeButton {
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+  }
+  
+  #hiEscapeModal > div > div {
+    margin: 20px;
+    padding: 30px 20px;
+  }
+  
+  .tesla-back-button {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+}
+
+/* Dark Mode Optimizations */
+@media (prefers-color-scheme: dark) {
+  #hiEscapeButton {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .tesla-back-button {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  #hiEscapeButton,
+  #hiEscapeModal,
+  .tesla-back-button {
+    transition: none;
+    animation: none;
+  }
+  
+  .nav-state-loading::after,
+  .nav-state-error::after {
+    animation: none;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  #hiEscapeButton {
+    border: 2px solid white;
+  }
+  
+  .tesla-back-button {
+    border-width: 2px;
+  }
+  
+  #hiEscapeModal button {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Focus Management */
+#hiEscapeButton:focus,
+.tesla-back-button:focus,
+#hiEscapeModal button:focus {
+  outline: 2px solid #fbbf24;
+  outline-offset: 2px;
+}
+
+/* Print Styles */
+@media print {
+  #hiEscapeButton,
+  #hiEscapeModal {
+    display: none !important;
+  }
+}

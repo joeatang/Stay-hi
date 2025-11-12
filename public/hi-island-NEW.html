@@ -44,6 +44,9 @@
   <link rel="stylesheet" href="assets/create-parity.css"/>
   <link rel="stylesheet" href="assets/premium-ux.css"/>
   <link rel="stylesheet" href="assets/premium-calendar.css"/>
+  
+  <!-- Tesla-Grade Navigation System -->
+  <link rel="stylesheet" href="./lib/navigation/HiNavigationSystem.css"/>
 
   <!-- Component Styles -->
   <link rel="stylesheet" href="components/hi-island-map/map.css"/>
@@ -2446,5 +2449,15 @@
   <script src="/ui/HiFooter/HiFooter.js"></script>
   <link rel="stylesheet" href="/ui/HiFooter/HiFooter.css">
 
+  <!-- 🚀 Tesla-Grade Navigation System -->
+  <script src="./lib/navigation/HiNavigationSystem.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.hiNavSystem) {
+        window.hiNavSystem.updateAppState('ready');
+        window.hiNavSystem.trackNavigation('hi_island');
+      }
+    });
+  </script>
 </body>
 </html>

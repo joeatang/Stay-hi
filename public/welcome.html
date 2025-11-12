@@ -68,6 +68,9 @@
   <link rel="stylesheet" href="assets/tesla-mobile-fixes.css">
   <link rel="stylesheet" href="assets/tesla-edge-protection.css">
   
+  <!-- Tesla-Grade Navigation System -->
+  <link rel="stylesheet" href="./lib/navigation/HiNavigationSystem.css">
+  
   <!-- HI DEV: Tesla-Grade HiMedallion Component -->
   <link rel="preload" href="./ui/HiMedallion/HiMedallion.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="./ui/HiMedallion/HiMedallion.css"></noscript>
@@ -1021,6 +1024,17 @@
             location.href = './hi-dashboard.html?source=medallion';
           }
         });
+      }
+    });
+  </script>
+  
+  <!-- 🚀 Tesla-Grade Navigation System -->
+  <script src="./lib/navigation/HiNavigationSystem.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.hiNavSystem) {
+        window.hiNavSystem.updateAppState('ready');
+        window.hiNavSystem.trackNavigation('welcome_page');
       }
     });
   </script>
