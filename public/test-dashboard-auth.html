@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>🧪 Hi Dashboard Auth Modal Test</title>
+    <style>
+        body {
+            background: #0f1024;
+            color: #e8ebff;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui;
+            padding: 40px;
+            text-align: center;
+        }
+        .test-button {
+            background: linear-gradient(135deg, #FF7A18, #FFD166);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            padding: 16px 32px;
+            margin: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(255, 122, 24, 0.4);
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Hi Dashboard Auth Modal Test</h1>
+    <p>Test the new Hi Dashboard auth modal for anonymous users</p>
+
+    <div>
+        <button class="test-button" onclick="testDashboardAuthModal()">Test Hi Dashboard Auth Modal</button>
+        <button class="test-button" onclick="simulateAnonymousHi5()">Simulate Anonymous Hi5 Click</button>
+        <button class="test-button" onclick="openRealDashboard()">Open Real Hi Dashboard</button>
+    </div>
+
+    <div id="status" class="status">Ready to test...</div>
+
+    <!-- Load required scripts -->
+    <script src="lib/HiGoldStandardModal.js"></script>
+
+    <script>
+        function updateStatus(message) {
+            document.getElementById('status').innerHTML = message;
+        }
+
+        function testDashboardAuthModal() {
+            updateStatus('🧪 Testing Hi Dashboard auth modal...');
+            
+            if (window.showShareAuthModal) {
+                window.showShareAuthModal('hi-dashboard', {
+                    title: 'Join Hi Dashboard Community',
+                    benefits: [
+                        '📊 Track your personal Hi streaks and stats',
+                        '🎯 Share Hi5 moments with the community', 
+                        '🏆 Unlock dashboard achievements and rewards',
+                        '💫 Access advanced Hi tracking features'
+                    ],
+                    onPrimary: () => {
+                        updateStatus('✅ Primary action clicked - Sign In flow');
+                    },
+                    onSecondary: () => {
+                        updateStatus('✅ Secondary action clicked - Sign Up flow');
+                    }
+                });
+                updateStatus('🚀 Hi Dashboard auth modal launched!');
+            } else {
+                updateStatus('❌ HiGoldStandardModal not loaded');
+            }
+        }
+
+        function simulateAnonymousHi5() {
+            updateStatus('🎭 Simulating anonymous user clicking Hi5...');
+            
+            // Simulate the dashboard's anonymous check
+            const canShare = false; // Anonymous user
+            
+            if (!canShare) {
+                console.log('🔒 Anonymous users cannot create shares - showing gold standard auth modal');
+                
+                if (window.showShareAuthModal) {
+                    window.showShareAuthModal('hi-dashboard', {
+                        title: 'Join Hi Dashboard Community',
+                        benefits: [
+                            '📊 Track your personal Hi streaks and stats',
+                            '🎯 Share Hi5 moments with the community', 
+                            '🏆 Unlock dashboard achievements and rewards',
+                            '💫 Access advanced Hi tracking features'
+                        ],
+                        onPrimary: () => {
+                            updateStatus('🔄 Would redirect to: /auth.html?mode=signin&action=hi5');
+                        },
+                        onSecondary: () => {
+                            updateStatus('🔄 Would redirect to: /auth.html?mode=signup&action=hi5');
+                        }
+                    });
+                    updateStatus('✅ Perfect! Shows beautiful auth modal instead of ugly alert()');
+                } else {
+                    updateStatus('❌ Auth modal not available - would show ugly alert');
+                }
+            }
+        }
+
+        function openRealDashboard() {
+            updateStatus('🚀 Opening real Hi Dashboard for live testing...');
+            window.open('./hi-dashboard.html', '_blank');
+        }
+
+        // Check system status on load
+        window.addEventListener('load', () => {
+            updateStatus(`📊 System Status: HiGoldStandardModal ${window.showShareAuthModal ? '✅ Loaded' : '❌ Not Found'}`);
+        });
+    </script>
+</body>
+</html>

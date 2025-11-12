@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,shrink-to-fit=no,viewport-fit=cover"/>
   <title>Welcome — Stay Hi</title>
   
   <!-- HI-OS S-ARCH/1: Webroot Guard (console-only for production) -->
@@ -220,14 +220,23 @@
   <!-- Real-time stats (disabled until duplicates are resolved) -->
   <!-- <script type="module" src="assets/real-time-stats.js"></script> -->
   <style>
-    /* 🎯 GOLD-STANDARD WELCOME PAGE: Tesla-Grade Brand Design */
+    /* �️ WOZNIAK-GRADE: Stable body container */
+    * {
+      box-sizing: border-box;
+    }
+    html {
+      width: 100%;
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
     body {
       background: linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #ffd166 100%);
       min-height: 100vh;
+      width: 100%;
+      max-width: 100vw;
       margin: 0;
       font-family: var(--f-sans);
-      /* FIXED: Proper mobile-first layout instead of flexbox centering */
-      padding: 20px 16px;
+      padding: 20px min(16px, 4vw);
       overflow-x: hidden;
       position: relative;
       box-sizing: border-box;

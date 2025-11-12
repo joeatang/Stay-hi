@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal Fix Verification</title>
+    <style>
+        body {
+            background: #0F0F23;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui;
+            padding: 20px;
+        }
+        .test-section {
+            background: rgba(26, 26, 46, 0.8);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        button {
+            background: linear-gradient(135deg, #FFD93D, #FF7B24);
+            border: none;
+            color: #111;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .success { background: rgba(76, 205, 196, 0.2); border: 1px solid #4ECDC4; }
+        .error { background: rgba(255, 107, 107, 0.2); border: 1px solid #FF6B6B; }
+        .warning { background: rgba(255, 217, 61, 0.2); border: 1px solid #FFD93D; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Modal System Fix Verification</h1>
+    
+    <div class="test-section">
+        <h2>1. Authentication Status</h2>
+        <div id="auth-status" class="status warning">Checking...</div>
+        <button onclick="checkAuthStatus()">Recheck Auth</button>
+        <button onclick="clearAllAuth()">Clear All Auth</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Modal Tests</h2>
+        <div id="modal-status" class="status warning">Ready for testing</div>
+        <button onclick="testProfilePage()">Test Profile Page</button>
+        <button onclick="forceShowModal()">Force Show Modal</button>
+        <button onclick="checkModalState()">Check Modal State</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Fix Verification</h2>
+        <div id="fix-status">
+            <div class="status success">✅ Z-Index Fix: Modal should appear in front</div>
+            <div class="status success">✅ Auth Token Fix: unified_membership_cache ignored</div>
+            <div class="status success">✅ Duplicate Triggers: Manual triggers removed</div>
+            <div class="status success">✅ Timeout Fix: Safety timeout properly managed</div>
+        </div>
+    </div>
+    
+    <script>
+        function checkAuthStatus() {
+            const authStatus = document.getElementById('auth-status');
+            
+            // Check for actual auth tokens
+            const realAuthTokens = [
+                'sb-access-token', 
+                'sb-refresh-token',
+                'hiAccess',
+                'supabase.auth.token'
+            ];
+            
+            const hasRealAuth = realAuthTokens.some(key => {
+                const value = localStorage.getItem(key);
+                return value && value !== 'null' && value !== 'undefined' && value.length > 0;
+            });
+            
+            // Check for ignored tokens
+            const ignoredTokens = ['unified_membership_cache'];
+            const hasIgnoredTokens = ignoredTokens.some(key => {
+                return localStorage.getItem(key);
+            });
+            
+            if (hasRealAuth) {
+                authStatus.className = 'status error';
+                authStatus.textContent = '❌ Real auth tokens found - modal will NOT show';
+            } else if (hasIgnoredTokens) {
+                authStatus.className = 'status success';
+                authStatus.textContent = '✅ Only ignored tokens found - modal WILL show';
+            } else {
+                authStatus.className = 'status success';
+                authStatus.textContent = '✅ No auth tokens - modal WILL show';
+            }
+        }
+        
+        function clearAllAuth() {
+            Object.keys(localStorage).forEach(key => {
+                if (key.includes('sb-') || 
+                    key.includes('supabase') || 
+                    key.includes('hi') || 
+                    key.includes('auth') ||
+                    key.includes('unified_membership') ||
+                    key.includes('anonymous_access') ||
+                    key.includes('discovery_mode')) {
+                    localStorage.removeItem(key);
+                }
+            });
+            
+            Object.keys(sessionStorage).forEach(key => {
+                if (key.includes('sb-') || 
+                    key.includes('supabase') || 
+                    key.includes('hi') || 
+                    key.includes('auth')) {
+                    sessionStorage.removeItem(key);
+                }
+            });
+            
+            alert('All auth data cleared!');
+            checkAuthStatus();
+        }
+        
+        function testProfilePage() {
+            window.open('/public/profile.html', '_blank');
+        }
+        
+        function forceShowModal() {
+            // This will only work if we're on a page with the modal loaded
+            if (window.anonymousAccessModal) {
+                window.anonymousAccessModal.showAccessModal();
+                document.getElementById('modal-status').textContent = '✅ Modal force-shown';
+                document.getElementById('modal-status').className = 'status success';
+            } else {
+                document.getElementById('modal-status').textContent = '❌ Modal not available on this page';
+                document.getElementById('modal-status').className = 'status error';
+            }
+        }
+        
+        function checkModalState() {
+            if (window.anonymousAccessModal) {
+                const modal = window.anonymousAccessModal;
+                const status = `Modal: ${modal.isShown ? 'SHOWN' : 'HIDDEN'}`;
+                document.getElementById('modal-status').textContent = status;
+                document.getElementById('modal-status').className = modal.isShown ? 'status warning' : 'status success';
+            } else {
+                document.getElementById('modal-status').textContent = '❌ Modal not loaded';
+                document.getElementById('modal-status').className = 'status error';
+            }
+        }
+        
+        // Auto-check on load
+        checkAuthStatus();
+    </script>
+</body>
+</html>

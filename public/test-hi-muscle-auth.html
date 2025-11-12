@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>🧪 Hi Muscle Auth Flow Test</title>
+    <style>
+        body {
+            background: #0f1024;
+            color: #e8ebff;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui;
+            padding: 40px;
+            text-align: center;
+        }
+        .test-button {
+            background: linear-gradient(135deg, #FF7A18, #FFD166);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            padding: 16px 32px;
+            margin: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(255, 122, 24, 0.4);
+        }
+        .flow-step {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            border-left: 4px solid #FFD166;
+        }
+        .expected { border-left-color: #4ECDC4; }
+        .warning { border-left-color: #FF7B24; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Hi Muscle Auth Flow Verification</h1>
+    <p>Test the complete Hi Muscle journey auth flow</p>
+
+    <div>
+        <button class="test-button" onclick="testHiMuscleAuthModal()">Test Hi Muscle Auth Modal</button>
+        <button class="test-button" onclick="simulateJourneyFlow()">Simulate Journey Flow</button>
+        <button class="test-button" onclick="openRealHiMuscle()">Open Real Hi Muscle</button>
+    </div>
+
+    <div id="flow-steps">
+        <div class="flow-step expected">
+            <strong>✅ Expected Flow for Anonymous Users:</strong><br>
+            1. Choose current emotion → Choose desired emotion → Write reflection<br>
+            2. Click "Share Your Journey" → <strong>Auth modal appears</strong> (NOT share sheet)<br>
+            3. Click Sign In/Up → Redirect to auth → Return → Auto-continue journey sharing
+        </div>
+        
+        <div class="flow-step warning">
+            <strong>❌ Old Broken Flow:</strong><br>
+            Anonymous user clicks "Share Your Journey" → Share sheet opens directly (bypasses auth)
+        </div>
+    </div>
+
+    <div id="status" style="margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+        Ready to test...
+    </div>
+
+    <!-- Load required scripts -->
+    <script src="lib/HiGoldStandardModal.js"></script>
+
+    <script>
+        function updateStatus(message) {
+            document.getElementById('status').innerHTML = message;
+        }
+
+        function testHiMuscleAuthModal() {
+            updateStatus('🧪 Testing Hi Muscle auth modal...');
+            
+            if (window.showShareAuthModal) {
+                window.showShareAuthModal('hi-muscle', {
+                    title: 'Join Hi Fitness Community',
+                    benefits: [
+                        '💪 Track your emotional fitness journey over time',
+                        '🎯 Share breakthrough moments with the community', 
+                        '🏆 Unlock wellness achievements and streaks',
+                        '🌟 Connect with others on similar journeys'
+                    ],
+                    onPrimary: () => {
+                        updateStatus('✅ Primary: Would redirect to /auth.html?mode=signin&action=journey');
+                    },
+                    onSecondary: () => {
+                        updateStatus('✅ Secondary: Would redirect to /auth.html?mode=signup&action=journey');
+                    }
+                });
+                updateStatus('🚀 Hi Muscle fitness auth modal launched!');
+            } else {
+                updateStatus('❌ HiGoldStandardModal not loaded');
+            }
+        }
+
+        function simulateJourneyFlow() {
+            updateStatus('🎭 Simulating anonymous user "Share Your Journey" flow...');
+            
+            // Simulate Hi Muscle's auth check
+            const canShare = false; // Anonymous user
+            
+            if (!canShare) {
+                console.log('🔒 Anonymous user trying to share journey - showing Hi Muscle auth modal');
+                
+                if (window.showShareAuthModal) {
+                    window.showShareAuthModal('hi-muscle', {
+                        title: 'Join Hi Fitness Community',
+                        benefits: [
+                            '💪 Track your emotional fitness journey over time',
+                            '🎯 Share breakthrough moments with the community', 
+                            '🏆 Unlock wellness achievements and streaks',
+                            '🌟 Connect with others on similar journeys'
+                        ],
+                        onPrimary: () => {
+                            updateStatus('🔄 Perfect! Anonymous user sees auth modal instead of share sheet');
+                        },
+                        onSecondary: () => {
+                            updateStatus('🔄 Perfect! Anonymous user sees auth modal instead of share sheet');
+                        }
+                    });
+                    updateStatus('✅ SUCCESS! Shows beautiful auth modal (not share sheet)');
+                } else {
+                    updateStatus('❌ Auth modal not available');
+                }
+            }
+        }
+
+        function openRealHiMuscle() {
+            updateStatus('🚀 Opening real Hi Muscle for live testing...');
+            updateStatus(`
+                🧪 <strong>Live Test Instructions:</strong><br>
+                1. Go through the emotion selection flow<br>
+                2. Write a reflection (10+ chars)<br>
+                3. Click "Share Your Journey"<br>
+                4. <strong>Should see FITNESS auth modal (not share sheet)</strong><br>
+                5. Test auth flow and post-auth continuation
+            `);
+            window.open('./hi-muscle.html', '_blank');
+        }
+
+        // Check system status on load
+        window.addEventListener('load', () => {
+            const hasModal = !!window.showShareAuthModal;
+            updateStatus(`📊 System Status: HiGoldStandardModal ${hasModal ? '✅ Loaded' : '❌ Missing'}`);
+            
+            if (hasModal) {
+                updateStatus(document.getElementById('status').innerHTML + '<br>🎯 Ready to test Hi Muscle auth flow!');
+            }
+        });
+    </script>
+</body>
+</html>

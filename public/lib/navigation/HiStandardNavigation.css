@@ -1,0 +1,372 @@
+/* ===================================================================
+   🎯 TESLA-GRADE STANDARDIZED NAVIGATION STYLES
+   Woz-approved consistent header/footer across all Hi Network pages
+=================================================================== */
+
+/* Tesla-Grade Header with Mini Stats */
+.tesla-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, rgba(26, 15, 10, 0.95) 0%, rgba(20, 10, 5, 0.98) 100%);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  min-height: 64px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 140px; /* Expanded for hiffirmations pill */
+}
+
+.header-center {
+  display: flex;
+  justify-content: center;
+  flex: 1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 140px; /* Expanded for tier indicator */
+  gap: 8px;
+}
+
+/* UX-First: Membership Tier Indicator */
+.tier-indicator {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--hi-tier-color, #6B7280);
+  transition: all 0.3s ease;
+  cursor: default;
+  min-width: 60px;
+  text-align: center;
+}
+
+.tier-indicator:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.tier-text {
+  white-space: nowrap;
+}
+
+/* Hiffirmations Header Pill - Brand Consistent */
+.hiffirmations-header-pill {
+  display: flex;
+  align-items: center;
+  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 11px;
+  font-weight: 600;
+  color: #6B7280;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  min-width: 90px;
+  text-align: center;
+  margin-left: 8px;
+}
+
+.hiffirmations-header-pill:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.brand-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-hi-logo {
+  height: 32px;
+  width: auto;
+}
+
+.brand-text {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #FFD166;
+  letter-spacing: -0.025em;
+}
+
+.calendar-btn, .menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #FFD166;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.calendar-btn:hover, .menu-btn:hover {
+  background: rgba(255, 209, 102, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Navigation Modal */
+.navigation-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+}
+
+.navigation-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.navigation-content {
+  background: linear-gradient(135deg, rgba(26, 15, 10, 0.98) 0%, rgba(20, 10, 5, 0.99) 100%);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(30px);
+  padding: 0;
+  width: 100%;
+  max-width: 400px;
+  max-height: 80vh;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+.navigation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.navigation-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #FFD166;
+}
+
+.close-nav-btn {
+  background: none;
+  border: none;
+  color: #FFD166;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.close-nav-btn:hover {
+  background: rgba(255, 209, 102, 0.1);
+}
+
+.navigation-menu {
+  padding: 0;
+  max-height: calc(80vh - 80px);
+  overflow-y: auto;
+}
+
+.nav-section {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.nav-section:last-child {
+  border-bottom: none;
+}
+
+.nav-section-title {
+  padding: 16px 24px 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 24px;
+  color: #E5E7EB;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #FFD166;
+  border-left-color: #FFD166;
+}
+
+.nav-item.active {
+  background: rgba(255, 209, 102, 0.1);
+  color: #FFD166;
+  border-left-color: #FFD166;
+  font-weight: 600;
+}
+
+.nav-item.admin-item {
+  background: rgba(16, 185, 129, 0.05);
+  color: #10B981;
+}
+
+.nav-item.admin-item:hover {
+  background: rgba(16, 185, 129, 0.1);
+  border-left-color: #10B981;
+}
+
+.nav-icon {
+  margin-right: 12px;
+  font-size: 1.125rem;
+  width: 20px;
+  text-align: center;
+}
+
+/* Main Content Wrapper (accounts for header/footer) */
+.main-content {
+  padding: 20px 20px 100px; /* Extra bottom padding for footer */
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+  min-height: calc(100vh - 180px); /* Account for header + footer */
+  box-sizing: border-box;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .tesla-header {
+    padding: 8px 16px;
+    min-height: 56px;
+  }
+
+  .header-left, .header-right {
+    width: auto;
+    min-width: 100px;
+  }
+
+  .brand-text {
+    font-size: 1.125rem;
+  }
+
+  .brand-hi-logo {
+    height: 28px;
+  }
+
+  .calendar-btn, .menu-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .navigation-content {
+    margin: 10px;
+    max-width: none;
+    border-radius: 16px;
+  }
+
+  .navigation-header {
+    padding: 16px 20px;
+  }
+
+  .nav-item {
+    padding: 14px 20px;
+  }
+
+  .main-content {
+    padding: 16px 16px 80px;
+    min-height: calc(100vh - 160px);
+  }
+
+  /* Adjust tier indicator and hiffirmations pill for mobile */
+  .tier-indicator, .hiffirmations-header-pill {
+    font-size: 10px;
+    padding: 3px 6px;
+    min-width: 50px;
+  }
+
+  .hiffirmations-header-pill {
+    min-width: 70px;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .header-left, .header-right {
+    gap: 4px;
+  }
+
+  .brand-text {
+    display: none; /* Hide "Stay Hi" text on very small screens */
+  }
+
+  .tier-indicator {
+    min-width: 40px;
+    font-size: 9px;
+  }
+
+  .hiffirmations-header-pill {
+    min-width: 60px;
+    font-size: 9px;
+  }
+}
+
+/* Page-specific body adjustments */
+body[data-page] {
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure proper spacing when standard navigation is used */
+.hi-standard-navigation {
+  --header-height: 64px;
+  --footer-height: 80px;
+}
+
+@media (max-width: 768px) {
+  .hi-standard-navigation {
+    --header-height: 56px;
+    --footer-height: 70px;
+  }
+}

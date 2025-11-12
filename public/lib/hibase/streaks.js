@@ -565,6 +565,7 @@ function getStreakMessage(update) {
 
 // Export top 3 functions with telemetry (80/20 rule)
 export const getStreaks = withTelemetry('streaks.getStreaks', _getStreaks);
+export const getUserStreak = withTelemetry('streaks.getUserStreak', _getStreaks); // Alias for dashboard compatibility
 export const insertStreak = withTelemetry('streaks.insertStreak', _insertStreak);
 export const updateStreak = withTelemetry('streaks.updateStreak', _updateStreak);
 

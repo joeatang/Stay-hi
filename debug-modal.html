@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Modal Test</title>
+    <style>
+        body {
+            background: #0F0F23;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui;
+            padding: 20px;
+        }
+        .debug-info {
+            background: #1A1A2E;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        button {
+            background: linear-gradient(135deg, #FFD93D, #FF7B24);
+            border: none;
+            color: #111;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 5px;
+        }
+        #console-output {
+            background: #000;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Anonymous Access Modal Debug</h1>
+    
+    <div class="debug-info">
+        <h2>Debug Controls</h2>
+        <button onclick="clearAuth()">Clear All Auth</button>
+        <button onclick="showAuthStatus()">Show Auth Status</button>
+        <button onclick="forceShowModal()">Force Show Modal</button>
+        <button onclick="reloadModal()">Reload Modal</button>
+        <button onclick="checkModalState()">Check Modal State</button>
+    </div>
+
+    <div class="debug-info">
+        <h2>Console Output</h2>
+        <div id="console-output"></div>
+    </div>
+
+    <script src="public/assets/anonymous-access-modal.js"></script>
+    
+    <script>
+        // Override console.log to capture output
+        const originalLog = console.log;
+        const consoleOutput = document.getElementById('console-output');
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            const message = args.join(' ') + '\n';
+            consoleOutput.textContent += `[${new Date().toLocaleTimeString()}] ${message}`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        };
+        
+        // Debug functions
+        function clearAuth() {
+            console.log('🧹 Clearing all authentication data...');
+            
+            // Clear localStorage
+            const keys = Object.keys(localStorage);
+            keys.forEach(key => {
+                if (key.includes('sb-') || key.includes('supabase') || key.includes('hi') || key.includes('auth')) {
+                    localStorage.removeItem(key);
+                    console.log(`Removed localStorage: ${key}`);
+                }
+            });
+            
+            // Clear sessionStorage
+            const sessionKeys = Object.keys(sessionStorage);
+            sessionKeys.forEach(key => {
+                if (key.includes('sb-') || key.includes('supabase') || key.includes('hi') || key.includes('auth')) {
+                    sessionStorage.removeItem(key);
+                    console.log(`Removed sessionStorage: ${key}`);
+                }
+            });
+            
+            console.log('✅ Auth data cleared');
+        }
+        
+        async function showAuthStatus() {
+            console.log('🔍 Checking current auth status...');
+            
+            if (window.anonymousAccessModal) {
+                const authStatus = await window.anonymousAccessModal.checkAuthStatus();
+                console.log(`Auth Status Result: ${authStatus}`);
+            } else {
+                console.log('❌ Anonymous access modal not found');
+            }
+            
+            // Check localStorage
+            console.log('\n📦 localStorage contents:');
+            Object.keys(localStorage).forEach(key => {
+                console.log(`  ${key}: ${localStorage.getItem(key)}`);
+            });
+            
+            // Check sessionStorage
+            console.log('\n📦 sessionStorage contents:');
+            Object.keys(sessionStorage).forEach(key => {
+                console.log(`  ${key}: ${sessionStorage.getItem(key)}`);
+            });
+            
+            // Check window objects
+            console.log('\n🪟 Window objects:');
+            console.log(`  window.supabase: ${typeof window.supabase}`);
+            console.log(`  window.supabaseClient: ${typeof window.supabaseClient}`);
+            console.log(`  window.sb: ${typeof window.sb}`);
+            console.log(`  window.HiSupabase: ${typeof window.HiSupabase}`);
+        }
+        
+        function forceShowModal() {
+            console.log('🚀 Force showing modal...');
+            if (window.anonymousAccessModal) {
+                window.anonymousAccessModal.showAccessModal();
+                console.log('✅ Modal show command sent');
+            } else {
+                console.log('❌ Anonymous access modal not found');
+            }
+        }
+        
+        function reloadModal() {
+            console.log('🔄 Reloading modal system...');
+            // Reinitialize
+            window.anonymousAccessModal = new AnonymousAccessModal();
+            console.log('✅ Modal system reloaded');
+        }
+        
+        function checkModalState() {
+            console.log('📊 Checking modal state...');
+            if (window.anonymousAccessModal) {
+                const modal = window.anonymousAccessModal;
+                console.log(`  isShown: ${modal.isShown}`);
+                console.log(`  overlay: ${modal.overlay ? 'exists' : 'null'}`);
+                console.log(`  modal: ${modal.modal ? 'exists' : 'null'}`);
+            } else {
+                console.log('❌ Anonymous access modal not found');
+            }
+        }
+        
+        // Auto-start debug
+        window.addEventListener('load', () => {
+            console.log('🔥 Debug Modal Test Loaded');
+            console.log(`Path: ${window.location.pathname}`);
+            console.log(`Modal available: ${typeof window.anonymousAccessModal !== 'undefined'}`);
+            
+            setTimeout(() => {
+                console.log('🔍 Auto-checking auth status...');
+                showAuthStatus();
+            }, 1000);
+        });
+        
+        // Override modal functions to add logging
+        if (typeof AnonymousAccessModal !== 'undefined') {
+            const originalCheckAccessOnLoad = AnonymousAccessModal.prototype.checkAccessOnLoad;
+            AnonymousAccessModal.prototype.checkAccessOnLoad = async function() {
+                console.log('🔍 checkAccessOnLoad called');
+                const result = await originalCheckAccessOnLoad.call(this);
+                console.log('✅ checkAccessOnLoad completed');
+                return result;
+            };
+            
+            const originalShowAccessModal = AnonymousAccessModal.prototype.showAccessModal;
+            AnonymousAccessModal.prototype.showAccessModal = function() {
+                console.log('📱 showAccessModal called');
+                const result = originalShowAccessModal.call(this);
+                console.log('✅ showAccessModal completed');
+                return result;
+            };
+        }
+    </script>
+</body>
+</html>

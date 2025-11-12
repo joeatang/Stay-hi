@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Auth & Test Modal</title>
+    <style>
+        body {
+            background: #0F0F23;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui;
+            padding: 20px;
+            text-align: center;
+        }
+        button {
+            background: linear-gradient(135deg, #FFD93D, #FF7B24);
+            border: none;
+            color: #111;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧹 Clear Auth & Test Anonymous Modal</h1>
+    <p>This will clear all authentication and then redirect to test the anonymous modal</p>
+    
+    <button onclick="clearAndTest()">Clear Auth & Test Profile Page</button>
+    <button onclick="clearAuth()">Just Clear Auth</button>
+    
+    <script>
+        function clearAuth() {
+            // Clear all authentication data
+            const keys = Object.keys(localStorage);
+            keys.forEach(key => {
+                if (key.includes('sb-') || 
+                    key.includes('supabase') || 
+                    key.includes('hi') || 
+                    key.includes('auth') ||
+                    key.includes('unified_membership') ||
+                    key.includes('anonymous_access') ||
+                    key.includes('discovery_mode')) {
+                    localStorage.removeItem(key);
+                    console.log(`Removed localStorage: ${key}`);
+                }
+            });
+            
+            // Clear sessionStorage
+            const sessionKeys = Object.keys(sessionStorage);
+            sessionKeys.forEach(key => {
+                if (key.includes('sb-') || 
+                    key.includes('supabase') || 
+                    key.includes('hi') || 
+                    key.includes('auth')) {
+                    sessionStorage.removeItem(key);
+                    console.log(`Removed sessionStorage: ${key}`);
+                }
+            });
+            
+            console.log('✅ All auth data cleared');
+            alert('Auth data cleared! You are now anonymous.');
+        }
+        
+        function clearAndTest() {
+            clearAuth();
+            setTimeout(() => {
+                window.location.href = '/public/profile.html';
+            }, 500);
+        }
+    </script>
+</body>
+</html>
