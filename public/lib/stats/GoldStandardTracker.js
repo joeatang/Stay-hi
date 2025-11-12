@@ -51,25 +51,21 @@ export async function trackShareSubmission(source = 'dashboard', metadata = {}) 
     } catch (error) {
       console.error('❌ Database operation failed:', error);
       
-      // 🔄 FALLBACK: Local increment for UI responsiveness
-      window.gTotalHis = (window.gTotalHis || 0) + 1;
-      console.log('🔄 Fallback increment - Total His now:', window.gTotalHis);
+      // 🎯 CRITICAL FIX: NO LOCAL INCREMENT - Only track to database
+      // Local increments cause stats skewing on page refresh
+      console.log('❌ Database operation failed - no local fallback to maintain accuracy');
       
-      // Update UI with fallback value
-      document.querySelectorAll('.total-his-count, #globalTotalHis, #totalHis').forEach(el => {
-        el.textContent = window.gTotalHis.toLocaleString();
-      });
+      // Keep current database value, don't increment locally
+      console.log('📊 Current Total His (unchanged):', window.gTotalHis);
       
       return { success: false, error: error.message, fallback: true, newTotal: window.gTotalHis };
     }
   } else {
-    // ⚠️ No database connection - local fallback only
-    console.warn('⚠️ No Supabase client available - using local fallback');
-    window.gTotalHis = (window.gTotalHis || 0) + 1;
+    // 🎯 CRITICAL FIX: NO LOCAL INCREMENT - Database-only tracking
+    console.warn('⚠️ No Supabase client available - cannot track share submission');
     
-    document.querySelectorAll('.total-his-count, #globalTotalHis, #totalHis').forEach(el => {
-      el.textContent = window.gTotalHis.toLocaleString();
-    });
+    // Keep database values unchanged to prevent skewing
+    console.log('📊 Total His unchanged (no database connection):', window.gTotalHis);
     
     return { success: false, error: 'No database connection', fallback: true, newTotal: window.gTotalHis };
   }

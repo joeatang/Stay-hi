@@ -1860,8 +1860,7 @@
         console.log('✅ Gold Standard tracker loaded for Hi-Dashboard');
         console.log('🎯 Tesla-grade dashboard stats system initialized');
         
-        // 🚀 IMMEDIATE FIX: Load current stats from database on startup (background)
-        loadCurrentStatsFromDatabase();
+        // 🎯 STATS: Handled by initHiStatsOnce() - no duplicate loading needed
       }).catch(error => {
         console.error('❌ Stats initialization failed:', error);
       });
@@ -1886,10 +1885,10 @@
       // 🔥 Phase 7: Initialize Hi Experience Layer (Feature Flagged)
       initializeHiExperienceLayer();
       
-      // 🚀 MULTIPLE UPDATE ATTEMPTS: Ensure stats display reliably
+      // 🚀 SINGLE STATS LOADING: Let initHiStatsOnce() handle all database loading
       setTimeout(() => {
         updateStatsUI(); // Force immediate update with current values
-        loadCurrentStatsFromDatabase(); // Load real values in background
+        // 🎯 No duplicate database calls - initHiStatsOnce() handles loading
       }, 50);
       
       setTimeout(() => {

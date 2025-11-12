@@ -351,13 +351,10 @@ class HiOSCompleteTracker {
     }
     
     if (actionType === 'share_submission') {
-      window.gTotalHis = (window.gTotalHis || 0) + 1;
+      // 🎯 CRITICAL FIX: NO LOCAL INCREMENT - Database-only tracking to prevent skewing
+      console.warn('⚠️ Share submission failed - no local fallback to maintain database accuracy');
       
-      document.querySelectorAll('.total-his-count, #globalTotalHis, #totalHis').forEach(el => {
-        el.textContent = window.gTotalHis.toLocaleString();
-      });
-      
-      return { success: false, fallback: true, totalHis: window.gTotalHis };
+      return { success: false, fallback: false, totalHis: window.gTotalHis };
     }
   }
   
