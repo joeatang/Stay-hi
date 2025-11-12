@@ -790,23 +790,40 @@ class HiIslandRealFeed {
 
     // Tesla-grade placeholder matching Emotional Trends styling
     container.innerHTML = `
-      <div style="padding: 40px; text-align: center; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); color: #495057; border-radius: 16px; margin: 20px; border: 1px solid #dee2e6;">
-        <div style="font-size: 48px; margin-bottom: 16px;">�</div>
-        <h3 style="margin: 0 0 12px 0; color: #333; font-size: 20px;">Your Personal Hi Archive</h3>
-        <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 1.4;">Keep track of your Hi moments, emotional journeys, and personal growth over time.</p>
+      <div style="padding: 60px 40px; text-align: center; background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%); color: #334155; border-radius: 24px; margin: 20px; border: 1px solid rgba(148, 163, 184, 0.2); backdrop-filter: blur(20px);">
+        <div style="font-size: 64px; margin-bottom: 24px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));">�</div>
+        <h2 style="margin: 0 0 16px 0; color: #1e293b; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">Your Hi Archive Awaits</h2>
+        <p style="margin: 0 0 32px 0; font-size: 17px; line-height: 1.6; color: #475569; max-width: 480px; margin-left: auto; margin-right: auto;">Every Hi moment you share gets saved to your personal archive. Sign in to view your journey, track patterns, and rediscover meaningful memories.</p>
+        
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 20px; margin-bottom: 32px;">
+          <div style="display: flex; align-items: center; gap: 12px; font-size: 15px; color: #64748b;">
+            <span style="font-size: 20px;">✨</span>
+            <span>Personal moments, safely stored</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; font-size: 15px; color: #64748b;">
+            <span style="font-size: 20px;">📈</span>
+            <span>Track emotional patterns & growth</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; font-size: 15px; color: #64748b;">
+            <span style="font-size: 20px;">🔒</span>
+            <span>Private & secure, only you can see</span>
+          </div>
+        </div>
         <div style="margin-bottom: 24px;">
           <div style="font-size: 12px; color: #6c757d; background: rgba(111, 66, 193, 0.1); padding: 8px 16px; border-radius: 20px; display: inline-block; border: 1px solid rgba(111, 66, 193, 0.2);">
             🔑 Account Required
           </div>
         </div>
-        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-          <button onclick="window.location.href='/signin.html'" style="background: #6f42c1; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 500;">
-            Sign In
+        <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+          <button onclick="window.showAuthModal && window.showAuthModal('Sign in to access your personal Hi Archive and view all your shared moments.')" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; border: none; padding: 16px 32px; border-radius: 12px; font-size: 16px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); transition: all 0.2s ease; transform: translateY(0);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(99, 102, 241, 0.5)'" onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 4px 12px rgba(99, 102, 241, 0.4)'">
+            ✨ Sign In to View Archive
           </button>
-          <button onclick="window.location.href='/signup.html'" style="background: transparent; color: #6f42c1; border: 2px solid #6f42c1; padding: 10px 24px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 500;">
-            Create Account
+          <button onclick="window.location.href='/auth.html'" style="background: rgba(99, 102, 241, 0.1); color: #6366f1; border: 2px solid rgba(99, 102, 241, 0.3); padding: 14px 32px; border-radius: 12px; font-size: 16px; cursor: pointer; font-weight: 600; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(99, 102, 241, 0.15)'" onmouseout="this.style.background='rgba(99, 102, 241, 0.1)'">
+            Create Free Account
           </button>
         </div>
+        
+        <p style="margin: 24px 0 0 0; font-size: 13px; color: #94a3b8;">Free account • No spam • Secure authentication</p>
       </div>
     `;
   }
