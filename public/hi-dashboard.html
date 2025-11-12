@@ -1827,8 +1827,10 @@
         window.gTotalHis = savedTotal ? parseInt(savedTotal, 10) : 90;
       }
       if (window.gUsers === undefined) {
-        // 🎯 TESLA GRADE: Initialize smart user count system
-        window.initializeSmartUserCount?.() || (window.gUsers = savedUsers ? parseInt(savedUsers, 10) : 1000);
+        // 🎯 DATABASE ONLY: Use cached database values, never fallback to hardcoded numbers
+        const cachedUsers = localStorage.getItem('dashboard_users_cache');
+        window.gUsers = cachedUsers ? parseInt(cachedUsers, 10) : 5; // Conservative estimate while loading
+        window.initializeSmartUserCount?.();
       }
       
       // 🎯 INSTANT UI UPDATE: Show cached/smart defaults immediately

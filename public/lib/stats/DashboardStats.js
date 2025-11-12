@@ -100,7 +100,7 @@ async function initializeFallbackStats() {
   // Load from localStorage or use defaults
   window.gTotalHis = parseInt(localStorage.getItem('fallback_total_his') || '0', 10);
   window.gWaves = parseInt(localStorage.getItem('fallback_waves') || '0', 10);
-  window.gUsers = parseInt(localStorage.getItem('fallback_users') || '1000', 10);
+  window.gUsers = parseInt(localStorage.getItem('fallback_users') || '5', 10);
   
   console.log('🔄 Fallback stats loaded:', { 
     totalHis: window.gTotalHis, 
@@ -113,7 +113,7 @@ async function initializeFallbackStats() {
 function ensureGlobalStatsExist() {
   if (window.gTotalHis === undefined) window.gTotalHis = 0;
   if (window.gWaves === undefined) window.gWaves = 0;
-  if (window.gUsers === undefined) window.gUsers = 1000;
+  if (window.gUsers === undefined) window.gUsers = 5;
   
   console.log('✅ Global stats ensured:', { 
     totalHis: window.gTotalHis, 
