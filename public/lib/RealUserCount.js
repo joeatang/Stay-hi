@@ -92,10 +92,12 @@ async function loadEnhancedGlobalStats() {
     // Process stats result
     const { data: statsData, error: statsError } = statsResult;
     if (statsData && !statsError) {
-      window.gTotalHis = statsData.total_his || window.gTotalHis;
-      window.gWaves = statsData.hi_waves || window.gWaves;
+      // 🎯 CRITICAL: Always use database values (never fall back to cached)
+      // This prevents bouncing between old cached values and new DB values
+      window.gTotalHis = statsData.total_his || 0;
+      window.gWaves = statsData.hi_waves || 0;
       
-      // Cache stats
+      // Cache stats for offline use
       localStorage.setItem('dashboard_total_cache', window.gTotalHis.toString());
       localStorage.setItem('dashboard_waves_cache', window.gWaves.toString());
     }

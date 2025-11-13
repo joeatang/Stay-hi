@@ -41,6 +41,7 @@ class PremiumCalendar {
 
     const modal = document.createElement('div');
     modal.className = 'premium-calendar-modal';
+    modal.style.display = 'none'; // Ensure hidden by default
     modal.innerHTML = `
       <div class="calendar-backdrop"></div>
       <div class="calendar-container glass-card">

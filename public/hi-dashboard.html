@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no,maximum-scale=1,shrink-to-fit=no"/>
-  <title>Stay Hi — Tesla Simplified</title>
+  <title>Stay Hi — Your Dashboard</title>
 
   <!-- HI-OS S-ARCH/1: Webroot Guard (dev-only) -->
   <script>
@@ -206,6 +206,7 @@
   <script src="assets/progressive-auth.js" async></script>
   <script src="assets/anonymous-access-modal.js" async></script>
   <script src="./lib/HiMembership.js"></script>
+  <script src="./lib/HiBrandTiers.js"></script>
   <script src="./lib/RealUserCount.js"></script>
   <script src="./lib/HiWavesRealtime.js"></script>
   <script src="assets/performance-manager.js"></script>
@@ -219,14 +220,9 @@
   <!-- Tesla-Grade Smart Conversion System -->
   <script src="assets/smart-conversion-system.js"></script>
   
-  <!-- Premium CSS Integration - FIXED: Immediate loading to prevent header flash -->
-  <link rel="stylesheet" href="assets/premium-ux.css">
-  <link rel="stylesheet" href="assets/premium-calendar.css">
+  <!-- Tesla-Grade Navigation System - Clean Implementation -->
   <link rel="preload" href="./ui/HiFooter/HiFooter.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" href="./ui/HiModal/HiModal.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  
-  <!-- Tesla-Grade Navigation System -->
-  <!-- Tesla Navigation System CSS removed - Home nav now in header -->
   
   <!-- Hi Share Sheet Component -->
   <link rel="preload" href="ui/HiShareSheet/HiShareSheet.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -235,15 +231,10 @@
   <link rel="preload" href="ui/HiMedallion/HiMedallion.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   
   <noscript>
-    <link rel="stylesheet" href="assets/premium-ux.css">
-    <link rel="stylesheet" href="assets/premium-calendar.css">
-    <link rel="stylesheet" href="assets/onboarding.css">
     <link rel="stylesheet" href="ui/HiFooter/HiFooter.css">
     <link rel="stylesheet" href="ui/HiModal/HiModal.css">
     <link rel="stylesheet" href="ui/HiShareSheet/HiShareSheet.css">
     <link rel="stylesheet" href="ui/HiMedallion/HiMedallion.css">
-    <!-- HiNavigationSystem.css removed -->
-    <link rel="stylesheet" href="./lib/navigation/HiStandardNavigation.css">
   </noscript>
 
   <!-- S-DASH/7: Hero polish + stats row styling -->
@@ -312,7 +303,7 @@
       align-items: flex-end;
       padding: 0 clamp(12px, 4vw, 24px) clamp(8px, 2vh, 12px);
       padding-top: clamp(8px, env(safe-area-inset-top, 10px), 20px);
-      z-index: 1000;
+      z-index: 10000;
       box-sizing: border-box;
       /* Tesla-grade universal support */
       contain: layout style paint;
@@ -321,52 +312,86 @@
     .header-left {
       display: flex;
       align-items: center;
-      width: 60px; /* Fixed width for symmetry */
+      gap: 8px;
+      width: auto; /* Changed from fixed 60px to auto for flexibility */
+      min-width: 90px; /* Ensure space for both buttons */
+      flex-shrink: 0;
     }
 
     .header-center {
-      flex: 1;
+      flex: 0 1 auto; /* Don't grow, allow shrink */
       display: flex;
       justify-content: center;
       align-items: center;
+      max-width: 200px; /* Prevent pushing buttons off screen */
     }
 
     .header-right {
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      width: 160px; /* Expanded for tier indicator + menu button */
+      width: auto; /* Changed from fixed to auto */
+      min-width: 220px; /* Minimum width for all elements */
+      max-width: 300px; /* Prevent excessive growth */
       gap: 8px;
       overflow: visible !important;
       position: relative;
-      z-index: 9999999; /* TESLA-GRADE: Bulletproof layering */
+      z-index: 10001; /* Above header, below modals */
+      flex-shrink: 0; /* Prevent shrinking */
     }
     
-    /* UX-First: Membership Tier Indicator */
+    /* 🎨 TESLA-GRADE: Spatially Intelligent Tier Indicator */
     .tier-indicator {
       display: flex;
       align-items: center;
-      padding: 4px 8px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      justify-content: center;
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       font-size: 11px;
       font-weight: 600;
-      color: var(--hi-tier-color, #6B7280);
-      transition: all 0.3s ease;
-      cursor: default;
-      min-width: 60px;
-      text-align: center;
+      letter-spacing: 0.3px;
+      color: var(--hi-tier-color, #FFD166);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    /* Subtle shine effect on hover */
+    .tier-indicator::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.1), 
+        transparent
+      );
+      transition: left 0.5s ease;
     }
     
     .tier-indicator:hover {
-      background: rgba(255, 255, 255, 0.15);
-      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-1px) scale(1.02);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .tier-indicator:hover::before {
+      left: 100%;
     }
     
     .tier-text {
       white-space: nowrap;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
     
     /* Smart Hiffirmations Pill - Contextual Access */
@@ -403,6 +428,8 @@
     }
 
     .brand-hi-logo {
+      height: 32px;
+      width: auto;
       filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
     }
 
@@ -435,6 +462,12 @@
     .calendar-btn:hover, .menu-btn:hover, .home-nav-btn:hover {
       background: rgba(255, 209, 102, 0.2);
       transform: translateY(-1px);
+    }
+    
+    /* Ensure SVG icons are always visible */
+    .calendar-btn svg, .menu-btn svg, .home-nav-btn svg {
+      display: block;
+      pointer-events: none;
     }
 
     /* Global Stats Container - Tesla-Grade Universal Compatibility */
@@ -685,26 +718,57 @@
     /* Mobile Optimizations */
     @media (max-width: 480px) {
       .tesla-header {
-        padding: 0 16px;
+        padding: 0 12px 8px;
+        gap: 4px;
       }
       
       .header-left {
-        gap: 12px;
+        gap: 6px;
+        min-width: 80px;
+      }
+      
+      .header-center {
+        max-width: 150px;
+      }
+      
+      .brand-text {
+        font-size: 16px;
       }
       
       .header-right {
-        width: 170px; /* Extra space for mobile touch targets */
+        min-width: 180px;
         gap: 6px; /* Tighter spacing on mobile */
       }
       
-      .calendar-btn, .menu-btn {
+      .calendar-btn, .menu-btn, .home-nav-btn {
         width: 36px;
         height: 36px;
       }
       
-      .tesla-logo {
-        font-size: 16px;
+      .tier-indicator {
+        font-size: 10px;
+        padding: 3px 6px;
+        min-width: 50px;
+        max-width: 70px;
       }
+      
+      .hiffirmations-smart-pill {
+        width: 28px;
+        height: 28px;
+        margin-right: 4px;
+      }
+      
+      .pill-icon {
+        font-size: 12px;
+      }
+    }
+    
+    /* Tablet Optimization */
+    @media (min-width: 481px) and (max-width: 768px) {
+      .header-center {
+        max-width: 180px;
+      }
+    }
       
       .mini-stats {
         gap: 8px;
@@ -1225,7 +1289,7 @@
     <!-- Smart Calendar & Home Access -->
     <div class="header-left">
       <button id="btnCal" class="calendar-btn" aria-label="Open calendar" title="View Hi Calendar">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="3" ry="3"></rect>
           <line x1="16" y1="2" x2="16" y2="6"></line>
           <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -1234,7 +1298,7 @@
       </button>
       
       <button id="btnHome" class="home-nav-btn" aria-label="Go to Hi Today" title="Navigate to Hi Today">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
           <polyline points="9,22 9,12 15,12 15,22"/>
         </svg>
@@ -1256,13 +1320,13 @@
         <span class="pill-icon">✨</span>
       </button>
       
-      <!-- Membership Tier Indicator (UX-first implementation) -->
+      <!-- Membership Tier Indicator (Brand-consistent) -->
       <div id="hi-tier-indicator" class="tier-indicator" title="Your membership tier">
-        <span class="tier-text">Anonymous</span>
+        <span class="tier-text">Hi Friend</span>
       </div>
       
       <button id="btnMenu" class="menu-btn" aria-label="Open menu" title="Navigation Menu">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="3" y1="12" x2="21" y2="12"></line>
           <line x1="3" y1="6" x2="21" y2="6"></line>
           <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -1275,30 +1339,6 @@
   <button class="floating-hiffirmations" id="floatingHiffirmations" aria-label="Daily HiFirmations" title="Get inspired with daily HiFirmations">
     ✨
   </button>
-
-  <!-- TESLA-GRADE: Immediate navigation setup to prevent header flash -->
-  <script>
-    // Critical: Setup navigation immediately when DOM elements exist
-    (function immediateNavigationSetup() {
-      const btnMenu = document.getElementById('btnMenu');
-      const navigationModal = document.getElementById('navigationModal');
-      
-      if (btnMenu && navigationModal) {
-        // Ensure menu button is always visible and functional
-        btnMenu.style.cssText = `
-          display: flex !important;
-          visibility: visible !important;
-          opacity: 1 !important;
-          z-index: 9999999 !important;
-          position: relative !important;
-        `;
-        
-        console.log('🚀 Tesla-grade navigation immediately activated');
-      } else {
-        console.warn('⚠️ Navigation elements not ready for immediate setup');
-      }
-    })();
-  </script>
 
   <!-- S-DASH Flag-Gated DOM Anchors (Hidden Placeholders) -->
   <script>
@@ -1672,8 +1712,31 @@
       });
     }
 
-    // 🎯 SURGICAL: Anti-lag stats display with instant placeholders
-    function updateGlobalStats() {
+    // 🎯 SURGICAL: Anti-lag stats display with instant placeholders + debounce protection
+    let statsUpdateTimeout = null;
+    let lastStatsUpdate = 0;
+    const STATS_UPDATE_COOLDOWN = 500; // ms - prevent rapid updates
+    
+    function updateGlobalStats(force = false) {
+      // Debounce: Only update if 500ms has passed since last update (unless forced)
+      const now = Date.now();
+      if (!force && (now - lastStatsUpdate) < STATS_UPDATE_COOLDOWN) {
+        // Schedule update for later if one isn't already scheduled
+        if (!statsUpdateTimeout) {
+          statsUpdateTimeout = setTimeout(() => {
+            statsUpdateTimeout = null;
+            updateGlobalStats(true);
+          }, STATS_UPDATE_COOLDOWN);
+        }
+        return;
+      }
+      
+      lastStatsUpdate = now;
+      if (statsUpdateTimeout) {
+        clearTimeout(statsUpdateTimeout);
+        statsUpdateTimeout = null;
+      }
+      
       const globalHiWaves = document.getElementById('globalHiWaves');
       const globalTotalHis = document.getElementById('globalTotalHis');
       const globalUsers = document.getElementById('globalUsers');
@@ -1931,7 +1994,7 @@
       });
     }
 
-    // TESLA-GRADE: Immediate navigation setup to prevent header flash
+    // TESLA-GRADE: Navigation setup with proper element checks
     function setupNavigationHandler() {
       const btnMenu = document.getElementById('btnMenu');
       const navigationModal = document.getElementById('navigationModal');
@@ -1939,9 +2002,34 @@
       const closeNavigation = document.getElementById('closeNavigation');
 
       if (!btnMenu || !navigationModal) {
-        console.warn('🚨 Navigation elements not found - header functionality broken');
+        console.error('🚨 Navigation elements not found:', { 
+          btnMenu: !!btnMenu, 
+          navigationModal: !!navigationModal,
+          navigationBackdrop: !!navigationBackdrop,
+          closeNavigation: !!closeNavigation
+        });
         return;
       }
+
+      // Ensure menu button is visible (defensive check)
+      btnMenu.style.display = 'flex';
+      btnMenu.style.visibility = 'visible';
+      btnMenu.style.opacity = '1';
+      btnMenu.style.pointerEvents = 'auto';
+      
+      // Debug: Check if button and SVG are actually visible
+      console.log('🔍 Menu button debug:', {
+        exists: !!btnMenu,
+        display: window.getComputedStyle(btnMenu).display,
+        visibility: window.getComputedStyle(btnMenu).visibility,
+        opacity: window.getComputedStyle(btnMenu).opacity,
+        width: window.getComputedStyle(btnMenu).width,
+        height: window.getComputedStyle(btnMenu).height,
+        color: window.getComputedStyle(btnMenu).color,
+        position: btnMenu.getBoundingClientRect(),
+        svg: btnMenu.querySelector('svg'),
+        svgVisible: btnMenu.querySelector('svg') ? window.getComputedStyle(btnMenu.querySelector('svg')).display : 'no svg'
+      });
 
       const openNavigation = () => {
         navigationModal.classList.add('show');
@@ -1953,6 +2041,8 @@
         if (adminSection && (localStorage.getItem('isAdmin') === 'true' || window.location.href.includes('admin'))) {
           adminSection.style.display = 'block';
         }
+        
+        console.log('🎯 Navigation menu opened');
       };
 
       const closeNavigationModal = () => {
@@ -1963,11 +2053,19 @@
             navigationModal.style.display = 'none';
           }
         }, 300);
+        
+        console.log('🎯 Navigation menu closed');
       };
 
       btnMenu.addEventListener('click', openNavigation);
-      closeNavigation.addEventListener('click', closeNavigationModal);
-      navigationBackdrop.addEventListener('click', closeNavigationModal);
+      
+      if (closeNavigation) {
+        closeNavigation.addEventListener('click', closeNavigationModal);
+      }
+      
+      if (navigationBackdrop) {
+        navigationBackdrop.addEventListener('click', closeNavigationModal);
+      }
       
       // Close on escape key
       document.addEventListener('keydown', (e) => {
@@ -1975,6 +2073,8 @@
           closeNavigationModal();
         }
       });
+      
+      console.log('✅ Navigation handler setup complete');
     }
 
     // Hiffirmations Modal Handler
@@ -2041,7 +2141,78 @@
         "🎯 Hi aligned soul! You're connected to your Hi-est purpose",
         "💫 Hi magical being! Hi-level magic happens when you believe",
         "🌈 Hi reality creator! You're painting Hi-definition beauty everywhere",
-        "🦄 Hi unique spirit! Your one-of-a-kind nature is Hi-ly special"
+        "🦄 Hi unique spirit! Your one-of-a-kind nature is Hi-ly special",
+        "🌙 Hi night owl! Your Hi energy shines even in the dark",
+        "🎪 Hi entertainer! You bring Hi-level joy to every room",
+        "🏆 Hi champion! Your Hi spirit conquers every obstacle",
+        "🌺 Hi blossom! You're blooming into your Hi-est self",
+        "🎭 Hi performer! Your authentic self is Hi-ly captivating",
+        "🧘 Hi zen master! Your Hi peace radiates outward",
+        "🎸 Hi rockstar! Your Hi frequency rocks the world",
+        "🌠 Hi shooting star! Your Hi path lights up the sky",
+        "🦅 Hi soaring spirit! You're flying to Hi-er heights daily",
+        "🌴 Hi paradise! You create Hi-level oasis wherever you go",
+        "🎯 Hi marksman! Your Hi aim for greatness never misses",
+        "🌊 Hi tide! Your Hi influence lifts all boats",
+        "🔥 Hi flame! Your Hi passion ignites positive change",
+        "💝 Hi gift! Your Hi presence is a treasure to all",
+        "🌈 Hi spectrum! You paint life in Hi-vibrant colors",
+        "🎨 Hi artist! Your Hi creativity knows no bounds",
+        "🚀 Hi pioneer! You're blazing Hi trails for others",
+        "⚡ Hi lightning! Your Hi impact strikes with brilliance",
+        "🌟 Hi constellation! Your Hi light guides lost souls home",
+        "🦋 Hi metamorphosis! You're becoming your Hi-est version",
+        "🌺 Hi alchemist! You turn ordinary moments into Hi magic",
+        "💎 Hi diamond! Your Hi brilliance shines under pressure",
+        "🎯 Hi visionary! Your Hi perspective changes everything",
+        "🌅 Hi awakener! You rise to Hi-er consciousness daily",
+        "⚡ Hi catalyst! Your Hi presence sparks transformation",
+        "🌊 Hi navigator! You sail Hi through life's storms",
+        "🔥 Hi igniter! Your Hi spark starts incredible fires",
+        "💫 Hi stardust! You're made of Hi-quality cosmic material",
+        "🦅 Hi freedom seeker! You soar to Hi-er altitudes",
+        "🌸 Hi gardener! You grow Hi-quality beauty everywhere",
+        "🎵 Hi composer! Your life plays in Hi-definition harmony",
+        "🌟 Hi illuminator! Your Hi glow brightens dark paths",
+        "🏔️ Hi summit seeker! You climb to Hi-er peaks daily",
+        "🔮 Hi oracle! Your Hi wisdom sees beyond the surface",
+        "💪 Hi force! Your Hi strength moves mountains effortlessly",
+        "🌈 Hi bridge builder! You connect souls to Hi-er love",
+        "🎨 Hi innovator! Your Hi ideas reshape reality",
+        "🚀 Hi explorer! You venture into Hi unknown territories",
+        "⭐ Hi architect! You build Hi-quality dreams into reality",
+        "🦋 Hi evolution! You're ascending to Hi-er forms",
+        "🌊 Hi current! Your Hi flow carries others forward",
+        "🔥 Hi phoenix! You rise Hi-er from every challenge",
+        "💝 Hi giver! Your Hi generosity enriches all lives",
+        "🌺 Hi cultivator! You nurture Hi-quality growth in others",
+        "🎯 Hi achiever! Your Hi standards inspire excellence",
+        "⚡ Hi dynamo! Your Hi energy powers positive change",
+        "🌟 Hi luminary! Your Hi presence elevates every space",
+        "🏆 Hi legend! Your Hi story inspires generations",
+        "🎭 Hi storyteller! Your Hi narrative captivates hearts",
+        "🌅 Hi dawn bringer! You start each day on Hi notes",
+        "💎 Hi treasure! Your Hi worth is immeasurable",
+        "🚀 Hi voyager! You journey to Hi-er dimensions",
+        "🌈 Hi prism! You reflect Hi-quality light everywhere",
+        "🦅 Hi observer! You see life from Hi-er perspectives",
+        "🔥 Hi transformer! You change lead into Hi gold",
+        "💫 Hi miracle worker! Your Hi faith moves mountains",
+        "🌊 Hi rhythm! You dance to Hi-er frequencies",
+        "🎵 Hi symphony! Your life creates Hi-definition music",
+        "🌟 Hi north star! You guide others to Hi-er ground",
+        "🏔️ Hi climber! Your Hi ascent never stops",
+        "🔮 Hi seer! Your Hi vision penetrates illusions",
+        "💪 Hi titan! Your Hi power knows no limits",
+        "🌺 Hi essence! Your Hi nature uplifts all beings",
+        "🎨 Hi master! Your Hi craft perfects with time",
+        "🚀 Hi astronaut! You explore Hi-er consciousness",
+        "⭐ Hi manifestor! Your Hi thoughts create reality",
+        "🦋 Hi awakening! You're emerging into Hi-er truth",
+        "🌊 Hi healer! Your Hi touch restores wholeness",
+        "🔥 Hi creator! Your Hi vision births new worlds",
+        "💝 Hi blessing! Your Hi existence enriches everything",
+        "🌈 Hi rainbow! You bring Hi color after storms"
       ];
       
       const selectedMessage = hiffirmations[Math.abs(hash % hiffirmations.length)];
@@ -2066,7 +2237,57 @@
           "Hi brilliant! Trust your Hi intuition! 🌈",
           "Hi phenomenal! You're Hi-ly valued! 💝",
           "Hi incredible! Keep flying Hi! 🦅",
-          "Hi wonderful! Stay Hi always! 🌻"
+          "Hi wonderful! Stay Hi always! 🌻",
+          "Hi powerful! Your Hi strength is unstoppable! 💪",
+          "Hi radiant! Shine that Hi light bright! ✨",
+          "Hi fearless! You're Hi above the noise! 🎯",
+          "Hi legend! Keep that Hi momentum going! 🔥",
+          "Hi dreamer! Your Hi vision is coming true! 🌈",
+          "Hi rockstar! You're Hi-ly talented! 🎸",
+          "Hi genius! Your Hi mind amazes! 🧠",
+          "Hi pioneer! Blaze that Hi trail! 🚀",
+          "Hi creator! Your Hi art inspires! 🎨",
+          "Hi beacon! Keep shining Hi! 🌟",
+          "Hi unstoppable! You're Hi beyond measure! ⚡",
+          "Hi magnetic! Your Hi aura attracts greatness! 💫",
+          "Hi limitless! Stay Hi forever! 🌊",
+          "Hi spectacular! Your Hi presence matters! 💝",
+          "Hi transcendent! You're Hi-ly elevated! 🦋",
+          "Hi dynamic! Keep that Hi energy flowing! ⚡",
+          "Hi luminous! Your Hi glow is undeniable! ✨",
+          "Hi sovereign! Own your Hi power! 👑",
+          "Hi electric! Your Hi spark lights fires! 🔥",
+          "Hi cosmic! You're Hi on another level! 🌌",
+          "Hi magnificent! Your Hi spirit soars! 🦅",
+          "Hi divine! Your Hi essence is pure! 💎",
+          "Hi stellar! You're reaching Hi-er stars! ✨",
+          "Hi valiant! Your Hi courage inspires! ⚔️",
+          "Hi brilliant! Your Hi ideas illuminate! 💡",
+          "Hi majestic! Your Hi presence commands respect! 👑",
+          "Hi vibrant! Your Hi life force is contagious! 🌈",
+          "Hi unstoppable! Nothing can dim your Hi! 🔥",
+          "Hi infinite! Your Hi potential is boundless! ∞",
+          "Hi glorious! Your Hi path shines bright! 🌟",
+          "Hi fearless! You face life on Hi alert! ⚡",
+          "Hi luminous! Your Hi aura glows! ✨",
+          "Hi mighty! Your Hi strength moves worlds! 💪",
+          "Hi radiant! Your Hi warmth heals hearts! 💝",
+          "Hi visionary! Your Hi sight sees futures! 🔮",
+          "Hi triumphant! Your Hi victories multiply! 🏆",
+          "Hi resilient! You bounce back Hi-er! 🌊",
+          "Hi enchanting! Your Hi magic captivates! ✨",
+          "Hi bold! Your Hi moves inspire action! 🎯",
+          "Hi authentic! Your Hi truth resonates! 💎",
+          "Hi graceful! You move through life on Hi! 🦢",
+          "Hi fierce! Your Hi determination wins! 🔥",
+          "Hi serene! Your Hi peace calms storms! 🕊️",
+          "Hi joyful! Your Hi laughter lifts spirits! 😊",
+          "Hi wise! Your Hi knowledge guides many! 🦉",
+          "Hi compassionate! Your Hi heart heals! 💝",
+          "Hi grateful! You see Hi blessings everywhere! 🙏",
+          "Hi present! You live in the Hi now! ⏰",
+          "Hi abundant! Your Hi cup overflows! 🌊",
+          "Hi worthy! You deserve all Hi things! 👑"
         ];
         return hiBoosts[Math.floor(Math.random() * hiBoosts.length)];
       }
@@ -2622,9 +2843,11 @@
         }
       }
       if (window.gTotalHis === undefined) {
-        window.gTotalHis = savedTotal ? parseInt(savedTotal, 10) : 90;
-        // Mark as temporary value to prevent jarring jumps
-        window._gTotalHisIsTemporary = !savedTotal;
+        // 🎯 CRITICAL: Only use cached database values, never fallback to outdated numbers
+        // If no cache exists, show loading state (null) instead of wrong number
+        window.gTotalHis = savedTotal ? parseInt(savedTotal, 10) : null;
+        // Mark as needs refresh if we're showing cached data or no data
+        window._gTotalHisIsTemporary = true;
       }
       if (window.gUsers === undefined) {
         // 🎯 DATABASE ONLY: Use cached database values, never fallback to hardcoded numbers
@@ -2662,20 +2885,38 @@
         console.error('❌ Stats initialization failed:', error);
       });
       
-      // UX-First: Update membership tier indicator when system loads
+      // 🎨 BRAND TIER SYSTEM: Update tier indicator with on-brand names
       setTimeout(() => {
-        if (window.HiMembership && window.HiMembership.initialized) {
-          const user = window.HiMembership.getCurrentUser();
-          const tierIndicator = document.getElementById('hi-tier-indicator');
-          if (tierIndicator && user) {
-            const tierText = tierIndicator.querySelector('.tier-text');
-            tierText.textContent = user.tierInfo.name;
-            tierIndicator.style.color = user.tierInfo.color || '#6B7280';
-            
-            console.log('🎫 [UX] Membership tier displayed:', user.tierInfo.name);
-          }
-        }
+        updateBrandTierDisplay();
       }, 1000);
+      
+      // Listen for membership changes
+      window.addEventListener('membershipStatusChanged', () => {
+        updateBrandTierDisplay();
+      });
+      
+      function updateBrandTierDisplay() {
+        const tierIndicator = document.getElementById('hi-tier-indicator');
+        if (!tierIndicator || !window.HiBrandTiers) return;
+        
+        // Get tier from membership system
+        let tierKey = 'anonymous';
+        
+        if (window.unifiedMembership?.membershipStatus?.tier) {
+          tierKey = window.unifiedMembership.membershipStatus.tier;
+        } else if (window.HiMembership?.currentUser?.tierInfo?.name) {
+          // Fallback to legacy system
+          tierKey = window.HiMembership.currentUser.tierInfo.name.toLowerCase();
+        }
+        
+        // Update pill with brand styling
+        window.HiBrandTiers.updateTierPill(tierIndicator, tierKey, {
+          showEmoji: false,
+          useGradient: false
+        });
+        
+        console.log('🎨 Brand tier displayed:', window.HiBrandTiers.getName(tierKey));
+      }
       
       console.log('🎯 Stats loading managed by Hi-OS init guard - no direct calls');
       
@@ -2898,6 +3139,7 @@
   </script>
 
   <!-- Premium Component Scripts -->
+  <link rel="stylesheet" href="assets/premium-calendar.css">
   <script src="assets/premium-ux.js"></script>
   <script src="assets/premium-calendar.js"></script>
   <script src="./ui/HiFooter/HiFooter.js" defer></script>
@@ -3657,19 +3899,19 @@
         
         const milestoneMap = {
           'selfHi5Enhanced': {
-            base: ["🙌 Self-love is the foundation", "✨ You're your biggest supporter"],
-            standard: ["💝 Celebrating yourself creates ripples", "🌟 Self-appreciation is magnetic"],
-            premium: ["👑 You just modeled self-worth beautifully", "💎 Your self-love inspires others to do the same"]
+            base: ["🙌 Hi love! Self-appreciation keeps you Hi!", "✨ Hi supporter! You're your own Hi cheerleader!"],
+            standard: ["💝 Hi radiator! Your self-love creates Hi ripples!", "🌟 Hi magnetic! Self-appreciation is Hi-ly attractive!"],
+            premium: ["👑 Hi royalty! You just modeled Hi-level self-worth!", "💎 Hi inspiration! Your self-love lifts others Hi!"]
           },
           'hi-wave': {
-            base: ["🌊 Every wave creates connection", "✨ You just brightened someone's day"],
-            standard: ["💫 Your Hi energy is contagious", "🔥 Positive momentum is building"],
-            premium: ["🚀 You're a catalyst for community joy", "⭐ Your waves create lasting impact"]
+            base: ["🌊 Hi connector! Every wave creates Hi bonds!", "✨ Hi brightener! You just lifted someone Hi!"],
+            standard: ["💫 Hi contagious! Your Hi energy spreads joy!", "🔥 Hi momentum! You're building Hi vibes!"],
+            premium: ["🚀 Hi catalyst! You spark Hi community joy!", "⭐ Hi influencer! Your waves create Hi impact!"]
           },
           'btnShare': {
-            base: ["📤 Sharing multiplies joy", "🌈 Your story matters to someone"],
-            standard: ["🎯 Vulnerability creates authentic connection", "💪 You're inspiring others to be brave"],
-            premium: ["🌟 Your authentic sharing transforms communities", "🔥 You're modeling courageous leadership"]
+            base: ["📤 Hi sharer! Sharing multiplies Hi joy!", "🌈 Hi storyteller! Your Hi story matters!"],
+            standard: ["🎯 Hi authentic! Vulnerability creates Hi connection!", "💪 Hi brave! You inspire others to fly Hi!"],
+            premium: ["🌟 Hi transformer! Your Hi sharing elevates communities!", "🔥 Hi leader! You're modeling Hi courage!"]
           }
         };
 
@@ -3797,24 +4039,29 @@
     const floatingHiffirmations = new FloatingHiffirmations();
 
     // Tesla-Grade Quote Card Generation System
+    // 🎨 TESLA-GRADE Quote Card Generation System (Premium Dashboard Branding)
     class HiQuoteCardGenerator {
       constructor() {
         this.brandColors = {
           primary: '#FFD166',
           secondary: '#F4A261',
           accent: '#E76F51',
-          background: '#1E2A4A',
-          backgroundSecondary: '#2D4A87',
+          background: '#0F1022',
+          backgroundSecondary: '#1A1D3A',
+          backgroundTertiary: '#252B52',
           text: '#FFFFFF',
-          textSecondary: 'rgba(255, 255, 255, 0.8)'
+          textSecondary: 'rgba(255, 255, 255, 0.9)',
+          textTertiary: 'rgba(255, 255, 255, 0.6)'
         };
         
         this.socialFormats = {
           instagram_post: { width: 1080, height: 1080 },
           instagram_story: { width: 1080, height: 1920 },
           twitter_card: { width: 1200, height: 675 },
-          square: { width: 800, height: 800 } // Default format
+          square: { width: 1080, height: 1080 } // Increased from 800 for better quality
         };
+        
+        this.logoCache = null;
       }
 
       async generateQuoteCard(message, options = {}) {
@@ -3828,16 +4075,15 @@
         const canvas = this.createCanvas(dimensions.width, dimensions.height);
         const ctx = canvas.getContext('2d');
 
-        // Draw background with tier-specific styling
+        // Enable high-quality rendering
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
         await this.drawBackground(ctx, canvas, userTier);
-        
-        // Draw quote text with smart formatting
         await this.drawQuoteText(ctx, message, canvas, userTier);
-        
-        // Draw branding and attribution
         await this.drawBranding(ctx, canvas, userTier);
         
-        return canvas.toDataURL('image/png', 0.9);
+        return canvas.toDataURL('image/png', 1.0); // Maximum quality
       }
 
       createCanvas(width, height) {
@@ -3850,56 +4096,80 @@
       async drawBackground(ctx, canvas, userTier) {
         const { width, height } = canvas;
         
-        // Create tier-specific gradient backgrounds
-        let gradient;
+        // Premium gradient background
+        const gradient = ctx.createLinearGradient(0, 0, width, height);
         
         switch(userTier) {
           case 'PREMIUM':
-            // Premium: Rich multi-color gradient
-            gradient = ctx.createLinearGradient(0, 0, width, height);
-            gradient.addColorStop(0, this.brandColors.primary);
-            gradient.addColorStop(0.3, this.brandColors.secondary);
-            gradient.addColorStop(0.7, this.brandColors.accent);
-            gradient.addColorStop(1, this.brandColors.background);
+            gradient.addColorStop(0, '#1A1D3A');
+            gradient.addColorStop(0.3, '#252B52');
+            gradient.addColorStop(0.6, '#2D3561');
+            gradient.addColorStop(1, '#1E2447');
             break;
-            
           case 'STANDARD':
-            // Standard: Elegant dual gradient
-            gradient = ctx.createLinearGradient(0, 0, width, height);
-            gradient.addColorStop(0, this.brandColors.background);
-            gradient.addColorStop(0.5, this.brandColors.backgroundSecondary);
-            gradient.addColorStop(1, this.brandColors.secondary);
+            gradient.addColorStop(0, '#0F1022');
+            gradient.addColorStop(0.5, '#1A1D3A');
+            gradient.addColorStop(1, '#252B52');
             break;
-            
           default:
-            // Anonymous: Simple, clean gradient
-            gradient = ctx.createLinearGradient(0, 0, 0, height);
-            gradient.addColorStop(0, this.brandColors.background);
-            gradient.addColorStop(1, this.brandColors.backgroundSecondary);
+            gradient.addColorStop(0, '#0F1022');
+            gradient.addColorStop(1, '#1A1D3A');
         }
         
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, width, height);
         
-        // Add subtle texture for Premium users
+        // Add subtle geometric pattern
+        this.addGeometricPattern(ctx, canvas, userTier);
+        
+        // Add premium light rays for premium tier
         if (userTier === 'PREMIUM') {
-          this.addPremiumTexture(ctx, canvas);
+          this.addLightRays(ctx, canvas);
         }
       }
 
-      addPremiumTexture(ctx, canvas) {
-        // Add subtle sparkle texture for premium users
-        ctx.globalAlpha = 0.1;
-        for (let i = 0; i < 50; i++) {
-          const x = Math.random() * canvas.width;
-          const y = Math.random() * canvas.height;
-          const size = Math.random() * 3 + 1;
-          
-          ctx.fillStyle = this.brandColors.primary;
+      addGeometricPattern(ctx, canvas, userTier) {
+        const { width, height } = canvas;
+        ctx.globalAlpha = userTier === 'PREMIUM' ? 0.08 : 0.04;
+        ctx.strokeStyle = this.brandColors.primary;
+        ctx.lineWidth = 1;
+        
+        // Diagonal lines pattern
+        const spacing = 60;
+        for (let i = -height; i < width + height; i += spacing) {
           ctx.beginPath();
-          ctx.arc(x, y, size, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.moveTo(i, 0);
+          ctx.lineTo(i + height, height);
+          ctx.stroke();
         }
+        
+        ctx.globalAlpha = 1;
+      }
+
+      addLightRays(ctx, canvas) {
+        const { width, height } = canvas;
+        ctx.globalAlpha = 0.05;
+        
+        const centerX = width / 2;
+        const centerY = height * 0.3;
+        
+        for (let i = 0; i < 8; i++) {
+          const angle = (Math.PI * 2 * i) / 8;
+          const gradient = ctx.createRadialGradient(
+            centerX, centerY, 0,
+            centerX, centerY, height * 0.8
+          );
+          gradient.addColorStop(0, this.brandColors.primary);
+          gradient.addColorStop(1, 'transparent');
+          
+          ctx.fillStyle = gradient;
+          ctx.save();
+          ctx.translate(centerX, centerY);
+          ctx.rotate(angle);
+          ctx.fillRect(-width * 0.1, 0, width * 0.2, height);
+          ctx.restore();
+        }
+        
         ctx.globalAlpha = 1;
       }
 
@@ -3908,42 +4178,43 @@
         const centerX = width / 2;
         const centerY = height / 2;
         
-        // Configure font based on tier
+        // Premium typography
         const fontSize = this.getFontSize(message.length, canvas);
-        const fontFamily = userTier === 'PREMIUM' ? 
-          'Georgia, "Times New Roman", serif' : 
-          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        const fontWeight = userTier === 'PREMIUM' ? '600' : '500';
+        const fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
         
         ctx.fillStyle = this.brandColors.text;
-        ctx.font = `${fontSize}px ${fontFamily}`;
+        ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        // Smart text wrapping
-        const lines = this.wrapText(ctx, message, width * 0.8);
-        const lineHeight = fontSize * 1.4;
+        // Wrap text with better spacing
+        const lines = this.wrapText(ctx, message, width * 0.75);
+        const lineHeight = fontSize * 1.5;
         const totalTextHeight = lines.length * lineHeight;
-        const startY = centerY - (totalTextHeight / 2);
+        const startY = centerY - (totalTextHeight / 2) + 20;
         
-        // Draw text with shadow for better readability
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-        ctx.shadowBlur = 4;
-        ctx.shadowOffsetY = 2;
+        // Premium text shadow
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 3;
         
         lines.forEach((line, index) => {
           const y = startY + (index * lineHeight);
           ctx.fillText(line, centerX, y);
         });
         
-        // Reset shadow
         ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
       }
 
       getFontSize(textLength, canvas) {
-        const baseSize = Math.min(canvas.width, canvas.height) / 20;
-        if (textLength < 30) return Math.min(baseSize * 1.2, 48);
-        if (textLength < 60) return Math.min(baseSize, 40);
-        return Math.min(baseSize * 0.8, 32);
+        const baseSize = canvas.width / 18;
+        if (textLength < 30) return Math.min(baseSize * 1.3, 70);
+        if (textLength < 60) return Math.min(baseSize * 1.1, 60);
+        if (textLength < 100) return Math.min(baseSize * 0.95, 52);
+        return Math.min(baseSize * 0.8, 44);
       }
 
       wrapText(ctx, text, maxWidth) {
@@ -3973,52 +4244,93 @@
       async drawBranding(ctx, canvas, userTier) {
         const { width, height } = canvas;
         
-        // Draw Hi logo branding at bottom
-        const brandingY = height - 80;
-        
-        // Load and draw Hi logo
-        try {
-          const logoImg = new Image();
-          logoImg.crossOrigin = 'anonymous';
-          
-          await new Promise((resolve, reject) => {
-            logoImg.onload = resolve;
-            logoImg.onerror = () => {
-              // Fallback to text if logo fails to load
-              ctx.fillStyle = this.brandColors.textSecondary;
-              ctx.font = '24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-              ctx.textAlign = 'center';
-              ctx.fillText('— Hi —', width / 2, brandingY);
-              resolve();
-            };
-            logoImg.src = 'assets/brand/hi-logo-light.png';
-          });
-          
-          // Draw logo if loaded successfully
-          if (logoImg.complete && logoImg.naturalHeight !== 0) {
-            const logoSize = 32;
-            ctx.drawImage(logoImg, (width / 2) - (logoSize / 2), brandingY - 20, logoSize, logoSize);
-          }
-        } catch (error) {
-          // Fallback to Hi text
-          ctx.fillStyle = this.brandColors.primary;
-          ctx.font = '28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText('Hi', width / 2, brandingY);
+        // Load and cache the Hi logo
+        if (!this.logoCache) {
+          await this.loadLogo();
         }
         
-        // Add URL
-        ctx.font = '18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        // Position branding at bottom
+        const brandingY = height - 140;
+        const logoSize = 80; // Much larger, crisp logo
+        const logoX = width / 2 - (logoSize / 2);
+        
+        // Draw hi-res logo
+        if (this.logoCache) {
+          ctx.drawImage(this.logoCache, logoX, brandingY - 20, logoSize, logoSize);
+        }
+        
+        // Brand name below logo
+        ctx.fillStyle = this.brandColors.text;
+        ctx.font = '600 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Stay Hi', width / 2, brandingY + 85);
+        
+        // URL with accent color
+        ctx.font = '500 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
         ctx.fillStyle = this.brandColors.primary;
-        ctx.fillText('stay-hi.app', width / 2, brandingY + 35);
+        ctx.fillText('stay-hi.app', width / 2, brandingY + 120);
         
-        // Add tier indicator for Standard/Premium
+        // Tier badge at top (if applicable)
         if (userTier === 'STANDARD' || userTier === 'PREMIUM') {
-          ctx.font = '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-          ctx.fillStyle = this.brandColors.textSecondary;
-          const tierText = userTier === 'PREMIUM' ? '✨ Premium Member' : '⭐ Standard Member';
-          ctx.fillText(tierText, width / 2, brandingY - 25);
+          this.drawTierBadge(ctx, canvas, userTier);
         }
+      }
+
+      drawTierBadge(ctx, canvas, userTier) {
+        const { width } = canvas;
+        const badgeY = 50;
+        
+        // Badge background
+        const badgeWidth = 200;
+        const badgeHeight = 40;
+        const badgeX = (width / 2) - (badgeWidth / 2);
+        
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 2;
+        
+        // Rounded rectangle
+        this.roundRect(ctx, badgeX, badgeY, badgeWidth, badgeHeight, 20);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Badge text
+        const badgeText = userTier === 'PREMIUM' ? '✨ Premium Member' : '⭐ Standard Member';
+        ctx.fillStyle = this.brandColors.text;
+        ctx.font = '600 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(badgeText, width / 2, badgeY + 25);
+      }
+
+      roundRect(ctx, x, y, width, height, radius) {
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+        ctx.lineTo(x + width, y + height - radius);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        ctx.lineTo(x + radius, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+      }
+
+      async loadLogo() {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            this.logoCache = img;
+            resolve();
+          };
+          img.onerror = () => {
+            console.warn('⚠️ Could not load logo for quote card');
+            resolve(); // Continue without logo
+          };
+          // Use absolute path to logo
+          img.src = 'assets/brand/hi-logo-light.png';
+        });
       }
 
       async dataURLToBlob(dataURL) {
@@ -4032,7 +4344,7 @@
             canvas.height = img.height;
             ctx.drawImage(img, 0, 0);
             
-            canvas.toBlob(resolve, 'image/png', 0.9);
+            canvas.toBlob(resolve, 'image/png', 1.0);
           };
           
           img.src = dataURL;
