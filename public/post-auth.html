@@ -376,9 +376,18 @@
       $('#working').style.display = 'none';
       $('#done').style.display = 'block';
       
+      // Tesla-grade membership validation before redirect
+      console.log('🔍 Final membership validation before redirect...');
+      
+      if (!localStorage.getItem('hi_member') || localStorage.getItem('hi_member') === '0') {
+        console.log('⚠️ No active membership found - redirecting to upgrade');
+        setTimeout(()=>go('upgrade.html?source=post-auth'), 900);
+        return;
+      }
+      
       // Check for 'next' parameter and use it, otherwise default to hi-dashboard.html for authenticated users
       const nextPage = new URLSearchParams(location.search).get('next') || 'hi-dashboard.html';
-      console.log('🔄 Redirecting to:', nextPage);
+      console.log('🔄 Redirecting authenticated member to:', nextPage);
       setTimeout(()=>go(nextPage), 900);
     } catch (err) {
       console.error('❌ Authentication failed:', err);
