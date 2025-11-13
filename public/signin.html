@@ -398,27 +398,7 @@
           // Wait for Supabase client before using it
           const sb = await waitForSupabase();
           
-          console.log('🔐 Tesla-grade security: Validating membership access for:', emailVal);
-          
-          // 🚀 TESLA-GRADE MEMBERSHIP VALIDATION
-          console.log('📋 Checking membership status...');
-          
-          // First check if email has an existing membership
-          const { data: membershipCheck, error: memberError } = await sb.rpc('get_user_by_email', { 
-            email: emailVal 
-          }).maybeSingle();
-          
-          if (memberError && !memberError.message.includes('not found')) {
-            throw new Error('Unable to validate membership. Please try again.');
-          }
-          
-          if (!membershipCheck) {
-            console.log('❌ No membership found - redirecting to promo page');
-            window.location.href = `promo.html?email=${encodeURIComponent(emailVal)}&source=signin`;
-            return;
-          }
-          
-          console.log('✅ Membership validated - sending magic link...');
+          console.log('🔐 Sending magic link to:', emailVal);
           
           const nextPage = new URLSearchParams(location.search).get('next') || 'hi-dashboard.html';
           const redirectTo = `${location.origin}/post-auth?next=${encodeURIComponent(nextPage)}`;
