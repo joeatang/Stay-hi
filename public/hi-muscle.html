@@ -18,7 +18,7 @@
 
   <!-- Tesla-grade auth system - health monitor first -->
   <script src="assets/url-path-fixer.js"></script>
-  <script src="./lib/HiSupabase.js"></script>
+  <script src="./lib/HiSupabase.js" type="module"></script>
   <!-- 🚀 Tesla-Grade Anonymous Access Modal System -->
   <script src="assets/anonymous-access-modal.js"></script>
   
@@ -27,6 +27,9 @@
 
   <!-- 🌟 WOZNIAK-GRADE: Gold Standard Modal System (Unified Auth/Share Modals) -->
   <script src="lib/HiGoldStandardModal.js" async></script>
+  
+  <!-- 🎯 TESLA-GRADE: Hi-Muscle Onboarding System -->
+  <script src="assets/hi-muscle-onboarding.js" async></script>
 
   <!-- Global brand & Tesla performance -->
   <link rel="stylesheet" href="assets/theme.css"/>
@@ -1464,13 +1467,13 @@
   <div id="toast" class="toast">Saved</div>
 
   <!-- order matters -->
-  <script src="./lib/HiSupabase.js"></script>
+  <script src="./lib/HiSupabase.js" type="module"></script>
   <script src="assets/auth.js"></script>
   <script src="./lib/HiDB.js"></script>
   
   <!-- 🚀 INTEGRATION #1A: HiBase + HiFlags for HiGYM shares (flagged rollout) -->
-  <script src="./lib/flags/HiFlags.js"></script>
-  <script src="./lib/hibase/index.js"></script>
+  <script src="./lib/flags/HiFlags.js" type="module"></script>
+  <script src="./lib/hibase/index.js" type="module"></script>
   <script src="assets/geocoding-service.js"></script>
   <!-- Header: Using Tesla-Grade Dashboard Header (no HiHeader.js needed) -->
   <script src="assets/emotions.js"></script>
@@ -2440,6 +2443,12 @@
     // Enhanced profile-first location management with traveling support
     async function loadUserLocation() {
       try {
+        // Safety check: ensure HiDB is available
+        if (!window.hiDB || typeof window.hiDB.getUserProfile !== 'function') {
+          console.warn('💾 HiDB not ready, skipping user location load');
+          return;
+        }
+        
         const userProfile = await window.hiDB.getUserProfile();
         const locationEducation = document.getElementById('locationEducation');
         const travelingContainer = document.getElementById('travelingContainer');

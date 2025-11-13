@@ -147,7 +147,7 @@ class AnonymousAccessModal {
       console.log('🔍 Starting comprehensive auth status check...');
       
       // Method 1: Check Supabase user
-      if (window.supabase) {
+      if (window.supabase && window.supabase.auth && typeof window.supabase.auth.getUser === 'function') {
         try {
           const { data: { user } } = await window.supabase.auth.getUser();
           if (user) {
@@ -160,10 +160,10 @@ class AnonymousAccessModal {
           console.log('⚠️ Supabase user check failed:', e.message);
         }
       } else {
-        console.log('❌ window.supabase not available');
+        console.log('❌ window.supabase or auth.getUser not available');
       }
       
-      if (window.supabaseClient) {
+      if (window.supabaseClient && window.supabaseClient.auth && typeof window.supabaseClient.auth.getUser === 'function') {
         try {
           const { data: { user } } = await window.supabaseClient.auth.getUser();
           if (user) {
@@ -176,7 +176,7 @@ class AnonymousAccessModal {
           console.log('⚠️ SupabaseClient user check failed:', e.message);
         }
       } else {
-        console.log('❌ window.supabaseClient not available');
+        console.log('❌ window.supabaseClient or auth.getUser not available');
       }
       
       // Method 2: Check localStorage tokens (multiple indicators)

@@ -233,10 +233,15 @@
         });
       });
       
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true
-      });
+      // Safety check: ensure document.body exists before observing
+      if (document.body && typeof document.body.nodeType === 'number') {
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+      } else {
+        console.warn('🎯 Contextual Spotlight: document.body not ready for MutationObserver');
+      }
     }
     
     triggerUpgradeSpotlight() {
