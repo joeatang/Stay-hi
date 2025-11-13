@@ -2038,10 +2038,17 @@
     function openCalendar() {
       console.log('📅 Opening premium calendar...');
       
-      // Integration with premium-calendar.js
-      if (window.PremiumCalendar && window.PremiumCalendar.show) {
-        window.PremiumCalendar.show();
+      // Integration with premium-calendar.js - use instance method
+      if (window.hiCalendarInstance && typeof window.hiCalendarInstance.show === 'function') {
+        window.hiCalendarInstance.show();
+      } else if (window.PremiumCalendar) {
+        // Initialize if not already done
+        if (!window.hiCalendarInstance) {
+          window.hiCalendarInstance = new window.PremiumCalendar();
+        }
+        window.hiCalendarInstance.show();
       } else {
+        console.error('❌ Calendar not available - premium-calendar.js not loaded');
         // Fallback: Navigate to calendar page
         window.location.href = 'calendar.html';
       }

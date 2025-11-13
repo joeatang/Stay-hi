@@ -15,7 +15,16 @@ class PremiumCalendar {
     this.createCalendarModal();
     this.loadHiMoments();
     this.setupEventListeners();
+    this.setupGlobalInstance();
     console.log('📅 Premium Calendar initialized');
+  }
+  
+  setupGlobalInstance() {
+    // Ensure global instance is available for all pages
+    if (!window.hiCalendarInstance) {
+      window.hiCalendarInstance = this;
+      console.log('📅 Global calendar instance established');
+    }
   }
 
   createCalendarModal() {
@@ -123,7 +132,17 @@ class PremiumCalendar {
 
   show() {
     const modal = document.querySelector('.premium-calendar-modal');
-    if (!modal) return;
+    if (!modal) {
+      console.error('❌ Calendar modal not found - reinitializing...');
+      this.createCalendarModal();
+      setTimeout(() => this.show(), 100);
+      return;
+    }
+
+    if (this.isOpen) {
+      console.log('📅 Calendar already open');
+      return;
+    }
 
     this.isOpen = true;
     modal.classList.add('show');
@@ -137,6 +156,8 @@ class PremiumCalendar {
     // Focus management for accessibility
     const firstFocusable = modal.querySelector('#calPrevBtn');
     firstFocusable?.focus();
+    
+    console.log('📅 Premium Calendar opened successfully');
   }
 
   hide() {

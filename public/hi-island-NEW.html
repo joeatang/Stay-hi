@@ -2578,12 +2578,19 @@
       setupNavigationModal();
     }
 
-    // Calendar functionality (placeholder)
+    // Calendar functionality - Tesla-grade with fallbacks
     function showCalendar() {
-      if (window.hiCalendarInstance) {
+      if (window.hiCalendarInstance && typeof window.hiCalendarInstance.show === 'function') {
+        window.hiCalendarInstance.show();
+      } else if (window.PremiumCalendar) {
+        // Initialize if not already done
+        console.log('📅 Initializing calendar on Hi Island...');
+        window.hiCalendarInstance = new window.PremiumCalendar();
         window.hiCalendarInstance.show();
       } else {
-        console.error('[HI DEV] Calendar not initialized on Hi Island');
+        console.error('❌ Calendar not available - premium-calendar.js not loaded');
+        // Show user-friendly message
+        alert('📅 Calendar is loading... Please try again in a moment.');
       }
     }
 
