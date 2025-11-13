@@ -20,19 +20,23 @@ class PremiumCalendar {
   }
   
   setupGlobalInstance() {
-    // Ensure global instance is available for all pages
-    if (!window.hiCalendarInstance) {
-      window.hiCalendarInstance = this;
-      console.log('📅 Global calendar instance established');
+    // Prevent multiple instances - force singleton pattern
+    if (window.hiCalendarInstance && window.hiCalendarInstance !== this) {
+      console.log('📅 Replacing existing calendar instance to prevent conflicts');
+      if (window.hiCalendarInstance.isOpen) {
+        window.hiCalendarInstance.hide();
+      }
     }
+    window.hiCalendarInstance = this;
+    console.log('📅 Global calendar instance established (singleton enforced)');
   }
 
   createCalendarModal() {
-    // HI DEV: Prevent modal stacking (P2) - Guard against duplicate creation
-    const existing = document.querySelector('.premium-calendar-modal');
-    if (existing) {
-      console.log('[HI DEV] Removing existing calendar modal to prevent stacking');
-      existing.remove();
+    // HI DEV: Prevent modal stacking - Remove ALL existing calendar modals
+    const existing = document.querySelectorAll('.premium-calendar-modal');
+    if (existing.length > 0) {
+      console.log(`[HI DEV] Removing ${existing.length} existing calendar modals to prevent stacking`);
+      existing.forEach(modal => modal.remove());
     }
 
     const modal = document.createElement('div');

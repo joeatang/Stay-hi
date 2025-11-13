@@ -1258,6 +1258,11 @@
     </div>
   </header>
 
+  <!-- Tesla-Grade Floating HiFirmation Button -->
+  <button class="floating-hiffirmations" id="floatingHiffirmations" aria-label="Daily HiFirmations" title="Get inspired with daily HiFirmations">
+    ✨
+  </button>
+
   <!-- S-DASH Flag-Gated DOM Anchors (Hidden Placeholders) -->
   <script>
     (async function initSDashAnchors() {
@@ -1942,6 +1947,22 @@
       });
     }
 
+    // Floating HiFirmations Handler 
+    function setupFloatingHiffirmationsHandler() {
+      const floatingBtn = document.getElementById('floatingHiffirmations');
+      if (!floatingBtn) return;
+
+      floatingBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        showHiffirmationsModal();
+        
+        // Tesla-grade haptic feedback
+        if (window.PremiumUX) {
+          window.PremiumUX.triggerHapticFeedback('medium');
+        }
+      });
+    }
+
     // Tesla-Grade Daily Hiffirmation Generator (Consistent Daily Messages)
     function getDailyHiffirmation(date = new Date()) {
       const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
@@ -2491,6 +2512,7 @@
       // setupSelfHi5Handler(); // DEPRECATED: Using medallion long-press system
       setupNavigationHandler();
       setupHiffirmationsHandler();
+      setupFloatingHiffirmationsHandler();
       await setupWeeklyProgress();
       
       // Initialize global stats variables immediately
