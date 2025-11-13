@@ -411,7 +411,7 @@
     }
 
     .calendar-btn, .menu-btn, .home-nav-btn {
-      display: flex;
+      display: flex !important;
       align-items: center;
       justify-content: center;
       width: 40px;
@@ -422,6 +422,9 @@
       color: #FFD166;
       cursor: pointer;
       transition: all 0.3s ease;
+      visibility: visible !important;
+      opacity: 1 !important;
+      z-index: 1001;
     }
 
     .calendar-btn:hover, .menu-btn:hover, .home-nav-btn:hover {
@@ -1977,36 +1980,36 @@
       }
       
       const hiffirmations = [
-        "✨ Hi! You're radiating pure positive energy today",
-        "🌟 Your Hi moments are creating beautiful ripples of joy", 
-        "💫 Hi there! You have the power to brighten someone's entire day",
-        "🔥 Hi beautiful soul! Your authentic self is your true superpower",
-        "🌈 Every Hi you share makes our world infinitely brighter",
-        "⭐ Hi friend! You're exactly where you need to be right now",
-        "💝 Hi amazing human! Your presence is a gift to everyone around you",
-        "🌺 Hi warrior! You're growing stronger with each Hi moment you create",
-        "🎯 Hi there! Trust your journey, you're doing absolutely amazing",
-        "💎 Hi shining star! Your unique light can never be dimmed",
-        "🚀 Hi unstoppable force! Your potential is limitless and so inspiring",
-        "🌸 Hi beautiful! You bring such beauty to every single moment",
-        "⚡ Hi energy! Your vibe literally lights up every room you enter",
-        "🏔️ Hi mountain mover! You're stronger than any challenge life brings",
-        "🎨 Hi creative soul! Your imagination makes the world more colorful",
-        "🌊 Hi flowing river! You adapt with grace through all life's changes",
-        "🔮 Hi intuitive being! Your inner wisdom guides you perfectly",
-        "🦋 Hi transformer! You're evolving into your most amazing self",
-        "🌅 Hi sunrise! Each new day brings fresh opportunities just for you",
-        "💪 Hi resilient heart! Your bounce-back ability is truly remarkable",
-        "🎵 Hi melody maker! Your soul sings the most beautiful song",
-        "🌟 Hi beacon! You're a lighthouse of hope for so many others",
-        "🕊️ Hi peaceful spirit! Serenity follows you wherever you go",
-        "🔥 Hi passionate heart! Your fire ignites positive change everywhere",
-        "🌻 Hi sunflower! You're always growing toward the light",
-        "⭐ Hi dreamer! Your visions are completely valid and achievable",
-        "🎯 Hi aligned soul! You're perfectly connected to your highest purpose",
-        "💫 Hi magical being! Amazing things happen when you believe in yourself",
-        "🌈 Hi reality creator! You're painting your own beautiful world",
-        "🦄 Hi unique spirit! Your one-of-a-kind nature is your greatest strength"
+        "✨ Stay Hi! You're on a Hi level of positive energy today",
+        "🌟 Your Hi vibes are lifting others to new Hi-ghts of joy", 
+        "💫 Hi there! You have the power to get someone Hi on life today",
+        "🔥 Hi amazing soul! Your authentic self is Hi-ly inspiring",
+        "🌈 Every Hi you share lifts our world to Hi-er dimensions",
+        "⭐ Hi friend! You're exactly Hi enough, right Hi and now",
+        "💝 Hi incredible human! Your presence gets everyone Hi on good vibes",
+        "🌺 Hi warrior! You're reaching Hi-er levels with each Hi moment",
+        "🎯 Hi there! Trust your journey, you're flying Hi and amazing",
+        "💎 Hi shining star! Your Hi energy can never be brought low",
+        "🚀 Hi unstoppable force! Your potential reaches the Hi-est peaks",
+        "🌸 Hi beautiful! You bring Hi-quality beauty to every moment",
+        "⚡ Hi energy! Your Hi frequency lights up every space you enter",
+        "🏔️ Hi mountain mover! You're Hi above any challenge life brings",
+        "🎨 Hi creative soul! Your imagination paints the world in Hi definition",
+        "🌊 Hi flowing river! You ride Hi through all of life's changes",
+        "🔮 Hi intuitive being! Your inner wisdom operates on the Hi-est level",
+        "🦋 Hi transformer! You're evolving into your Hi-est, most amazing self",
+        "🌅 Hi sunrise! Each day brings Hi-level opportunities just for you",
+        "💪 Hi resilient heart! Your bounce-back ability is Hi-ly remarkable",
+        "🎵 Hi melody maker! Your soul sings in Hi-fi, beautiful frequencies",
+        "🌟 Hi beacon! You're a Hi-rise lighthouse of hope for others",
+        "🕊️ Hi peaceful spirit! Serenity follows you to Hi-er ground",
+        "🔥 Hi passionate heart! Your fire lifts everyone to Hi-er ground",
+        "🌻 Hi sunflower! You're always growing toward the Hi-est light",
+        "⭐ Hi dreamer! Your visions reach Hi into the realm of possibility",
+        "🎯 Hi aligned soul! You're connected to your Hi-est purpose",
+        "💫 Hi magical being! Hi-level magic happens when you believe",
+        "🌈 Hi reality creator! You're painting Hi-definition beauty everywhere",
+        "🦄 Hi unique spirit! Your one-of-a-kind nature is Hi-ly special"
       ];
       
       const selectedMessage = hiffirmations[Math.abs(hash % hiffirmations.length)];
@@ -2020,18 +2023,18 @@
         localStorage.setItem('lastHiffirmationDate', today);
         return selectedMessage; // Full daily message
       } else {
-        // Hi Boost - shorter, encouraging messages
+        // Hi Boost - shorter, Hi Speak encouraging messages
         const hiBoosts = [
-          "Hi! Keep shining! ✨",
-          "Hi beautiful! You've got this! 💪",
-          "Hi amazing! Stay awesome! 🚀",
-          "Hi superstar! Keep going! 🌟",
-          "Hi warrior! You're unstoppable! ⚡",
-          "Hi champion! Believe in yourself! 🏆",
-          "Hi brilliant! Trust your journey! 🌈",
-          "Hi phenomenal! You matter! 💝",
-          "Hi incredible! Keep rising! 🦅",
-          "Hi wonderful! Stay Hi! 🌻"
+          "Stay Hi! Keep that Hi energy shining! ✨",
+          "Hi beautiful! You've got that Hi-level magic! 💪",
+          "Hi amazing! Keep riding Hi! 🚀",
+          "Hi superstar! Stay on that Hi frequency! 🌟",
+          "Hi warrior! You're Hi above it all! ⚡",
+          "Hi champion! Keep your Hi-ness flowing! 🏆",
+          "Hi brilliant! Trust your Hi intuition! 🌈",
+          "Hi phenomenal! You're Hi-ly valued! 💝",
+          "Hi incredible! Keep flying Hi! 🦅",
+          "Hi wonderful! Stay Hi always! 🌻"
         ];
         return hiBoosts[Math.floor(Math.random() * hiBoosts.length)];
       }
@@ -2135,7 +2138,8 @@
           
           <!-- Hi Logo Branding -->
           <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-            <img src="assets/brand/hi-logo-light.png" alt="Hi" style="width: 32px; height: 32px; opacity: 0.7;" />
+            <img src="assets/brand/hi-logo-light.png" alt="Hi" style="width: 32px; height: 32px; opacity: 0.7;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';" />
+            <div style="display: none; font-size: 24px; color: #FFD166; font-weight: bold;">Hi</div>
           </div>
           
           <!-- Close Button -->
