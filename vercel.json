@@ -36,6 +36,7 @@
       "destination": "/public/$1"
     }
   ],
+  "errorPage": "/public/404.html",
   "headers": [
     {
       "source": "/(.*)",

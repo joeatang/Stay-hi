@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stay Hi - Page Not Found</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 48px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 90%;
+            animation: slideUp 0.6s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .logo {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 24px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        .error-code {
+            font-size: 72px;
+            font-weight: 900;
+            color: #ff6b6b;
+            margin-bottom: 16px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .error-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #2d3748;
+        }
+        
+        .error-message {
+            font-size: 16px;
+            color: #718096;
+            margin-bottom: 32px;
+            line-height: 1.7;
+        }
+        
+        .recovery-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 14px 24px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn.secondary {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .btn.secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .help-text {
+            font-size: 14px;
+            color: #a0aec0;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .diagnostic-info {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 24px 0;
+            font-size: 14px;
+            color: #4a5568;
+            text-align: left;
+        }
+        
+        .diagnostic-info strong {
+            color: #2d3748;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 32px 24px;
+                margin: 20px;
+            }
+            
+            .error-code {
+                font-size: 56px;
+            }
+            
+            .error-title {
+                font-size: 24px;
+            }
+            
+            .logo {
+                font-size: 28px;
+            }
+        }
+        
+        /* Tesla-grade loading states */
+        .btn.loading {
+            position: relative;
+            color: transparent;
+        }
+        
+        .btn.loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        /* Success message styling */
+        .success-message {
+            background: #f0fff4;
+            border: 1px solid #9ae6b4;
+            color: #2d7d32;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            display: none;
+        }
+        
+        .success-message.show {
+            display: block;
+            animation: slideUp 0.3s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">Stay Hi</div>
+        
+        <div class="error-code">404</div>
+        <h1 class="error-title">Page Not Found</h1>
+        <p class="error-message">
+            The page you're looking for doesn't exist or may have been moved. 
+            Don't worry – let's get you back on track with these options:
+        </p>
+        
+        <div class="diagnostic-info">
+            <strong>Quick Diagnostics:</strong><br>
+            • URL: <span id="current-url"></span><br>
+            • Referrer: <span id="referrer-url"></span><br>
+            • Time: <span id="error-time"></span>
+        </div>
+        
+        <div class="recovery-actions">
+            <button class="btn" onclick="goHome()">
+                🏠 Go to Dashboard
+            </button>
+            
+            <button class="btn secondary" onclick="goBack()">
+                ← Go Back
+            </button>
+            
+            <button class="btn secondary" onclick="trySignIn()">
+                🔐 Sign In / Get Magic Link
+            </button>
+            
+            <button class="btn secondary" onclick="contactSupport()">
+                💬 Get Help
+            </button>
+        </div>
+        
+        <div id="success-message" class="success-message">
+            <strong>✅ Action completed!</strong> Redirecting you now...
+        </div>
+        
+        <div class="help-text">
+            <strong>Need immediate help?</strong><br>
+            If you clicked a magic link and ended up here, try requesting a new one.<br>
+            All our recovery actions are designed to get you back to your Hi experience quickly.
+        </div>
+    </div>
+
+    <script>
+        // Tesla-grade 404 recovery system
+        class TeslaRecoverySystem {
+            constructor() {
+                this.init();
+            }
+            
+            init() {
+                // Populate diagnostic info
+                document.getElementById('current-url').textContent = window.location.href;
+                document.getElementById('referrer-url').textContent = document.referrer || 'Direct access';
+                document.getElementById('error-time').textContent = new Date().toLocaleString();
+                
+                // Auto-detect common recovery scenarios
+                this.detectRecoveryScenario();
+                
+                // Track 404 for analytics (non-blocking)
+                this.trackError();
+            }
+            
+            detectRecoveryScenario() {
+                const url = window.location.href.toLowerCase();
+                const referrer = document.referrer.toLowerCase();
+                
+                // Magic link scenario
+                if (url.includes('access_token') || url.includes('refresh_token')) {
+                    this.showMagicLinkRecovery();
+                }
+                
+                // Auth callback scenario  
+                if (url.includes('/auth') || url.includes('/callback') || url.includes('post-auth')) {
+                    this.showAuthRecovery();
+                }
+                
+                // Profile/dashboard scenario
+                if (url.includes('/profile') || url.includes('/dashboard') || url.includes('/hi-')) {
+                    this.showDashboardRecovery();
+                }
+            }
+            
+            showMagicLinkRecovery() {
+                const message = document.querySelector('.error-message');
+                message.innerHTML = `
+                    <strong>🔐 Magic Link Issue Detected</strong><br>
+                    It looks like you clicked a magic link that led to a broken URL. 
+                    This sometimes happens with email clients. Let's get you signed in properly:
+                `;
+                
+                // Prioritize sign-in option
+                const buttons = document.querySelectorAll('.btn');
+                buttons[2].style.order = '-1'; // Move sign-in to top
+                buttons[2].innerHTML = '🚀 Get Fresh Magic Link (Recommended)';
+            }
+            
+            showAuthRecovery() {
+                const message = document.querySelector('.error-message');
+                message.innerHTML = `
+                    <strong>🔄 Authentication Redirect Issue</strong><br>
+                    The authentication process didn't complete properly. 
+                    This can happen with browser security settings or expired sessions:
+                `;
+            }
+            
+            showDashboardRecovery() {
+                const message = document.querySelector('.error-message');
+                message.innerHTML = `
+                    <strong>📊 Dashboard Access Issue</strong><br>
+                    The page you're trying to reach requires authentication. 
+                    Let's get you signed in and back to your personalized experience:
+                `;
+            }
+            
+            trackError() {
+                // Non-blocking error tracking
+                try {
+                    const errorData = {
+                        url: window.location.href,
+                        referrer: document.referrer,
+                        timestamp: Date.now(),
+                        userAgent: navigator.userAgent,
+                        type: '404_recovery_page'
+                    };
+                    
+                    // You could send this to analytics service
+                    console.log('📊 404 Recovery Analytics:', errorData);
+                    
+                    // Store locally for debugging
+                    const errors = JSON.parse(localStorage.getItem('hi_404_log') || '[]');
+                    errors.push(errorData);
+                    errors.splice(-10); // Keep last 10 errors
+                    localStorage.setItem('hi_404_log', JSON.stringify(errors));
+                    
+                } catch (e) {
+                    // Fail silently - don't break the recovery experience
+                }
+            }
+            
+            showSuccess(message) {
+                const successDiv = document.getElementById('success-message');
+                successDiv.innerHTML = `<strong>✅ ${message}</strong> Redirecting you now...`;
+                successDiv.classList.add('show');
+            }
+            
+            // Recovery actions
+            goHome() {
+                this.showSuccess('Taking you to the main dashboard');
+                setTimeout(() => {
+                    // Try authenticated dashboard first, fallback to welcome
+                    window.location.href = 'hi-dashboard.html';
+                }, 1000);
+            }
+            
+            goBack() {
+                if (window.history.length > 1) {
+                    this.showSuccess('Going back to previous page');
+                    setTimeout(() => window.history.back(), 800);
+                } else {
+                    this.goHome(); // Fallback if no history
+                }
+            }
+            
+            trySignIn() {
+                this.showSuccess('Opening sign-in experience');
+                setTimeout(() => {
+                    window.location.href = 'signin-enhanced.html';
+                }, 1000);
+            }
+            
+            contactSupport() {
+                this.showSuccess('Opening support options');
+                setTimeout(() => {
+                    // Could open support chat, email, or help page
+                    window.location.href = 'mailto:support@stayhi.com?subject=404 Error Help&body=I encountered a 404 error at: ' + encodeURIComponent(window.location.href);
+                }, 1000);
+            }
+        }
+        
+        // Global functions for button clicks
+        let recoverySystem;
+        
+        function goHome() { recoverySystem.goHome(); }
+        function goBack() { recoverySystem.goBack(); }
+        function trySignIn() { recoverySystem.trySignIn(); }
+        function contactSupport() { recoverySystem.contactSupport(); }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            recoverySystem = new TeslaRecoverySystem();
+        });
+        
+        // Handle loading states for buttons
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn') && !e.target.classList.contains('loading')) {
+                e.target.classList.add('loading');
+                // Remove loading state after action completes
+                setTimeout(() => e.target.classList.remove('loading'), 2000);
+            }
+        });
+    </script>
+</body>
+</html>
