@@ -335,7 +335,7 @@
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      width: 140px; /* Expanded for tier indicator */
+      width: 160px; /* Expanded for tier indicator + menu button */
       gap: 8px;
     }
     
@@ -684,7 +684,12 @@
         gap: 12px;
       }
       
-      .calendar-btn {
+      .header-right {
+        width: 170px; /* Extra space for mobile touch targets */
+        gap: 6px; /* Tighter spacing on mobile */
+      }
+      
+      .calendar-btn, .menu-btn {
         width: 36px;
         height: 36px;
       }
