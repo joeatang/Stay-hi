@@ -231,6 +231,10 @@
                 🔐 Sign In / Get Magic Link
             </button>
             
+            <button class="btn secondary" onclick="visitPromo()">
+                🌟 Join Our Community
+            </button>
+            
             <button class="btn secondary" onclick="contactSupport()">
                 💬 Get Help
             </button>
@@ -382,6 +386,13 @@
                     window.location.href = 'mailto:support@stayhi.com?subject=404 Error Help&body=I encountered a 404 error at: ' + encodeURIComponent(window.location.href);
                 }, 1000);
             }
+            
+            visitPromo() {
+                this.showSuccess('Taking you to join our community');
+                setTimeout(() => {
+                    window.location.href = 'promo.html?source=404';
+                }, 1000);
+            }
         }
         
         // Global functions for button clicks
@@ -391,6 +402,7 @@
         function goBack() { recoverySystem.goBack(); }
         function trySignIn() { recoverySystem.trySignIn(); }
         function contactSupport() { recoverySystem.contactSupport(); }
+        function visitPromo() { recoverySystem.visitPromo(); }
         
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', () => {
