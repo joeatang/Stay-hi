@@ -19,32 +19,82 @@
   padding-bottom: calc(20px + var(--nav-safe-bottom));
 }
 
-/* Escape Button Styles */
-#hiEscapeButton {
-  /* Enhanced touch target for Tesla-grade accessibility */
-  min-width: 44px !important;
-  min-height: 44px !important;
+/* 🚀 Floating Navigation System */
+.hi-floating-nav {
+  position: fixed;
+  bottom: 100px; /* Above footer */
+  right: 20px;
+  z-index: 999998;
   
-  /* Smooth animations */
-  transform: scale(1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  
+  /* Subtle entrance */
+  opacity: 0.4;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.hi-floating-nav:hover {
+  opacity: 1;
+  transform: translateX(-2px);
+}
+
+.hi-floating-nav button {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 22px;
   
-  /* Subtle glow effect */
+  background: rgba(15, 16, 34, 0.9);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  
+  color: white;
+  cursor: pointer;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  transition: all 0.2s ease;
+  
+  /* Tesla-grade shadow */
   box-shadow: 
-    0 4px 20px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.1);
+    0 8px 25px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
-#hiEscapeButton:hover {
-  transform: scale(1.1);
-  opacity: 1 !important;
+.hi-floating-nav button:hover {
+  background: rgba(15, 16, 34, 0.95);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+  
   box-shadow: 
-    0 6px 30px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.2);
+    0 12px 35px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.15);
 }
 
-#hiEscapeButton:active {
+.hi-floating-nav button:active {
   transform: scale(0.95);
+}
+
+/* Home button specific styling */
+.float-home-btn {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+}
+
+.float-home-btn:hover {
+  background: linear-gradient(135deg, #059669, #047857) !important;
+}
+
+/* Refresh button styling */  
+.float-refresh-btn {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
+}
+
+.float-refresh-btn:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
 }
 
 /* Loading State Protection */
@@ -256,11 +306,15 @@
 
 /* Responsive Adjustments */
 @media (max-width: 640px) {
-  #hiEscapeButton {
-    top: 16px;
+  .hi-floating-nav {
+    bottom: 120px; /* More space above mobile footer */
     right: 16px;
+  }
+  
+  .hi-floating-nav button {
     width: 40px;
     height: 40px;
+    border-radius: 20px;
   }
   
   #hiEscapeModal > div > div {
@@ -271,6 +325,27 @@
   .tesla-back-button {
     padding: 10px 14px;
     font-size: 14px;
+  }
+}
+
+/* Landscape mobile adjustments */
+@media (orientation: landscape) and (max-height: 500px) {
+  .hi-floating-nav {
+    bottom: 80px;
+    right: 16px;
+    gap: 6px;
+  }
+  
+  .hi-floating-nav button {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+/* Ultra-wide displays */
+@media (min-width: 1400px) {
+  .hi-floating-nav {
+    right: calc((100vw - 1200px) / 2 + 20px); /* Align with content max-width */
   }
 }
 
@@ -288,7 +363,8 @@
 
 /* Reduced Motion Support */
 @media (prefers-reduced-motion: reduce) {
-  #hiEscapeButton,
+  .hi-floating-nav,
+  .hi-floating-nav button,
   #hiEscapeModal,
   .tesla-back-button {
     transition: none;
@@ -303,8 +379,9 @@
 
 /* High Contrast Mode */
 @media (prefers-contrast: high) {
-  #hiEscapeButton {
-    border: 2px solid white;
+  .hi-floating-nav button {
+    border-width: 2px;
+    border-color: white;
   }
   
   .tesla-back-button {
@@ -317,7 +394,7 @@
 }
 
 /* Focus Management */
-#hiEscapeButton:focus,
+.hi-floating-nav button:focus,
 .tesla-back-button:focus,
 #hiEscapeModal button:focus {
   outline: 2px solid #fbbf24;
@@ -326,7 +403,7 @@
 
 /* Print Styles */
 @media print {
-  #hiEscapeButton,
+  .hi-floating-nav,
   #hiEscapeModal {
     display: none !important;
   }

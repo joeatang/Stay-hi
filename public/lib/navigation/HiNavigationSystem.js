@@ -127,9 +127,9 @@ class HiNavigationSystem {
   
   // 🚪 Navigation escape routes system
   initEscapeRoutes() {
-    // Add universal escape route button
+    // Add floating navigation pill (non-intrusive)
     if (this.config.enableEscapeRoutes) {
-      this.injectEscapeButton();
+      this.injectFloatingNav();
     }
     
     // Keyboard escape routes
@@ -145,21 +145,8 @@ class HiNavigationSystem {
       }
     });
     
-    // Double-tap escape for mobile
-    let tapCount = 0;
-    document.addEventListener('touchstart', () => {
-      tapCount++;
-      if (tapCount === 1) {
-        setTimeout(() => tapCount = 0, 500);
-      } else if (tapCount === 2) {
-        const currentTime = Date.now();
-        if (currentTime - this.lastActiveTime > 10000) {
-          console.log('📱 Double-tap escape detected');
-          this.handleEscapeAction();
-        }
-        tapCount = 0;
-      }
-    });
+    // Smart gesture detection (avoid conflicts)
+    this.initSmartGestures();
   }
   
   // ⬅️ Standardized back button system
@@ -304,23 +291,59 @@ class HiNavigationSystem {
     }, 10000);
   }
   
-  injectEscapeButton() {
-    const escapeBtn = document.createElement('button');
-    escapeBtn.id = 'hiEscapeButton';
-    escapeBtn.innerHTML = '🏠';
-    escapeBtn.style.cssText = `
-      position: fixed; top: 20px; right: 20px; z-index: 999998;
-      width: 44px; height: 44px; border-radius: 22px;
-      background: rgba(0,0,0,0.7); color: white; border: none;
-      font-size: 18px; cursor: pointer; backdrop-filter: blur(10px);
-      transition: all 0.2s ease; opacity: 0.3;
+  injectFloatingNav() {
+    // Create floating navigation pill
+    const floatingNav = document.createElement('div');
+    floatingNav.id = 'hiFloatingNav';
+    floatingNav.innerHTML = `
+      <button class="float-home-btn" title="Go Home" data-action="home">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9,22 9,12 15,12 15,22"/>
+        </svg>
+      </button>
+      <button class="float-refresh-btn" title="Refresh Page" data-action="refresh">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="23,4 23,10 17,10"/>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg>
+      </button>
     `;
     
-    escapeBtn.addEventListener('click', () => this.refreshToHome());
-    escapeBtn.addEventListener('mouseenter', () => escapeBtn.style.opacity = '1');
-    escapeBtn.addEventListener('mouseleave', () => escapeBtn.style.opacity = '0.3');
+    floatingNav.className = 'hi-floating-nav';
     
-    document.body.appendChild(escapeBtn);
+    // Add event listeners
+    floatingNav.addEventListener('click', (e) => {
+      const action = e.target.closest('[data-action]')?.dataset.action;
+      if (action === 'home') this.refreshToHome();
+      if (action === 'refresh') this.forceRefresh();
+    });
+    
+    document.body.appendChild(floatingNav);
+  }
+  
+  initSmartGestures() {
+    // Long press detection for mobile (3 fingers = emergency escape)
+    let touchCount = 0;
+    let longPressTimer = null;
+    
+    document.addEventListener('touchstart', (e) => {
+      touchCount = e.touches.length;
+      
+      if (touchCount >= 3) {
+        longPressTimer = setTimeout(() => {
+          console.log('🚨 Emergency 3-finger escape detected');
+          this.showEscapeModal();
+        }, 2000);
+      }
+    });
+    
+    document.addEventListener('touchend', () => {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+    });
   }
   
   handleEscapeAction() {
@@ -430,9 +453,9 @@ class HiNavigationSystem {
       clearTimeout(this.sessionRefreshTimeout);
     }
     
-    const escapeBtn = document.getElementById('hiEscapeButton');
-    if (escapeBtn) {
-      escapeBtn.remove();
+    const floatingNav = document.getElementById('hiFloatingNav');
+    if (floatingNav) {
+      floatingNav.remove();
     }
   }
 }
