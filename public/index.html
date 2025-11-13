@@ -54,6 +54,7 @@
                         
                         // 500ms Tesla-grade loading then redirect to welcome
                         setTimeout(() => {
+                            loadingExp.hide();
                             window.location.replace('/welcome.html');
                         }, 500);
                     } else {
@@ -98,7 +99,6 @@
     
     <!-- 🚀 TESLA-GRADE SYSTEM INTEGRATION -->
     <script src="../phase3-loader.js"></script>
-    <script src="assets/hi-flow-controller.js"></script>
     <script src="assets/tesla-supabase-manager.js"></script>
     <script src="assets/tesla-auth-controller.js"></script>
     
@@ -117,16 +117,10 @@
             if (magicLinkFlow || hasHistory || visitedBefore) {
                 document.getElementById('dashboard-content').style.display = 'block';
                 
-                // 🚀 TESLA-GRADE: Initialize flow controller for seamless experience
+                // 🚀 TESLA-GRADE: Redirect directly to dashboard for returning visitors  
                 setTimeout(() => {
-                    if (window.HiFlowController) {
-                        const flowController = new HiFlowController();
-                        console.log('✅ Tesla-grade flow controller activated');
-                    } else {
-                        // Fallback to dashboard WITH all the fixes
-                        window.location.replace('/82815_stayhi_index.html');
-                    }
-                }, 1000);
+                    window.location.replace('/hi-dashboard.html');
+                }, 500);
             }
         });
         

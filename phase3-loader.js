@@ -13,8 +13,7 @@ class Phase3Loader {
     async loadCriticalAssets() {
         const criticalAssets = [
             'tesla-edge-protection.css',
-            'hi-access-tiers.js',
-            'hi-realtime-controller.js'
+            'public/assets/hi-access-tiers.js'
         ];
         
         const loadPromises = criticalAssets.map(asset => this.loadAsset(asset));

@@ -22,13 +22,26 @@ export async function trackShareSubmission(source = 'dashboard', metadata = {}) 
       }
       
       if (data && typeof data === 'number') {
-        // ✅ SUCCESS: Update global counter and UI
+        // ✅ SUCCESS: Update global counter and UI with smooth transition
+        const oldValue = window.gTotalHis;
         window.gTotalHis = data;
-        console.log('✅ Total His updated from database:', window.gTotalHis);
+        window._gTotalHisIsTemporary = false; // Mark as authoritative
         
-        // Update UI displays
+        console.log('✅ Total His updated from database:', `${oldValue} → ${window.gTotalHis}`);
+        
+        // Update UI displays with smooth transition for large jumps
         document.querySelectorAll('.total-his-count, #globalTotalHis, #totalHis').forEach(el => {
-          el.textContent = window.gTotalHis.toLocaleString();
+          const diff = window.gTotalHis - oldValue;
+          if (diff > 50 && oldValue < 100) {
+            // Smooth large jumps from temporary values
+            el.style.transition = 'all 0.8s ease-out';
+            setTimeout(() => {
+              el.textContent = window.gTotalHis.toLocaleString();
+              setTimeout(() => el.style.transition = '', 1000);
+            }, 100);
+          } else {
+            el.textContent = window.gTotalHis.toLocaleString();
+          }
         });
         
         // Update cache if available

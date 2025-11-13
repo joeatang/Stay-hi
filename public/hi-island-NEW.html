@@ -46,7 +46,7 @@
   <link rel="stylesheet" href="assets/premium-calendar.css"/>
   
   <!-- Tesla-Grade Navigation System -->
-  <link rel="stylesheet" href="./lib/navigation/HiNavigationSystem.css"/>
+  <link rel="stylesheet" href="./lib/navigation/HiStandardNavigation.css"/>
 
   <!-- Component Styles -->
   <link rel="stylesheet" href="components/hi-island-map/map.css"/>
@@ -66,6 +66,15 @@
   
   <!-- 🚀 PWA Manager -->
   <script src="assets/pwa-manager.js"></script>
+  
+  <!-- Tesla-Grade Milestone Celebration System -->
+  <script src="assets/milestone-celebration-system.js"></script>
+  
+  <!-- Tesla-Grade Contextual Spotlight System -->
+  <script src="assets/contextual-spotlight-system.js"></script>
+  
+  <!-- Tesla-Grade Smart Conversion System -->
+  <script src="assets/smart-conversion-system.js"></script>
   
   <style>
     /* ===================================================================
@@ -179,8 +188,6 @@
     }
 
     .brand-hi-logo {
-      width: 24px;
-      height: 24px;
       filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
     }
 
@@ -191,7 +198,7 @@
       letter-spacing: -0.5px;
     }
 
-    .calendar-btn, .menu-btn {
+    .calendar-btn, .menu-btn, .home-nav-btn {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -205,7 +212,7 @@
       transition: all 0.3s ease;
     }
 
-    .calendar-btn:hover, .menu-btn:hover {
+    .calendar-btn:hover, .menu-btn:hover, .home-nav-btn:hover {
       background: rgba(255, 209, 102, 0.2);
       transform: translateY(-1px);
     }
@@ -217,15 +224,18 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(8px);
-      display: none;
-      justify-content: center;
-      align-items: center;
       z-index: 10000;
       opacity: 0;
       visibility: hidden;
       transition: all 0.3s ease;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .navigation-modal.show {
+      opacity: 1;
+      visibility: visible;
     }
 
     .navigation-backdrop {
@@ -234,6 +244,8 @@
       left: 0;
       right: 0;
       bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
     }
 
     .navigation-content {
@@ -328,6 +340,41 @@
       font-size: 18px;
       width: 24px;
       text-align: center;
+    }
+
+    /* Mobile Responsive Navigation */
+    @media (max-width: 768px) {
+      .navigation-content {
+        width: min(360px, 95vw);
+        padding: 20px;
+        margin: 16px;
+      }
+      
+      .navigation-menu {
+        gap: 20px;
+      }
+      
+      .nav-item {
+        padding: 14px 16px;
+        font-size: 16px;
+      }
+      
+      .nav-icon {
+        font-size: 20px;
+        width: 28px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .navigation-content {
+        width: calc(100vw - 32px);
+        padding: 16px;
+        margin: 16px;
+      }
+      
+      .navigation-header h3 {
+        font-size: 18px;
+      }
     }
 
     /* Account for fixed header */
@@ -975,6 +1022,115 @@
       background: rgba(103, 126, 234, 0.2);
       transform: translateY(-1px);
     }
+
+    /* Floating Refresh Button */
+    .floating-refresh {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #FFD166 0%, #F4A261 100%);
+      border: none;
+      border-radius: 50%;
+      color: #1E2A4A;
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 1000;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(255, 209, 102, 0.3);
+    }
+
+    .floating-refresh:hover {
+      transform: translateY(-2px) rotate(90deg);
+      box-shadow: 0 6px 20px rgba(255, 209, 102, 0.4);
+    }
+
+    .floating-refresh:active {
+      transform: translateY(0) rotate(180deg);
+    }
+
+    /* Floating Hiffirmations System */
+    .floating-hiffirmations {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #E91E63 0%, #9C27B0 100%);
+      border: none;
+      border-radius: 50%;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 999;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(233, 30, 99, 0.3);
+      animation: gentlePulse 4s infinite;
+    }
+
+    .floating-hiffirmations:hover {
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4);
+      animation-play-state: paused;
+    }
+
+    .floating-hiffirmations:active {
+      transform: translateY(0) scale(0.95);
+    }
+
+    @keyframes gentlePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+
+    /* Hiffirmation Popup */
+    .hiffirmation-popup {
+      position: fixed;
+      bottom: 85px;
+      left: 20px;
+      max-width: 280px;
+      background: rgba(26, 32, 56, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 16px 20px;
+      color: white;
+      font-size: 14px;
+      line-height: 1.4;
+      transform: translateY(20px) scale(0.9);
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    .hiffirmation-popup.show {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .hiffirmation-popup::before {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 28px;
+      width: 16px;
+      height: 16px;
+      background: rgba(26, 32, 56, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-top: none;
+      border-left: none;
+      transform: rotate(45deg);
+      border-radius: 0 0 4px 0;
+    }
   </style>
   
   <!-- HiFooter CSS - Dashboard Parity -->
@@ -988,17 +1144,24 @@
       <button class="calendar-btn" onclick="showCalendar()">
         📅
       </button>
+      
+      <button class="home-nav-btn" onclick="navigateToHome()" aria-label="Go to Hi Today" title="Navigate to Hi Today">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9,22 9,12 15,12 15,22"/>
+        </svg>
+      </button>
     </div>
     
     <div class="header-center">
       <div class="brand-container">
-        <img src="./assets/brand/hi-logo-light.png" alt="Hi" class="brand-light-logo">
+        <img src="./assets/brand/hi-logo-light.png" alt="Hi" class="brand-hi-logo">
         <span class="brand-text">Hi Island</span>
       </div>
     </div>
     
     <div class="header-right">
-      <div class="tier-indicator" id="membershipTier">
+      <div id="hi-tier-indicator" class="tier-indicator" title="Your membership tier">
         <span class="tier-text">Standard</span>
       </div>
       <button class="menu-btn" onclick="openNavigation()">
@@ -1008,59 +1171,49 @@
   </header>
 
   <!-- Navigation Modal -->
-  <div id="navigationModal" class="navigation-modal">
-    <div class="navigation-backdrop" onclick="closeNavigation()"></div>
+  <div id="navigationModal" class="navigation-modal" style="display: none;">
+    <div class="navigation-backdrop" id="navigationBackdrop"></div>
     <div class="navigation-content">
       <div class="navigation-header">
-        <h3>Hi Navigation</h3>
-        <button class="close-nav-btn" onclick="closeNavigation()">✕</button>
+        <h3>Stay Hi Navigation</h3>
+        <button id="closeNavigation" class="close-nav-btn">✕</button>
       </div>
       
-      <nav class="navigation-menu">
-        <div>
-          <div class="nav-section-title">Core</div>
-          <a href="/public/hi-dashboard.html" class="nav-item">
+      <div class="navigation-menu">
+        <div class="nav-section">
+          <div class="nav-section-title">Navigate</div>
+          <a href="hi-dashboard.html" class="nav-item">
             <span class="nav-icon">🏠</span>
-            Dashboard
+            <span>Hi Today</span>
           </a>
-          <a href="/public/profile.html" class="nav-item">
-            <span class="nav-icon">👤</span>
-            Profile
-          </a>
-          <a href="/public/hi-island-NEW.html" class="nav-item" style="background: rgba(255, 209, 102, 0.2); border-color: rgba(255, 209, 102, 0.3);">
+          <a href="hi-island-NEW.html" class="nav-item" style="background: rgba(255, 209, 102, 0.2); border-color: rgba(255, 209, 102, 0.3);">
             <span class="nav-icon">🏝️</span>
-            Hi Island
+            <span>Hi Island</span>
           </a>
-          <a href="/public/hi-muscle.html" class="nav-item">
+          <a href="hi-muscle.html" class="nav-item">
             <span class="nav-icon">💪</span>
-            Hi Muscle
+            <span>Hi Gym</span>
+          </a>
+          <a href="profile.html?from=hi-island.html" class="nav-item">
+            <span class="nav-icon">👤</span>
+            <span>Profile</span>
           </a>
         </div>
-        
-        <div>
+        <div class="nav-section">
           <div class="nav-section-title">Tools</div>
-          <a href="/public/hi-calendar.html" class="nav-item">
+          <a href="#" onclick="showCalendar(); window.closeNavigation(); return false;" class="nav-item">
             <span class="nav-icon">📅</span>
-            Calendar
-          </a>
-          <a href="/public/hi-hiffirmations.html" class="nav-item">
-            <span class="nav-icon">✨</span>
-            Hiffirmations
-          </a>
-          <a href="/public/hi-stats.html" class="nav-item">
-            <span class="nav-icon">📊</span>
-            Hi Stats
+            <span>Calendar</span>
           </a>
         </div>
-        
-        <div>
+        <div class="nav-section" id="adminSection" style="display: none;">
           <div class="nav-section-title">Admin</div>
-          <a href="/public/admin-dashboard.html" class="nav-item admin-item">
-            <span class="nav-icon">⚙️</span>
-            Admin Panel
+          <a href="hi-mission-control.html" class="nav-item admin-item">
+            <span class="nav-icon">🎛️</span>
+            <span>Hi Mission Control</span>
           </a>
         </div>
-      </nav>
+      </div>
     </div>
   </div>
 
@@ -2371,27 +2524,58 @@
 
   <!-- Tesla-Grade Header JavaScript -->
   <script>
-    // Navigation Modal Control
-    function openNavigation() {
-      const modal = document.getElementById('navigationModal');
-      if (modal) {
-        modal.style.display = 'flex';
+    // 🎯 GOLD STANDARD: Navigation Modal Control (matches Dashboard)
+    function setupNavigationModal() {
+      const btnMenu = document.querySelector('.menu-btn');
+      const navigationModal = document.getElementById('navigationModal');
+      const navigationBackdrop = document.getElementById('navigationBackdrop');
+      const closeNavigation = document.getElementById('closeNavigation');
+
+      if (!btnMenu || !navigationModal) return;
+
+      const openNavigation = () => {
+        navigationModal.classList.add('show');
+        navigationModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+        // Show admin section if user is admin (basic check)
+        const adminSection = document.getElementById('adminSection');
+        if (adminSection && (localStorage.getItem('isAdmin') === 'true' || window.location.href.includes('admin'))) {
+          adminSection.style.display = 'block';
+        }
+      };
+
+      const closeNavigationModal = () => {
+        navigationModal.classList.remove('show');
+        document.body.style.overflow = '';
         setTimeout(() => {
-          modal.style.opacity = '1';
-          modal.style.visibility = 'visible';
-        }, 10);
-      }
+          if (!navigationModal.classList.contains('show')) {
+            navigationModal.style.display = 'none';
+          }
+        }, 300);
+      };
+
+      btnMenu.addEventListener('click', openNavigation);
+      closeNavigation.addEventListener('click', closeNavigationModal);
+      navigationBackdrop.addEventListener('click', closeNavigationModal);
+      
+      // Close on escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && navigationModal.classList.contains('show')) {
+          closeNavigationModal();
+        }
+      });
+
+      // Global functions for onclick handlers (legacy support)
+      window.openNavigation = openNavigation;
+      window.closeNavigation = closeNavigationModal;
     }
 
-    function closeNavigation() {
-      const modal = document.getElementById('navigationModal');
-      if (modal) {
-        modal.style.opacity = '0';
-        modal.style.visibility = 'hidden';
-        setTimeout(() => {
-          modal.style.display = 'none';
-        }, 300);
-      }
+    // Initialize navigation on DOM ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupNavigationModal);
+    } else {
+      setupNavigationModal();
     }
 
     // Calendar functionality (placeholder)
@@ -2401,6 +2585,11 @@
       } else {
         console.error('[HI DEV] Calendar not initialized on Hi Island');
       }
+    }
+
+    // Home navigation functionality
+    function navigateToHome() {
+      window.location.href = 'hi-dashboard.html';
     }
 
     // Membership tier management
@@ -2445,19 +2634,676 @@
     });
   </script>
 
-  <!-- HiFooter Integration -->
-  <script src="/ui/HiFooter/HiFooter.js"></script>
-  <link rel="stylesheet" href="/ui/HiFooter/HiFooter.css">
+  <!-- HiFooter Integration (already loaded above) -->
 
-  <!-- 🚀 Tesla-Grade Navigation System -->
-  <script src="./lib/navigation/HiNavigationSystem.js"></script>
+  <!-- Tesla Navigation System removed - Home nav now in header -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       if (window.hiNavSystem) {
         window.hiNavSystem.updateAppState('ready');
-        window.hiNavSystem.trackNavigation('hi_island');
+        // Navigation tracking removed with HiNavigationSystem
       }
     });
+
+    // Add floating refresh button
+    function addFloatingRefresh() {
+      if (!document.querySelector('.floating-refresh')) {
+        const refreshButton = document.createElement('button');
+        refreshButton.className = 'floating-refresh';
+        refreshButton.innerHTML = '<i class="fas fa-sync-alt"></i>';
+        refreshButton.addEventListener('click', () => {
+          location.reload();
+        });
+        document.body.appendChild(refreshButton);
+      }
+    }
+    
+    // Initialize refresh button after page load
+    addFloatingRefresh();
+
+    // Floating Hiffirmations System - Hi Island Context
+    class FloatingHiffirmations {
+      constructor() {
+        this.currentPage = 'island';
+        this.lastShown = 0;
+        this.cooldownPeriod = 30000; // 30 seconds
+        this.messageHistory = [];
+        this.maxHistorySize = 5;
+        this.init();
+      }
+
+      init() {
+        this.createFloatingButton();
+        this.setupEventListeners();
+        // Start gentle activity-based triggers after page settles
+        setTimeout(() => this.startActivityTriggers(), 5000);
+      }
+
+      createFloatingButton() {
+        const button = document.createElement('button');
+        button.className = 'floating-hiffirmations';
+        button.innerHTML = '✨';
+        button.setAttribute('aria-label', 'Island Inspiration');
+        button.setAttribute('title', 'Explore with intention');
+        
+        const popup = document.createElement('div');
+        popup.className = 'hiffirmation-popup';
+        popup.setAttribute('role', 'tooltip');
+        
+        document.body.appendChild(button);
+        document.body.appendChild(popup);
+        
+        this.button = button;
+        this.popup = popup;
+      }
+
+      setupEventListeners() {
+        this.button.addEventListener('click', () => {
+          this.showContextualMessage();
+        });
+
+        // Close popup on click outside
+        document.addEventListener('click', (e) => {
+          if (!this.button.contains(e.target) && !this.popup.contains(e.target)) {
+            this.hidePopup();
+          }
+        });
+      }
+
+      getContextualMessages() {
+        const userTier = this.getUserTier();
+        const explorationDepth = this.getExplorationDepth();
+        const timeOfDay = this.getTimeOfDay();
+        
+        // Base exploration messages
+        const baseMessages = [
+          "🏝️ Explore with an open heart",
+          "🌊 Discovery starts with curiosity",
+          "⭐ New perspectives await you",
+          "🔍 Every exploration teaches something",
+          "🌅 Fresh insights are emerging"
+        ];
+
+        // Standard tier - deeper exploration wisdom
+        const standardMessages = [
+          "🗺️ You're charting your own unique path",
+          "🧭 Trust your inner navigation system",
+          "🌟 Adventure begins with a single step",
+          "🎯 Your explorations have purpose",
+          "🌱 Curiosity cultivates wisdom",
+          "🦋 Each discovery transforms you"
+        ];
+
+        // Premium tier - mastery of exploration
+        const premiumMessages = [
+          "💎 You're discovering hidden treasures within",
+          "🚀 Your curiosity unlocks infinite possibilities",
+          "🌈 Each exploration expands your world",
+          "⚡ You're an explorer of life's mysteries",
+          "🎭 You master the art of conscious discovery",
+          "🦄 Your exploration style is uniquely yours"
+        ];
+
+        // Exploration depth-specific messages
+        const depthMessages = this.getExplorationDepthMessages(explorationDepth, userTier);
+        
+        // Time-aware exploration messages
+        const timeMessages = this.getTimeAwareExplorationMessages(timeOfDay, userTier);
+
+        // Build intelligent message pool
+        let messagePool = [...baseMessages];
+        
+        if (userTier === 'STANDARD' || userTier === 'PREMIUM') {
+          messagePool.push(...standardMessages);
+        }
+        if (userTier === 'PREMIUM') {
+          messagePool.push(...premiumMessages);
+        }
+        
+        messagePool.push(...depthMessages);
+        messagePool.push(...timeMessages);
+
+        return messagePool;
+      }
+
+      getExplorationDepth() {
+        if (this.activityScore > 15) return 'deep';
+        if (this.activityScore > 6) return 'engaged';
+        return 'surface';
+      }
+
+      getTimeOfDay() {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'morning';
+        if (hour < 17) return 'afternoon';
+        return 'evening';
+      }
+
+      getExplorationDepthMessages(depth, userTier) {
+        const depthMessages = {
+          surface: {
+            base: ["🌊 Surface exploration opens doors", "👀 Gentle curiosity guides discovery"],
+            standard: ["🎯 Light exploration builds momentum", "🌱 Every glance plants seeds of wonder"],
+            premium: ["✨ You honor your natural exploration rhythm", "🧘‍♀️ Mindful browsing cultivates awareness"]
+          },
+          engaged: {
+            base: ["🔥 Your engagement deepens understanding", "💫 Active exploration creates magic"],
+            standard: ["🚀 Engaged curiosity accelerates insight", "🌟 Your focus unlocks hidden connections"],
+            premium: ["🎭 You dance between focus and flow", "💎 Engaged exploration becomes wisdom"]
+          },
+          deep: {
+            base: ["🌊 Deep exploration transforms perspective", "🔍 You're mining pure gold right now"],
+            standard: ["🏔️ Deep diving reveals hidden treasures", "⚡ Your intensity illuminates truth"],
+            premium: ["🦋 You alchemize exploration into transformation", "🌈 Deep engagement is your superpower"]
+          }
+        };
+
+        const messages = [...depthMessages[depth].base];
+        if (userTier === 'STANDARD' || userTier === 'PREMIUM') {
+          messages.push(...depthMessages[depth].standard);
+        }
+        if (userTier === 'PREMIUM') {
+          messages.push(...depthMessages[depth].premium);
+        }
+
+        return messages;
+      }
+
+      getTimeAwareExplorationMessages(timeOfDay, userTier) {
+        const timeMessages = {
+          morning: {
+            base: ["🌅 Morning exploration sets the tone", "☀️ Fresh perspectives await discovery"],
+            standard: ["🌱 Morning curiosity plants daily seeds", "⭐ Early exploration builds momentum"],
+            premium: ["🎯 You architect discovery with morning intention", "🔥 Morning exploration shapes your reality"]
+          },
+          afternoon: {
+            base: ["🌞 Midday discovery energizes the soul", "⚡ Afternoon exploration brings clarity"],
+            standard: ["💪 Sustained exploration builds mastery", "🌟 Afternoon focus deepens understanding"],
+            premium: ["🚀 You sustain exploration with masterful flow", "💎 Afternoon discovery becomes transformation"]
+          },
+          evening: {
+            base: ["🌙 Evening exploration deepens wisdom", "✨ Twilight curiosity reveals hidden gems"],
+            standard: ["🌟 Evening discovery completes the circle", "💫 Reflective exploration integrates learning"],
+            premium: ["🎭 Evening exploration honors the day's journey", "🦋 You transform daily discovery into wisdom"]
+          }
+        };
+
+        const messages = [...timeMessages[timeOfDay].base];
+        if (userTier === 'STANDARD' || userTier === 'PREMIUM') {
+          messages.push(...timeMessages[timeOfDay].standard);
+        }
+        if (userTier === 'PREMIUM') {
+          messages.push(...timeMessages[timeOfDay].premium);
+        }
+
+        return messages;
+      }
+
+      displayMessage(message, type = 'contextual') {
+        // Island-specific message display with exploration context
+        this.popup.textContent = message;
+        this.popup.setAttribute('data-message-type', type);
+        
+        if (type === 'exploration') {
+          this.popup.style.background = 'rgba(103, 126, 234, 0.1)';
+          this.popup.style.borderColor = 'rgba(103, 126, 234, 0.3)';
+        } else {
+          this.popup.style.background = 'rgba(26, 32, 56, 0.95)';
+          this.popup.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+        }
+        
+        this.popup.classList.add('show');
+        
+        const baseTime = type === 'exploration' ? 5500 : 4000;
+        const lengthBonus = Math.min(2000, message.length * 50);
+        const hideDelay = baseTime + lengthBonus;
+        
+        setTimeout(() => {
+          this.hidePopup();
+        }, hideDelay);
+
+        this.trackExplorationMessage(message, type);
+      }
+
+      trackExplorationMessage(message, type) {
+        if (!window.hiAnalytics) return;
+        
+        window.hiAnalytics.track('exploration_hiffirmation_shown', {
+          message_type: type,
+          exploration_context: 'hi_island',
+          user_tier: this.getUserTier(),
+          exploration_depth: this.getExplorationDepth(),
+          activity_score: this.activityScore,
+          tab_switches: this.explorationPattern?.tabSwitches || 0
+        });
+      }
+
+      getUserTier() {
+        // Integration with existing tier system
+        const tierElement = document.getElementById('hi-tier-indicator');
+        if (tierElement) {
+          const tierText = tierElement.querySelector('.tier-text')?.textContent;
+          if (tierText === 'Premium') return 'PREMIUM';
+          if (tierText === 'Standard') return 'STANDARD';
+        }
+        return 'ANONYMOUS';
+      }
+
+      showContextualMessage() {
+        const now = Date.now();
+        if (now - this.lastShown < this.cooldownPeriod) return;
+
+        const messages = this.getContextualMessages();
+        const availableMessages = messages.filter(msg => !this.messageHistory.includes(msg));
+        
+        if (availableMessages.length === 0) {
+          this.messageHistory = []; // Reset history if all used
+          this.showContextualMessage(); // Retry
+          return;
+        }
+
+        const message = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+        this.displayMessage(message);
+        
+        // Update history
+        this.messageHistory.push(message);
+        if (this.messageHistory.length > this.maxHistorySize) {
+          this.messageHistory.shift();
+        }
+        
+        this.lastShown = now;
+      }
+
+      displayMessage(message) {
+        this.popup.textContent = message;
+        this.popup.classList.add('show');
+        
+        // Auto-hide after 4 seconds
+        setTimeout(() => {
+          this.hidePopup();
+        }, 4000);
+      }
+
+      hidePopup() {
+        this.popup.classList.remove('show');
+      }
+
+      startActivityTriggers() {
+        // Smart contextual triggers for exploration context
+        this.activityScore = 0;
+        this.explorationMilestones = ['general-tab', 'mindfulness-tab', 'learning-tab', 'creativity-tab'];
+        this.setupExplorationTriggers();
+        this.setupSmartTimingForExploration();
+        this.trackExplorationPattern();
+      }
+
+      setupExplorationTriggers() {
+        // Trigger inspirational messages after exploration milestones
+        this.explorationMilestones.forEach(tabId => {
+          const tab = document.querySelector(`[data-tab="${tabId}"], #${tabId}`);
+          if (tab) {
+            tab.addEventListener('click', () => {
+              setTimeout(() => {
+                this.showExplorationMessage(tabId);
+              }, 3000); // Give user time to explore
+            });
+          }
+        });
+
+        // Share button interactions in island context
+        const shareButtons = document.querySelectorAll('.share-action-btn, [data-action="share"]');
+        shareButtons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            setTimeout(() => {
+              this.showExplorationMessage('share-exploration');
+            }, 2000);
+          });
+        });
+      }
+
+      showExplorationMessage(explorationType) {
+        const now = Date.now();
+        if (now - this.lastShown < 20000) return; // Exploration-specific cooldown
+
+        const explorationMessages = this.getExplorationMessages(explorationType);
+        const message = explorationMessages[Math.floor(Math.random() * explorationMessages.length)];
+        this.displayMessage(message, 'exploration');
+        this.lastShown = now;
+      }
+
+      getExplorationMessages(explorationType) {
+        const userTier = this.getUserTier();
+        
+        const explorationMap = {
+          'general-tab': {
+            base: ["🗺️ Every exploration starts somewhere", "🌊 General discovery opens new paths"],
+            standard: ["🧭 Your curiosity is your compass", "⭐ Broad exploration builds wisdom"],
+            premium: ["🚀 You navigate discovery with intention", "💎 General awareness unlocks specific insights"]
+          },
+          'mindfulness-tab': {
+            base: ["🧘‍♀️ Mindful moments create clarity", "🌸 Presence is your superpower"],
+            standard: ["💫 Mindfulness deepens your exploration", "🌱 Awareness cultivates inner wisdom"],
+            premium: ["🎭 You master the art of conscious exploration", "✨ Mindful discovery transforms perspective"]
+          },
+          'learning-tab': {
+            base: ["📚 Learning never stops serving you", "🌟 Knowledge builds on curiosity"],
+            standard: ["🎯 Active learning accelerates growth", "🔥 Your learning mindset is magnetic"],
+            premium: ["🦋 You transform information into wisdom", "🌈 Learning becomes your creative playground"]
+          },
+          'creativity-tab': {
+            base: ["🎨 Creativity flows from exploration", "✨ Your imagination has no limits"],
+            standard: ["💫 Creative exploration unlocks potential", "🌺 Your creative spirit inspires others"],
+            premium: ["🦄 You channel exploration into creative mastery", "🎭 Your creativity transforms the world around you"]
+          },
+          'share-exploration': {
+            base: ["🤝 Sharing discovery multiplies wisdom", "🌈 Your exploration inspires others"],
+            standard: ["💡 Shared insights create community", "🔥 Your discoveries light paths for others"],
+            premium: ["🌟 You're a beacon of conscious exploration", "⚡ Your shared wisdom transforms communities"]
+          }
+        };
+
+        const messageSet = explorationMap[explorationType] || explorationMap['general-tab'];
+        let messages = [...messageSet.base];
+        
+        if (userTier === 'STANDARD' || userTier === 'PREMIUM') {
+          messages.push(...messageSet.standard);
+        }
+        if (userTier === 'PREMIUM') {
+          messages.push(...messageSet.premium);
+        }
+
+        return messages;
+      }
+
+      setupSmartTimingForExploration() {
+        // Island-specific smart timing that respects exploration flow
+        let explorationTimer;
+        let explorationDepth = 'surface'; // surface, engaged, deep
+        
+        const calculateExplorationDepth = () => {
+          if (this.activityScore > 15) explorationDepth = 'deep';
+          else if (this.activityScore > 6) explorationDepth = 'engaged';
+          else explorationDepth = 'surface';
+        };
+
+        const getExplorationInterval = () => {
+          const intervals = {
+            surface: 240000,  // 4 minutes - encourage deeper exploration
+            engaged: 300000,  // 5 minutes - don't interrupt flow
+            deep: 360000      // 6 minutes - respect deep exploration
+          };
+          return intervals[explorationDepth] + Math.random() * 60000;
+        };
+
+        const resetExplorationTimer = () => {
+          clearTimeout(explorationTimer);
+          calculateExplorationDepth();
+          
+          explorationTimer = setTimeout(() => {
+            if (this.shouldShowExplorationMessage()) {
+              this.showContextualMessage();
+            }
+            resetExplorationTimer();
+          }, getExplorationInterval());
+        };
+
+        // Track exploration-specific interactions
+        ['click', 'scroll', 'focus', 'tab-switch'].forEach(event => {
+          document.addEventListener(event, (e) => {
+            this.activityScore += this.getExplorationWeight(e);
+            setTimeout(() => { this.activityScore = Math.max(0, this.activityScore - 1); }, 45000);
+          }, { passive: true });
+        });
+
+        resetExplorationTimer();
+      }
+
+      getExplorationWeight(event) {
+        const weights = {
+          click: 2,
+          scroll: 1,
+          focus: 1,
+          'tab-switch': 4 // Tab switching is high-value exploration
+        };
+
+        // Bonus for exploration-related elements
+        if (event.target && event.target.closest('[data-tab], .feed-item, .share-action-btn')) {
+          return (weights[event.type] || 1) * 2;
+        }
+
+        return weights[event.type] || 1;
+      }
+
+      shouldShowExplorationMessage() {
+        const now = Date.now();
+        if (now - this.lastShown < 60000) return false; // 1 minute minimum for exploration
+
+        // Don't interrupt active exploration
+        if (this.activityScore > 20) return false;
+
+        return true;
+      }
+
+      trackExplorationPattern() {
+        this.explorationPattern = {
+          sessionStart: Date.now(),
+          tabSwitches: 0,
+          shareActions: 0,
+          deepInteractions: 0
+        };
+
+        // Track tab switching behavior
+        document.addEventListener('click', (e) => {
+          if (e.target.closest('[data-tab]')) {
+            this.explorationPattern.tabSwitches++;
+          }
+          if (e.target.closest('.share-action-btn')) {
+            this.explorationPattern.shareActions++;
+          }
+        });
+      }
+    }
+
+    // Initialize floating Hiffirmations system
+    const floatingHiffirmations = new FloatingHiffirmations();
+
+    // Quote Card Generation System (Tesla-Grade)
+    class HiQuoteCardGenerator {
+      constructor() {
+        this.brandColors = {
+          primary: '#FFD166',
+          secondary: '#F4A261',
+          accent: '#E76F51',
+          background: '#1E2A4A',
+          backgroundSecondary: '#2D4A87',
+          text: '#FFFFFF',
+          textSecondary: 'rgba(255, 255, 255, 0.8)'
+        };
+        
+        this.socialFormats = {
+          instagram_post: { width: 1080, height: 1080 },
+          instagram_story: { width: 1080, height: 1920 },
+          twitter_card: { width: 1200, height: 675 },
+          square: { width: 800, height: 800 }
+        };
+      }
+
+      async generateQuoteCard(message, options = {}) {
+        const {
+          userTier = 'ANONYMOUS',
+          format = 'square',
+          context = 'island'
+        } = options;
+
+        const dimensions = this.socialFormats[format];
+        const canvas = this.createCanvas(dimensions.width, dimensions.height);
+        const ctx = canvas.getContext('2d');
+
+        await this.drawBackground(ctx, canvas, userTier);
+        await this.drawQuoteText(ctx, message, canvas, userTier);
+        await this.drawBranding(ctx, canvas, userTier, context);
+        
+        return canvas.toDataURL('image/png', 0.9);
+      }
+
+      createCanvas(width, height) {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        return canvas;
+      }
+
+      async drawBackground(ctx, canvas, userTier) {
+        const { width, height } = canvas;
+        let gradient;
+        
+        switch(userTier) {
+          case 'PREMIUM':
+            gradient = ctx.createLinearGradient(0, 0, width, height);
+            gradient.addColorStop(0, this.brandColors.primary);
+            gradient.addColorStop(0.3, this.brandColors.secondary);
+            gradient.addColorStop(0.7, this.brandColors.accent);
+            gradient.addColorStop(1, this.brandColors.background);
+            break;
+          case 'STANDARD':
+            gradient = ctx.createLinearGradient(0, 0, width, height);
+            gradient.addColorStop(0, this.brandColors.background);
+            gradient.addColorStop(0.5, this.brandColors.backgroundSecondary);
+            gradient.addColorStop(1, this.brandColors.secondary);
+            break;
+          default:
+            gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, this.brandColors.background);
+            gradient.addColorStop(1, this.brandColors.backgroundSecondary);
+        }
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
+        
+        if (userTier === 'PREMIUM') {
+          this.addPremiumTexture(ctx, canvas);
+        }
+      }
+
+      addPremiumTexture(ctx, canvas) {
+        ctx.globalAlpha = 0.1;
+        for (let i = 0; i < 50; i++) {
+          const x = Math.random() * canvas.width;
+          const y = Math.random() * canvas.height;
+          const size = Math.random() * 3 + 1;
+          
+          ctx.fillStyle = this.brandColors.primary;
+          ctx.beginPath();
+          ctx.arc(x, y, size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      async drawQuoteText(ctx, message, canvas, userTier) {
+        const { width, height } = canvas;
+        const centerX = width / 2;
+        const centerY = height / 2;
+        
+        const fontSize = this.getFontSize(message.length, canvas);
+        const fontFamily = userTier === 'PREMIUM' ? 
+          'Georgia, "Times New Roman", serif' : 
+          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        
+        ctx.fillStyle = this.brandColors.text;
+        ctx.font = `${fontSize}px ${fontFamily}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        const lines = this.wrapText(ctx, message, width * 0.8);
+        const lineHeight = fontSize * 1.4;
+        const totalTextHeight = lines.length * lineHeight;
+        const startY = centerY - (totalTextHeight / 2);
+        
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetY = 2;
+        
+        lines.forEach((line, index) => {
+          const y = startY + (index * lineHeight);
+          ctx.fillText(line, centerX, y);
+        });
+        
+        ctx.shadowColor = 'transparent';
+      }
+
+      getFontSize(textLength, canvas) {
+        const baseSize = Math.min(canvas.width, canvas.height) / 20;
+        if (textLength < 30) return Math.min(baseSize * 1.2, 48);
+        if (textLength < 60) return Math.min(baseSize, 40);
+        return Math.min(baseSize * 0.8, 32);
+      }
+
+      wrapText(ctx, text, maxWidth) {
+        const words = text.split(' ');
+        const lines = [];
+        let currentLine = '';
+        
+        for (const word of words) {
+          const testLine = currentLine + (currentLine ? ' ' : '') + word;
+          const metrics = ctx.measureText(testLine);
+          
+          if (metrics.width > maxWidth && currentLine !== '') {
+            lines.push(currentLine);
+            currentLine = word;
+          } else {
+            currentLine = testLine;
+          }
+        }
+        
+        if (currentLine) {
+          lines.push(currentLine);
+        }
+        
+        return lines;
+      }
+
+      async drawBranding(ctx, canvas, userTier, context = 'island') {
+        const { width, height } = canvas;
+        const brandingY = height - 80;
+        
+        ctx.fillStyle = this.brandColors.textSecondary;
+        ctx.font = '24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('— Stay Hi Community —', width / 2, brandingY);
+        
+        ctx.font = '18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.fillStyle = this.brandColors.primary;
+        ctx.fillText('stay-hi.app', width / 2, brandingY + 35);
+        
+        if (userTier === 'STANDARD' || userTier === 'PREMIUM') {
+          ctx.font = '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+          ctx.fillStyle = this.brandColors.textSecondary;
+          const tierText = userTier === 'PREMIUM' ? '✨ Premium Member' : '⭐ Standard Member';
+          ctx.fillText(tierText, width / 2, brandingY - 25);
+        }
+      }
+
+      async dataURLToBlob(dataURL) {
+        return new Promise(resolve => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const img = new Image();
+          
+          img.onload = () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            canvas.toBlob(resolve, 'image/png', 0.9);
+          };
+          
+          img.src = dataURL;
+        });
+      }
+    }
+
+    // Initialize quote card generator for Hi Island
+    window.HiQuoteCardGenerator = new HiQuoteCardGenerator();
   </script>
 </body>
 </html>

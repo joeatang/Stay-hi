@@ -210,8 +210,14 @@
   <script src="./lib/HiWavesRealtime.js"></script>
   <script src="assets/performance-manager.js"></script>
   
-  <!-- Tesla-Grade Onboarding System -->
-  <script src="assets/onboarding.js"></script>
+  <!-- Tesla-Grade Milestone Celebration System -->
+  <script src="assets/milestone-celebration-system.js"></script>
+  
+  <!-- Tesla-Grade Contextual Spotlight System -->
+  <script src="assets/contextual-spotlight-system.js"></script>
+  
+  <!-- Tesla-Grade Smart Conversion System -->
+  <script src="assets/smart-conversion-system.js"></script>
   
   <!-- Premium CSS Integration -->
   <link rel="preload" href="assets/premium-ux.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -220,7 +226,7 @@
   <link rel="preload" href="./ui/HiModal/HiModal.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   
   <!-- Tesla-Grade Navigation System -->
-  <link rel="preload" href="./lib/navigation/HiNavigationSystem.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <!-- Tesla Navigation System CSS removed - Home nav now in header -->
   
   <!-- Hi Share Sheet Component -->
   <link rel="preload" href="ui/HiShareSheet/HiShareSheet.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -236,7 +242,8 @@
     <link rel="stylesheet" href="ui/HiModal/HiModal.css">
     <link rel="stylesheet" href="ui/HiShareSheet/HiShareSheet.css">
     <link rel="stylesheet" href="ui/HiMedallion/HiMedallion.css">
-    <link rel="stylesheet" href="./lib/navigation/HiNavigationSystem.css">
+    <!-- HiNavigationSystem.css removed -->
+    <link rel="stylesheet" href="./lib/navigation/HiStandardNavigation.css">
   </noscript>
 
   <!-- S-DASH/7: Hero polish + stats row styling -->
@@ -393,8 +400,6 @@
     }
 
     .brand-hi-logo {
-      width: 24px;
-      height: 24px;
       filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
     }
 
@@ -405,7 +410,7 @@
       letter-spacing: -0.5px;
     }
 
-    .calendar-btn, .menu-btn {
+    .calendar-btn, .menu-btn, .home-nav-btn {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -419,7 +424,7 @@
       transition: all 0.3s ease;
     }
 
-    .calendar-btn:hover, .menu-btn:hover {
+    .calendar-btn:hover, .menu-btn:hover, .home-nav-btn:hover {
       background: rgba(255, 209, 102, 0.2);
       transform: translateY(-1px);
     }
@@ -1055,13 +1060,156 @@
         border-radius: 0.75rem;
       }
     }
+
+    /* Floating Refresh Button */
+    .floating-refresh {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #FFD166 0%, #F4A261 100%);
+      border: none;
+      border-radius: 50%;
+      color: #1E2A4A;
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 1000;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(255, 209, 102, 0.3);
+    }
+
+    .floating-refresh:hover {
+      transform: translateY(-2px) rotate(90deg);
+      box-shadow: 0 6px 20px rgba(255, 209, 102, 0.4);
+    }
+
+    .floating-refresh:active {
+      transform: translateY(0) rotate(180deg);
+    }
+
+    /* Floating Hiffirmations System */
+    .floating-hiffirmations {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #E91E63 0%, #9C27B0 100%);
+      border: none;
+      border-radius: 50%;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 999;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(233, 30, 99, 0.3);
+      animation: gentlePulse 4s infinite;
+    }
+
+    .floating-hiffirmations:hover {
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4);
+      animation-play-state: paused;
+    }
+
+    .floating-hiffirmations:active {
+      transform: translateY(0) scale(0.95);
+    }
+
+    @keyframes gentlePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+
+    /* Hiffirmation Popup */
+    .hiffirmation-popup {
+      position: fixed;
+      bottom: 85px;
+      left: 20px;
+      max-width: 280px;
+      background: rgba(26, 32, 56, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 16px 20px;
+      color: white;
+      font-size: 14px;
+      line-height: 1.4;
+      transform: translateY(20px) scale(0.9);
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    .hiffirmation-popup.show {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .hiffirmation-popup::before {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 28px;
+      width: 16px;
+      height: 16px;
+      background: rgba(26, 32, 56, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-top: none;
+      border-left: none;
+      transform: rotate(45deg);
+      border-radius: 0 0 4px 0;
+    }
+
+    /* Floating Hiffirmation Share Button */
+    .hiffirmation-share-mini {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 24px;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .hiffirmation-popup:hover .hiffirmation-share-mini,
+    .hiffirmation-popup.show .hiffirmation-share-mini {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .hiffirmation-share-mini:hover {
+      background: rgba(255, 209, 102, 0.2);
+      border-color: rgba(255, 209, 102, 0.4);
+      color: #FFD166;
+      transform: scale(1.1);
+    }
   </style>
 </head>
 
 <body data-page="hi-dashboard">
   <!-- Tesla-Grade Header - Centered Brand Prominence -->
   <header class="tesla-header">
-    <!-- Smart Calendar Access -->
+    <!-- Smart Calendar & Home Access -->
     <div class="header-left">
       <button id="btnCal" class="calendar-btn" aria-label="Open calendar" title="View Hi Calendar">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -1069,6 +1217,13 @@
           <line x1="16" y1="2" x2="16" y2="6"></line>
           <line x1="8" y1="2" x2="8" y2="6"></line>
           <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+      </button>
+      
+      <button id="btnHome" class="home-nav-btn" aria-label="Go to Hi Today" title="Navigate to Hi Today">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9,22 9,12 15,12 15,22"/>
         </svg>
       </button>
     </div>
@@ -1950,27 +2105,117 @@
         }, 100);
       });
       
-      // Share button
-      modal.querySelector('.hiffirmation-share').addEventListener('click', () => {
-        if (navigator.share) {
-          navigator.share({
-            title: 'Daily Hiffirmation from Stay Hi',
-            text: dailyHiffirmation,
-            url: window.location.href
-          });
-        } else {
-          navigator.clipboard.writeText(dailyHiffirmation);
-          // Visual feedback
-          const shareBtn = modal.querySelector('.hiffirmation-share');
-          const originalText = shareBtn.textContent;
-          shareBtn.textContent = '✓ Copied!';
+      // Enhanced Share button with Quote Card Generation
+      modal.querySelector('.hiffirmation-share').addEventListener('click', async () => {
+        const shareBtn = modal.querySelector('.hiffirmation-share');
+        const originalText = shareBtn.textContent;
+        
+        try {
+          // Show loading state
+          shareBtn.textContent = 'Creating quote card...';
+          shareBtn.style.background = 'linear-gradient(135deg, #FFD166, #F4A261)';
+          
+          // Get user tier for appropriate styling
+          const userTier = getUserTierForSharing();
+          
+          // Generate beautiful quote card
+          const quoteCardDataURL = await window.HiQuoteCardGenerator.generateQuoteCard(
+            dailyHiffirmation, 
+            { 
+              userTier, 
+              format: 'square' 
+            }
+          );
+          
+          // Convert to blob for sharing
+          const blob = await window.HiQuoteCardGenerator.dataURLToBlob(quoteCardDataURL);
+          const file = new File([blob], 'hiffirmation-quote-card.png', { type: 'image/png' });
+          
+          // Try native sharing with image
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            shareBtn.textContent = 'Sharing...';
+            await navigator.share({
+              title: 'Daily Hiffirmation from Stay Hi',
+              text: `"${dailyHiffirmation}"\n\nShared from Stay Hi ✨`,
+              files: [file]
+            });
+            
+            // Success feedback
+            shareBtn.textContent = '✓ Shared!';
+            shareBtn.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
+            
+          } else if (navigator.share) {
+            // Fallback: Share text and download image
+            shareBtn.textContent = 'Downloading & copying...';
+            
+            // Download quote card
+            const downloadLink = document.createElement('a');
+            downloadLink.href = quoteCardDataURL;
+            downloadLink.download = 'hiffirmation-quote-card.png';
+            downloadLink.click();
+            
+            // Share text
+            await navigator.share({
+              title: 'Daily Hiffirmation from Stay Hi',
+              text: `"${dailyHiffirmation}"\n\nShared from Stay Hi ✨\n\nstay-hi.app`,
+            });
+            
+            shareBtn.textContent = '✓ Quote card downloaded & text shared!';
+            shareBtn.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
+            
+          } else {
+            // Final fallback: Download image and copy text
+            shareBtn.textContent = 'Downloading...';
+            
+            // Download quote card
+            const downloadLink = document.createElement('a');
+            downloadLink.href = quoteCardDataURL;
+            downloadLink.download = 'hiffirmation-quote-card.png';
+            downloadLink.click();
+            
+            // Copy text to clipboard
+            const textToCopy = `"${dailyHiffirmation}"\n\nShared from Stay Hi ✨\nstay-hi.app`;
+            await navigator.clipboard.writeText(textToCopy);
+            
+            shareBtn.textContent = '✓ Quote card downloaded & text copied!';
+            shareBtn.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
+          }
+          
+        } catch (error) {
+          console.error('❌ Quote card sharing failed:', error);
+          
+          // Fallback to simple text sharing
+          if (navigator.share) {
+            await navigator.share({
+              title: 'Daily Hiffirmation from Stay Hi',
+              text: dailyHiffirmation,
+              url: window.location.href
+            });
+          } else {
+            await navigator.clipboard.writeText(dailyHiffirmation);
+          }
+          
+          shareBtn.textContent = '✓ Shared!';
           shareBtn.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
-          setTimeout(() => {
-            shareBtn.textContent = originalText;
-            shareBtn.style.background = 'linear-gradient(135deg, #4ECDC4, #44A08D)';
-          }, 1500);
         }
+        
+        // Reset button after 3 seconds
+        setTimeout(() => {
+          shareBtn.textContent = originalText;
+          shareBtn.style.background = 'linear-gradient(135deg, #4ECDC4, #44A08D)';
+        }, 3000);
       });
+
+      // Helper function to get user tier for sharing
+      function getUserTierForSharing() {
+        const tierElement = document.getElementById('hi-tier-indicator');
+        if (tierElement) {
+          const tierText = tierElement.querySelector('.tier-text')?.textContent;
+          if (tierText === 'Premium') return 'PREMIUM';
+          if (tierText === 'Standard') return 'STANDARD';
+        }
+        return 'ANONYMOUS';
+      }
     }
 
     // Weekly Progress Strip (Simplified)
@@ -2270,6 +2515,8 @@
       }
       if (window.gTotalHis === undefined) {
         window.gTotalHis = savedTotal ? parseInt(savedTotal, 10) : 90;
+        // Mark as temporary value to prevent jarring jumps
+        window._gTotalHisIsTemporary = !savedTotal;
       }
       if (window.gUsers === undefined) {
         // 🎯 DATABASE ONLY: Use cached database values, never fallback to hardcoded numbers
@@ -2357,6 +2604,16 @@
       }
     }
 
+    function setupHomeNavigation() {
+      const btnHome = document.getElementById('btnHome');
+      if (btnHome) {
+        btnHome.addEventListener('click', () => {
+          // Navigate to Hi Today (dashboard)
+          window.location.href = 'hi-dashboard.html';
+        });
+      }
+    }
+
     // 🚀 FAST STATS LOADING: Background loading with instant fallbacks
     async function loadCurrentStatsFromDatabase() {
       console.log('🔄 Background loading real stats from database...');
@@ -2404,7 +2661,11 @@
                 const oldTotalHis = window.gTotalHis;
                 const oldWaves = window.gWaves;
                 
-                window.gTotalHis = data.total_his || window.gTotalHis;
+                // Only update if we have a better value than temporary fallback
+                if (data.total_his && (window._gTotalHisIsTemporary || data.total_his > window.gTotalHis)) {
+                  window.gTotalHis = data.total_his;
+                  window._gTotalHisIsTemporary = false;
+                }
                 window.gWaves = data.hi_waves || window.gWaves;
                 // User count handled by RealUserCount.js system
                 
@@ -2438,7 +2699,11 @@
                 
               if (shareData && !shareError && shareData.total_his) {
                 const oldTotalHis = window.gTotalHis;
-                window.gTotalHis = shareData.total_his;
+                // Only update if we don't already have a good value
+                if (window._gTotalHisIsTemporary || shareData.total_his > window.gTotalHis) {
+                  window.gTotalHis = shareData.total_his;
+                  window._gTotalHisIsTemporary = false;
+                }
                 
                 console.log('✅ Total His updated from public_shares:', `${oldTotalHis} → ${window.gTotalHis}`);
                 updateStatsUI();
@@ -2853,6 +3118,9 @@
         
         // Setup calendar integration
         setupCalendarIntegration();
+        
+        // Setup home navigation
+        setupHomeNavigation();
       }
     });
   </script>
@@ -2861,8 +3129,7 @@
   <!-- DISABLED: Legacy stats system replaced by HiMetrics adapter -->
   <!-- <script src="assets/hi-unified-global-stats.js"></script> -->
   
-  <!-- 🚀 Tesla-Grade Navigation System - CRITICAL for PWA session management -->
-  <script src="./lib/navigation/HiNavigationSystem.js"></script>
+  <!-- Tesla-Grade Navigation System removed - Home nav now in header -->
   <script>
     // Navigation system integration
     document.addEventListener('DOMContentLoaded', () => {
@@ -2879,12 +3146,768 @@
     });
     
     // Loading protection - if page takes too long, activate escape
-    setTimeout(() => {
-      if (window.hiNavSystem && document.querySelector('.loading, .loader, [data-loading="true"]')) {
-        console.log('⚠️ Dashboard loading timeout detected');
-        window.hiNavSystem.updateAppState('stuck');
+    // Add floating refresh button
+    function addFloatingRefresh() {
+      if (!document.querySelector('.floating-refresh')) {
+        const refreshButton = document.createElement('button');
+        refreshButton.className = 'floating-refresh';
+        refreshButton.innerHTML = '<i class="fas fa-sync-alt"></i>';
+        refreshButton.addEventListener('click', () => {
+          location.reload();
+        });
+        document.body.appendChild(refreshButton);
       }
-    }, 12000); // 12 second timeout for dashboard
+    }
+    
+    // Initialize refresh button after page load
+    addFloatingRefresh();
+
+    // Floating Hiffirmations System
+    class FloatingHiffirmations {
+      constructor() {
+        this.currentPage = 'dashboard';
+        this.lastShown = 0;
+        this.cooldownPeriod = 30000; // 30 seconds
+        this.messageHistory = [];
+        this.maxHistorySize = 5;
+        this.init();
+      }
+
+      init() {
+        this.createFloatingButton();
+        this.setupEventListeners();
+        // Start gentle activity-based triggers after page settles
+        setTimeout(() => this.startActivityTriggers(), 5000);
+      }
+
+      createFloatingButton() {
+        const button = document.createElement('button');
+        button.className = 'floating-hiffirmations';
+        button.innerHTML = '✨';
+        button.setAttribute('aria-label', 'Contextual Hiffirmations');
+        button.setAttribute('title', 'Get inspired');
+        
+        const popup = document.createElement('div');
+        popup.className = 'hiffirmation-popup';
+        popup.setAttribute('role', 'tooltip');
+        
+        document.body.appendChild(button);
+        document.body.appendChild(popup);
+        
+        this.button = button;
+        this.popup = popup;
+      }
+
+      setupEventListeners() {
+        this.button.addEventListener('click', () => {
+          this.showContextualMessage();
+        });
+
+        // Close popup on click outside
+        document.addEventListener('click', (e) => {
+          if (!this.button.contains(e.target) && !this.popup.contains(e.target)) {
+            this.hidePopup();
+          }
+        });
+      }
+
+      getContextualMessages() {
+        const userTier = this.getUserTier();
+        const timeOfDay = this.getTimeOfDay();
+        const engagementLevel = this.getEngagementLevel();
+        
+        // Base messages - universally inspiring
+        const baseMessages = [
+          "🌟 Every Hi moment counts",
+          "✨ You're creating positive ripples", 
+          "💫 Your journey matters today",
+          "🎯 Small actions, big impact",
+          "💝 You're exactly where you need to be"
+        ];
+
+        // Standard tier - enhanced motivation
+        const standardMessages = [
+          "🚀 Your potential is unfolding beautifully",
+          "🌈 Progress happens one Hi at a time",
+          "⭐ You're building something meaningful",
+          "🔥 Your energy lights up this space",
+          "💪 Your consistency is your superpower",
+          "🌅 Every day offers fresh possibilities"
+        ];
+
+        // Premium tier - personalized wisdom
+        const premiumMessages = [
+          "💎 Your unique light transforms everything",
+          "🏔️ You're stronger than any challenge today",
+          "🌺 Growth happens in your comfort with discomfort",
+          "⚡ You're writing your own inspiring story",
+          "🦄 Your authenticity creates lasting impact",
+          "🎭 You master the art of conscious living"
+        ];
+
+        // Time-sensitive contextual messages
+        const timeContextMessages = this.getTimeContextMessages(timeOfDay, userTier);
+        
+        // Engagement-level specific messages
+        const engagementMessages = this.getEngagementMessages(engagementLevel, userTier);
+
+        // Build smart message pool
+        let messagePool = [...baseMessages];
+        
+        if (userTier === 'STANDARD' || userTier === 'PREMIUM') {
+          messagePool.push(...standardMessages);
+        }
+        if (userTier === 'PREMIUM') {
+          messagePool.push(...premiumMessages);
+        }
+        
+        // Add contextual intelligence
+        messagePool.push(...timeContextMessages);
+        messagePool.push(...engagementMessages);
+
+        return messagePool;
+      }
+
+      getTimeOfDay() {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'morning';
+        if (hour < 17) return 'afternoon';
+        return 'evening';
+      }
+
+      getEngagementLevel() {
+        if (this.activityScore > 20) return 'high';
+        if (this.activityScore > 8) return 'medium';
+        return 'low';
+      }
+
+      getTimeContextMessages(timeOfDay, userTier) {
+        const timeMessages = {
+          morning: {
+            base: ["🌅 Fresh energy for a new day", "☀️ Your morning intention shapes everything"],
+            standard: ["🌱 Plant seeds of positivity today", "⭐ Morning momentum builds lasting change"],
+            premium: ["🎯 Your morning mindset architects your reality", "🔥 You're designing today with purpose"]
+          },
+          afternoon: {
+            base: ["⚡ Midday renewal brings clarity", "🌞 Steady progress creates magic"],
+            standard: ["🎯 Afternoon focus amplifies your impact", "💪 Your persistence is paying dividends"],
+            premium: ["🚀 You're in the flow of purposeful action", "💎 Afternoon mastery builds lifetime habits"]
+          },
+          evening: {
+            base: ["🌙 Evening reflection deepens wisdom", "✨ Today's efforts become tomorrow's strength"],
+            standard: ["🌟 You're ending today stronger than you started", "💫 Evening gratitude multiplies blessings"],
+            premium: ["🎭 Your evening presence honors the day's growth", "🦋 You transform experiences into wisdom"]
+          }
+        };
+
+        const messages = [...timeMessages[timeOfDay].base];
+        if (userTier === 'STANDARD' || userTier === 'PREMIUM') {
+          messages.push(...timeMessages[timeOfDay].standard);
+        }
+        if (userTier === 'PREMIUM') {
+          messages.push(...timeMessages[timeOfDay].premium);
+        }
+
+        return messages;
+      }
+
+      getEngagementMessages(engagementLevel, userTier) {
+        const engagementMessages = {
+          low: {
+            base: ["🌱 Gentle steps forward count", "💝 Your presence here matters"],
+            standard: ["🌊 Flow finds you when you're ready", "⭐ Quiet moments build inner strength"],
+            premium: ["🧘‍♀️ Your stillness cultivates deeper wisdom", "🌸 Gentle pace honors your authentic rhythm"]
+          },
+          medium: {
+            base: ["🎯 Balanced energy serves you well", "🌈 Steady progress creates lasting change"],
+            standard: ["💪 Your consistent effort compounds beautifully", "🔥 Measured momentum builds sustainable success"],
+            premium: ["⚡ You master the art of intentional engagement", "🎭 Your balanced approach inspires others"]
+          },
+          high: {
+            base: ["🚀 Your energy is contagious", "🔥 Channel this momentum wisely"],
+            standard: ["⭐ High energy focused creates miracles", "💎 Your enthusiasm lights up everything"],
+            premium: ["🌟 You're a force of nature in conscious action", "🦄 Your vibrant energy transforms environments"]
+          }
+        };
+
+        const messages = [...engagementMessages[engagementLevel].base];
+        if (userTier === 'STANDARD' || userTier === 'PREMIUM') {
+          messages.push(...engagementMessages[engagementLevel].standard);
+        }
+        if (userTier === 'PREMIUM') {
+          messages.push(...engagementMessages[engagementLevel].premium);
+        }
+
+        return messages;
+      }
+
+      getUserTier() {
+        // Integration with existing tier system
+        const tierElement = document.getElementById('hi-tier-indicator');
+        if (tierElement) {
+          const tierText = tierElement.querySelector('.tier-text')?.textContent;
+          if (tierText === 'Premium') return 'PREMIUM';
+          if (tierText === 'Standard') return 'STANDARD';
+        }
+        return 'ANONYMOUS';
+      }
+
+      showContextualMessage() {
+        const now = Date.now();
+        if (now - this.lastShown < this.cooldownPeriod) return;
+
+        const messages = this.getContextualMessages();
+        const availableMessages = messages.filter(msg => !this.messageHistory.includes(msg));
+        
+        if (availableMessages.length === 0) {
+          this.messageHistory = []; // Reset history if all used
+          this.showContextualMessage(); // Retry
+          return;
+        }
+
+        const message = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+        this.displayMessage(message);
+        
+        // Update history
+        this.messageHistory.push(message);
+        if (this.messageHistory.length > this.maxHistorySize) {
+          this.messageHistory.shift();
+        }
+        
+        this.lastShown = now;
+      }
+
+      displayMessage(message, type = 'contextual') {
+        // Enhanced message display with type-aware styling and timing
+        this.popup.innerHTML = `
+          <span class="hiffirmation-text">${message}</span>
+          <button class="hiffirmation-share-mini" title="Share as quote card">📤</button>
+        `;
+        this.popup.setAttribute('data-message-type', type);
+        
+        // Add subtle type-specific styling
+        if (type === 'milestone') {
+          this.popup.style.background = 'rgba(233, 30, 99, 0.1)';
+          this.popup.style.borderColor = 'rgba(233, 30, 99, 0.3)';
+        } else {
+          this.popup.style.background = 'rgba(26, 32, 56, 0.95)';
+          this.popup.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+        }
+        
+        // Add share functionality
+        const shareBtn = this.popup.querySelector('.hiffirmation-share-mini');
+        shareBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          await this.shareFloatingMessage(message);
+        });
+        
+        this.popup.classList.add('show');
+        
+        // Smart auto-hide timing based on message type and length
+        const baseTime = type === 'milestone' ? 5000 : 4000; // Milestone messages stay longer
+        const lengthBonus = Math.min(2000, message.length * 50); // Longer messages get more time
+        const hideDelay = baseTime + lengthBonus;
+        
+        this.autoHideTimeout = setTimeout(() => {
+          this.hidePopup();
+        }, hideDelay);
+
+        // Analytics: Track message effectiveness
+        this.trackMessageShown(message, type);
+      }
+
+      async shareFloatingMessage(message) {
+        const shareBtn = this.popup.querySelector('.hiffirmation-share-mini');
+        const originalContent = shareBtn.innerHTML;
+        
+        try {
+          shareBtn.innerHTML = '⏳';
+          shareBtn.style.pointerEvents = 'none';
+          
+          // Get user tier
+          const userTier = this.getUserTier();
+          
+          // Generate quote card with contextual branding
+          const quoteCardDataURL = await window.HiQuoteCardGenerator.generateQuoteCard(
+            message, 
+            { 
+              userTier, 
+              format: 'square',
+              context: this.currentPage 
+            }
+          );
+          
+          // Convert to blob
+          const blob = await window.HiQuoteCardGenerator.dataURLToBlob(quoteCardDataURL);
+          const file = new File([blob], `hi-${this.currentPage}-inspiration.png`, { type: 'image/png' });
+          
+          // Try sharing with image
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              title: `Inspiration from Stay Hi`,
+              text: `"${message}"\n\nShared from Stay Hi ✨`,
+              files: [file]
+            });
+            shareBtn.innerHTML = '✅';
+          } else {
+            // Fallback: Download image
+            const downloadLink = document.createElement('a');
+            downloadLink.href = quoteCardDataURL;
+            downloadLink.download = `hi-${this.currentPage}-inspiration.png`;
+            downloadLink.click();
+            
+            // Copy text
+            const textToCopy = `"${message}"\n\nShared from Stay Hi ✨\nstay-hi.app`;
+            await navigator.clipboard.writeText(textToCopy);
+            
+            shareBtn.innerHTML = '📥';
+          }
+          
+          // Reset after success
+          setTimeout(() => {
+            shareBtn.innerHTML = originalContent;
+            shareBtn.style.pointerEvents = 'auto';
+          }, 2000);
+          
+        } catch (error) {
+          console.error('❌ Floating message sharing failed:', error);
+          shareBtn.innerHTML = '❌';
+          setTimeout(() => {
+            shareBtn.innerHTML = originalContent;
+            shareBtn.style.pointerEvents = 'auto';
+          }, 2000);
+        }
+      }
+
+      trackMessageShown(message, type) {
+        // Enhanced analytics for message effectiveness
+        if (!window.hiAnalytics) return;
+        
+        window.hiAnalytics.track('hiffirmation_shown', {
+          message_type: type,
+          page_context: this.currentPage,
+          user_tier: this.getUserTier(),
+          activity_score: this.activityScore,
+          session_messages: this.messageHistory.length,
+          message_preview: message.substring(0, 20) + '...'
+        });
+      }
+
+      hidePopup() {
+        this.popup.classList.remove('show');
+        if (this.autoHideTimeout) {
+          clearTimeout(this.autoHideTimeout);
+        }
+      }
+
+      startActivityTriggers() {
+        // Smart contextual triggers with behavioral intelligence
+        this.activityScore = 0;
+        this.milestoneActions = ['selfHi5Enhanced', 'btnShare', 'hiffirmationsTrigger'];
+        this.setupMilestoneTriggers();
+        this.setupSmartTimingAlgorithm();
+        this.trackUserEngagementPattern();
+      }
+
+      setupMilestoneTriggers() {
+        // Trigger inspirational messages after meaningful user actions
+        this.milestoneActions.forEach(actionId => {
+          const element = document.getElementById(actionId);
+          if (element) {
+            element.addEventListener('click', () => {
+              // Delay inspiration to avoid overwhelming user during their action
+              setTimeout(() => {
+                this.showMilestoneMessage(actionId);
+              }, 2000);
+            });
+          }
+        });
+
+        // Hi-5 medallion interaction trigger
+        const medallion = document.querySelector('.medallion, [data-action="hi-wave"]');
+        if (medallion) {
+          medallion.addEventListener('click', () => {
+            setTimeout(() => {
+              this.showMilestoneMessage('hi-wave');
+            }, 1500);
+          });
+        }
+      }
+
+      showMilestoneMessage(actionType) {
+        const now = Date.now();
+        if (now - this.lastShown < 15000) return; // Reduced cooldown for milestones
+
+        const milestoneMessages = this.getMilestoneMessages(actionType);
+        const message = milestoneMessages[Math.floor(Math.random() * milestoneMessages.length)];
+        this.displayMessage(message, 'milestone');
+        this.lastShown = now;
+      }
+
+      getMilestoneMessages(actionType) {
+        const userTier = this.getUserTier();
+        
+        const milestoneMap = {
+          'selfHi5Enhanced': {
+            base: ["🙌 Self-love is the foundation", "✨ You're your biggest supporter"],
+            standard: ["💝 Celebrating yourself creates ripples", "🌟 Self-appreciation is magnetic"],
+            premium: ["👑 You just modeled self-worth beautifully", "💎 Your self-love inspires others to do the same"]
+          },
+          'hi-wave': {
+            base: ["🌊 Every wave creates connection", "✨ You just brightened someone's day"],
+            standard: ["💫 Your Hi energy is contagious", "🔥 Positive momentum is building"],
+            premium: ["🚀 You're a catalyst for community joy", "⭐ Your waves create lasting impact"]
+          },
+          'btnShare': {
+            base: ["📤 Sharing multiplies joy", "🌈 Your story matters to someone"],
+            standard: ["🎯 Vulnerability creates authentic connection", "💪 You're inspiring others to be brave"],
+            premium: ["🌟 Your authentic sharing transforms communities", "🔥 You're modeling courageous leadership"]
+          }
+        };
+
+        const messageSet = milestoneMap[actionType] || milestoneMap['hi-wave'];
+        let messages = [...messageSet.base];
+        
+        if (userTier === 'STANDARD' || userTier === 'PREMIUM') {
+          messages.push(...messageSet.standard);
+        }
+        if (userTier === 'PREMIUM') {
+          messages.push(...messageSet.premium);
+        }
+
+        return messages;
+      }
+
+      setupSmartTimingAlgorithm() {
+        // Intelligent activity-based inspiration timing
+        let activityTimer;
+        let engagementLevel = 'low'; // low, medium, high
+        
+        const calculateEngagementLevel = () => {
+          if (this.activityScore > 20) engagementLevel = 'high';
+          else if (this.activityScore > 8) engagementLevel = 'medium';
+          else engagementLevel = 'low';
+        };
+
+        const getSmartInterval = () => {
+          const baseIntervals = {
+            low: 300000,    // 5 minutes - user needs more encouragement
+            medium: 240000, // 4 minutes - balanced engagement
+            high: 180000    // 3 minutes - user is active, keep momentum
+          };
+          const variance = Math.random() * 60000; // ±1 minute randomness
+          return baseIntervals[engagementLevel] + variance;
+        };
+
+        const resetSmartTimer = () => {
+          clearTimeout(activityTimer);
+          calculateEngagementLevel();
+          
+          activityTimer = setTimeout(() => {
+            if (this.shouldShowSmartMessage()) {
+              this.showContextualMessage();
+            }
+            resetSmartTimer(); // Reset for continuous operation
+          }, getSmartInterval());
+        };
+
+        // Track meaningful user interactions for engagement scoring
+        ['click', 'scroll', 'keypress', 'focus'].forEach(event => {
+          document.addEventListener(event, (e) => {
+            this.activityScore += this.getActivityWeight(e);
+            // Decay activity score over time
+            setTimeout(() => { this.activityScore = Math.max(0, this.activityScore - 1); }, 30000);
+          }, { passive: true });
+        });
+
+        resetSmartTimer();
+      }
+
+      getActivityWeight(event) {
+        // Weight different activities by engagement value
+        const weights = {
+          click: 3,     // Deliberate interaction
+          scroll: 1,    // Passive engagement
+          keypress: 2,  // Active input
+          focus: 1      // Attention return
+        };
+        
+        // Bonus weight for meaningful element interactions
+        if (event.target) {
+          if (event.target.closest('button, .medallion, [data-action]')) {
+            return (weights[event.type] || 1) * 2;
+          }
+        }
+        
+        return weights[event.type] || 1;
+      }
+
+      shouldShowSmartMessage() {
+        // Intelligent decision making for message timing
+        const now = Date.now();
+        const timeSinceLastMessage = now - this.lastShown;
+        const minimumInterval = 45000; // 45 seconds absolute minimum
+        
+        if (timeSinceLastMessage < minimumInterval) return false;
+        
+        // Don't interrupt if user seems to be in a flow state
+        const recentActivityScore = this.activityScore;
+        if (recentActivityScore > 25) return false; // High activity = don't interrupt
+        
+        // Show message if user seems idle or needs encouragement
+        if (recentActivityScore < 3 && timeSinceLastMessage > 180000) return true; // Idle user
+        
+        return true; // Default case
+      }
+
+      trackUserEngagementPattern() {
+        // Track user behavior patterns for future personalization
+        this.engagementPattern = {
+          sessionStart: Date.now(),
+          totalClicks: 0,
+          milestoneActions: 0,
+          messageInteractions: 0
+        };
+
+        // Track clicks on our floating button
+        this.button.addEventListener('click', () => {
+          this.engagementPattern.messageInteractions++;
+        });
+
+        // Enhanced milestone tracking
+        document.addEventListener('click', (e) => {
+          this.engagementPattern.totalClicks++;
+          
+          if (e.target.closest('.medallion, [data-action], button')) {
+            this.engagementPattern.milestoneActions++;
+          }
+        });
+      }
+    }
+
+    // Initialize floating Hiffirmations system
+    const floatingHiffirmations = new FloatingHiffirmations();
+
+    // Tesla-Grade Quote Card Generation System
+    class HiQuoteCardGenerator {
+      constructor() {
+        this.brandColors = {
+          primary: '#FFD166',
+          secondary: '#F4A261',
+          accent: '#E76F51',
+          background: '#1E2A4A',
+          backgroundSecondary: '#2D4A87',
+          text: '#FFFFFF',
+          textSecondary: 'rgba(255, 255, 255, 0.8)'
+        };
+        
+        this.socialFormats = {
+          instagram_post: { width: 1080, height: 1080 },
+          instagram_story: { width: 1080, height: 1920 },
+          twitter_card: { width: 1200, height: 675 },
+          square: { width: 800, height: 800 } // Default format
+        };
+      }
+
+      async generateQuoteCard(message, options = {}) {
+        const {
+          userTier = 'ANONYMOUS',
+          format = 'square',
+          customBranding = false
+        } = options;
+
+        const dimensions = this.socialFormats[format];
+        const canvas = this.createCanvas(dimensions.width, dimensions.height);
+        const ctx = canvas.getContext('2d');
+
+        // Draw background with tier-specific styling
+        await this.drawBackground(ctx, canvas, userTier);
+        
+        // Draw quote text with smart formatting
+        await this.drawQuoteText(ctx, message, canvas, userTier);
+        
+        // Draw branding and attribution
+        await this.drawBranding(ctx, canvas, userTier);
+        
+        return canvas.toDataURL('image/png', 0.9);
+      }
+
+      createCanvas(width, height) {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        return canvas;
+      }
+
+      async drawBackground(ctx, canvas, userTier) {
+        const { width, height } = canvas;
+        
+        // Create tier-specific gradient backgrounds
+        let gradient;
+        
+        switch(userTier) {
+          case 'PREMIUM':
+            // Premium: Rich multi-color gradient
+            gradient = ctx.createLinearGradient(0, 0, width, height);
+            gradient.addColorStop(0, this.brandColors.primary);
+            gradient.addColorStop(0.3, this.brandColors.secondary);
+            gradient.addColorStop(0.7, this.brandColors.accent);
+            gradient.addColorStop(1, this.brandColors.background);
+            break;
+            
+          case 'STANDARD':
+            // Standard: Elegant dual gradient
+            gradient = ctx.createLinearGradient(0, 0, width, height);
+            gradient.addColorStop(0, this.brandColors.background);
+            gradient.addColorStop(0.5, this.brandColors.backgroundSecondary);
+            gradient.addColorStop(1, this.brandColors.secondary);
+            break;
+            
+          default:
+            // Anonymous: Simple, clean gradient
+            gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, this.brandColors.background);
+            gradient.addColorStop(1, this.brandColors.backgroundSecondary);
+        }
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
+        
+        // Add subtle texture for Premium users
+        if (userTier === 'PREMIUM') {
+          this.addPremiumTexture(ctx, canvas);
+        }
+      }
+
+      addPremiumTexture(ctx, canvas) {
+        // Add subtle sparkle texture for premium users
+        ctx.globalAlpha = 0.1;
+        for (let i = 0; i < 50; i++) {
+          const x = Math.random() * canvas.width;
+          const y = Math.random() * canvas.height;
+          const size = Math.random() * 3 + 1;
+          
+          ctx.fillStyle = this.brandColors.primary;
+          ctx.beginPath();
+          ctx.arc(x, y, size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      async drawQuoteText(ctx, message, canvas, userTier) {
+        const { width, height } = canvas;
+        const centerX = width / 2;
+        const centerY = height / 2;
+        
+        // Configure font based on tier
+        const fontSize = this.getFontSize(message.length, canvas);
+        const fontFamily = userTier === 'PREMIUM' ? 
+          'Georgia, "Times New Roman", serif' : 
+          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        
+        ctx.fillStyle = this.brandColors.text;
+        ctx.font = `${fontSize}px ${fontFamily}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Smart text wrapping
+        const lines = this.wrapText(ctx, message, width * 0.8);
+        const lineHeight = fontSize * 1.4;
+        const totalTextHeight = lines.length * lineHeight;
+        const startY = centerY - (totalTextHeight / 2);
+        
+        // Draw text with shadow for better readability
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetY = 2;
+        
+        lines.forEach((line, index) => {
+          const y = startY + (index * lineHeight);
+          ctx.fillText(line, centerX, y);
+        });
+        
+        // Reset shadow
+        ctx.shadowColor = 'transparent';
+      }
+
+      getFontSize(textLength, canvas) {
+        const baseSize = Math.min(canvas.width, canvas.height) / 20;
+        if (textLength < 30) return Math.min(baseSize * 1.2, 48);
+        if (textLength < 60) return Math.min(baseSize, 40);
+        return Math.min(baseSize * 0.8, 32);
+      }
+
+      wrapText(ctx, text, maxWidth) {
+        const words = text.split(' ');
+        const lines = [];
+        let currentLine = '';
+        
+        for (const word of words) {
+          const testLine = currentLine + (currentLine ? ' ' : '') + word;
+          const metrics = ctx.measureText(testLine);
+          
+          if (metrics.width > maxWidth && currentLine !== '') {
+            lines.push(currentLine);
+            currentLine = word;
+          } else {
+            currentLine = testLine;
+          }
+        }
+        
+        if (currentLine) {
+          lines.push(currentLine);
+        }
+        
+        return lines;
+      }
+
+      async drawBranding(ctx, canvas, userTier) {
+        const { width, height } = canvas;
+        
+        // Draw "Stay Hi" branding at bottom
+        const brandingY = height - 80;
+        
+        ctx.fillStyle = this.brandColors.textSecondary;
+        ctx.font = '24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('— Stay Hi Community —', width / 2, brandingY);
+        
+        // Add URL
+        ctx.font = '18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.fillStyle = this.brandColors.primary;
+        ctx.fillText('stay-hi.app', width / 2, brandingY + 35);
+        
+        // Add tier indicator for Standard/Premium
+        if (userTier === 'STANDARD' || userTier === 'PREMIUM') {
+          ctx.font = '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+          ctx.fillStyle = this.brandColors.textSecondary;
+          const tierText = userTier === 'PREMIUM' ? '✨ Premium Member' : '⭐ Standard Member';
+          ctx.fillText(tierText, width / 2, brandingY - 25);
+        }
+      }
+
+      async dataURLToBlob(dataURL) {
+        return new Promise(resolve => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const img = new Image();
+          
+          img.onload = () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            
+            canvas.toBlob(resolve, 'image/png', 0.9);
+          };
+          
+          img.src = dataURL;
+        });
+      }
+    }
+
+    // Initialize quote card generator
+    window.HiQuoteCardGenerator = new HiQuoteCardGenerator();
   </script>
 </body>
 </html>
