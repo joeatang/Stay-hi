@@ -243,6 +243,10 @@
       overflow-x: hidden;
       position: relative;
       box-sizing: border-box;
+      /* TESLA-GRADE VIEWPORT CENTERING */
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     
     /* Tesla-grade background particles */
@@ -272,7 +276,7 @@
       max-width: 400px;
       /* FIXED: Proper responsive width without viewport issues */
       width: 100%;
-      margin: 0 auto;
+      margin: 0;
       backdrop-filter: blur(25px) saturate(1.4);
       -webkit-backdrop-filter: blur(25px) saturate(1.4);
       border: 1px solid rgba(255, 215, 0, 0.15);
@@ -584,11 +588,15 @@
     @media (max-height: 700px) and (max-width: 400px) {
       body {
         padding: 8px;
+        /* Override centering for ultra-small screens */
+        align-items: flex-start;
+        padding-top: 20px;
       }
       
       .welcome-panel {
         padding: 1rem 0.875rem;
-        max-height: 98vh;
+        max-height: 90vh;
+        overflow-y: auto;
       }
       
       .welcome-logo {
@@ -624,9 +632,45 @@
       }
     }
     
+    /* 🎯 LANDSCAPE MOBILE: Horizontal viewport optimization */
+    @media (max-height: 500px) and (orientation: landscape) {
+      body {
+        align-items: flex-start;
+        padding: 10px min(16px, 4vw);
+        justify-content: center;
+      }
+      
+      .welcome-panel {
+        padding: 1rem 1.25rem;
+        max-height: 95vh;
+        overflow-y: auto;
+        margin-top: 10px;
+      }
+      
+      .welcome-logo {
+        width: 48px;
+        height: 48px;
+        margin: 0.25rem 0 0.5rem 0;
+      }
+      
+      .welcome-title {
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+      }
+      
+      .welcome-lead {
+        font-size: 0.9rem;
+        margin-bottom: 0.75rem;
+      }
+      
+      .welcome-btn {
+        padding: 0.8rem 1.5rem;
+        font-size: 0.9rem;
+        min-height: 40px;
+      }
+    }
+    
     /* Reduced motion preferences */
-
-
     @media (prefers-reduced-motion: reduce) {
       .welcome-panel,
       .welcome-logo,
