@@ -1066,10 +1066,10 @@
       }
     }
 
-    /* Floating Refresh Button */
+    /* Floating Refresh Button - Tesla Grade Positioning */
     .floating-refresh {
       position: fixed;
-      bottom: 20px;
+      bottom: 90px; /* Moved above footer */
       right: 20px;
       width: 56px;
       height: 56px;
@@ -1096,10 +1096,10 @@
       transform: translateY(0) rotate(180deg);
     }
 
-    /* Floating Hiffirmations System */
+    /* Floating Hiffirmations System - Tesla Grade Positioning */
     .floating-hiffirmations {
       position: fixed;
-      bottom: 20px;
+      bottom: 90px; /* Moved above footer */
       left: 20px;
       width: 56px;
       height: 56px;
@@ -1977,40 +1977,64 @@
       }
       
       const hiffirmations = [
-        "✨ You're radiating positive energy today",
-        "🌟 Your Hi moments create ripples of joy", 
-        "💫 You have the power to brighten someone's day",
-        "🔥 Your authentic self is your superpower",
-        "🌈 Every Hi you share makes the world brighter",
-        "⭐ You're exactly where you need to be",
-        "💝 Your presence is a gift to those around you",
-        "🌺 You're growing stronger with each Hi moment",
-        "🎯 Trust your journey, you're doing amazing",
-        "💎 Your unique light can't be dimmed",
-        "🚀 Your potential is limitless and inspiring",
-        "🌸 You bring beauty to every moment",
-        "⚡ Your energy lights up the room",
-        "🏔️ You're stronger than any challenge",
-        "🎨 Your creativity makes the world more colorful",
-        "🌊 You flow with grace through life's changes",
-        "🔮 Your intuition guides you perfectly",
-        "🦋 You're transforming into your best self",
-        "🌅 Each day brings new opportunities for you",
-        "💪 Your resilience is truly remarkable",
-        "🎵 Your soul sings a beautiful melody",
-        "🌟 You're a beacon of hope for others",
-        "🕊️ Peace follows you wherever you go",
-        "🔥 Your passion ignites positive change",
-        "🌻 You're growing toward the light every day",
-        "⭐ Your dreams are valid and achievable",
-        "🎯 You're aligned with your highest purpose",
-        "💫 Magic happens when you believe in yourself",
-        "🌈 You create your own beautiful reality",
-        "🦄 Your uniqueness is your greatest strength"
+        "✨ Hi! You're radiating pure positive energy today",
+        "🌟 Your Hi moments are creating beautiful ripples of joy", 
+        "💫 Hi there! You have the power to brighten someone's entire day",
+        "🔥 Hi beautiful soul! Your authentic self is your true superpower",
+        "🌈 Every Hi you share makes our world infinitely brighter",
+        "⭐ Hi friend! You're exactly where you need to be right now",
+        "💝 Hi amazing human! Your presence is a gift to everyone around you",
+        "🌺 Hi warrior! You're growing stronger with each Hi moment you create",
+        "🎯 Hi there! Trust your journey, you're doing absolutely amazing",
+        "💎 Hi shining star! Your unique light can never be dimmed",
+        "🚀 Hi unstoppable force! Your potential is limitless and so inspiring",
+        "🌸 Hi beautiful! You bring such beauty to every single moment",
+        "⚡ Hi energy! Your vibe literally lights up every room you enter",
+        "🏔️ Hi mountain mover! You're stronger than any challenge life brings",
+        "🎨 Hi creative soul! Your imagination makes the world more colorful",
+        "🌊 Hi flowing river! You adapt with grace through all life's changes",
+        "🔮 Hi intuitive being! Your inner wisdom guides you perfectly",
+        "🦋 Hi transformer! You're evolving into your most amazing self",
+        "🌅 Hi sunrise! Each new day brings fresh opportunities just for you",
+        "💪 Hi resilient heart! Your bounce-back ability is truly remarkable",
+        "🎵 Hi melody maker! Your soul sings the most beautiful song",
+        "🌟 Hi beacon! You're a lighthouse of hope for so many others",
+        "🕊️ Hi peaceful spirit! Serenity follows you wherever you go",
+        "🔥 Hi passionate heart! Your fire ignites positive change everywhere",
+        "🌻 Hi sunflower! You're always growing toward the light",
+        "⭐ Hi dreamer! Your visions are completely valid and achievable",
+        "🎯 Hi aligned soul! You're perfectly connected to your highest purpose",
+        "💫 Hi magical being! Amazing things happen when you believe in yourself",
+        "🌈 Hi reality creator! You're painting your own beautiful world",
+        "🦄 Hi unique spirit! Your one-of-a-kind nature is your greatest strength"
       ];
       
-      const dailyHiffirmation = hiffirmations[Math.abs(hash % hiffirmations.length)];
-      return dailyHiffirmation;
+      const selectedMessage = hiffirmations[Math.abs(hash % hiffirmations.length)];
+      
+      // Check if this is the daily HiFirmation or a Hi Boost
+      const lastHiffirmationDate = localStorage.getItem('lastHiffirmationDate');
+      const today = new Date().toDateString();
+      const isDaily = lastHiffirmationDate !== today;
+      
+      if (isDaily) {
+        localStorage.setItem('lastHiffirmationDate', today);
+        return selectedMessage; // Full daily message
+      } else {
+        // Hi Boost - shorter, encouraging messages
+        const hiBoosts = [
+          "Hi! Keep shining! ✨",
+          "Hi beautiful! You've got this! 💪",
+          "Hi amazing! Stay awesome! 🚀",
+          "Hi superstar! Keep going! 🌟",
+          "Hi warrior! You're unstoppable! ⚡",
+          "Hi champion! Believe in yourself! 🏆",
+          "Hi brilliant! Trust your journey! 🌈",
+          "Hi phenomenal! You matter! 💝",
+          "Hi incredible! Keep rising! 🦅",
+          "Hi wonderful! Stay Hi! 🌻"
+        ];
+        return hiBoosts[Math.floor(Math.random() * hiBoosts.length)];
+      }
     }
 
     // Get countdown to next Hiffirmation (midnight local time)
@@ -2058,16 +2082,30 @@
           padding: 32px; max-width: 400px; width: 90vw; text-align: center; color: white;
           box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); position: relative;
         ">
-          <h3 style="margin: 0 0 8px; color: #FFD166; font-size: 24px;">✨ ${isToday ? 'Daily' : dateLabel} Hiffirmation</h3>
+          <h3 style="margin: 0 0 8px; color: #FFD166; font-size: 24px;">✨ ${(() => {
+            const lastDate = localStorage.getItem('lastHiffirmationDate');
+            const todayString = new Date().toDateString();
+            const isDailyHi = !customDate && (lastDate !== todayString);
+            if (!isToday) return dateLabel + ' Hiffirmation';
+            return isDailyHi ? 'Daily Hiffirmation' : 'Hi Boost';
+          })()}</h3>
           
-          <!-- Countdown Timer (only for today) -->
-          ${isToday ? `
+          <!-- Countdown Timer (only for daily) -->
+          ${isToday && localStorage.getItem('lastHiffirmationDate') !== new Date().toDateString() ? `
           <div style="
             font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-bottom: 20px;
             padding: 8px 12px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;
             border: 1px solid rgba(255, 255, 255, 0.1);
           ">
-            Next Hiffirmation in ${countdown.hours}h ${countdown.minutes}m
+            Next Daily Hiffirmation in ${countdown.hours}h ${countdown.minutes}m
+          </div>
+          ` : isToday ? `
+          <div style="
+            font-size: 12px; color: rgba(233, 30, 99, 0.8); margin-bottom: 20px;
+            padding: 8px 12px; background: rgba(233, 30, 99, 0.1); border-radius: 8px;
+            border: 1px solid rgba(233, 30, 99, 0.2);
+          ">
+            🚀 Unlimited Hi Boosts available!
           </div>
           ` : ''}
           
@@ -2093,6 +2131,11 @@
             " onmouseover="this.style.background='rgba(255, 255, 255, 0.15)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'">
               Yesterday's
             </button>
+          </div>
+          
+          <!-- Hi Logo Branding -->
+          <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+            <img src="assets/brand/hi-logo-light.png" alt="Hi" style="width: 32px; height: 32px; opacity: 0.7;" />
           </div>
           
           <!-- Close Button -->
@@ -3178,7 +3221,7 @@
       if (!document.querySelector('.floating-refresh')) {
         const refreshButton = document.createElement('button');
         refreshButton.className = 'floating-refresh';
-        refreshButton.innerHTML = '<i class="fas fa-sync-alt"></i>';
+        refreshButton.innerHTML = '🔄'; // Universal refresh emoji - no dependencies
         refreshButton.addEventListener('click', () => {
           location.reload();
         });
