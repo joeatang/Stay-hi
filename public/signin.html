@@ -401,7 +401,7 @@
           console.log('🔐 Sending magic link to:', emailVal);
           
           const nextPage = new URLSearchParams(location.search).get('next') || 'hi-dashboard.html';
-          const redirectTo = `${location.origin}/post-auth?next=${encodeURIComponent(nextPage)}`;
+          const redirectTo = `${location.origin}/post-auth.html?next=${encodeURIComponent(nextPage)}`;
           
           // Add timeout to prevent infinite loading
           const timeoutPromise = new Promise((_, reject) => {
