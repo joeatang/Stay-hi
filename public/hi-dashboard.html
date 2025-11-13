@@ -337,6 +337,9 @@
       justify-content: flex-end;
       width: 160px; /* Expanded for tier indicator + menu button */
       gap: 8px;
+      overflow: visible !important;
+      position: relative;
+      z-index: 1002;
     }
     
     /* UX-First: Membership Tier Indicator */
@@ -418,13 +421,15 @@
       height: 40px;
       border: none;
       border-radius: 12px;
-      background: rgba(255, 255, 255, 0.1);
-      color: #FFD166;
+      background: rgba(255, 255, 255, 0.15) !important;
+      color: #FFD166 !important;
       cursor: pointer;
       transition: all 0.3s ease;
       visibility: visible !important;
       opacity: 1 !important;
-      z-index: 1001;
+      z-index: 10001 !important;
+      position: relative !important;
+      flex-shrink: 0 !important;
     }
 
     .calendar-btn:hover, .menu-btn:hover, .home-nav-btn:hover {
