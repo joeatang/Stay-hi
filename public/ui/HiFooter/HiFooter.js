@@ -7,8 +7,8 @@
   const hiFooterTabs = [
     { id: 'today', label: 'Hi Today', icon: '⭘', href: 'hi-dashboard.html', pages: ['hi-dashboard.html', 'index.html', ''] },
     { id: 'explore', label: 'Hi-island', icon: '🧭', href: 'hi-island-NEW.html', pages: ['hi-island-NEW.html'] },
-    { id: 'me', label: 'Me', href: 'profile.html', icon: '👤', pages: ['profile.html'] },
-    { id: 'plus', label: 'Hi Gym', icon: '✨', href: 'hi-muscle.html', pages: ['hi-muscle.html', 'calendar.html'] }
+    { id: 'plus', label: 'Hi Gym', icon: '✨', href: 'hi-muscle.html', pages: ['hi-muscle.html', 'calendar.html'] },
+    { id: 'me', label: 'Me', href: 'profile.html', icon: '👤', pages: ['profile.html'] }
   ];
 
   function getCurrentPage() {

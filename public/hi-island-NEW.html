@@ -2396,8 +2396,11 @@
 
     // Calendar functionality (placeholder)
     function showCalendar() {
-      console.log('📅 Calendar feature - Coming soon!');
-      // TODO: Integrate with existing calendar system
+      if (window.hiCalendarInstance) {
+        window.hiCalendarInstance.show();
+      } else {
+        console.error('[HI DEV] Calendar not initialized on Hi Island');
+      }
     }
 
     // Membership tier management
