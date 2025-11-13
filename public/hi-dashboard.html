@@ -3944,13 +3944,39 @@
       async drawBranding(ctx, canvas, userTier) {
         const { width, height } = canvas;
         
-        // Draw "Stay Hi" branding at bottom
+        // Draw Hi logo branding at bottom
         const brandingY = height - 80;
         
-        ctx.fillStyle = this.brandColors.textSecondary;
-        ctx.font = '24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('— Stay Hi Community —', width / 2, brandingY);
+        // Load and draw Hi logo
+        try {
+          const logoImg = new Image();
+          logoImg.crossOrigin = 'anonymous';
+          
+          await new Promise((resolve, reject) => {
+            logoImg.onload = resolve;
+            logoImg.onerror = () => {
+              // Fallback to text if logo fails to load
+              ctx.fillStyle = this.brandColors.textSecondary;
+              ctx.font = '24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+              ctx.textAlign = 'center';
+              ctx.fillText('— Hi —', width / 2, brandingY);
+              resolve();
+            };
+            logoImg.src = 'assets/brand/hi-logo-light.png';
+          });
+          
+          // Draw logo if loaded successfully
+          if (logoImg.complete && logoImg.naturalHeight !== 0) {
+            const logoSize = 32;
+            ctx.drawImage(logoImg, (width / 2) - (logoSize / 2), brandingY - 20, logoSize, logoSize);
+          }
+        } catch (error) {
+          // Fallback to Hi text
+          ctx.fillStyle = this.brandColors.primary;
+          ctx.font = '28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('Hi', width / 2, brandingY);
+        }
         
         // Add URL
         ctx.font = '18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
