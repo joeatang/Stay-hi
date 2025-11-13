@@ -7,7 +7,7 @@
   <meta name="robots" content="noindex" />
   <link rel="stylesheet" href="assets/create-parity.css" />
   <style>
-    /* Tesla-Grade Gold Standard Auth Processing UI */
+    /* Hi-Grade Gold Standard Auth Processing UI */
     * {
       box-sizing: border-box;
     }
@@ -250,7 +250,7 @@
       <div class="spin" aria-hidden="true"></div>
       <div>
         <div class="status-text">Finishing sign-in…</div>
-        <div class="muted" id="sub">Securing your session with Tesla-grade encryption</div>
+        <div class="muted" id="sub">Securing your session with Hi-grade encryption</div>
       </div>
     </div>
 
@@ -278,29 +278,17 @@
   // Wait for Supabase client to be ready
   let supabase;
   
-  function waitForSupabase() {
-    return new Promise((resolve, reject) => {
-      if (window.sb) {
-        supabase = window.sb;
-        console.log('✅ Supabase client ready (immediate)');
-        resolve();
-      } else {
-        console.log('⏳ Waiting for Supabase client to initialize...');
-        
-        // Set up timeout to avoid infinite waiting
-        const timeout = setTimeout(() => {
-          console.error('❌ Supabase initialization timeout');
-          reject(new Error('Supabase client failed to initialize within 10 seconds'));
-        }, 10000);
-        
-        window.addEventListener('supabase-ready', () => {
-          clearTimeout(timeout);
-          supabase = window.sb;
-          console.log('✅ Supabase client ready (event-based)');
-          resolve();
-        });
-      }
-    });
+  async function waitForSupabase() {
+    // Import HiSupabase v3 directly
+    try {
+      const module = await import('./lib/HiSupabase.v3.js');
+      supabase = module.supabase;
+      console.log('✅ HiSupabase v3 loaded for post-auth');
+      return supabase;
+    } catch (err) {
+      console.error('❌ Failed to load HiSupabase v3:', err);
+      throw new Error('Failed to load authentication system');
+    }
   }
 
   const $ = (s)=>document.querySelector(s);
@@ -376,7 +364,7 @@
       $('#working').style.display = 'none';
       $('#done').style.display = 'block';
       
-      // Tesla-grade membership validation before redirect
+      // Hi-grade membership validation before redirect
       console.log('🔍 Final membership validation before redirect...');
       
       if (!localStorage.getItem('hi_member') || localStorage.getItem('hi_member') === '0') {
