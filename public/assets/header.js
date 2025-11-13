@@ -201,31 +201,30 @@
     }
   });
 
-  // 🏛️ TESLA-GRADE: Dynamic Admin Menu Detection
+  // 🏛️ HI-GRADE: Dynamic Admin Menu Detection
   async function checkAndShowAdminAccess() {
     try {
-      // Wait for Supabase to be ready
-      const getClient = async () => {
-        if (window.sb) return window.sb;
-        if (window.sbReady) return await window.sbReady;
-        if (window.supabaseClient) return window.supabaseClient;
-        return null;
-      };
-      
-      const sb = await getClient();
-      if (!sb) return; // No Supabase = no admin check
+      // Import HiSupabase v3 directly
+      const { supabase } = await import('../lib/HiSupabase.v3.js');
       
       // Check if user is authenticated
-      const { data: { user }, error: authError } = await sb.auth.getUser();
-      if (authError || !user) return; // Not logged in = no admin access
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.log('🔒 Not authenticated - no admin check');
+        return;
+      }
+      
+      console.log('✅ User authenticated:', user.email);
       
       // Check admin role in database
-      const { data: adminCheck, error: adminError } = await sb
+      const { data: adminCheck, error: adminError } = await supabase
         .from('admin_roles')
         .select('role_type, is_active')
         .eq('user_id', user.id)
         .eq('is_active', true)
         .single();
+      
+      console.log('🔍 Admin check result:', { adminCheck, adminError });
       
       if (!adminError && adminCheck && (adminCheck.role_type === 'super_admin' || adminCheck.role_type === 'admin')) {
         // Show admin menu section
@@ -238,12 +237,12 @@
       
     } catch (error) {
       // Silently fail - admin access just won't appear
-      console.debug('Admin check failed (expected for non-admins):', error.message);
+      console.debug('Admin check failed (expected for non-admins):', error);
     }
   }
   
-  // Run admin check after a short delay to ensure Supabase is ready
-  setTimeout(checkAndShowAdminAccess, 1500);
+  // Run admin check after modules load
+  setTimeout(checkAndShowAdminAccess, 2000);
 
   // Sign out functionality
   btnSignOut?.addEventListener("click", async () => {
