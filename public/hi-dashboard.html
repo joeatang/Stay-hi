@@ -219,9 +219,9 @@
   <!-- Tesla-Grade Smart Conversion System -->
   <script src="assets/smart-conversion-system.js"></script>
   
-  <!-- Premium CSS Integration -->
-  <link rel="preload" href="assets/premium-ux.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="preload" href="assets/premium-calendar.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <!-- Premium CSS Integration - FIXED: Immediate loading to prevent header flash -->
+  <link rel="stylesheet" href="assets/premium-ux.css">
+  <link rel="stylesheet" href="assets/premium-calendar.css">
   <link rel="preload" href="./ui/HiFooter/HiFooter.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="preload" href="./ui/HiModal/HiModal.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   
@@ -339,7 +339,7 @@
       gap: 8px;
       overflow: visible !important;
       position: relative;
-      z-index: 1002;
+      z-index: 9999999; /* TESLA-GRADE: Bulletproof layering */
     }
     
     /* UX-First: Membership Tier Indicator */
@@ -1276,6 +1276,30 @@
     ✨
   </button>
 
+  <!-- TESLA-GRADE: Immediate navigation setup to prevent header flash -->
+  <script>
+    // Critical: Setup navigation immediately when DOM elements exist
+    (function immediateNavigationSetup() {
+      const btnMenu = document.getElementById('btnMenu');
+      const navigationModal = document.getElementById('navigationModal');
+      
+      if (btnMenu && navigationModal) {
+        // Ensure menu button is always visible and functional
+        btnMenu.style.cssText = `
+          display: flex !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          z-index: 9999999 !important;
+          position: relative !important;
+        `;
+        
+        console.log('🚀 Tesla-grade navigation immediately activated');
+      } else {
+        console.warn('⚠️ Navigation elements not ready for immediate setup');
+      }
+    })();
+  </script>
+
   <!-- S-DASH Flag-Gated DOM Anchors (Hidden Placeholders) -->
   <script>
     (async function initSDashAnchors() {
@@ -1907,14 +1931,17 @@
       });
     }
 
-    // Navigation Menu Handler
+    // TESLA-GRADE: Immediate navigation setup to prevent header flash
     function setupNavigationHandler() {
       const btnMenu = document.getElementById('btnMenu');
       const navigationModal = document.getElementById('navigationModal');
       const navigationBackdrop = document.getElementById('navigationBackdrop');
       const closeNavigation = document.getElementById('closeNavigation');
 
-      if (!btnMenu || !navigationModal) return;
+      if (!btnMenu || !navigationModal) {
+        console.warn('🚨 Navigation elements not found - header functionality broken');
+        return;
+      }
 
       const openNavigation = () => {
         navigationModal.classList.add('show');
@@ -2564,10 +2591,12 @@
         // Silent fail for tracking
       }
 
+      // TESLA-GRADE: Setup critical UI first to prevent flash issues
+      setupNavigationHandler(); // MOVED: Critical for immediate header functionality
+      
       // Initialize all components
       initializeDatabase();
       // setupSelfHi5Handler(); // DEPRECATED: Using medallion long-press system
-      setupNavigationHandler();
       setupHiffirmationsHandler();
       setupFloatingHiffirmationsHandler();
       await setupWeeklyProgress();
