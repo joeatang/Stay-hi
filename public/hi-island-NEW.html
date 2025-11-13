@@ -1131,6 +1131,54 @@
       transform: rotate(45deg);
       border-radius: 0 0 4px 0;
     }
+
+    /* Tesla-Grade Wave Emoji Map Markers */
+    .custom-wave-marker {
+      background: transparent;
+      border: none;
+    }
+    
+    .wave-marker {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      font-size: 20px;
+      background: rgba(78, 205, 196, 0.15);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 2px solid rgba(78, 205, 196, 0.4);
+      border-radius: 50%;
+      box-shadow: 
+        0 4px 16px rgba(78, 205, 196, 0.3),
+        0 0 0 4px rgba(78, 205, 196, 0.1);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: gentle-pulse 3s infinite ease-in-out;
+    }
+    
+    .wave-marker:hover {
+      transform: scale(1.1);
+      background: rgba(78, 205, 196, 0.25);
+      border-color: rgba(78, 205, 196, 0.6);
+      box-shadow: 
+        0 6px 20px rgba(78, 205, 196, 0.4),
+        0 0 0 6px rgba(78, 205, 196, 0.15);
+    }
+    
+    @keyframes gentle-pulse {
+      0%, 100% { 
+        box-shadow: 
+          0 4px 16px rgba(78, 205, 196, 0.3),
+          0 0 0 4px rgba(78, 205, 196, 0.1);
+      }
+      50% { 
+        box-shadow: 
+          0 6px 20px rgba(78, 205, 196, 0.4),
+          0 0 0 8px rgba(78, 205, 196, 0.15);
+      }
+    }
   </style>
   
   <!-- HiFooter CSS - Dashboard Parity -->
@@ -1822,13 +1870,17 @@
         ];
 
         sampleLocations.forEach(location => {
-          L.circleMarker([location.lat, location.lng], {
-            radius: 6,
-            fillColor: '#4ECDC4',
-            color: '#ffffff',
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.8
+          // Create custom 👋 emoji marker with Tesla-grade styling
+          const waveIcon = L.divIcon({
+            html: '<div class="wave-marker">👋</div>',
+            className: 'custom-wave-marker',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+            popupAnchor: [0, -16]
+          });
+          
+          L.marker([location.lat, location.lng], { 
+            icon: waveIcon 
           }).addTo(map).bindPopup(`Hi from ${location.name}! 👋`);
         });
 
