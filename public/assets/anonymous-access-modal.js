@@ -10,6 +10,8 @@ class AnonymousAccessModal {
   }
   
   init() {
+    this.checkInProgress = false; // Guard against duplicate checks
+    
     // Check immediately on init
     setTimeout(() => {
       this.checkAccessOnLoad();
@@ -17,7 +19,7 @@ class AnonymousAccessModal {
     
     // Also check after a longer delay in case of slow loading
     setTimeout(() => {
-      if (!this.isShown) {
+      if (!this.isShown && !this.checkInProgress) {
         this.checkAccessOnLoad();
       }
     }, 2000);
@@ -29,6 +31,12 @@ class AnonymousAccessModal {
   }
   
   async checkAccessOnLoad() {
+    if (this.checkInProgress) {
+      console.log('🔍 Anonymous Access Modal: Check already in progress, skipping');
+      return;
+    }
+    
+    this.checkInProgress = true;
     console.log('🔍 Anonymous Access Modal: Starting checkAccessOnLoad');
     
     // Check if current page requires authentication
@@ -79,6 +87,9 @@ class AnonymousAccessModal {
     } else {
       console.log('🟢 This is NOT a protected page, no modal needed');
     }
+    
+    // Clear the progress flag when check completes
+    this.checkInProgress = false;
   }
 
   async quickAuthCheck() {

@@ -720,6 +720,9 @@
           // Start Tesla-grade loading experience
           await window.hiLoadingExperience.start('Welcome back! Loading your Hi space...');
           
+          // Always hide loading before navigation
+          await window.hiLoadingExperience.hide();
+          
           // Navigate after beautiful experience
           window.location.replace('./hi-dashboard.html?source=welcome');
         }

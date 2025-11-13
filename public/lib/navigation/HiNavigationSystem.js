@@ -66,8 +66,9 @@ class HiNavigationSystem {
       return;
     }
     
-    // Normal initialization
-    this.updateAppState(this.appStates.LOADING);
+    // Don't automatically set LOADING - let pages control their own state
+    // Only monitor existing states, don't force LOADING on fresh loads
+    console.log('🧭 Tesla Navigation System monitoring session state');
   }
   
   // 🔄 PWA-specific state persistence handlers
