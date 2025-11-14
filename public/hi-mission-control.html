@@ -453,8 +453,10 @@
                         p_ip_address: clientIP
                     });
                 
-                if (accessError || !accessCheck?.access_granted) {
-                    throw new Error(accessCheck?.error || 'Administrative privileges required');
+                console.log('🔐 Admin access check result:', accessCheck, accessError);
+                
+                if (accessError || !accessCheck?.has_access) {
+                    throw new Error(accessCheck?.reason || 'Administrative privileges required');
                 }
                 
                 // Step 3: Session Creation
@@ -468,7 +470,9 @@
                         p_user_agent: navigator.userAgent
                     });
                 
-                if (sessionError) {
+                console.log('🎫 Session creation result:', sessionData, sessionError);
+                
+                if (sessionError || !sessionData?.success) {
                     throw new Error('Session creation failed');
                 }
                 adminSession = sessionData;
