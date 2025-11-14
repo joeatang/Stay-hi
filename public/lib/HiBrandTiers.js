@@ -82,6 +82,31 @@ class HiBrandTierSystem {
         description: 'Permanent Hi member'
       },
       
+      // ===== HI-OS MEMBERSHIP TIERS =====
+      'collective': {
+        name: 'Collective',
+        color: '#8B5CF6',
+        emoji: '🏛️',
+        gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        description: 'Hi Collective - Full access + Admin'
+      },
+      
+      'enhanced': {
+        name: 'Enhanced',
+        color: '#3B82F6',
+        emoji: '⚡',
+        gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        description: 'Enhanced tier - Premium features'
+      },
+      
+      'starter': {
+        name: 'Starter',
+        color: '#10B981',
+        emoji: '🌟',
+        gradient: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+        description: 'Starter tier - Core features'
+      },
+      
       // ===== LEGACY/ALTERNATE NAMES =====
       'registered': {
         name: 'Hi Friend',
@@ -228,11 +253,25 @@ class HiBrandTierSystem {
     
     const info = this.getDisplayInfo(tierKey);
     
-    // Update text content
-    const tierText = element.querySelector('.tier-text');
-    if (tierText) {
-      tierText.textContent = this.formatForDisplay(tierKey, { showEmoji });
+    // Update text content with defensive fallback
+    let tierText = element.querySelector('.tier-text');
+    
+    // Defensive fallback: if querySelector fails, try finding any span
+    if (!tierText) {
+      tierText = element.querySelector('span');
     }
+    
+    // Final fallback: create span if needed (Hi-OS resilience)
+    if (!tierText) {
+      tierText = document.createElement('span');
+      tierText.className = 'tier-text';
+      element.appendChild(tierText);
+      console.log('🔧 Created missing .tier-text element');
+    }
+    
+    // Update text content
+    tierText.textContent = this.formatForDisplay(tierKey, { showEmoji });
+    console.log('🎨 Tier pill updated:', tierKey, '→', tierText.textContent);
     
     // Update styling
     if (useGradient) {
