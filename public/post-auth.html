@@ -364,8 +364,47 @@
       $('#working').style.display = 'none';
       $('#done').style.display = 'block';
       
-      // Hi-grade membership validation before redirect
-      console.log('🔍 Final membership validation before redirect...');
+      // 🔥 GOLD-STANDARD: Smart routing based on membership tier
+      console.log('🔍 Smart routing: Checking membership tier...');
+      
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData?.user?.id) {
+          // Check for collective tier or admin status
+          const { data: memberData, error: memberError } = await supabase
+            .rpc('get_unified_membership');
+          
+          console.log('🎯 Membership data:', memberData);
+          
+          if (!memberError && memberData) {
+            const tier = memberData.tier;
+            const isAdmin = memberData.is_admin;
+            const status = memberData.status;
+            
+            // Route based on user type
+            if (tier === 'collective' || isAdmin) {
+              // Admin or collective members go straight to dashboard
+              console.log('✅ Collective/Admin user - routing to dashboard');
+              const nextPage = new URLSearchParams(location.search).get('next') || 'hi-dashboard.html';
+              setTimeout(()=>go(nextPage), 900);
+              return;
+            }
+            
+            if (status === 'active' && tier !== 'anonymous') {
+              // Active paid members go to dashboard
+              console.log('✅ Active member (' + tier + ') - routing to dashboard');
+              const nextPage = new URLSearchParams(location.search).get('next') || 'hi-dashboard.html';
+              setTimeout(()=>go(nextPage), 900);
+              return;
+            }
+          }
+        }
+      } catch (smartRouteErr) {
+        console.warn('⚠️ Smart routing check failed, falling back to standard logic:', smartRouteErr);
+      }
+      
+      // Fallback: Legacy membership check
+      console.log('🔍 Fallback: Using legacy membership validation...');
       
       if (!localStorage.getItem('hi_member') || localStorage.getItem('hi_member') === '0') {
         console.log('⚠️ No active membership found - redirecting to upgrade');
@@ -373,7 +412,7 @@
         return;
       }
       
-      // Check for 'next' parameter and use it, otherwise default to hi-dashboard.html for authenticated users
+      // Default: authenticated member goes to dashboard
       const nextPage = new URLSearchParams(location.search).get('next') || 'hi-dashboard.html';
       console.log('🔄 Redirecting authenticated member to:', nextPage);
       setTimeout(()=>go(nextPage), 900);

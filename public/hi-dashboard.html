@@ -2891,13 +2891,30 @@
       }, 1000);
       
       // Listen for membership changes
-      window.addEventListener('membershipStatusChanged', () => {
+      window.addEventListener('membershipStatusChanged', (event) => {
+        console.log('🎯 Membership status changed event received:', event.detail);
         updateBrandTierDisplay();
       });
       
+      // 🔥 GOLD-STANDARD: Ensure tier updates even if event fires before listener attached
+      setTimeout(() => {
+        if (window.unifiedMembership?.membershipStatus?.tier) {
+          console.log('🎯 Late membership check - forcing tier update');
+          updateBrandTierDisplay();
+        }
+      }, 2500);
+      
       function updateBrandTierDisplay() {
         const tierIndicator = document.getElementById('hi-tier-indicator');
-        if (!tierIndicator || !window.HiBrandTiers) return;
+        if (!tierIndicator) {
+          console.warn('⚠️ Tier indicator element not found');
+          return;
+        }
+        
+        if (!window.HiBrandTiers) {
+          console.warn('⚠️ HiBrandTiers not loaded yet');
+          return;
+        }
         
         // Get tier from membership system
         let tierKey = 'anonymous';

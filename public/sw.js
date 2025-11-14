@@ -1,8 +1,8 @@
 // 🚀 TESLA-GRADE SERVICE WORKER
 // Hi Collective PWA - Offline-first architecture
 
-const CACHE_NAME = 'hi-collective-v1.0.0';
-const STATIC_CACHE_NAME = 'hi-static-v1.0.0';
+const CACHE_NAME = 'hi-collective-v1.1.0';
+const STATIC_CACHE_NAME = 'hi-static-v1.1.0';
 
 // Core app shell files that should always be cached
 const APP_SHELL_FILES = [
