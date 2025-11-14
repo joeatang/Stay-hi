@@ -36,27 +36,14 @@ class UnifiedMembershipSystem {
   }
 
   async waitForSupabase() {
-    if (window.sb) return window.sb;
-    if (window.supabaseClient) return window.supabaseClient;
-    
-    return new Promise((resolve, reject) => {
-      let attempts = 0;
-      const maxAttempts = 50; // 5 seconds
-      
-      const checkSupabase = () => {
-        if (window.sb) return resolve(window.sb);
-        if (window.supabaseClient) return resolve(window.supabaseClient);
-        
-        attempts++;
-        if (attempts >= maxAttempts) {
-          reject(new Error('Supabase not available'));
-        } else {
-          setTimeout(checkSupabase, 100);
-        }
-      };
-      
-      checkSupabase();
-    });
+    // Import HiSupabase v3 directly (Hi-Grade approach)
+    try {
+      const module = await import('./HiSupabase.v3.js');
+      return module.supabase;
+    } catch (error) {
+      console.error('Failed to load HiSupabase v3:', error);
+      throw new Error('Supabase not available');
+    }
   }
 
   // Load membership status from database (single source of truth)
