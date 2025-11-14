@@ -2896,13 +2896,22 @@
         updateBrandTierDisplay();
       });
       
-      // 🔥 GOLD-STANDARD: Ensure tier updates even if event fires before listener attached
+      // 🔥 GOLD-STANDARD: Multi-tier fallback for tier display
+      // Try at 2.5s (catches most cases)
       setTimeout(() => {
         if (window.unifiedMembership?.membershipStatus?.tier) {
-          console.log('🎯 Late membership check - forcing tier update');
+          console.log('🎯 Late membership check (2.5s) - forcing tier update');
           updateBrandTierDisplay();
         }
       }, 2500);
+      
+      // Nuclear fallback at 5s (catches slow connections)
+      setTimeout(() => {
+        if (window.unifiedMembership?.membershipStatus?.tier) {
+          console.log('🔥 Nuclear tier update (5s) - final attempt');
+          updateBrandTierDisplay();
+        }
+      }, 5000);
       
       function updateBrandTierDisplay() {
         const tierIndicator = document.getElementById('hi-tier-indicator');
