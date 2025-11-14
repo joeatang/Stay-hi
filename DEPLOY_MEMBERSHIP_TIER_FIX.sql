@@ -3,6 +3,12 @@
 -- Fixes: "HiFriend" tier display + Admin menu not appearing
 
 -- =============================================
+-- 0. Drop any existing versions
+-- =============================================
+DROP FUNCTION IF EXISTS get_unified_membership();
+DROP FUNCTION IF EXISTS get_unified_membership(uuid);
+
+-- =============================================
 -- 1. Get Unified Membership Function
 -- =============================================
 CREATE OR REPLACE FUNCTION get_unified_membership()
@@ -14,6 +20,7 @@ DECLARE
   v_user_id uuid;
   v_result json;
   v_member record;
+  v_days_remaining int;
 BEGIN
   -- Get current authenticated user
   v_user_id := auth.uid();
@@ -58,13 +65,10 @@ BEGIN
   END IF;
   
   -- Calculate days remaining
-  DECLARE
-    v_days_remaining int := null;
-  BEGIN
-    IF v_member.tier_expires_at IS NOT NULL THEN
-      v_days_remaining := EXTRACT(DAY FROM v_member.tier_expires_at - NOW());
-    END IF;
-  END;
+  v_days_remaining := NULL;
+  IF v_member.tier_expires_at IS NOT NULL THEN
+    v_days_remaining := EXTRACT(DAY FROM v_member.tier_expires_at - NOW())::int;
+  END IF;
   
   -- Return unified membership object
   RETURN json_build_object(

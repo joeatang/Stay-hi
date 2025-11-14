@@ -272,5 +272,3 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
   
   console.log('🔧 Tier debug available: debugTiers()');
 }
-
-export default HiBrandTierSystem;
