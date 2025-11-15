@@ -409,11 +409,16 @@
     </div>
 
     <script>
+        console.log('🎬 Mission Control script starting...');
+        
         // 🏛️ SUPABASE CONFIGURATION
         const SUPABASE_URL = 'https://gfcubvroxgfvjhacinic.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g';
         
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        console.log('📡 Checking Supabase availability...', window.supabase ? '✅' : '❌');
+        
+        const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_KEY);
+        console.log('🔌 Supabase client created:', supabaseClient ? '✅' : '❌');
         
         // 🔐 SECURITY GLOBALS
         let currentUser = null;
@@ -422,6 +427,7 @@
         
         // 🚀 INITIALIZATION
         document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 DOMContentLoaded fired, initializing security...');
             await initializeSecuritySystem();
         });
         
@@ -429,13 +435,21 @@
             const statusEl = document.getElementById('securityStatus');
             const progressBar = document.getElementById('progressBar');
             
+            console.log('🔐 initializeSecuritySystem started');
+            console.log('📍 Status element:', statusEl);
+            console.log('📊 Progress bar:', progressBar);
+            
             try {
                 // Step 1: Authentication Check
+                console.log('📝 Step 1: Setting status text...');
                 statusEl.textContent = 'Verifying authentication credentials...';
                 progressBar.style.width = '20%';
                 await delay(800);
                 
+                console.log('🔑 Step 1: Calling getUser()...');
                 const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+                console.log('👤 User result:', user, authError);
+                
                 if (authError || !user) {
                     throw new Error('Authentication required');
                 }
