@@ -92,8 +92,18 @@ class UnifiedMembershipSystem {
       }
 
       this.membershipStatus = membership;
+      try {
+        localStorage.setItem('isAdmin', membership?.is_admin ? 'true' : 'false');
+      } catch {}
       this.saveMembershipCache();
       this.notifyMembershipChange();
+      
+      // Proactively update tier pill if helper exists
+      try {
+        if (window.HiBrandTiers?.updateTierPill && membership?.tier) {
+          window.HiBrandTiers.updateTierPill(membership.tier);
+        }
+      } catch {}
       
       console.log('✅ Membership loaded:', membership);
       
@@ -403,6 +413,17 @@ class UnifiedMembershipSystem {
 
 // Global instance - single source of truth
 window.unifiedMembership = new UnifiedMembershipSystem();
+
+// Helper to manually refresh membership from console or other modules
+window.refreshMembership = async () => {
+  try {
+    await window.unifiedMembership.loadMembershipStatus();
+    return window.unifiedMembership.membershipStatus;
+  } catch (e) {
+    console.error('refreshMembership failed:', e);
+    throw e;
+  }
+};
 
 // Backward compatibility helpers
 window.hiAccessManager = window.unifiedMembership;
