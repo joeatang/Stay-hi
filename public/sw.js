@@ -1,8 +1,8 @@
 // 🚀 TESLA-GRADE SERVICE WORKER
 // Hi Collective PWA - Offline-first architecture
 
-const CACHE_NAME = 'hi-collective-v1.2.1';
-const STATIC_CACHE_NAME = 'hi-static-v1.2.1';
+const CACHE_NAME = 'hi-collective-v1.2.2';
+const STATIC_CACHE_NAME = 'hi-static-v1.2.2';
 
 // Core app shell files that should always be cached
 const APP_SHELL_FILES = [
@@ -116,10 +116,17 @@ self.addEventListener('fetch', event => {
     return;
   }
   
-  // Only handle static assets (CSS, JS, images) - never HTML pages
+  // JS under /lib should be network-first to avoid stale logic
+  if (url.pathname.startsWith('/lib/') || url.pathname.startsWith('/public/lib/')) {
+    event.respondWith(networkFirst(request));
+    return;
+  }
+
+  // Only handle static assets (CSS, images, fonts) - never HTML pages; avoid caching generic JS
   if (url.pathname.includes('/assets/') || 
-      url.pathname.match(/\.(css|js|png|jpg|jpeg|svg|woff|woff2)$/)) {
+      url.pathname.match(/\.(css|png|jpg|jpeg|svg|woff|woff2)$/)) {
     event.respondWith(cacheFirst(request));
+    return;
   }
 });
 
@@ -251,5 +258,15 @@ self.addEventListener('message', event => {
         });
       });
     });
+  }
+
+  if (event.data.type === 'NUKE_CACHES') {
+    event.waitUntil(
+      caches.keys().then(names => Promise.all(names.map(n => caches.delete(n)))).then(() => {
+        return self.clients.matchAll().then(clients => {
+          clients.forEach(c => c.postMessage({ type: 'CACHES_CLEARED' }));
+        });
+      })
+    );
   }
 });
