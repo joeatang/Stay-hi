@@ -425,6 +425,14 @@
         let adminSession = null;
         let sessionTimeout = null;
         
+        // ⏱️ Utility: timeout wrapper to avoid hangs
+        function withTimeout(promise, ms, label = 'operation') {
+            return Promise.race([
+                promise,
+                new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms))
+            ]);
+        }
+
         // 🚀 INITIALIZATION
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('🚀 DOMContentLoaded fired, initializing security...');
@@ -447,11 +455,12 @@
                 await delay(800);
                 
                 console.log('🔑 Step 1: Calling getUser()...');
-                const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+                const getUserResult = await withTimeout(supabaseClient.auth.getUser(), 5000, 'supabase.auth.getUser');
+                const { data: { user }, error: authError } = getUserResult || { data: { user: null }, error: null };
                 console.log('👤 User result:', user, authError);
                 
                 if (authError || !user) {
-                    throw new Error('Authentication required');
+                    throw new Error('Authentication required. Please sign in then retry.');
                 }
                 currentUser = user;
                 
