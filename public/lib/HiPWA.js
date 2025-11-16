@@ -4,9 +4,12 @@
 (function() {
   'use strict';
   
-  // Disable service worker in local dev (no 404 noise)
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    console.log('🚫 Service Worker disabled in local development');
+  // Allow SW only on prod and local to prevent preview pollution
+  const host = window.location.hostname;
+  const isLocal = host === 'localhost' || host === '127.0.0.1';
+  const isProd = host === 'stay-hi.vercel.app';
+  if (!isLocal && !isProd) {
+    console.log('🚫 Skipping Service Worker on non-prod host:', host);
     return;
   }
   

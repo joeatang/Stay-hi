@@ -454,15 +454,16 @@
                 progressBar.style.width = '20%';
                 await delay(800);
                 
-                console.log('🔑 Step 1: Calling getUser()...');
-                const getUserResult = await withTimeout(supabaseClient.auth.getUser(), 5000, 'supabase.auth.getUser');
-                const { data: { user }, error: authError } = getUserResult || { data: { user: null }, error: null };
-                console.log('👤 User result:', user, authError);
-                
-                if (authError || !user) {
-                    throw new Error('Authentication required. Please sign in then retry.');
+                // Prefer getSession (fast, local) to avoid network flakiness
+                console.log('🪪 Step 1: Checking session with getSession()...');
+                const sessionResult = await withTimeout(supabaseClient.auth.getSession(), 3000, 'supabase.auth.getSession');
+                const session = sessionResult?.data?.session || null;
+                console.log('📦 Session result:', sessionResult);
+
+                if (!session || !session.user) {
+                    throw new Error('Authentication required. Please sign in on the dashboard, then retry.');
                 }
-                currentUser = user;
+                currentUser = session.user;
                 
                 // Step 2: Admin Privilege Verification
                 statusEl.textContent = 'Validating administrative privileges...';
