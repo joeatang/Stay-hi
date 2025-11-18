@@ -1,84 +1,58 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "public/**/*",
-      "use": "@vercel/static"
-    }
+    { "src": "public/**/*", "use": "@vercel/static" }
+  ],
+  "redirects": [
+    { "source": "/signin-enhanced.html", "destination": "/signin.html", "permanent": true },
+    { "source": "/signin-tesla.html", "destination": "/signin.html", "permanent": true },
+    { "source": "/signin-bulletproof.html", "destination": "/signin.html", "permanent": true },
+    { "source": "/signin-production-ready.html", "destination": "/signin.html", "permanent": true },
+    { "source": "/signin-tesla-bulletproof.html", "destination": "/signin.html", "permanent": true },
+    { "source": "/signin-backup-20251030_203600.html", "destination": "/signin.html", "permanent": true },
+    { "source": "/signin-backup-20251030_195444.html", "destination": "/signin.html", "permanent": true }
   ],
   "rewrites": [
-    {
-      "source": "/",
-      "destination": "/public/index.html"
-    },
-    {
-      "source": "/welcome",
-      "destination": "/public/welcome.html"
-    },
-    {
-      "source": "/dashboard", 
-      "destination": "/public/hi-dashboard.html"
-    },
-    {
-      "source": "/hi-island",
-      "destination": "/public/hi-island-NEW.html"
-    },
-    {
-      "source": "/hi-muscle",
-      "destination": "/public/hi-muscle.html"
-    },
-    {
-      "source": "/profile",
-      "destination": "/public/profile.html"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/public/$1"
-    }
+    { "source": "/", "destination": "/public/index.html" },
+    { "source": "/welcome", "destination": "/public/welcome.html" },
+    { "source": "/dashboard", "destination": "/public/hi-dashboard.html" },
+    { "source": "/signin", "destination": "/public/signin.html" },
+    { "source": "/profile", "destination": "/public/profile.html" },
+    { "source": "/hi-island", "destination": "/public/hi-island-NEW.html" },
+    { "source": "/hi-muscle", "destination": "/public/hi-muscle.html" },
+    { "source": "/(.*)", "destination": "/public/$1" }
   ],
   "headers": [
     {
+      "source": "/public/dev/(.*)",
+      "headers": [ { "key": "X-Robots-Tag", "value": "noindex, nofollow" } ]
+    },
+    {
+      "source": "/public/sw.js",
+      "headers": [
+        { "key": "Service-Worker-Allowed", "value": "/" },
+        { "key": "Cache-Control", "value": "no-cache" }
+      ]
+    },
+    {
+      "source": "/public/assets/(.*)",
+      "headers": [ { "key": "Cache-Control", "value": "public, max-age=3600, immutable" } ]
+    },
+    {
       "source": "/public/(.*)\\.html",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/public/styles/(.*)\\.css",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600, stale-while-revalidate=86400"
-        }
-      ]
-    },
-    {
-      "source": "/public/lib/(.*)\\.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600, stale-while-revalidate=86400"
-        }
-      ]
+      "headers": [ { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" } ]
     },
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options", 
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        }
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "geolocation=(), microphone=(), camera=(), interest-cohort=(), usb=(), payment=()" },
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
+        { "key": "Cross-Origin-Resource-Policy", "value": "same-site" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://gfcubvroxgfvjhacinic.supabase.co; connect-src 'self' https://gfcubvroxgfvjhacinic.supabase.co https://*.supabase.in https://*.ingest.sentry.io; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" }
       ]
     }
   ]
