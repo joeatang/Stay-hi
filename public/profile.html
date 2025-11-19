@@ -3204,8 +3204,10 @@ FOR INSERT WITH CHECK (
           }
           
           if (authReady) {
-            window.anonymousAccessModal = new AnonymousAccessModal();
-            console.log('🔒 Anonymous access modal initialized after auth ready');
+            if (!window.anonymousAccessModal) {
+              window.anonymousAccessModal = new AnonymousAccessModal();
+              console.log('🔒 Anonymous access modal initialized after auth ready');
+            }
           } else {
             console.log('⚠️ Auth systems not ready, skipping anonymous modal');
           }

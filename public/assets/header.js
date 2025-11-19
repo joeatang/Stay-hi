@@ -340,6 +340,29 @@
     });
   })();
 
+  // Visual indicator when admin confirmed
+  try {
+    const notifyAdmin = () => {
+      document.body.dataset.adminMode = 'true';
+      try {
+        const badgeId = 'hi-admin-badge';
+        if (!document.getElementById(badgeId)) {
+          const badge = document.createElement('div');
+          badge.id = badgeId;
+          badge.setAttribute('role','status');
+          badge.setAttribute('aria-live','polite');
+          badge.style.cssText = 'position:fixed;bottom:12px;right:12px;padding:6px 10px;border-radius:10px;background:#10b981;color:#0b1323;font-weight:700;font-size:12px;z-index:9999;box-shadow:0 6px 20px rgba(0,0,0,.25)';
+          badge.textContent = 'ADMIN MODE';
+          document.body.appendChild(badge);
+          setTimeout(()=>{ try { badge.remove(); } catch {} }, 3500);
+        }
+      } catch {}
+    };
+    window.addEventListener('hi:admin-confirmed', notifyAdmin);
+    // If already admin (cached), mark dataset for CSS hooks
+    try { if (window.AdminAccessManager?.getState?.().isAdmin) { document.body.dataset.adminMode='true'; } } catch {}
+  } catch {}
+
   // Sign out functionality
   btnSignOut?.addEventListener("click", async () => {
     try {

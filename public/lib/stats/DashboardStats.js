@@ -484,156 +484,35 @@ async function handleMedallionTap() {
  * Supports: Hi-Dashboard, Hi-Island, Hi-Muscle share sheets
  */
 export async function trackShareSubmission(source = 'dashboard', metadata = {}) {
-  console.log(`🎯 [GOLD STANDARD] Share submitted from ${source}:`, metadata);
-  console.log('🔍 Current Total His before tracking:', window.gTotalHis || 0);
-  
+  console.log(`[ShareTrack] submission from ${source}`, metadata);
+  const submissionType = metadata.submissionType || metadata.type || 'public';
+  if (submissionType !== 'public') {
+    console.log('🚫 Skipping Total His increment (non-public):', submissionType);
+    return;
+  }
   try {
-    // Extract submission details
-    const submissionType = metadata.submissionType || metadata.type || 'public';
-    const rawOrigin = metadata.pageOrigin || metadata.origin || source || detectPageOrigin();
-    const pageOrigin = normalizeOrigin(rawOrigin);
-    
-    console.log('🎯 Origin mapping:', { source, rawOrigin, normalizedOrigin: pageOrigin });
-    
-    // Get user info - support both auth systems
-    let user = null;
-    try {
-      // Try ProgressiveAuth first
-      if (window.ProgressiveAuth) {
-        const authState = window.ProgressiveAuth.getAuthState();
-        if (authState.isAuthenticated && authState.session?.user) {
-          user = authState.session.user;
-        }
-      }
-      // Fallback to direct hiAuth if available
-      if (!user && window.hiAuth?.getCurrentUser) {
-        user = window.hiAuth.getCurrentUser();
-      }
-    } catch (error) {
-      console.warn('⚠️ Auth user detection failed:', error);
-    }
-    
-    if (!user || user.id === 'anonymous') {
-      console.log('📤 Anonymous user - processing guest share...');
-      
-      // For anonymous users, use global increment only
-      const supabase = window.getSupabase?.() || window.supabaseClient || window.sb || 
-                      window.HiSupabase?.getClient?.() || window.__HI_SUPABASE_CLIENT;
-      if (supabase) {
-        try {
-          console.log('🔄 Anonymous user - calling increment_total_hi()...');
-          const { data, error } = await supabase.rpc('increment_total_hi');
-          console.log('🔄 Anonymous increment result:', { data, error });
-          if (data && !error) {
-            window.gTotalHis = data;
-            console.log('📤 Anonymous share tracked:', { globalHis: window.gTotalHis });
-          } else {
-            console.warn('⚠️ Anonymous increment failed:', error);
-          }
-        } catch (error) {
-          console.warn('⚠️ Anonymous share increment failed:', error);
-        }
-      } else {
-        console.warn('⚠️ No Supabase client available for anonymous tracking');
-      }
-      
-      // Refresh stats display
-      if (window.updateGlobalStats) {
-        window.updateGlobalStats();
-      }
-      
-      // 🎉 SUCCESS TOAST: Show confirmation for anonymous shares
-      showShareSuccessToast('anonymous');
+    const supabase = window.getSupabase?.() || window.supabaseClient || window.sb ||
+                     window.HiSupabase?.getClient?.() || window.__HI_SUPABASE_CLIENT;
+    if (!supabase) {
+      console.warn('⚠️ No Supabase client available for tracking');
       return;
     }
-    
-    // � GOLD STANDARD: Direct increment_total_hi() call for ALL share submissions
-    // MISSION: Simple, reliable Total His tracking across all pages
-    const supabase = window.getSupabase?.() || window.supabaseClient || window.sb || 
-                    window.HiSupabase?.getClient?.() || window.__HI_SUPABASE_CLIENT;
-    if (supabase) {
-      console.log('🎯 GOLD STANDARD: Calling increment_total_hi() for share submission');
-      console.log(`📤 Share origin: ${pageOrigin}, Type: ${submissionType}`);
-      
-      try {
-        const { data, error } = await supabase.rpc('increment_total_hi');
-        
-        if (error) {
-          console.error('❌ increment_total_hi() error:', error);
-          throw error;
-        }
-        
-        if (data && typeof data === 'number') {
-          // Success: Update Total His counter
-          window.gTotalHis = data;
-          console.log('✅ Total His updated from database:', window.gTotalHis);
-          
-          // Update UI immediately
-          const totalHisEl = document.getElementById('globalTotalHis') || document.getElementById('totalHis');
-          if (totalHisEl) {
-            totalHisEl.textContent = window.gTotalHis.toLocaleString();
-            console.log('✅ Total His UI updated:', window.gTotalHis);
-          }
-        } else {
-          console.warn('⚠️ Unexpected increment_total_hi() response:', { data, error });
-        }
-      } catch (error) {
-        console.error('❌ increment_total_hi() failed:', error);
-        
-        // 🎯 WOZNIAK FIX: NO emergency fallback - database-only accuracy
-        console.log('❌ Total His increment failed - no local fallback to maintain database accuracy');
-          
-          const totalHisEl = document.getElementById('globalTotalHis') || document.getElementById('totalHis');
-          if (totalHisEl) {
-            totalHisEl.textContent = window.gTotalHis.toLocaleString();
-          }
-        }
-          
-          console.log('📤 Share tracked (comprehensive):', { 
-            source, 
-            submissionType,
-            pageOrigin,
-            personalTotal: newPersonalShares,
-            weeklyTotal: newWeeklyShares,
-            globalHis: newGlobalHis 
-          });
-          
-          // Show milestone celebration if achieved
-          if (data.milestone?.success) {
-            const milestone = data.milestone.milestone;
-            showMilestoneToast(milestone.name, milestone.description);
-          }
-        }
-      } else {
-        console.error('❌ Comprehensive share submission failed:', error);
-        // Fallback to localStorage for offline resilience
-        if (window.personalStats) {
-          window.personalStats.totalSubmissions += 1;
-          window.personalStats.weeklySubmissions += 1;
-        }
-        
-        // 🎯 WOZNIAK FIX: NO local increment - database-only tracking
-        console.log('📊 Total His count managed by database only');
-      }
+    const { data, error } = await supabase.rpc('increment_total_hi');
+    if (error) {
+      console.error('❌ increment_total_hi() error:', error);
+      return;
     }
-    
-    // Update HiMetrics cache
-    if (window.HiMetrics?.updateCache) {
-      window.HiMetrics.updateCache({ hi5s: window.gTotalHis });
+    if (typeof data === 'number') {
+      window.gTotalHis = data;
+      const el = document.getElementById('globalTotalHis') || document.getElementById('totalHis');
+      if (el) el.textContent = window.gTotalHis.toLocaleString();
+      console.log('✅ Total His updated:', window.gTotalHis);
+      if (window.updateGlobalStats) { window.updateGlobalStats(); }
+    } else {
+      console.warn('⚠️ Unexpected increment_total_hi() response:', data);
     }
-    
-    // 🎯 GOLD STANDARD: Always refresh display regardless of database result
-    updateAllStatsDisplays();
-    
-    // 🎉 SUCCESS TOAST: Show confirmation for all successful shares
-    showShareSuccessToast(submissionType);
-    
-  } catch (error) {
-    console.error('❌ [DashboardStats] Comprehensive share tracking failed:', error);
-    
-    // 🎯 WOZNIAK FIX: NO emergency fallback - database-only accuracy
-    console.log('❌ Comprehensive share tracking failed - no local fallback to maintain database accuracy');
-    updateAllStatsDisplays(); // Update display with current database values
+  } catch (err) {
+    console.error('❌ Share tracking failed:', err);
   }
 }
 

@@ -477,9 +477,11 @@ class AnonymousAccessModal {
   }
 }
 
-// Initialize the anonymous access modal system
+// Initialize the anonymous access modal system (singleton guard)
 if (typeof window !== 'undefined') {
-  window.anonymousAccessModal = new AnonymousAccessModal();
+  if (!window.anonymousAccessModal) {
+    window.anonymousAccessModal = new AnonymousAccessModal();
+  }
 }
 
 // Export for module usage

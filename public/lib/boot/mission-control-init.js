@@ -23,6 +23,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   initializeSecuritySystem();
 });
 
+// React when admin state flips after initial denial (e.g. passcode unlock)
+window.addEventListener('hi:admin-state-changed', (e) => {
+  try {
+    const st = e.detail;
+    if (st?.isAdmin) {
+      document.body.dataset.adminMode = 'true';
+      const unauth = document.getElementById('unauthorizedScreen');
+      const loading = document.getElementById('securityLoading');
+      if (unauth && unauth.style.display === 'flex') {
+        console.log('[MissionControl] Admin granted after denial – rebuilding secure session');
+        unauth.style.display = 'none';
+        if (loading) loading.style.display = 'flex';
+        initializeSecuritySystem();
+      } else {
+        finalizeAdminUI();
+      }
+    } else {
+      document.body.dataset.adminMode = 'false';
+    }
+  } catch {}
+});
+
 // Revalidate on auth-ready (ensures fresh privileges after magic link)
 window.addEventListener('hi:auth-ready', async () => {
   console.log('[MissionControl] auth-ready received -> revalidate admin');
@@ -50,7 +72,7 @@ async function initializeSecuritySystem() {
     // Unified manager check (cached or fresh)
     const mgr = window.AdminAccessManager;
     if (!mgr) throw new Error('Admin access system unavailable');
-    const state = await mgr.checkAdmin();
+    const state = await mgr.checkAdmin({ force:true }); // force to avoid stale cached denial
     if (!state.isAdmin) throw new Error(state.reason || 'Administrative privileges required');
     currentUser = state.user;
     statusEl.textContent = 'Establishing secure session...';
