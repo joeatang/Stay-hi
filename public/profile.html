@@ -5,16 +5,25 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Profile — Stay Hi</title>
   
+  <!-- Optional High-Contrast Accessibility Mode (non-destructive) -->
+  <script type="module" src="./lib/boot/contrast-mode.js"></script>
+  
   <!-- Tesla-Grade Performance: Essential Assets Only -->
   <script src="assets/avatar-utils.js"></script>
   <script src="assets/location-picker.js"></script>
-  <script src="assets/performance-manager.js"></script>
+  <script type="module" src="./lib/HiPerformance.js"></script>
   <script src="assets/image-optimizer.js"></script>
   <script src="assets/social-avatar-uploader.js"></script>
   <script src="assets/premium-calendar.js"></script>
+  <!-- Centralized streak milestone registry (load early for streak displays) -->
+  <script src="./lib/streaks/HiStreakMilestones.js"></script>
+  <!-- Centralized streak milestone toast component -->
+  <script src="./lib/streaks/HiMilestoneToast.js"></script>
+  <!-- Auth QA harness (runs only when ?runAuthQA=1) -->
+  <script src="./lib/qa/auth-flow-qa.js"></script>
   
   <!-- Supabase Integration -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1" integrity="sha384-XLEuzmdNfK1V09d59bu+Uv3EFtEp5kFP8BmseBq85CUpeFZXhUfqjk4ZeR/biZmS" crossorigin="anonymous"></script>
   <script src="./lib/HiSupabase.simple.js"></script>
   
   <!-- 🚀 INTEGRATION #2: HiBase + HiFlags for Profile operations (flagged rollout) -->
@@ -23,6 +32,10 @@
   
   <!-- 🚀 Tesla-Grade Anonymous Access Modal System -->
   <script src="assets/anonymous-access-modal.js"></script>
+  <!-- Unified Admin Access Manager -->
+  <script src="./lib/admin/AdminAccessManager.js"></script>
+  <!-- Unified MC Access Core -->
+  <script src="./lib/boot/mc-access-core.js" defer></script>
   
   <!-- Membership System for Tier Display -->
   <script type="module" src="./lib/membership/MembershipSystem.js"></script>
@@ -360,18 +373,7 @@
       padding-top: 60px; /* Account for fixed header */
     }
     
-
-      text-decoration: none;
-      font-size: 16px;
-      font-weight: 500;
-      transition: all 0.3s ease;
-      cursor: pointer;
-      
-      /* Tesla mobile touch target */
-      min-height: 44px;
-      -webkit-tap-highlight-color: rgba(0,0,0,0);
-      touch-action: manipulation;
-    }
+    
     
     @media (min-width: 768px) {
       .back-navigation {
@@ -1342,8 +1344,9 @@
     </div>
   </div>
 
-  <script>
-    // Tesla-Grade Profile System - WITH SECURITY BARRIERS
+  <!-- Profile Main Script (externalized) -->
+  <script src="./lib/boot/profile-main.js"></script>
+  <script type="module">
     
     // Tesla Profile Data - Production Ready
     // Tesla-Grade Profile System - Persistent by Default
@@ -1366,6 +1369,45 @@
       total_starts: Math.floor(Math.random() * 40) + 5,
       days_active: Math.floor(Math.random() * 100) + 10
     };
+
+    // Optional debug overlay: ?profiledebug=1 shows live streak + milestone progress
+    function initProfileDebug(){
+      if (!window.location.search.includes('profiledebug=1')) return;
+      if (document.getElementById('profileDebugPanel')) return;
+      const panel=document.createElement('div');
+      panel.id='profileDebugPanel';
+      panel.style.position='fixed';panel.style.bottom='12px';panel.style.left='12px';panel.style.zIndex='9999';
+      panel.style.background='rgba(30,34,40,0.85)';panel.style.color='#fff';panel.style.padding='10px 14px';panel.style.border='1px solid rgba(255,255,255,0.15)';
+      panel.style.borderRadius='10px';panel.style.font='12px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif';panel.style.boxShadow='0 4px 14px rgba(0,0,0,0.4)';panel.style.backdropFilter='blur(8px)';
+      panel.innerHTML='<strong>🧪 Profile Debug</strong><div id="profileDebugContent" style="margin-top:6px;font-size:11px;white-space:nowrap">Loading...</div>';
+      document.body.appendChild(panel);
+      refreshProfileDebug();
+      setInterval(refreshProfileDebug, 9000);
+    }
+    function resolveProfileStreak(){
+      // Attempt HiBase streak first
+      let hibase=null; try{ hibase=window.HiBase?.streaks?.myStreak?.current ?? null; }catch{}
+      const inlineStat=document.querySelector('[data-stat="current_streak"]');
+      const uiValue=inlineStat? parseInt(inlineStat.textContent||'0',10): null;
+      const stored=parseInt(localStorage.getItem('user_current_streak')||'0',10);
+      const final=hibase?? uiValue?? stored?? 0;
+      return { hibase, uiValue, stored, final };
+    }
+    function refreshProfileDebug(){
+      const content=document.getElementById('profileDebugContent'); if(!content) return;
+      const user=window.hiAuth?.getCurrentUser?.();
+      const tier=document.querySelector('#hi-tier-indicator .tier-text')?.textContent||'Unknown';
+      const streakInfo=resolveProfileStreak();
+      let milestoneData={ current:null, next:null, remaining:0 };
+      if (window.HiStreakMilestones){ milestoneData=window.HiStreakMilestones.describeProgress(streakInfo.final); }
+      const source= streakInfo.hibase!=null? 'HiBase' : (streakInfo.uiValue!=null? 'UI':'local');
+      content.innerHTML='User: '+(user?.id||'anonymous')+'<br>'+
+        'Tier: '+tier+'<br>'+
+        'Streak: '+streakInfo.final+' ('+source+')<br>'+
+        'Milestone: '+(milestoneData.current? milestoneData.current.name+'('+milestoneData.current.threshold+')':'none')+'<br>'+
+        'Next: '+(milestoneData.next? milestoneData.next.name+'('+milestoneData.next.threshold+')':'—')+' | Remaining: '+milestoneData.remaining;
+    }
+    document.addEventListener('DOMContentLoaded', initProfileDebug);
     
     // Social Media Grade Avatar System - Instagram/Twitter Style
     let socialAvatarUploader = null;
@@ -2837,11 +2879,8 @@ FOR INSERT WITH CHECK (
   </script>
   
   <!-- Location Picker Functions -->
+  <script src="./lib/boot/profile-locationpicker-log.js"></script>
   <script>
-    // Gold-standard global location data for worldwide users
-    // Tesla-Grade: LocationPicker handles all global locations
-    console.log('📍 Location picker script loaded - delegating to external component');
-  </script>
       },
       'Canada': {
         'Ontario': ['Toronto', 'Ottawa', 'Mississauga', 'Brampton', 'Hamilton', 'London', 'Markham', 'Vaughan', 'Kitchener', 'Windsor'],
@@ -2979,9 +3018,9 @@ FOR INSERT WITH CHECK (
     // Tesla-Grade Location System - Streamlined with LocationPicker Modal
   </script>
   
-  <!-- Tesla-Grade Navigation System -->
-  <script>
-    // Tesla-Grade Smart Back Navigation System
+  <!-- Tesla-Grade Navigation System (externalized) -->
+  <script src="./lib/boot/profile-navigation.js"></script>
+  <script type="module">
     class SmartNavigation {
       constructor() {
         this.backBtn = document.getElementById('smartBackBtn');
@@ -3266,32 +3305,20 @@ FOR INSERT WITH CHECK (
             }
             
             console.log('🎫 [Profile] Membership tier displayed:', user.tierInfo.name);
+            if (window.location.search.includes('profiledebug=1')) { try { refreshProfileDebug(); } catch(e){} }
           }
         }
       }, 1000);
     });
   </script>
 
-  <!-- Progressive Enhancement Scripts -->
-  <script>
-    // Load premium features if available
-    if (window.PremiumUX) {
-      console.log('🎨 Premium UX loaded');
-    }
-    
-    // Load location picker if available  
-    if (window.LocationPicker) {
-      console.log('📍 Location picker loaded');
-    }
-    
-    // Load performance manager if available
-    if (window.PerformanceManager) {
-      window.PerformanceManager.init();
-      console.log('⚡ Performance manager active');
-    }
-  </script>
+  <!-- Progressive Enhancement Scripts (externalized) -->
+  <script src="./lib/boot/profile-progressive.js"></script>
 
   <!-- HiFooter Component -->
   <script src="./ui/HiFooter/HiFooter.js" defer></script>
+  <!-- Integrity handled by mc-access-core.js -->
+  
+  <!-- mc-quick-access removed (unified core) -->
 </body>
 </html>

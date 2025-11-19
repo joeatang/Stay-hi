@@ -27,7 +27,8 @@
       const next = urlParams.get('next') || 'hi-dashboard.html';
       
       // Instant redirect without visible page load
-      const redirectUrl = `post-auth.html?next=${encodeURIComponent(next)}${hash}`;
+      const redirectBase = (window.hiPostAuthPath?.getPath ? window.hiPostAuthPath.getPath() : '/post-auth.html');
+      const redirectUrl = `${redirectBase}?next=${encodeURIComponent(next)}${hash}`;
       location.replace(redirectUrl);
       return true;
     }

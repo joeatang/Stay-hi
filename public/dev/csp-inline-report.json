@@ -1,0 +1,62 @@
+{
+  "generatedAt": "2025-11-16T17:34:22.854Z",
+  "pages": {
+    "hi-dashboard.html": {
+      "inlineCount": 0,
+      "totalBytes": 0,
+      "blocks": []
+    },
+    "welcome.html": {
+      "inlineCount": 0,
+      "totalBytes": 0,
+      "blocks": []
+    },
+    "hi-muscle.html": {
+      "inlineCount": 0,
+      "totalBytes": 0,
+      "blocks": []
+    },
+    "profile.html": {
+      "inlineCount": 0,
+      "totalBytes": 0,
+      "blocks": []
+    },
+    "hi-island-NEW.html": {
+      "inlineCount": 0,
+      "totalBytes": 0,
+      "blocks": []
+    },
+    "hi-mission-control.html": {
+      "inlineCount": 0,
+      "totalBytes": 0,
+      "blocks": []
+    },
+    "post-auth.html": {
+      "inlineCount": 0,
+      "totalBytes": 0,
+      "blocks": []
+    },
+    "signin.html": {
+      "inlineCount": 0,
+      "totalBytes": 0,
+      "blocks": []
+    },
+    "signup.html": {
+      "inlineCount": 0,
+      "totalBytes": 0,
+      "blocks": []
+    }
+  },
+  "summary": {
+    "totalInline": 0,
+    "totalBytes": 0
+  },
+  "externalizationPlan": [],
+  "recommendations": [
+    "Create /public/lib/boot/ directory for extracted init blocks (e.g. dashboard-init.js)",
+    "For each large inline module: move code verbatim to external file; replace block with <script type=\"module\" src=\"...\">",
+    "After externalization: add CSP nonce or remove unsafe-inline and use strict-dynamic",
+    "Measure performance before/after (expect negligible change; potential browser parser improvement)",
+    "Add integration smoke test to ensure event listeners still bind post-move"
+  ]
+}

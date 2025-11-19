@@ -5,9 +5,19 @@
  */
 
 // 🔧 COMPATIBILITY BRIDGE: Enhance existing trackShareSubmission() with Hi OS features
-const originalTrackShareSubmission = window.trackShareSubmission;
+// Preserve original reference once (avoid multi-layer wrapping)
+const originalTrackShareSubmission = window.trackShareSubmission && !window.trackShareSubmission.__HI_ENHANCED__
+  ? window.trackShareSubmission
+  : (window.trackShareSubmission && window.trackShareSubmission.__HI_ENHANCED__
+      ? window.trackShareSubmission.__HI_ORIGINAL__
+      : window.trackShareSubmission);
 
 async function enhancedTrackShareSubmission(source, metadata = {}) {
+  // Idempotency guard
+  if (enhancedTrackShareSubmission.__HI_ENHANCED__ !== true){
+    Object.defineProperty(enhancedTrackShareSubmission,'__HI_ENHANCED__',{ value:true, enumerable:false });
+    if (originalTrackShareSubmission) Object.defineProperty(enhancedTrackShareSubmission,'__HI_ORIGINAL__',{ value: originalTrackShareSubmission, enumerable:false });
+  }
   // ✅ STEP 1: Call existing tracking system (preserve all functionality)
   let result = null;
   if (originalTrackShareSubmission) {
@@ -144,21 +154,23 @@ function trackHiOSLocally(source, metadata) {
 
 // 🔧 SURGICAL INTEGRATION: Replace window.trackShareSubmission with enhanced version
 if (typeof window.trackShareSubmission === 'function') {
-  console.log('🔧 Hi OS: Enhancing existing trackShareSubmission with Hi OS features');
-  window.trackShareSubmission = enhancedTrackShareSubmission;
+  if (!window.trackShareSubmission.__HI_ENHANCED__){
+    console.log('🔧 Hi OS: Enhancing existing trackShareSubmission with Hi OS features');
+    window.trackShareSubmission = enhancedTrackShareSubmission;
+  } else {
+    console.log('ℹ️ Hi OS: trackShareSubmission already enhanced, skipping duplicate layer');
+  }
 } else {
   console.warn('⚠️ No existing trackShareSubmission found - Hi OS will wait for initialization');
   
   // Wait for original system to load, then enhance
   const checkAndEnhance = setInterval(() => {
-    if (window.trackShareSubmission && window.trackShareSubmission !== enhancedTrackShareSubmission) {
+    if (window.trackShareSubmission && !window.trackShareSubmission.__HI_ENHANCED__) {
       console.log('✅ Found trackShareSubmission, enhancing with Hi OS...');
-      const original = window.trackShareSubmission;
-      
-      window.trackShareSubmission = async function(source, metadata) {
-        return await enhancedTrackShareSubmission.call(this, source, metadata);
-      };
-      
+      window.trackShareSubmission = enhancedTrackShareSubmission;
+      clearInterval(checkAndEnhance);
+    } else if (window.trackShareSubmission && window.trackShareSubmission.__HI_ENHANCED__) {
+      console.log('ℹ️ Deferred enhancement: already enhanced');
       clearInterval(checkAndEnhance);
     }
   }, 100);

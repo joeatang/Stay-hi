@@ -100,21 +100,26 @@ class HiBaseClient {
      */
     async testConnection() {
         return this.execute(async (client) => {
-            // Simple query to test connectivity
-            const { data, error } = await client.from('hi_users').select('count').limit(1);
-            
-            if (error) {
-                return { data: null, error };
+            // Connectivity probe against a known existing table
+            try {
+                const { data, error } = await client
+                  .from('public_shares')
+                  .select('id')
+                  .limit(1);
+                if (error) {
+                    return { data: null, error };
+                }
+                return {
+                    data: {
+                        connected: true,
+                        timestamp: new Date().toISOString(),
+                        message: 'HiBase connection test successful'
+                    },
+                    error: null
+                };
+            } catch (err) {
+                return { data: null, error: { message: err.message || String(err), code: 'TEST_FAILED' } };
             }
-            
-            return {
-                data: {
-                    connected: true,
-                    timestamp: new Date().toISOString(),
-                    message: 'HiBase connection test successful'
-                },
-                error: null
-            };
         });
     }
 }

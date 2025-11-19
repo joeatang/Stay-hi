@@ -32,10 +32,16 @@
     // Sign in with email (magic link)
     async signInWithEmail(email, options = {}) {
       const sb = await waitForSupabase();
+      // Build robust redirect that works in dev/prod
+      const next = (options && options.next) || 'hi-dashboard.html';
+      const redirectTo = (window.hiPostAuthPath?.getPostAuthURL ? 
+        window.hiPostAuthPath.getPostAuthURL({ next }) : 
+        `${window.location.origin}/post-auth.html?next=${encodeURIComponent(next)}`);
+
       return sb.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/post-auth`
+          emailRedirectTo: redirectTo
         }
       });
     },

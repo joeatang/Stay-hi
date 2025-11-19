@@ -61,7 +61,8 @@ class HiFlags {
      */
     async loadFallbackFlags() {
         try {
-            const response = await fetch('/lib/flags/flags.json');
+            const url = new URL('./flags.json', import.meta.url);
+            const response = await fetch(url.href);
             this.fallbackFlags = await response.json();
         } catch (error) {
             console.warn('HiFlags: Could not load fallback flags:', error);

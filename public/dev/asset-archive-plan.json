@@ -1,0 +1,91 @@
+{
+  "generatedAt": "2025-11-16T13:40:00Z",
+  "summary": {
+    "diagnosticPages": 13,
+    "backupOrRedundantPages": 11,
+    "emergencyPages": 2,
+    "candidateRemovalNext": 8,
+    "deferForNow": 5
+  },
+  "groups": {
+    "diagnostic": {
+      "pages": [
+        "P0_DIAGNOSTIC.html",
+        "auth-diagnostic.html",
+        "auth-dashboard.html",
+        "data-detective.html",
+        "definitive-investigation.html",
+        "failure-investigation.html",
+        "cache-buster.html",
+        "debug-root-systems.html",
+        "debug-root-systems 2.html",
+        "debug-signin.html",
+        "profile-diagnostic.html",
+        "system-verification.html",
+        "diagnostic-beta-systems.html"
+      ],
+      "action": "Archive to public/_archive/ for lean production footprint; retain for engineering reference only"
+    },
+    "backup_or_redundant": {
+      "pages": [
+        "signin-backup-20251030_203600.html",
+        "signin-backup-20251030_195444.html",
+        "profile-auth-backup.html",
+        "hi-island-BACKUP-before-gold-standard.html",
+        "hi-island-preview.html",
+        "hi-island-redirect-BACKUP.html",
+        "profile-broken-124kb.html",
+        "signup-corrupted.html",
+        "emergency-phase7-fix.html",
+        "emergency-phase7-fix 2.html",
+        "archive-verification.html"
+      ],
+      "action": "Verify no routing dependency then archive; remove corrupted variants after one sprint of no regressions"
+    },
+    "emergency": {
+      "pages": [
+        "emergency-phase7-fix.html",
+        "emergency-phase7-fix 2.html"
+      ],
+      "action": "Keep archived but accessible for 2 release cycles; then prune"
+    },
+    "core_keep": {
+      "pages": [
+        "hi-dashboard.html",
+        "welcome.html",
+        "hi-muscle.html",
+        "profile.html",
+        "hi-island-NEW.html",
+        "hi-mission-control.html",
+        "post-auth.html",
+        "signin.html",
+        "signup.html"
+      ],
+      "action": "Retain; candidates for inline script externalization to reduce CSP unsafe-inline"
+    },
+    "deferred_review": {
+      "pages": [
+        "tesla-launch-validator.html",
+        "auth-debug.html",
+        "phase7-verification.html",
+        "phase7-quick-test.html",
+        "P0_DIAGNOSTIC.html"
+      ],
+      "action": "Evaluate if portions should be merged into unified preflight; keep until new consolidated testing harness built"
+    }
+  },
+  "nextSteps": [
+    "Create /public/_archive directory and move listed pages (non-core) there",
+    "Run smoke & preflight after move: npm run smoke:test && node scripts/preflight.js",
+    "Confirm Lighthouse unaffected",
+    "Refactor largest inline blocks from core_keep pages into external modules",
+    "Remove unsafe-inline from CSP after externalization",
+    "Delete corrupted/legacy pages after two successful deploys with no fallback usage"
+  ],
+  "riskControls": [
+    "One Git commit per move group (diagnostic, backup)",
+    "Abort on any new 404 during preflight",
+    "Keep emergency pages until stable flag + auth metrics for two cycles",
+    "Do not alter service worker scope during archive moves"
+  ]
+}

@@ -2,32 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,shrink-to-fit=no,viewport-fit=cover"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <title>Welcome — Stay Hi</title>
   
+  <!-- Optional High-Contrast Accessibility Mode (non-destructive) -->
+  <script type="module" src="./lib/boot/contrast-mode.js"></script>
+  
   <!-- HI-OS S-ARCH/1: Webroot Guard (console-only for production) -->
-  <script>
-    // Pass criteria: location.pathname must contain "/public/"
-    (function() {
-      const PASS = location.pathname.includes('/public/');
-      // Expose for other verifiers
-      window.__HI_WEBROOT_OK = PASS;
-
-      // Console signal only (no UI badge for production)
-      const tag = '[HI-OS][WEBROOT]';
-      if (PASS) {
-        console.log(`${tag} GREEN — served from /public (web root OK)`);
-      } else {
-        console.error(`${tag} RED — NOT served from /public (fix dev server root)`);
-      }
-    })();
-  </script>
+  <script src="./lib/boot/welcome-webroot-guard.js"></script>
   
   <!-- Flag Init Guard -->
-  <script type="module">
-    import HiFlags, { hiFlags } from './lib/flags/HiFlags.js';
-    await hiFlags.waitUntilReady();
-  </script>
+  <script type="module" src="./lib/boot/welcome-flags-wait.mjs"></script>
   
   <!-- PWA Meta Tags -->
   <link rel="icon" href="./favicon.ico">
@@ -57,11 +42,7 @@
   <script src="assets/hi-loading-experience.js"></script>
 
   <!-- 🔥 HiBase - Unified Database Access Layer -->
-  <script type="module">
-    import HiBase from './lib/hibase/index.js';
-    // Make available for console testing
-    window.HiBase = HiBase;
-  </script>
+  <script type="module" src="./lib/boot/welcome-hibase-console.mjs"></script>
 
   <link rel="stylesheet" href="assets/theme.css"/>
   <link rel="stylesheet" href="assets/create-parity.css"/>
@@ -88,137 +69,23 @@
   <script src="assets/tesla-data-isolation.js"></script>
   
   <!-- PWA Manager -->
-  <script src="assets/pwa-manager.js"></script>
+  <script type="module" src="./lib/HiPWA.js"></script>
   
   <!-- Tesla-Grade Medallion Curiosity System -->
   <script src="assets/medallion-curiosity-system.js"></script>
+  <!-- Unified Monitoring Init (errors + tracking) -->
+  <script src="./lib/boot/monitoring-init.js"></script>
   
   <!-- Beta Systems -->
   <script type="module" src="assets/hi-rewards-beta.js"></script>
   
   <!-- S1 BOOT CHAIN DIAGNOSTIC (disabled for production) -->
-  <script>
-    // Production build - diagnostic system disabled
-    window.executedScripts = [];
-    window.redErrorCount = 0;
-  </script>
+  <script src="./lib/boot/welcome-bootdiag.js"></script>
   
-  <!-- S-DASH/6: retired welcome stats -->
-  <!-- HI-OS: Tesla-Grade HiMetrics Adapter (30s Cache + Subscribers) -->
-  <!--
-  <script type="module">
-    import HiMetrics from './lib/HiMetrics.js';
-    
-    // Tesla-grade metrics adapter with cache + subscriber pattern
-    async function initWelcomeMetrics() {
-      try {
-        console.log('[Welcome] Initializing HiMetrics adapter...');
-        
-        // Subscribe to metric updates
-        const unsubscribe = HiMetrics.subscribe('welcome-page', (metrics, cacheInfo) => {
-          console.log('[Welcome] Metrics updated:', metrics);
-          
-          // Update DOM elements with cached metrics
-          const wavesEl = document.getElementById('globalWaves');
-          const hi5sEl = document.getElementById('totalHis');
-          
-          if (wavesEl && metrics.waves !== null) {
-            wavesEl.textContent = (metrics.waves || 0).toLocaleString();
-          }
-          
-          if (hi5sEl && metrics.hi5s !== null) {
-            hi5sEl.textContent = (metrics.hi5s || 0).toLocaleString();
-          }
-          
-          // Update debug badge (show during development)
-          if (window.location.hostname === 'localhost' || window.location.search.includes('debug=1')) {
-            const debugEl = document.getElementById('hiMetricsDebug');
-            const statusEl = document.getElementById('metricsStatus');
-            const cacheEl = document.getElementById('cacheAge');
-            
-            if (debugEl && statusEl && cacheEl) {
-              debugEl.style.display = 'block';
-              statusEl.textContent = cacheInfo?.fromCache ? 'cached ✅' : 'fresh 🔄';
-              cacheEl.textContent = cacheInfo?.ageSeconds ? `${cacheInfo.ageSeconds}s` : '0s';
-            }
-          }
-        });
-        
-        // Load initial metrics (will use cache if available)
-        const metrics = await HiMetrics.load();
-        console.log('[Welcome] ✅ HiMetrics adapter initialized');
-        
-        // Store unsubscribe function for cleanup
-        window.welcomeMetricsCleanup = unsubscribe;
-        
-      } catch (error) {
-        console.error('[Welcome] HiMetrics initialization failed:', error);
-        
-        // Legacy fallback for safety
-        if (window.HiBase?.stats?.getMetrics) {
-          const metrics = await window.HiBase.stats.getMetrics();
-          const wavesEl = document.getElementById('globalWaves');
-          const hi5sEl = document.getElementById('totalHis');
-          
-          if (wavesEl) wavesEl.textContent = (metrics.waves?.data || 0).toLocaleString();
-          if (hi5sEl) hi5sEl.textContent = (metrics.hi5s?.data || 0).toLocaleString();
-          
-          console.log('[Welcome] ✅ Fallback stats loaded');
-        }
-      }
-    }
-    
-    // Initialize when DOM is ready
-    window.addEventListener('DOMContentLoaded', initWelcomeMetrics);
-    
-    // Cleanup on page unload
-    window.addEventListener('beforeunload', () => {
-      if (window.welcomeMetricsCleanup) {
-        window.welcomeMetricsCleanup();
-        console.log('[Welcome] HiMetrics subscription cleaned up');
-      }
-    });
-  </script>
-  -->
-  <!-- /S-DASH/6 -->
-  </script>
+  <!-- Legacy metrics code removed (S-DASH/6) -->
+  
 
-  <!-- HI-OS S10: Welcome Stats Loader (v3 ESM) -->
-  <!--
-  <script type="module">
-    import { supabase } from "./lib/HiSupabase.v3.js";
-    import { getGlobalStats } from "./lib/HiStats.js";
-
-    // Soft readiness gate: v3 client exists + flags loaded
-    const flagsReady = () => (window.hiFlags && window.hiFlags.hifeed_enabled);
-
-    async function waitReady(ms=2000) {
-      const t0 = performance.now();
-      while (performance.now() - t0 < ms) {
-        if (supabase && flagsReady()) return true;
-        await new Promise(r => setTimeout(r, 50));
-      }
-      return false;
-    }
-
-    const ok = await waitReady();
-    if (!ok) {
-      console.warn("hibase.stats.ready.timeout");
-    }
-
-    try {
-      const { totalHis, totalWaves } = await getGlobalStats();
-      const hisEl = document.querySelector("#totalHis");
-      const wavesEl = document.querySelector("#globalWaves");
-      if (hisEl) hisEl.textContent = Number.isFinite(totalHis) ? totalHis.toLocaleString() : "0";
-      if (wavesEl) wavesEl.textContent = Number.isFinite(totalWaves) ? totalWaves.toLocaleString() : "0";
-      console.log("hibase.stats.rendered", { totalHis, totalWaves });
-    } catch (e) {
-      console.error("hibase.stats.render.err", e);
-    }
-  </script>
-  --> 
-  <!-- /S-DASH/6 -->
+  <!-- Legacy stats loader removed (HI-OS S10) -->
   
   <!-- Real-time stats (disabled until duplicates are resolved) -->
   <!-- <script type="module" src="assets/real-time-stats.js"></script> -->
@@ -736,354 +603,39 @@
   <!-- HiDB.js REMOVED: Welcome should use HiMetrics adapter, not direct DB access -->
   
   <!-- HI-OS FLAG: hibase_supabase_v3_enabled -->
-  <script type="module">
-    import { supabase } from "./lib/HiSupabase.v3.js";
-    // HiSupabase v3 initialized silently
-  </script>
+  <script type="module" src="./lib/boot/welcome-supabase-init.mjs"></script>
 
 
   
   <!-- 🎬 TESLA-GRADE LOADING EXPERIENCE V2.0 -->
-  <script>
-    // Tesla-grade auth check with beautiful loading experience
-    async function checkAuthWithLoadingExperience() {
-      try {
-        const supa = window.supabaseClient;
-        if (!supa) return;
-        
-        const { data: { session }, error } = await supa.auth.getSession();
-        if (error) {
-          console.log('Welcome: Auth check error:', error);
-          return;
-        }
-        
-        if (session) {
-          console.log('Welcome: User authenticated - starting loading experience');
-          sessionStorage.setItem('from-welcome', 'true');
-          
-          // Start Tesla-grade loading experience
-          await window.hiLoadingExperience.start('Welcome back! Loading your Hi space...');
-          
-          // Always hide loading before navigation
-          await window.hiLoadingExperience.hide();
-          
-          // Navigate after beautiful experience
-          window.location.replace('./hi-dashboard.html?source=welcome');
-        }
-      } catch (error) {
-        console.log('Welcome: Auth check failed:', error);
-      }
-    }
-    
-    // Initialize when ready
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(checkAuthWithLoadingExperience, 500);
-    });
-  </script>
+  <script src="./lib/boot/welcome-authcheck.js"></script>
   
-  <script>
-    // HI-OS: Legacy fetchStats function - REMOVED
-    // This has been replaced by the unified stats init guard system above
-    // All stats loading now happens via initHiStatsOnce() to prevent duplicates
-    
-    // 🎯 Hi-Grade Welcome Experience Interactions
-    document.addEventListener('DOMContentLoaded', () => {
-      const tryAnonymousBtn = document.getElementById('cta-experience-anon'); // Updated ID for anchor
-      const joinBtn = document.getElementById('joinCommunityBtn');
-      const haveCodeBtn = document.getElementById('haveCodeBtn');
-      const inviteSection = document.getElementById('inviteCodeSection');
-      const continueWithCodeBtn = document.getElementById('continueWithCodeBtn');
-      const inviteInput = document.getElementById('welcomeInviteCode');
-      
-      // 🎯 Anonymous Experience Flow - MOVED to welcome-cta.js for reliability
-      // Old tryAnonymousBtn handler neutralized - now using anchor with stable href
-      console.log('[HI DEV] Legacy tryAnonymousBtn handler disabled in favor of welcome-cta.js');
-
-      // Join Community Flow (SECONDARY - Stan Integration Strategy)
-      if (joinBtn) {
-        joinBtn.addEventListener('click', () => {
-          // Track the interaction
-          if (window.hiAnalytics) {
-            window.hiAnalytics.trackEvent('join_community_clicked', {
-              medallion_interactions: clickCount,
-              source: 'welcome_page'
-            });
-          }
-          
-          // Stan Integration: Premium experience route
-          // This creates a conversion funnel: Hi App → Stan Newsletter → Hi Membership
-          window.location.href = 'https://stan.store/stayhi?utm_source=hi_app&utm_medium=welcome&utm_campaign=community_join';
-          
-          // Alternative: If we want to keep some users in-app for now
-          // We could show a modal explaining the Stan connection first:
-          /*
-          if (confirm('🌟 Hi membership comes with exclusive perks!\n\nJoin via Stan (our premium platform) for:\n• VIP Hi features\n• Direct creator access\n• Exclusive community benefits\n\nContinue to Stan?')) {
-            window.location.href = 'https://stan.store/stayhi?utm_source=hi_app';
-          }
-          */
-        });
-      }
-      
-      // Contextual Invite Code Flow
-      if (haveCodeBtn && inviteSection) {
-        haveCodeBtn.addEventListener('click', () => {
-          inviteSection.style.display = inviteSection.style.display === 'none' ? 'block' : 'none';
-          haveCodeBtn.textContent = inviteSection.style.display === 'block' ? 'Cancel' : 'I have an invite code';
-          
-          if (inviteSection.style.display === 'block') {
-            setTimeout(() => inviteInput.focus(), 100);
-          }
-        });
-      }
-      
-      // Continue with Code - Enhanced with Access Tier System
-      if (continueWithCodeBtn && inviteInput) {
-        continueWithCodeBtn.addEventListener('click', () => {
-          const code = inviteInput.value.trim();
-          if (code) {
-            // Validate and activate invite code through access tier system
-            if (window.hiAccessManager) {
-              const result = window.hiAccessManager.activateInviteCode(code);
-              
-              if (result.success) {
-                // Show success message with tier info
-                const tierName = result.tier.name;
-                const features = result.tier.hooks || [];
-                
-                // Create success message
-                let successMsg = `🎉 ${tierName} activated!\n`;
-                features.forEach(feature => successMsg += `• ${feature}\n`);
-                
-                // Show in UI (you could replace this with a proper modal)
-                alert(successMsg);
-                
-                // Redirect to appropriate experience
-                if (result.tier.level >= 2) {
-                  // Mark that user is coming FROM welcome to prevent redirect loop
-                  sessionStorage.setItem('from-welcome', 'true');
-                  
-                  // Explorer+ gets direct app access
-                  window.location.href = './hi-dashboard.html?tier=activated&source=welcome';
-                } else {
-                  // Discovery gets guided signup
-                  window.location.href = `./signup.html?code=${encodeURIComponent(code)}&source=welcome&tier=${result.tier.level}`;
-                }
-              } else {
-                // Invalid code
-                inviteInput.style.borderColor = '#ff6b6b';
-                inviteInput.style.background = 'rgba(255, 107, 107, 0.1)';
-                inviteInput.value = '';
-                inviteInput.placeholder = '❌ Invalid code - try again';
-                setTimeout(() => {
-                  inviteInput.style.borderColor = 'rgba(255, 215, 102, 0.3)';
-                  inviteInput.style.background = 'rgba(255, 255, 255, 0.1)';
-                  inviteInput.placeholder = 'e.g. HIFRIEND24';
-                }, 2000);
-              }
-            } else {
-              // Fallback to old system
-              window.location.href = `./signup.html?code=${encodeURIComponent(code)}&source=welcome`;
-            }
-          } else {
-            inviteInput.style.borderColor = '#ff6b6b';
-            inviteInput.placeholder = 'Please enter your invite code';
-          }
-        });
-        
-        // Enter key support
-        inviteInput.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') {
-            continueWithCodeBtn.click();
-          }
-        });
-      }
-    });
-  </script>
+  <script src="./lib/boot/welcome-interactions.js"></script>
 
   <!-- 🌍 Tesla-Grade Unified Global Stats System -->
   <!-- DISABLED: Legacy stats system replaced by HiMetrics adapter -->
   <!-- <script src="assets/hi-unified-global-stats.js"></script> -->
   
   <!-- 📊 Monitoring Configuration (Non-Secret) -->
-  <script>
-    window.HI_ENV = {
-      PLAUSIBLE_DOMAIN: 'stay-eoyezel0s-joeatangs-projects.vercel.app',
-      SENTRY_DSN: '' // leave empty for now; we'll fill later
-    };
-  </script>
+  <script src="./lib/boot/welcome-env-config.js"></script>
   
   <!--  Tesla-Grade Feature Flags System -->
   <script type="module" src="./lib/flags/HiFlags.js"></script>
   
   <!-- 🎁 HiBase Referral Code Handler -->
-  <script type="module">
-    import HiBase from './lib/hibase/index.js';
-    import HiFlags, { hiFlags } from './lib/flags/HiFlags.js';
-
-    // Handle referral and gift codes from URL
-    async function handleReferralCode() {
-      try {
-        const params = new URLSearchParams(window.location.search);
-        const referralCode = params.get('ref');
-        const giftCode = params.get('gift');
-        const code = referralCode || giftCode;
-        
-        if (!code) return;
-        
-        // Check if HiBase referrals are enabled
-        const useHiBaseReferrals = await HiFlags.isEnabled('hibase_referrals_enabled');
-        
-        if (useHiBaseReferrals) {
-          // Use HiBase referrals system
-          try {
-            const referralData = await HiBase.referrals.getReferral(code);
-            
-            if (referralData) {
-              // Store referral info for signup process
-              sessionStorage.setItem('hi_referral_code', code);
-              sessionStorage.setItem('hi_referral_type', referralData.type);
-              
-              // Show appropriate UI message
-              if (giftCode && referralData.type === 'gift') {
-                showGiftWelcomeMessage(referralData);
-              } else if (referralCode && referralData.type === 'signup') {
-                showReferralWelcomeMessage(referralData);
-              }
-              
-              console.log('[Welcome] Referral code detected:', {
-                code: code,
-                type: referralData.type,
-                source: giftCode ? 'gift' : 'referral',
-                via: 'hibase'
-              });
-            }
-          } catch (error) {
-            console.log('HiBase referral lookup failed:', error.message);
-            // Fall back to legacy handling if needed
-            handleLegacyReferral(code);
-          }
-        } else {
-          // Use legacy referral system
-          handleLegacyReferral(code);
-        }
-      } catch (error) {
-        console.error('Referral handler error:', error);
-      }
-    }
-
-    function showGiftWelcomeMessage(referralData) {
-      // Create gift welcome banner
-      const banner = document.createElement('div');
-      banner.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        background: linear-gradient(135deg, #FFD166 0%, #F4A261 100%);
-        color: #264653;
-        padding: 12px 20px;
-        text-align: center;
-        font-weight: 600;
-        z-index: 1000;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      `;
-      
-      const issuerName = referralData.issuer?.display_name || 'A friend';
-      banner.innerHTML = `
-        🎁 ${issuerName} sent you a gift! Join Hi to claim your welcome bonus.
-      `;
-      
-      document.body.prepend(banner);
-      
-      // Adjust body padding to account for banner
-      document.body.style.paddingTop = '60px';
-    }
-
-    function showReferralWelcomeMessage(referralData) {
-      // Create referral welcome banner  
-      const banner = document.createElement('div');
-      banner.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        background: linear-gradient(135deg, #2A9D8F 0%, #264653 100%);
-        color: white;
-        padding: 12px 20px;
-        text-align: center;
-        font-weight: 600;
-        z-index: 1000;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      `;
-      
-      const issuerName = referralData.issuer?.display_name || 'Someone';
-      banner.innerHTML = `
-        👋 ${issuerName} invited you to Hi! Join to get bonus rewards.
-      `;
-      
-      document.body.prepend(banner);
-      
-      // Adjust body padding to account for banner
-      document.body.style.paddingTop = '60px';
-    }
-
-    function handleLegacyReferral(code) {
-      // Legacy referral handling (existing system)
-      sessionStorage.setItem('hi_referral_code', code);
-      
-      console.log('[Welcome] Legacy referral code detected:', {
-        code: code,
-        source: 'legacy',
-        via: 'legacy'
-      });
-    }
-
-    // Initialize referral handler when DOM is ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', handleReferralCode);
-    } else {
-      handleReferralCode();
-    }
-  </script>
+  <script type="module" src="./lib/boot/welcome-referral.mjs"></script>
 
   <!-- 🔧 Development Tools Gate (Local Only) -->
-  <script type="module">
-    const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-    const params = new URLSearchParams(location.search);
-    if (isLocal && params.has('dev')) {
-      import('/devtools/HiFlagsDiag.js');
-    }
-  </script>
+  <script type="module" src="./lib/boot/welcome-devtools-gate.mjs"></script>
   
   <!-- HI DEV: Welcome CTA reliability fix (P1) -->
   <script defer src="./js/welcome-cta.js"></script>
   
   <!-- HI DEV: Tesla-Grade HiMedallion Component -->
-  <script type="module">
-    import { mountHiMedallion } from './ui/HiMedallion/HiMedallion.js';
-    
-    document.addEventListener('DOMContentLoaded', () => {
-      // Initialize HiMedallion with navigation override for welcome page
-      const medallionContainer = document.getElementById('hiMedallionContainer');
-      if (medallionContainer) {
-        mountHiMedallion(medallionContainer, {
-          onTap: () => {
-            location.href = './hi-dashboard.html?source=medallion';
-          }
-        });
-      }
-    });
-  </script>
+  <script type="module" src="./lib/boot/welcome-medallion.mjs"></script>
   
   <!-- 🚀 Tesla-Grade Navigation System -->
   <script src="./lib/navigation/HiNavigationSystem.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      if (window.hiNavSystem) {
-        window.hiNavSystem.updateAppState('ready');
-        window.hiNavSystem.trackNavigation('welcome_page');
-      }
-    });
-  </script>
+  <script src="./lib/boot/welcome-nav-ready.js"></script>
 </body>
 </html>

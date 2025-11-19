@@ -7,14 +7,21 @@
 
 export class HiShareSheet {
   constructor(options = {}) {
+    // Auto-enable debug from URL (?debug=1)
+    if (typeof window !== 'undefined' && /[?&]debug=1/.test(window.location.search)) {
+      window.__HI_DEBUG__ = true;
+    }
+    // Debug logger gate (only logs when window.__HI_DEBUG__ true)
+    this._dbg = (...a) => { if (window.__HI_DEBUG__) console.log(...a); };
     this.version = '2.1.0-auth-required';
     this.origin = options.origin || 'hi5'; // 'hi5', 'higym', or 'hi-island'
     this.onSuccess = options.onSuccess || (() => {});
     this.isOpen = false;
     this._isReady = false; // A2: Readiness state tracking
+    this.practiceMode = false;
     
     // 🔒 WOZNIAK-GRADE: Log version for debugging
-    console.log(`🚀 HiShareSheet ${this.version} initialized for origin: ${this.origin}`);
+    this._dbg(`🚀 HiShareSheet ${this.version} initialized for origin: ${this.origin}`);
   }
 
   // Tesla-grade: Update options after initialization
@@ -27,7 +34,7 @@ export class HiShareSheet {
   async init() {
     // A3: Single-init guard (Hi System Standard)
     if (this._isReady) {
-      console.log('✅ HiShareSheet already initialized, skipping');
+      this._dbg('✅ HiShareSheet already initialized, skipping');
       return;
     }
 
@@ -47,11 +54,16 @@ export class HiShareSheet {
       window.openHiShareSheet = (origin = 'hi5', options = {}) => {
         this.origin = origin;
         this.prefilledData = options; // Store prefilled data for Hi Muscle integration
-        this.open();
+        this.practiceMode = !!options.practiceMode;
+        this.open(options);
+      };
+      // Convenience helper for practice-only flows
+      window.openPracticeShare = (origin = 'hi5', options = {}) => {
+        return window.openHiShareSheet(origin, { ...options, practiceMode: true });
       };
 
       this._isReady = true;
-      console.log('✅ HiShareSheet initialized (Tesla-grade Hi System)');
+      this._dbg('✅ HiShareSheet initialized (Tesla-grade Hi System)');
       
     } catch (error) {
       console.error('❌ HiShareSheet initialization failed:', error);
@@ -76,11 +88,11 @@ export class HiShareSheet {
       <div class="premium-share-backdrop" id="hi-share-backdrop"></div>
 
       <!-- Share Sheet Modal -->
-      <div id="hi-share-sheet" class="premium-share-sheet glass-card" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+      <div id="hi-share-sheet" class="premium-share-sheet glass-card" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" aria-describedby="sheetDesc">
         <div class="share-header">
           <div class="share-icon">✨</div>
           <h3 id="sheetTitle" class="text-gradient">Capture this Hi Moment</h3>
-          <p class="share-subtitle">Choose how you want to share your moment</p>
+          <p id="sheetDesc" class="share-subtitle">Choose how you want to share your moment</p>
           <!-- Tesla-Grade Close Button with Maximum Z-Index Priority -->
           <button id="hi-sheet-close" class="btn-premium-icon" 
                   style="position:absolute;top:16px;right:16px;z-index:10000;" 
@@ -156,9 +168,10 @@ export class HiShareSheet {
     const savePrivateBtn = document.getElementById('hi-save-private');
     const shareAuthPromptBtn = document.getElementById('hi-share-auth-prompt');
     const sharePublicBtn = document.getElementById('hi-share-public');
+    const sheet = document.getElementById('hi-share-sheet');
 
     // 🔧 DEBUG: Log which elements are found
-    console.log('🧪 Share Sheet Event Listeners:', {
+    this._dbg('🧪 Share Sheet Event Listeners:', {
       backdrop: !!backdrop,
       closeBtn: !!closeBtn,
       journal: !!journal,
@@ -196,12 +209,45 @@ export class HiShareSheet {
       this.close();
     });
 
-    // ESC key to close
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && this.isOpen) {
-        this.close();
+    // Focus trap + ESC handling scoped to dialog
+    if (sheet) {
+      // Remove previous handler if re-attaching
+      if (this._keydownHandler) {
+        sheet.removeEventListener('keydown', this._keydownHandler);
       }
-    });
+      this._keydownHandler = (e) => {
+        if (!this.isOpen) return;
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          this.close();
+          return;
+        }
+        if (e.key === 'Tab') {
+          const focusableSelectors = [
+            'a[href]', 'area[href]', 'input:not([disabled])', 'select:not([disabled])',
+            'textarea:not([disabled])', 'button:not([disabled])', '[tabindex]:not([tabindex="-1"])'
+          ].join(',');
+          const focusable = Array.from(sheet.querySelectorAll(focusableSelectors))
+            .filter(el => !el.hasAttribute('disabled') && el.tabIndex !== -1 && el.offsetParent !== null);
+          if (focusable.length === 0) return;
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          const active = document.activeElement;
+          if (e.shiftKey) {
+            if (active === first || !sheet.contains(active)) {
+              e.preventDefault();
+              last.focus();
+            }
+          } else {
+            if (active === last || !sheet.contains(active)) {
+              e.preventDefault();
+              first.focus();
+            }
+          }
+        }
+      };
+      sheet.addEventListener('keydown', this._keydownHandler);
+    }
 
     // Privacy option handlers
     savePrivateBtn.addEventListener('click', (e) => this.handleSavePrivate(e));
@@ -237,6 +283,9 @@ export class HiShareSheet {
     const backdrop = document.getElementById('hi-share-backdrop');
     const sheet = document.getElementById('hi-share-sheet');
     
+    // Remember previously focused element for restoration on close
+    this._previouslyFocused = document.activeElement;
+
     // 🔧 TESLA-GRADE FIX: Enable container pointer events ONLY when opening
     if (this.root) {
       this.root.style.pointerEvents = 'auto';
@@ -246,6 +295,19 @@ export class HiShareSheet {
     sheet.classList.add('active');
     this.isOpen = true;
     document.body.style.overflow = 'hidden';
+
+    // Practice mode banner/update
+    try {
+      const titleEl = document.getElementById('sheetTitle');
+      const descEl = document.getElementById('sheetDesc');
+      if (this.practiceMode) {
+        if (titleEl) titleEl.textContent = 'Practice a Hi';
+        if (descEl) descEl.textContent = 'Practice the flow — nothing is saved.';
+      } else {
+        if (titleEl) titleEl.textContent = 'Capture this Hi Moment';
+        if (descEl) descEl.textContent = 'Choose how you want to share your moment';
+      }
+    } catch {}
 
     // 🌟 TESLA-GRADE: Handle prefilled data (Hi Muscle + Hi5)
     const textarea = document.getElementById('hi-share-journal');
@@ -344,10 +406,19 @@ export class HiShareSheet {
     sheet.classList.remove('active');
     this.isOpen = false;
     document.body.style.overflow = '';
+    // Reset practice mode when closing
+    this.practiceMode = false;
     
     // Clear input
     journal.value = '';
     document.getElementById('hi-share-char-count').textContent = '0';
+
+    // Restore focus to the invoking control, if possible
+    if (this._previouslyFocused && typeof this._previouslyFocused.focus === 'function') {
+      setTimeout(() => {
+        try { this._previouslyFocused.focus(); } catch (_) {}
+      }, 0);
+    }
   }
 
   // Handle Save Privately
@@ -362,14 +433,19 @@ export class HiShareSheet {
       window.PremiumUX.triggerHapticFeedback('medium');
     }
 
-    // � EMERGENCY FIX: Non-blocking persist (don't await - fire and forget)
-    this.persist({ toIsland: false, anon: false }).catch(err => {
-      console.error('❌ Private save failed:', err);
-      this.showToast('❌ Save failed. Please try again.');
-    });
-    
-    // Close immediately for responsiveness
-    this.close();
+    // Practice mode bypass
+    if (this.practiceMode) {
+      this.showToast('🧪 Practice complete — nothing saved.');
+      this.close();
+    } else {
+      // � EMERGENCY FIX: Non-blocking persist (don't await - fire and forget)
+      this.persist({ toIsland: false, anon: false }).catch(err => {
+        console.error('❌ Private save failed:', err);
+        this.showToast('❌ Save failed. Please try again.');
+      });
+      // Close immediately for responsiveness
+      this.close();
+    }
 
     setTimeout(() => {
       button.dataset.animating = 'false';
@@ -386,7 +462,7 @@ export class HiShareSheet {
         action: 'share'
       };
       localStorage.setItem('pendingShareAfterAuth', JSON.stringify(shareContext));
-      console.log('💾 [SHARE] Stored share context for post-auth:', this.origin);
+      this._dbg('💾 [SHARE] Stored share context for post-auth:', this.origin);
     } catch (error) {
       console.error('❌ Failed to store share context:', error);
     }
@@ -398,12 +474,20 @@ export class HiShareSheet {
     const button = e.target.closest('button');
     button.dataset.animating = 'true';
 
-    console.log('🔒 [SHARE] Auth required - showing gold standard modal');
+    this._dbg('🔒 [SHARE] Auth required - showing gold standard modal');
 
     // 🎉 Visual feedback
     if (window.PremiumUX) {
       window.PremiumUX.burst(button, { count: 12, colors: ['#FF7A18', '#FFD166'] });
       window.PremiumUX.triggerHapticFeedback('medium');
+    }
+
+    // Practice mode bypass
+    if (this.practiceMode) {
+      this.showToast('🧪 Practice complete — no account required.');
+      this.close();
+      setTimeout(() => { button.dataset.animating = 'false'; }, 500);
+      return;
     }
 
     // Close share sheet first
@@ -458,14 +542,20 @@ export class HiShareSheet {
       window.PremiumUX.triggerHapticFeedback('celebration');
     }
 
-    // � EMERGENCY FIX: Non-blocking persist (don't await - fire and forget)
-    this.persist({ toIsland: true, anon: false }).catch(err => {
-      console.error('❌ Public share failed:', err);
-      this.showToast('❌ Share failed. Please try again.');
-    });
-    
-    // Close immediately for responsiveness
-    this.close();
+    // Practice mode bypass
+    if (this.practiceMode) {
+      this.showToast('🧪 Practice complete — nothing shared.');
+      this.close();
+    } else {
+      // � EMERGENCY FIX: Non-blocking persist (don't await - fire and forget)
+      this.persist({ toIsland: true, anon: false }).catch(err => {
+        console.error('❌ Public share failed:', err);
+        this.showToast('❌ Share failed. Please try again.');
+      });
+      
+      // Close immediately for responsiveness
+      this.close();
+    }
 
     setTimeout(() => {
       button.dataset.animating = 'false';
@@ -483,7 +573,7 @@ export class HiShareSheet {
       const profile = await this.getProfileLocation();
       
       if (profile?.location) {
-        console.log('📍 Using profile location (cached):', profile.location);
+        this._dbg('📍 Using profile location (cached):', profile.location);
         
         // Store in instance for UI display
         this.currentLocation = profile.location;
@@ -493,7 +583,7 @@ export class HiShareSheet {
       }
       
       // STEP 2: No profile location → detect via GPS and save to profile
-      console.log('🌍 No profile location found, detecting...');
+      this._dbg('🌍 No profile location found, detecting...');
       
       if (!window.GeocodingService) {
         console.warn('⚠️ GeocodingService not available');
@@ -507,7 +597,7 @@ export class HiShareSheet {
       ]);
       
       if (detected && detected !== 'Location unavailable') {
-        console.log('📍 Location detected:', detected);
+        this._dbg('📍 Location detected:', detected);
         
         // Save to profile for future shares (non-blocking)
         this.saveLocationToProfile(detected).catch(err => 
@@ -564,11 +654,11 @@ export class HiShareSheet {
       
       // Tesla-Grade: Normalize location to prevent duplication
       const cleanLocation = this.normalizeLocation(location);
-      console.log('💾 Saving location to profile:', cleanLocation);
+      this._dbg('💾 Saving location to profile:', cleanLocation);
       
       await window.hiDB.updateProfile({ location: cleanLocation });
       
-      console.log('✅ Location saved to profile');
+      this._dbg('✅ Location saved to profile');
       
     } catch (error) {
       console.warn('⚠️ Failed to save location to profile:', error);
@@ -578,7 +668,7 @@ export class HiShareSheet {
   // Force update location (for travelers)
   async forceUpdateLocation() {
     try {
-      console.log('🔄 Force updating location...');
+      this._dbg('🔄 Force updating location...');
       
       if (!window.GeocodingService) {
         console.warn('⚠️ GeocodingService not available');
@@ -593,7 +683,7 @@ export class HiShareSheet {
       const detected = await window.GeocodingService.getUserLocation();
       
       if (detected && detected !== 'Location unavailable') {
-        console.log('📍 New location detected:', detected);
+        this._dbg('📍 New location detected:', detected);
         
         // Update profile with new location
         await this.saveLocationToProfile(detected);
@@ -631,7 +721,7 @@ export class HiShareSheet {
     
     // Debug log if normalization occurred
     if (normalized !== location) {
-      console.log('🔧 Location normalized:', location, '→', normalized);
+      this._dbg('🔧 Location normalized:', location, '→', normalized);
     }
     
     return normalized;
@@ -678,12 +768,22 @@ export class HiShareSheet {
       const randomPart = Math.random().toString(36).substring(2, 15);
       anonymousUserId = `anonymous-${timestamp}-${randomPart}`;
       sessionStorage.setItem(storageKey, anonymousUserId);
-      console.log('🎯 Tesla generated new anonymous user ID:', anonymousUserId);
+      this._dbg('🎯 Tesla generated new anonymous user ID:', anonymousUserId);
     } else {
-      console.log('🔑 Tesla using existing anonymous user ID:', anonymousUserId);
+      this._dbg('🔑 Tesla using existing anonymous user ID:', anonymousUserId);
     }
     
     return anonymousUserId;
+  }
+
+  // Internal helper: retry with simple exponential backoff
+  async _withRetry(factory, attempts = 2, backoff = 500){
+    let lastErr;
+    for (let i=0;i<=attempts;i++){
+      try { return await factory(); }
+      catch(err){ lastErr = err; if (i<attempts){ await new Promise(r=>setTimeout(r, backoff * (i+1))); } }
+    }
+    throw lastErr;
   }
 
   // � TESLA-GRADE REBUILT: Ultimate share persistence with bug fixes
@@ -696,13 +796,16 @@ export class HiShareSheet {
     
     this._persisting = true;
     const submissionId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    if (typeof navigator !== 'undefined' && navigator.onLine === false){
+      try { this.showToast('You appear offline — will retry automatically', 'warning'); } catch {}
+    }
     
     try {
       const journal = document.getElementById('hi-share-journal');
       const raw = (journal.value || '').trim();
       const text = raw || 'Marked a Hi-5 ✨';
       
-      console.log('🎯 Tesla persist:', { submissionId, text, toIsland, anon, origin: this.origin, type: this.shareType });
+      this._dbg('🎯 Tesla persist:', { submissionId, text, toIsland, anon, origin: this.origin, type: this.shareType });
     
       // 🚨 TESLA FIX: Make location completely non-blocking
     let location = 'Location unavailable';
@@ -713,7 +816,7 @@ export class HiShareSheet {
       new Promise(resolve => setTimeout(() => resolve('Location unavailable'), 1000))
     ]).then(result => {
       location = result || 'Location unavailable';
-      console.log('📍 Tesla location result:', location);
+      this._dbg('📍 Tesla location result:', location);
     }).catch(err => {
       console.warn('Tesla location failed:', err);
     });
@@ -726,7 +829,7 @@ export class HiShareSheet {
     } else {
       // Anonymous users get session-consistent ID for archiving
       userId = await this.getOrCreateAnonymousUser();
-      console.log('🔑 Tesla anonymous user ID:', userId);
+      this._dbg('🔑 Tesla anonymous user ID:', userId);
     }
     
     try {
@@ -747,11 +850,13 @@ export class HiShareSheet {
       
       // Tesla: ALL shares get archived (fixes anonymous archive bug)
       if (window.hiDB?.insertArchive) {
-        Promise.race([
+        let warned=false;
+        this._withRetry(() => Promise.race([
           window.hiDB.insertArchive(archivePayload),
           new Promise((_, reject) => setTimeout(() => reject(new Error('Archive timeout')), 5000))
-        ]).catch(err => {
-          console.warn('Tesla archive save failed:', err);
+        ]), 2, 600).catch(err => {
+          console.warn('Tesla archive save failed after retries:', err);
+          if (!warned){ this.showToast('Save delayed — we\'ll retry in the background', 'warning'); warned=true; }
         });
       }
 
@@ -770,20 +875,22 @@ export class HiShareSheet {
           user_id: anon ? null : userId // Tesla: Proper user_id handling
         };
         
-        // Tesla: Enhanced public share with proper error handling
-        Promise.race([
+        // Tesla: Enhanced public share with retry + timeout
+        let warned=false;
+        this._withRetry(() => Promise.race([
           window.hiDB.insertPublicShare(publicPayload),
           new Promise((_, reject) => setTimeout(() => reject(new Error('Public share timeout')), 5000))
-        ]).catch(err => {
-          console.warn('Tesla public share failed:', err);
+        ]), 2, 600).catch(err => {
+          console.warn('Tesla public share failed after retries:', err);
+          if (!warned){ this.showToast('Network hiccup — will retry sharing in background', 'warning'); warned=true; }
         });
 
-        // Update map (fire and forget with timeout)
+        // Update map (retry quietly)
         if (window.hiDB?.updateMap) {
-          Promise.race([
+          this._withRetry(() => Promise.race([
             window.hiDB.updateMap(publicPayload),
             new Promise((_, reject) => setTimeout(() => reject(new Error('Map update timeout')), 3000))
-          ]).catch(() => {});
+          ]), 1, 400).catch(()=>{});
         }
       }
 
@@ -794,10 +901,10 @@ export class HiShareSheet {
         this.showToast('🔒 Saved privately to your archive ✨');
       }
 
-      // Track stats (non-blocking with timeout)
+      // Track stats (non-blocking with timeout + retry)
       if (window.trackShareSubmission) {
         const shareType = anon ? 'anonymous' : (toIsland ? 'public' : 'private');
-        Promise.race([
+        this._withRetry(() => Promise.race([
           window.trackShareSubmission(this.origin, {
             submissionType: shareType,
             pageOrigin: this.origin,
@@ -805,7 +912,7 @@ export class HiShareSheet {
             timestamp: Date.now()
           }),
           new Promise((_, reject) => setTimeout(() => reject(new Error('Tracking timeout')), 3000))
-        ]).catch(err => console.warn('Stats tracking failed:', err));
+        ]), 1, 400).catch(err => console.warn('Stats tracking failed:', err));
       }
 
       // Trigger success callback
@@ -816,7 +923,7 @@ export class HiShareSheet {
         visibility: anon ? 'anonymous' : (toIsland ? 'public' : 'private')
       });
 
-      console.log('✅ Share persistence complete, closing sheet...');
+      this._dbg('✅ Share persistence complete, closing sheet...');
       
     } catch (error) {
       console.error('❌ Inner share operation failed:', error);
@@ -841,7 +948,7 @@ export class HiShareSheet {
       setTimeout(async () => {
         try {
           if (window.hiRealFeed) {
-            console.log('🔄 Refreshing Hi-Island feed after share submission...');
+            this._dbg('🔄 Refreshing Hi-Island feed after share submission...');
             
             // Clear cached data to force fresh load
             if (toIsland) {
@@ -901,6 +1008,10 @@ export class HiShareSheet {
     const toast = document.createElement('div');
     toast.className = 'celebration-toast';
     toast.textContent = message;
+    // Accessibility: ensure SR announcement
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+    toast.setAttribute('aria-atomic', 'true');
     toast.style.cssText = `
       position: fixed;
       bottom: 120px;

@@ -1,0 +1,677 @@
+// HI ISLAND ORCHESTRATOR (extracted from hi-island-NEW.html)
+// Load order preserved; this file is included near the end of body
+
+async function initHiIsland() {
+  console.log('🏝️ Hi Island initializing...');
+  // Unified stats only: remove legacy multi-path cache bootstrap
+  loadRealStats().catch(err => console.warn('Stats loading failed:', err));
+  await new Promise(resolve => {
+    if (window.hiDB) {
+      resolve();
+    } else {
+      const check = setInterval(() => {
+        if (window.hiDB) {
+          clearInterval(check);
+          resolve();
+        }
+      }, 100);
+    }
+  });
+  // Legacy DB refresh removed; unified loader already handles freshness & caching
+  console.log('🔍 Checking for REAL Hi-Island integration...');
+  setTimeout(() => {
+    if (window.hiIslandIntegration) {
+      console.log('✅ REAL Hi-Island integration active:', window.getHiIslandHealth?.());
+    } else {
+      console.log('⚠️ Waiting for REAL Hi-Island integration...');
+      setTimeout(() => {
+        if (window.hiIslandIntegration) {
+          console.log('✅ REAL Hi-Island integration ready (delayed):', window.getHiIslandHealth?.());
+        } else {
+          console.warn('❌ REAL Hi-Island integration failed to initialize');
+        }
+      }, 2000);
+    }
+  }, 1000);
+  initializeTabSystem();
+  initializeOriginFilters();
+  initializeTryItLink();
+  initializeHiMap();
+  console.log('✅ Hi Island ready with Gold Standard UI');
+}
+
+function initializeTabSystem() {
+  const tabs = document.querySelectorAll('.tab');
+  const feedRoot = document.getElementById('hi-island-feed-root');
+  let currentTabIndex = 0;
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', async (e) => {
+      const targetTab = e.target.dataset.target;
+      await switchToTab(targetTab, index);
+    });
+    tab.addEventListener('keydown', async (e) => {
+      const targetTab = e.target.dataset.target;
+      switch (e.key) {
+        case 'ArrowRight':
+        case 'ArrowDown':
+          e.preventDefault();
+          const nextIndex = (currentTabIndex + 1) % tabs.length;
+          await focusTab(nextIndex);
+          break;
+        case 'ArrowLeft':
+        case 'ArrowUp':
+          e.preventDefault();
+          const prevIndex = (currentTabIndex - 1 + tabs.length) % tabs.length;
+          await focusTab(prevIndex);
+          break;
+        case 'Enter':
+        case ' ':
+          e.preventDefault();
+          await switchToTab(targetTab, currentTabIndex);
+          break;
+        case 'Home':
+          e.preventDefault();
+          await focusTab(0);
+          break;
+        case 'End':
+          e.preventDefault();
+          await focusTab(tabs.length - 1);
+          break;
+      }
+    });
+    tab.tabIndex = index === 0 ? 0 : -1;
+  });
+  async function switchToTab(targetTab, index) {
+    const tab = tabs[index];
+    if (!checkTabAccess(targetTab)) {
+      console.log(`🔒 Tab access denied: ${targetTab}`);
+      return;
+    }
+    tab.classList.add('loading');
+    try {
+      tabs.forEach((t, i) => {
+        t.setAttribute('aria-selected', 'false');
+        t.tabIndex = -1;
+      });
+      tab.setAttribute('aria-selected', 'true');
+      tab.tabIndex = 0;
+      currentTabIndex = index;
+      await handleTabSwitch(targetTab);
+          // Root consistency fix: rely exclusively on UnifiedStatsLoader for canonical values.
+          const { loadGlobalStats } = await import('../stats/UnifiedStatsLoader.js');
+          const stats = await loadGlobalStats();
+          if (stats) {
+            const waves = Number.isFinite(stats.waves) ? Number(stats.waves) : null;
+            const his = Number.isFinite(stats.totalHis) ? Number(stats.totalHis) : null;
+            const users = Number.isFinite(stats.totalUsers) ? Number(stats.totalUsers) : null;
+            if (waves!=null) document.getElementById('globalHiWaves').textContent = waves.toLocaleString();
+            if (his!=null) document.getElementById('globalTotalHis').textContent = his.toLocaleString();
+            if (users!=null) document.getElementById('globalTotalUsers').textContent = users.toLocaleString();
+            console.log('✅ Hi-Island unified stats refresh:', { waves, his, users, source: stats.overall });
+            // Persist to localStorage for fast cache warm on next navigation
+            if (waves!=null) localStorage.setItem('globalHiWaves', String(waves));
+            if (his!=null) localStorage.setItem('globalTotalHis', String(his));
+            if (users!=null) localStorage.setItem('globalTotalUsers', String(users));
+            return;
+          }
+          console.warn('⚠️ Unified stats unavailable; using fallback cache only');
+      console.log('🏝️ Switched to tab:', targetTab);
+    } catch (error) {
+      console.error('❌ Tab switch error:', error);
+    } finally {
+      setTimeout(() => {
+        tab.classList.remove('loading');
+      }, 300);
+    }
+  }
+  async function focusTab(index) {
+    tabs.forEach(t => t.tabIndex = -1);
+    tabs[index].tabIndex = 0;
+    tabs[index].focus();
+    currentTabIndex = index;
+  }
+  setTimeout(() => {
+    handleTabSwitch('general');
+  }, 100);
+}
+
+// Wire origin filter buttons to unified feed
+function initializeOriginFilters() {
+  try {
+    const btns = Array.from(document.querySelectorAll('.origin-filter-btn'));
+    if (!btns.length) return;
+
+    const setActive = (filter) => {
+      btns.forEach(b => {
+        const isActive = b.dataset.filter === filter;
+        b.classList.toggle('active', isActive);
+        b.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+    };
+
+    btns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const filter = btn.dataset.filter || 'all';
+        try {
+          if (window.hiRealFeed && typeof window.hiRealFeed.setOriginFilter === 'function') {
+            window.hiRealFeed.setOriginFilter(filter);
+          }
+        } catch (e) {
+          console.warn('Origin filter set failed:', e);
+        }
+        setActive(filter);
+      });
+    });
+
+    // Initialize state based on any persisted choice (future) or default 'all'
+    setActive('all');
+    console.log('✅ Origin filters initialized');
+
+  } catch (e) {
+    console.warn('⚠️ Origin filter init failed:', e);
+  }
+}
+
+// Jobs-style: simple "Try it" link near the primary CTA
+function initializeTryItLink() {
+  try {
+    const link = document.getElementById('tryHiLink');
+    if (!link) return;
+    link.addEventListener('click', async () => {
+      try {
+        if (window.openHiShareSheet) {
+          await window.openHiShareSheet('hi-island', { practiceMode: true });
+          return;
+        }
+        if (window.HiShareSheet) {
+          const shareSheet = new window.HiShareSheet({ origin: 'hi-island' });
+          if (shareSheet.init) await shareSheet.init();
+          shareSheet.practiceMode = true;
+          await shareSheet.open({ practiceMode: true });
+          return;
+        }
+        alert('Hi Share is loading... Please try again in a moment.');
+      } catch (err) {
+        console.error('Try it flow failed:', err);
+      }
+    });
+    console.log('✅ Try it link initialized');
+  } catch (e) {
+    console.warn('⚠️ Try it link init failed:', e);
+  }
+}
+
+function checkTabAccess(tabName) {
+  return true;
+}
+
+async function handleTabSwitch(tabName) {
+  console.log('🎯 Tesla-Grade Tab Switch:', tabName);
+  const feedRoot = document.getElementById('hi-island-feed-root');
+  if (tabName === 'general' || tabName === 'archive' || tabName === 'archives') {
+    const normalized = (tabName === 'archive') ? 'archives' : tabName;
+    try {
+      if (window.unifiedHiIslandController) {
+        await window.unifiedHiIslandController.switchTab(normalized);
+      } else {
+        console.error('❌ Unified controller not available');
+        feedRoot.innerHTML = `
+          <div class="error-state" style="padding: 40px; text-align: center; color: #ff6b6b;">
+            <p>Feed system loading... Please wait or refresh the page.</p>
+          </div>
+        `;
+      }
+    } catch (error) {
+      console.error('❌ Unified tab switch error:', error);
+    }
+    return;
+  }
+  switch(tabName) {
+    case 'trends':
+      feedRoot.innerHTML = `
+        <div style="padding: 40px; text-align: center; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); color: #495057; border-radius: 16px; margin: 20px; border: 1px solid #dee2e6;">
+          <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
+          <h3 style="margin: 0 0 12px 0; color: #333; font-size: 20px;">Emotional Trends Analytics</h3>
+          <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 1.4;">Track emotional patterns, mood correlations, and personal growth insights over time.</p>
+          <div style="font-size: 12px; color: #6c757d; background: rgba(111, 66, 193, 0.1); padding: 8px 16px; border-radius: 20px; display: inline-block; border: 1px solid rgba(111, 66, 193, 0.2);">
+            ✨ Enhanced Tier Feature
+          </div>
+        </div>
+      `;
+      break;
+    case 'milestones':
+      feedRoot.innerHTML = `
+        <div style="padding: 40px; text-align: center; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); color: #495057; border-radius: 16px; margin: 20px; border: 1px solid #dee2e6;">
+          <div style="font-size: 48px; margin-bottom: 16px;">🎯</div>
+          <h3 style="margin: 0 0 12px 0; color: #333; font-size: 20px;">Hi Points & Milestones</h3>
+          <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 1.4;">Celebrate achievements, track streaks, and unlock badges as you build your Hi journey.</p>
+          <div style="font-size: 12px; color: #6c757d; background: rgba(253, 126, 20, 0.1); padding: 8px 16px; border-radius: 20px; display: inline-block; border: 1px solid rgba(253, 126, 20, 0.2);">
+            🏆 Enhanced Tier Feature
+          </div>
+        </div>
+      `;
+      break;
+    case 'show':
+      feedRoot.innerHTML = `
+        <div style="padding: 40px; text-align: center; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); color: #495057; border-radius: 16px; margin: 20px; border: 1px solid #dee2e6;">
+          <div style="font-size: 48px; margin-bottom: 16px;">🎭</div>
+          <h3 style="margin: 0 0 12px 0; color: #333; font-size: 20px;">Hi Show Premium</h3>
+          <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 1.4;">Exclusive curated content, featured stories, and premium community highlights.</p>
+          <div style="font-size: 12px; color: #6c757d; background: rgba(111, 66, 193, 0.15); padding: 8px 16px; border-radius: 20px; display: inline-block; border: 1px solid rgba(111, 66, 193, 0.3);">
+            ⭐ Lifetime Tier Feature
+          </div>
+        </div>
+      `;
+      break;
+    default:
+      console.warn('Unknown tab:', tabName);
+  }
+}
+
+function initializeHiMap() {
+  try {
+    if (typeof L === 'undefined') {
+      console.warn('⚠️ Leaflet not loaded, map will be hidden');
+      return;
+    }
+    const mapElement = document.getElementById('globe');
+    if (!mapElement) {
+      console.warn('⚠️ Map element not found');
+      return;
+    }
+    const map = L.map('globe', {
+      center: [20, 0],
+      zoom: 2,
+      zoomControl: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      dragging: true
+    });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 18
+    }).addTo(map);
+    const sampleLocations = [
+      { lat: 40.7128, lng: -74.0060, name: 'New York' },
+      { lat: 51.5074, lng: -0.1278, name: 'London' },
+      { lat: 35.6762, lng: 139.6503, name: 'Tokyo' },
+      { lat: -33.8688, lng: 151.2093, name: 'Sydney' },
+      { lat: 37.7749, lng: -122.4194, name: 'San Francisco' }
+    ];
+    const makeWaveMarker = (location) => {
+      const waveIcon = L.divIcon({
+        html: '<div class="wave-marker">👋</div>',
+        className: 'custom-wave-marker',
+        iconSize: [36, 36],
+        iconAnchor: [18, 18],
+        popupAnchor: [0, -16]
+      });
+      return L.marker([location.lat, location.lng], { icon: waveIcon }).bindPopup(`Hi from ${location.name}! 👋`);
+    };
+
+    // Use MarkerCluster if available; fallback to direct markers otherwise
+    if (typeof L.markerClusterGroup === 'function') {
+      const cluster = L.markerClusterGroup({
+        showCoverageOnHover: false,
+        maxClusterRadius: 60,
+        iconCreateFunction: function(cluster) {
+          const count = cluster.getChildCount();
+          // Custom brand cluster bubble
+          const html = `
+            <div class="hi-cluster">
+              <span class="hi-cluster__emoji">👋</span>
+              <span class="hi-cluster__count">${count}</span>
+            </div>`;
+          return L.divIcon({ html, className: 'hi-cluster-wrapper', iconSize: [44, 44] });
+        }
+      });
+      sampleLocations.map(makeWaveMarker).forEach(m => cluster.addLayer(m));
+      map.addLayer(cluster);
+    } else {
+      sampleLocations.map(makeWaveMarker).forEach(m => m.addTo(map));
+    }
+    // Ensure proper sizing on mobile after layout/keyboard changes
+    try {
+      setTimeout(() => { try { map.invalidateSize(false); } catch{} }, 300);
+      window.addEventListener('resize', () => { try { map.invalidateSize(false); } catch{} });
+    } catch {}
+    console.log('✅ Hi Island map initialized');
+  } catch (error) {
+    console.warn('⚠️ Map initialization failed:', error);
+  }
+}
+
+// Unified alias for external modules expecting legacy refresh name
+window.loadCurrentStatsFromDatabase = async () => {
+  try { await loadRealStats(); } catch(e){ console.warn('Unified stats refresh failed:', e); }
+};
+
+// Refresh on page visibility/pageshow to keep stats fresh across revisits
+(function(){
+  let lastFetchAt = 0;
+  const MIN_FETCH_INTERVAL = 3000; // 3s guard
+  function safeRefresh(){
+    const now = Date.now();
+    if (now - lastFetchAt < MIN_FETCH_INTERVAL) return;
+    lastFetchAt = now;
+    try { loadCurrentStatsFromDatabase(); } catch(e){ console.warn('Island stats refresh failed:', e); }
+  }
+  window.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') safeRefresh(); });
+  window.addEventListener('pageshow', (e)=>{ if(e.persisted || document.visibilityState==='visible') safeRefresh(); });
+})();
+
+async function loadRealStats() {
+  try {
+    // Use unified loader for consistency
+    const { loadGlobalStats } = await import('../stats/UnifiedStatsLoader.js');
+    const stats = await loadGlobalStats();
+    const waves = stats.waves;
+    const his = stats.totalHis;
+    const users = stats.totalUsers;
+
+    const wavesEl = document.getElementById('globalHiWaves');
+    const hisEl = document.getElementById('globalTotalHis');
+    const usersEl = document.getElementById('globalTotalUsers');
+    if (wavesEl) wavesEl.textContent = Number.isFinite(waves) ? Number(waves).toLocaleString() : '...';
+    if (hisEl) hisEl.textContent = Number.isFinite(his) ? Number(his).toLocaleString() : '...';
+    if (usersEl) usersEl.textContent = Number.isFinite(users) ? Number(users).toLocaleString() : '...';
+    console.log('✅ Hi Island stats loaded (Unified):', { waves, his, users, source: stats._source, overall: stats.overall });
+  } catch (err) {
+    console.error('❌ Stats loading error:', err);
+    setFallbackStats();
+  }
+}
+
+function setFallbackStats() {
+  const elements = {
+    globalHiWaves: document.getElementById('globalHiWaves'),
+    globalTotalHis: document.getElementById('globalTotalHis'),
+    globalTotalUsers: document.getElementById('globalTotalUsers')
+  };
+  const cachedWaves = localStorage.getItem('globalHiWaves');
+  const cachedHis = localStorage.getItem('globalTotalHis');  
+  const cachedUsers = localStorage.getItem('globalTotalUsers');
+  if (elements.globalHiWaves && (elements.globalHiWaves.textContent === '...' || !elements.globalHiWaves.textContent)) {
+    elements.globalHiWaves.textContent = cachedWaves ? Number(cachedWaves).toLocaleString() : '...';
+  }
+  if (elements.globalTotalHis && (elements.globalTotalHis.textContent === '...' || !elements.globalTotalHis.textContent)) {
+    elements.globalTotalHis.textContent = cachedHis ? Number(cachedHis).toLocaleString() : '...';
+  }
+  if (elements.globalTotalUsers && (elements.globalTotalUsers.textContent === '...' || !elements.globalTotalUsers.textContent)) {
+    elements.globalTotalUsers.textContent = cachedUsers ? Number(cachedUsers).toLocaleString() : '...';
+  }
+}
+
+// If stats debug requested, load overlay
+try {
+  const qp = new URLSearchParams(location.search);
+  if (qp.get('debugstats') === '1' || window.__HI_STATS_DEBUG__ === true) {
+    import('../stats/StatsDebugOverlay.js').catch(()=>{});
+  }
+} catch {}
+
+window.handleShareSuccess = function(shareData) {
+  console.log('✅ Hi-Island share successful! Data goes to REAL database:', shareData);
+  setTimeout(() => {
+    if (window.hiIslandIntegration) {
+      window.refreshHiIslandFeed?.();
+      console.log('🔄 REAL Hi-Island feed refreshed after share');
+    } else if (window.hiRealFeed) {
+      window.hiRealFeed.refreshFeedData();
+      console.log('🔄 REAL feed system refreshed after share');
+    } else {
+      console.warn('⚠️ REAL feed system not available for refresh');
+    }
+  }, 1000);
+  setTimeout(() => { window.loadCurrentStatsFromDatabase(); }, 1500);
+};
+
+window.handleDropHiClick = async function() {
+  const button = document.getElementById('dropHiButton');
+  if (!button) return;
+  if (button.classList.contains('loading') || button.disabled) {
+    return;
+  }
+  console.log('🎯 [DROP HI] Starting comprehensive user type audit...');
+  button.classList.add('loading');
+  button.disabled = true;
+  try {
+    const userType = await getUserTypeWithFallbacks();
+    console.log('🔍 [DROP HI] User type detected:', userType);
+    if (userType === 'anonymous') {
+      console.log('🔒 [DROP HI] Anonymous user - showing auth modal');
+      button.classList.remove('loading');
+      button.disabled = false;
+      return await handleAnonymousDropHi();
+    }
+    const isAuthenticated = userType !== 'anonymous';
+    if (!isAuthenticated) {
+      console.log('🔒 User not authenticated - showing sign-in prompt');
+      button.classList.remove('loading');
+      button.disabled = false;
+      if (window.showAuthModal && typeof window.showAuthModal === 'function') {
+        await window.showAuthModal('To drop a Hi on the island, please sign in first.');
+        return;
+      }
+      window.location.href = '/auth.html?redirect=hi-island.html&action=drop-hi';
+      return;
+    }
+    if (!window.checkHiFeatureAccess?.('drop_hi', 'drop-hi')) {
+      console.log('🔒 Drop Hi access denied - showing upgrade modal');
+      button.classList.remove('loading');
+      button.disabled = false;
+      return;
+    }
+    if (window.hiIslandShareSheet && typeof window.hiIslandShareSheet.open === 'function') {
+      await window.hiIslandShareSheet.open();
+      console.log('✅ Opened Hi-Island share sheet (initialized)');
+      return;
+    }
+    if (window.openHiShareSheet && typeof window.openHiShareSheet === 'function') {
+      await window.openHiShareSheet('hi-island');
+      console.log('✅ Opened via global HiShareSheet trigger');
+      return;
+    }
+    if (window.HiShareSheet) {
+      const shareSheet = new window.HiShareSheet({ 
+        origin: 'hi-island',
+        onSuccess: (shareData) => {
+          console.log('🎉 Hi-Island share success:', shareData);
+          if (window.handleShareSuccess) {
+            window.handleShareSuccess(shareData);
+          }
+        },
+        onError: (error) => {
+          console.error('❌ Hi-Island share error:', error);
+        }
+      });
+      if (shareSheet.init) {
+        await shareSheet.init();
+        await shareSheet.open();
+        console.log('✅ Created and opened new Hi Share Sheet instance');
+      } else {
+        await shareSheet.open();
+        console.log('✅ Opened new Hi Share Sheet instance (no init required)');
+      }
+      return;
+    }
+    if (window.HiComposer && typeof window.HiComposer.open === 'function') {
+      await window.HiComposer.open();
+      console.log('✅ Opened legacy Hi Composer');
+      return;
+    }
+    console.error('🚨 All Hi Composer systems failed');
+    if (window.HiModal && window.HiModal.alert) {
+      window.HiModal.alert(
+        'Hi Share is loading... Please try again in a moment!',
+        'Loading Hi Composer'
+      );
+    } else if (confirm('Hi Share is loading... Would you like to try again?')) {
+      setTimeout(() => window.handleDropHiClick(), 1000);
+    }
+  } catch (error) {
+    console.error('🚨 Drop Hi button error:', error);
+    if (window.HiModal && window.HiModal.alert) {
+      window.HiModal.alert(
+        'Something went wrong. Please refresh the page and try again.',
+        'Error Opening Hi Composer'
+      );
+    } else {
+      alert('Something went wrong. Please refresh the page and try again.');
+    }
+  } finally {
+    setTimeout(() => {
+      if (button) {
+        button.classList.remove('loading');
+        button.disabled = false;
+      }
+    }, 500);
+  }
+};
+
+async function getUserTypeWithFallbacks() {
+  try {
+    if (window.checkAuthentication && typeof window.checkAuthentication === 'function') {
+      const isAuth = await window.checkAuthentication();
+      if (isAuth) {
+        const userTier = await window.getUserTier?.() || 'basic';
+        return userTier === 'premium' ? 'premium' : 'authenticated';
+      }
+    }
+    if (window.hiDB?.supabase?.auth) {
+      const { data: { user } } = await window.hiDB.supabase.auth.getUser();
+      if (user) {
+        return 'authenticated';
+      }
+    }
+    const session = localStorage.getItem('hiUserSession');
+    if (session && session !== 'null') {
+      return 'authenticated';
+    }
+    return 'anonymous';
+  } catch (error) {
+    console.warn('⚠️ [DROP HI] User type detection failed:', error);
+    return 'anonymous';
+  }
+}
+
+async function handleAnonymousDropHi() {
+  console.log('🎯 [DROP HI] Showing anonymous auth modal');
+  if (window.showAuthModal && typeof window.showAuthModal === 'function') {
+    await window.showAuthModal('🏝️ Join Hi Island to drop your moments and connect with the community!');
+    return;
+  }
+  if (window.showAnonymousAccessModal && typeof window.showAnonymousAccessModal === 'function') {
+    await window.showAnonymousAccessModal('drop_hi');
+    return;
+  }
+  const modalHTML = `
+    <div id="dropHiAuthModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); display: flex; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(10px);">
+      <div style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%); border-radius: 24px; padding: 48px; max-width: 480px; margin: 20px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 209, 102, 0.3);">
+        <div style="text-align: center;">
+          <div style="font-size: 64px; margin-bottom: 24px;">🏝️</div>
+          <h2 style="color: #1e293b; font-size: 24px; font-weight: 700; margin: 0 0 16px 0;">Drop Your Hi on the Island</h2>
+          <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 0 0 32px 0;">Join our community to share your moments, connect with others, and be part of the Hi Island experience.</p>
+          <div style="display: flex; gap: 16px; justify-content: center;">
+            <button onclick="handleAuthAction('signin')" style="background: linear-gradient(135deg, #FF7A18 0%, #FFD166 100%); color: #1a1a1a; border: none; padding: 16px 24px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer;">Sign In</button>
+            <button onclick="handleAuthAction('signup')" style="background: rgba(255, 122, 24, 0.1); color: #FF7A18; border: 2px solid rgba(255, 122, 24, 0.3); padding: 14px 24px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer;">Create Account</button>
+          </div>
+          <button onclick="closeAuthModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; color: #64748b; cursor: pointer;">×</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+  window.handleAuthAction = (action) => {
+    closeAuthModal();
+    if (action === 'signin') {
+      window.location.href = '/auth.html?mode=signin&redirect=hi-island.html&action=drop-hi';
+    } else {
+      window.location.href = '/auth.html?mode=signup&redirect=hi-island.html&action=drop-hi';
+    }
+  };
+  window.closeAuthModal = () => {
+    const modal = document.getElementById('dropHiAuthModal');
+    if (modal) modal.remove();
+  };
+}
+
+async function getDropHiAccessLevel(userType) {
+  try {
+    if (window.checkHiFeatureAccess && typeof window.checkHiFeatureAccess === 'function') {
+      const hasAccess = await window.checkHiFeatureAccess('drop_hi', 'drop-hi');
+      if (hasAccess) {
+        return { allowed: true, level: userType };
+      } else {
+        return { allowed: false, reason: 'tier_limitation', userType };
+      }
+    }
+    return { allowed: true, level: userType };
+  } catch (error) {
+    console.warn('⚠️ [DROP HI] Access check failed:', error);
+    return { allowed: true, level: userType };
+  }
+}
+
+async function handleAccessDenied(accessLevel) {
+  console.log('🔒 [DROP HI] Handling access denied:', accessLevel);
+  if (window.showUpgradeModal && typeof window.showUpgradeModal === 'function') {
+    await window.showUpgradeModal('drop_hi');
+  } else {
+    alert('⭐ Upgrade to Premium to drop unlimited Hi moments on the island!');
+  }
+}
+
+async function openHiComposerWithUserContext(userType, accessLevel) {
+  console.log('✅ [DROP HI] Opening composer for', userType, accessLevel);
+  try {
+    if (window.hiIslandShareSheet && typeof window.hiIslandShareSheet.open === 'function') {
+      await window.hiIslandShareSheet.open();
+      return;
+    }
+    if (window.openHiShareSheet && typeof window.openHiShareSheet === 'function') {
+      await window.openHiShareSheet('hi-island');
+      return;
+    }
+    if (window.HiShareSheet) {
+      const shareSheet = new window.HiShareSheet({ 
+        origin: 'hi-island',
+        userType: userType,
+        onSuccess: (shareData) => {
+          console.log('🎉 Hi-Island share success:', shareData);
+        }
+      });
+      await shareSheet.open();
+      return;
+    }
+    console.warn('⚠️ [DROP HI] No share system available');
+    alert('Hi Share system is loading... Please try again in a moment.');
+  } catch (error) {
+    console.error('❌ [DROP HI] Composer error:', error);
+    alert('Something went wrong. Please try again.');
+  } finally {
+    const button = document.getElementById('dropHiButton');
+    if (button) {
+      button.classList.remove('loading');
+      button.disabled = false;
+    }
+  }
+}
+
+window.openHiComposer = window.handleDropHiClick;
+window.openHiComposer.showFallbackAlert = function() {
+  console.warn('⚠️ No Hi Share functionality available - showing fallback');
+  if (confirm('Hi Share is loading... Would you like to try again?')) {
+    setTimeout(() => {
+      window.openHiComposer();
+    }, 1000);
+  } else {
+    console.log('ℹ️ User cancelled Hi Share attempt');
+  }
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initHiIsland);
+} else {
+  initHiIsland();
+}

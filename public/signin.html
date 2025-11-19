@@ -5,9 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Sign in — Stay Hi</title>
   
+  <!-- Optional High-Contrast Accessibility Mode (non-destructive) -->
+  <script type="module" src="./lib/boot/contrast-mode.js"></script>
+  <!-- Unified Monitoring Init (errors + tracking) -->
+  <script src="./lib/boot/monitoring-init.js"></script>
+  
   <!-- Tesla-Grade CDN Loading (Fixed ERR_FAILED) -->
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1/dist/umd/supabase.min.js" integrity="sha384-XLEuzmdNfK1V09d59bu+Uv3EFtEp5kFP8BmseBq85CUpeFZXhUfqjk4ZeR/biZmS" crossorigin="anonymous"></script>
   
   <link rel="stylesheet" href="assets/theme.css"/>
   <link rel="stylesheet" href="assets/create-parity.css"/>
@@ -252,6 +257,15 @@
       <label for="email" class="hint">Email</label>
       <input id="email" type="email" class="hi-input" placeholder="you@example.com" autocomplete="email" required />
 
+      <!-- Optional: Invite code capture (revealed by ?invite= or via toggle) -->
+      <div id="inviteRow" class="row" style="margin-top:12px; display:none; justify-content:space-between">
+        <label for="inviteCode" class="hint" style="margin:0;flex:0 0 auto">Invite code</label>
+        <input id="inviteCode" type="text" class="hi-input" placeholder="e.g. HIFRIEND24" style="max-width: 220px;" autocomplete="one-time-code" />
+      </div>
+      <div style="text-align:right;margin-top:8px">
+        <button id="toggleInvite" type="button" class="hi-btn hi-btn--ghost" style="padding:6px 8px;font-size:12px;background:rgba(255,255,255,0.08);color:white;border-color:rgba(255,255,255,0.2)">I have an invite code</button>
+      </div>
+
       <div class="row">
         <a href="index.html" class="hi-btn hi-btn--ghost premium-hover focus-premium" style="background:rgba(255,255,255,0.1);color:white;border-color:rgba(255,255,255,0.2)">Cancel</a>
         <button id="send" class="btn-premium btn-primary-premium celebration-trigger focus-premium">
@@ -263,6 +277,19 @@
           </div>
         </button>
       </div>
+
+      <!-- PWA-friendly OTP verification (no context switch) -->
+      <div style="margin-top:16px; text-align:right">
+        <button id="toggleOtp" type="button" class="hi-btn hi-btn--ghost" style="padding:6px 8px;font-size:12px;background:rgba(255,255,255,0.08);color:white;border-color:rgba(255,255,255,0.2)">Use a 6‑digit email code</button>
+      </div>
+      <div id="otpRow" class="row" style="margin-top:12px; display:none; justify-content:space-between">
+        <label for="otpCode" class="hint" style="margin:0;flex:0 0 auto">6‑digit code</label>
+        <div style="display:flex; gap:8px; align-items:center">
+          <input id="otpCode" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" class="hi-input" placeholder="••••••" style="width:130px; text-align:center; letter-spacing:3px" autocomplete="one-time-code" />
+          <button id="verifyOtpBtn" type="button" class="hi-btn hi-btn--primary">Verify</button>
+        </div>
+      </div>
+      <p id="otpHelp" class="hint" style="display:none;color:rgba(255,255,255,0.7);font-size:12px;margin-top:6px;text-align:right">Tip: If your email opened in another app, you can paste the 6‑digit code here to finish sign‑in without switching back.</p>
 
       <div id="success" class="tesla-success">
         <div class="tesla-success-content">
@@ -286,225 +313,9 @@
       After signing in, you can <b style="color:white">Drop Hi</b> and it will save to the database (and still work offline).
     </p>
   </main>
-
-  <script>
-    // Tesla-Grade Direct Supabase Initialization
-    let supabaseClient = null;
-    
-    async function initializeSupabase() {
-      try {
-        const SUPABASE_URL = 'https://gfcubvroxgfvjhacinic.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g';
-        
-        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-          auth: { persistSession: true, autoRefreshToken: true }
-        });
-        
-        // Compatibility aliases
-        window.supabaseClient = supabaseClient;
-        window.sb = supabaseClient;
-        
-        return supabaseClient;
-      } catch (error) {
-        console.error('❌ Supabase initialization failed:', error);
-        throw error;
-      }
-    }
-
-    // DEV MODE: Press Ctrl+Shift+D to bypass email and sign in directly
-    window.addEventListener('keydown', async (e) => {
-      if (e.ctrlKey && e.shiftKey && e.key === 'D') {
-        console.log('🔧 DEV MODE: Bypassing email, signing in directly...');
-        const sb = await waitForSupabase();
-        // Use a test email or get from input
-        const devEmail = document.getElementById('email').value || 'test@stayhi.app';
-        try {
-          // Try to create a session directly (won't work without backend)
-          // Instead, let's log the magic link URL format
-          console.log('💡 TIP: Check Supabase Dashboard > Auth > Email Templates');
-          console.log('💡 Or use Supabase CLI to generate a dev session token');
-          alert('Check console for dev tips. You need to configure email in Supabase dashboard or use Supabase CLI for local dev.');
-        } catch (e) {
-          console.error(e);
-        }
-      }
-    });
-    
-    (function(){
-      const email = document.getElementById('email');
-      const sendBtn = document.getElementById('send');
-      const ok = document.getElementById('success');
-      const err = document.getElementById('err');
-
-      // Wait for Supabase to be ready
-      async function waitForSupabase() {
-        if (supabaseClient) return supabaseClient;
-        if (window.sb) return window.sb;
-        
-        // Wait for initialization
-        return new Promise((resolve) => {
-          const check = () => {
-            if (supabaseClient || window.sb) {
-              resolve(supabaseClient || window.sb);
-            } else {
-              setTimeout(check, 100);
-            }
-          };
-          check();
-        });
-      }
-
-      // If returning from a magic link, Supabase will set the session — bounce back to app
-      (async () => {
-        try {
-          const sb = await waitForSupabase();
-          const { data: { session } } = await sb.auth.getSession();
-          if (session) {
-            const next = new URLSearchParams(location.search).get('next') || 'hi-dashboard.html';
-            
-            // Use Tesla smooth redirect if available
-            if (window.teslaRedirect) {
-              await window.teslaRedirect.redirectAfterAuth(next);
-            } else {
-              location.replace(next);
-            }
-          }
-        } catch {}
-      })();
-
-      sendBtn.addEventListener('click', async () => {
-        err.style.display = 'none'; ok.style.display = 'none';
-
-        const emailVal = (email.value || '').trim();
-        if (!emailVal) { 
-          err.textContent = 'Enter a valid email.'; 
-          err.style.display = 'block'; 
-          email.focus();
-          email.style.borderColor = '#ef4444';
-          return; 
-        }
-
-        // Premium loading state
-        sendBtn.disabled = true;
-        const buttonText = sendBtn.querySelector('span');
-        const loadingDots = sendBtn.querySelector('.loading-dots');
-        buttonText.style.display = 'none';
-        loadingDots.style.display = 'inline-flex';
-        
-        // Visual feedback for button press
-        sendBtn.style.transform = 'scale(0.98)';
-        
-        try {
-          // Wait for Supabase client before using it
-          const sb = await waitForSupabase();
-          
-          console.log('🔐 Sending magic link to:', emailVal);
-          
-          const nextPage = new URLSearchParams(location.search).get('next') || 'hi-dashboard.html';
-          const redirectTo = `${location.origin}/post-auth.html?next=${encodeURIComponent(nextPage)}`;
-          
-          // Add timeout to prevent infinite loading
-          const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Request timed out after 15 seconds. Please check your internet connection and try again.')), 15000);
-          });
-          
-          const otpPromise = sb.auth.signInWithOtp({ 
-            email: emailVal, 
-            options: { emailRedirectTo: redirectTo }
-          });
-          
-          const result = await Promise.race([otpPromise, timeoutPromise]);
-          
-          console.log('📧 Supabase response:', result);
-          
-          if (result.error) {
-            console.error('❌ Magic link error:', result.error);
-            throw result.error;
-          }
-          
-          // Check if email was actually queued
-          if (result.data) {
-            console.log('✅ Magic link queued successfully:', result.data);
-          } else {
-            console.warn('⚠️ No data returned - email may not have been sent');
-          }
-          
-          console.log('✅ Magic link API call succeeded');
-          
-          // Success visual feedback
-          sendBtn.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
-          setTimeout(() => sendBtn.style.background = '', 2000);
-          
-          // Show Tesla-style success confirmation
-          ok.style.display = 'block';
-          setTimeout(() => ok.classList.add('show'), 10);
-          
-          // Reset button style
-          setTimeout(() => {
-            sendBtn.style.transform = '';
-          }, 200);
-          
-        } catch (e) {
-          console.error('❌ Sign in error:', e);
-          err.textContent = e.message || 'Could not send link.'; 
-          err.style.display = 'block';
-          err.style.borderColor = '#ef4444';
-          
-          // Shake animation for error
-          sendBtn.style.animation = 'shake 0.5s ease-in-out';
-          setTimeout(() => sendBtn.style.animation = '', 500);
-        } finally {
-          sendBtn.disabled = false;
-          buttonText.style.display = 'inline';
-          loadingDots.style.display = 'none';
-        }
-      });
-
-      // Add shake keyframes
-      const style = document.createElement('style');
-      style.textContent = `
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-5px); }
-          75% { transform: translateX(5px); }
-        }
-      `;
-      document.head.appendChild(style);
-    })();
-
-    // Initialize Supabase when page loads
-    document.addEventListener('DOMContentLoaded', async () => {
-      try {
-        // Wait for Supabase library to be available
-        if (!window.supabase) {
-          await new Promise(resolve => {
-            const checkSupabase = () => {
-              if (window.supabase) {
-                resolve();
-              } else {
-                setTimeout(checkSupabase, 100);
-              }
-            };
-            checkSupabase();
-          });
-        }
-        
-        await initializeSupabase();
-        
-        // Check if user is already authenticated
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session) {
-          console.log('🔄 User already authenticated, redirecting to main app');
-          window.location.replace('index.html');
-          return;
-        }
-        
-        console.log('✅ Signin page initialized successfully');
-        
-      } catch (error) {
-        console.error('❌ Signin initialization failed:', error);
-      }
-    });
-  </script>
+  <script src="assets/post-auth-path.js"></script>
+  <script src="./lib/boot/signin-init.js"></script>
+  <!-- Admin smart redirect (optional) -->
+  <script src="./lib/boot/admin-auto-redirect.js"></script>
 </body>
 </html>

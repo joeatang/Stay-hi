@@ -3,10 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <!-- DEV-ONLY: Test page. Not for public linking. -->
   <title>Sign In - Stay Hi</title>
   
-  <!-- Tesla-Grade Direct Supabase Loading -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <!-- Tesla-Grade Direct Supabase Loading (pinned + SRI) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1/dist/umd/supabase.min.js"
+      integrity="sha384-XLEuzmdNfK1V09d59bu+Uv3EFtEp5kFP8BmseBq85CUpeFZXhUfqjk4ZeR/biZmS"
+      crossorigin="anonymous"></script>
+    <!-- Robust post-auth URL helper (dev/prod) -->
+    <script src="assets/post-auth-path.js"></script>
   
   <style>
     * {
@@ -24,6 +30,9 @@
       justify-content: center;
       padding: 20px;
     }
+    .skip-link {position:absolute;left:-999px;top:0;background:#111;color:#FFD166;padding:8px 12px;font-weight:600;border-radius:0 0 6px 6px;z-index:10000;}
+    .skip-link:focus {left:0;outline:2px solid #FFD166;}
+    :focus-visible {outline:2px solid #FFD166;outline-offset:2px;border-radius:4px;}
     
     .signin-container {
       background: rgba(255, 255, 255, 0.95);
@@ -166,9 +175,11 @@
 </head>
 
 <body>
-  <div class="signin-container">
-    <div class="logo">🏝️ Stay Hi</div>
-    <div class="subtitle">Sign in to your island community</div>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <main id="main-content" role="main">
+  <div class="signin-container" role="form" aria-labelledby="signinHeading">
+    <h1 class="logo" id="signinHeading">🏝️ Stay Hi</h1>
+    <p class="subtitle" id="signinDesc">Sign in to your island community</p>
     
     <div id="successMessage" class="message success">
       ✅ Magic link sent! Check your email and click the link to sign in.
@@ -176,7 +187,7 @@
     
     <div id="errorMessage" class="message error"></div>
     
-    <form id="signinForm">
+    <form id="signinForm" aria-describedby="signinDesc">
       <div class="form-group">
         <label for="email">Email Address</label>
         <input type="email" id="email" name="email" required placeholder="your@email.com">
@@ -197,6 +208,7 @@ Debug Info:
 - Status: Ready
     </div>
   </div>
+  </main>
 
   <script>
     // Tesla-Grade Simple Authentication
@@ -291,7 +303,9 @@ Debug Info:
       
       try {
         // Simple magic link without membership checks for testing
-        const redirectTo = `${window.location.origin}/post-auth.html?next=${encodeURIComponent('index.html')}`;
+        const redirectTo = (window.hiPostAuthPath?.getPostAuthURL
+          ? window.hiPostAuthPath.getPostAuthURL({ next: 'index.html' })
+          : `${window.location.origin}/post-auth.html?next=${encodeURIComponent('index.html')}`);
         
         console.log('🔐 Sending magic link to:', email);
         console.log('📧 Redirect URL:', redirectTo);

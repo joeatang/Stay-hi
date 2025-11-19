@@ -1,0 +1,44 @@
+# CSP Proposed Header (Phase 1 after externalizing dashboard-main.js)
+# Goal: Remove script 'unsafe-inline' while preserving functionality.
+# Remaining inline scripts: early SW unregister debug, webroot guard, AuthReady listener block, HiBase shares small async module, Build ID injector.
+# Strategy: Add nonces to remaining short inline scripts OR externalize them in Phase 2.
+# After Phase 2, eliminate nonces for scripts entirely (strict-dynamic optional) once all scripts are external.
+
+Content-Security-Policy: \
+  default-src 'self'; \
+  script-src 'self' 'nonce-{{NONCE}}' https://gfcubvroxgfvjhacinic.supabase.co; \
+  connect-src 'self' https://gfcubvroxgfvjhacinic.supabase.co wss://gfcubvroxgfvjhacinic.supabase.co; \
+  img-src 'self' data: blob:; \
+  style-src 'self' 'unsafe-inline';  # Remove 'unsafe-inline' after critical inline <style> blocks are extracted
+  font-src 'self' data:; \
+  manifest-src 'self'; \
+  media-src 'self'; \
+  worker-src 'self'; \
+  object-src 'none'; \
+  frame-ancestors 'self'; \
+  base-uri 'self'; \
+  form-action 'self';
+
+# Phase 2 Tasks:
+# 1. Externalize SW debug and webroot guard scripts into /public/lib/boot/ sw-debug.js & webroot-guard.js
+# 2. Externalize AuthReady inline module (already uses import) into /public/lib/boot/auth-ready-listener.js (type=module)
+# 3. Externalize build ID injection into /public/lib/boot/build-id.js
+# 4. Remove all nonces & 'unsafe-inline' for script-src; optionally add 'strict-dynamic' with a single nonce.
+# 5. Convert remaining inline <style> blocks to external CSS (critical CSS may remain with CSP hash if necessary).
+# 6. Add report-to endpoint for CSP violation telemetry.
+
+# Reporting Endpoint Draft:
+#  report-uri https://stay-hi.vercel.app/api/csp-report; (fallback legacy)
+#  report-to csp-endpoint;
+#  Define Report-To header: {"group":"csp-endpoint","max_age":10800,"endpoints":[{"url":"https://stay-hi.vercel.app/api/csp-report"}]} 
+
+# Validation Steps:
+# - Load hi-dashboard.html with nonce applied; verify console shows successful SW registration and no CSP errors.
+# - Use offline-harness.html to confirm service worker caching not blocked by CSP.
+# - Run browser audit: document.querySelectorAll('script:not([src])').length should trend to 0.
+
+# Security Uplift Impact:
+# - Removes XSS vector from long inline block (70KB) now external & cache controlled.
+# - Shrinks attack surface; easier to diff runtime changes; prepares for hash/nonce elimination.
+
+# Next Progress Bump: +2% after Phase 2 completes (est. MVP 74%).

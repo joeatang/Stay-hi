@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hi Speak · Telemetry Admin</title>
+  <meta name="robots" content="noindex, nofollow">
+  
+  <style>
+    :root { --bg:#0a0a0a; --fg:#eaeaea; --muted:#9aa0a6; --card:#151515; --accent:#7dd3fc; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444; }
+    body { margin:0; font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color:var(--fg); background:linear-gradient(180deg, #0b1220, #0a0a0a); min-height:100vh; }
+    header { padding:16px 20px; border-bottom:1px solid #1f2937; display:flex; align-items:center; gap:12px; }
+    header h1 { font-size:16px; margin:0; letter-spacing:0.3px; }
+    header .badge { font-size:12px; color:#0b1220; background:var(--accent); padding:2px 8px; border-radius:999px; }
+    .wrap { max-width:1100px; margin:0 auto; padding:20px; }
+    .controls { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:14px; }
+    .controls select, .controls button { background:#0f172a; color:var(--fg); border:1px solid #1f2937; border-radius:8px; padding:8px 10px; }
+    .grid { display:grid; grid-template-columns:repeat(12,1fr); gap:14px; }
+    .card { grid-column: span 6; background:var(--card); border:1px solid #1f2937; border-radius:12px; padding:14px; }
+    .card h2 { margin:0 0 10px 0; font-size:14px; color:#cbd5e1; }
+    .kpis { display:flex; gap:16px; flex-wrap:wrap; }
+    .kpi { background:#0f172a; border:1px solid #1f2937; border-radius:10px; padding:10px 12px; }
+    .kpi .label { color:var(--muted); font-size:12px; }
+    .kpi .value { font-weight:600; font-size:16px; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { text-align:left; border-bottom:1px solid #1f2937; padding:8px; font-size:12px; color:#d1d5db; }
+    th { color:#9aa0a6; font-weight:600; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .ok { color: var(--ok) }
+    .warn { color: var(--warn) }
+    .bad { color: var(--bad) }
+    @media (max-width: 900px) { .card { grid-column: span 12; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="badge">Hi Speak</div>
+    <h1>Telemetry Admin</h1>
+  </header>
+  <div class="wrap">
+    <div class="controls">
+      <label for="hours">Window</label>
+      <select id="hours">
+        <option value="1">1h</option>
+        <option value="6">6h</option>
+        <option value="24" selected>24h</option>
+        <option value="72">72h</option>
+        <option value="168">7d</option>
+      </select>
+      <button id="refresh">Refresh</button>
+      <span id="status" class="mono" aria-live="polite"></span>
+    </div>
+
+    <div class="grid">
+      <section class="card" aria-labelledby="metricsTitle">
+        <h2 id="metricsTitle">Performance Vitals</h2>
+        <div class="kpis" id="vitalsKpis"></div>
+      </section>
+
+      <section class="card" aria-labelledby="totalsTitle">
+        <h2 id="totalsTitle">Event Totals</h2>
+        <div class="kpis" id="totalsKpis"></div>
+      </section>
+
+      <section class="card" aria-labelledby="errorsTitle">
+        <h2 id="errorsTitle">Recent Errors</h2>
+        <table>
+          <thead>
+            <tr><th>When</th><th>Type</th><th>Message</th><th class="mono">Source</th></tr>
+          </thead>
+          <tbody id="errorsBody"></tbody>
+        </table>
+      </section>
+
+      <section class="card" aria-labelledby="integrityTitle">
+        <h2 id="integrityTitle">Recent Integrity Events</h2>
+        <table>
+          <thead>
+            <tr><th>When</th><th>Event</th><th class="mono">Src</th><th class="mono">Expected</th><th class="mono">Actual</th></tr>
+          </thead>
+          <tbody id="integrityBody"></tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const API = 'http://localhost:5055'; // node admin server
+
+    function fmtTs(ts) {
+      if (!ts) return '';
+      const d = new Date(Number(ts));
+      if (isNaN(d)) return '';
+      return d.toLocaleString();
+    }
+
+    function vitRow(label, q) {
+      const v = (n) => (n == null ? '—' : (n.toFixed ? n.toFixed(2) : String(n)));
+      return `<div class="kpi"><div class="label">${label}</div><div class="value">p50 ${v(q[0.5])} · p95 ${v(q[0.95])} · p99 ${v(q[0.99])} <span class="label">(${q.count ?? 0} samples)</span></div></div>`;
+    }
+
+    async function load() {
+      const hours = document.getElementById('hours').value;
+      const status = document.getElementById('status');
+      status.textContent = 'Loading…';
+      try {
+        const [summary, errors, integrity] = await Promise.all([
+          fetch(`${API}/api/summary?hours=${hours}`).then(r => r.json()),
+          fetch(`${API}/api/recent?table=error_events&limit=50`).then(r => r.json()),
+          fetch(`${API}/api/recent?table=integrity_events&limit=50`).then(r => r.json()),
+        ]);
+
+        if (summary.error) throw new Error(summary.error);
+        const vit = summary.vitals || {};
+        document.getElementById('vitalsKpis').innerHTML = [
+          vitRow('TTFB', vit.ttfb || {}),
+          vitRow('LCP', vit.lcp || {}),
+          vitRow('FID', vit.fid || {}),
+          vitRow('CLS', vit.cls || {}),
+          vitRow('FCP', vit.fcp || {}),
+          vitRow('TBT', vit.tbt || {}),
+        ].join('');
+
+        const totals = summary.totals || {};
+        document.getElementById('totalsKpis').innerHTML = `
+          <div class="kpi"><div class="label">Perf Samples</div><div class="value">${totals.perf_samples ?? '—'}</div></div>
+          <div class="kpi"><div class="label">Errors</div><div class="value">${totals.error_events ?? '—'}</div></div>
+          <div class="kpi"><div class="label">Integrity Events</div><div class="value">${totals.integrity_events ?? '—'}</div></div>
+        `;
+
+        const ebody = document.getElementById('errorsBody');
+        ebody.innerHTML = (errors.rows || []).map(r => `
+          <tr>
+            <td>${fmtTs(r.ts)}</td>
+            <td>${r.type || ''}</td>
+            <td title="${(r.stack || '').slice(0, 500)}">${(r.message || '').slice(0, 120)}</td>
+            <td class="mono">${r.src || ''}:${r.line || ''}</td>
+          </tr>
+        `).join('');
+
+        const ibody = document.getElementById('integrityBody');
+        ibody.innerHTML = (integrity.rows || []).map(r => `
+          <tr>
+            <td>${fmtTs(r.ts)}</td>
+            <td>${r.event_type}</td>
+            <td class="mono" title="${r.src}">${(r.src || '').slice(0, 60)}</td>
+            <td class="mono">${(r.expected || '').slice(0, 40)}</td>
+            <td class="mono">${(r.actual || '').slice(0, 40)}</td>
+          </tr>
+        `).join('');
+
+        status.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+      } catch (e) {
+        status.textContent = `Error: ${e.message}`;
+      }
+    }
+
+    document.getElementById('refresh').addEventListener('click', load);
+    document.getElementById('hours').addEventListener('change', load);
+    load();
+  </script>
+</body>
+</html>

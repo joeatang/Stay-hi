@@ -6,8 +6,11 @@ async function loadRealUserCount() {
   try {
     console.log('📊 Loading real user count...');
     
-    // Get Supabase client
-    const supabase = window.supabase || await import('/lib/HiSupabase.v3.js').then(m => m.default);
+    // Get Supabase client (robust getter)
+    const supabase = (window.HiSupabase && window.HiSupabase.getClient && window.HiSupabase.getClient())
+      || window.hiSupabase
+      || window.__HI_SUPABASE_CLIENT
+      || null;
     if (!supabase) {
       console.warn('⚠️ No Supabase client for user count');
       return null;
@@ -83,7 +86,10 @@ async function loadEnhancedGlobalStats() {
     const userCountPromise = loadRealUserCount();
     
     // Load other stats (existing system)
-    const supabase = window.supabase || await import('/lib/HiSupabase.v3.js').then(m => m.default);
+    const supabase = (window.HiSupabase && window.HiSupabase.getClient && window.HiSupabase.getClient())
+      || window.hiSupabase
+      || window.__HI_SUPABASE_CLIENT
+      || null;
     const statsPromise = supabase.from('global_stats').select('*').single();
     
     // Wait for both to complete
@@ -102,8 +108,10 @@ async function loadEnhancedGlobalStats() {
       localStorage.setItem('dashboard_waves_cache', window.gWaves.toString());
     }
     
-    // Update all UI elements
-    updateStatsUI();
+    // Update all UI elements (use global updater when available)
+    if (typeof window.updateGlobalStats === 'function') {
+      window.updateGlobalStats(true);
+    }
     
     console.log('✅ Enhanced stats loaded:', {
       totalHis: window.gTotalHis,

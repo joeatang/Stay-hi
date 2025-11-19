@@ -1,0 +1,209 @@
+// Dashboard Module Boot: extracted from hi-dashboard.html (CSP externalization)
+// Hi Components: HiShareSheet + HiMedallion (Tesla-grade initialization)
+import { HiShareSheet } from '../../ui/HiShareSheet/HiShareSheet.js';
+import { mountHiMedallion } from '../../ui/HiMedallion/HiMedallion.js';
+
+// Tesla-grade component initialization with guards
+document.addEventListener('DOMContentLoaded', () => {
+  if (!window.__hiComponentsInitialized) window.__hiComponentsInitialized = {};
+
+  if (!window.__hiComponentsInitialized.shareSheet) {
+    const shareSheet = new HiShareSheet({ 
+      origin: 'dashboard',
+      onSuccess: async (shareData) => {
+        const submissionId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        console.log('✅ Dashboard share success handler called:', { submissionId, shareData });
+        if (shareData.type === 'Hi5') {
+          console.log('🎯 Incrementing Hi5 counter for submission:', submissionId);
+          try { await (window.incrementHi5Counter ? window.incrementHi5Counter() : (async ()=>{})()); } catch {}
+          console.log('✅ Hi5 counter incremented for submission:', submissionId);
+        }
+        if (window.loadRealUserCount) {
+          setTimeout(window.loadRealUserCount, 1000);
+        }
+        if (window.trackShareSubmission) {
+          window.trackShareSubmission('hi-dashboard', {
+            submissionType: shareData.privacy || 'public',
+            pageOrigin: 'hi-dashboard',
+            origin: 'hi-dashboard',
+            tag: shareData.type === 'Hi5' ? 'Hi5️⃣' : 'Hi Dashboard',
+            timestamp: Date.now()
+          });
+        }
+        try {
+          const { trackEvent } = await import('./lib/monitoring/HiMonitor.js');
+          trackEvent('share_submit', {
+            visibility: shareData.visibility || shareData.privacy,
+            type: shareData.type || 'standard',
+            origin: 'dashboard'
+          });
+        } catch (err) { console.log('Analytics tracking failed:', err); }
+      }
+    });
+    shareSheet.init();
+    window.__hiComponentsInitialized.shareSheet = true;
+    window.__hiComponentsInitialized.shareSheetInstance = shareSheet;
+  }
+
+  // Mirror Island: subtle "Try it — nothing is saved" link wiring
+  function initializeDashTryItLink() {
+    const tryLink = document.getElementById('tryHiDashLink');
+    if (!tryLink) return;
+    tryLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (window.openPracticeShare) {
+        window.openPracticeShare('hi-dashboard', { context: 'dashboard' });
+      } else {
+        const instance = window.__hiComponentsInitialized?.shareSheetInstance;
+        if (instance && typeof instance.open === 'function') {
+          instance.practiceMode = true;
+          instance.open({ context: 'dashboard' });
+        }
+      }
+    });
+  }
+
+  // Post-auth pending action
+  const pendingAction = localStorage.getItem('pendingDashboardAction');
+  if (pendingAction) {
+    try {
+      const actionData = JSON.parse(pendingAction);
+      console.log('🔄 Processing pending dashboard action after auth:', actionData);
+      localStorage.removeItem('pendingDashboardAction');
+      if (actionData.action === 'hi5-share' && actionData.context === 'dashboard') {
+        setTimeout(() => {
+          const shareSheetInstance = window.__hiComponentsInitialized?.shareSheetInstance;
+          if (shareSheetInstance) {
+            shareSheetInstance.open({ context: 'dashboard', preset: 'hi5', prefilledText: '✨ Celebrating this moment of growth! ', type: 'Hi5' });
+            console.log('✅ Auto-opened Hi5 share sheet after auth');
+          }
+        }, 1000);
+      }
+    } catch (error) {
+      console.error('❌ Failed to process pending dashboard action:', error);
+      localStorage.removeItem('pendingDashboardAction');
+    }
+  }
+
+  // Long-Press Hi 5 System
+  function setupMedallionLongPress(medallionElement) {
+    if (!medallionElement || medallionElement.__longPressSetup) return;
+    medallionElement.__longPressSetup = true;
+    let longPressTimer = null; let rafId = null; let startTime = 0; let startX=0; let startY=0;
+    const LONG_PRESS_DURATION = 1500; // slightly easier
+    const MOVE_TOLERANCE = 12; // px
+    function loop(){
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min((elapsed/LONG_PRESS_DURATION)*360, 360);
+      medallionElement.style.setProperty('--progress', `${progress}deg`);
+      if (progress >= 360){ completeLongPress(); return; }
+      rafId = requestAnimationFrame(loop);
+    }
+    function startLongPress(e){
+      e.preventDefault();
+      const pt = (e.touches && e.touches[0]) || e;
+      startX = pt.clientX || 0; startY = pt.clientY || 0;
+      startTime=Date.now();
+      medallionElement.classList.add('long-press-active','long-press-filling');
+      try{ navigator?.vibrate?.(20);}catch{}
+      rafId = requestAnimationFrame(loop);
+      longPressTimer=setTimeout(()=>{ completeLongPress(); }, LONG_PRESS_DURATION+50);
+    }
+    function movedTooFar(e){
+      const pt = (e.touches && e.touches[0]) || e; if (!pt) return false;
+      const dx = (pt.clientX||0) - startX; const dy = (pt.clientY||0) - startY;
+      return (dx*dx + dy*dy) > (MOVE_TOLERANCE*MOVE_TOLERANCE);
+    }
+    function cancelLongPress(){ if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer=null; } if(rafId){ cancelAnimationFrame(rafId); rafId=null; } medallionElement.classList.remove('long-press-active','long-press-filling','long-press-complete'); medallionElement.style.removeProperty('--progress'); }
+    function completeLongPress(){ cancelLongPress(); medallionElement.classList.add('long-press-complete'); try{ navigator?.vibrate?.(100);}catch{} console.log('🎯 Long-press completed - triggering Hi 5 flow'); triggerHi5Flow(); setTimeout(()=>{ medallionElement.classList.remove('long-press-complete'); }, 500); }
+    medallionElement.addEventListener('touchstart', startLongPress, { passive:false });
+    medallionElement.addEventListener('mousedown', startLongPress);
+    medallionElement.addEventListener('touchend', cancelLongPress);
+    medallionElement.addEventListener('touchmove', (e)=>{ if (movedTooFar(e)) cancelLongPress(); });
+    medallionElement.addEventListener('mouseup', cancelLongPress);
+    medallionElement.addEventListener('mouseleave', cancelLongPress);
+    console.log('🏗️ Long-press system initialized for medallion');
+  }
+
+  function triggerHi5Flow(){
+    const canShare = window.hiAccessManager?.canAccess?.('shareCreation') || 
+      window.HiTierSystem?.hasCapability?.('drop_hi') ||
+      window.unifiedMembership?.hasAccess?.('shareCreation');
+    if (!canShare) {
+      console.log('🔒 Anonymous user long-press - showing auth modal');
+      if (window.showShareAuthModal) {
+        window.showShareAuthModal('hi-dashboard', {
+          title: 'Join Hi Community for Self Hi 5',
+          benefits: [
+            '✨ Celebrate achievements that matter to you',
+            '📊 Track your personal empowerment journey',
+            '🎯 Share meaningful moments with the community'
+          ],
+          trigger: 'medallion-long-press',
+          cta: 'Start Your Hi 5 Journey'
+        });
+      } else if (window.showAuthModal) {
+        window.showAuthModal('hi-dashboard');
+      } else {
+        console.warn('⚠️ No auth modals available');
+        window.location.href = '/welcome.html';
+      }
+    } else {
+      console.log('✅ Authenticated user - proceeding with Hi 5 creation');
+      // TODO: Implement authenticated Hi 5 creation flow
+    }
+  }
+
+  // Mount HiMedallion with tap tracking
+  const medallionContainer = document.getElementById('hiMedallionContainer');
+  if (medallionContainer) {
+    import('../../ui/HiMedallion/HiMedallion.js').then(({ mountHiMedallion }) => {
+      const medallionElement = medallionContainer.querySelector('#hiMedallion');
+      if (medallionElement) {
+        mountHiMedallion(medallionElement, {
+          origin: 'dashboard',
+          ariaLabel: 'Send positive energy to the Stay Hi community',
+          onTap: () => {
+            console.log('🏅 Medallion tapped - tracking wave...');
+            if (window.gWaves === undefined) window.gWaves = 0;
+            window.gWaves += 1;
+            requestAnimationFrame(() => {
+              const globalHiWavesEl = document.getElementById('globalHiWaves');
+              if (globalHiWavesEl) {
+                globalHiWavesEl.textContent = window.gWaves.toLocaleString();
+                globalHiWavesEl.classList.remove('burst');
+                requestAnimationFrame(() => {
+                  globalHiWavesEl.classList.add('burst');
+                  setTimeout(() => { requestAnimationFrame(() => { globalHiWavesEl.classList.remove('burst'); }); }, 500);
+                });
+              }
+            });
+            if (window.updateGlobalStats) window.updateGlobalStats();
+            if (window.supabase) {
+              window.supabase.rpc('increment_hi_wave').then(({ data, error }) => {
+                if (error) { console.error('❌ Database wave increment failed:', error); }
+                else {
+                  if (data && typeof data === 'number') {
+                    window.gWaves = data;
+                    localStorage.setItem('dashboard_waves_cache', String(window.gWaves));
+                    localStorage.setItem('dashboard_waves_cache_time', String(Date.now()));
+                    if (window.hiWavesRealtime) window.hiWavesRealtime.updateWavesUI(window.gWaves);
+                    const el = document.getElementById('globalHiWaves');
+                    if (el) el.textContent = window.gWaves.toLocaleString();
+                  }
+                }
+              });
+            }
+            const personalTaps = parseInt(localStorage.getItem('user_medallion_taps') || '0', 10) + 1;
+            localStorage.setItem('user_medallion_taps', personalTaps.toString());
+          }
+        });
+        console.log('🎯 Tesla-grade HiMedallion mounted on dashboard with tap tracking');
+        setupMedallionLongPress(medallionElement);
+      }
+    }).catch(error => console.error('❌ Failed to load HiMedallion:', error));
+  }
+
+  // Initialize the Try link after DOM is ready
+  initializeDashTryItLink();
+});

@@ -5,9 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In — Stay Hi</title>
     
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script src="assets/config.js"></script>
+        <!-- Supabase -->
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+        <script src="assets/config.js"></script>
+        <!-- Robust post-auth URL helper (dev/prod) -->
+        <script src="assets/post-auth-path.js"></script>
+        <!-- Instant auth forwarder: if magic link hash present, jump to post-auth -->
+        <script src="assets/tesla-instant-auth.js"></script>
+        <script>
+            // Soft-deprecate this page: forward to canonical signin.html unless explicitly requested
+            (function(){
+                try {
+                    const hash = location.hash || '';
+                    if (/#(access_token|refresh_token|type=|code=)/.test(hash)) return; // magic link detected; instant-auth handles redirect
+                    const params = new URLSearchParams(location.search);
+                    if (params.get('stay') === '1') return; // allow explicit stay for debugging
+                    const qp = params.toString();
+                    const dest = `signin.html${qp ? '?' + qp : ''}`;
+                    if (!location.pathname.endsWith('/signin.html')) location.replace(dest);
+                } catch (e) { /* no-op */ }
+            })();
+        </script>
     
     <style>
         body {
@@ -235,13 +253,13 @@
             showStatus('Sending magic link...', 'info');
             
             try {
+                const nextPage = new URLSearchParams(window.location.search).get('next') || 'hi-dashboard.html';
+                const redirectTo = (window.hiPostAuthPath?.getPostAuthURL ? window.hiPostAuthPath.getPostAuthURL({ next: nextPage }) : `${window.location.origin}/post-auth.html?next=${encodeURIComponent(nextPage)}`);
                 const { error } = await window.supabase.auth.signInWithOtp({
                     email: email,
                     options: {
-                        emailRedirectTo: `${window.location.origin}/profile.html`,
-                        data: {
-                            redirect_to: 'profile'
-                        }
+                        emailRedirectTo: redirectTo,
+                        data: { redirect_to: nextPage }
                     }
                 });
                 

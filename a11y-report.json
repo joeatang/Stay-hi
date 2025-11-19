@@ -1,0 +1,50 @@
+{
+  "http://localhost:3030/public/welcome.html?a11y=1": {
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "nodes": 9
+      }
+    ]
+  },
+  "http://localhost:3030/public/signin.html?a11y=1": {
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "nodes": 6
+      }
+    ]
+  },
+  "http://localhost:3030/public/hi-dashboard.html?a11y=1": {
+    "violations": [
+      {
+        "id": "html-has-lang",
+        "impact": "serious",
+        "help": "<html> element must have a lang attribute",
+        "nodes": 1
+      }
+    ],
+    "incomplete": []
+  },
+  "http://localhost:3030/public/profile.html?a11y=1": {
+    "violations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "nodes": 3
+      }
+    ],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "nodes": 2
+      }
+    ]
+  }
+}

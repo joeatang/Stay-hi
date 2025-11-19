@@ -15,15 +15,31 @@ class ProgressiveAuth {
   // Detect current authentication state
   async detectAuthState() {
     try {
-      // 🚨 EMERGENCY FIX: Use HiDB unified client to prevent multiple instances
-      let supa = window.hiDB?.getSupabase?.() || window.supabaseClient || window.sb;
+      // 🚨 Prefer canonical client sources to avoid races and multiples
+      let supa =
+        (window.HiSupabase && typeof window.HiSupabase.getClient === 'function' && window.HiSupabase.getClient()) ||
+        (typeof window.getSupabase === 'function' && window.getSupabase()) ||
+        window.__HI_SUPABASE_CLIENT ||
+        window.hiSupabase ||
+        window.hiDB?.getSupabase?.() ||
+        window.supabaseClient ||
+        window.sb ||
+        null;
       
       if (!supa) {
-        // Wait up to 2 seconds for Supabase to initialize
+        // Wait up to 3 seconds for Supabase to initialize
         console.log('🔄 Waiting for Supabase client...');
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < 30; i++) {
           await new Promise(resolve => setTimeout(resolve, 100));
-          supa = window.hiDB?.getSupabase?.() || window.supabaseClient || window.sb;
+          supa =
+            (window.HiSupabase && typeof window.HiSupabase.getClient === 'function' && window.HiSupabase.getClient()) ||
+            (typeof window.getSupabase === 'function' && window.getSupabase()) ||
+            window.__HI_SUPABASE_CLIENT ||
+            window.hiSupabase ||
+            window.hiDB?.getSupabase?.() ||
+            window.supabaseClient ||
+            window.sb ||
+            null;
           if (supa) break;
         }
       }
@@ -36,6 +52,11 @@ class ProgressiveAuth {
           supabase: !!window.supabase
         });
         this.setAuthTier(0, 'No Supabase client');
+        // Schedule a late retry once more to recover after async UMD load
+        if (!this._retryScheduled) {
+          this._retryScheduled = true;
+          setTimeout(() => { this.detectAuthState(); }, 2000);
+        }
         return;
       }
       
@@ -49,8 +70,14 @@ class ProgressiveAuth {
       }
       
       // Validate session freshness
-      const now = new Date().getTime();
-      const sessionTime = new Date(session.expires_at).getTime();
+      const now = Date.now();
+      let sessionTime = 0;
+      if (typeof session.expires_at === 'number') {
+        // Supabase may provide seconds since epoch
+        sessionTime = session.expires_at > 1e12 ? session.expires_at : session.expires_at * 1000;
+      } else if (session.expires_at) {
+        sessionTime = new Date(session.expires_at).getTime();
+      }
       
       if (sessionTime <= now) {
         this.setAuthTier(0, 'Session expired');
@@ -138,16 +165,21 @@ class ProgressiveAuth {
       // Create beautiful modal overlay
       const modal = document.createElement('div');
       modal.className = 'progressive-auth-modal';
+      const titleId = 'auth-modal-title';
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
+      modal.setAttribute('aria-labelledby', titleId);
       modal.innerHTML = `
-        <div class="auth-modal-backdrop"></div>
-        <div class="auth-modal-content">
+        <div class="auth-modal-backdrop" data-backdrop></div>
+        <div class="auth-modal-content" role="document">
           <div class="auth-modal-header">
-            <h2>✨ Ready to save your Hi?</h2>
+            <h2 id="${titleId}">✨ Ready to save your Hi?</h2>
             <p>${this.getContextualMessage(action, context)}</p>
           </div>
           
           <div class="auth-modal-body">
-            <input type="email" id="auth-email" placeholder="Enter your email" class="auth-input">
+            <label for="auth-email" class="sr-only">Email address</label>
+            <input type="email" id="auth-email" placeholder="Enter your email" class="auth-input" autocomplete="email" required>
             <button id="auth-submit" class="auth-button primary">
               🚀 Continue with Magic Link
             </button>
@@ -168,7 +200,54 @@ class ProgressiveAuth {
       const emailInput = modal.querySelector('#auth-email');
       const submitBtn = modal.querySelector('#auth-submit');
       const cancelBtn = modal.querySelector('#auth-cancel');
-      const backdrop = modal.querySelector('.auth-modal-backdrop');
+      const backdrop = modal.querySelector('[data-backdrop]');
+
+      // Focus trap and keyboard handling
+      const previouslyFocused = document.activeElement;
+      const focusableSelectors = [
+        'a[href]', 'area[href]', 'input:not([disabled])', 'select:not([disabled])',
+        'textarea:not([disabled])', 'button:not([disabled])', '[tabindex]:not([tabindex="-1"])'
+      ];
+      function getFocusable() {
+        return Array.from(modal.querySelectorAll(focusableSelectors.join(','))).filter(el => el.offsetParent !== null);
+      }
+      function trapFocus(e) {
+        if (e.key !== 'Tab') return;
+        const f = getFocusable();
+        if (!f.length) return;
+        const first = f[0];
+        const last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+      function onKeyDown(e) {
+        if (e.key === 'Escape') {
+          close('esc');
+        } else if (e.key === 'Tab') {
+          trapFocus(e);
+        }
+      }
+      function close(reason) {
+        modal.removeEventListener('keydown', onKeyDown);
+        document.removeEventListener('focus', enforceFocus, true);
+        modal.remove();
+        if (previouslyFocused && previouslyFocused.focus) previouslyFocused.focus();
+        resolve(false);
+      }
+      function enforceFocus(e) {
+        if (!modal.contains(e.target)) {
+          const f = getFocusable();
+          if (f.length) f[0].focus();
+          e.stopPropagation();
+        }
+      }
+      modal.addEventListener('keydown', onKeyDown);
+      document.addEventListener('focus', enforceFocus, true);
       
       submitBtn.onclick = async () => {
         const email = emailInput.value.trim();
@@ -176,6 +255,8 @@ class ProgressiveAuth {
         
         try {
           await this.sendMagicLink(email);
+          modal.removeEventListener('keydown', onKeyDown);
+          document.removeEventListener('focus', enforceFocus, true);
           modal.remove();
           this.showMagicLinkSent(email);
           resolve(false); // Will be true after magic link completion
@@ -184,13 +265,17 @@ class ProgressiveAuth {
         }
       };
       
-      cancelBtn.onclick = backdrop.onclick = () => {
-        modal.remove();
-        resolve(false);
-      };
+      cancelBtn.onclick = backdrop.onclick = () => close('cancel');
       
       // Add to DOM
       document.body.appendChild(modal);
+      // Visually hidden class for label
+      if (!document.getElementById('sr-only-style')) {
+        const sr = document.createElement('style');
+        sr.id = 'sr-only-style';
+        sr.textContent = `.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}`;
+        document.head.appendChild(sr);
+      }
       emailInput.focus();
     });
   }
@@ -212,11 +297,14 @@ class ProgressiveAuth {
   async sendMagicLink(email) {
     const supa = window.getSupabase?.() || window.supabaseClient || window.sb;
     if (!supa) throw new Error('Supabase not available');
-    
+    const redirectTo = (window.hiPostAuthPath?.getPostAuthURL ? 
+      window.hiPostAuthPath.getPostAuthURL({ next: 'hi-dashboard.html' }) : 
+      `${window.location.origin}/post-auth.html`);
+
     const { error } = await supa.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/post-auth.html`
+        emailRedirectTo: redirectTo
       }
     });
     

@@ -427,7 +427,7 @@ class AnonymousAccessModal {
     
     // Smooth transition
     await this.hideModal();
-    window.location.href = '/public/hi-dashboard.html';
+    window.location.href = '/hi-dashboard.html';
   }
   
   async exploreAction() {
@@ -442,7 +442,7 @@ class AnonymousAccessModal {
   async backAction() {
     // Go back to main app/dashboard
     await this.hideModal();
-    window.location.href = '/public/hi-dashboard.html';
+    window.location.href = '/hi-dashboard.html';
   }
   
   async hideModal() {

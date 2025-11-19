@@ -13,8 +13,11 @@ class HiWavesRealtime {
   
   async initialize() {
     try {
-      // Get Supabase client
-      this.supabase = window.supabase || await import('/lib/HiSupabase.v3.js').then(m => m.default);
+      // Get Supabase client (avoid importing library object)
+      this.supabase = (window.HiSupabase && window.HiSupabase.getClient && window.HiSupabase.getClient())
+        || window.hiSupabase
+        || window.__HI_SUPABASE_CLIENT
+        || null;
       if (!this.supabase) {
         console.warn('⚠️ No Supabase client for Hi Waves real-time');
         return false;
@@ -61,7 +64,14 @@ class HiWavesRealtime {
   
   // Core refresh function - gets latest Hi Waves count
   async refreshHiWaves() {
-    if (!this.supabase) return;
+    if (!this.supabase) {
+      // Attempt late binding if client became available after init
+      this.supabase = (window.HiSupabase && window.HiSupabase.getClient && window.HiSupabase.getClient())
+        || window.hiSupabase
+        || window.__HI_SUPABASE_CLIENT
+        || null;
+      if (!this.supabase) return;
+    }
     
     try {
       // Query for latest Hi Waves count

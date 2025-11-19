@@ -30,6 +30,28 @@ export function mountHiMedallion(container, opts = {}) {
   container.setAttribute('tabindex', '0');
   container.setAttribute('aria-label', opts.ariaLabel || 'Give Yourself a Hi5');
 
+  // HI DEV: Ensure visual layers exist (rings + texture) for shield/target look
+  const baseEl = container.querySelector('.hi-medallion__base');
+  if (baseEl) {
+    // Insert rings after base if missing
+    if (!container.querySelector('.hi-medallion__rings')) {
+      const rings = document.createElement('div');
+      rings.className = 'hi-medallion__rings';
+      baseEl.insertAdjacentElement('afterend', rings);
+    }
+    // Insert texture after rings if missing
+    if (!container.querySelector('.hi-medallion__texture')) {
+      const texture = document.createElement('div');
+      texture.className = 'hi-medallion__texture';
+      const ringsRef = container.querySelector('.hi-medallion__rings');
+      if (ringsRef) {
+        ringsRef.insertAdjacentElement('afterend', texture);
+      } else {
+        baseEl.insertAdjacentElement('afterend', texture);
+      }
+    }
+  }
+
   // HI DEV: Performance - cache DOM queries
   const halo = container.querySelector('.hi-medallion__halo');
   let isAnimating = false;
@@ -161,10 +183,19 @@ export function mountHiMedallion(container, opts = {}) {
   container.addEventListener('mouseenter', handleMouseEnter, { passive: true });
   container.addEventListener('focus', handleFocus, { passive: true });
 
+  // HI DEV: Pressed visual feedback across input types
+  const pressOn = () => container.classList.add('is-pressed');
+  const pressOff = () => container.classList.remove('is-pressed');
+  container.addEventListener('pointerdown', pressOn, { passive: true });
+  container.addEventListener('pointerup', pressOff, { passive: true });
+  container.addEventListener('pointercancel', pressOff, { passive: true });
+  container.addEventListener('mouseleave', pressOff, { passive: true });
+
   // HI DEV: Touch event optimization for mobile
   let touchStartTime = 0;
   container.addEventListener('touchstart', (event) => {
     touchStartTime = Date.now();
+    pressOn();
   }, { passive: true });
 
   container.addEventListener('touchend', (event) => {
@@ -173,6 +204,7 @@ export function mountHiMedallion(container, opts = {}) {
     if (touchDuration < 500) {
       handleActivation(event);
     }
+    pressOff();
   }, { passive: false });
 
   /**
@@ -238,6 +270,8 @@ export function createHiMedallionHTML(opts = {}) {
     <div class="${classes}" id="${id}" ${opts.dataAttributes || ''}>
       <div class="hi-medallion__halo"></div>
       <div class="hi-medallion__base"></div>
+      <div class="hi-medallion__rings"></div>
+      <div class="hi-medallion__texture"></div>
       <div class="hi-medallion__edge"></div>
       <div class="hi-medallion__icon">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" aria-hidden="true">

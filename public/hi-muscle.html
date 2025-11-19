@@ -21,8 +21,13 @@
   <script src="./lib/HiSupabase.js" type="module"></script>
   <!-- 🚀 Tesla-Grade Anonymous Access Modal System -->
   <script src="assets/anonymous-access-modal.js"></script>
+  <!-- Unified Admin Access Manager -->
+  <script src="./lib/admin/AdminAccessManager.js"></script>
+  <!-- Unified MC Access Core (consolidated gating) -->
+  <script src="./lib/boot/mc-access-core.js" defer></script>
   
   <!-- 🔐 Authentication System (Tesla-Grade Progressive Auth) -->
+  <script src="assets/post-auth-path.js"></script>
   <script src="assets/progressive-auth.js" async></script>
 
   <!-- 🌟 WOZNIAK-GRADE: Gold Standard Modal System (Unified Auth/Share Modals) -->
@@ -1464,7 +1469,7 @@
     </div>
   <div id="backdrop" class="sheet-backdrop" aria-hidden="true"></div>
 
-  <div id="toast" class="toast">Saved</div>
+  <div id="toast" class="toast" role="status" aria-live="polite">Saved</div>
 
   <!-- order matters -->
   <script src="./lib/HiSupabase.js" type="module"></script>
@@ -2772,11 +2777,16 @@
 
   <!-- HiFooter Integration -->
   <script src="./ui/HiFooter/HiFooter.js" defer></script>
+  <!-- Integrity handled by mc-access-core.js -->
   <link rel="stylesheet" href="./ui/HiFooter/HiFooter.css">
   
   <!-- 🧭 Tesla-Grade Navigation System -->
   <!-- Tesla Navigation System removed - Home nav now in header -->
   
+  <!-- Centralized Streak Milestones (load before premium calendar) -->
+  <script src="./lib/streaks/HiStreakMilestones.js"></script>
+  <!-- Centralized streak milestone toast component -->
+  <script src="./lib/streaks/HiMilestoneToast.js"></script>
   <!-- � Premium Calendar System -->
   <script src="assets/premium-calendar.js"></script>
   
@@ -3497,5 +3507,7 @@
     // Initialize quote card generator for Hi Muscle
     window.HiQuoteCardGenerator = new HiQuoteCardGenerator();
   </script>
+  
+  <!-- mc-quick-access replaced by mc-access-core.js -->
 </body>
 </html>

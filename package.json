@@ -3,10 +3,25 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev:public": "cd public && python3 -m http.server 3030"
+    "dev:public": "cd public && python3 -m http.server 3030",
+    "smoke:test": "node scripts/smoke-test.js",
+    "lh:dashboard": "node scripts/lighthouse.mjs",
+    "images:optimize": "node scripts/optimize-images.mjs",
+    "telemetry:verify": "node scripts/telemetry-verify.mjs",
+    "telemetry:admin": "node scripts/telemetry-admin-server.mjs",
+    "deploy:preview": "npx -y vercel",
+    "deploy:prod": "npx -y vercel --prod",
+    "audit:headers": "node scripts/header-audit.mjs"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.45.1",
-    "node-fetch": "^3.3.2"
+    "@supabase/supabase-js": "^2.81.1",
+    "node-fetch": "^3.3.2",
+    "sharp": "^0.33.3"
+  },
+  "devDependencies": {
+    "puppeteer": "^22.15.0",
+    "lighthouse": "^11.7.1",
+    "chrome-launcher": "^1.1.0",
+    "axe-core": "^4.8.0"
   }
 }

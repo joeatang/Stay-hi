@@ -418,7 +418,7 @@ class HiNavigationSystem {
   refreshToHome() {
     console.log('🏠 Refreshing to home...');
     this.onAppClose(); // Clean state
-    window.location.href = '/public/hi-dashboard.html';
+    window.location.href = '/hi-dashboard.html';
   }
   
   forceRefresh() {

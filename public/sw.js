@@ -1,13 +1,20 @@
 // 🚀 TESLA-GRADE SERVICE WORKER
 // Hi Collective PWA - Offline-first architecture
 
-const CACHE_NAME = 'hi-collective-v1.2.2';
-const STATIC_CACHE_NAME = 'hi-static-v1.2.2';
+// Build tag for diagnostics
+const BUILD_TAG = 'v1.0.0-20251119';
+// Bump cache versions to force update on deploy
+const CACHE_NAME = 'hi-collective-v1.2.5';
+const STATIC_CACHE_NAME = 'hi-static-v1.2.5';
+const OFFLINE_FALLBACK = '/public/offline.html';
 
 // Core app shell files that should always be cached
 const APP_SHELL_FILES = [
   '/',
   '/welcome.html',
+  '/hi-dashboard.html',
+  '/hi-mission-control.html',
+  OFFLINE_FALLBACK,
   '/signin.html', 
   '/signup.html',
   '/index.html',
@@ -33,10 +40,57 @@ const APP_SHELL_FILES = [
   // Brand assets
   '/assets/brand/hi-logo-light.png',
   '/assets/brand/hi-logo-dark.png',
+  '/assets/brand/hi-logo-192.png',
+  '/assets/brand/hi-logo-512.png',
+  '/assets/brand/hi-logo-light.webp',
+  '/assets/brand/hi-logo-dark.webp',
+  '/assets/brand/hi-logo-192.webp',
+  '/assets/brand/hi-logo-512.webp',
+  '/assets/brand/hi-logo-light.avif',
+  '/assets/brand/hi-logo-dark.avif',
+  '/assets/brand/hi-logo-192.avif',
+  '/assets/brand/hi-logo-512.avif',
+
+  // Critical styles
+  '/styles/hi-dashboard.css',
+
+  // Critical modules for offline shell readiness
+  '/lib/HiSupabase.v3.js',
+  '/lib/flags/HiFlags.js',
   
-  // External dependencies
-  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js'
+  // External dependencies (UMD Supabase removed: using ESM; avoid caching remote executable code)
 ];
+
+// Adjust paths when scope is /public/ so we request existing files from python server
+function withScopePath(files) {
+  try {
+    const scope = self.registration && self.registration.scope || '';
+    const underPublic = scope.endsWith('/public/');
+    if (!underPublic) return files;
+    const prefix = '/public';
+    return files.map(p => {
+      if (p === '/') return '/public/';
+      if (p.startsWith('/public/')) return p;
+      return prefix + p;
+    });
+  } catch(_) { return files; }
+}
+
+// Cache budget (defensive against uncontrolled growth)
+const MAX_DYNAMIC_ENTRIES = 200;
+
+async function enforceDynamicCacheBudget() {
+  const cache = await caches.open(CACHE_NAME);
+  const requests = await cache.keys();
+  if (requests.length > MAX_DYNAMIC_ENTRIES) {
+    // FIFO pruning: remove oldest surplus entries
+    const surplus = requests.length - MAX_DYNAMIC_ENTRIES;
+    for (let i = 0; i < surplus; i++) {
+      await cache.delete(requests[i]);
+    }
+    console.log('[SW] Pruned dynamic cache, removed', surplus, 'old entries');
+  }
+}
 
 // Dynamic content that should be cached but can be stale
 const DYNAMIC_CACHE_FILES = [
@@ -45,31 +99,32 @@ const DYNAMIC_CACHE_FILES = [
 
 // Install event - cache app shell
 self.addEventListener('install', event => {
-  console.log('[SW] Install event');
-  
-  event.waitUntil(
-    Promise.all([
-      // Cache app shell files
-      caches.open(STATIC_CACHE_NAME).then(cache => {
-        console.log('[SW] Caching app shell files');
-        return cache.addAll(APP_SHELL_FILES);
-      }),
-      
-      // Cache dynamic content
-      caches.open(CACHE_NAME).then(cache => {
-        console.log('[SW] Dynamic cache opened');
-        return cache.addAll(DYNAMIC_CACHE_FILES);
-      })
-    ])
-  );
-  
-  // Force activate immediately
-  self.skipWaiting();
+  console.log('[SW] Install event', BUILD_TAG, CACHE_NAME);
+  event.waitUntil((async () => {
+    try {
+      const staticCache = await caches.open(STATIC_CACHE_NAME);
+      console.log('[SW] Caching app shell files');
+      // Best-effort caching: if any file fails, continue (prevents whole install abort)
+      await Promise.all(
+        withScopePath(APP_SHELL_FILES).map(async f => {
+          try { await staticCache.add(f); } catch (e) { console.warn('[SW] Shell file failed:', f, e.message); }
+        })
+      );
+      const dynCache = await caches.open(CACHE_NAME);
+      await Promise.all(
+        DYNAMIC_CACHE_FILES.map(async f => {
+          try { await dynCache.add(f); } catch (e) { console.warn('[SW] Dynamic file failed:', f, e.message); }
+        })
+      );
+    } catch (err) {
+      console.error('[SW] Install sequence error:', err);
+    }
+  })());
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', event => {
-  console.log('[SW] Activate event');
+  console.log('[SW] Activate event', BUILD_TAG, CACHE_NAME);
   
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -99,11 +154,11 @@ self.addEventListener('fetch', event => {
     return;
   }
   
-  // 🚀 TESLA-GRADE FIX: Skip ALL navigation requests to avoid redirect conflicts
-  // This prevents "Response served by service worker has redirections" on mobile Safari
+  // Handle navigation with network-first, fallback to offline page on failure only
+  // This keeps normal redirects/browser behavior intact when online
   if (request.destination === 'document' || request.mode === 'navigate') {
-    console.log('[SW] Bypassing navigation request to prevent redirect conflicts:', url.pathname);
-    return; // Let browser handle navigation naturally - no event.respondWith()
+    event.respondWith(handleNavigate(request));
+    return;
   }
   
   // Skip cross-origin requests (except Supabase CDN)  
@@ -122,10 +177,10 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Only handle static assets (CSS, images, fonts) - never HTML pages; avoid caching generic JS
-  if (url.pathname.includes('/assets/') || 
-      url.pathname.match(/\.(css|png|jpg|jpeg|svg|woff|woff2)$/)) {
-    event.respondWith(cacheFirst(request));
+  // Static assets (styles, images, fonts) via stale-while-revalidate for freshness
+  if (url.pathname.includes('/assets/') ||
+      url.pathname.match(/\.(css|png|jpg|jpeg|svg|webp|avif|gif|woff|woff2)$/)) {
+    event.respondWith(staleWhileRevalidate(request));
     return;
   }
 });
@@ -151,11 +206,31 @@ async function cacheFirst(request) {
     
     // Return offline fallback for navigation requests
     if (request.destination === 'document') {
-      const offlinePage = await caches.match('/welcome.html');
+      const offlinePage = await caches.match(OFFLINE_FALLBACK);
       return offlinePage || new Response('Offline', { status: 503 });
     }
     
     return new Response('Offline', { status: 503 });
+  }
+}
+
+// Stale-While-Revalidate strategy for static assets
+async function staleWhileRevalidate(request) {
+  try {
+    const cache = await caches.open(STATIC_CACHE_NAME);
+    const cached = await cache.match(request);
+    const fetchPromise = fetch(request).then(response => {
+      if (response && response.ok) {
+        cache.put(request, response.clone());
+      }
+      return response;
+    }).catch(err => {
+      return cached || Promise.reject(err);
+    });
+    return cached || fetchPromise;
+  } catch (error) {
+    console.warn('[SW] SWR asset error:', request.url, error);
+    return caches.match(request) || new Response('Offline', { status: 503 });
   }
 }
 
@@ -167,6 +242,7 @@ async function networkFirst(request) {
     if (networkResponse.ok) {
       const cache = await caches.open(CACHE_NAME);
       cache.put(request, networkResponse.clone());
+      enforceDynamicCacheBudget();
     }
     
     return networkResponse;
@@ -180,11 +256,27 @@ async function networkFirst(request) {
     
     // Return offline fallback for navigation requests
     if (request.destination === 'document') {
-      const offlinePage = await caches.match('/welcome.html');
+      const offlinePage = await caches.match(OFFLINE_FALLBACK);
       return offlinePage || new Response('Offline', { status: 503 });
     }
     
     return new Response('Offline', { status: 503 });
+  }
+}
+
+// Navigation handler: network-first, graceful offline fallback page
+async function handleNavigate(request) {
+  try {
+    const resp = await fetch(request);
+    // Basic HTML integrity guard: ensure content-type is text/html
+    const ct = resp.headers.get('content-type') || '';
+    if (!ct.includes('text/html')) {
+      console.warn('[SW] Unexpected content-type for navigational request:', ct);
+    }
+    return resp;
+  } catch (err) {
+    const offlinePage = await caches.match(OFFLINE_FALLBACK);
+    return offlinePage || new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/html' } });
   }
 }
 

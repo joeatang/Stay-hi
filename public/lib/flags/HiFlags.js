@@ -30,6 +30,7 @@ class HiFlags {
         this.fallbackFlags = null;
         
         console.log('HiFlags active');
+        try { performance.mark && performance.mark('flags:init:start'); } catch(_) {}
         
         // Initialize immediately
         this.initialize();
@@ -48,11 +49,13 @@ class HiFlags {
             
             this.initialized = true;
             this.logCurrentFlags();
+            try { performance.mark && performance.mark('flags:init:end'); performance.measure && performance.measure('flags:init', 'flags:init:start', 'flags:init:end'); } catch(_) {}
             
         } catch (error) {
             console.warn('HiFlags initialization failed, using fallback:', error);
             this.loadFromFallback();
             this.initialized = true;
+            try { performance.mark && performance.mark('flags:init:end'); performance.measure && performance.measure('flags:init', 'flags:init:start', 'flags:init:end'); } catch(_) {}
         }
     }
 
@@ -61,7 +64,8 @@ class HiFlags {
      */
     async loadFallbackFlags() {
         try {
-            const response = await fetch('/lib/flags/flags.json');
+            const url = new URL('./flags.json', import.meta.url);
+            const response = await fetch(url.href);
             this.fallbackFlags = await response.json();
         } catch (error) {
             console.warn('HiFlags: Could not load fallback flags:', error);
@@ -304,6 +308,9 @@ class HiFlags {
 
 // Create instance for module use only
 const hiFlags = new HiFlags();
+// Global aliases (lower + PascalCase for legacy consumers)
+globalThis.hiFlags = hiFlags;
+globalThis.HiFlags = hiFlags;
 
 // Ready state management for verifier
 let readyPromise = null;
@@ -319,6 +326,12 @@ export async function waitUntilReady() {
     }
     return readyPromise;
 }
+// Expose readiness globally for non-module consumers
+globalThis.hiFlagsReady = waitUntilReady();
+// Provide instance .ready() method expected by legacy code (returns same promise)
+hiFlags.ready = waitUntilReady;
+// Provide prototype method so future instances (if any) inherit
+HiFlags.prototype.ready = waitUntilReady;
 
 // Cohort-aware flag checks that defer to rollout decisions
 export async function isEnabledForIdentity(flagKey, identity) {
@@ -344,6 +357,11 @@ export function hiFlagEnabled(key) {
   return !!f;
 }
 
+// Default export for consumers using `import HiFlags from ...` (instance)
+export default hiFlags;
+// Named export of instance for explicit imports
+export { hiFlags };
+
 // Optional helper for multiple keys
 export function hiFlagsAllTrue(keys = []) {
   return keys.every(k => hiFlagEnabled(k));
@@ -352,6 +370,4 @@ export function hiFlagsAllTrue(keys = []) {
 // Mark normalization active for diagnostics
 globalThis.__HI_FLAGS_NORMALIZED__ = true;
 
-// Export for ES6 modules - no global assignments
-export default HiFlags;
-export { hiFlags };
+// Removed duplicate default export of class to avoid multiple default exports

@@ -1,0 +1,22 @@
+{
+  "windowHours": 24,
+  "sampleLimit": 3000,
+  "thresholds": {
+    "lcp": { "p95": 4.0, "p50": 2.5 },
+    "cls": { "p95": 0.10 },
+    "fid": { "p95": 100 },
+    "fcp": { "p95": 2.0, "p50": 1.5 },
+    "tbt": { "p95": 300 },
+    "ttfb": { "p95": 1.2, "p50": 0.8 }
+  },
+  "units": {
+    "lcp": "seconds",
+    "cls": "score",
+    "fid": "milliseconds",
+    "fcp": "seconds",
+    "tbt": "milliseconds",
+    "ttfb": "seconds"
+  },
+  "failIfNoSamples": false,
+  "warnIfNoSamples": true
+}

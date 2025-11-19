@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Offline Harness</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font:14px system-ui; margin:16px; background:#111; color:#eee; }
+    h1 { font-size:20px; margin:0 0 12px; }
+    code, pre { background:#222; padding:4px 6px; border-radius:4px; font-size:12px; }
+    .grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
+    .card { background:#1b1b1b; border:1px solid #333; padding:10px 12px; border-radius:8px; } 
+    .status-ok { color:#10b981; } .status-miss { color:#ff5252; } .status-warn { color:#fbbf24; }
+    button { background:#FFD166; color:#111; border:none; padding:8px 14px; border-radius:6px; cursor:pointer; font-weight:600; }
+    .small { font-size:11px; opacity:.8; }
+    .flex { display:flex; gap:8px; flex-wrap:wrap; }
+  </style>
+</head>
+<body>
+  <h1>Offline Harness</h1>
+  <p>Verifies precached app shell assets & dynamic availability. Toggle network in DevTools to test banner + cache usage.</p>
+  <div class="flex">
+    <button id="scanCaches">Scan Caches</button>
+    <button id="checkCore">Check Core Assets</button>
+    <button id="reportPerf">Perf Report</button>
+  </div>
+  <p class="small">Ensure service worker registered first by loading a main app page, then return here.</p>
+  <div id="results" class="grid"></div>
+  <script>
+    const CORE_ASSETS = [
+      '/sw.js',
+      '/public/sw.js',
+      '/public/hi-dashboard.html',
+      '/public/styles/hi-dashboard.css',
+      '/public/assets/brand/hi-logo-light.png',
+      '/public/assets/brand/hi-logo-light.avif',
+      '/public/lib/flags/HiFlags.js',
+      '/public/lib/HiSupabase.v3.js'
+    ];
+
+    function addCard(title, lines){
+      const c = document.createElement('div');
+      c.className='card';
+      c.innerHTML = `<h3 style="margin:0 0 6px;font-size:15px;">${title}</h3>` +
+        '<ul style="margin:0;padding-left:18px;">' + lines.map(l=>`<li>${l}</li>`).join('') + '</ul>';
+      results.prepend(c);
+    }
+
+    async function listCaches(){
+      if (!('caches' in window)){ addCard('Cache Scan', ['<span class=status-miss>Cache API unavailable</span>']); return; }
+      const names = await caches.keys();
+      const lines = [];
+      for (const n of names){
+        const cache = await caches.open(n);
+        const reqs = await cache.keys();
+        lines.push(`<strong>${n}</strong>: ${reqs.length} items`);
+      }
+      addCard('Cache Names', lines.length?lines:['<span class=status-warn>No caches found</span>']);
+    }
+
+    async function checkCore(){
+      if (!('caches' in window)){ addCard('Core Assets', ['<span class=status-miss>Cache API unavailable</span>']); return; }
+      const lines = [];
+      for (const asset of CORE_ASSETS){
+        let cached = false;
+        for (const name of await caches.keys()){
+          const cache = await caches.open(name);
+            const match = await cache.match(asset);
+            if (match){ cached = true; break; }
+        }
+        lines.push(`${asset}: ${cached ? '<span class=status-ok>cached</span>' : '<span class=status-miss>miss</span>'}`);
+      }
+      addCard('Core Assets', lines);
+    }
+
+    function perfReport(){
+      if (!performance || !performance.getEntriesByType){ addCard('Perf Report', ['<span class=status-warn>Performance API limited</span>']); return; }
+      const marks = performance.getEntriesByType('mark');
+      const measures = performance.getEntriesByType('measure');
+      const lines = [];
+      marks.forEach(m=>lines.push(`mark: ${m.name} @ ${Math.round(m.startTime)}ms`));
+      measures.forEach(m=>lines.push(`measure: ${m.name} = ${Math.round(m.duration)}ms`));
+      if (typeof window.__perfReport === 'function'){
+        lines.push('custom: ' + JSON.stringify(window.__perfReport(), null, 2));
+      }
+      addCard('Performance', lines.length?lines:['<span class=status-warn>No marks recorded</span>']);
+    }
+
+    scanCaches.onclick = listCaches;
+    checkCore.onclick = checkCore;
+    reportPerf.onclick = perfReport;
+  </script>
+</body>
+</html>

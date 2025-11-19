@@ -1,70 +1,138 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "Hi-OS: Preflight",
-            "type": "shell",
-            "command": "bash",
-            "args": [
-                "-c",
-                "echo '🧠 Starting Hi-OS Preflight...' && python3 -m http.server 3030 > /dev/null 2>&1 & SERVER_PID=$! && sleep 2 && node ./scripts/preflight.js; RESULT=$?; kill $SERVER_PID 2>/dev/null || true; if [ $RESULT -eq 0 ]; then echo '🚀 Opening preflight page...'; open http://localhost:3030/public/dev/preflight/index.html 2>/dev/null || echo 'Open manually: http://localhost:3030/public/dev/preflight/index.html'; fi; exit $RESULT"
-            ],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new",
-                "showReuseMessage": true,
-                "clear": false
-            },
-            "problemMatcher": [],
-            "detail": "Run Hi-OS v1.0 Preflight checks and open dev page",
-            "options": {
-                "cwd": "${workspaceFolder}"
-            }
-        },
-        {
-            "label": "Hi-OS: Start Dev Server",
-            "type": "shell",
-            "command": "python3",
-            "args": ["-m", "http.server", "3030"],
-            "group": "build",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new",
-                "showReuseMessage": true,
-                "clear": false
-            },
-            "problemMatcher": [],
-            "detail": "Start local development server on port 3030",
-            "isBackground": true,
-            "options": {
-                "cwd": "${workspaceFolder}"
-            }
-        },
-        {
-            "label": "Hi-OS: Quick Check",
-            "type": "shell",
-            "command": "node",
-            "args": ["./scripts/preflight.js"],
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": true,
-                "clear": false
-            },
-            "problemMatcher": [],
-            "detail": "Run Hi-OS preflight checks (server must be running)",
-            "dependsOrder": "sequence",
-            "options": {
-                "cwd": "${workspaceFolder}"
-            }
-        }
-    ]
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Hi-OS: Preflight",
+			"type": "shell",
+			"command": "bash",
+			"args": [
+				"-c",
+				"echo '🧠 Starting Hi-OS Preflight...' && python3 -m http.server 3030 > /dev/null 2>&1 & SERVER_PID=$! && sleep 2 && node ./scripts/preflight.js; RESULT=$?; kill $SERVER_PID 2>/dev/null || true; if [ $RESULT -eq 0 ]; then echo '🚀 Opening preflight page...'; open http://localhost:3030/public/dev/preflight/index.html 2>/dev/null || echo 'Open manually: http://localhost:3030/public/dev/preflight/index.html'; fi; exit $RESULT"
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "new",
+				"showReuseMessage": true,
+				"clear": false
+			},
+			"problemMatcher": [],
+			"detail": "Run Hi-OS v1.0 Preflight checks and open dev page",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			}
+		},
+		{
+			"label": "Hi-OS: Start Dev Server",
+			"type": "shell",
+			"command": "python3",
+			"args": [
+				"-m",
+				"http.server",
+				"3030"
+			],
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "new",
+				"showReuseMessage": true,
+				"clear": false
+			},
+			"problemMatcher": [],
+			"detail": "Start local development server on port 3030",
+			"isBackground": true,
+			"options": {
+				"cwd": "${workspaceFolder}"
+			}
+		},
+		{
+			"label": "Hi-OS: Quick Check",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"./scripts/preflight.js"
+			],
+			"group": "test",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			},
+			"problemMatcher": [],
+			"detail": "Run Hi-OS preflight checks (server must be running)",
+			"dependsOrder": "sequence",
+			"options": {
+				"cwd": "${workspaceFolder}"
+			}
+		},
+		{
+			"label": "Hi-OS: Start Public Server",
+			"type": "shell",
+			"command": "python3",
+			"args": [
+				"-m",
+				"http.server",
+				"3030",
+				"--directory",
+				"${workspaceFolder}/public"
+			],
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			},
+			"problemMatcher": [],
+			"detail": "Start public-root dev server (serves / from /public)",
+			"isBackground": true,
+			"options": {
+				"cwd": "${workspaceFolder}"
+			}
+		},
+		{
+			"label": "Hi-OS: Start Telemetry Admin Server",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"scripts/telemetry-admin-server.mjs"
+			],
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": false
+			},
+			"problemMatcher": [],
+			"detail": "Run secure local telemetry admin server on port 5055 (requires .env.local)",
+			"isBackground": true,
+			"options": {
+				"cwd": "${workspaceFolder}"
+			}
+		},
+		{
+			"label": "Hi-OS: Start Dev Server",
+			"type": "shell",
+			"command": "python3",
+			"args": [
+				"-m",
+				"http.server",
+				"3030"
+			],
+			"isBackground": true,
+			"group": "build"
+		}
+	]
 }

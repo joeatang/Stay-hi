@@ -2,49 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no,maximum-scale=1,shrink-to-fit=no"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Stay Hi — Your Dashboard</title>
+  
+  <!-- Optional High-Contrast Accessibility Mode (non-destructive) -->
+  <script type="module" src="./lib/boot/contrast-mode.js"></script>
 
-  <!-- HI-OS S-ARCH/1: Webroot Guard (dev-only) -->
-  <script>
-    // Pass criteria: location.pathname must contain "/public/"
-    (function() {
-      const PASS = location.pathname.includes('/public/');
-      const msg  = PASS ? 'GREEN — served from /public (web root OK)'
-                        : 'RED — NOT served from /public (fix dev server root)';
-      // Expose for other verifiers
-      window.__HI_WEBROOT_OK = PASS;
+  <!-- HI-OS: Early Service Worker Debug Unregister (externalized) -->
+  <script src="./lib/boot/sw-debug-unregister.js"></script>
 
-      // Console signal
-      const tag = '[HI-OS][WEBROOT]';
-      if (PASS) {
-        console.log(`${tag} ${msg}`);
-      } else {
-        console.error(`${tag} ${msg}`);
-      }
-
-      // Minimal UI badge injection (dev page only)
-      try {
-        const badge = document.createElement('div');
-        badge.textContent = msg;
-        badge.setAttribute('id', 'hi-webroot-guard');
-        badge.style.position = 'fixed';
-        badge.style.bottom = '12px';
-        badge.style.right = '12px';
-        badge.style.zIndex = '99999';
-        badge.style.padding = '8px 10px';
-        badge.style.fontFamily = 'system-ui,-apple-system,Segoe UI,Roboto,Arial';
-        badge.style.fontSize = '12px';
-        badge.style.borderRadius = '6px';
-        badge.style.border = PASS ? '1px solid #1f7a1f' : '1px solid #a00';
-        badge.style.background = PASS ? '#eaffea' : '#ffecec';
-        badge.style.color = PASS ? '#0c540c' : '#7a0000';
-        document.body.appendChild(badge);
-      } catch (e) {
-        console.warn('[HI-OS][WEBROOT] badge inject failed:', e);
-      }
-    })();
-  </script>
+  <!-- HI-OS S-ARCH/1: Webroot Guard (externalized) -->
+  <script src="./lib/boot/webroot-guard.js"></script>
+  <!-- Silence verbose logs in production unless debug flags are present -->
+  <script src="./lib/boot/prod-quiet-console.js"></script>
 
   <!-- 📱 PWA Configuration -->
   <link rel="manifest" href="manifest.json">
@@ -52,19 +22,55 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Stay Hi">
+  <link rel="apple-touch-icon" href="assets/brand/hi-logo-192.png">
+  
+  <!-- Performance: early connections and LCP image preload -->
+  <link rel="preconnect" href="https://gfcubvroxgfvjhacinic.supabase.co" crossorigin>
+  <link rel="preload" as="image" href="assets/brand/hi-logo-192.png" imagesrcset="assets/brand/hi-logo-192.png 192w, assets/brand/hi-logo-512.png 512w" imagesizes="32px" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/brand/hi-logo-512.png" imagesrcset="assets/brand/hi-logo-192.png 192w, assets/brand/hi-logo-512.png 512w" imagesizes="160px">
+
+  <!-- Critical CSS: minimal above-the-fold shell for fast FCP/LCP -->
+  <style>
+    html { width: 100%; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+    body { margin: 0; min-height: 100vh; width: 100%; max-width: 100vw; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0f1022; }
+    .tesla-header { position: fixed; top: 0; left: 0; right: 0; height: clamp(50px, 60px, 80px); display: flex; align-items: flex-end; justify-content: space-between; padding: 0 12px 8px; background: rgba(15,16,34,0.95); border-bottom: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); z-index: 10000; box-sizing: border-box; }
+    .header-left, .header-right { display: flex; align-items: center; gap: 8px; }
+    .header-center { display: flex; align-items: center; justify-content: center; }
+    .brand-hi-logo { width: 32px; height: 32px; display: block; }
+    .brand-text { color: #FFD166; font-weight: 600; font-size: 18px; letter-spacing: -0.5px; }
+    .main-content { margin-top: calc(80px + env(safe-area-inset-top)); }
+    /* Visible focus indicators for keyboard users */
+    :focus-visible { outline: 2px solid #FFD166; outline-offset: 2px; border-radius: 6px; }
+    .menu-btn:focus-visible, .calendar-btn:focus-visible, .home-nav-btn:focus-visible, .tier-indicator:focus-visible { box-shadow: 0 0 0 3px rgba(255,209,102,0.35); }
+  </style>
 
   <!-- Tesla-Grade Premium Scripts (Optimized Loading) -->
   <script src="assets/url-path-fixer.js" async></script>
   <!-- Resource Hints for Cross-Navigation Performance -->
-  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
+  <!-- Removed UMD Supabase preload (ESM only) -->
+  <!-- <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script"> -->
   <link rel="prefetch" href="hi-island-NEW.html">
   <link rel="prefetch" href="hi-muscle.html">
   <link rel="dns-prefetch" href="//stay-qwguz51c1-joeatangs-projects.vercel.app">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <!-- Removed UMD Supabase script (race w/ ESM). Using ./lib/HiSupabase.v3.js exclusively. -->
   
+  <!-- Monitoring breadcrumbs (lightweight) -->
+  <script type="module" src="./lib/HiMonitor.js"></script>
+  <!-- Unified Monitoring Init (errors + tracking) -->
+  <script src="./lib/boot/monitoring-init.js"></script>
   <!-- Database & Hi Island Integration (Async) -->
   <script type="module" src="./lib/HiSupabase.v3.js"></script>
-  <script src="assets/db.js" defer></script>
+  <!-- Unified loading manager -->
+  <script type="module" src="./lib/HiLoading.js"></script>
+  <!-- AuthReady orchestrator: unified session + membership (externalized) -->
+  <script type="module" src="./lib/boot/authready-listener.js"></script>
+  <!-- Unified Admin Access Orchestrator (events + caching) -->
+  <script src="./lib/admin/AdminAccessManager.js"></script>
+  <!-- Unified MC Access Core (replaces admin-link-autoinit + mc-quick-access + integrity) -->
+  <script src="./lib/boot/mc-access-core.js" defer></script>
+  <!-- Admin smart auto-redirect (one-time per session) retained for fast-path redirect -->
+  <script src="./lib/boot/admin-auto-redirect.js"></script>
+  <script src="./lib/HiDB.js" defer></script>
   
   <!-- 🚀 INTEGRATION #5: HiBase + HiFlags for Streaks system (flagged rollout) -->
   <script type="module" src="./lib/flags/HiFlags.js"></script>
@@ -80,112 +86,14 @@
   <script src="assets/hifeed-test-helper.js" async></script>
   <script src="assets/hifeed-verification.js" async></script>
   
-  <!-- HiBase Integration (Flagged Rollout) -->
-  <script type="module">
-    // Import HiBase shares for flagged rollout
-    window.HiBase_shares = await import('./lib/hibase/shares.js');
-    console.log('🔥 HiBase shares module loaded for dashboard integration');
-  </script>
+  <!-- HiBase Integration (Flagged Rollout externalized) -->
+  <script type="module" src="./lib/boot/hibase-shares-init.js"></script>
+
+  <!-- Build ID Footer Injection (traceability externalized) -->
+  <script src="./lib/boot/build-id-injector.js"></script>
   
-  <!-- HI-OS: Tesla-Grade Systems Integration - DISABLED for database-first system -->
-  <!--
-  <script type="module">
-    // Load membership system first for access control
-    await import('./lib/membership/MembershipSystem.js');
-    
-    import HiMetrics from './lib/HiMetrics.js';
-    
-    // Tesla-grade dashboard metrics with global variable compatibility
-    async function initDashboardMetrics() {
-      try {
-        console.log('[Dashboard] Initializing HiMetrics adapter...');
-        
-        // Subscribe to metric updates for live dashboard
-        const unsubscribe = HiMetrics.subscribe('dashboard-page', (metrics, cacheInfo) => {
-          console.log('[Dashboard] Metrics updated:', metrics);
-          
-          // 🚫 DISABLED: Don't override database-loaded values from DashboardStats.js
-          // The Tesla-grade DashboardStats system handles global variables correctly
-          // window.gWaves = metrics.waves || 0;
-          // window.gTotalHis = metrics.hi5s || 0;
-          // window.gUsers = 0; // Legacy fallback - not separated yet
-          
-          // Update debug badge (show during development only)
-          if ((window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1')) || window.location.search.includes('debug=1')) {
-            const debugEl = document.getElementById('hiMetricsDebugDash');
-            const statusEl = document.getElementById('dashMetricsStatus');
-            const cacheEl = document.getElementById('dashCacheAge');
-            
-            if (debugEl && statusEl && cacheEl) {
-              debugEl.style.display = 'block';
-              statusEl.textContent = cacheInfo?.fromCache ? '✅' : '🔄';
-              cacheEl.textContent = `Cache: ${cacheInfo?.ageSeconds || 0}s`;
-            }
-          }
-          
-          // Trigger UI update if legacy function exists
-          if (window.updateGlobalStats) {
-            window.updateGlobalStats();
-          }
-          
-          // Load user streak data if function exists
-          if (window.loadUserStreak) {
-            window.loadUserStreak();
-          }
-        });
-        
-        // Load initial metrics (will use cache if available)
-        const metrics = await HiMetrics.load();
-        console.log('[Dashboard] ✅ HiMetrics adapter initialized with globals', {
-          gWaves: window.gWaves,
-          gTotalHis: window.gTotalHis,
-          gUsers: window.gUsers
-        });
-        
-        // Store unsubscribe function for cleanup
-        window.dashboardMetricsCleanup = unsubscribe;
-        
-        // Make legacy loader available for compatibility
-        window.hiStatsLoader = () => HiMetrics.load();
-        
-      } catch (error) {
-        console.error('[Dashboard] HiMetrics initialization failed:', error);
-        
-        // Legacy fallback for safety
-        try {
-          if (window.HiBase?.stats?.getMetrics) {
-            const metrics = await window.HiBase.stats.getMetrics();
-            console.log('🚨 FALLBACK CODE EXECUTING - THIS IS THE BUG!', { metrics });
-            console.log('🚨 About to reset window.gWaves from', window.gWaves, 'to', metrics.waves?.data || 0);
-            // 🚫 DISABLED: This fallback was overriding database values
-            // window.gWaves = metrics.waves?.data || 0;
-            // window.gTotalHis = metrics.hi5s?.data || 0;
-            // window.gUsers = 0;
-            
-            if (window.updateGlobalStats) {
-              window.updateGlobalStats();
-            }
-            
-            console.log('[Dashboard] ✅ Fallback stats loaded');
-          }
-        } catch (fallbackError) {
-          console.error('[Dashboard] Fallback also failed:', fallbackError);
-        }
-      }
-    }
-    
-    // Initialize when DOM is ready
-    window.addEventListener('DOMContentLoaded', initDashboardMetrics);
-    
-    // Cleanup on page unload
-    window.addEventListener('beforeunload', () => {
-      if (window.dashboardMetricsCleanup) {
-        window.dashboardMetricsCleanup();
-        console.log('[Dashboard] HiMetrics subscription cleaned up');
-      }
-    });
-  </script>
-  -->
+  <!-- HI-OS: Tesla-Grade Systems Integration - DISABLED for database-first system
+       Externalized (kept disabled): ./lib/boot/dashboard-metrics.mjs -->
   
   <!-- S-DASH Stats Row Wiring (Flag-Gated) - DISABLED for database-first system -->
   <!-- <script type="module" src="./lib/HiDash.wire.js"></script> -->
@@ -203,22 +111,23 @@
   <script type="module" src="./lib/HiDash.boot.js"></script>
   
   <!-- Premium Authentication & UX (Async) -->
+  <script src="assets/post-auth-path.js"></script>
   <script src="assets/progressive-auth.js" async></script>
   <script src="assets/anonymous-access-modal.js" async></script>
-  <script src="./lib/HiMembership.js"></script>
-  <script src="./lib/HiBrandTiers.js"></script>
-  <script src="./lib/RealUserCount.js"></script>
-  <script src="./lib/HiWavesRealtime.js"></script>
-  <script src="assets/performance-manager.js"></script>
+  <script src="./lib/HiMembership.js" defer></script>
+  <script src="./lib/HiBrandTiers.js" defer></script>
+  <script src="./lib/RealUserCount.js" defer></script>
+  <script src="./lib/HiWavesRealtime.js" defer></script>
+  <script type="module" src="./lib/HiPerformance.js"></script>
   
   <!-- Tesla-Grade Milestone Celebration System -->
-  <script src="assets/milestone-celebration-system.js"></script>
+  <script src="assets/milestone-celebration-system.js" defer></script>
   
   <!-- Tesla-Grade Contextual Spotlight System -->
-  <script src="assets/contextual-spotlight-system.js"></script>
+  <script src="assets/contextual-spotlight-system.js" defer></script>
   
   <!-- Tesla-Grade Smart Conversion System -->
-  <script src="assets/smart-conversion-system.js"></script>
+  <script src="assets/smart-conversion-system.js" defer></script>
   
   <!-- Tesla-Grade Navigation System - Clean Implementation -->
   <link rel="preload" href="./ui/HiFooter/HiFooter.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -237,8 +146,9 @@
     <link rel="stylesheet" href="ui/HiMedallion/HiMedallion.css">
   </noscript>
 
-  <!-- S-DASH/7: Hero polish + stats row styling -->
-  <link rel="stylesheet" href="styles/hi-dashboard.css">
+  <!-- S-DASH/7: Hero polish + stats row styling (preloaded) -->
+  <link rel="preload" href="styles/hi-dashboard.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="styles/hi-dashboard.css"></noscript>
 
   <!-- HI DEV: Fast Brand Controls - Page-Specific Medallion Overrides -->
   <style>
@@ -247,6 +157,7 @@
       --hi-medallion-bg1: #FF9A3C;   /* warmer top */
       --hi-medallion-bg2: #D84B8A;   /* richer bottom */
       --hi-medallion-halo: rgba(255,255,255,0.22);
+      --hi-medallion-edge: rgba(255,255,255,0.28); /* neutral/warm edge for shield */
     }
     
     /* 🏗️ WOZNIAK-GRADE: Rock-solid viewport stability */
@@ -545,7 +456,7 @@
 
     .stat-label {
       font-size: clamp(8px, 2.2vw, 10px);
-      color: rgba(255, 255, 255, 0.7);
+      color: rgba(255, 255, 255, 0.85);
       text-transform: uppercase;
       letter-spacing: 0.3px;
       margin-top: 1px;
@@ -599,6 +510,7 @@
       transform: scale(0.95);
       transition: all 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
       pointer-events: none;
+      z-index: 5; /* Ensure ring overlays on top of children */
     }
 
     .hi-medallion.long-press-active::after {
@@ -814,7 +726,6 @@
       .stat-label {
         font-size: clamp(7px, 2vw, 9px);
       }
-    }
 
     /* Extreme small devices (watches, mini phones) */
     @media (max-width: 320px) {
@@ -990,7 +901,7 @@
     .nav-section-title {
       font-size: 12px;
       font-weight: 700;
-      color: rgba(255, 255, 255, 0.6);
+      color: rgba(255, 255, 255, 0.8);
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 12px;
@@ -1061,7 +972,7 @@
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      color: rgba(255, 255, 255, 0.7);
+      color: rgba(255, 255, 255, 0.85);
     }
     
     .weekdot .c {
@@ -1074,7 +985,7 @@
       font-weight: 600;
       border: 2px solid rgba(255, 255, 255, 0.2);
       background: rgba(255, 255, 255, 0.05);
-      color: rgba(255, 255, 255, 0.6);
+      color: rgba(255, 255, 255, 0.9);
       transition: all 0.3s ease;
     }
     
@@ -1284,6 +1195,35 @@
 </head>
 
 <body data-page="hi-dashboard">
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <style>
+    .skip-link{position:absolute;left:-999px;top:auto;width:1px;height:1px;overflow:hidden}
+    .skip-link:focus{left:16px;top:12px;width:auto;height:auto;background:#111827;color:#fff;padding:8px 12px;border-radius:8px;z-index:100001}
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  </style>
+  <!-- A11y live region for micro-feedback announcements -->
+  <div id="hiLive" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+  <!-- 🚀 Unified Loading Skeleton -->
+  <div id="hiLoading" class="hi-loading-skeleton" role="status" aria-live="polite" data-loading-state="pending">
+    <div class="loading-line"></div>
+    <div class="loading-block"></div>
+    <div class="loading-text" data-loading-msg>Loading your Hi space…</div>
+  </div>
+  <style id="hiLoadingStyles">
+    .hi-loading-skeleton {position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,0.08),rgba(0,0,0,0.6)),linear-gradient(135deg,#2d1e4f,#ff7a18 70%);z-index:100000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;animation:fadeInLoad .4s ease}
+    @keyframes fadeInLoad{from{opacity:0}to{opacity:1}}
+    .hi-loading-skeleton .loading-line{width:160px;height:6px;border-radius:4px;background:linear-gradient(90deg,#ffd166,#ff9a3c,#ff7a18);background-size:300% 100%;animation:linePulse 2s ease-in-out infinite}
+    @keyframes linePulse{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+    .hi-loading-skeleton .loading-block{width:220px;height:120px;border-radius:20px;background:rgba(255,255,255,0.08);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.15);position:relative;overflow:hidden}
+    .hi-loading-skeleton .loading-block:before{content:'';position:absolute;inset:0;background:linear-gradient(110deg,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.25) 40%,rgba(255,255,255,0.05) 70%);animation:shimmerBlock 2.4s linear infinite;background-size:200% 100%}
+    @keyframes shimmerBlock{0%{background-position:-100% 0}100%{background-position:100% 0}}
+    .hi-loading-skeleton .loading-text{font-size:15px;font-weight:600;letter-spacing:.5px;text-shadow:0 2px 4px rgba(0,0,0,.4)}
+    .hi-loading-skeleton[data-loading-state='slow'] .loading-text{color:#ffe8b0}
+    .hi-loading-skeleton.loading-error{background:linear-gradient(140deg,#4b1e1e,#7a0000)}
+    .hi-loading-skeleton .loading-error-msg{background:#fff;color:#7a0000;padding:16px 20px;border-radius:14px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+    .hi-loading-skeleton .loading-error-msg button{background:#ff9a3c;border:none;color:#111;font-weight:600;padding:8px 14px;border-radius:8px;cursor:pointer;margin-left:12px}
+    html.hi-loaded .hi-loading-skeleton{display:none!important}
+  </style>
   <!-- Tesla-Grade Header - Centered Brand Prominence -->
   <header class="tesla-header">
     <!-- Smart Calendar & Home Access -->
@@ -1308,7 +1248,22 @@
     <!-- Centered Brand with Maximum Prominence -->
     <div class="header-center">
       <div class="brand-container">
-        <img src="assets/brand/hi-logo-light.png" alt="Hi" class="brand-hi-logo" />
+        <picture class="brand-hi-logo-wrapper" aria-hidden="true">
+          <source type="image/avif" srcset="assets/brand/hi-logo-192.avif 192w, assets/brand/hi-logo-512.avif 512w" sizes="32px" />
+          <source type="image/webp" srcset="assets/brand/hi-logo-192.webp 192w, assets/brand/hi-logo-512.webp 512w" sizes="32px" />
+          <img
+            src="assets/brand/hi-logo-192.png"
+            srcset="assets/brand/hi-logo-192.png 192w, assets/brand/hi-logo-512.png 512w"
+            sizes="32px"
+            alt=""
+            aria-hidden="true"
+            class="brand-hi-logo"
+            width="32"
+            height="32"
+            decoding="async"
+            fetchpriority="high"
+          />
+        </picture>
         <span class="brand-text">Stay Hi</span>
       </div>
     </div>
@@ -1335,74 +1290,21 @@
     </div>
   </header>
 
+  <!-- Skip target handled by <main id="main"> below -->
+
   <!-- Tesla-Grade Floating HiFirmation Button -->
   <button class="floating-hiffirmations" id="floatingHiffirmations" aria-label="Daily HiFirmations" title="Get inspired with daily HiFirmations">
     ✨
   </button>
 
-  <!-- S-DASH Flag-Gated DOM Anchors (Hidden Placeholders) -->
-  <script>
-    (async function initSDashAnchors() {
-      try {
-        // Wait for HiFlags to be available
-        if (window.HiFlags) {
-          const flags = await Promise.all([
-            window.HiFlags.getFlag('hi_dash_v3', false),
-            window.HiFlags.getFlag('hi_dash_stats_row_v1', false),
-            window.HiFlags.getFlag('hi_dash_medallion_cta_v1', false),
-            window.HiFlags.getFlag('hi_dash_share_cta_v1', false),
-            window.HiFlags.getFlag('hi_dash_global_pill_v1', false)
-          ]);
-          
-          const [dashV3, statsRow, medallionCta, shareCta, globalPill] = flags;
-          
-          // Only add anchors if hi_dash_v3 is enabled
-          if (dashV3) {
-            const container = document.createElement('div');
-            container.id = 'sDashAnchors';
-            container.style.display = 'none'; // Hidden placeholders
-            
-            let html = '';
-            
-            // Add statsRow and its children if flag enabled (S-DASH/7: personal first + global pill)
-            if (statsRow) {
-              html += '<div id="statsRow">';
-              html += '<div id="statTotal"></div>';
-              html += '<div id="stat7d"></div>';
-              html += '<div id="statStreak"></div>';
-              // S-DASH/7: global pill anchor (text populated by S-DASH/3)
-              if (globalPill) {
-                html += '<div id="globalPill" class="hi-global-pill" aria-live="polite"></div>';
-              }
-              html += '</div>';
-            }
-            
-            // Add medallion anchor if flag enabled (S-DASH/7: now a proper button in main DOM)
-            if (medallionCta) {
-              html += '<div id="hiMedallion"></div>';
-            }
-            
-            // Add share button anchor if flag enabled
-            if (shareCta) {
-              html += '<button id="giveHiBtn"></button>';
-            }
-            
-            // S-DASH/7: global pill moved into stats row above
-            
-            container.innerHTML = html;
-            document.body.appendChild(container);
-            
-            console.log('[S-DASH] Flag-gated anchors added:', { dashV3, statsRow, medallionCta, shareCta, globalPill });
-          }
-        }
-      } catch (error) {
-        console.warn('[S-DASH] Flag anchor setup failed:', error);
-      }
-    })();
-  </script>
+  <!-- Header wiring for calendar + home (called by dashboard-init.js) -->
+  <script src="./lib/boot/dashboard-header-wire.js" defer></script>
+
+  <!-- S-DASH Flag-Gated DOM Anchors (Externalized) -->
+  <script src="./lib/boot/dashboard-init.js" defer></script>
 
   <!-- Main Content -->
-  <main class="main-content">
+  <main id="main" class="main-content" role="main" tabindex="-1">
     
     <!-- S-DASH DOM Anchors (Required for Production Parity) -->
     <div id="statsRow" style="display: none;">
@@ -1422,7 +1324,7 @@
         <span class="stat-icon">👋</span>
         <div class="stat-content">
           <span class="stat-number" id="globalHiWaves">...</span>
-          <span class="stat-label">Hi Waves</span>
+          <span class="stat-label" title="Global Waves: Ambient encouragement sent to everyone. Wave Backs are direct responses on individual shares.">Hi Waves</span>
         </div>
       </div>
       <div class="global-stat">
@@ -1469,14 +1371,21 @@
         <div class="hi-medallion__base"></div>
         <div class="hi-medallion__edge"></div>
         <div class="hi-medallion__halo"></div>
-        <!-- Your actual Hi logo -->
-        <img src="./assets/brand/hi-logo-light.png" alt="Hi logo" class="hi-medallion__icon">
+        <!-- Decorative logo (button has aria-label) -->
+        <img
+          src="assets/brand/hi-logo-512.png"
+          srcset="assets/brand/hi-logo-192.png 192w, assets/brand/hi-logo-512.png 512w"
+          sizes="(max-width: 480px) 128px, 160px"
+          alt=""
+          aria-hidden="true"
+          class="hi-medallion__icon"
+          decoding="async" fetchpriority="high"
+        >
       </div>
       <!-- /S-DASH/7 -->
     </div>
     
-    <!-- S-DASH/8: ARIA live region for micro-feedback -->
-    <div id="hiLive" class="sr-only" aria-live="polite"></div>
+    <!-- Removed duplicate #hiLive (exists near top of body) -->
 
     <!-- 🔥 NEW: Hi Experience Layer Components (Feature Flagged) -->
     <div id="hiExperienceLayer" style="display: none;">
@@ -1484,6 +1393,17 @@
       <div id="hiFeedContainer" class="hi-experience-section"></div>
       
       <!-- HiStreaks Component Container -->
+      <div style="margin-top: 8px; text-align: center;">
+        <button id="tryHiDashLink" type="button" aria-label="Try a Hi without saving"
+          style="background: none; border: none; color: rgba(0,0,0,0.6); font-size: 12px; cursor: pointer; text-decoration: underline; padding: 4px 6px;">
+          Try it — nothing is saved
+        </button>
+        <button id="openMissionControlInline" type="button" aria-label="Open Mission Control (Admin only)"
+          onclick="window.HiMissionControlQuick?.open(); return false;"
+          style="background: none; border: none; color: rgba(0,0,0,0.6); font-size: 12px; cursor: pointer; text-decoration: underline; padding: 4px 6px; margin-left: 8px;">
+          Mission Control (Admin only)
+        </button>
+      </div>
       <div id="hiStreaksContainer" class="hi-experience-section"></div>
     </div>
 
@@ -1492,21 +1412,21 @@
   </main>
 
   <!-- Floating Hi 5 Button - DISABLED: Using medallion long-press system
-  <button class="floating-hi5-universal" id="selfHi5Enhanced">
+  <button class="floating-hi5-universal" id="selfHi5Enhanced" aria-label="Give yourself a Hi-5" title="Give yourself a Hi-5">
     👋 Hi 5
   </button>
   END DISABLED FLOATING BUTTON -->
-  <button class="floating-hi5-universal" id="selfHi5Enhanced">
+  <button class="floating-hi5-universal" id="selfHi5Enhanced" aria-label="Give yourself a Hi-5" title="Give yourself a Hi-5">
     ✨ Celebrate This Moment
   </button>
 
   <!-- Navigation Menu Modal -->
   <div id="navigationModal" class="navigation-modal" style="display: none;">
     <div class="navigation-backdrop" id="navigationBackdrop"></div>
-    <div class="navigation-content">
+    <div class="navigation-content" role="dialog" aria-modal="true" aria-labelledby="navigationTitle">
       <div class="navigation-header">
-        <h3>Stay Hi Navigation</h3>
-        <button id="closeNavigation" class="close-nav-btn">✕</button>
+        <h3 id="navigationTitle">Stay Hi Navigation</h3>
+        <button id="closeNavigation" class="close-nav-btn" aria-label="Close menu" title="Close menu">✕</button>
       </div>
       <div class="navigation-menu">
         <div class="nav-section">
@@ -1528,7 +1448,7 @@
             <span>Profile</span>
           </a>
         </div>
-        <div class="nav-section" id="adminSection" style="display: none;">
+        <div class="nav-section" id="adminSection">
           <div class="nav-section-title">Admin</div>
           <a href="hi-mission-control.html" class="nav-item admin-item">
             <span class="nav-icon">🎛️</span>
@@ -1538,2848 +1458,39 @@
       </div>
     </div>
   </div>
+  <div style="margin-top: 6px; text-align: center;">
+    <button id="openMissionControlInlineTop" type="button" aria-label="Open Mission Control (Admin only)"
+      onclick="window.HiMissionControlQuick?.open(); return false;"
+      style="background: none; border: none; color: rgba(0,0,0,0.6); font-size: 12px; cursor: pointer; text-decoration: underline; padding: 2px 6px;">
+      Mission Control (Admin only)
+    </button>
+  </div>
 
-  <script>
-    // Tesla-Grade Simplified JavaScript
-    // HI-OS: Stats variables now managed by initHiStatsOnce() system
-    // Global variables declared in the init guard module above
-    let clickAnimationFrame = null;
-
-    // DOM Elements
-    // const selfHi5Enhanced = document.getElementById('selfHi5Enhanced'); // DEPRECATED: Using medallion system
-    const hiffirmationsTrigger = document.getElementById('hiffirmationsTrigger');
-
-    // Header stats elements
-    const headerHiWaves = document.getElementById('headerHiWaves');
-    const headerTotalHis = document.getElementById('headerTotalHis');
-    const headerUsers = document.getElementById('headerUsers');
-
-    // Tesla-Grade Database Integration
-    async function initializeDatabase() {
-      try {
-        if (typeof supabase !== 'undefined') {
-          console.log('🎯 SURGICAL: Initializing Supabase client for hostname:', window.location.hostname);
-          const { createClient } = supabase;
-          const supabaseClient = createClient(
-            'https://gfcubvroxgfvjhacinic.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g'
-          );
-          
-          // Set both variable names for compatibility
-          window.db = supabaseClient;
-          window.supabase = supabaseClient;
-          
-          // HI-OS: Database connection established, stats handled by init guard
-          console.log('✅ Database connection ready for stats system');
-        }
-      } catch (error) {
-        console.error('❌ Database connection failed:', error);
-      }
-      
-      // HI-OS: Stats loading now handled by initHiStatsOnce() guard system
-      // No direct function calls here to prevent duplicates
-      console.log('📊 Dashboard init complete - stats handled by initHiStatsOnce()');
-    }
-
-    // HI-OS: Legacy loadMetricsFromHiBase function - REMOVED
-    // This has been replaced by the unified stats init guard system
-    // All stats loading now happens via initHiStatsOnce() to prevent duplicates
-
-    // 🚀 INTEGRATION #5: Load user streak via HiBase (flagged rollout)
-    async function loadUserStreak() {
-      try {
-        const useHiBaseStreaks = await window.HiFlags?.getFlag('hibase_streaks_enabled');
-        console.log(`🔄 Streak loading via ${useHiBaseStreaks ? 'HiBase' : 'legacy'} path`);
-
-        if (useHiBaseStreaks) {
-          // 🎯 HiBase path: unified streak API
-          console.log('📦 Streak → HiBase.getUserStreak...');
-          const currentUser = window.hiAuth?.getCurrentUser?.() || { id: 'anonymous' };
-          
-          if (currentUser.id && currentUser.id !== 'anonymous') {
-            const streakResult = await window.HiBase.getUserStreak(currentUser.id);
-
-            if (streakResult.error) {
-              console.warn('⚠️ HiBase streak loading failed:', streakResult.error);
-              updateStreakDisplay(0);
-            } else {
-              const currentStreak = streakResult.data.streak?.current || 0;
-              console.log('✅ Streak loaded via HiBase:', currentStreak);
-              updateStreakDisplay(currentStreak);
-            }
-          } else {
-            // 🎯 TESLA GRADE: Hide streak UI for anonymous users (gold standard UX)
-            console.log('🔒 Anonymous user - hiding streak UI');
-            hideStreakUI();
-          }
-
-          // 📊 Track HiBase streak usage
-          import('./lib/monitoring/HiMonitor.js').then(m => 
-            m.trackEvent('streak_load', { 
-              source: 'dashboard', 
-              path: 'hibase'
-            })
-          ).catch(() => {});
-
-        } else {
-          // 🔄 Legacy path: load from localStorage or other system
-          console.log('📦 Streak → Legacy loading...');
-          
-          const currentUser = window.hiAuth?.getCurrentUser?.() || { id: 'anonymous' };
-          
-          if (currentUser.id && currentUser.id !== 'anonymous') {
-            // Authenticated user - show streak
-            const localStreak = localStorage.getItem('user_current_streak') || '0';
-            updateStreakDisplay(parseInt(localStreak, 10));
-          } else {
-            // 🎯 TESLA GRADE: Hide streak UI for anonymous users (gold standard UX)
-            console.log('🔒 Anonymous user - hiding streak UI (legacy path)');
-            hideStreakUI();
-          }
-          
-          // 📊 Track legacy streak usage
-          import('./lib/monitoring/HiMonitor.js').then(m => 
-            m.trackEvent('streak_load', { 
-              source: 'dashboard', 
-              path: 'legacy'
-            })
-          ).catch(() => {});
-        }
-
-      } catch (error) {
-        console.warn('⚠️ Streak loading failed:', error);
-        updateStreakDisplay(0);
-      }
-    }
-
-    // Update streak display in UI
-    function updateStreakDisplay(streak) {
-      const streakElement = document.getElementById('userStreak');
-      if (streakElement) {
-        streakElement.textContent = streak;
-        
-        // Add visual effects for high streaks
-        if (streak >= 7) {
-          streakElement.style.background = 'linear-gradient(45deg, #ff6b6b, #ffd93d)';
-          streakElement.style.webkitBackgroundClip = 'text';
-          streakElement.style.webkitTextFillColor = 'transparent';
-        } else if (streak >= 3) {
-          streakElement.style.color = '#ffd93d';
-        } else {
-          streakElement.style.color = '';
-          streakElement.style.background = '';
-          streakElement.style.webkitBackgroundClip = '';
-          streakElement.style.webkitTextFillColor = '';
-        }
-      }
-    }
-
-    // 🎯 TESLA GRADE: Hide streak UI for anonymous users (gold standard UX)
-    function hideStreakUI() {
-      // Hide individual streak stat
-      const streakStat = document.querySelector('.user-stat:has(#userStreak)');
-      if (streakStat) {
-        streakStat.style.display = 'none';
-        console.log('✅ Streak stat hidden for anonymous user');
-      }
-      
-      // Hide HiStreaks component container
-      const streaksContainer = document.getElementById('hiStreaksContainer');
-      if (streaksContainer) {
-        streaksContainer.style.display = 'none';
-        console.log('✅ HiStreaks container hidden for anonymous user');
-      }
-      
-      // Hide any other streak-related elements
-      const streakElements = document.querySelectorAll('[id*="streak"], [class*="streak"]');
-      streakElements.forEach(el => {
-        // Only hide if it's specifically about user streaks, not global streaks
-        if (el.id !== 'globalStreak' && !el.classList.contains('global-streak')) {
-          el.style.display = 'none';
-        }
-      });
-    }
-
-    // Show error state for consistency
-    function showStatsError() {
-      const elements = ['globalHiWaves', 'globalTotalHis', 'globalUsers'];
-      elements.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-          element.textContent = 'Error';
-          element.style.color = '#ff6b6b';
-        }
-      });
-    }
-
-    // 🎯 SURGICAL: Anti-lag stats display with instant placeholders + debounce protection
-    let statsUpdateTimeout = null;
-    let lastStatsUpdate = 0;
-    const STATS_UPDATE_COOLDOWN = 500; // ms - prevent rapid updates
-    
-    function updateGlobalStats(force = false) {
-      // Debounce: Only update if 500ms has passed since last update (unless forced)
-      const now = Date.now();
-      if (!force && (now - lastStatsUpdate) < STATS_UPDATE_COOLDOWN) {
-        // Schedule update for later if one isn't already scheduled
-        if (!statsUpdateTimeout) {
-          statsUpdateTimeout = setTimeout(() => {
-            statsUpdateTimeout = null;
-            updateGlobalStats(true);
-          }, STATS_UPDATE_COOLDOWN);
-        }
-        return;
-      }
-      
-      lastStatsUpdate = now;
-      if (statsUpdateTimeout) {
-        clearTimeout(statsUpdateTimeout);
-        statsUpdateTimeout = null;
-      }
-      
-      const globalHiWaves = document.getElementById('globalHiWaves');
-      const globalTotalHis = document.getElementById('globalTotalHis');
-      const globalUsers = document.getElementById('globalUsers');
-      
-      // 🚀 TESLA GRADE: Smooth loading states without jarring jumps
-      if (globalHiWaves) {
-        if (window.gWaves !== null && window.gWaves !== undefined) {
-          const formattedWaves = window.gWaves.toLocaleString();
-          if (globalHiWaves.textContent !== formattedWaves) {
-            globalHiWaves.textContent = formattedWaves;
-          }
-        } else {
-          // Show elegant loading state for null/undefined values
-          const currentText = globalHiWaves.textContent || globalHiWaves.innerText || '';
-          if (!currentText.includes('...') && !currentText.includes('shimmer')) {
-            globalHiWaves.innerHTML = '<span class="loading-shimmer">...</span>';
-          }
-        }
-      }
-      
-      if (globalTotalHis) {
-        if (window.gTotalHis !== null && window.gTotalHis !== undefined) {
-          globalTotalHis.textContent = window.gTotalHis.toLocaleString();
-        } else if (globalTotalHis.textContent === '...' || globalTotalHis.textContent === '') {
-          globalTotalHis.textContent = '...';
-        }
-      }
-      
-      if (globalUsers) {
-        if (window.gUsers !== null && window.gUsers !== undefined) {
-          globalUsers.textContent = window.gUsers.toLocaleString();
-        } else if (globalUsers.textContent === '...' || globalUsers.textContent === '') {
-          globalUsers.textContent = '...';
-        }
-      }
-    }
-
-    // 🛡️ PROTECT: Dashboard's updateGlobalStats from being overridden by other systems
-    const dashboardUpdateGlobalStats = updateGlobalStats;
-    window.updateGlobalStats = dashboardUpdateGlobalStats;
-    
-    // Lock the function to prevent overwrites
-    Object.defineProperty(window, 'updateGlobalStats', {
-      value: dashboardUpdateGlobalStats,
-      writable: false,
-      configurable: false
-    });
-    
-    console.log('🛡️ Dashboard updateGlobalStats protected from override');
-
-    // METRICS SEPARATION: Hi Wave Increment (medallion taps → hi_events table only)
-    async function incrementHiWave() {
-      try {
-        // Check if metrics separation is enabled via feature flag
-        const useMetricsSeparation = await window.HiFlags?.getFlag('metrics_separation_enabled', true);
-        
-        if (!useMetricsSeparation) {
-          console.log('🎯 Metrics separation disabled, using legacy medallion tracking...');
-          // Fallback to legacy system (preserved for rollback)
-          if (window.HiUnifiedStats?.trackMedallionTap) {
-            return await window.HiUnifiedStats.trackMedallionTap();
-          }
-          return;
-        }
-        
-        console.log('🎯 METRICS SEPARATION: Medallion tapped on hi-dashboard');
-        
-        // Use basic medallion tap tracking (Database deployment required)
-        if (window.HiBase?.stats?.insertMedallionTap) {
-          console.log('🎯 Using Hi Medallion tap tracking...');
-          
-          // Get current user (null for anonymous)
-          const user = window.HiBase?.auth?.getCurrentUser();
-          const userId = user?.data?.id || null;
-          
-          const result = await window.HiBase.stats.insertMedallionTap(userId);
-          
-          if (result.error) {
-            console.error('❌ Medallion tap failed:', result.error);
-            return;
-          }
-          
-          console.log('✅ HI MEDALLION TAP SUCCESS:', {
-            newWaveCount: result.data,
-            isAuthenticated: !!userId
-          });
-          
-          // 🌊 TESLA GRADE: Force immediate Hi Waves refresh for real-time accuracy
-          if (window.hiWavesRealtime) {
-            await window.hiWavesRealtime.forceRefresh();
-          }
-          
-          // Refresh dashboard metrics to show updated global waves
-          setTimeout(() => initHiStatsOnce('medallion-tap-refresh'), 100);
-          
-        } else {
-          console.error('❌ METRICS SEPARATION ERROR: HiBase.stats not available');
-        }
-      } catch (error) {
-        console.error('💥 METRICS SEPARATION FAILURE: Medallion tap failed:', error);
-      }
-    }
-
-
-
-    // HI DEV: Hi5 Counter (separate from HiWave medallion taps)
-    async function incrementHi5Counter() {
-      try {
-        // Update Hi5 counter in localStorage and database
-        const currentCount = parseInt(localStorage.getItem('hi5_count') || '0');
-        const newCount = currentCount + 1;
-        localStorage.setItem('hi5_count', newCount.toString());
-        
-        // Update database if available
-        if (window.hiDB?.updateUserStats) {
-          await window.hiDB.updateUserStats('hi5_count', newCount);
-        }
-        
-        console.log('[HI DEV] Hi5 counter incremented to:', newCount);
-        
-        // Update UI display if element exists
-        const hi5CountElement = document.querySelector('.hi5-count');
-        if (hi5CountElement) {
-          hi5CountElement.textContent = newCount;
-        }
-        
-      } catch (error) {
-        console.error('[HI DEV] Failed to increment Hi5 counter:', error);
-      }
-    }
-
-    // 🏗️ HI OS GOLD STANDARD: Self Hi5 Handler DEPRECATED 
-    // Replaced by medallion long-press system for unified UX
-    function setupSelfHi5Handler_DEPRECATED() {
-      // DEPRECATED: This function is no longer used
-      // All Hi 5 functionality moved to medallion long-press
-      return;
-      
-      // HI DEV: Dedupe handlers - only bind once
-      if (selfHi5Enhanced.__hi5HandlerBound) {
-        console.log('[HI DEV] Hi5 handler already bound, skipping duplicate');
-        return;
-      }
-      selfHi5Enhanced.__hi5HandlerBound = true;
-
-      selfHi5Enhanced.addEventListener('click', async (e) => {
-        e.preventDefault();
-        
-        try { 
-          navigator?.vibrate?.(50); 
-        } catch {}
-
-        // Visual feedback
-        selfHi5Enhanced.style.transform = 'scale(0.95)';
-        setTimeout(() => {
-          selfHi5Enhanced.style.transform = '';
-        }, 150);
-
-        // 🔒 ANONYMOUS ACCESS CONTROL: Check if user can share
-        const canShare = window.hiAccessManager?.canAccess?.('shareCreation') || 
-                        window.HiTierSystem?.hasCapability?.('drop_hi') ||
-                        window.unifiedMembership?.hasAccess?.('shareCreation');
-                        
-        if (!canShare) {
-          console.log('🔒 Anonymous users cannot create shares - showing gold standard auth modal');
-          
-          // 🌟 WOZNIAK-GRADE: Use Hi Island-style beautiful auth modal
-          if (window.showShareAuthModal) {
-            window.showShareAuthModal('hi-dashboard', {
-              title: 'Join Hi Dashboard Community',
-              benefits: [
-                '📊 Track your personal Hi streaks and stats',
-                '🎯 Share Hi5 moments with the community', 
-                '🏆 Unlock dashboard achievements and rewards',
-                '💫 Access advanced Hi tracking features'
-              ],
-              onPrimary: () => {
-                // Store context for after auth
-                localStorage.setItem('pendingDashboardAction', JSON.stringify({
-                  action: 'hi5-share',
-                  context: 'dashboard',
-                  timestamp: Date.now()
-                }));
-                window.location.href = '/signin.html?redirect=' + encodeURIComponent(window.location.pathname) + '&action=hi5';
-              },
-              onSecondary: () => {
-                localStorage.setItem('pendingDashboardAction', JSON.stringify({
-                  action: 'hi5-share', 
-                  context: 'dashboard',
-                  timestamp: Date.now()
-                }));
-                window.location.href = '/signup.html?redirect=' + encodeURIComponent(window.location.pathname) + '&action=hi5';
-              }
-            });
-          } else if (window.showAuthModal) {
-            // Fallback to general auth modal
-            window.showAuthModal('hi-dashboard');
-          } else if (window.showHiUpgradeModal) {
-            // Legacy fallback
-            window.showHiUpgradeModal('share_creation', {
-              message: 'Sign in to share your Hi5 moments with the community! ✨',
-              feature: 'Hi5 Sharing'
-            });
-          } else {
-            // Last resort fallback
-            console.warn('⚠️ No auth modals available, redirecting to auth');
-            window.location.href = '/signin.html?action=hi5';
-          }
-          return;
-        }
-
-        // 🎯 TESLA GRADE: Use unified HiShareSheet instance (preventing duplicate shares)
-        try {
-          // Get the globally initialized HiShareSheet instance
-          const shareSheetInstance = window.__hiComponentsInitialized?.shareSheetInstance;
-          
-          if (!shareSheetInstance) {
-            console.warn('⚠️ HiShareSheet not yet initialized, waiting for unified initialization...');
-            // Wait briefly for unified initialization
-            setTimeout(() => {
-              const retryInstance = window.__hiComponentsInitialized?.shareSheetInstance;
-              if (retryInstance) {
-                retryInstance.open({
-                  context: 'dashboard',
-                  preset: 'hi5',
-                  prefilledText: '✨ Celebrating this moment of growth! ',
-                  type: 'Hi5'
-                });
-              }
-            }, 100);
-            return;
-          }
-          
-          // Open with Hi5 context (success handler configured in unified initialization)
-          shareSheetInstance.open({
-            context: 'dashboard',
-            preset: 'hi5',
-            prefilledText: '✨ Celebrating this moment of growth! ',
-            type: 'Hi5'
-          });
-          
-        } catch (error) {
-          console.error('[HI DEV] Failed to open HiShareSheet for Hi5:', error);
-          // HI DEV: NO fallback to HiWave - Hi5 and HiWave are separate flows
-          // Show error message to user instead
-          const errorMsg = document.createElement('div');
-          errorMsg.style.cssText = 'position:fixed;top:20px;right:20px;background:#ff4444;color:white;padding:12px;border-radius:8px;z-index:9999;';
-          errorMsg.textContent = 'Hi5 Share Sheet failed to load. Please try again.';
-          document.body.appendChild(errorMsg);
-          setTimeout(() => errorMsg.remove(), 3000);
-        }
-        
-        // HI DEV: All Hi5 submission logic moved to HiShareSheet.persist()
-        // This keeps the flow clean and maintains separation of concerns
-      });
-    }
-
-    // TESLA-GRADE: Navigation setup with proper element checks
-    function setupNavigationHandler() {
-      const btnMenu = document.getElementById('btnMenu');
-      const navigationModal = document.getElementById('navigationModal');
-      const navigationBackdrop = document.getElementById('navigationBackdrop');
-      const closeNavigation = document.getElementById('closeNavigation');
-
-      if (!btnMenu || !navigationModal) {
-        console.error('🚨 Navigation elements not found:', { 
-          btnMenu: !!btnMenu, 
-          navigationModal: !!navigationModal,
-          navigationBackdrop: !!navigationBackdrop,
-          closeNavigation: !!closeNavigation
-        });
-        return;
-      }
-
-      // Ensure menu button is visible (defensive check)
-      btnMenu.style.display = 'flex';
-      btnMenu.style.visibility = 'visible';
-      btnMenu.style.opacity = '1';
-      btnMenu.style.pointerEvents = 'auto';
-      
-      // Debug: Check if button and SVG are actually visible
-      console.log('🔍 Menu button debug:', {
-        exists: !!btnMenu,
-        display: window.getComputedStyle(btnMenu).display,
-        visibility: window.getComputedStyle(btnMenu).visibility,
-        opacity: window.getComputedStyle(btnMenu).opacity,
-        width: window.getComputedStyle(btnMenu).width,
-        height: window.getComputedStyle(btnMenu).height,
-        color: window.getComputedStyle(btnMenu).color,
-        position: btnMenu.getBoundingClientRect(),
-        svg: btnMenu.querySelector('svg'),
-        svgVisible: btnMenu.querySelector('svg') ? window.getComputedStyle(btnMenu.querySelector('svg')).display : 'no svg'
-      });
-
-      const openNavigation = () => {
-        navigationModal.classList.add('show');
-        navigationModal.style.display = 'block';
-        document.body.style.overflow = 'hidden';
-        
-        // Show admin section if user is admin (basic check)
-        const adminSection = document.getElementById('adminSection');
-        if (adminSection && (localStorage.getItem('isAdmin') === 'true' || window.location.href.includes('admin'))) {
-          adminSection.style.display = 'block';
-        }
-        
-        console.log('🎯 Navigation menu opened');
-      };
-
-      const closeNavigationModal = () => {
-        navigationModal.classList.remove('show');
-        document.body.style.overflow = '';
-        setTimeout(() => {
-          if (!navigationModal.classList.contains('show')) {
-            navigationModal.style.display = 'none';
-          }
-        }, 300);
-        
-        console.log('🎯 Navigation menu closed');
-      };
-
-      btnMenu.addEventListener('click', openNavigation);
-      
-      if (closeNavigation) {
-        closeNavigation.addEventListener('click', closeNavigationModal);
-      }
-      
-      if (navigationBackdrop) {
-        navigationBackdrop.addEventListener('click', closeNavigationModal);
-      }
-      
-      // Close on escape key
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && navigationModal.classList.contains('show')) {
-          closeNavigationModal();
-        }
-      });
-      
-      console.log('✅ Navigation handler setup complete');
-    }
-
-    // Hiffirmations Modal Handler
-    function setupHiffirmationsHandler() {
-      if (!hiffirmationsTrigger) return;
-
-      hiffirmationsTrigger.addEventListener('click', (e) => {
-        e.preventDefault();
-        showHiffirmationsModal();
-      });
-    }
-
-    // Floating HiFirmations Handler 
-    function setupFloatingHiffirmationsHandler() {
-      const floatingBtn = document.getElementById('floatingHiffirmations');
-      if (!floatingBtn) return;
-
-      floatingBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        showHiffirmationsModal();
-        
-        // Tesla-grade haptic feedback
-        if (window.PremiumUX) {
-          window.PremiumUX.triggerHapticFeedback('medium');
-        }
-      });
-    }
-
-    // Tesla-Grade Daily Hiffirmation Generator (Consistent Daily Messages)
-    function getDailyHiffirmation(date = new Date()) {
-      const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-      let hash = 0;
-      for (let i = 0; i < key.length; i++) {
-        hash = (hash * 31 + key.charCodeAt(i)) | 0;
-      }
-      
-      const hiffirmations = [
-        "✨ Stay Hi! You're on a Hi level of positive energy today",
-        "🌟 Your Hi vibes are lifting others to new Hi-ghts of joy", 
-        "💫 Hi there! You have the power to get someone Hi on life today",
-        "🔥 Hi amazing soul! Your authentic self is Hi-ly inspiring",
-        "🌈 Every Hi you share lifts our world to Hi-er dimensions",
-        "⭐ Hi friend! You're exactly Hi enough, right Hi and now",
-        "💝 Hi incredible human! Your presence gets everyone Hi on good vibes",
-        "🌺 Hi warrior! You're reaching Hi-er levels with each Hi moment",
-        "🎯 Hi there! Trust your journey, you're flying Hi and amazing",
-        "💎 Hi shining star! Your Hi energy can never be brought low",
-        "🚀 Hi unstoppable force! Your potential reaches the Hi-est peaks",
-        "🌸 Hi beautiful! You bring Hi-quality beauty to every moment",
-        "⚡ Hi energy! Your Hi frequency lights up every space you enter",
-        "🏔️ Hi mountain mover! You're Hi above any challenge life brings",
-        "🎨 Hi creative soul! Your imagination paints the world in Hi definition",
-        "🌊 Hi flowing river! You ride Hi through all of life's changes",
-        "🔮 Hi intuitive being! Your inner wisdom operates on the Hi-est level",
-        "🦋 Hi transformer! You're evolving into your Hi-est, most amazing self",
-        "🌅 Hi sunrise! Each day brings Hi-level opportunities just for you",
-        "💪 Hi resilient heart! Your bounce-back ability is Hi-ly remarkable",
-        "🎵 Hi melody maker! Your soul sings in Hi-fi, beautiful frequencies",
-        "🌟 Hi beacon! You're a Hi-rise lighthouse of hope for others",
-        "🕊️ Hi peaceful spirit! Serenity follows you to Hi-er ground",
-        "🔥 Hi passionate heart! Your fire lifts everyone to Hi-er ground",
-        "🌻 Hi sunflower! You're always growing toward the Hi-est light",
-        "⭐ Hi dreamer! Your visions reach Hi into the realm of possibility",
-        "🎯 Hi aligned soul! You're connected to your Hi-est purpose",
-        "💫 Hi magical being! Hi-level magic happens when you believe",
-        "🌈 Hi reality creator! You're painting Hi-definition beauty everywhere",
-        "🦄 Hi unique spirit! Your one-of-a-kind nature is Hi-ly special",
-        "🌙 Hi night owl! Your Hi energy shines even in the dark",
-        "🎪 Hi entertainer! You bring Hi-level joy to every room",
-        "🏆 Hi champion! Your Hi spirit conquers every obstacle",
-        "🌺 Hi blossom! You're blooming into your Hi-est self",
-        "🎭 Hi performer! Your authentic self is Hi-ly captivating",
-        "🧘 Hi zen master! Your Hi peace radiates outward",
-        "🎸 Hi rockstar! Your Hi frequency rocks the world",
-        "🌠 Hi shooting star! Your Hi path lights up the sky",
-        "🦅 Hi soaring spirit! You're flying to Hi-er heights daily",
-        "🌴 Hi paradise! You create Hi-level oasis wherever you go",
-        "🎯 Hi marksman! Your Hi aim for greatness never misses",
-        "🌊 Hi tide! Your Hi influence lifts all boats",
-        "🔥 Hi flame! Your Hi passion ignites positive change",
-        "💝 Hi gift! Your Hi presence is a treasure to all",
-        "🌈 Hi spectrum! You paint life in Hi-vibrant colors",
-        "🎨 Hi artist! Your Hi creativity knows no bounds",
-        "🚀 Hi pioneer! You're blazing Hi trails for others",
-        "⚡ Hi lightning! Your Hi impact strikes with brilliance",
-        "🌟 Hi constellation! Your Hi light guides lost souls home",
-        "🦋 Hi metamorphosis! You're becoming your Hi-est version",
-        "🌺 Hi alchemist! You turn ordinary moments into Hi magic",
-        "💎 Hi diamond! Your Hi brilliance shines under pressure",
-        "🎯 Hi visionary! Your Hi perspective changes everything",
-        "🌅 Hi awakener! You rise to Hi-er consciousness daily",
-        "⚡ Hi catalyst! Your Hi presence sparks transformation",
-        "🌊 Hi navigator! You sail Hi through life's storms",
-        "🔥 Hi igniter! Your Hi spark starts incredible fires",
-        "💫 Hi stardust! You're made of Hi-quality cosmic material",
-        "🦅 Hi freedom seeker! You soar to Hi-er altitudes",
-        "🌸 Hi gardener! You grow Hi-quality beauty everywhere",
-        "🎵 Hi composer! Your life plays in Hi-definition harmony",
-        "🌟 Hi illuminator! Your Hi glow brightens dark paths",
-        "🏔️ Hi summit seeker! You climb to Hi-er peaks daily",
-        "🔮 Hi oracle! Your Hi wisdom sees beyond the surface",
-        "💪 Hi force! Your Hi strength moves mountains effortlessly",
-        "🌈 Hi bridge builder! You connect souls to Hi-er love",
-        "🎨 Hi innovator! Your Hi ideas reshape reality",
-        "🚀 Hi explorer! You venture into Hi unknown territories",
-        "⭐ Hi architect! You build Hi-quality dreams into reality",
-        "🦋 Hi evolution! You're ascending to Hi-er forms",
-        "🌊 Hi current! Your Hi flow carries others forward",
-        "🔥 Hi phoenix! You rise Hi-er from every challenge",
-        "💝 Hi giver! Your Hi generosity enriches all lives",
-        "🌺 Hi cultivator! You nurture Hi-quality growth in others",
-        "🎯 Hi achiever! Your Hi standards inspire excellence",
-        "⚡ Hi dynamo! Your Hi energy powers positive change",
-        "🌟 Hi luminary! Your Hi presence elevates every space",
-        "🏆 Hi legend! Your Hi story inspires generations",
-        "🎭 Hi storyteller! Your Hi narrative captivates hearts",
-        "🌅 Hi dawn bringer! You start each day on Hi notes",
-        "💎 Hi treasure! Your Hi worth is immeasurable",
-        "🚀 Hi voyager! You journey to Hi-er dimensions",
-        "🌈 Hi prism! You reflect Hi-quality light everywhere",
-        "🦅 Hi observer! You see life from Hi-er perspectives",
-        "🔥 Hi transformer! You change lead into Hi gold",
-        "💫 Hi miracle worker! Your Hi faith moves mountains",
-        "🌊 Hi rhythm! You dance to Hi-er frequencies",
-        "🎵 Hi symphony! Your life creates Hi-definition music",
-        "🌟 Hi north star! You guide others to Hi-er ground",
-        "🏔️ Hi climber! Your Hi ascent never stops",
-        "🔮 Hi seer! Your Hi vision penetrates illusions",
-        "💪 Hi titan! Your Hi power knows no limits",
-        "🌺 Hi essence! Your Hi nature uplifts all beings",
-        "🎨 Hi master! Your Hi craft perfects with time",
-        "🚀 Hi astronaut! You explore Hi-er consciousness",
-        "⭐ Hi manifestor! Your Hi thoughts create reality",
-        "🦋 Hi awakening! You're emerging into Hi-er truth",
-        "🌊 Hi healer! Your Hi touch restores wholeness",
-        "🔥 Hi creator! Your Hi vision births new worlds",
-        "💝 Hi blessing! Your Hi existence enriches everything",
-        "🌈 Hi rainbow! You bring Hi color after storms"
-      ];
-      
-      const selectedMessage = hiffirmations[Math.abs(hash % hiffirmations.length)];
-      
-      // Check if this is the daily HiFirmation or a Hi Boost
-      const lastHiffirmationDate = localStorage.getItem('lastHiffirmationDate');
-      const today = new Date().toDateString();
-      const isDaily = lastHiffirmationDate !== today;
-      
-      if (isDaily) {
-        localStorage.setItem('lastHiffirmationDate', today);
-        return selectedMessage; // Full daily message
-      } else {
-        // Hi Boost - shorter, Hi Speak encouraging messages
-        const hiBoosts = [
-          "Stay Hi! Keep that Hi energy shining! ✨",
-          "Hi beautiful! You've got that Hi-level magic! 💪",
-          "Hi amazing! Keep riding Hi! 🚀",
-          "Hi superstar! Stay on that Hi frequency! 🌟",
-          "Hi warrior! You're Hi above it all! ⚡",
-          "Hi champion! Keep your Hi-ness flowing! 🏆",
-          "Hi brilliant! Trust your Hi intuition! 🌈",
-          "Hi phenomenal! You're Hi-ly valued! 💝",
-          "Hi incredible! Keep flying Hi! 🦅",
-          "Hi wonderful! Stay Hi always! 🌻",
-          "Hi powerful! Your Hi strength is unstoppable! 💪",
-          "Hi radiant! Shine that Hi light bright! ✨",
-          "Hi fearless! You're Hi above the noise! 🎯",
-          "Hi legend! Keep that Hi momentum going! 🔥",
-          "Hi dreamer! Your Hi vision is coming true! 🌈",
-          "Hi rockstar! You're Hi-ly talented! 🎸",
-          "Hi genius! Your Hi mind amazes! 🧠",
-          "Hi pioneer! Blaze that Hi trail! 🚀",
-          "Hi creator! Your Hi art inspires! 🎨",
-          "Hi beacon! Keep shining Hi! 🌟",
-          "Hi unstoppable! You're Hi beyond measure! ⚡",
-          "Hi magnetic! Your Hi aura attracts greatness! 💫",
-          "Hi limitless! Stay Hi forever! 🌊",
-          "Hi spectacular! Your Hi presence matters! 💝",
-          "Hi transcendent! You're Hi-ly elevated! 🦋",
-          "Hi dynamic! Keep that Hi energy flowing! ⚡",
-          "Hi luminous! Your Hi glow is undeniable! ✨",
-          "Hi sovereign! Own your Hi power! 👑",
-          "Hi electric! Your Hi spark lights fires! 🔥",
-          "Hi cosmic! You're Hi on another level! 🌌",
-          "Hi magnificent! Your Hi spirit soars! 🦅",
-          "Hi divine! Your Hi essence is pure! 💎",
-          "Hi stellar! You're reaching Hi-er stars! ✨",
-          "Hi valiant! Your Hi courage inspires! ⚔️",
-          "Hi brilliant! Your Hi ideas illuminate! 💡",
-          "Hi majestic! Your Hi presence commands respect! 👑",
-          "Hi vibrant! Your Hi life force is contagious! 🌈",
-          "Hi unstoppable! Nothing can dim your Hi! 🔥",
-          "Hi infinite! Your Hi potential is boundless! ∞",
-          "Hi glorious! Your Hi path shines bright! 🌟",
-          "Hi fearless! You face life on Hi alert! ⚡",
-          "Hi luminous! Your Hi aura glows! ✨",
-          "Hi mighty! Your Hi strength moves worlds! 💪",
-          "Hi radiant! Your Hi warmth heals hearts! 💝",
-          "Hi visionary! Your Hi sight sees futures! 🔮",
-          "Hi triumphant! Your Hi victories multiply! 🏆",
-          "Hi resilient! You bounce back Hi-er! 🌊",
-          "Hi enchanting! Your Hi magic captivates! ✨",
-          "Hi bold! Your Hi moves inspire action! 🎯",
-          "Hi authentic! Your Hi truth resonates! 💎",
-          "Hi graceful! You move through life on Hi! 🦢",
-          "Hi fierce! Your Hi determination wins! 🔥",
-          "Hi serene! Your Hi peace calms storms! 🕊️",
-          "Hi joyful! Your Hi laughter lifts spirits! 😊",
-          "Hi wise! Your Hi knowledge guides many! 🦉",
-          "Hi compassionate! Your Hi heart heals! 💝",
-          "Hi grateful! You see Hi blessings everywhere! 🙏",
-          "Hi present! You live in the Hi now! ⏰",
-          "Hi abundant! Your Hi cup overflows! 🌊",
-          "Hi worthy! You deserve all Hi things! 👑"
-        ];
-        return hiBoosts[Math.floor(Math.random() * hiBoosts.length)];
-      }
-    }
-
-    // Get countdown to next Hiffirmation (midnight local time)
-    function getNextHiffirmationCountdown() {
-      const now = new Date();
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(0, 0, 0, 0);
-      
-      const timeLeft = tomorrow - now;
-      const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-      const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-      
-      return { hours, minutes, timeLeft };
-    }
-
-    // Premium Hiffirmations Modal
-    function showHiffirmationsModal(customDate = null) {
-      const targetDate = customDate || new Date();
-      const dailyHiffirmation = getDailyHiffirmation(targetDate);
-      const countdown = getNextHiffirmationCountdown();
-      
-      // Date display for non-today dates
-      const isToday = !customDate || (
-        targetDate.toDateString() === new Date().toDateString()
-      );
-      const dateLabel = isToday ? 'Today' : targetDate.toLocaleDateString('en-US', { 
-        weekday: 'long', 
-        month: 'short', 
-        day: 'numeric' 
-      });
-
-      // Create modal with premium styling
-      const modal = document.createElement('div');
-      modal.style.cssText = `
-        position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 15000;
-        display: flex; align-items: center; justify-content: center;
-        background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px);
-      `;
-      
-      modal.innerHTML = `
-        <div style="
-          background: rgba(15, 16, 34, 0.95); backdrop-filter: blur(25px);
-          border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 24px;
-          padding: 32px; max-width: 400px; width: 90vw; text-align: center; color: white;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); position: relative;
-        ">
-          <h3 style="margin: 0 0 8px; color: #FFD166; font-size: 24px;">✨ ${(() => {
-            const lastDate = localStorage.getItem('lastHiffirmationDate');
-            const todayString = new Date().toDateString();
-            const isDailyHi = !customDate && (lastDate !== todayString);
-            if (!isToday) return dateLabel + ' Hiffirmation';
-            return isDailyHi ? 'Daily Hiffirmation' : 'Hi Boost';
-          })()}</h3>
-          
-          <!-- Countdown Timer (only for daily) -->
-          ${isToday && localStorage.getItem('lastHiffirmationDate') !== new Date().toDateString() ? `
-          <div style="
-            font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-bottom: 20px;
-            padding: 8px 12px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-          ">
-            Next Daily Hiffirmation in ${countdown.hours}h ${countdown.minutes}m
-          </div>
-          ` : isToday ? `
-          <div style="
-            font-size: 12px; color: rgba(233, 30, 99, 0.8); margin-bottom: 20px;
-            padding: 8px 12px; background: rgba(233, 30, 99, 0.1); border-radius: 8px;
-            border: 1px solid rgba(233, 30, 99, 0.2);
-          ">
-            🚀 Unlimited Hi Boosts available!
-          </div>
-          ` : ''}
-          
-          <!-- Daily Message -->
-          <div style="font-size: 18px; line-height: 1.5; margin: 24px 0; color: rgba(255, 255, 255, 0.9);">
-            ${dailyHiffirmation}
-          </div>
-          
-          <!-- Action Buttons -->
-          <div style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
-            <button class="hiffirmation-share" style="
-              padding: 12px 20px; background: linear-gradient(135deg, #4ECDC4, #44A08D);
-              border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer;
-              transition: transform 0.2s ease;
-            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-              Share This
-            </button>
-            <button class="hiffirmation-yesterday" style="
-              padding: 12px 20px; background: rgba(255, 255, 255, 0.1);
-              border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; 
-              color: white; font-weight: 600; cursor: pointer;
-              transition: all 0.2s ease;
-            " onmouseover="this.style.background='rgba(255, 255, 255, 0.15)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'">
-              Yesterday's
-            </button>
-          </div>
-          
-          <!-- Hi Logo Branding -->
-          <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-            <img src="assets/brand/hi-logo-light.png" alt="Hi" style="width: 32px; height: 32px; opacity: 0.7;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';" />
-            <div style="display: none; font-size: 24px; color: #FFD166; font-weight: bold;">Hi</div>
-          </div>
-          
-          <!-- Close Button -->
-          <button class="close-hiffirmation" style="
-            position: absolute; top: 16px; right: 16px; width: 32px; height: 32px;
-            border: none; border-radius: 8px; background: rgba(255, 255, 255, 0.1);
-            color: white; cursor: pointer; font-size: 16px;
-            transition: background 0.2s ease;
-          " onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'">
-            ✕
-          </button>
-        </div>
-      `;
-
-      document.body.appendChild(modal);
-      document.body.style.overflow = 'hidden';
-
-      // Event handlers
-      const closeModal = () => {
-        document.body.removeChild(modal);
-        document.body.style.overflow = '';
-      };
-
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
-      });
-      modal.querySelector('.close-hiffirmation').addEventListener('click', closeModal);
-      
-      // Yesterday's Hiffirmation button
-      modal.querySelector('.hiffirmation-yesterday').addEventListener('click', () => {
-        closeModal();
-        setTimeout(() => {
-          const yesterday = new Date();
-          yesterday.setDate(yesterday.getDate() - 1);
-          showHiffirmationsModal(yesterday);
-        }, 100);
-      });
-      
-      // Enhanced Share button with Quote Card Generation
-      modal.querySelector('.hiffirmation-share').addEventListener('click', async () => {
-        const shareBtn = modal.querySelector('.hiffirmation-share');
-        const originalText = shareBtn.textContent;
-        
-        try {
-          // Show loading state
-          shareBtn.textContent = 'Creating quote card...';
-          shareBtn.style.background = 'linear-gradient(135deg, #FFD166, #F4A261)';
-          
-          // Get user tier for appropriate styling
-          const userTier = getUserTierForSharing();
-          
-          // Generate beautiful quote card
-          const quoteCardDataURL = await window.HiQuoteCardGenerator.generateQuoteCard(
-            dailyHiffirmation, 
-            { 
-              userTier, 
-              format: 'square' 
-            }
-          );
-          
-          // Convert to blob for sharing
-          const blob = await window.HiQuoteCardGenerator.dataURLToBlob(quoteCardDataURL);
-          const file = new File([blob], 'hiffirmation-quote-card.png', { type: 'image/png' });
-          
-          // Try native sharing with image
-          if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            shareBtn.textContent = 'Sharing...';
-            await navigator.share({
-              title: 'Daily Hiffirmation from Stay Hi',
-              text: `"${dailyHiffirmation}"\n\nShared from Stay Hi ✨`,
-              files: [file]
-            });
-            
-            // Success feedback
-            shareBtn.textContent = '✓ Shared!';
-            shareBtn.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
-            
-          } else if (navigator.share) {
-            // Fallback: Share text and download image
-            shareBtn.textContent = 'Downloading & copying...';
-            
-            // Download quote card
-            const downloadLink = document.createElement('a');
-            downloadLink.href = quoteCardDataURL;
-            downloadLink.download = 'hiffirmation-quote-card.png';
-            downloadLink.click();
-            
-            // Share text
-            await navigator.share({
-              title: 'Daily Hiffirmation from Stay Hi',
-              text: `"${dailyHiffirmation}"\n\nShared from Stay Hi ✨\n\nstay-hi.app`,
-            });
-            
-            shareBtn.textContent = '✓ Quote card downloaded & text shared!';
-            shareBtn.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
-            
-          } else {
-            // Final fallback: Download image and copy text
-            shareBtn.textContent = 'Downloading...';
-            
-            // Download quote card
-            const downloadLink = document.createElement('a');
-            downloadLink.href = quoteCardDataURL;
-            downloadLink.download = 'hiffirmation-quote-card.png';
-            downloadLink.click();
-            
-            // Copy text to clipboard
-            const textToCopy = `"${dailyHiffirmation}"\n\nShared from Stay Hi ✨\nstay-hi.app`;
-            await navigator.clipboard.writeText(textToCopy);
-            
-            shareBtn.textContent = '✓ Quote card downloaded & text copied!';
-            shareBtn.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
-          }
-          
-        } catch (error) {
-          console.error('❌ Quote card sharing failed:', error);
-          
-          // Fallback to simple text sharing
-          if (navigator.share) {
-            await navigator.share({
-              title: 'Daily Hiffirmation from Stay Hi',
-              text: dailyHiffirmation,
-              url: window.location.href
-            });
-          } else {
-            await navigator.clipboard.writeText(dailyHiffirmation);
-          }
-          
-          shareBtn.textContent = '✓ Shared!';
-          shareBtn.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
-        }
-        
-        // Reset button after 3 seconds
-        setTimeout(() => {
-          shareBtn.textContent = originalText;
-          shareBtn.style.background = 'linear-gradient(135deg, #4ECDC4, #44A08D)';
-        }, 3000);
-      });
-
-      // Helper function to get user tier for sharing
-      function getUserTierForSharing() {
-        const tierElement = document.getElementById('hi-tier-indicator');
-        if (tierElement) {
-          const tierText = tierElement.querySelector('.tier-text')?.textContent;
-          if (tierText === 'Premium') return 'PREMIUM';
-          if (tierText === 'Standard') return 'STANDARD';
-        }
-        return 'ANONYMOUS';
-      }
-    }
-
-    // Weekly Progress Strip (Simplified)
-    async function setupWeeklyProgress() {
-      const weekStrip = document.getElementById('weekStrip');
-      if (!weekStrip) return;
-
-      const today = new Date();
-      let html = '';
-      
-      // Get real user streak data
-      const weeklyActivity = await getUserWeeklyActivity();
-      
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
-        const label = date.toLocaleDateString(undefined, { weekday: 'short' }).toUpperCase();
-        const dayNum = date.getDate();
-        const isToday = i === 0;
-        const dateKey = date.toISOString().split('T')[0];
-        const metClass = weeklyActivity.activeDays.includes(dateKey) ? 'met' : '';
-        
-        // 🎖️ Evolution Enhancement: Add milestone indicator
-        const milestoneClass = isToday && weeklyActivity.milestone?.current ? 'milestone' : '';
-        
-        html += `<div class="weekdot ${isToday ? 'today' : ''} ${milestoneClass}">
-          <div class="lbl">${label}</div>
-          <div class="c ${metClass}">${dayNum}</div>
-          ${isToday && weeklyActivity.milestone?.current ? `<div class="milestone-badge">${weeklyActivity.milestone.current.emoji}</div>` : ''}
-        </div>`;
-      }
-      
-      weekStrip.innerHTML = html;
-    }
-
-    // 🎯 Get user's weekly Hi activity (real streak data)
-    async function getUserWeeklyActivity() {
-      try {
-        // Check if user is authenticated
-        const currentUser = window.hiAuth?.getCurrentUser?.();
-        console.log('🔍 7-Pill: Checking user auth:', currentUser?.id || 'anonymous');
-        
-        if (currentUser && currentUser.id && currentUser.id !== 'anonymous') {
-          // Authenticated user: Get real streak data
-          const streakResult = await window.HiBase?.streaks?.getUserStreak?.(currentUser.id);
-          console.log('📊 7-Pill: Streak result:', streakResult);
-          
-          if (streakResult?.data) {
-            const weeklyData = generateWeeklyFromStreak(streakResult.data);
-            console.log('✅ 7-Pill: Using real streak data', weeklyData);
-            return weeklyData;
-          }
-        }
-        
-        // Anonymous or error: Use motivational preview
-        const previewData = generateAnonymousWeeklyPreview();
-        console.log('🎯 7-Pill: Using anonymous preview', previewData);
-        return previewData;
-        
-      } catch (error) {
-        console.log('📊 7-Pill: Fallback mode due to error:', error);
-        return generateAnonymousWeeklyPreview();
-      }
-    }
-
-    // 🔥 Generate weekly activity from real streak data
-    function generateWeeklyFromStreak(streakData) {
-      const activeDays = [];
-      const today = new Date();
-      const currentStreak = streakData.current || 0;
-      const lastHiDate = streakData.lastHiDate;
-      
-      // 🎯 Evolution Hook: Check for milestone achievements
-      const milestoneInfo = checkStreakMilestones(currentStreak);
-      
-      if (lastHiDate && currentStreak > 0) {
-        // Calculate active days based on streak
-        const streakStart = new Date(lastHiDate);
-        streakStart.setDate(streakStart.getDate() - currentStreak + 1);
-        
-        for (let i = 0; i < currentStreak && i < 7; i++) {
-          const activeDate = new Date(streakStart);
-          activeDate.setDate(streakStart.getDate() + i);
-          
-          // Only include if within last 7 days
-          const daysAgo = Math.floor((today - activeDate) / (1000 * 60 * 60 * 24));
-          if (daysAgo >= 0 && daysAgo <= 6) {
-            activeDays.push(activeDate.toISOString().split('T')[0]);
-          }
-        }
-      }
-      
-      return { 
-        activeDays, 
-        source: 'real_streak',
-        milestone: milestoneInfo // 🚀 Future enhancement hook
-      };
-    }
-
-    // 🎖️ Evolution Hook: Milestone detection (passive - no UI changes yet)
-    function checkStreakMilestones(streak) {
-      const milestones = [
-        { threshold: 3, name: 'Hi Habit', emoji: '🔥' },
-        { threshold: 7, name: 'Week Keeper', emoji: '🔥' },
-        { threshold: 30, name: 'Monthly Hi', emoji: '🔥' },
-        { threshold: 100, name: 'Steady Light', emoji: '🔥' }
-      ];
-      
-      const achieved = milestones.filter(m => streak >= m.threshold);
-      const latest = achieved[achieved.length - 1];
-      const upcoming = milestones.find(m => streak < m.threshold);
-      
-      return {
-        current: latest || null,
-        next: upcoming || null,
-        isNewMilestone: false // Will be enhanced in future phases
-      };
-    }
-
-    // 💎 Generate encouraging preview for anonymous users
-    function generateAnonymousWeeklyPreview() {
-      const activeDays = [];
-      const today = new Date();
-      
-      // Show 2-3 recent days as "active" to encourage engagement
-      const recentDays = Math.floor(Math.random() * 2) + 2; // 2-3 days
-      for (let i = 0; i < recentDays; i++) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
-        activeDays.push(date.toISOString().split('T')[0]);
-      }
-      
-      return { activeDays, source: 'preview' };
-    }
-
-    // 🌍 Helper: Get current user location for hi island piping
-    async function getCurrentUserLocation() {
-      try {
-        // Check localStorage cache first
-        const cached = localStorage.getItem('hi_user_location');
-        if (cached) {
-          const locationData = JSON.parse(cached);
-          if (Date.now() - locationData.timestamp < 24 * 60 * 60 * 1000) { // 24 hour cache
-            return locationData.location;
-          }
-        }
-        
-        // Default to 'Virtual Hi Island' for dashboard hi5s
-        return 'Virtual Hi Island';
-      } catch (error) {
-        console.warn('Location lookup failed, using default:', error);
-        return 'Virtual Hi Island';
-      }
-    }
-
-    // 🎉 Helper: Show celebration message
-    function showCelebrationMessage(message) {
-      // Create temporary celebration overlay
-      const celebration = document.createElement('div');
-      celebration.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: linear-gradient(135deg, #FFD166, #FF7B24);
-        color: #000;
-        padding: 20px 30px;
-        border-radius: 20px;
-        font-size: 18px;
-        font-weight: 600;
-        box-shadow: 0 10px 30px rgba(255, 123, 24, 0.4);
-        z-index: 10000;
-        animation: celebrationPop 2s ease-out forwards;
-      `;
-      celebration.textContent = message;
-      
-      // Add animation keyframes
-      if (!document.getElementById('celebrationStyles')) {
-        const style = document.createElement('style');
-        style.id = 'celebrationStyles';
-        style.textContent = `
-          @keyframes celebrationPop {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
-          }
-        `;
-        document.head.appendChild(style);
-      }
-      
-      document.body.appendChild(celebration);
-      setTimeout(() => celebration.remove(), 2000);
-    }
-
-    // 🔥 Phase 7: Hi Experience Layer Initialization (Feature Flagged)
-    async function initializeHiExperienceLayer() {
-      try {
-        // Check if hifeed_enabled flag is active (cohort-aware)
-        const { isEnabledCohort } = await import('./lib/flags/HiFlags.js');
-        const { trackEvent } = await import('./lib/monitoring/HiMonitor.js');
-        
-        const hiFeedEnabled = await isEnabledCohort('hifeed_enabled');
-        
-        // Track flag evaluation for telemetry
-        trackEvent('flag_check', {
-          key: 'hifeed_enabled',
-          enabled: hiFeedEnabled,
-          rollout: true,
-          location: 'dashboard'
-        });
-        
-        console.log('🔍 HiFeed flag check (dashboard - cohort):', { 
-          flagEnabled: hiFeedEnabled,
-          rollout: true
-        });
-        
-        if (hiFeedEnabled) {
-          console.log('🔥 HiFeed enabled - initializing experience layer components');
-          
-          // Show the experience layer container
-          const experienceLayer = document.getElementById('hiExperienceLayer');
-          if (experienceLayer) {
-            experienceLayer.style.display = 'block';
-          }
-          
-          // Initialize HiFeed component
-          if (window.HiFeed) {
-            const hiFeed = new window.HiFeed('#hiFeedContainer');
-            await hiFeed.initialize();
-            console.log('✅ HiFeed component initialized');
-          }
-          
-          // Initialize HiStreaks component
-          if (window.HiStreaks) {
-            const hiStreaks = new window.HiStreaks('#hiStreaksContainer');
-            await hiStreaks.initialize();
-            console.log('✅ HiStreaks component initialized');
-          }
-          
-        } else {
-          console.log('🚫 HiFeed disabled - experience layer components not loaded');
-        }
-        
-      } catch (error) {
-        console.error('❌ Hi Experience Layer initialization error:', error);
-      }
-    }
-
-    // Tesla-Grade Initialization
-    document.addEventListener('DOMContentLoaded', async () => {
-      // Track current page visit for smart navigation
-      try {
-        const currentPage = {
-          url: window.location.href,
-          name: 'Dashboard',
-          timestamp: Date.now()
-        };
-        
-        const navHistory = JSON.parse(sessionStorage.getItem('hiNavHistory') || '[]');
-        // Remove any existing entry for this page
-        const filtered = navHistory.filter(page => page.url !== currentPage.url);
-        // Add current page to front
-        filtered.unshift(currentPage);
-        // Keep last 10 pages
-        filtered.splice(10);
-        sessionStorage.setItem('hiNavHistory', JSON.stringify(filtered));
-      } catch (error) {
-        // Silent fail for tracking
-      }
-
-      // TESLA-GRADE: Setup critical UI first to prevent flash issues
-      setupNavigationHandler(); // MOVED: Critical for immediate header functionality
-      
-      // Initialize all components
-      initializeDatabase();
-      // setupSelfHi5Handler(); // DEPRECATED: Using medallion long-press system
-      setupHiffirmationsHandler();
-      setupFloatingHiffirmationsHandler();
-      await setupWeeklyProgress();
-      
-      // Initialize global stats variables immediately
-      // 🚀 TESLA GRADE: Smart loading states without jarring jumps
-      const savedWaves = localStorage.getItem('dashboard_waves_cache');
-      const savedTotal = localStorage.getItem('dashboard_total_cache');
-      const savedUsers = localStorage.getItem('dashboard_users_cache');
-      
-      if (window.gWaves === undefined) {
-        // Gold standard: Use cached value if recent, otherwise start with loading state
-        const cacheTimestamp = localStorage.getItem('dashboard_waves_cache_time');
-        const isRecentCache = cacheTimestamp && (Date.now() - parseInt(cacheTimestamp, 10)) < 30000;
-        
-        if (savedWaves && isRecentCache) {
-          window.gWaves = parseInt(savedWaves, 10);
-        } else {
-          // 🎯 GOLD STANDARD: Start with cached value or smart default instead of undefined
-          window.gWaves = savedWaves ? parseInt(savedWaves, 10) : 1574; // Use last known good value
-          // Mark for immediate refresh
-          window._needsWavesRefresh = true;
-        }
-      }
-      if (window.gTotalHis === undefined) {
-        // 🎯 CRITICAL: Only use cached database values, never fallback to outdated numbers
-        // If no cache exists, show loading state (null) instead of wrong number
-        window.gTotalHis = savedTotal ? parseInt(savedTotal, 10) : null;
-        // Mark as needs refresh if we're showing cached data or no data
-        window._gTotalHisIsTemporary = true;
-      }
-      if (window.gUsers === undefined) {
-        // 🎯 DATABASE ONLY: Use cached database values, never fallback to hardcoded numbers
-        const cachedUsers = localStorage.getItem('dashboard_users_cache');
-        window.gUsers = cachedUsers ? parseInt(cachedUsers, 10) : 5; // Conservative estimate while loading
-        window.initializeSmartUserCount?.();
-      }
-      
-      // 🎯 INSTANT UI UPDATE: Show cached/smart defaults immediately
-      updateStatsUI();
-      console.log('⚡ Instant stats display with cached values:', { 
-        waves: window.gWaves, 
-        totalHis: window.gTotalHis, 
-        users: window.gUsers 
-      });
-      
-      // HI-OS: Initialize Tesla-grade stats system + Hi OS Enhancement Layer
-      import('./ui/stats/initHiStats.js').then(async ({ initHiStatsOnce }) => {
-        const { trackShareSubmission } = await import('./lib/stats/GoldStandardTracker.js');
-        window.trackShareSubmission = trackShareSubmission;
-        
-        // 🚀 HI OS ENHANCEMENT: Load enhancement layer after base system
-        try {
-          await import('./lib/stats/HiOSEnhancementLayer.js');
-          console.log('🚀 Hi OS Enhancement Layer loaded for Hi-Dashboard');
-        } catch (error) {
-          console.warn('⚠️ Hi OS enhancement optional - continuing without:', error);
-        }
-        
-        console.log('✅ Gold Standard tracker loaded for Hi-Dashboard');
-        console.log('🎯 Tesla-grade dashboard stats system initialized');
-        
-        // 🎯 STATS: Handled by initHiStatsOnce() - no duplicate loading needed
-      }).catch(error => {
-        console.error('❌ Stats initialization failed:', error);
-      });
-      
-      // 🎨 BRAND TIER SYSTEM: Update tier indicator with on-brand names
-      setTimeout(() => {
-        updateBrandTierDisplay();
-      }, 1000);
-      
-      // Listen for membership changes
-      window.addEventListener('membershipStatusChanged', (event) => {
-        console.log('🎯 Membership status changed event received:', event.detail);
-        updateBrandTierDisplay();
-      });
-      
-      // 🔥 GOLD-STANDARD: Multi-tier fallback for tier display
-      // Try at 2.5s (catches most cases)
-      setTimeout(() => {
-        if (window.unifiedMembership?.membershipStatus?.tier) {
-          console.log('🎯 Late membership check (2.5s) - forcing tier update');
-          updateBrandTierDisplay();
-        }
-      }, 2500);
-      
-      // Nuclear fallback at 5s (catches slow connections)
-      setTimeout(() => {
-        if (window.unifiedMembership?.membershipStatus?.tier) {
-          console.log('🔥 Nuclear tier update (5s) - final attempt');
-          updateBrandTierDisplay();
-        }
-      }, 5000);
-      
-      function updateBrandTierDisplay() {
-        const tierIndicator = document.getElementById('hi-tier-indicator');
-        if (!tierIndicator) {
-          console.warn('⚠️ Tier indicator element not found');
-          return;
-        }
-        
-        if (!window.HiBrandTiers) {
-          console.warn('⚠️ HiBrandTiers not loaded yet');
-          return;
-        }
-        
-        // Get tier from membership system
-        let tierKey = 'anonymous';
-        
-        if (window.unifiedMembership?.membershipStatus?.tier) {
-          tierKey = window.unifiedMembership.membershipStatus.tier;
-        } else if (window.HiMembership?.currentUser?.tierInfo?.name) {
-          // Fallback to legacy system
-          tierKey = window.HiMembership.currentUser.tierInfo.name.toLowerCase();
-        }
-        
-        // Update pill with brand styling
-        window.HiBrandTiers.updateTierPill(tierIndicator, tierKey, {
-          showEmoji: false,
-          useGradient: false
-        });
-        
-        console.log('🎨 Brand tier displayed:', window.HiBrandTiers.getName(tierKey));
-      }
-      
-      console.log('🎯 Stats loading managed by Hi-OS init guard - no direct calls');
-      
-      // 🔥 Phase 7: Initialize Hi Experience Layer (Feature Flagged)
-      initializeHiExperienceLayer();
-      
-      // 🚀 SINGLE STATS LOADING: Let initHiStatsOnce() handle all database loading
-      setTimeout(() => {
-        updateStatsUI(); // Force immediate update with current values
-        // 🎯 No duplicate database calls - initHiStatsOnce() handles loading
-      }, 50);
-      
-      setTimeout(() => {
-        updateStatsUI(); // Second attempt after DOM settles
-      }, 500);
-      
-      setTimeout(() => {
-        updateStatsUI(); // Third attempt as final backup
-      }, 1500);
-
-    });
-
-    // Calendar Integration
-    function setupCalendarIntegration() {
-      const btnCal = document.getElementById('btnCal');
-      if (btnCal) {
-        btnCal.addEventListener('click', () => {
-          if (window.hiCalendarInstance) {
-            window.hiCalendarInstance.show();
-          } else {
-            console.error('[HI DEV] Calendar not initialized');
-          }
-        });
-      }
-    }
-
-    function setupHomeNavigation() {
-      const btnHome = document.getElementById('btnHome');
-      if (btnHome) {
-        btnHome.addEventListener('click', () => {
-          // Navigate to Hi Today (dashboard)
-          window.location.href = 'hi-dashboard.html';
-        });
-      }
-    }
-
-    // 🚀 FAST STATS LOADING: Background loading with instant fallbacks
-    async function loadCurrentStatsFromDatabase() {
-      console.log('🔄 Background loading real stats from database...');
-      
-      // 🎯 STRATEGY: Load async in background, don't block UI
-      setTimeout(async () => {
-        try {
-          // Quick Supabase client check (no long waits)
-          let supabase = window.getSupabase?.() || window.supabaseClient || window.HiSupabase?.getClient?.() || window.supabase;
-          
-          // If no client immediately available, try a few quick attempts
-          if (!supabase) {
-            for (let i = 0; i < 5; i++) {
-              await new Promise(resolve => setTimeout(resolve, 100));
-              supabase = window.getSupabase?.() || window.supabaseClient || window.HiSupabase?.getClient?.() || window.supabase;
-              if (supabase) break;
-            }
-          }
-          
-          if (!supabase) {
-            console.log('� No Supabase client available, keeping smart defaults');
-            return;
-          }
-          
-          console.log('✅ Supabase ready, fetching real stats...');
-          
-          // Try fastest queries first
-          let realStatsLoaded = false;
-          
-          // 1. 🚀 TESLA GRADE: Enhanced stats loading with real user count
-          try {
-            if (window.loadEnhancedGlobalStats) {
-              await window.loadEnhancedGlobalStats();
-              realStatsLoaded = true;
-            } else {
-              // Fallback to standard loading
-              const { data, error } = await supabase
-                .from('global_community_stats')
-                .select('total_his, hi_waves, total_users')
-                .limit(1)
-                .single();
-                
-              if (data && !error) {
-                // Update with real values
-                const oldTotalHis = window.gTotalHis;
-                const oldWaves = window.gWaves;
-                
-                // Only update if we have a better value than temporary fallback
-                if (data.total_his && (window._gTotalHisIsTemporary || data.total_his > window.gTotalHis)) {
-                  window.gTotalHis = data.total_his;
-                  window._gTotalHisIsTemporary = false;
-                }
-                window.gWaves = data.hi_waves || window.gWaves;
-                // User count handled by RealUserCount.js system
-                
-                // Cache other stats
-                localStorage.setItem('dashboard_waves_cache', window.gWaves.toString());
-                localStorage.setItem('dashboard_total_cache', window.gTotalHis.toString());
-                localStorage.setItem('dashboard_cache_timestamp', Date.now().toString());
-                
-                console.log('✅ Stats loaded (fallback mode):', { 
-                  totalHis: `${oldTotalHis} → ${window.gTotalHis}`,
-                  waves: `${oldWaves} → ${window.gWaves}`,
-                  users: window.gUsers
-                });
-                
-                updateStatsUI();
-                realStatsLoaded = true;
-              }
-            }
-          } catch (err) {
-            console.log('📊 Enhanced stats loading failed, trying fallback...');
-          }
-          
-          // 2. Fallback to public_shares (just for Total His)
-          if (!realStatsLoaded) {
-            try {
-              const { data: shareData, error: shareError } = await supabase
-                .from('public_shares')
-                .select('total_his')
-                .limit(1)
-                .single();
-                
-              if (shareData && !shareError && shareData.total_his) {
-                const oldTotalHis = window.gTotalHis;
-                // Only update if we don't already have a good value
-                if (window._gTotalHisIsTemporary || shareData.total_his > window.gTotalHis) {
-                  window.gTotalHis = shareData.total_his;
-                  window._gTotalHisIsTemporary = false;
-                }
-                
-                console.log('✅ Total His updated from public_shares:', `${oldTotalHis} → ${window.gTotalHis}`);
-                updateStatsUI();
-                realStatsLoaded = true;
-              }
-            } catch (err) {
-              console.log('📊 public_shares query failed:', err);
-            }
-          }
-          
-          if (!realStatsLoaded) {
-            console.log('📊 Real stats unavailable, smart defaults will be used');
-          }
-          
-        } catch (error) {
-          console.log('📊 Background stats loading failed, keeping defaults:', error);
-        }
-        
-        // 🌊 TESLA GRADE: Start Hi Waves real-time system
-        if (window.hiWavesRealtime) {
-          setTimeout(async () => {
-            const success = await window.hiWavesRealtime.initialize();
-            if (success) {
-              window.hiWavesRealtime.startRealTimeUpdates(3000); // Every 3 seconds for gold standard smooth updates
-              console.log('🌊 Hi Waves real-time system active');
-            }
-          }, 2000);
-        }
-      }, 100); // Very short delay to let page render first
-    }
-    
-    // Helper function to update stats UI
-    function updateStatsUI() {
-      // Try multiple possible element IDs for Global Waves
-      const globalTotalHis = document.getElementById('globalTotalHis');
-      const globalHiWaves = document.getElementById('globalHiWaves') || 
-                           document.getElementById('globalWaves') || 
-                           document.getElementById('global-waves') ||
-                           document.querySelector('[data-stat="waves"]') ||
-                           document.querySelector('.global-waves');
-      const globalUsers = document.getElementById('globalUsers') ||
-                         document.getElementById('globalMembers') ||
-                         document.querySelector('[data-stat="users"]');
-      
-      if (globalTotalHis && window.gTotalHis !== undefined) {
-        globalTotalHis.textContent = window.gTotalHis.toLocaleString();
-        console.log('✅ Total His UI updated:', window.gTotalHis);
-      }
-      
-      if (globalHiWaves && window.gWaves !== undefined) {
-        globalHiWaves.textContent = window.gWaves.toLocaleString();
-        console.log('✅ Global Waves UI updated:', window.gWaves);
-      } else {
-        console.log('⚠️ Global Waves element not found. Available elements:');
-        console.log('   - globalHiWaves:', !!document.getElementById('globalHiWaves'));
-        console.log('   - globalWaves:', !!document.getElementById('globalWaves'));
-        console.log('   - global-waves:', !!document.getElementById('global-waves'));
-      }
-      
-      if (globalUsers && window.gUsers !== undefined) {
-        globalUsers.textContent = window.gUsers.toLocaleString();
-        console.log('✅ Global Users UI updated:', window.gUsers);
-      }
-      
-      // Also try to update any other possible stat displays
-      document.querySelectorAll('.total-his-count, .global-total-his').forEach(el => {
-        if (window.gTotalHis !== undefined) el.textContent = window.gTotalHis.toLocaleString();
-      });
-      
-      document.querySelectorAll('.waves-count, .global-waves-count').forEach(el => {
-        if (window.gWaves !== undefined) el.textContent = window.gWaves.toLocaleString();
-      });
-    }
-
-    // METRICS SEPARATION: Debug exposure
-    window.metricsDebug = {
-      gWaves: () => gWaves,
-      gTotalHis: () => gTotalHis,
-      gUsers: () => gUsers,
-      incrementHiWave,
-      updateGlobalStats,
-      loadCurrentStats: loadCurrentStatsFromDatabase
-    };
-  </script>
+  <!-- Centralized streak milestone registry (must load before streak consumers) -->
+  <script src="./lib/streaks/HiStreakMilestones.js" defer></script>
+  <!-- Centralized streak milestone toast component -->
+  <script src="./lib/streaks/HiMilestoneToast.js" defer></script>
+  <!-- Auth QA harness (runs only when ?runAuthQA=1) -->
+  <script src="./lib/qa/auth-flow-qa.js" defer></script>
+  <script src="./lib/boot/dashboard-main.js" defer></script>
+  <!-- Gate scripts consolidated into mc-access-core.js -->
 
   <!-- Premium Component Scripts -->
   <link rel="stylesheet" href="assets/premium-calendar.css">
-  <script src="assets/premium-ux.js"></script>
-  <script src="assets/premium-calendar.js"></script>
+  <script src="assets/premium-ux.js" defer></script>
+  <script src="assets/premium-calendar.js" defer></script>
   <script src="./ui/HiFooter/HiFooter.js" defer></script>
+  <!-- Integrity watchdog merged into mc-access-core.js -->
   
-  <!-- Hi Components: HiShareSheet + HiMedallion (Tesla-grade initialization) -->
-  <script type="module">
-    import { HiShareSheet } from './ui/HiShareSheet/HiShareSheet.js';
-    import { mountHiMedallion } from './ui/HiMedallion/HiMedallion.js';
-    
-    // Tesla-grade component initialization with guards
-    document.addEventListener('DOMContentLoaded', () => {
-      // Initialize components only once
-      if (!window.__hiComponentsInitialized) {
-        window.__hiComponentsInitialized = {};
-      }
-      
-      // HiShareSheet - unified initialization (replaces duplicate at line 1008)
-      if (!window.__hiComponentsInitialized.shareSheet) {
-        const shareSheet = new HiShareSheet({ 
-          origin: 'dashboard',
-          onSuccess: async (shareData) => {
-            const submissionId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-            console.log('✅ Dashboard share success handler called:', { submissionId, shareData });
-            
-            // 🎯 TESLA GRADE: Increment Hi5 counter for Hi5 type shares
-            if (shareData.type === 'Hi5') {
-              console.log('🎯 Incrementing Hi5 counter for submission:', submissionId);
-              await incrementHi5Counter();
-              console.log('✅ Hi5 counter incremented for submission:', submissionId);
-            }
-            
-            // 🚀 TESLA GRADE: Refresh user count after new share
-            if (window.loadRealUserCount) {
-              setTimeout(window.loadRealUserCount, 1000);
-            }
-            
-            // Track submission for Global Hi's counter (COMPREHENSIVE integration)
-            if (window.trackShareSubmission) {
-              window.trackShareSubmission('hi-dashboard', {
-                submissionType: shareData.privacy || 'public',
-                pageOrigin: 'hi-dashboard',
-                origin: 'hi-dashboard',
-                tag: shareData.type === 'Hi5' ? 'Hi5️⃣' : 'Hi Dashboard',
-                timestamp: Date.now()
-              });
-            }
-            
-            // 📊 Analytics tracking
-            try {
-              const { trackEvent } = await import('./lib/monitoring/HiMonitor.js');
-              trackEvent('share_submit', {
-                visibility: shareData.visibility || shareData.privacy,
-                type: shareData.type || 'standard',
-                origin: 'dashboard'
-              });
-            } catch (err) {
-              console.log('Analytics tracking failed:', err);
-            }
-          }
-        });
-        shareSheet.init();
-        
-        // Store instance reference for button handlers
-        window.__hiComponentsInitialized.shareSheet = true;
-        window.__hiComponentsInitialized.shareSheetInstance = shareSheet;
-      }
-
-      // 🌟 WOZNIAK-GRADE: Handle post-auth dashboard actions
-      const pendingAction = localStorage.getItem('pendingDashboardAction');
-      if (pendingAction) {
-        try {
-          const actionData = JSON.parse(pendingAction);
-          console.log('🔄 Processing pending dashboard action after auth:', actionData);
-          
-          // Clear the pending action
-          localStorage.removeItem('pendingDashboardAction');
-          
-          // Execute the pending action based on type
-          if (actionData.action === 'hi5-share' && actionData.context === 'dashboard') {
-            // Auto-trigger Hi5 share after successful auth
-            setTimeout(() => {
-              const shareSheetInstance = window.__hiComponentsInitialized?.shareSheetInstance;
-              if (shareSheetInstance) {
-                shareSheetInstance.open({
-                  context: 'dashboard',
-                  preset: 'hi5',
-                  prefilledText: '✨ Celebrating this moment of growth! ',
-                  type: 'Hi5'
-                });
-                console.log('✅ Auto-opened Hi5 share sheet after auth');
-              }
-            }, 1000); // Small delay to ensure everything is loaded
-          }
-        } catch (error) {
-          console.error('❌ Failed to process pending dashboard action:', error);
-          localStorage.removeItem('pendingDashboardAction'); // Clean up on error
-        }
-      }
-      
-      // 🏗️ HI OS GOLD STANDARD: Long-Press Hi 5 System Function
-      function setupMedallionLongPress(medallionElement) {
-        if (!medallionElement || medallionElement.__longPressSetup) return;
-        medallionElement.__longPressSetup = true;
-        
-        let longPressTimer = null;
-        let progressTimer = null;
-        let startTime = 0;
-        const LONG_PRESS_DURATION = 2000; // 2 seconds
-        const PROGRESS_INTERVAL = 50; // Update every 50ms for smooth animation
-        
-        function startLongPress(e) {
-          // Prevent context menu on mobile
-          e.preventDefault();
-          
-          startTime = Date.now();
-          medallionElement.classList.add('long-press-active', 'long-press-filling');
-          
-          // Haptic feedback on start
-          try { navigator?.vibrate?.(20); } catch {}
-          
-          // Progress animation
-          let progress = 0;
-          progressTimer = setInterval(() => {
-            const elapsed = Date.now() - startTime;
-            progress = Math.min((elapsed / LONG_PRESS_DURATION) * 360, 360);
-            medallionElement.style.setProperty('--progress', `${progress}deg`);
-            
-            if (progress >= 360) {
-              clearInterval(progressTimer);
-              completeLongPress();
-            }
-          }, PROGRESS_INTERVAL);
-          
-          // Fallback timer
-          longPressTimer = setTimeout(() => {
-            completeLongPress();
-          }, LONG_PRESS_DURATION);
-        }
-        
-        function cancelLongPress() {
-          if (longPressTimer) {
-            clearTimeout(longPressTimer);
-            longPressTimer = null;
-          }
-          if (progressTimer) {
-            clearInterval(progressTimer);
-            progressTimer = null;
-          }
-          
-          medallionElement.classList.remove('long-press-active', 'long-press-filling', 'long-press-complete');
-          medallionElement.style.removeProperty('--progress');
-        }
-        
-        function completeLongPress() {
-          cancelLongPress();
-          medallionElement.classList.add('long-press-complete');
-          
-          // Strong haptic feedback on completion
-          try { navigator?.vibrate?.(100); } catch {}
-          
-          console.log('🎯 Long-press completed - triggering Hi 5 flow');
-          
-          // Trigger existing Hi 5 functionality
-          triggerHi5Flow();
-          
-          // Clean up visual state after animation
-          setTimeout(() => {
-            medallionElement.classList.remove('long-press-complete');
-          }, 500);
-        }
-        
-        // Mobile-first event handling
-        medallionElement.addEventListener('touchstart', startLongPress, { passive: false });
-        medallionElement.addEventListener('mousedown', startLongPress);
-        
-        medallionElement.addEventListener('touchend', cancelLongPress);
-        medallionElement.addEventListener('touchmove', cancelLongPress);
-        medallionElement.addEventListener('mouseup', cancelLongPress);
-        medallionElement.addEventListener('mouseleave', cancelLongPress);
-        
-        console.log('🏗️ Long-press system initialized for medallion');
-      }
-      
-      // 🎯 Hi 5 Flow Trigger Function (connects to existing system)
-      function triggerHi5Flow() {
-        // Use existing Hi 5 authentication and flow logic
-        const canShare = window.hiAccessManager?.canAccess?.('shareCreation') || 
-                        window.HiTierSystem?.hasCapability?.('drop_hi') ||
-                        window.unifiedMembership?.hasAccess?.('shareCreation');
-                        
-        if (!canShare) {
-          console.log('🔒 Anonymous user long-press - showing auth modal');
-          
-          // Use existing auth modal system
-          if (window.showShareAuthModal) {
-            window.showShareAuthModal('hi-dashboard', {
-              title: 'Join Hi Community for Self Hi 5',
-              benefits: [
-                '✨ Celebrate achievements that matter to you',
-                '📊 Track your personal empowerment journey',
-                '🎯 Share meaningful moments with the community'
-              ],
-              trigger: 'medallion-long-press',
-              cta: 'Start Your Hi 5 Journey'
-            });
-          } else if (window.showAuthModal) {
-            window.showAuthModal('hi-dashboard');
-          } else {
-            console.warn('⚠️ No auth modals available');
-            window.location.href = '/welcome.html';
-          }
-        } else {
-          console.log('✅ Authenticated user - proceeding with Hi 5 creation');
-          // TODO: Implement authenticated Hi 5 creation flow
-          // This would open the Hi 5 ritual/creation interface
-        }
-      }
-
-      // METRICS SEPARATION: Initialize HiMedallion with medallion tap handler
-      const medallionContainer = document.getElementById('hiMedallionContainer');
-      if (medallionContainer) {
-        // Use existing medallion HTML with your logo (don't overwrite)
-        import('./ui/HiMedallion/HiMedallion.js').then(({ mountHiMedallion }) => {
-          // Find the existing medallion button element
-          const medallionElement = medallionContainer.querySelector('#hiMedallion');
-          if (medallionElement) {
-            // Mount interactive behavior with direct tap tracking (UX-first fix)
-            mountHiMedallion(medallionElement, {
-              origin: 'dashboard',
-              ariaLabel: 'Send positive energy to the Stay Hi community',
-              onTap: () => {
-                console.log('🏅 Medallion tapped - tracking wave...');
-                
-                // Increment global waves immediately (initialize if needed)
-                if (window.gWaves === undefined) {
-                  window.gWaves = 0; // Initialize if not set yet
-                }
-                window.gWaves += 1;
-                console.log('🌊 Global waves updated:', window.gWaves);
-                
-                // 🎯 JOBS-GRADE: 60fps UI update with RAF optimization
-                requestAnimationFrame(() => {
-                  const globalHiWavesEl = document.getElementById('globalHiWaves');
-                  if (globalHiWavesEl) {
-                    globalHiWavesEl.textContent = window.gWaves.toLocaleString();
-                    
-                    // Trigger Mario-style number burst (RAF-optimized)
-                    globalHiWavesEl.classList.remove('burst');
-                    requestAnimationFrame(() => {
-                      globalHiWavesEl.classList.add('burst');
-                      
-                      // Clean up animation class after completion
-                      setTimeout(() => {
-                        requestAnimationFrame(() => {
-                          globalHiWavesEl.classList.remove('burst');
-                        });
-                      }, 500);
-                    });
-                    
-                    console.log('✅ UI updated with RAF-optimized burst animation');
-                  }
-                });
-                
-                // Also call the unified stats update if available
-                if (window.updateGlobalStats) {
-                  window.updateGlobalStats();
-                }
-                
-                // 🎯 PERSIST TO DATABASE: Call increment_hi_wave to save to database
-                if (window.supabase) {
-                  window.supabase.rpc('increment_hi_wave').then(({ data, error }) => {
-                    if (error) {
-                      console.error('❌ Database wave increment failed:', error);
-                    } else {
-                      console.log('✅ Wave persisted to database:', data);
-                      // Update with actual database value to stay in sync
-                      if (data && typeof data === 'number') {
-                        window.gWaves = data;
-                        
-                        // 🚀 CACHE THE REAL VALUE: Persist for next page load
-                        localStorage.setItem('dashboard_waves_cache', window.gWaves.toString());
-                        localStorage.setItem('dashboard_cache_timestamp', Date.now().toString());
-                        
-                        // 🌊 TESLA GRADE: Update Hi Waves real-time system
-                        if (window.hiWavesRealtime) {
-                          window.hiWavesRealtime.updateWavesUI(window.gWaves);
-                        }
-                        
-                        const globalHiWavesEl = document.getElementById('globalHiWaves');
-                        if (globalHiWavesEl) {
-                          globalHiWavesEl.textContent = window.gWaves.toLocaleString();
-                        }
-                        
-                        console.log('📦 Waves cached for next load:', window.gWaves);
-                      }
-                    }
-                  });
-                }
-                
-                // Track in localStorage for persistence
-                const personalTaps = parseInt(localStorage.getItem('user_medallion_taps') || '0', 10) + 1;
-                localStorage.setItem('user_medallion_taps', personalTaps.toString());
-              }
-            });
-            
-            console.log('🎯 Tesla-grade HiMedallion mounted on dashboard with tap tracking');
-            
-            // 🏗️ HI OS GOLD STANDARD: Long-Press Hi 5 System
-            setupMedallionLongPress(medallionElement);
-          }
-        }).catch(error => {
-          console.error('❌ Failed to load HiMedallion:', error);
-        });
-      }
-    });
-  </script>
+  <!-- Hi Components: HiShareSheet + HiMedallion (Externalized) -->
+  <script type="module" src="./lib/boot/dashboard-main.mjs"></script>
   
-  <!-- Initialize Premium Features -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // HI DEV: Calendar modal stacking fix (P2) - Initialize once only
-      if (window.PremiumCalendar && !window.__hiCalendarInitialized) {
-        window.__hiCalendarInitialized = true;
-        window.hiCalendarInstance = new window.PremiumCalendar();
-        console.log('[HI DEV] Calendar initialized once, stacking prevented');
-        
-        // Setup calendar integration
-        setupCalendarIntegration();
-        
-        // Setup home navigation
-        setupHomeNavigation();
-      }
-    });
-  </script>
+  <!-- Initialize Premium Features moved to dashboard-init.js -->
 
   <!-- 🌍 Tesla-Grade Unified Global Stats System -->
   <!-- DISABLED: Legacy stats system replaced by HiMetrics adapter -->
   <!-- <script src="assets/hi-unified-global-stats.js"></script> -->
   
-  <!-- Tesla-Grade Navigation System removed - Home nav now in header -->
-  <script>
-    // Navigation system integration
-    document.addEventListener('DOMContentLoaded', () => {
-      // Update app state when dashboard is ready
-      if (window.hiNavSystem) {
-        window.hiNavSystem.updateAppState('ready');
-        console.log('🧭 Dashboard ready, navigation system active');
-      }
-      
-      // Track dashboard page view
-      if (window.hiNavSystem) {
-        window.hiNavSystem.trackNavigation('dashboard_load');
-      }
-    });
-    
-    // Loading protection - if page takes too long, activate escape
-    // Add floating refresh button
-    function addFloatingRefresh() {
-      if (!document.querySelector('.floating-refresh')) {
-        const refreshButton = document.createElement('button');
-        refreshButton.className = 'floating-refresh';
-        refreshButton.innerHTML = '🔄'; // Universal refresh emoji - no dependencies
-        refreshButton.addEventListener('click', () => {
-          location.reload();
-        });
-        document.body.appendChild(refreshButton);
-      }
-    }
-    
-    // Initialize refresh button after page load
-    addFloatingRefresh();
-
-    // Floating Hiffirmations System
-    class FloatingHiffirmations {
-      constructor() {
-        this.currentPage = 'dashboard';
-        this.lastShown = 0;
-        this.cooldownPeriod = 30000; // 30 seconds
-        this.messageHistory = [];
-        this.maxHistorySize = 5;
-        this.init();
-      }
-
-      init() {
-        this.createFloatingButton();
-        this.setupEventListeners();
-        // Start gentle activity-based triggers after page settles
-        setTimeout(() => this.startActivityTriggers(), 5000);
-      }
-
-      createFloatingButton() {
-        const button = document.createElement('button');
-        button.className = 'floating-hiffirmations';
-        button.innerHTML = '✨';
-        button.setAttribute('aria-label', 'Contextual Hiffirmations');
-        button.setAttribute('title', 'Get inspired');
-        
-        const popup = document.createElement('div');
-        popup.className = 'hiffirmation-popup';
-        popup.setAttribute('role', 'tooltip');
-        
-        document.body.appendChild(button);
-        document.body.appendChild(popup);
-        
-        this.button = button;
-        this.popup = popup;
-      }
-
-      setupEventListeners() {
-        this.button.addEventListener('click', () => {
-          this.showContextualMessage();
-        });
-
-        // Close popup on click outside
-        document.addEventListener('click', (e) => {
-          if (!this.button.contains(e.target) && !this.popup.contains(e.target)) {
-            this.hidePopup();
-          }
-        });
-      }
-
-      getContextualMessages() {
-        const userTier = this.getUserTier();
-        const timeOfDay = this.getTimeOfDay();
-        const engagementLevel = this.getEngagementLevel();
-        
-        // Base messages - universally inspiring
-        const baseMessages = [
-          "🌟 Every Hi moment counts",
-          "✨ You're creating positive ripples", 
-          "💫 Your journey matters today",
-          "🎯 Small actions, big impact",
-          "💝 You're exactly where you need to be"
-        ];
-
-        // Standard tier - enhanced motivation
-        const standardMessages = [
-          "🚀 Your potential is unfolding beautifully",
-          "🌈 Progress happens one Hi at a time",
-          "⭐ You're building something meaningful",
-          "🔥 Your energy lights up this space",
-          "💪 Your consistency is your superpower",
-          "🌅 Every day offers fresh possibilities"
-        ];
-
-        // Premium tier - personalized wisdom
-        const premiumMessages = [
-          "💎 Your unique light transforms everything",
-          "🏔️ You're stronger than any challenge today",
-          "🌺 Growth happens in your comfort with discomfort",
-          "⚡ You're writing your own inspiring story",
-          "🦄 Your authenticity creates lasting impact",
-          "🎭 You master the art of conscious living"
-        ];
-
-        // Time-sensitive contextual messages
-        const timeContextMessages = this.getTimeContextMessages(timeOfDay, userTier);
-        
-        // Engagement-level specific messages
-        const engagementMessages = this.getEngagementMessages(engagementLevel, userTier);
-
-        // Build smart message pool
-        let messagePool = [...baseMessages];
-        
-        if (userTier === 'STANDARD' || userTier === 'PREMIUM') {
-          messagePool.push(...standardMessages);
-        }
-        if (userTier === 'PREMIUM') {
-          messagePool.push(...premiumMessages);
-        }
-        
-        // Add contextual intelligence
-        messagePool.push(...timeContextMessages);
-        messagePool.push(...engagementMessages);
-
-        return messagePool;
-      }
-
-      getTimeOfDay() {
-        const hour = new Date().getHours();
-        if (hour < 12) return 'morning';
-        if (hour < 17) return 'afternoon';
-        return 'evening';
-      }
-
-      getEngagementLevel() {
-        if (this.activityScore > 20) return 'high';
-        if (this.activityScore > 8) return 'medium';
-        return 'low';
-      }
-
-      getTimeContextMessages(timeOfDay, userTier) {
-        const timeMessages = {
-          morning: {
-            base: ["🌅 Fresh energy for a new day", "☀️ Your morning intention shapes everything"],
-            standard: ["🌱 Plant seeds of positivity today", "⭐ Morning momentum builds lasting change"],
-            premium: ["🎯 Your morning mindset architects your reality", "🔥 You're designing today with purpose"]
-          },
-          afternoon: {
-            base: ["⚡ Midday renewal brings clarity", "🌞 Steady progress creates magic"],
-            standard: ["🎯 Afternoon focus amplifies your impact", "💪 Your persistence is paying dividends"],
-            premium: ["🚀 You're in the flow of purposeful action", "💎 Afternoon mastery builds lifetime habits"]
-          },
-          evening: {
-            base: ["🌙 Evening reflection deepens wisdom", "✨ Today's efforts become tomorrow's strength"],
-            standard: ["🌟 You're ending today stronger than you started", "💫 Evening gratitude multiplies blessings"],
-            premium: ["🎭 Your evening presence honors the day's growth", "🦋 You transform experiences into wisdom"]
-          }
-        };
-
-        const messages = [...timeMessages[timeOfDay].base];
-        if (userTier === 'STANDARD' || userTier === 'PREMIUM') {
-          messages.push(...timeMessages[timeOfDay].standard);
-        }
-        if (userTier === 'PREMIUM') {
-          messages.push(...timeMessages[timeOfDay].premium);
-        }
-
-        return messages;
-      }
-
-      getEngagementMessages(engagementLevel, userTier) {
-        const engagementMessages = {
-          low: {
-            base: ["🌱 Gentle steps forward count", "💝 Your presence here matters"],
-            standard: ["🌊 Flow finds you when you're ready", "⭐ Quiet moments build inner strength"],
-            premium: ["🧘‍♀️ Your stillness cultivates deeper wisdom", "🌸 Gentle pace honors your authentic rhythm"]
-          },
-          medium: {
-            base: ["🎯 Balanced energy serves you well", "🌈 Steady progress creates lasting change"],
-            standard: ["💪 Your consistent effort compounds beautifully", "🔥 Measured momentum builds sustainable success"],
-            premium: ["⚡ You master the art of intentional engagement", "🎭 Your balanced approach inspires others"]
-          },
-          high: {
-            base: ["🚀 Your energy is contagious", "🔥 Channel this momentum wisely"],
-            standard: ["⭐ High energy focused creates miracles", "💎 Your enthusiasm lights up everything"],
-            premium: ["🌟 You're a force of nature in conscious action", "🦄 Your vibrant energy transforms environments"]
-          }
-        };
-
-        const messages = [...engagementMessages[engagementLevel].base];
-        if (userTier === 'STANDARD' || userTier === 'PREMIUM') {
-          messages.push(...engagementMessages[engagementLevel].standard);
-        }
-        if (userTier === 'PREMIUM') {
-          messages.push(...engagementMessages[engagementLevel].premium);
-        }
-
-        return messages;
-      }
-
-      getUserTier() {
-        // Integration with existing tier system
-        const tierElement = document.getElementById('hi-tier-indicator');
-        if (tierElement) {
-          const tierText = tierElement.querySelector('.tier-text')?.textContent;
-          if (tierText === 'Premium') return 'PREMIUM';
-          if (tierText === 'Standard') return 'STANDARD';
-        }
-        return 'ANONYMOUS';
-      }
-
-      showContextualMessage() {
-        const now = Date.now();
-        if (now - this.lastShown < this.cooldownPeriod) return;
-
-        const messages = this.getContextualMessages();
-        const availableMessages = messages.filter(msg => !this.messageHistory.includes(msg));
-        
-        if (availableMessages.length === 0) {
-          this.messageHistory = []; // Reset history if all used
-          this.showContextualMessage(); // Retry
-          return;
-        }
-
-        const message = availableMessages[Math.floor(Math.random() * availableMessages.length)];
-        this.displayMessage(message);
-        
-        // Update history
-        this.messageHistory.push(message);
-        if (this.messageHistory.length > this.maxHistorySize) {
-          this.messageHistory.shift();
-        }
-        
-        this.lastShown = now;
-      }
-
-      displayMessage(message, type = 'contextual') {
-        // Enhanced message display with type-aware styling and timing
-        this.popup.innerHTML = `
-          <span class="hiffirmation-text">${message}</span>
-          <button class="hiffirmation-share-mini" title="Share as quote card">📤</button>
-        `;
-        this.popup.setAttribute('data-message-type', type);
-        
-        // Add subtle type-specific styling
-        if (type === 'milestone') {
-          this.popup.style.background = 'rgba(233, 30, 99, 0.1)';
-          this.popup.style.borderColor = 'rgba(233, 30, 99, 0.3)';
-        } else {
-          this.popup.style.background = 'rgba(26, 32, 56, 0.95)';
-          this.popup.style.borderColor = 'rgba(255, 255, 255, 0.15)';
-        }
-        
-        // Add share functionality
-        const shareBtn = this.popup.querySelector('.hiffirmation-share-mini');
-        shareBtn.addEventListener('click', async (e) => {
-          e.stopPropagation();
-          await this.shareFloatingMessage(message);
-        });
-        
-        this.popup.classList.add('show');
-        
-        // Smart auto-hide timing based on message type and length
-        const baseTime = type === 'milestone' ? 5000 : 4000; // Milestone messages stay longer
-        const lengthBonus = Math.min(2000, message.length * 50); // Longer messages get more time
-        const hideDelay = baseTime + lengthBonus;
-        
-        this.autoHideTimeout = setTimeout(() => {
-          this.hidePopup();
-        }, hideDelay);
-
-        // Analytics: Track message effectiveness
-        this.trackMessageShown(message, type);
-      }
-
-      async shareFloatingMessage(message) {
-        const shareBtn = this.popup.querySelector('.hiffirmation-share-mini');
-        const originalContent = shareBtn.innerHTML;
-        
-        try {
-          shareBtn.innerHTML = '⏳';
-          shareBtn.style.pointerEvents = 'none';
-          
-          // Get user tier
-          const userTier = this.getUserTier();
-          
-          // Generate quote card with contextual branding
-          const quoteCardDataURL = await window.HiQuoteCardGenerator.generateQuoteCard(
-            message, 
-            { 
-              userTier, 
-              format: 'square',
-              context: this.currentPage 
-            }
-          );
-          
-          // Convert to blob
-          const blob = await window.HiQuoteCardGenerator.dataURLToBlob(quoteCardDataURL);
-          const file = new File([blob], `hi-${this.currentPage}-inspiration.png`, { type: 'image/png' });
-          
-          // Try sharing with image
-          if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({
-              title: `Inspiration from Stay Hi`,
-              text: `"${message}"\n\nShared from Stay Hi ✨`,
-              files: [file]
-            });
-            shareBtn.innerHTML = '✅';
-          } else {
-            // Fallback: Download image
-            const downloadLink = document.createElement('a');
-            downloadLink.href = quoteCardDataURL;
-            downloadLink.download = `hi-${this.currentPage}-inspiration.png`;
-            downloadLink.click();
-            
-            // Copy text
-            const textToCopy = `"${message}"\n\nShared from Stay Hi ✨\nstay-hi.app`;
-            await navigator.clipboard.writeText(textToCopy);
-            
-            shareBtn.innerHTML = '📥';
-          }
-          
-          // Reset after success
-          setTimeout(() => {
-            shareBtn.innerHTML = originalContent;
-            shareBtn.style.pointerEvents = 'auto';
-          }, 2000);
-          
-        } catch (error) {
-          console.error('❌ Floating message sharing failed:', error);
-          shareBtn.innerHTML = '❌';
-          setTimeout(() => {
-            shareBtn.innerHTML = originalContent;
-            shareBtn.style.pointerEvents = 'auto';
-          }, 2000);
-        }
-      }
-
-      trackMessageShown(message, type) {
-        // Enhanced analytics for message effectiveness
-        if (!window.hiAnalytics) return;
-        
-        window.hiAnalytics.track('hiffirmation_shown', {
-          message_type: type,
-          page_context: this.currentPage,
-          user_tier: this.getUserTier(),
-          activity_score: this.activityScore,
-          session_messages: this.messageHistory.length,
-          message_preview: message.substring(0, 20) + '...'
-        });
-      }
-
-      hidePopup() {
-        this.popup.classList.remove('show');
-        if (this.autoHideTimeout) {
-          clearTimeout(this.autoHideTimeout);
-        }
-      }
-
-      startActivityTriggers() {
-        // Smart contextual triggers with behavioral intelligence
-        this.activityScore = 0;
-        this.milestoneActions = ['selfHi5Enhanced', 'btnShare', 'hiffirmationsTrigger'];
-        this.setupMilestoneTriggers();
-        this.setupSmartTimingAlgorithm();
-        this.trackUserEngagementPattern();
-      }
-
-      setupMilestoneTriggers() {
-        // Trigger inspirational messages after meaningful user actions
-        this.milestoneActions.forEach(actionId => {
-          const element = document.getElementById(actionId);
-          if (element) {
-            element.addEventListener('click', () => {
-              // Delay inspiration to avoid overwhelming user during their action
-              setTimeout(() => {
-                this.showMilestoneMessage(actionId);
-              }, 2000);
-            });
-          }
-        });
-
-        // Hi-5 medallion interaction trigger
-        const medallion = document.querySelector('.medallion, [data-action="hi-wave"]');
-        if (medallion) {
-          medallion.addEventListener('click', () => {
-            setTimeout(() => {
-              this.showMilestoneMessage('hi-wave');
-            }, 1500);
-          });
-        }
-      }
-
-      showMilestoneMessage(actionType) {
-        const now = Date.now();
-        if (now - this.lastShown < 15000) return; // Reduced cooldown for milestones
-
-        const milestoneMessages = this.getMilestoneMessages(actionType);
-        const message = milestoneMessages[Math.floor(Math.random() * milestoneMessages.length)];
-        this.displayMessage(message, 'milestone');
-        this.lastShown = now;
-      }
-
-      getMilestoneMessages(actionType) {
-        const userTier = this.getUserTier();
-        
-        const milestoneMap = {
-          'selfHi5Enhanced': {
-            base: ["🙌 Hi love! Self-appreciation keeps you Hi!", "✨ Hi supporter! You're your own Hi cheerleader!"],
-            standard: ["💝 Hi radiator! Your self-love creates Hi ripples!", "🌟 Hi magnetic! Self-appreciation is Hi-ly attractive!"],
-            premium: ["👑 Hi royalty! You just modeled Hi-level self-worth!", "💎 Hi inspiration! Your self-love lifts others Hi!"]
-          },
-          'hi-wave': {
-            base: ["🌊 Hi connector! Every wave creates Hi bonds!", "✨ Hi brightener! You just lifted someone Hi!"],
-            standard: ["💫 Hi contagious! Your Hi energy spreads joy!", "🔥 Hi momentum! You're building Hi vibes!"],
-            premium: ["🚀 Hi catalyst! You spark Hi community joy!", "⭐ Hi influencer! Your waves create Hi impact!"]
-          },
-          'btnShare': {
-            base: ["📤 Hi sharer! Sharing multiplies Hi joy!", "🌈 Hi storyteller! Your Hi story matters!"],
-            standard: ["🎯 Hi authentic! Vulnerability creates Hi connection!", "💪 Hi brave! You inspire others to fly Hi!"],
-            premium: ["🌟 Hi transformer! Your Hi sharing elevates communities!", "🔥 Hi leader! You're modeling Hi courage!"]
-          }
-        };
-
-        const messageSet = milestoneMap[actionType] || milestoneMap['hi-wave'];
-        let messages = [...messageSet.base];
-        
-        if (userTier === 'STANDARD' || userTier === 'PREMIUM') {
-          messages.push(...messageSet.standard);
-        }
-        if (userTier === 'PREMIUM') {
-          messages.push(...messageSet.premium);
-        }
-
-        return messages;
-      }
-
-      setupSmartTimingAlgorithm() {
-        // Intelligent activity-based inspiration timing
-        let activityTimer;
-        let engagementLevel = 'low'; // low, medium, high
-        
-        const calculateEngagementLevel = () => {
-          if (this.activityScore > 20) engagementLevel = 'high';
-          else if (this.activityScore > 8) engagementLevel = 'medium';
-          else engagementLevel = 'low';
-        };
-
-        const getSmartInterval = () => {
-          const baseIntervals = {
-            low: 300000,    // 5 minutes - user needs more encouragement
-            medium: 240000, // 4 minutes - balanced engagement
-            high: 180000    // 3 minutes - user is active, keep momentum
-          };
-          const variance = Math.random() * 60000; // ±1 minute randomness
-          return baseIntervals[engagementLevel] + variance;
-        };
-
-        const resetSmartTimer = () => {
-          clearTimeout(activityTimer);
-          calculateEngagementLevel();
-          
-          activityTimer = setTimeout(() => {
-            if (this.shouldShowSmartMessage()) {
-              this.showContextualMessage();
-            }
-            resetSmartTimer(); // Reset for continuous operation
-          }, getSmartInterval());
-        };
-
-        // Track meaningful user interactions for engagement scoring
-        ['click', 'scroll', 'keypress', 'focus'].forEach(event => {
-          document.addEventListener(event, (e) => {
-            this.activityScore += this.getActivityWeight(e);
-            // Decay activity score over time
-            setTimeout(() => { this.activityScore = Math.max(0, this.activityScore - 1); }, 30000);
-          }, { passive: true });
-        });
-
-        resetSmartTimer();
-      }
-
-      getActivityWeight(event) {
-        // Weight different activities by engagement value
-        const weights = {
-          click: 3,     // Deliberate interaction
-          scroll: 1,    // Passive engagement
-          keypress: 2,  // Active input
-          focus: 1      // Attention return
-        };
-        
-        // Bonus weight for meaningful element interactions
-        if (event.target) {
-          if (event.target.closest('button, .medallion, [data-action]')) {
-            return (weights[event.type] || 1) * 2;
-          }
-        }
-        
-        return weights[event.type] || 1;
-      }
-
-      shouldShowSmartMessage() {
-        // Intelligent decision making for message timing
-        const now = Date.now();
-        const timeSinceLastMessage = now - this.lastShown;
-        const minimumInterval = 45000; // 45 seconds absolute minimum
-        
-        if (timeSinceLastMessage < minimumInterval) return false;
-        
-        // Don't interrupt if user seems to be in a flow state
-        const recentActivityScore = this.activityScore;
-        if (recentActivityScore > 25) return false; // High activity = don't interrupt
-        
-        // Show message if user seems idle or needs encouragement
-        if (recentActivityScore < 3 && timeSinceLastMessage > 180000) return true; // Idle user
-        
-        return true; // Default case
-      }
-
-      trackUserEngagementPattern() {
-        // Track user behavior patterns for future personalization
-        this.engagementPattern = {
-          sessionStart: Date.now(),
-          totalClicks: 0,
-          milestoneActions: 0,
-          messageInteractions: 0
-        };
-
-        // Track clicks on our floating button
-        this.button.addEventListener('click', () => {
-          this.engagementPattern.messageInteractions++;
-        });
-
-        // Enhanced milestone tracking
-        document.addEventListener('click', (e) => {
-          this.engagementPattern.totalClicks++;
-          
-          if (e.target.closest('.medallion, [data-action], button')) {
-            this.engagementPattern.milestoneActions++;
-          }
-        });
-      }
-    }
-
-    // Initialize floating Hiffirmations system
-    const floatingHiffirmations = new FloatingHiffirmations();
-
-    // Tesla-Grade Quote Card Generation System
-    // 🎨 TESLA-GRADE Quote Card Generation System (Premium Dashboard Branding)
-    class HiQuoteCardGenerator {
-      constructor() {
-        this.brandColors = {
-          primary: '#FFD166',
-          secondary: '#F4A261',
-          accent: '#E76F51',
-          background: '#0F1022',
-          backgroundSecondary: '#1A1D3A',
-          backgroundTertiary: '#252B52',
-          text: '#FFFFFF',
-          textSecondary: 'rgba(255, 255, 255, 0.9)',
-          textTertiary: 'rgba(255, 255, 255, 0.6)'
-        };
-        
-        this.socialFormats = {
-          instagram_post: { width: 1080, height: 1080 },
-          instagram_story: { width: 1080, height: 1920 },
-          twitter_card: { width: 1200, height: 675 },
-          square: { width: 1080, height: 1080 } // Increased from 800 for better quality
-        };
-        
-        this.logoCache = null;
-      }
-
-      async generateQuoteCard(message, options = {}) {
-        const {
-          userTier = 'ANONYMOUS',
-          format = 'square',
-          customBranding = false
-        } = options;
-
-        const dimensions = this.socialFormats[format];
-        const canvas = this.createCanvas(dimensions.width, dimensions.height);
-        const ctx = canvas.getContext('2d');
-
-        // Enable high-quality rendering
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-
-        await this.drawBackground(ctx, canvas, userTier);
-        await this.drawQuoteText(ctx, message, canvas, userTier);
-        await this.drawBranding(ctx, canvas, userTier);
-        
-        return canvas.toDataURL('image/png', 1.0); // Maximum quality
-      }
-
-      createCanvas(width, height) {
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        return canvas;
-      }
-
-      async drawBackground(ctx, canvas, userTier) {
-        const { width, height } = canvas;
-        
-        // Premium gradient background
-        const gradient = ctx.createLinearGradient(0, 0, width, height);
-        
-        switch(userTier) {
-          case 'PREMIUM':
-            gradient.addColorStop(0, '#1A1D3A');
-            gradient.addColorStop(0.3, '#252B52');
-            gradient.addColorStop(0.6, '#2D3561');
-            gradient.addColorStop(1, '#1E2447');
-            break;
-          case 'STANDARD':
-            gradient.addColorStop(0, '#0F1022');
-            gradient.addColorStop(0.5, '#1A1D3A');
-            gradient.addColorStop(1, '#252B52');
-            break;
-          default:
-            gradient.addColorStop(0, '#0F1022');
-            gradient.addColorStop(1, '#1A1D3A');
-        }
-        
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, width, height);
-        
-        // Add subtle geometric pattern
-        this.addGeometricPattern(ctx, canvas, userTier);
-        
-        // Add premium light rays for premium tier
-        if (userTier === 'PREMIUM') {
-          this.addLightRays(ctx, canvas);
-        }
-      }
-
-      addGeometricPattern(ctx, canvas, userTier) {
-        const { width, height } = canvas;
-        ctx.globalAlpha = userTier === 'PREMIUM' ? 0.08 : 0.04;
-        ctx.strokeStyle = this.brandColors.primary;
-        ctx.lineWidth = 1;
-        
-        // Diagonal lines pattern
-        const spacing = 60;
-        for (let i = -height; i < width + height; i += spacing) {
-          ctx.beginPath();
-          ctx.moveTo(i, 0);
-          ctx.lineTo(i + height, height);
-          ctx.stroke();
-        }
-        
-        ctx.globalAlpha = 1;
-      }
-
-      addLightRays(ctx, canvas) {
-        const { width, height } = canvas;
-        ctx.globalAlpha = 0.05;
-        
-        const centerX = width / 2;
-        const centerY = height * 0.3;
-        
-        for (let i = 0; i < 8; i++) {
-          const angle = (Math.PI * 2 * i) / 8;
-          const gradient = ctx.createRadialGradient(
-            centerX, centerY, 0,
-            centerX, centerY, height * 0.8
-          );
-          gradient.addColorStop(0, this.brandColors.primary);
-          gradient.addColorStop(1, 'transparent');
-          
-          ctx.fillStyle = gradient;
-          ctx.save();
-          ctx.translate(centerX, centerY);
-          ctx.rotate(angle);
-          ctx.fillRect(-width * 0.1, 0, width * 0.2, height);
-          ctx.restore();
-        }
-        
-        ctx.globalAlpha = 1;
-      }
-
-      async drawQuoteText(ctx, message, canvas, userTier) {
-        const { width, height } = canvas;
-        const centerX = width / 2;
-        const centerY = height / 2;
-        
-        // Premium typography
-        const fontSize = this.getFontSize(message.length, canvas);
-        const fontWeight = userTier === 'PREMIUM' ? '600' : '500';
-        const fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
-        
-        ctx.fillStyle = this.brandColors.text;
-        ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        
-        // Wrap text with better spacing
-        const lines = this.wrapText(ctx, message, width * 0.75);
-        const lineHeight = fontSize * 1.5;
-        const totalTextHeight = lines.length * lineHeight;
-        const startY = centerY - (totalTextHeight / 2) + 20;
-        
-        // Premium text shadow
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-        ctx.shadowBlur = 8;
-        ctx.shadowOffsetY = 3;
-        
-        lines.forEach((line, index) => {
-          const y = startY + (index * lineHeight);
-          ctx.fillText(line, centerX, y);
-        });
-        
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetY = 0;
-      }
-
-      getFontSize(textLength, canvas) {
-        const baseSize = canvas.width / 18;
-        if (textLength < 30) return Math.min(baseSize * 1.3, 70);
-        if (textLength < 60) return Math.min(baseSize * 1.1, 60);
-        if (textLength < 100) return Math.min(baseSize * 0.95, 52);
-        return Math.min(baseSize * 0.8, 44);
-      }
-
-      wrapText(ctx, text, maxWidth) {
-        const words = text.split(' ');
-        const lines = [];
-        let currentLine = '';
-        
-        for (const word of words) {
-          const testLine = currentLine + (currentLine ? ' ' : '') + word;
-          const metrics = ctx.measureText(testLine);
-          
-          if (metrics.width > maxWidth && currentLine !== '') {
-            lines.push(currentLine);
-            currentLine = word;
-          } else {
-            currentLine = testLine;
-          }
-        }
-        
-        if (currentLine) {
-          lines.push(currentLine);
-        }
-        
-        return lines;
-      }
-
-      async drawBranding(ctx, canvas, userTier) {
-        const { width, height } = canvas;
-        
-        // Load and cache the Hi logo
-        if (!this.logoCache) {
-          await this.loadLogo();
-        }
-        
-        // Position branding at bottom
-        const brandingY = height - 140;
-        const logoSize = 80; // Much larger, crisp logo
-        const logoX = width / 2 - (logoSize / 2);
-        
-        // Draw hi-res logo
-        if (this.logoCache) {
-          ctx.drawImage(this.logoCache, logoX, brandingY - 20, logoSize, logoSize);
-        }
-        
-        // Brand name below logo
-        ctx.fillStyle = this.brandColors.text;
-        ctx.font = '600 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Stay Hi', width / 2, brandingY + 85);
-        
-        // URL with accent color
-        ctx.font = '500 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-        ctx.fillStyle = this.brandColors.primary;
-        ctx.fillText('stay-hi.app', width / 2, brandingY + 120);
-        
-        // Tier badge at top (if applicable)
-        if (userTier === 'STANDARD' || userTier === 'PREMIUM') {
-          this.drawTierBadge(ctx, canvas, userTier);
-        }
-      }
-
-      drawTierBadge(ctx, canvas, userTier) {
-        const { width } = canvas;
-        const badgeY = 50;
-        
-        // Badge background
-        const badgeWidth = 200;
-        const badgeHeight = 40;
-        const badgeX = (width / 2) - (badgeWidth / 2);
-        
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-        ctx.lineWidth = 2;
-        
-        // Rounded rectangle
-        this.roundRect(ctx, badgeX, badgeY, badgeWidth, badgeHeight, 20);
-        ctx.fill();
-        ctx.stroke();
-        
-        // Badge text
-        const badgeText = userTier === 'PREMIUM' ? '✨ Premium Member' : '⭐ Standard Member';
-        ctx.fillStyle = this.brandColors.text;
-        ctx.font = '600 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(badgeText, width / 2, badgeY + 25);
-      }
-
-      roundRect(ctx, x, y, width, height, radius) {
-        ctx.beginPath();
-        ctx.moveTo(x + radius, y);
-        ctx.lineTo(x + width - radius, y);
-        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-        ctx.lineTo(x + width, y + height - radius);
-        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-        ctx.lineTo(x + radius, y + height);
-        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-        ctx.lineTo(x, y + radius);
-        ctx.quadraticCurveTo(x, y, x + radius, y);
-        ctx.closePath();
-      }
-
-      async loadLogo() {
-        return new Promise((resolve) => {
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
-          img.onload = () => {
-            this.logoCache = img;
-            resolve();
-          };
-          img.onerror = () => {
-            console.warn('⚠️ Could not load logo for quote card');
-            resolve(); // Continue without logo
-          };
-          // Use absolute path to logo
-          img.src = 'assets/brand/hi-logo-light.png';
-        });
-      }
-
-      async dataURLToBlob(dataURL) {
-        return new Promise(resolve => {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          const img = new Image();
-          
-          img.onload = () => {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            
-            canvas.toBlob(resolve, 'image/png', 1.0);
-          };
-          
-          img.src = dataURL;
-        });
-      }
-    }
-
-    // Initialize quote card generator
-    window.HiQuoteCardGenerator = new HiQuoteCardGenerator();
-  </script>
+  <!-- Navigation + Floating systems + QuoteCard moved to dashboard-init.js -->
 </body>
 </html>/* Cache bust: Thu Nov 13 01:26:01 EST 2025 */

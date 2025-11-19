@@ -1,0 +1,48 @@
+name: Quality Gate
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  sri-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install deps
+        run: npm ci
+      - name: SRI Drift Check
+        run: node scripts/update-sri.js --check
+      - name: Branding Check (Hi Speak)
+        run: node scripts/branding-check.js
+      - name: Start local server
+        run: |
+          python3 -m http.server 3030 &
+          echo $! > server.pid
+          sleep 2
+      - name: A11y Scan (core pages)
+        run: |
+          node scripts/a11y-scan.js \
+            http://localhost:3030/public/welcome.html \
+            http://localhost:3030/public/signin.html \
+            http://localhost:3030/public/hi-dashboard.html \
+            http://localhost:3030/public/profile.html
+      - name: A11y Assert (fail on critical)
+        run: node scripts/a11y-assert.js
+      - name: Stop local server
+        if: always()
+        run: |
+          kill $(cat server.pid) || true
+      - name: Performance Budget Check
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
+        run: |
+          node scripts/perf-budget-check.mjs
+      - name: Summary
+        run: echo "Quality gate completed"

@@ -69,6 +69,38 @@ async function _getProfile(userId) {
 }
 
 /**
+ * Update user profile by ID
+ * @param {string} userId - User ID to update
+ * @param {Object} updates - Fields to update on the profile
+ * @returns {Object} { data, error } with updated profile or error
+ */
+async function _updateProfile(userId, updates) {
+    return hiBaseClient.execute(async (client) => {
+        const { data, error } = await client
+            .from('hi_users')
+            .update({
+                ...updates,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', userId)
+            .select()
+            .single();
+
+        if (error) {
+            return { data: null, error };
+        }
+
+        return {
+            data: {
+                profile: data,
+                message: 'Profile updated successfully'
+            },
+            error: null
+        };
+    });
+}
+
+/**
  * Get user profile by email
  * @param {string} email - User email
  * @returns {Object} { data, error } with profile or error

@@ -30,22 +30,7 @@
       "purpose": "maskable"
     }
   ],
-  "screenshots": [
-    {
-      "src": "assets/screenshots/desktop-main.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Main Hi Collective experience on desktop"
-    },
-    {
-      "src": "assets/screenshots/mobile-main.png", 
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Mobile Hi experience"
-    }
-  ],
+  "screenshots": [],
   "shortcuts": [
     {
       "name": "Give Yourself a Hi",

@@ -25,6 +25,15 @@ class HiIslandRealFeed {
       general: { page: 0, hasMore: true },
       archives: { page: 0, hasMore: true }
     };
+    // Origin filter state for General tab: 'all' | 'quick' | 'muscle' | 'island'
+    this.originFilter = 'all';
+    // Track locally waved shares to reflect UI state and reduce duplicates
+    try {
+      const cached = JSON.parse(localStorage.getItem('wavedShares') || '[]');
+      this.wavedShares = new Set(Array.isArray(cached) ? cached : []);
+    } catch {
+      this.wavedShares = new Set();
+    }
   }
 
   // Initialize the feed with REAL data sources
@@ -199,7 +208,8 @@ class HiIslandRealFeed {
         this.feedData.general = [...this.feedData.general, ...processedShares];
       }
 
-      this.renderFeedItems('general', processedShares);
+      // Render with current filter applied
+      this.renderFeedItems('general', this.getFilteredItems('general'));
       this.updateTabCount('general');
 
       // Update pagination
@@ -367,6 +377,20 @@ class HiIslandRealFeed {
   attachEventListeners() {
     // Only attach load more listeners - tabs are handled by hi-island
     this.attachLoadMoreListeners();
+
+    // Delegate share action events (e.g., Wave Back)
+    const container = document.getElementById('hi-island-feed-root');
+    if (container) {
+      container.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.share-action-btn');
+        if (!btn) return;
+        const action = btn.dataset.action;
+        if (action === 'wave') {
+          e.preventDefault();
+          await this.handleWaveAction(btn);
+        }
+      });
+    }
   }
 
   // 🔧 LONG-TERM SOLUTION: Async tab switching with proper error handling
@@ -474,7 +498,7 @@ class HiIslandRealFeed {
           </button>
         </div>
       `;
-      this.renderFeedItems('general', this.feedData.general || []);
+      this.renderFeedItems('general', this.getFilteredItems('general'));
     } else if (tabName === 'archives') {
       contentArea.innerHTML = `
         <div id="archivesTab" class="hi-feed-tab-content active">
@@ -535,12 +559,119 @@ class HiIslandRealFeed {
 
     shares.forEach(share => {
       const shareElement = this.createShareElement(share, tabName);
+      try {
+        if (tabName === 'general' && this.wavedShares?.has?.(share.id)) {
+          const btn = shareElement.querySelector('.share-action-btn[data-action="wave"]');
+          if (btn) {
+            btn.classList.add('waved');
+            btn.disabled = true;
+            btn.setAttribute('aria-pressed', 'true');
+            btn.textContent = '👋 Waved';
+          }
+        }
+      } catch {}
       container.appendChild(shareElement);
     });
 
     // Show empty state if no shares
     if (this.feedData[tabName].length === 0) {
       this.showEmptyState(tabName);
+    }
+  }
+
+  // Apply current origin filter to a tab's data
+  getFilteredItems(tabName) {
+    if (tabName !== 'general') return this.feedData[tabName] || [];
+    if (this.originFilter === 'all') return this.feedData.general || [];
+
+    const filter = this.originFilter;
+    const items = this.feedData.general || [];
+    return items.filter((share) => this.matchesOriginFilter(share, filter));
+  }
+
+  matchesOriginFilter(share, filter) {
+    try {
+      const o = String(share.origin || '').toLowerCase();
+      const t = String(share.type || '').toLowerCase();
+      if (filter === 'quick') {
+        return (
+          o.includes('quick') ||
+          ['hi5', 'self_hi5', 'self-hi5', 'index', 'hi-dashboard', 'dashboard'].includes(o) ||
+          t.includes('hi5') || t.includes('self')
+        );
+      }
+      if (filter === 'muscle') {
+        return (
+          o.includes('muscle') || o.includes('gym') || ['hi-muscle', 'higym', 'muscle', 'gym', 'hi_muscle_journey'].includes(o) ||
+          t.includes('muscle') || t.includes('journey')
+        );
+      }
+      if (filter === 'island') {
+        return (o.includes('island') || o === 'hi-island');
+      }
+      return true;
+    } catch {
+      return filter === 'all';
+    }
+  }
+
+  // Public API to set origin filter and re-render general tab
+  setOriginFilter(filter = 'all') {
+    this.originFilter = filter;
+    if (this.currentTab === 'general') {
+      this.renderTabContent('general');
+    }
+  }
+
+  // Handle "Wave Back" UX with anonymous-friendly behavior
+  async handleWaveAction(buttonEl) {
+    if (!buttonEl || buttonEl.classList.contains('waved')) return;
+    const shareId = buttonEl.dataset.shareId;
+    if (!shareId) {
+      console.warn('Wave action missing share id');
+      return;
+    }
+
+    try {
+      // Anonymous users: allow celebratory feedback, encourage sign-in
+      if (!this.currentUserId) {
+        buttonEl.classList.add('waved');
+        const original = buttonEl.textContent;
+        buttonEl.textContent = '👋 Waved (not saved)';
+        buttonEl.setAttribute('aria-pressed', 'true');
+        try { this.wavedShares.add(shareId); localStorage.setItem('wavedShares', JSON.stringify(Array.from(this.wavedShares))); } catch {}
+        setTimeout(() => { try { buttonEl.textContent = original; buttonEl.classList.remove('waved'); buttonEl.setAttribute('aria-pressed', 'false'); } catch{} }, 1500);
+        if (window.showAuthModal && typeof window.showAuthModal === 'function') {
+          window.showAuthModal('Sign in to keep your waves and build your profile.');
+        }
+        return;
+      }
+
+      // Authenticated: attempt to persist reaction, then confirm visually
+      try {
+        const supabase = this.getSupabase();
+        if (supabase) {
+          const record = { user_id: this.currentUserId, share_id: shareId, type: 'wave' };
+          const { error } = await supabase
+            .from('share_reactions')
+            .upsert(record, { onConflict: 'user_id,share_id,type', ignoreDuplicates: true });
+          if (error) {
+            console.warn('Wave persistence failed (fallback to UI-only):', error.message || error);
+          }
+        }
+      } catch (e) {
+        console.warn('Wave persistence error:', e);
+      }
+
+      buttonEl.classList.add('waved');
+      buttonEl.disabled = true;
+      buttonEl.textContent = '👋 Waved';
+      buttonEl.setAttribute('aria-pressed', 'true');
+      try { this.wavedShares.add(shareId); localStorage.setItem('wavedShares', JSON.stringify(Array.from(this.wavedShares))); } catch {}
+      // Optional: future enhancement hook to persist reaction
+      // await this.recordWaveReaction(shareId)
+    } catch (e) {
+      console.warn('Wave action failed:', e);
     }
   }
 

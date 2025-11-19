@@ -6,6 +6,8 @@
   <title>Signing you in… — Stay Hi</title>
   <meta name="robots" content="noindex" />
   <link rel="stylesheet" href="assets/create-parity.css" />
+  <!-- HI-OS: Early SW unregister to guarantee fresh auth when ?no-sw=1 is present -->
+  <script src="./lib/boot/post-auth-early.js"></script>
   <style>
     /* Hi-Grade Gold Standard Auth Processing UI */
     * {
@@ -264,181 +266,16 @@
       <div class="err">Authentication Failed</div>
       <p class="muted" id="oopsMsg">Your magic link may have expired. Let's get you a fresh one.</p>
       <div class="row" style="gap:12px; margin-top: 20px;">
-        <button class="btn" onclick="go('signin-enhanced.html')">Get New Magic Link</button>
+        <button class="btn" onclick="go('signin.html')">Get New Magic Link</button>
         <button class="btn" onclick="go('/')">Back to Home</button>
       </div>
     </div>
   </main>
 
   <!-- Load Supabase CDN first -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1/dist/umd/supabase.min.js" integrity="sha384-XLEuzmdNfK1V09d59bu+Uv3EFtEp5kFP8BmseBq85CUpeFZXhUfqjk4ZeR/biZmS" crossorigin="anonymous"></script>
   <!-- Use unified Supabase client -->
   <script src="assets/supabase-init.js"></script>
-  <script>
-  // Wait for Supabase client to be ready
-  let supabase;
-  
-  async function waitForSupabase() {
-    // Import HiSupabase v3 directly
-    try {
-      const module = await import('./lib/HiSupabase.v3.js');
-      supabase = module.supabase;
-      console.log('✅ HiSupabase v3 loaded for post-auth');
-      return supabase;
-    } catch (err) {
-      console.error('❌ Failed to load HiSupabase v3:', err);
-      throw new Error('Failed to load authentication system');
-    }
-  }
-
-  const $ = (s)=>document.querySelector(s);
-  const go = (p)=>{ 
-    // Navigate to page
-    if (!p.startsWith('http')) {
-      // Remove leading slash if present
-      p = p.replace(/^\/+/, '');
-    }
-    window.location.href = p; 
-  };
-
-  // Utility: parse tokens from hash (older magic-link format)
-  function tokensFromHash() {
-    if (!location.hash) return null;
-    const h = new URLSearchParams(location.hash.replace(/^#/, ''));
-    const access_token = h.get('access_token');
-    const refresh_token = h.get('refresh_token');
-    if (access_token && refresh_token) return { access_token, refresh_token };
-    return null;
-  }
-
-  async function finishAuth() {
-    try {
-      console.log('🔐 Starting authentication process...');
-      
-      // 1) OAuth/code flow (safe to call even if no code present)
-      await supabase.auth.exchangeCodeForSession(window.location.href).catch((err) => {
-        console.log('OAuth flow not applicable:', err.message);
-      });
-
-      // 2) Magic link with tokens in URL hash (older / email magic-link)
-      const t = tokensFromHash();
-      console.log('🎟️ Tokens from hash:', t ? 'Found' : 'None');
-      
-      if (t) {
-        console.log('📝 Setting session with tokens...');
-        await supabase.auth.setSession(t);
-        // scrub tokens from the URL
-        history.replaceState({}, document.title, location.pathname);
-      }
-
-      // 3) Do we have a session now?
-      console.log('🔍 Checking for active session...');
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('✅ Session check result:', session ? 'Active session found' : 'No session');
-      
-      if (!session) throw new Error('No active session after authentication');
-
-      console.log('👤 User authenticated:', session.user.email);
-
-      // Optional: quick membership look (non-blocking). You set this table in Step 2.
-      try {
-        const { data: me } = await supabase.auth.getUser();
-        if (me?.user?.id) {
-          const { data: rows } = await supabase
-            .from('memberships')
-            .select('expires_at')
-            .eq('user_id', me.user.id)
-            .gt('expires_at', new Date().toISOString())
-            .limit(1)
-            .maybeSingle();
-          // cache a tiny flag for the UI; your app can read this.
-          localStorage.setItem('hi_member', rows ? '1' : '0');
-          console.log('🎫 Membership status cached:', rows ? 'Active' : 'None');
-        }
-      } catch(memberErr) {
-        console.warn('⚠️ Membership check failed (non-critical):', memberErr.message);
-      }
-
-      // Success UI + redirect
-      console.log('🎉 Authentication successful! Showing success UI...');
-      $('#working').style.display = 'none';
-      $('#done').style.display = 'block';
-      
-      // 🔥 GOLD-STANDARD: Smart routing based on membership tier
-      console.log('🔍 Smart routing: Checking membership tier...');
-      
-      try {
-        const { data: userData } = await supabase.auth.getUser();
-        if (userData?.user?.id) {
-          // Check for collective tier or admin status
-          const { data: memberData, error: memberError } = await supabase
-            .rpc('get_unified_membership');
-          
-          console.log('🎯 Membership data:', memberData);
-          
-          if (!memberError && memberData) {
-            const tier = memberData.tier;
-            const isAdmin = memberData.is_admin;
-            const status = memberData.status;
-            
-            // Route based on user type
-            if (tier === 'collective' || isAdmin) {
-              // Admin or collective members go straight to dashboard
-              console.log('✅ Collective/Admin user - routing to dashboard');
-              const nextPage = new URLSearchParams(location.search).get('next') || 'hi-dashboard.html';
-              setTimeout(()=>go(nextPage), 900);
-              return;
-            }
-            
-            if (status === 'active' && tier !== 'anonymous') {
-              // Active paid members go to dashboard
-              console.log('✅ Active member (' + tier + ') - routing to dashboard');
-              const nextPage = new URLSearchParams(location.search).get('next') || 'hi-dashboard.html';
-              setTimeout(()=>go(nextPage), 900);
-              return;
-            }
-          }
-        }
-      } catch (smartRouteErr) {
-        console.warn('⚠️ Smart routing check failed, falling back to standard logic:', smartRouteErr);
-      }
-      
-      // Fallback: Legacy membership check
-      console.log('🔍 Fallback: Using legacy membership validation...');
-      
-      if (!localStorage.getItem('hi_member') || localStorage.getItem('hi_member') === '0') {
-        console.log('⚠️ No active membership found - redirecting to upgrade');
-        setTimeout(()=>go('upgrade.html?source=post-auth'), 900);
-        return;
-      }
-      
-      // Default: authenticated member goes to dashboard
-      const nextPage = new URLSearchParams(location.search).get('next') || 'hi-dashboard.html';
-      console.log('🔄 Redirecting authenticated member to:', nextPage);
-      setTimeout(()=>go(nextPage), 900);
-    } catch (err) {
-      console.error('❌ Authentication failed:', err);
-      $('#working').style.display = 'none';
-      $('#oopsMsg').textContent = err.message || 'Something went wrong during authentication.';
-      $('#oops').style.display = 'block';
-    }
-  }
-
-  // If opened as file:// during local build, allow you to pass through
-  if (location.protocol === 'file:') {
-    localStorage.setItem('hi_dev_user', 'dev@example.com');
-    go('index.html');
-  } else {
-    // Wait for Supabase to be ready before finishing auth
-    waitForSupabase().then(() => {
-      finishAuth();
-    }).catch((err) => {
-      console.error('❌ Failed to initialize Supabase:', err);
-      $('#working').style.display = 'none';
-      $('#oopsMsg').textContent = 'Failed to load authentication system. Please try refreshing the page.';
-      $('#oops').style.display = 'block';
-    });
-  }
-  </script>
+  <script src="./lib/boot/post-auth-init.js"></script>
 </body>
 </html>

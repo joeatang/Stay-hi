@@ -1,0 +1,3217 @@
+{
+  "generatedAt": "2025-11-16T13:33:10.500Z",
+  "root": "/Users/joeatang/Documents/GitHub/Stay-hi/public",
+  "fileCount": 145,
+  "files": {
+    "404.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 7221,
+          "preview": "\n        // Tesla-grade 404 recovery system\n        class TeslaRecoverySystem {\n            constructor() {\n            "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 5087,
+          "preview": "\n        * {\n            margin: 0;\n            padding: 0;\n            box-sizing: border-box;\n        }\n        \n     "
+        }
+      ]
+    },
+    "P0_DIAGNOSTIC.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 8364,
+          "preview": "\n        const results = document.getElementById('testResults');\n        const summary = document.getElementById('summar"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1598,
+          "preview": "\n        * { box-sizing: border-box; }\n        body {\n            background: #0f1024;\n            color: white;\n       "
+        }
+      ]
+    },
+    "archive-verification.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 1333,
+          "preview": "\n        const results = document.getElementById('results');\n        \n        async function testRoute(page) {\n         "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 724,
+          "preview": "\n        body { font-family: system-ui; padding: 20px; background: #1a1a1a; color: #fff; }\n        .test-result { paddin"
+        }
+      ]
+    },
+    "auth-callback.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/config.js",
+        "assets/tesla-data-isolation.js"
+      ],
+      "styles": [
+        "assets/tesla-mobile-fixes.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 5426,
+          "preview": "\n        let supabase;\n        \n        function initSupabase() {\n            if (window.SUPABASE_URL && window.SUPABASE"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 2471,
+          "preview": "\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui;\n            bac"
+        }
+      ]
+    },
+    "auth-dashboard.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/auth-health-monitor.js",
+        "assets/tesla-data-isolation.js"
+      ],
+      "styles": [
+        "assets/tesla-mobile-fixes.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 12921,
+          "preview": "\n        class AuthDashboard {\n            constructor() {\n                this.startTime = Date.now();\n                "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 4433,
+          "preview": "\n        * { margin: 0; padding: 0; box-sizing: border-box; }\n        \n        body {\n            font-family: -apple-sy"
+        }
+      ]
+    },
+    "auth-debug.html": {
+      "scripts": [
+        "assets/tesla-data-isolation.js",
+        "assets/url-path-fixer.js",
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/supabase-init.js"
+      ],
+      "styles": [
+        "assets/tesla-mobile-fixes.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 3619,
+          "preview": "\n    // Debug utilities\n    function updateStatus(id, className, content) {\n      const el = document.getElementById(id)"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 641,
+          "preview": "\n    body { font-family: system-ui; max-width: 800px; margin: 40px auto; padding: 20px; }\n    .status { padding: 16px; m"
+        }
+      ]
+    },
+    "auth-diagnostic.html": {
+      "scripts": [
+        "assets/config.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 11039,
+          "preview": "\n        let supabase;\n        \n        async function initSupabase() {\n            if (!supabase && window.SUPABASE_URL"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 992,
+          "preview": "\n        body { font-family: system-ui; background: #1a1a2e; color: white; padding: 20px; }\n        .container { max-wid"
+        }
+      ]
+    },
+    "auth-recovery.html": {
+      "scripts": [
+        "assets/config.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 4420,
+          "preview": "\n        let supabase;\n        \n        async function initSupabase() {\n            if (!supabase && window.SUPABASE_URL"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 858,
+          "preview": "\n        body { font-family: system-ui; background: #1a1a2e; color: white; padding: 20px; }\n        .container { max-wid"
+        }
+      ]
+    },
+    "cache-buster.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 8060,
+          "preview": "\n        function log(message, type = 'info') {\n            const logEl = document.getElementById('log');\n            co"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1215,
+          "preview": "\n        body {\n            background: #0a0a0a;\n            color: #00ff41;\n            font-family: 'Courier New', mon"
+        }
+      ]
+    },
+    "calendar.html": {
+      "scripts": [
+        "./lib/HiSupabase.js",
+        "assets/auth.js",
+        "./lib/HiDB.js",
+        "./ui/HiHeader/HiHeader.js"
+      ],
+      "styles": [
+        "assets/theme.css",
+        "assets/create-parity.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 230,
+          "preview": "\n    // Redirect to main app which has the modern calendar modal\n    console.log('📅 Redirecting to premium calendar sys"
+        },
+        {
+          "module": false,
+          "size": 1465,
+          "preview": "\n  // Check if we have auth tokens in the URL hash and redirect to post-auth for processing\n  if (location.hash && locat"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 801,
+          "preview": "\n    body{min-height:100dvh;background:linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #ffd166 100%);}\n    .wrap{max-wi"
+        }
+      ]
+    },
+    "comprehensive-auth-audit.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 22589,
+          "preview": "\n        class AuthenticationAudit {\n            constructor() {\n                this.results = {\n                    co"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 2890,
+          "preview": "\n        * { margin: 0; padding: 0; box-sizing: border-box; }\n        \n        body {\n            font-family: -apple-sy"
+        }
+      ]
+    },
+    "data-detective.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 11616,
+          "preview": "\n        function showTab(tabName) {\n            // Hide all tabs\n            document.querySelectorAll('.tab-content')."
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 798,
+          "preview": "\n        body { font-family: system-ui; background: #1a1a2e; color: white; padding: 20px; }\n        .container { max-wid"
+        }
+      ]
+    },
+    "data-recovery.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 9668,
+          "preview": "\n        function log(message, type = 'info') {\n            const logDiv = document.getElementById('recovery-log');\n    "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 734,
+          "preview": "\n        body { font-family: system-ui; background: #1a1a2e; color: white; padding: 20px; }\n        .container { max-wid"
+        }
+      ]
+    },
+    "debug-drop-hi.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 2499,
+          "preview": "\n        const log = (message) => {\n            console.log(message);\n            const results = document.getElementByI"
+        }
+      ],
+      "inlineStyleBlocks": []
+    },
+    "debug-redirect.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/url-path-fixer.js",
+        "assets/auth-guard.js?v=enhanced-logging"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 1371,
+          "preview": "\n        async function checkAuth() {\n            const status = document.getElementById('status');\n            try {\n  "
+        }
+      ],
+      "inlineStyleBlocks": []
+    },
+    "debug-root-systems 2.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 3286,
+          "preview": "\n        async function runTests() {\n            // Test 1: HiMetrics Import\n            try {\n                const HiM"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 422,
+          "preview": "\n        body { font-family: monospace; padding: 20px; background: #0a0a0a; color: #fff; }\n        .test { margin: 10px "
+        }
+      ]
+    },
+    "debug-root-systems.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 3286,
+          "preview": "\n        async function runTests() {\n            // Test 1: HiMetrics Import\n            try {\n                const HiM"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 422,
+          "preview": "\n        body { font-family: monospace; padding: 20px; background: #0a0a0a; color: #fff; }\n        .test { margin: 10px "
+        }
+      ]
+    },
+    "debug-signin.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/config.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 6970,
+          "preview": "\n        const debugLog = document.getElementById('debugLog');\n        const form = document.getElementById('debugForm')"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1619,
+          "preview": "\n        body {\n            font-family: system-ui, -apple-system, sans-serif;\n            max-width: 600px;\n           "
+        }
+      ]
+    },
+    "definitive-investigation.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/config.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 9464,
+          "preview": "\n        let investigationResults = {};\n\n        function log(message) {\n            const timestamp = new Date().toLoca"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 3024,
+          "preview": "\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;\n   "
+        }
+      ]
+    },
+    "dev/auth/phase9-verifier 2.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 13379,
+          "preview": "\n        // Import HiAuthCore and HiBase modules\n        import hiAuthCore from '../.././lib/auth/HiAuthCore.js';\n      "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 4397,
+          "preview": "\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n            "
+        }
+      ]
+    },
+    "dev/auth/phase9-verifier.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 13379,
+          "preview": "\n        // Import HiAuthCore and HiBase modules\n        import hiAuthCore from '../.././lib/auth/HiAuthCore.js';\n      "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 4397,
+          "preview": "\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n            "
+        }
+      ]
+    },
+    "dev/contamination-test 2.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 2505,
+          "preview": "\n        // HI-OS 5f-FIX: correct public path + syntax\n        import { getMetrics } from \"../lib/hibase/stats.js\"; // H"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 308,
+          "preview": "\n        body { font-family: monospace; background: #000; color: #0f0; padding: 20px; }\n        .test { margin: 10px 0; "
+        }
+      ]
+    },
+    "dev/contamination-test.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 2505,
+          "preview": "\n        // HI-OS 5f-FIX: correct public path + syntax\n        import { getMetrics } from \"../lib/hibase/stats.js\"; // H"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 308,
+          "preview": "\n        body { font-family: monospace; background: #000; color: #0f0; padding: 20px; }\n        .test { margin: 10px 0; "
+        }
+      ]
+    },
+    "dev/database-debug 2.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 2713,
+          "preview": "\n        const results = document.getElementById('results');\n        \n        function log(message, type = 'info') {\n   "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 281,
+          "preview": "\n        body { font-family: monospace; background: #000; color: #0f0; padding: 20px; }\n        pre { background: #111; "
+        }
+      ]
+    },
+    "dev/database-debug.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 2713,
+          "preview": "\n        const results = document.getElementById('results');\n        \n        function log(message, type = 'info') {\n   "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 281,
+          "preview": "\n        body { font-family: monospace; background: #000; color: #0f0; padding: 20px; }\n        pre { background: #111; "
+        }
+      ]
+    },
+    "dev/final-verification 2.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 3418,
+          "preview": "\n        // Enable dev mode for tracing\n        window.HI_ENV = { DEV: true };\n        \n        const statusDiv = docume"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 544,
+          "preview": "\n        body { font-family: monospace; background: #000; color: #fff; padding: 20px; }\n        .result { margin: 15px 0"
+        }
+      ]
+    },
+    "dev/final-verification.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 3418,
+          "preview": "\n        // Enable dev mode for tracing\n        window.HI_ENV = { DEV: true };\n        \n        const statusDiv = docume"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 544,
+          "preview": "\n        body { font-family: monospace; background: #000; color: #fff; padding: 20px; }\n        .result { margin: 15px 0"
+        }
+      ]
+    },
+    "dev/index 2.html": {
+      "scripts": [
+        "./rollout/rollout-ops.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [],
+      "inlineStyleBlocks": [
+        {
+          "size": 1558,
+          "preview": "\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, sans-serif;\n            padding: 20px;\n     "
+        }
+      ]
+    },
+    "dev/index.html": {
+      "scripts": [
+        "./rollout/rollout-ops.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [],
+      "inlineStyleBlocks": [
+        {
+          "size": 1558,
+          "preview": "\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, sans-serif;\n            padding: 20px;\n     "
+        }
+      ]
+    },
+    "dev/init-check 2.html": {
+      "scripts": [
+        "./lib/HiSupabase.js",
+        "./lib/hibase/index.js",
+        "./lib/flags/HiFlags.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 9247,
+          "preview": "\n    // A4: Proper import order test (Hi System Pattern)\n    import { HiShareSheet } from './ui/HiShareSheet/HiShareShee"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 2324,
+          "preview": "\n    body {\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n      background: line"
+        }
+      ]
+    },
+    "dev/init-check.html": {
+      "scripts": [
+        "./lib/HiSupabase.js",
+        "./lib/hibase/index.js",
+        "./lib/flags/HiFlags.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 9247,
+          "preview": "\n    // A4: Proper import order test (Hi System Pattern)\n    import { HiShareSheet } from './ui/HiShareSheet/HiShareShee"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 2324,
+          "preview": "\n    body {\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n      background: line"
+        }
+      ]
+    },
+    "dev/legacy-vs-separated 2.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 4322,
+          "preview": "\n        import hiBaseClient from./lib/hibase/HiBaseClient.js';\n        \n        const legacyDiv = document.getElementBy"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 586,
+          "preview": "\n        body { font-family: monospace; background: #000; color: #fff; padding: 20px; }\n        .test-section { margin: "
+        }
+      ]
+    },
+    "dev/legacy-vs-separated.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 4322,
+          "preview": "\n        import hiBaseClient from./lib/hibase/HiBaseClient.js';\n        \n        const legacyDiv = document.getElementBy"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 586,
+          "preview": "\n        body { font-family: monospace; background: #000; color: #fff; padding: 20px; }\n        .test-section { margin: "
+        }
+      ]
+    },
+    "dev/metrics-test 2.html": {
+      "scripts": [
+        "https://gfcubvroxgfvjhacinic.supabase.co/functions/v1/supabase-js/2",
+        "./lib/hibase/HiBaseClient.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 8638,
+          "preview": "\n    // Test state\n    let metricsBeforeTest = { waves: 0, hi5s: 0 };\n    let testRunning = false;\n\n    // Console loggi"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 2912,
+          "preview": "\n    body {\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;\n      max-width: 80"
+        }
+      ]
+    },
+    "dev/metrics-test.html": {
+      "scripts": [
+        "https://gfcubvroxgfvjhacinic.supabase.co/functions/v1/supabase-js/2",
+        "./lib/hibase/HiBaseClient.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 8638,
+          "preview": "\n    // Test state\n    let metricsBeforeTest = { waves: 0, hi5s: 0 };\n    let testRunning = false;\n\n    // Console loggi"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 2912,
+          "preview": "\n    body {\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;\n      max-width: 80"
+        }
+      ]
+    },
+    "dev/offline-harness.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 2668,
+          "preview": "\n    const CORE_ASSETS = [\n      '/sw.js',\n      '/public/sw.js',\n      '/public/hi-dashboard.html',\n      '/public/styl"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 728,
+          "preview": "\n    body { font:14px system-ui; margin:16px; background:#111; color:#eee; }\n    h1 { font-size:20px; margin:0 0 12px; }"
+        }
+      ]
+    },
+    "dev/phase7/index 2.html": {
+      "scripts": [
+        "./verification.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [],
+      "inlineStyleBlocks": [
+        {
+          "size": 3718,
+          "preview": "\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, sans-serif;\n            padding: 20px;\n     "
+        }
+      ]
+    },
+    "dev/phase7/index.html": {
+      "scripts": [
+        "./verification.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [],
+      "inlineStyleBlocks": [
+        {
+          "size": 3718,
+          "preview": "\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, sans-serif;\n            padding: 20px;\n     "
+        }
+      ]
+    },
+    "dev/phase7-verifier/verifier 2.html": {
+      "scripts": [
+        "./verifier.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [],
+      "inlineStyleBlocks": [
+        {
+          "size": 3800,
+          "preview": "\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, sans-serif;\n            padding: 20px;\n     "
+        }
+      ]
+    },
+    "dev/phase7-verifier/verifier.html": {
+      "scripts": [
+        "./verifier.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [],
+      "inlineStyleBlocks": [
+        {
+          "size": 3800,
+          "preview": "\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, sans-serif;\n            padding: 20px;\n     "
+        }
+      ]
+    },
+    "dev/preflight/PROD_CHECK 2.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 16260,
+          "preview": "\n        const results = document.getElementById('results');\n        const jsonReport = document.getElementById('jsonRep"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 2791,
+          "preview": "\n        body { \n            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui; \n            margin:"
+        }
+      ]
+    },
+    "dev/preflight/PROD_CHECK.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 16260,
+          "preview": "\n        const results = document.getElementById('results');\n        const jsonReport = document.getElementById('jsonRep"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 2791,
+          "preview": "\n        body { \n            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui; \n            margin:"
+        }
+      ]
+    },
+    "dev/preflight/boot-guard-test.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 1738,
+          "preview": "\n    const output = document.getElementById('output');\n    let log = '';\n    \n    function addLog(msg) {\n      log += ms"
+        }
+      ],
+      "inlineStyleBlocks": []
+    },
+    "dev/preflight/flags-smoke 2.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 646,
+          "preview": "\n    import { hiFlagEnabled, hiFlagsAllTrue } from '../../lib/flags/HiFlags.js';\n\n    const keys = [\n      'hi_dash_v3',"
+        }
+      ],
+      "inlineStyleBlocks": []
+    },
+    "dev/preflight/flags-smoke.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 646,
+          "preview": "\n    import { hiFlagEnabled, hiFlagsAllTrue } from '../../lib/flags/HiFlags.js';\n\n    const keys = [\n      'hi_dash_v3',"
+        }
+      ],
+      "inlineStyleBlocks": []
+    },
+    "dev/preflight/index 2.html": {
+      "scripts": [
+        "../../lib/DEPRECATED_DO_NOT_USE.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 856,
+          "preview": "\n    // After the page settles, report RED if the deprecated marker executed.\n    window.addEventListener('DOMContentLoa"
+        },
+        {
+          "module": true,
+          "size": 6927,
+          "preview": "\n        let checksComplete = 0;\n        const totalChecks = 5;\n        let allPassed = true;\n\n        function updateSt"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 3667,
+          "preview": "\n        * { margin: 0; padding: 0; box-sizing: border-box; }\n        body {\n            font-family: -apple-system, Bli"
+        }
+      ]
+    },
+    "dev/preflight/index.html": {
+      "scripts": [
+        "../../lib/DEPRECATED_DO_NOT_USE.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 856,
+          "preview": "\n    // After the page settles, report RED if the deprecated marker executed.\n    window.addEventListener('DOMContentLoa"
+        },
+        {
+          "module": true,
+          "size": 5228,
+          "preview": "\n        let checksComplete = 0;\n        const totalChecks = 5;\n        let allPassed = true;\n\n        function updateSt"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 3667,
+          "preview": "\n        * { margin: 0; padding: 0; box-sizing: border-box; }\n        body {\n            font-family: -apple-system, Bli"
+        }
+      ]
+    },
+    "dev/preflight/s-dash-dom-check 2.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 5882,
+          "preview": "\n        async function performDOMCheck() {\n            const statusEl = document.getElementById('status');\n            "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1626,
+          "preview": "\n        body {\n            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n            max-width: 900px;\n"
+        }
+      ]
+    },
+    "dev/preflight/s-dash-dom-check.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 5882,
+          "preview": "\n        async function performDOMCheck() {\n            const statusEl = document.getElementById('status');\n            "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1626,
+          "preview": "\n        body {\n            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n            max-width: 900px;\n"
+        }
+      ]
+    },
+    "dev/preflight/s-dash-flags-check 2.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 2558,
+          "preview": "\n        // Required S-DASH flag keys\n        const REQUIRED_FLAGS = [\n            'hi_dash_v3',\n            'hi_dash_st"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 2037,
+          "preview": "\n        body {\n            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n            max-width: 800px;\n"
+        }
+      ]
+    },
+    "dev/preflight/s-dash-flags-check.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 2558,
+          "preview": "\n        // Required S-DASH flag keys\n        const REQUIRED_FLAGS = [\n            'hi_dash_v3',\n            'hi_dash_st"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 2037,
+          "preview": "\n        body {\n            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n            max-width: 800px;\n"
+        }
+      ]
+    },
+    "dev/stats-test 2.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 1982,
+          "preview": "\n        // Set up HI_ENV for dev tracing\n        window.HI_ENV = { DEV: true };\n        \n        // Mock HiFlags for te"
+        },
+        {
+          "module": false,
+          "size": 4565,
+          "preview": "\n        const callLog = document.getElementById('callLog');\n        const calls = [];\n\n        function logCall(method,"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1053,
+          "preview": "\n        body {\n            font-family: monospace;\n            background: #000;\n            color: #0f0;\n            p"
+        }
+      ]
+    },
+    "dev/stats-test.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 1982,
+          "preview": "\n        // Set up HI_ENV for dev tracing\n        window.HI_ENV = { DEV: true };\n        \n        // Mock HiFlags for te"
+        },
+        {
+          "module": false,
+          "size": 4565,
+          "preview": "\n        const callLog = document.getElementById('callLog');\n        const calls = [];\n\n        function logCall(method,"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1053,
+          "preview": "\n        body {\n            font-family: monospace;\n            background: #000;\n            color: #0f0;\n            p"
+        }
+      ]
+    },
+    "dev/test-himetrics 2.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 5662,
+          "preview": "\n        // Import HiBase first\n        import HiBase from '../hibase/index.js';\n        window.HiBase = HiBase;\n       "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1719,
+          "preview": "\n        body {\n            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;\n            background: #1a1a1a;"
+        }
+      ]
+    },
+    "dev/test-himetrics.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 5662,
+          "preview": "\n        // Import HiBase first\n        import HiBase from '../hibase/index.js';\n        window.HiBase = HiBase;\n       "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1719,
+          "preview": "\n        body {\n            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;\n            background: #1a1a1a;"
+        }
+      ]
+    },
+    "diagnostic-beta-systems.html": {
+      "scripts": [
+        "assets/hi-rewards-beta.js",
+        "assets/real-time-stats.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 3574,
+          "preview": "\n        // System diagnostic functions\n        function logStatus(message, isError = false) {\n            const statusD"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1509,
+          "preview": "\n        body {\n            font-family: system-ui, -apple-system, sans-serif;\n            max-width: 800px;\n           "
+        }
+      ]
+    },
+    "diagnostic.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/supabase-init.js",
+        "assets/wozniak-tracking-foundation.js",
+        "assets/wozniak-ui-connectors.js",
+        "components/hi-share-sheet/share-sheet.js"
+      ],
+      "styles": [
+        "components/hi-share-sheet/share-sheet.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 4824,
+          "preview": "            border-radius: 8px;\n\n        const results = document.getElementById('results');            cursor: pointer;"
+        },
+        {
+          "module": false,
+          "size": 3848,
+          "preview": "\n\n                    } else {        let logCount = 0;\n\n                        test('Database Call', true, `Success! D"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 538,
+          "preview": "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n\n        body { font-family: monospace; paddi"
+        }
+      ]
+    },
+    "dom-inspector.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 7127,
+          "preview": "\n        function log(message, type = 'info') {\n            const logEl = document.getElementById('log');\n            co"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1121,
+          "preview": "\n        body {\n            background: #0a0a0a;\n            color: #00ff41;\n            font-family: 'Courier New', mon"
+        }
+      ]
+    },
+    "drop-hi-test.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 2792,
+          "preview": "\n        // Test the HiShareSheet import directly\n        let HiShareSheetClass = null;\n        \n        try {\n         "
+        },
+        {
+          "module": false,
+          "size": 654,
+          "preview": "\n        function addResult(containerId, message, type = 'info') {\n            const container = document.getElementById"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 587,
+          "preview": "\n        body { font-family: system-ui; padding: 20px; background: #f5f5f5; }\n        .test-container { background: whit"
+        }
+      ]
+    },
+    "edit-profile-diagnostic.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 11139,
+          "preview": "\n        function log(message, type = 'info') {\n            const logDiv = document.getElementById('diagnosticLog');\n   "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1138,
+          "preview": "\n        body { font-family: system-ui; background: #1a1a2e; color: white; padding: 20px; }\n        .container { max-wid"
+        }
+      ]
+    },
+    "emergency-phase7-fix 2.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 14789,
+          "preview": "\n        // Console capture\n        const consoleOutput = document.getElementById('console-output');\n        const origi"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 2018,
+          "preview": "\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, sans-serif;\n            padding: 20px;\n     "
+        }
+      ]
+    },
+    "emergency-phase7-fix.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 14789,
+          "preview": "\n        // Console capture\n        const consoleOutput = document.getElementById('console-output');\n        const origi"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 2018,
+          "preview": "\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, sans-serif;\n            padding: 20px;\n     "
+        }
+      ]
+    },
+    "failure-investigation.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/config.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 12634,
+          "preview": "\n        function updatePanel(elementId, content, type = 'info') {\n            const element = document.getElementById(e"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 2173,
+          "preview": "\n        body {\n            background: #0F0F23;\n            color: white;\n            font-family: -apple-system, Blink"
+        }
+      ]
+    },
+    "final-diagnosis.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/config.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 13832,
+          "preview": "\n        async function executeDefinitiveTest() {\n            const resultsDiv = document.getElementById('definitive-res"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1416,
+          "preview": "\n        body {\n            background: #0F0F23;\n            color: white;\n            font-family: -apple-system, Blink"
+        }
+      ]
+    },
+    "full-workflow-test.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 12419,
+          "preview": "\n        let testResults = {\n            environment: null,\n            dropFlow: null,\n            tabNavigation: null,"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1663,
+          "preview": "\n        * { margin: 0; padding: 0; box-sizing: border-box; }\n        body { font-family: system-ui; padding: 20px; back"
+        }
+      ]
+    },
+    "hi-dashboard.html": {
+      "scripts": [
+        "assets/url-path-fixer.js",
+        "./lib/HiMonitor.js",
+        "./lib/HiSupabase.v3.js",
+        "./lib/HiLoading.js",
+        "./lib/HiDB.js",
+        "./lib/flags/HiFlags.js",
+        "./lib/hibase/index.js",
+        "lib/HiGoldStandardModal.js",
+        "./lib/hifeed/index.js",
+        "./ui/HiFeed/HiFeed.js",
+        "./ui/HiStreaks/HiStreaks.js",
+        "assets/hifeed-test-helper.js",
+        "assets/hifeed-verification.js",
+        "./lib/HiDash.wire.js",
+        "./lib/HiDash.cta.js",
+        "./lib/HiDash.share.js",
+        "./lib/HiDash.feedback.js",
+        "./lib/HiDash.boot.js",
+        "assets/progressive-auth.js",
+        "assets/anonymous-access-modal.js",
+        "./lib/HiMembership.js",
+        "./lib/HiBrandTiers.js",
+        "./lib/RealUserCount.js",
+        "./lib/HiWavesRealtime.js",
+        "./lib/HiPerformance.js",
+        "assets/milestone-celebration-system.js",
+        "assets/contextual-spotlight-system.js",
+        "assets/smart-conversion-system.js",
+        "assets/premium-ux.js",
+        "assets/premium-calendar.js",
+        "./ui/HiFooter/HiFooter.js",
+        "assets/hi-unified-global-stats.js"
+      ],
+      "styles": [
+        "ui/HiFooter/HiFooter.css",
+        "ui/HiModal/HiModal.css",
+        "ui/HiShareSheet/HiShareSheet.css",
+        "ui/HiMedallion/HiMedallion.css",
+        "styles/hi-dashboard.css",
+        "assets/premium-calendar.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 1394,
+          "preview": "\n    (function() {\n      try {\n        var qp = new URLSearchParams(location.search);\n        if (qp.get('no-sw') === '1"
+        },
+        {
+          "module": false,
+          "size": 2151,
+          "preview": "\n    // Optional: resource error tracer (enable with ?debug=1)\n    (function(){\n      try {\n        if (location.search."
+        },
+        {
+          "module": true,
+          "size": 859,
+          "preview": "\n    import './lib/AuthReady.js';\n    window.addEventListener('hi:auth-ready', (e) => {\n      const { session, membershi"
+        },
+        {
+          "module": true,
+          "size": 195,
+          "preview": "\n    // Import HiBase shares for flagged rollout\n    window.HiBase_shares = await import('./lib/hibase/shares.js');\n    "
+        },
+        {
+          "module": false,
+          "size": 578,
+          "preview": "\n    (function(){\n      try {\n        const buildTag = window.HI_BUILD || window.__BUILD_STAMP || new Date().toISOString"
+        },
+        {
+          "module": true,
+          "size": 3983,
+          "preview": "\n    // Load membership system first for access control\n    await import('./lib/membership/MembershipSystem.js');\n    \n "
+        },
+        {
+          "module": false,
+          "size": 2379,
+          "preview": "\n    (async function initSDashAnchors() {\n      try {\n        // Wait for HiFlags to be available\n        if (window.HiF"
+        },
+        {
+          "module": false,
+          "size": 70662,
+          "preview": "\n    // Tesla-Grade Simplified JavaScript\n    // HI-OS: Stats variables now managed by initHiStatsOnce() system\n    // G"
+        },
+        {
+          "module": true,
+          "size": 13674,
+          "preview": "\n    import { HiShareSheet } from './ui/HiShareSheet/HiShareSheet.js';\n    import { mountHiMedallion } from './ui/HiMeda"
+        },
+        {
+          "module": false,
+          "size": 569,
+          "preview": "\n    document.addEventListener('DOMContentLoaded', () => {\n      // HI DEV: Calendar modal stacking fix (P2) - Initializ"
+        },
+        {
+          "module": false,
+          "size": 32458,
+          "preview": "\n    // Navigation system integration\n    document.addEventListener('DOMContentLoaded', () => {\n      // Update app stat"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1352,
+          "preview": "\n    html { width: 100%; overflow-x: hidden; -webkit-text-size-adjust: 100%; }\n    body { margin: 0; min-height: 100vh; "
+        },
+        {
+          "size": 26505,
+          "preview": "\n    :root {\n      /* Dashboard page flavor - energetic, action-oriented gradient */\n      --hi-medallion-bg1: #FF9A3C; "
+        },
+        {
+          "size": 377,
+          "preview": "\n    .skip-link{position:absolute;left:-999px;top:auto;width:1px;height:1px;overflow:hidden}\n    .skip-link:focus{left:1"
+        },
+        {
+          "size": 2047,
+          "preview": "\n    .hi-loading-skeleton {position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:"
+        }
+      ]
+    },
+    "hi-island-BACKUP-before-gold-standard.html": {
+      "scripts": [
+        "assets/auth-guard.js",
+        "assets/header.js",
+        "assets/supabase-init.js",
+        "assets/auth.js",
+        "assets/db.js",
+        "assets/premium-ux.js",
+        "assets/premium-calendar.js",
+        "assets/activity-tracker.js",
+        "assets/hi-composer.js",
+        "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",
+        "assets/island.js",
+        "assets/premium-ux.js",
+        "js/modal-base.js",
+        "assets/hi-composer.js",
+        "assets/premium-footer.js"
+      ],
+      "styles": [
+        "assets/theme.css",
+        "assets/create-parity.css",
+        "assets/premium-ux.css",
+        "assets/premium-footer.css",
+        "styles/modal-base.css",
+        "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 41724,
+          "preview": "\n    (async function(){\n      // Allow signed-out users to view public feed; archive tab will request session on click.\n"
+        },
+        {
+          "module": false,
+          "size": 229,
+          "preview": "\n    // Global function for Hi composer\n    window.openHiComposer = function() {\n      if (window.HiComposer) {\n        "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 16196,
+          "preview": "\n    /* ============================================================================\n       🏗️ GOLD STANDARD ARCHITECTU"
+        },
+        {
+          "size": 405,
+          "preview": "\n    @keyframes fadeInUp {\n      from {\n        opacity: 0;\n        transform: translateY(30px);\n      }\n      to {\n    "
+        }
+      ]
+    },
+    "hi-island-NEW.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/anonymous-access-modal.js",
+        "assets/progressive-auth.js",
+        "assets/hi-tier-system.js",
+        "ui/HiUpgradeModal/HiUpgradeModal.js",
+        "lib/HiGoldStandardModal.js",
+        "lib/HiBrandTiers.js",
+        "./lib/HiPWA.js",
+        "assets/milestone-celebration-system.js",
+        "assets/contextual-spotlight-system.js",
+        "assets/smart-conversion-system.js",
+        "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",
+        "https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js",
+        "./lib/HiDB.js",
+        "assets/avatar-utils.js",
+        "assets/geocoding-service.js",
+        "assets/feature-flags.js",
+        "assets/hi-rewards-controller.js",
+        "./ui/HiFeed/HiFeed.js",
+        "./ui/HiStreaks/HiStreaks.js",
+        "components/hi-real-feed/HiRealFeed.js",
+        "components/hi-real-feed/UnifiedHiIslandController.js",
+        "lib/diagnostic/HiShareFreezeDiagnostic.js",
+        "phase1-validation-test.js",
+        "components/hi-social-system/HiSocialSystem.js",
+        "components/profile-preview-modal/profile-modal.js",
+        "components/hi-island-map/map.js",
+        "components/hi-island-feed/feed.js",
+        "lib/stats/GoldStandardTracker.js",
+        "lib/stats/HiMetrics.js",
+        "lib/stats/DashboardStats.js",
+        "test-backend-plumbing.js",
+        "./ui/HiFooter/HiFooter.js",
+        "assets/premium-calendar.js",
+        "./lib/hifeed/index.js",
+        "./lib/hifeed/anchors.js"
+      ],
+      "styles": [
+        "ui/HiUpgradeModal/HiUpgradeModal.css",
+        "styles/tokens.css",
+        "styles/base.css",
+        "assets/theme.css",
+        "assets/create-parity.css",
+        "assets/premium-ux.css",
+        "assets/premium-calendar.css",
+        "./lib/navigation/HiStandardNavigation.css",
+        "components/hi-island-map/map.css",
+        "components/hi-island-feed/feed.css",
+        "ui/HiShareSheet/HiShareSheet.css",
+        "components/profile-preview-modal/profile-modal.css",
+        "assets/hi-rewards-styles.css",
+        "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css",
+        "https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css",
+        "https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css",
+        "./ui/HiFooter/HiFooter.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 166,
+          "preview": "\n    // Load HiSupabase synchronously before other modules\n    await import('./lib/HiSupabase.js');\n    console.log('✅ T"
+        },
+        {
+          "module": true,
+          "size": 200,
+          "preview": "\n    // Import HiBase shares for flagged rollout\n    window.HiBase_shares = await import('./lib/hibase/shares.js');\n    "
+        },
+        {
+          "module": true,
+          "size": 896,
+          "preview": "\n    import './lib/HiSupabase.v3.js';\n    import { mountHiFeed } from './lib/hifeed/index.js';\n\n    window.addEventListe"
+        },
+        {
+          "module": true,
+          "size": 165,
+          "preview": "\n    import { HiShareSheet } from './ui/HiShareSheet/HiShareSheet.js';\n    window.HiShareSheet = HiShareSheet; // Make a"
+        },
+        {
+          "module": true,
+          "size": 979,
+          "preview": "\n    // Tesla Database Connection Fix\n    try {\n      console.log('🔧 Tesla: Initializing Supabase client...');\n      \n "
+        },
+        {
+          "module": true,
+          "size": 310,
+          "preview": "\n    // Load Hi OS enhancement layer after base tracker\n    setTimeout(() => {\n      import('./lib/stats/HiOSEnhancement"
+        },
+        {
+          "module": true,
+          "size": 32828,
+          "preview": "\n    // ===================================================================\n    // 🎯 HI ISLAND ORCHESTRATOR (Clean, min"
+        },
+        {
+          "module": false,
+          "size": 1477,
+          "preview": "\n    // 🚀 TESLA-GRADE: Immediate user tier detection instead of confusion\n    window.openHiShareSheet = function(origin"
+        },
+        {
+          "module": true,
+          "size": 4976,
+          "preview": "\n    import { HiShareSheet } from './ui/HiShareSheet/HiShareSheet.js';\n    \n    console.log('🚀 HiShareSheet module load"
+        },
+        {
+          "module": true,
+          "size": 410,
+          "preview": "\n    import { renderFeedSkeleton, appendHiCard } from './lib/hifeed/anchors.js';\n\n    window.addEventListener('DOMConten"
+        },
+        {
+          "module": false,
+          "size": 4507,
+          "preview": "\n    // 🎯 GOLD STANDARD: Navigation Modal Control (matches Dashboard)\n    function setupNavigationModal() {\n      const"
+        },
+        {
+          "module": false,
+          "size": 28636,
+          "preview": "\n    document.addEventListener('DOMContentLoaded', () => {\n      if (window.hiNavSystem) {\n        window.hiNavSystem.up"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 27944,
+          "preview": "\n    /* ===================================================================\n       🎨 HI ISLAND PAGE STYLES (Scoped to t"
+        }
+      ]
+    },
+    "hi-island-REDIRECT.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 209,
+          "preview": "\n    // Immediate redirect with URL preservation\n    (function() {\n      const newUrl = 'hi-island-NEW.html' + window.lo"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 682,
+          "preview": "\n    body {\n      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n      color: white;\n      font-family: "
+        }
+      ]
+    },
+    "hi-island-preview.html": {
+      "scripts": [
+        "assets/header.js",
+        "assets/supabase-init.js",
+        "assets/auth.js",
+        "assets/db.js",
+        "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",
+        "assets/island.js"
+      ],
+      "styles": [
+        "assets/theme.css",
+        "assets/create-parity.css",
+        "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 5392,
+          "preview": "\n    (async function(){\n      // Allow signed-out users to view public feed; archive tab will request session on click.\n"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 2369,
+          "preview": "\n    body{ background: var(--hi-bg); }\n    .wrap{ max-width: 1040px; margin: 0 auto; padding: 16px; }\n\n    /* Map hero *"
+        }
+      ]
+    },
+    "hi-island-redirect-BACKUP.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 209,
+          "preview": "\n    // Immediate redirect with URL preservation\n    (function() {\n      const newUrl = 'hi-island-NEW.html' + window.lo"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 682,
+          "preview": "\n    body {\n      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n      color: white;\n      font-family: "
+        }
+      ]
+    },
+    "hi-island.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 209,
+          "preview": "\n    // Immediate redirect with URL preservation\n    (function() {\n      const newUrl = 'hi-island-NEW.html' + window.lo"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 682,
+          "preview": "\n    body {\n      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n      color: white;\n      font-family: "
+        }
+      ]
+    },
+    "hi-mission-control.html": {
+      "scripts": [
+        "./lib/HiSupabase.v3.js",
+        "./lib/HiMonitor.js",
+        "./lib/AuthReady.js",
+        "./lib/HiLoading.js",
+        "./lib/HiPWA.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 17969,
+          "preview": "\n        console.log('🎬 Mission Control script starting...');\n        \n        // 🏛️ SUPABASE CONFIGURATION\n        co"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 8749,
+          "preview": "\n        * {\n            margin: 0;\n            padding: 0;\n            box-sizing: border-box;\n        }\n        \n     "
+        },
+        {
+          "size": 261,
+          "preview": "\n            .skip-link{position:absolute;left:-999px;top:auto;width:1px;height:1px;overflow:hidden}\n            .skip-l"
+        }
+      ]
+    },
+    "hi-muscle.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/url-path-fixer.js",
+        "./lib/HiSupabase.js",
+        "assets/anonymous-access-modal.js",
+        "assets/progressive-auth.js",
+        "lib/HiGoldStandardModal.js",
+        "assets/hi-muscle-onboarding.js",
+        "ui/HiShareSheet/HiShareSheet.js?v=2.1.0-auth",
+        "lib/stats/GoldStandardTracker.js",
+        "assets/milestone-celebration-system.js",
+        "assets/contextual-spotlight-system.js",
+        "assets/smart-conversion-system.js",
+        "./lib/HiSupabase.js",
+        "assets/auth.js",
+        "./lib/HiDB.js",
+        "./lib/flags/HiFlags.js",
+        "./lib/hibase/index.js",
+        "assets/geocoding-service.js",
+        "assets/emotions.js",
+        "assets/hi-gym.js",
+        "assets/premium-ux.js",
+        "./ui/HiFooter/HiFooter.js",
+        "assets/premium-calendar.js",
+        "./lib/HiPWA.js"
+      ],
+      "styles": [
+        "assets/theme.css",
+        "assets/create-parity.css",
+        "assets/premium-ux.css",
+        "./ui/HiFooter/HiFooter.css",
+        "./ui/HiModal/HiModal.css",
+        "ui/HiShareSheet/HiShareSheet.css?v=2.1.0",
+        "./lib/navigation/HiStandardNavigation.css",
+        "assets/premium-calendar.css",
+        "./ui/HiFooter/HiFooter.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 47253,
+          "preview": "\n  (async function(){\n    console.log('💪 Hi-Muscle loading...');\n    \n    try { await hiAuth.ensureSessionMaybe?.(); } "
+        },
+        {
+          "module": false,
+          "size": 3561,
+          "preview": "\n    // Navigation Modal Control\n    function openNavigation() {\n      const modal = document.getElementById('navigation"
+        },
+        {
+          "module": false,
+          "size": 26647,
+          "preview": "\n    // Add floating refresh button\n    function addFloatingRefresh() {\n      if (!document.querySelector('.floating-ref"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 31539,
+          "preview": "\n    /* Tesla-Grade Hi Gym Styling - Mobile First */\n    * { box-sizing: border-box; }\n    \n    body {\n      background:"
+        }
+      ]
+    },
+    "hifeed-debug 2.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 8213,
+          "preview": "\n        // Capture console output\n        const consoleOutput = document.getElementById('console-output');\n        cons"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1296,
+          "preview": "\n        body { \n            font-family: -apple-system, BlinkMacSystemFont, sans-serif; \n            padding: 20px; \n  "
+        }
+      ]
+    },
+    "hifeed-debug.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 8213,
+          "preview": "\n        // Capture console output\n        const consoleOutput = document.getElementById('console-output');\n        cons"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1296,
+          "preview": "\n        body { \n            font-family: -apple-system, BlinkMacSystemFont, sans-serif; \n            padding: 20px; \n  "
+        }
+      ]
+    },
+    "incognito-auth-debugger.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/config.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 15339,
+          "preview": "\n        let supabaseClient = null;\n        let testResults = {};\n        \n        // Initialize Supabase\n        async "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 3331,
+          "preview": "\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui;\n            bac"
+        }
+      ]
+    },
+    "index.html": {
+      "scripts": [
+        "assets/hi-loading-experience.js",
+        "../phase3-loader.js",
+        "assets/tesla-supabase-manager.js",
+        "assets/tesla-auth-controller.js"
+      ],
+      "styles": [
+        "assets/hi-loading-experience.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 3032,
+          "preview": "\n        // 🚀 TESLA-GRADE BULLETPROOF WELCOME FLOW ARCHITECTURE\n        // Steve Wozniak-level first-principles routing"
+        },
+        {
+          "module": false,
+          "size": 1363,
+          "preview": "\n        document.addEventListener('DOMContentLoaded', function() {\n            const magicLinkFlow = sessionStorage.get"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 133,
+          "preview": "\n        @keyframes spin {\n            0% { transform: rotate(0deg); }\n            100% { transform: rotate(360deg); }\n "
+        }
+      ]
+    },
+    "invite-admin-deprecated.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 171,
+          "preview": "\n        // Auto-redirect to secure admin after 10 seconds\n        setTimeout(() => {\n            window.location.href ="
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1590,
+          "preview": "\n        body {\n            margin: 0;\n            padding: 0;\n            height: 100vh;\n            background: linear"
+        }
+      ]
+    },
+    "invite-admin.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 171,
+          "preview": "\n        // Auto-redirect to secure admin after 10 seconds\n        setTimeout(() => {\n            window.location.href ="
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1590,
+          "preview": "\n        body {\n            margin: 0;\n            padding: 0;\n            height: 100vh;\n            background: linear"
+        }
+      ]
+    },
+    "magic-link-debugger.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/supabase-init.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 18383,
+          "preview": "\n        // Display current URL analysis immediately\n        function analyzeCurrentURL() {\n            const url = wind"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 2304,
+          "preview": "\n        body {\n            background: linear-gradient(135deg, #0F0F23, #1a1a3a);\n            color: white;\n           "
+        }
+      ]
+    },
+    "magic-link-forensics.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 10841,
+          "preview": "\n        const CONFIG = {\n            SUPABASE_URL: 'https://gfcubvroxgfvjhacinic.supabase.co',\n            SUPABASE_ANO"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1279,
+          "preview": "\n        body {\n            background: #0a0a0a;\n            color: #00ff41;\n            font-family: 'Courier New', mon"
+        }
+      ]
+    },
+    "map-diagnostic.html": {
+      "scripts": [
+        "assets/db.js",
+        "assets/island.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 6750,
+          "preview": "\n        function log(message, area = 'data-results') {\n            const logArea = document.getElementById(area);\n     "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1693,
+          "preview": "\n        * { box-sizing: border-box; }\n        body {\n            background: linear-gradient(135deg, #0f1024 0%, #1a1b3"
+        }
+      ]
+    },
+    "map-solution-complete.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 1343,
+          "preview": "\n        function runDebugCommands() {\n            console.log('🛠️ Running Hi Island Map Debug Commands:');\n           "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 2312,
+          "preview": "\n        * { box-sizing: border-box; }\n        body {\n            background: linear-gradient(135deg, #0f1024 0%, #1a1b3"
+        }
+      ]
+    },
+    "membership-required.html": {
+      "scripts": [],
+      "styles": [
+        "assets/create-parity.css"
+      ],
+      "inlineScriptBlocks": [],
+      "inlineStyleBlocks": [
+        {
+          "size": 416,
+          "preview": "\n    body{min-height:100vh;background:#FFFDF9;display:grid;place-items:center}\n    .card{max-width:560px;width:92vw;back"
+        }
+      ]
+    },
+    "microscopic-debug.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 11314,
+          "preview": "\n        const CONFIG = {\n            SUPABASE_URL: 'https://gfcubvroxgfvjhacinic.supabase.co',\n            SUPABASE_ANO"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1176,
+          "preview": "\n        body {\n            background: #000;\n            color: #00ff00;\n            font-family: 'SF Mono', Monaco, mo"
+        }
+      ]
+    },
+    "offline.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [],
+      "inlineStyleBlocks": [
+        {
+          "size": 1085,
+          "preview": "\n    :root { color-scheme: dark; }\n    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu"
+        }
+      ]
+    },
+    "phase7-quick-test 2.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 4302,
+          "preview": "\n        const results = document.getElementById('results');\n\n        function addResult(test, passed, message) {\n      "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 533,
+          "preview": "\n        body { \n            font-family: system-ui; \n            padding: 20px; \n            background: #111; \n       "
+        }
+      ]
+    },
+    "phase7-quick-test.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 4302,
+          "preview": "\n        const results = document.getElementById('results');\n\n        function addResult(test, passed, message) {\n      "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 533,
+          "preview": "\n        body { \n            font-family: system-ui; \n            padding: 20px; \n            background: #111; \n       "
+        }
+      ]
+    },
+    "phase7-verification 2.html": {
+      "scripts": [
+        "/public/assets/feature-flags.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 617,
+          "preview": "\n        // HI DEV Production Redirect with ?dev=1 Detection\n        (function() {\n            const urlParams = new URL"
+        },
+        {
+          "module": true,
+          "size": 9926,
+          "preview": "\n        // UI update functions\n        function updateTestStatus(testName, passed, message, time) {\n            const s"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 2512,
+          "preview": "\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, sans-serif;\n            padding: 20px;\n     "
+        }
+      ]
+    },
+    "phase7-verification.html": {
+      "scripts": [
+        "/public/assets/feature-flags.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 617,
+          "preview": "\n        // HI DEV Production Redirect with ?dev=1 Detection\n        (function() {\n            const urlParams = new URL"
+        },
+        {
+          "module": true,
+          "size": 9926,
+          "preview": "\n        // UI update functions\n        function updateTestStatus(testName, passed, message, time) {\n            const s"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 2512,
+          "preview": "\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, sans-serif;\n            padding: 20px;\n     "
+        }
+      ]
+    },
+    "post-auth-bulletproof.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/config.js",
+        "assets/tesla-supabase-manager.js",
+        "assets/tesla-auth-system.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 14672,
+          "preview": "\n        // Tesla-grade post-auth processor\n        class TeslaPostAuth {\n            constructor() {\n                th"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 6824,
+          "preview": "\n        * {\n            box-sizing: border-box;\n            margin: 0;\n            padding: 0;\n        }\n\n        body "
+        }
+      ]
+    },
+    "post-auth-debug.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 6790,
+          "preview": "\n        const log = (msg, type = 'info') => {\n            const timestamp = new Date().toISOString().split('T')[1].spli"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 700,
+          "preview": "\n        body { font-family: monospace; margin: 20px; background: #0f0f0f; color: #00ff00; }\n        .debug-panel { padd"
+        }
+      ]
+    },
+    "post-auth-tesla-bulletproof.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"
+      ],
+      "styles": [
+        "assets/create-parity.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 9840,
+          "preview": "\n  // Tesla-grade configuration - self-contained, no external dependencies\n  const CONFIG = {\n    SUPABASE_URL: 'https:/"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 3703,
+          "preview": "\n    /* Tesla-Grade Gold Standard Auth Processing UI */\n    * {\n      box-sizing: border-box;\n    }\n    \n    body {\n    "
+        }
+      ]
+    },
+    "post-auth.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/supabase-init.js"
+      ],
+      "styles": [
+        "assets/create-parity.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 1225,
+          "preview": "\n    (function(){\n      try {\n        var qp = new URLSearchParams(location.search);\n        if (qp.get('no-sw') === '1'"
+        },
+        {
+          "module": false,
+          "size": 6504,
+          "preview": "\n  // Wait for Supabase client to be ready\n  let supabase;\n  \n  async function waitForSupabase() {\n    // Import HiSupab"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 5514,
+          "preview": "\n    /* Hi-Grade Gold Standard Auth Processing UI */\n    * {\n      box-sizing: border-box;\n    }\n    \n    body {\n      f"
+        }
+      ]
+    },
+    "preview-check.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [],
+      "inlineStyleBlocks": []
+    },
+    "profile-auth-backup.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/supabase-init.js",
+        "assets/url-path-fixer.js",
+        "assets/auth-health-monitor.js",
+        "assets/auth-guard.js?v=enhanced-logging",
+        "assets/demo-auth.js",
+        "assets/performance-manager.js",
+        "assets/image-optimizer.js",
+        "assets/avatar-utils.js",
+        "assets/location-picker.js",
+        "assets/profile-debug-cleaner.js"
+      ],
+      "styles": [
+        "assets/theme.css",
+        "assets/location-picker.css",
+        "assets/premium-ux.css",
+        "assets/premium-stats.css",
+        "assets/premium-calendar.css",
+        "assets/premium-footer.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 68774,
+          "preview": "\n\n    \n\n    \n    // Global Modal Functions (accessible to onclick handlers)\n    function editProfile() {\n      console.l"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 42094,
+          "preview": "\n    /* Tesla-Inspired Gold Standard Profile */\n    :root {\n      --profile-accent: #4ECDC4;\n      --profile-secondary: "
+        }
+      ]
+    },
+    "profile-broken-124kb.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/supabase-init.js",
+        "assets/url-path-fixer.js",
+        "assets/auth-health-monitor.js",
+        "assets/auth-guard.js?v=enhanced-logging",
+        "assets/demo-auth.js",
+        "assets/performance-manager.js",
+        "assets/image-optimizer.js",
+        "assets/avatar-utils.js",
+        "assets/location-picker.js",
+        "assets/profile-debug-cleaner.js"
+      ],
+      "styles": [
+        "assets/theme.css",
+        "assets/location-picker.css",
+        "assets/premium-ux.css",
+        "assets/premium-stats.css",
+        "assets/premium-calendar.css",
+        "assets/premium-footer.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 68774,
+          "preview": "\n\n    \n\n    \n    // Global Modal Functions (accessible to onclick handlers)\n    function editProfile() {\n      console.l"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 42094,
+          "preview": "\n    /* Tesla-Inspired Gold Standard Profile */\n    :root {\n      --profile-accent: #4ECDC4;\n      --profile-secondary: "
+        }
+      ]
+    },
+    "profile-debug.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 6246,
+          "preview": "\n        function log(message, type = 'info') {\n            const debugLog = document.getElementById('debugLog');\n      "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 838,
+          "preview": "\n        body {\n            background: #0F0F23;\n            color: white;\n            font-family: -apple-system, Blink"
+        }
+      ]
+    },
+    "profile-demo.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [],
+      "inlineStyleBlocks": [
+        {
+          "size": 1713,
+          "preview": "\n    body {\n      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui;\n      background: linear-"
+        }
+      ]
+    },
+    "profile-diagnostic.html": {
+      "scripts": [
+        "assets/config.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 10007,
+          "preview": "\n        let supabase;\n        \n        async function initSupabase() {\n            if (!supabase && window.SUPABASE_URL"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 909,
+          "preview": "\n        body { font-family: system-ui; background: #1a1a2e; color: white; padding: 20px; }\n        .container { max-wid"
+        }
+      ]
+    },
+    "profile-gold.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/supabase-init.js",
+        "assets/demo-auth.js",
+        "assets/tesla-modal-system.js",
+        "assets/location-picker.js",
+        "assets/pwa-manager.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 14609,
+          "preview": "\n    // TESLA GOLD STANDARD PROFILE SYSTEM\n    window.TeslaProfile = {\n      // Core Data\n      user: null,\n      profil"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 9806,
+          "preview": "\n    /* TESLA GOLD STANDARD CSS */\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    \n    body {\n      font-f"
+        }
+      ]
+    },
+    "profile-working.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 3100,
+          "preview": "\n    // Working demo profile system\n    let currentProfile = {\n      username: 'demo_user',\n      bio: 'Living life one "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 5898,
+          "preview": "\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    \n    body {\n      font-family: -apple-system, BlinkMacSyst"
+        }
+      ]
+    },
+    "profile.html": {
+      "scripts": [
+        "assets/avatar-utils.js",
+        "assets/location-picker.js",
+        "./lib/HiPerformance.js",
+        "assets/image-optimizer.js",
+        "assets/social-avatar-uploader.js",
+        "assets/premium-calendar.js",
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
+        "./lib/HiSupabase.simple.js",
+        "./lib/flags/HiFlags.js",
+        "./lib/hibase/index.js",
+        "assets/anonymous-access-modal.js",
+        "./lib/membership/MembershipSystem.js",
+        "assets/tesla-data-isolation.js",
+        "./ui/HiFooter/HiFooter.js"
+      ],
+      "styles": [
+        "assets/location-picker.css",
+        "assets/premium-ux.css",
+        "assets/premium-stats.css",
+        "assets/premium-calendar.css",
+        "ui/HiFooter/HiFooter.css",
+        "assets/tesla-mobile-fixes.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 54405,
+          "preview": "\n    // Tesla-Grade Profile System - WITH SECURITY BARRIERS\n    \n    // Tesla Profile Data - Production Ready\n    // Tes"
+        },
+        {
+          "module": false,
+          "size": 217,
+          "preview": "\n    // Gold-standard global location data for worldwide users\n    // Tesla-Grade: LocationPicker handles all global loc"
+        },
+        {
+          "module": false,
+          "size": 10310,
+          "preview": "\n    // Tesla-Grade Smart Back Navigation System\n    class SmartNavigation {\n      constructor() {\n        this.backBtn "
+        },
+        {
+          "module": false,
+          "size": 441,
+          "preview": "\n    // Load premium features if available\n    if (window.PremiumUX) {\n      console.log('🎨 Premium UX loaded');\n    }\n"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 22909,
+          "preview": "\n    /* Tesla-Grade Gold Standard Profile System */\n    :root {\n      --tesla-primary: #4ECDC4;\n      --tesla-secondary:"
+        }
+      ]
+    },
+    "promo.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 1882,
+          "preview": "\n        function showInviteInput() {\n            document.querySelector('.promo-container').style.display = 'none';\n   "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 5029,
+          "preview": "\n        * {\n            margin: 0;\n            padding: 0;\n            box-sizing: border-box;\n        }\n        \n     "
+        }
+      ]
+    },
+    "s-isl-3-test.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 5352,
+          "preview": "\n        import { renderFeedSkeleton, appendHiCard } from './lib/hifeed/anchors.js';\n        \n        const results = do"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 263,
+          "preview": "\n        body { font-family: system-ui; margin: 20px; }\n        .test-result { margin: 8px 0; }\n        .pass { color: g"
+        }
+      ]
+    },
+    "session-cleaner.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 1416,
+          "preview": "\n    function clearEverything() {\n      const output = document.getElementById('output');\n      let log = '';\n      \n   "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 84,
+          "preview": "body { font-family: system-ui; max-width: 600px; margin: 40px auto; padding: 20px; }"
+        }
+      ]
+    },
+    "session-nuke.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 2707,
+          "preview": "\n        async function nukeBrowserState() {\n            const status = document.getElementById('status');\n            s"
+        }
+      ],
+      "inlineStyleBlocks": []
+    },
+    "signin-backup-20251030_195444.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/tesla-supabase-manager.js",
+        "assets/tesla-auth-system.js"
+      ],
+      "styles": [
+        "assets/theme.css",
+        "assets/create-parity.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 9015,
+          "preview": "\n    // Tesla-Grade Direct Supabase Initialization\n    let supabaseClient = null;\n    \n    async function initializeSupa"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 5281,
+          "preview": "\n    /* Premium Tesla-inspired layout */\n    body {\n      background: linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #"
+        }
+      ]
+    },
+    "signin-backup-20251030_203600.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/tesla-supabase-manager.js",
+        "assets/tesla-auth-system.js"
+      ],
+      "styles": [
+        "assets/theme.css",
+        "assets/create-parity.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 9015,
+          "preview": "\n    // Tesla-Grade Direct Supabase Initialization\n    let supabaseClient = null;\n    \n    async function initializeSupa"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 5281,
+          "preview": "\n    /* Premium Tesla-inspired layout */\n    body {\n      background: linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #"
+        }
+      ]
+    },
+    "signin-bulletproof.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/config.js",
+        "assets/tesla-supabase-manager.js",
+        "assets/tesla-auth-system.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 10980,
+          "preview": "\n        // Tesla-grade signin implementation\n        class TeslaSignin {\n            constructor() {\n                th"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 7036,
+          "preview": "\n        * {\n            box-sizing: border-box;\n            margin: 0;\n            padding: 0;\n        }\n\n        body "
+        }
+      ]
+    },
+    "signin-enhanced.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/config.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 6828,
+          "preview": "\n        let supabase;\n        \n        // Initialize Supabase\n        function initSupabase() {\n            if (window."
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 4073,
+          "preview": "\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui;\n            bac"
+        }
+      ]
+    },
+    "signin-production-ready.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/config.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 8871,
+          "preview": "\n        let supabaseClient = null;\n        let configIssueDetected = false;\n\n        // Initialize Supabase\n        asy"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 5834,
+          "preview": "\n        * { box-sizing: border-box; margin: 0; padding: 0; }\n\n        body {\n            font-family: -apple-system, Bl"
+        }
+      ]
+    },
+    "signin-tesla-bulletproof.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 11940,
+          "preview": "\n        // Tesla-grade configuration with bulletproof fallbacks\n        const CONFIG = {\n            SUPABASE_URL: 'htt"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 5030,
+          "preview": "\n        * {\n            margin: 0;\n            padding: 0;\n            box-sizing: border-box;\n        }\n\n        body "
+        }
+      ]
+    },
+    "signin-tesla.html": {
+      "scripts": [
+        "https://unpkg.com/@supabase/supabase-js@2"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 6658,
+          "preview": "\n    // Tesla-Grade Simple Authentication\n    let supabaseClient = null;\n    let isProcessing = false;\n    \n    // Debug"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 3278,
+          "preview": "\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n    \n    body {\n      font-family: -appl"
+        }
+      ]
+    },
+    "signin.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"
+      ],
+      "styles": [
+        "assets/theme.css",
+        "assets/create-parity.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 8114,
+          "preview": "\n    // Tesla-Grade Direct Supabase Initialization\n    let supabaseClient = null;\n    \n    async function initializeSupa"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 5281,
+          "preview": "\n    /* Premium Tesla-inspired layout */\n    body {\n      background: linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #"
+        }
+      ]
+    },
+    "signup-corrupted.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"
+      ],
+      "styles": [
+        "assets/theme.css",
+        "assets/create-parity.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 3344,
+          "preview": "\n// Tesla-Grade Signup with Supabase Integration\nlet supabaseClient = null;\n\n// Initialize Supabase\nasync function initi"
+        },
+        {
+          "module": false,
+          "size": 5156,
+          "preview": "\n/* Tesla-Grade Auth System */\n(function () {\n  // Wait for Supabase client to be initialized\n  function waitForSupabase"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 3852,
+          "preview": "\n  body {\n    font-family: var(--f-sans);\n    margin: 0;\n    padding: 0;\n    background: linear-gradient(135deg, #2d1e4f"
+        }
+      ]
+    },
+    "signup.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"
+      ],
+      "styles": [
+        "assets/theme.css",
+        "assets/create-parity.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 7723,
+          "preview": "\n// Tesla-Grade Signup with Supabase Integration\nlet supabaseClient = null;\n\n// Initialize Supabase\nasync function initi"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 4416,
+          "preview": "\n  body {\n    font-family: var(--f-sans);\n    margin: 0;\n    padding: 0;\n    background: linear-gradient(135deg, #2d1e4f"
+        }
+      ]
+    },
+    "stats-explanation.html": {
+      "scripts": [],
+      "styles": [
+        "assets/theme.css"
+      ],
+      "inlineScriptBlocks": [],
+      "inlineStyleBlocks": [
+        {
+          "size": 2258,
+          "preview": "\n        body {\n            background: linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #ffd166 100%);\n            min-"
+        }
+      ]
+    },
+    "supabase-diagnostics.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 5184,
+          "preview": "\n        const log = (msg, type = 'info') => {\n            const timestamp = new Date().toISOString();\n            const"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 510,
+          "preview": "\n        body { font-family: monospace; margin: 20px; background: #0f0f0f; color: #00ff00; }\n        .test { padding: 10"
+        }
+      ]
+    },
+    "surgical-diagnostic.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 15547,
+          "preview": "\n        function log(message, type = 'info') {\n            const logEl = document.getElementById('log');\n            co"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1116,
+          "preview": "\n        body {\n            background: #0a0a0a;\n            color: #00ff41;\n            font-family: 'Courier New', mon"
+        }
+      ]
+    },
+    "system-verification.html": {
+      "scripts": [
+        "assets/premium-ux.js",
+        "components/hi-share-sheet/share-sheet.js"
+      ],
+      "styles": [
+        "components/hi-share-sheet/share-sheet.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 10994,
+          "preview": "\n        let testResults = [];\n        \n        function log(message, type = 'info') {\n            const logEl = documen"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1371,
+          "preview": "\n        * { box-sizing: border-box; }\n        body {\n            background: #0f1024;\n            color: white;\n       "
+        }
+      ]
+    },
+    "tesla-data-detective.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 9081,
+          "preview": "\n        // 🎯 TESLA-GRADE: Extract actual user statistics from localStorage\n        function extractRealStats() {\n     "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1777,
+          "preview": "\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n            "
+        }
+      ]
+    },
+    "tesla-diagnosis.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/config.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 13338,
+          "preview": "\n        let diagnosticResults = [];\n        \n        function updateResults(elementId, content, type = 'info') {\n      "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1743,
+          "preview": "\n        body {\n            background: #0F0F23;\n            color: white;\n            font-family: -apple-system, Blink"
+        }
+      ]
+    },
+    "tesla-launch-validator.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",
+        "https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js",
+        "assets/supabase-init.js",
+        "assets/db.js",
+        "assets/auth-guard.js",
+        "assets/avatar-utils.js",
+        "assets/geocoding-service.js",
+        "assets/emotions.js",
+        "assets/feature-flags.js",
+        "assets/hi-rewards-controller.js",
+        "components/hi-share-sheet/share-sheet.js",
+        "components/hi-island-map/map.js",
+        "components/hi-island-feed/feed.js",
+        "components/profile-preview-modal/profile-modal.js",
+        "assets/launch-validator.js"
+      ],
+      "styles": [
+        "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css",
+        "https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css",
+        "https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css",
+        "assets/theme.css",
+        "assets/create-parity.css",
+        "assets/premium-ux.css",
+        "components/hi-share-sheet/share-sheet.css",
+        "components/hi-island-map/map.css",
+        "components/hi-island-feed/feed.css",
+        "components/profile-preview-modal/profile-modal.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 9478,
+          "preview": "\n    // Enhanced test controller\n    class LaunchTestController {\n      constructor() {\n        this.results = {};\n     "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1966,
+          "preview": "\n    body {\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n      margin: 0;\n     "
+        }
+      ]
+    },
+    "tesla-security-fortress.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 9274,
+          "preview": "\n        // Initialize security fortress score\n        let securityScore = 0;\n        const maxScore = 100;\n\n        // "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 5654,
+          "preview": "\n        * {\n            margin: 0;\n            padding: 0;\n            box-sizing: border-box;\n        }\n\n        body "
+        }
+      ]
+    },
+    "tesla-validation-complete.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/config.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 12640,
+          "preview": "\n        async function runFullValidation() {\n            const resultsDiv = document.getElementById('validationResults'"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 2845,
+          "preview": "\n        body {\n            background: linear-gradient(135deg, #0F0F23, #1a1a3a);\n            color: white;\n           "
+        }
+      ]
+    },
+    "tesla-validation.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 10742,
+          "preview": "\n        function log(message, type = 'info') {\n            const logEl = document.getElementById('log');\n            co"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1209,
+          "preview": "\n        body {\n            background: #0a0a0a;\n            color: #00ff41;\n            font-family: 'Courier New', mon"
+        }
+      ]
+    },
+    "tesla-wozniak-diagnostic.html": {
+      "scripts": [
+        "/assets/wozniak-tracking-foundation.js",
+        "/assets/wozniak-ui-connectors.js",
+        "https://unpkg.com/@supabase/supabase-js@2"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 16775,
+          "preview": "\n        const results = document.getElementById('results');\n        const consoleOutput = document.getElementById('cons"
+        },
+        {
+          "module": false,
+          "size": 3696,
+          "preview": "\n        // Initialize Supabase client for testing\n        const supabaseUrl = 'https://gfcubvroxgfvjhacinic.supabase.co"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 2010,
+          "preview": "\n        body {\n            background: #0f1024;\n            color: #cfd2ea;\n            font-family: -apple-system, Bli"
+        }
+      ]
+    },
+    "test 2.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 53,
+          "preview": "\n        console.log('✅ JavaScript is working');\n    "
+        }
+      ],
+      "inlineStyleBlocks": []
+    },
+    "test-dashboard-auth.html": {
+      "scripts": [
+        "lib/HiGoldStandardModal.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 3202,
+          "preview": "\n        function updateStatus(message) {\n            document.getElementById('status').innerHTML = message;\n        }\n\n"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 911,
+          "preview": "\n        body {\n            background: #0f1024;\n            color: #e8ebff;\n            font-family: -apple-system, Bli"
+        }
+      ]
+    },
+    "test-hi-muscle-auth.html": {
+      "scripts": [
+        "lib/HiGoldStandardModal.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 3901,
+          "preview": "\n        function updateStatus(message) {\n            document.getElementById('status').innerHTML = message;\n        }\n\n"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1057,
+          "preview": "\n        body {\n            background: #0f1024;\n            color: #e8ebff;\n            font-family: -apple-system, Bli"
+        }
+      ]
+    },
+    "test-himetrics-direct 2.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
+        "./lib/HiSupabase.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 1381,
+          "preview": "\n        const resultDiv = document.getElementById('result');\n        \n        async function testHiMetrics() {\n        "
+        }
+      ],
+      "inlineStyleBlocks": []
+    },
+    "test-himetrics-direct.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
+        "./lib/HiSupabase.js"
+      ],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 1381,
+          "preview": "\n        const resultDiv = document.getElementById('result');\n        \n        async function testHiMetrics() {\n        "
+        }
+      ],
+      "inlineStyleBlocks": []
+    },
+    "test-modal-system.html": {
+      "scripts": [
+        "lib/HiGoldStandardModal.js",
+        "ui/HiShareSheet/HiShareSheet.js"
+      ],
+      "styles": [
+        "ui/HiShareSheet/HiShareSheet.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 2655,
+          "preview": "\n        function log(message) {\n            const output = document.getElementById('output');\n            output.innerH"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 777,
+          "preview": "\n        body {\n            background: #0f1024;\n            color: #e8ebff;\n            font-family: -apple-system, Bli"
+        }
+      ]
+    },
+    "test.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 53,
+          "preview": "\n        console.log('✅ JavaScript is working');\n    "
+        }
+      ],
+      "inlineStyleBlocks": []
+    },
+    "upgrade.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "assets/tesla-instant-auth.js",
+        "assets/tesla-smooth-redirect.js",
+        "assets/supabase-init.js",
+        "assets/premium-ux.js"
+      ],
+      "styles": [
+        "assets/theme.css",
+        "assets/create-parity.css",
+        "assets/premium-ux.css",
+        "assets/tesla-mobile-fixes.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 6587,
+          "preview": "\n    let selectedPlan = 'premium'; // Default to recommended\n    let currentMembership = null;\n    \n    // Wait for Supa"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 5038,
+          "preview": "\n    body {\n      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n      min-height: 100vh;\n      padding:"
+        }
+      ]
+    },
+    "ux-test-console.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 6502,
+          "preview": "\n    function addResult(containerId, message, type = 'info') {\n      const container = document.getElementById(container"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1322,
+          "preview": "\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    body {\n      font-family: -apple-system, BlinkMacSystemFon"
+        }
+      ]
+    },
+    "verification-complete.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 482,
+          "preview": "\n        // Auto-verification log\n        console.log('🚀 Tesla-Grade Anti-Glitch System Deployed Successfully');\n      "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 2167,
+          "preview": "\n        * { box-sizing: border-box; }\n        body {\n            background: linear-gradient(135deg, #0f1024 0%, #1a1b3"
+        }
+      ]
+    },
+    "version-checker.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 4754,
+          "preview": "\n        function log(message, type = 'info') {\n            const results = document.getElementById('results');\n        "
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 1106,
+          "preview": "\n        body {\n            background: #0f1024;\n            color: #e8ebff;\n            font-family: -apple-system, Bli"
+        }
+      ]
+    },
+    "webroot-test 2.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 1997,
+          "preview": "\n        // Pass criteria: location.pathname must contain \"/public/\"\n        (function() {\n          const PASS = locati"
+        }
+      ],
+      "inlineStyleBlocks": []
+    },
+    "webroot-test.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 1997,
+          "preview": "\n        // Pass criteria: location.pathname must contain \"/public/\"\n        (function() {\n          const PASS = locati"
+        }
+      ],
+      "inlineStyleBlocks": []
+    },
+    "welcome.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "./lib/HiMembership.js",
+        "assets/hi-access-tiers.js",
+        "assets/hi-flow-controller.js",
+        "./lib/HiFlowController.js",
+        "assets/hi-loading-experience.js",
+        "assets/tesla-data-isolation.js",
+        "./lib/HiPWA.js",
+        "assets/medallion-curiosity-system.js",
+        "assets/hi-rewards-beta.js",
+        "assets/real-time-stats.js",
+        "./lib/HiSupabase.js",
+        "assets/hi-unified-global-stats.js",
+        "./lib/flags/HiFlags.js",
+        "./js/welcome-cta.js",
+        "./lib/navigation/HiNavigationSystem.js"
+      ],
+      "styles": [
+        "assets/hi-flow-controller.css",
+        "assets/hi-loading-experience.css",
+        "assets/theme.css",
+        "assets/create-parity.css",
+        "assets/tesla-mobile-fixes.css",
+        "assets/tesla-edge-protection.css",
+        "./lib/navigation/HiNavigationSystem.css",
+        "./ui/HiMedallion/HiMedallion.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": false,
+          "size": 523,
+          "preview": "\n    // Pass criteria: location.pathname must contain \"/public/\"\n    (function() {\n      const PASS = location.pathname."
+        },
+        {
+          "module": true,
+          "size": 102,
+          "preview": "\n    import HiFlags, { hiFlags } from './lib/flags/HiFlags.js';\n    await hiFlags.waitUntilReady();\n  "
+        },
+        {
+          "module": true,
+          "size": 121,
+          "preview": "\n    import HiBase from './lib/hibase/index.js';\n    // Make available for console testing\n    window.HiBase = HiBase;\n "
+        },
+        {
+          "module": false,
+          "size": 119,
+          "preview": "\n    // Production build - diagnostic system disabled\n    window.executedScripts = [];\n    window.redErrorCount = 0;\n  "
+        },
+        {
+          "module": true,
+          "size": 2975,
+          "preview": "\n    import HiMetrics from './lib/HiMetrics.js';\n    \n    // Tesla-grade metrics adapter with cache + subscriber pattern"
+        },
+        {
+          "module": true,
+          "size": 1159,
+          "preview": "\n    import { supabase } from \"./lib/HiSupabase.v3.js\";\n    import { getGlobalStats } from \"./lib/HiStats.js\";\n\n    // S"
+        },
+        {
+          "module": true,
+          "size": 100,
+          "preview": "\n    import { supabase } from \"./lib/HiSupabase.v3.js\";\n    // HiSupabase v3 initialized silently\n  "
+        },
+        {
+          "module": false,
+          "size": 1232,
+          "preview": "\n    // Tesla-grade auth check with beautiful loading experience\n    async function checkAuthWithLoadingExperience() {\n "
+        },
+        {
+          "module": false,
+          "size": 5558,
+          "preview": "\n    // HI-OS: Legacy fetchStats function - REMOVED\n    // This has been replaced by the unified stats init guard system"
+        },
+        {
+          "module": false,
+          "size": 166,
+          "preview": "\n    window.HI_ENV = {\n      PLAUSIBLE_DOMAIN: 'stay-eoyezel0s-joeatangs-projects.vercel.app',\n      SENTRY_DSN: '' // l"
+        },
+        {
+          "module": true,
+          "size": 4259,
+          "preview": "\n    import HiBase from './lib/hibase/index.js';\n    import HiFlags, { hiFlags } from './lib/flags/HiFlags.js';\n\n    // "
+        },
+        {
+          "module": true,
+          "size": 240,
+          "preview": "\n    const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';\n    const params = new URLS"
+        },
+        {
+          "module": true,
+          "size": 506,
+          "preview": "\n    import { mountHiMedallion } from './ui/HiMedallion/HiMedallion.js';\n    \n    document.addEventListener('DOMContentL"
+        },
+        {
+          "module": false,
+          "size": 221,
+          "preview": "\n    document.addEventListener('DOMContentLoaded', () => {\n      if (window.hiNavSystem) {\n        window.hiNavSystem.up"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 243,
+          "preview": "\n    :root {\n      /* Welcome page flavor - warmer, inviting gradient */\n      --hi-medallion-bg1: #FF9A3C;   /* warmer "
+        },
+        {
+          "size": 12744,
+          "preview": "\n    /* �️ WOZNIAK-GRADE: Stable body container */\n    * {\n      box-sizing: border-box;\n    }\n    html {\n      width: 1"
+        }
+      ]
+    },
+    "welcome.sandbox.html": {
+      "scripts": [
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js",
+        "./lib/HiMembership.js",
+        "assets/hi-access-tiers.js",
+        "assets/hi-flow-controller.js",
+        "assets/hi-loading-experience.js",
+        "assets/tesla-data-isolation.js",
+        "assets/pwa-manager.js",
+        "assets/hi-anonymous-onboarding.js",
+        "assets/hi-rewards-beta.js",
+        "assets/real-time-stats.js",
+        "./lib/HiSupabase.js",
+        "./lib/HiDB.js",
+        "assets/hi-unified-global-stats.js",
+        "./lib/monitoring/HiMonitor.js",
+        "./lib/flags/HiFlags.js",
+        "./js/welcome-cta.js"
+      ],
+      "styles": [
+        "assets/hi-flow-controller.css",
+        "assets/hi-loading-experience.css",
+        "assets/theme.css",
+        "assets/create-parity.css",
+        "assets/tesla-mobile-fixes.css",
+        "assets/tesla-edge-protection.css",
+        "./ui/HiMedallion/HiMedallion.css"
+      ],
+      "inlineScriptBlocks": [
+        {
+          "module": true,
+          "size": 94,
+          "preview": "\n    import * as HiFlags from './lib/flags/HiFlags.js';\n    await HiFlags.waitUntilReady();\n  "
+        },
+        {
+          "module": true,
+          "size": 183,
+          "preview": "\n    import HiBase from './lib/hibase/index.js';\n    console.log('🔥 HiBase ready - unified API online');\n    \n    // Ma"
+        },
+        {
+          "module": true,
+          "size": 2975,
+          "preview": "\n    import HiMetrics from './lib/HiMetrics.js';\n    \n    // Tesla-grade metrics adapter with cache + subscriber pattern"
+        },
+        {
+          "module": false,
+          "size": 1119,
+          "preview": "\n    // Tesla-grade auth check with beautiful loading experience\n    async function checkAuthWithLoadingExperience() {\n "
+        },
+        {
+          "module": false,
+          "size": 5558,
+          "preview": "\n    // HI-OS: Legacy fetchStats function - REMOVED\n    // This has been replaced by the unified stats init guard system"
+        },
+        {
+          "module": false,
+          "size": 166,
+          "preview": "\n    window.HI_ENV = {\n      PLAUSIBLE_DOMAIN: 'stay-eoyezel0s-joeatangs-projects.vercel.app',\n      SENTRY_DSN: '' // l"
+        },
+        {
+          "module": true,
+          "size": 4302,
+          "preview": "\n    import HiBase from './lib/hibase/index.js';\n    import { HiFlags } from './lib/flags/HiFlags.js';\n    import { HiMo"
+        },
+        {
+          "module": true,
+          "size": 240,
+          "preview": "\n    const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';\n    const params = new URLS"
+        },
+        {
+          "module": true,
+          "size": 506,
+          "preview": "\n    import { mountHiMedallion } from './ui/HiMedallion/HiMedallion.js';\n    \n    document.addEventListener('DOMContentL"
+        }
+      ],
+      "inlineStyleBlocks": [
+        {
+          "size": 243,
+          "preview": "\n    :root {\n      /* Welcome page flavor - warmer, inviting gradient */\n      --hi-medallion-bg1: #FF9A3C;   /* warmer "
+        },
+        {
+          "size": 12715,
+          "preview": "\n    /* 🎯 GOLD-STANDARD WELCOME PAGE: Tesla-Grade Brand Design */\n    body {\n      background: linear-gradient(135deg, "
+        }
+      ]
+    },
+    "zzz.html": {
+      "scripts": [],
+      "styles": [],
+      "inlineScriptBlocks": [],
+      "inlineStyleBlocks": []
+    }
+  },
+  "summary": {
+    "scripts": {
+      "other": 222,
+      "core": 58,
+      "diagnostic": 13,
+      "feature": 34
+    },
+    "styles": {
+      "other": 29,
+      "core": 72,
+      "feature": 10
+    }
+  }
+}

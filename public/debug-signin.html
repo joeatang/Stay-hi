@@ -8,6 +8,8 @@
     <!-- Basic Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="assets/config.js"></script>
+    <!-- Robust post-auth URL helper (dev/prod) -->
+    <script src="assets/post-auth-path.js"></script>
     
     <style>
         body {
@@ -164,7 +166,9 @@
                     throw new Error('Supabase client not initialized');
                 }
                 
-                const redirectTo = `${window.location.origin}/post-auth.html`;
+                                const redirectTo = (window.hiPostAuthPath?.getPostAuthURL
+                                    ? window.hiPostAuthPath.getPostAuthURL()
+                                    : `${window.location.origin}/post-auth.html`);
                 log(`🔗 Redirect URL: ${redirectTo}`, 'info');
                 
                 log('🚀 Calling signInWithOtp...', 'info');

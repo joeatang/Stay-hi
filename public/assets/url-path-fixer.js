@@ -6,14 +6,19 @@
   
   const currentUrl = window.location.href;
   const pathname = window.location.pathname;
+  const isLocal = /localhost|127\.0\.0\.1/.test(location.hostname);
   
   // Debug logging
   console.log('🔧 URL Path Fixer loaded');
   console.log('Current URL:', currentUrl);
   console.log('Pathname:', pathname);
   
-  // Fix /public/ prefix in URLs
-  if (pathname.includes('/public/')) {
+  // Smoke test / explicit skip guard
+  const params = new URLSearchParams(window.location.search);
+  const skipFix = params.has('smoke') || params.has('nofix') || window.__HI_SMOKE_MODE;
+
+  // Fix /public/ prefix in URLs unless explicitly skipped
+  if (!skipFix && pathname.includes('/public/') && !isLocal) {
     console.log('❌ Detected /public/ prefix in URL - fixing...');
     
     // Create corrected URL by removing /public/
@@ -37,7 +42,8 @@
       const urlParams = new URLSearchParams(window.location.search);
       const next = urlParams.get('next') || 'hi-dashboard.html';
       
-      const postAuthUrl = `/post-auth.html?next=${encodeURIComponent(next)}${window.location.hash}`;
+      const base = window.hiPostAuthPath?.getPath ? window.hiPostAuthPath.getPath() : '/post-auth.html';
+      const postAuthUrl = `${base}?next=${encodeURIComponent(next)}${window.location.hash}`;
       window.location.replace(postAuthUrl);
       return;
     }

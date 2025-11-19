@@ -56,9 +56,9 @@
           <a href="hi-muscle.html" role="menuitem">💪 Hi Gym</a>
           <a href="hi-island-NEW.html" role="menuitem">🏝️ Hi Island</a>
           <a href="profile.html?from=${getCurrentPageName()}" role="menuitem">👤 Profile</a>
-          <div id="adminMenuSection" style="display: none;">
+          <div id="adminMenuSection" style="display: block;">
             <div class="sep"></div>
-            <a href="hi-mission-control.html" role="menuitem" style="color: #FFD166; font-weight: 600;">🏛️ Mission Control</a>
+            <button id="openMissionControl" class="menu-item-btn" role="menuitem" style="color: #FFD166; font-weight: 700; background:transparent;border:none;cursor:pointer">🏛️ Mission Control</button>
           </div>
           <div class="sep"></div>
           <button id="btnSignOut" class="menu-item-btn" role="menuitem">🚪 Sign Out</button>
@@ -201,48 +201,144 @@
     }
   });
 
-  // 🏛️ HI-GRADE: Dynamic Admin Menu Detection
-  async function checkAndShowAdminAccess() {
-    try {
-      // Import HiSupabase v3 directly
-      const { supabase } = await import('../lib/HiSupabase.v3.js');
-      
-      // Check if user is authenticated
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) {
-        console.log('🔒 Not authenticated - no admin check');
-        return;
-      }
-      
-      console.log('✅ User authenticated:', user.email);
-      
-      // Check admin role in database
-      const { data: adminCheck, error: adminError } = await supabase
-        .from('admin_roles')
-        .select('role_type, is_active')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .single();
-      
-      console.log('🔍 Admin check result:', { adminCheck, adminError });
-      
-      if (!adminError && adminCheck && (adminCheck.role_type === 'super_admin' || adminCheck.role_type === 'admin')) {
-        // Show admin menu section
-        const adminSection = document.getElementById('adminMenuSection');
-        if (adminSection) {
-          adminSection.style.display = 'block';
-          console.log('🏛️ Admin access granted - Mission Control available');
-        }
-      }
-      
-    } catch (error) {
-      // Silently fail - admin access just won't appear
-      console.debug('Admin check failed (expected for non-admins):', error);
+  // 🏛️ Mission Control access: guarded navigation
+  (function setupMissionControlAccess(){
+    const btn = document.getElementById('openMissionControl');
+    if (!btn) return;
+    // Create a lightweight modal for access help
+    const modal = document.createElement('div');
+    modal.id = 'adminAccessModal';
+    modal.style.cssText = 'position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);z-index:10000;';
+    modal.innerHTML = `
+      <div role="dialog" aria-modal="true" aria-labelledby="adminAccessTitle" aria-describedby="adminAccessDesc" tabindex="-1" style="max-width:420px;width:92%;background:#0f1228;border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:20px;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,0.4)">
+        <h3 id="adminAccessTitle" style="margin:0 0 8px;font-size:18px">Admin Access Required</h3>
+        <p id="adminAccessDesc" style="margin:0 0 12px;color:#cfd2ea">Mission Control is for admins. If you have access, we’ll verify it now. If not, you can enter an invite code to upgrade your membership.</p>
+        <div style="display:flex;gap:8px;align-items:center;margin:10px 0 6px">
+          <input id="inviteCodeInline" placeholder="Invite code (optional)" style="flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:10px;color:#fff" />
+          <button id="redeemInviteInline" class="menu-item-btn" style="background:#FFD166;color:#0f1228;border:none;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer">Redeem</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin:6px 0 6px">
+          <input id="adminPasscodeInline" placeholder="Admin passcode" inputmode="numeric" autocomplete="one-time-code" style="flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:10px;color:#fff" />
+          <button id="unlockAdminInline" class="menu-item-btn" style="background:#7AE582;color:#0f1228;border:none;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer">Unlock</button>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+          <button id="adminAccessCancel" class="menu-item-btn" aria-label="Close admin access dialog" style="background:transparent;border:1px solid rgba(255,255,255,0.2);color:#cfd2ea;border-radius:10px;padding:8px 12px;cursor:pointer">Close</button>
+          <button id="recheckAdminAccess" class="menu-item-btn" style="background:#00d4ff;color:#0f172a;border:none;border-radius:10px;padding:8px 12px;font-weight:700;cursor:pointer">Recheck Access</button>
+        </div>
+        <div id="adminAccessMsg" style="margin-top:8px;color:#a7b0ff;font-size:12px;min-height:16px"></div>
+      </div>`;
+    document.body.appendChild(modal);
+
+    let previouslyFocused = null;
+    let keydownHandler = null;
+    function getFocusable(container){
+      const selectors = ['a[href]','area[href]','input:not([disabled])','select:not([disabled])','textarea:not([disabled])','button:not([disabled])','[tabindex]:not([tabindex="-1"])'];
+      return Array.from(container.querySelectorAll(selectors.join(','))).filter(el => el.offsetParent !== null);
     }
-  }
-  
-  // Run admin check after modules load
-  setTimeout(checkAndShowAdminAccess, 2000);
+    function openModal(){
+      previouslyFocused = document.activeElement;
+      modal.style.display='flex';
+      try { document.body.style.overflow='hidden'; } catch {}
+      const dialogEl = modal.querySelector('[role="dialog"]');
+      const focusables = getFocusable(dialogEl);
+      (focusables[0] || dialogEl).focus();
+      keydownHandler = (e)=>{
+        if (e.key === 'Escape') { e.preventDefault(); closeModal(); return; }
+        if (e.key === 'Tab'){
+          const f = getFocusable(dialogEl); if (!f.length) return;
+          const first = f[0], last = f[f.length-1];
+          if (e.shiftKey){ if (document.activeElement === first || !dialogEl.contains(document.activeElement)){ e.preventDefault(); last.focus(); } }
+          else { if (document.activeElement === last || !dialogEl.contains(document.activeElement)){ e.preventDefault(); first.focus(); } }
+        }
+      };
+      dialogEl.addEventListener('keydown', keydownHandler);
+      // Click outside closes (attach once)
+      if (!modal.__outsideClickAttached) {
+        modal.addEventListener('click', (ev)=>{ if (ev.target === modal) closeModal(); });
+        modal.__outsideClickAttached = true;
+      }
+    }
+    function closeModal(){
+      modal.style.display='none';
+      try { document.body.style.overflow=''; } catch {}
+      const dialogEl = modal.querySelector('[role="dialog"]');
+      if (keydownHandler) dialogEl.removeEventListener('keydown', keydownHandler);
+      if (previouslyFocused && typeof previouslyFocused.focus === 'function'){
+        setTimeout(()=>{ try { previouslyFocused.focus(); } catch {} }, 0);
+      }
+    }
+
+    btn.addEventListener('click', async (e)=>{
+      e.preventDefault();
+      // Prefer AdminAccessManager when available
+      try{
+        if (window.AdminAccessManager){
+          const st = await window.AdminAccessManager.checkAdmin({ force:true });
+          if (st?.isAdmin){ window.location.href = 'hi-mission-control.html'; return; }
+        }
+      }catch{}
+      // Fallback: try direct DB role probe (non-blocking)
+      try {
+        const { supabase } = await import('../lib/HiSupabase.v3.js');
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user){
+          const { data: adminRow } = await supabase.from('admin_roles').select('role_type,is_active').eq('user_id', user.id).eq('is_active', true).maybeSingle();
+          if (adminRow && (adminRow.role_type==='super_admin' || adminRow.role_type==='admin')){ window.location.href='hi-mission-control.html'; return; }
+        }
+      } catch {}
+      // If not admin, show help modal
+      openModal();
+    });
+
+    modal.querySelector('#adminAccessCancel').addEventListener('click', closeModal);
+    modal.querySelector('#recheckAdminAccess').addEventListener('click', async ()=>{
+      const msg = modal.querySelector('#adminAccessMsg');
+      msg.textContent = 'Rechecking…';
+      try{
+        const st = await window.AdminAccessManager?.checkAdmin({ force:true });
+        if (st?.isAdmin){ window.location.href='hi-mission-control.html'; return; }
+        msg.textContent = 'No admin access on this account.';
+      } catch(e){ msg.textContent = 'Could not verify admin access.'; }
+    });
+    modal.querySelector('#redeemInviteInline').addEventListener('click', async ()=>{
+      const code = (modal.querySelector('#inviteCodeInline').value||'').trim();
+      const msg = modal.querySelector('#adminAccessMsg');
+      if (!code){ msg.textContent = 'Enter an invite code first.'; return; }
+      msg.textContent = 'Redeeming…';
+      try {
+        const { supabase } = await import('../lib/HiSupabase.v3.js');
+        const { error } = await supabase.rpc('activate_unified_invite_code', { invite_code: code });
+        if (error){ msg.textContent = error.message || 'Invite redemption failed.'; return; }
+        msg.textContent = 'Invite redeemed. Rechecking access…';
+        const st = await window.AdminAccessManager?.checkAdmin({ force:true });
+        if (st?.isAdmin){ window.location.href='hi-mission-control.html'; }
+        else msg.textContent = 'Upgraded membership applied. Admin access not detected.';
+      } catch(e){ msg.textContent = e.message || 'Error redeeming code.'; }
+    });
+
+    // Admin passcode unlock flow
+    modal.querySelector('#unlockAdminInline').addEventListener('click', async ()=>{
+      const passcode = (modal.querySelector('#adminPasscodeInline').value||'').trim();
+      const msg = modal.querySelector('#adminAccessMsg');
+      if (!passcode){ msg.textContent = 'Enter the admin passcode.'; return; }
+      msg.textContent = 'Verifying passcode…';
+      try {
+        const { supabase } = await import('../lib/HiSupabase.v3.js');
+        const { data, error } = await supabase.rpc('admin_unlock_with_passcode', { p_passcode: passcode });
+        if (error){ msg.textContent = error.message || 'Passcode verification failed.'; return; }
+        if (data?.success){
+          msg.textContent = 'Access granted. Preparing Mission Control…';
+          // Recheck admin via unified manager to sync cache/events
+          const st = await window.AdminAccessManager?.checkAdmin({ force:true });
+          if (st?.isAdmin){ window.location.href='hi-mission-control.html'; return; }
+          // Fallback direct nav if manager not present
+          window.location.href='hi-mission-control.html';
+        } else {
+          msg.textContent = data?.message || 'Invalid passcode.';
+        }
+      } catch(e){ msg.textContent = e.message || 'Error unlocking admin access.'; }
+    });
+  })();
 
   // Sign out functionality
   btnSignOut?.addEventListener("click", async () => {

@@ -1,0 +1,6 @@
+User-agent: *
+# Hide in-app dev utilities and verifiers from indexing
+Disallow: /public/dev/
+
+# Allow everything else
+Allow: /

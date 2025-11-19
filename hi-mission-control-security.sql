@@ -66,34 +66,66 @@ ALTER TABLE admin_access_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_sessions ENABLE ROW LEVEL SECURITY;
 
 -- Only super admins can manage other admin roles
-CREATE POLICY "super_admin_only_admin_roles" ON admin_roles
-  FOR ALL USING (
-    auth.uid() IN (
-      SELECT user_id FROM admin_roles 
-      WHERE role_type = 'super_admin' 
-      AND is_active = true 
-      AND (expires_at IS NULL OR expires_at > NOW())
-    )
-  );
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE schemaname = 'public' AND tablename = 'admin_roles' AND policyname = 'super_admin_only_admin_roles'
+  ) THEN
+    CREATE POLICY "super_admin_only_admin_roles" ON admin_roles
+      FOR ALL USING (
+        auth.uid() IN (
+          SELECT user_id FROM admin_roles 
+          WHERE role_type = 'super_admin' 
+          AND is_active = true 
+          AND (expires_at IS NULL OR expires_at > NOW())
+        )
+      );
+  END IF;
+END$$;
 
 -- Admins can only see their own access logs
-CREATE POLICY "own_access_logs" ON admin_access_logs
-  FOR SELECT USING (auth.uid() = user_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE schemaname = 'public' AND tablename = 'admin_access_logs' AND policyname = 'own_access_logs'
+  ) THEN
+    CREATE POLICY "own_access_logs" ON admin_access_logs
+      FOR SELECT USING (auth.uid() = user_id);
+  END IF;
+END$$;
 
 -- Super admins can see all access logs
-CREATE POLICY "super_admin_all_logs" ON admin_access_logs
-  FOR SELECT USING (
-    auth.uid() IN (
-      SELECT user_id FROM admin_roles 
-      WHERE role_type = 'super_admin' 
-      AND is_active = true 
-      AND (expires_at IS NULL OR expires_at > NOW())
-    )
-  );
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE schemaname = 'public' AND tablename = 'admin_access_logs' AND policyname = 'super_admin_all_logs'
+  ) THEN
+    CREATE POLICY "super_admin_all_logs" ON admin_access_logs
+      FOR SELECT USING (
+        auth.uid() IN (
+          SELECT user_id FROM admin_roles 
+          WHERE role_type = 'super_admin' 
+          AND is_active = true 
+          AND (expires_at IS NULL OR expires_at > NOW())
+        )
+      );
+  END IF;
+END$$;
 
 -- Only own sessions visible
-CREATE POLICY "own_admin_sessions" ON admin_sessions
-  FOR ALL USING (auth.uid() = user_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE schemaname = 'public' AND tablename = 'admin_sessions' AND policyname = 'own_admin_sessions'
+  ) THEN
+    CREATE POLICY "own_admin_sessions" ON admin_sessions
+      FOR ALL USING (auth.uid() = user_id);
+  END IF;
+END$$;
 
 -- ========================================
 -- 🛡️ ADMIN AUTHENTICATION FUNCTIONS
@@ -429,3 +461,136 @@ ON CONFLICT (user_id) DO UPDATE SET
   is_active = true,
   updated_at = NOW();
 */
+
+-- ========================================
+-- 🔐 ADMIN PASSCODE UNLOCK (Optional Helper)
+-- Provides a secure, auditable way to grant 'admin' role via a shared passcode.
+-- - Store only a bcrypt hash server-side (pgcrypto required)
+-- - Only super_admins can set/reset the passcode
+-- - Any authenticated user with the correct passcode is granted 'admin'
+-- ========================================
+
+-- Ensure pgcrypto available for crypt/gen_salt
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Config table stores a single active passcode hash (latest row used)
+CREATE TABLE IF NOT EXISTS admin_passcode_config (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  passcode_hash TEXT NOT NULL,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_by UUID NOT NULL REFERENCES auth.users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  notes TEXT
+);
+
+ALTER TABLE admin_passcode_config ENABLE ROW LEVEL SECURITY;
+-- Only super_admins can read/write the config
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE schemaname = 'public' AND tablename = 'admin_passcode_config' AND policyname = 'admin_passcode_super_read'
+  ) THEN
+    CREATE POLICY admin_passcode_super_read ON admin_passcode_config
+      FOR SELECT USING (
+        auth.uid() IN (
+          SELECT user_id FROM admin_roles
+          WHERE role_type='super_admin' AND is_active = true AND (expires_at IS NULL OR expires_at > NOW())
+        )
+      );
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE schemaname = 'public' AND tablename = 'admin_passcode_config' AND policyname = 'admin_passcode_super_write'
+  ) THEN
+    CREATE POLICY admin_passcode_super_write ON admin_passcode_config
+      FOR ALL USING (
+        auth.uid() IN (
+          SELECT user_id FROM admin_roles
+          WHERE role_type='super_admin' AND is_active = true AND (expires_at IS NULL OR expires_at > NOW())
+        )
+      );
+  END IF;
+END$$;
+
+-- Super admin API to set/reset the passcode
+CREATE OR REPLACE FUNCTION set_admin_passcode(p_new_passcode TEXT, p_notes TEXT DEFAULT NULL)
+RETURNS JSONB AS $$
+DECLARE
+  v_uid UUID := auth.uid();
+  v_hash TEXT;
+BEGIN
+  -- Verify super_admin
+  IF NOT EXISTS (
+    SELECT 1 FROM admin_roles
+    WHERE user_id = v_uid AND role_type='super_admin' AND is_active = true AND (expires_at IS NULL OR expires_at > NOW())
+  ) THEN
+    RAISE EXCEPTION 'Super admin privileges required';
+  END IF;
+
+  IF p_new_passcode IS NULL OR length(trim(p_new_passcode)) < 4 THEN
+    RAISE EXCEPTION 'Passcode must be at least 4 characters';
+  END IF;
+
+  v_hash := crypt(p_new_passcode, gen_salt('bf', 12));
+
+  -- Deactivate any previously active passcodes so only newest remains active
+  UPDATE admin_passcode_config SET is_active = false WHERE is_active = true;
+
+  INSERT INTO admin_passcode_config(passcode_hash, is_active, created_by, notes)
+  VALUES (v_hash, true, v_uid, p_notes);
+
+  RETURN jsonb_build_object('success', true, 'message', 'Admin passcode updated');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Authenticated API to unlock admin via passcode
+CREATE OR REPLACE FUNCTION admin_unlock_with_passcode(p_passcode TEXT)
+RETURNS JSONB AS $$
+DECLARE
+  v_uid UUID := auth.uid();
+  v_hash TEXT;
+  v_match BOOLEAN := false;
+  v_admin_id UUID;
+BEGIN
+  IF v_uid IS NULL THEN
+    RETURN jsonb_build_object('success', false, 'message', 'Authentication required');
+  END IF;
+
+  -- Get latest active hash
+  SELECT passcode_hash INTO v_hash
+  FROM admin_passcode_config
+  WHERE is_active = true
+  ORDER BY created_at DESC
+  LIMIT 1;
+
+  IF v_hash IS NULL THEN
+    RETURN jsonb_build_object('success', false, 'message', 'Passcode not configured');
+  END IF;
+
+  v_match := crypt(p_passcode, v_hash) = v_hash;
+  IF NOT v_match THEN
+    -- Log failed attempt
+    INSERT INTO admin_access_logs(user_id, action_type, success, failure_reason, security_flags)
+    VALUES (v_uid, 'unlock_with_passcode', false, 'Invalid passcode', ARRAY['passcode_invalid']);
+    RETURN jsonb_build_object('success', false, 'message', 'Invalid passcode');
+  END IF;
+
+  -- Upsert admin role for this user
+  INSERT INTO admin_roles(user_id, role_type, permissions, is_active, security_level, mfa_required)
+  VALUES (v_uid, 'admin', '{"basic": true}', true, 'standard', false)
+  ON CONFLICT (user_id) DO UPDATE SET
+    role_type = excluded.role_type,
+    is_active = true,
+    updated_at = NOW();
+
+  -- Log success
+  INSERT INTO admin_access_logs(user_id, action_type, success, resource_accessed)
+  VALUES (v_uid, 'unlock_with_passcode', true, 'admin_role_granted');
+
+  RETURN jsonb_build_object('success', true, 'message', 'Admin access granted');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION set_admin_passcode(TEXT, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION admin_unlock_with_passcode(TEXT) TO authenticated;

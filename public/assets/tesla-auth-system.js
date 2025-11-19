@@ -322,8 +322,11 @@
                 throw new Error('Auth system not initialized');
             }
 
-            const redirectTo = options.redirectTo || 
-                `${window.location.origin}/post-auth.html?next=${encodeURIComponent(options.next || 'hi-dashboard.html')}`;
+            const redirectTo = options.redirectTo || (
+                window.hiPostAuthPath?.getPostAuthURL
+                    ? window.hiPostAuthPath.getPostAuthURL({ next: options.next || 'hi-dashboard.html' })
+                    : `${window.location.origin}/post-auth.html?next=${encodeURIComponent(options.next || 'hi-dashboard.html')}`
+            );
 
             const { data, error } = await supabaseClient.auth.signInWithOtp({
                 email,

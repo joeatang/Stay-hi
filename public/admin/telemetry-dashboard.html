@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Hi Telemetry Dashboard</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <style>
+    body{font:14px/1.4 system-ui;background:#111;color:#eee;margin:0;padding:16px;}h1{font-size:18px;margin:0 0 12px;font-weight:600;color:#FFD166;}section{margin-bottom:28px;}table{border-collapse:collapse;width:100%;margin-top:8px;font-size:13px;}th,td{padding:6px 8px;border:1px solid #333;text-align:left;}th{background:#222;}code{background:#222;padding:2px 4px;border-radius:4px;} .pill{display:inline-block;padding:2px 6px;border-radius:12px;font-size:11px;font-weight:600;background:#222;margin-right:4px;} .ok{color:#10b981;} .warn{color:#FF7B24;} .bad{color:#ef4444;} .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;} .card{background:#1c1c1c;padding:12px;border-radius:10px;box-shadow:0 2px 4px rgba(0,0,0,.4);} .card h3{margin:0 0 8px;font-size:14px;color:#FFD166;font-weight:600;} .muted{color:#888;font-size:12px;} a{color:#FFD166;} .mono{font-family:ui-monospace,monospace;font-size:12px;}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1/dist/umd/supabase.min.js" integrity="sha384-XLEuzmdNfK1V09d59bu+Uv3EFtEp5kFP8BmseBq85CUpeFZXhUfqjk4ZeR/biZmS" crossorigin="anonymous"></script>
+  <script>window.SUPABASE_URL = window.SUPABASE_URL || ''; window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || '';</script>
+</head>
+<body>
+  <h1>Hi Telemetry Dashboard <span id="buildSpan" class="muted"></span></h1>
+  <div class="grid" id="summaryGrid"></div>
+  <section>
+    <h2 style="font-size:16px;color:#FFD166;margin:24px 0 8px;">Performance Beacons (recent)</h2>
+    <table id="perfTable"><thead><tr><th>Build</th><th>Path</th><th>LCP</th><th>CLS</th><th>FID</th><th>FCP</th><th>TBT</th><th>TTFB</th><th>LongTasks</th><th>TransferKB</th><th>TS</th></tr></thead><tbody></tbody></table>
+  </section>
+  <section>
+    <h2 style="font-size:16px;color:#FFD166;margin:24px 0 8px;">Errors (recent)</h2>
+    <table id="errTable"><thead><tr><th>Type</th><th>Message</th><th>Path</th><th>Build</th><th>TS</th></tr></thead><tbody></tbody></table>
+  </section>
+  <section>
+    <h2 style="font-size:16px;color:#FFD166;margin:24px 0 8px;">Integrity Events (recent)</h2>
+    <table id="intTable"><thead><tr><th>Type</th><th>Src</th><th>Expected</th><th>Actual</th><th>Build</th><th>TS</th></tr></thead><tbody></tbody></table>
+  </section>
+  <section>
+    <h2 style="font-size:16px;color:#FFD166;margin:24px 0 8px;">Track Events (recent)</h2>
+    <table id="trackTable"><thead><tr><th>Event</th><th>Path</th><th>Build</th><th>Data</th><th>TS</th></tr></thead><tbody></tbody></table>
+  </section>
+  <script>
+    const HOURS = 24; const sinceMs = Date.now() - HOURS*3600*1000;
+    const formatTs = ts => { const d=new Date(ts); return d.toISOString().split('T')[0]+' '+d.toISOString().split('T')[1].slice(0,8); };
+    function percentile(arr,p){ if(!arr.length) return null; const sorted=[...arr].sort((a,b)=>a-b); const idx=Math.floor((p/100)*sorted.length); return sorted[Math.min(idx,sorted.length-1)]; }
+    async function init(){
+      if(!window.supabase){ document.body.innerHTML='<p style="color:#ef4444">Supabase client not loaded.</p>'; return; }
+      if(!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY){ document.body.insertAdjacentHTML('beforeend','<p class="muted">Missing SUPABASE_URL / SUPABASE_ANON_KEY globals.</p>'); }
+      const client = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+
+      async function fetchTable(name, cols){
+        const { data, error } = await client.from(name).select('*').gte('ts', sinceMs).order('ts', { ascending: false }).limit(500);
+        if(error){ console.warn(name+' fetch error', error); return []; }
+        return data||[];
+      }
+
+      const [perf, errors, integrity, track] = await Promise.all([
+        fetchTable('perf_beacons'),
+        fetchTable('error_events'),
+        fetchTable('integrity_events'),
+        fetchTable('track_events')
+      ]);
+
+      const builds = new Set([...perf, ...errors, ...integrity, ...track].map(r=>r.build_tag||r.build).filter(Boolean));
+      const buildSpan = document.getElementById('buildSpan'); buildSpan.textContent = builds.size? '• builds: '+[...builds].join(', '): '';
+
+      // Summary Cards
+      const lcpVals = perf.map(r=>r.lcp).filter(v=>typeof v==='number');
+      const clsVals = perf.map(r=>r.cls).filter(v=>typeof v==='number');
+      const fidVals = perf.map(r=>r.fid).filter(v=>typeof v==='number');
+      const tbtVals = perf.map(r=>r.tbt).filter(v=>typeof v==='number');
+      const transferVals = perf.map(r=> (r.resources && r.resources.totalTransfer) || null).filter(v=>typeof v==='number');
+      function fmt(v){ return v==null? '—': (v>1000? (v/1000).toFixed(2)+'s': v.toFixed(0)+'ms'); }
+      const grid = document.getElementById('summaryGrid');
+      function card(title, content){ const c=document.createElement('div'); c.className='card'; c.innerHTML='<h3>'+title+'</h3>'+content; grid.appendChild(c);}      
+      card('Perf Samples', '<div class="mono">'+perf.length+'</div>');
+      card('Avg LCP', '<div>'+fmt(lcpVals.reduce((a,b)=>a+b,0)/Math.max(1,lcpVals.length))+'</div><div class="muted">P95 '+fmt(percentile(lcpVals,95))+'</div>');
+      card('Avg CLS', '<div>'+(clsVals.length? clsVals.reduce((a,b)=>a+b,0)/clsVals.length: '—').toFixed? (clsVals.reduce((a,b)=>a+b,0)/Math.max(1,clsVals.length)).toFixed(3):'—'+'</div><div class="muted">P95 '+(percentile(clsVals,95)||'—').toFixed? (percentile(clsVals,95)||0).toFixed(3):'—'+'</div>');
+      card('Avg FID', '<div>'+fmt(fidVals.reduce((a,b)=>a+b,0)/Math.max(1,fidVals.length))+'</div>');
+      card('Avg TBT', '<div>'+fmt(tbtVals.reduce((a,b)=>a+b,0)/Math.max(1,tbtVals.length))+'</div>');
+      card('Avg Transfer', '<div>'+ (transferVals.length? (transferVals.reduce((a,b)=>a+b,0)/transferVals.length/1024).toFixed(1)+' KB':'—') +'</div>');
+      card('Errors', '<div class="mono">'+errors.length+'</div>');
+      card('Integrity Events', '<div class="mono">'+integrity.length+'</div>');
+      card('Track Events', '<div class="mono">'+track.length+'</div>');
+
+      // Tables
+      const perfTBody = document.querySelector('#perfTable tbody');
+      perf.forEach(r=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML='<td>'+ (r.build_tag||'') +'</td><td>'+ r.path +'</td><td>'+ (r.lcp?.toFixed? r.lcp.toFixed(0):'') +'</td><td>'+ (r.cls?.toFixed? r.cls.toFixed(3):'') +'</td><td>'+ (r.fid?.toFixed? r.fid.toFixed(0):'') +'</td><td>'+ (r.fcp?.toFixed? r.fcp.toFixed(0):'') +'</td><td>'+ (r.tbt?.toFixed? r.tbt.toFixed(0):'') +'</td><td>'+ (r.ttfb?.toFixed? r.ttfb.toFixed(0):'') +'</td><td>'+ r.long_tasks +'</td><td>'+ (r.resources && r.resources.totalTransfer? (r.resources.totalTransfer/1024).toFixed(1):'') +'</td><td>'+ formatTs(r.ts) +'</td>';
+        perfTBody.appendChild(tr);
+      });
+
+      const errTBody = document.querySelector('#errTable tbody');
+      errors.forEach(r=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML='<td>'+r.type+'</td><td>'+ (r.message||'').slice(0,80) +'</td><td>'+ r.path +'</td><td>'+ (r.build_tag||'') +'</td><td>'+ formatTs(r.ts) +'</td>';
+        errTBody.appendChild(tr);
+      });
+
+      const intTBody = document.querySelector('#intTable tbody');
+      integrity.forEach(r=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML='<td>'+ r.event_type +'</td><td>'+ (r.src||'').slice(0,60) +'</td><td>'+ (r.expected||'').slice(0,18) +'</td><td>'+ (r.actual||'').slice(0,18) +'</td><td>'+ (r.build_tag||'') +'</td><td>'+ formatTs(r.ts) +'</td>';
+        intTBody.appendChild(tr);
+      });
+
+      const trackTBody = document.querySelector('#trackTable tbody');
+      track.forEach(r=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML='<td>'+ r.event +'</td><td>'+ r.path +'</td><td>'+ (r.build_tag||'') +'</td><td>'+ (r.data? JSON.stringify(r.data).slice(0,60):'') +'</td><td>'+ formatTs(r.ts) +'</td>';
+        trackTBody.appendChild(tr);
+      });
+    }
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

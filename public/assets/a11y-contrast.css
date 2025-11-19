@@ -1,0 +1,83 @@
+/* High-Contrast Accessible Mode (optional, non-default)
+   Scope: applied when <html> has class 'hi-a11y-contrast'
+   Non-destructive: only overrides color-related presentation for readability.
+*/
+
+.hi-a11y-contrast, .hi-a11y-contrast body {
+  background: #111 !important;
+  color: #fff !important;
+}
+
+.hi-a11y-contrast body * { outline-color: #FFD166; }
+
+/* Text adjustments */
+.hi-a11y-contrast h1, .hi-a11y-contrast h2, .hi-a11y-contrast h3,
+.hi-a11y-contrast p, .hi-a11y-contrast span, .hi-a11y-contrast li {
+  color: #fff !important;
+}
+
+/* Primary buttons */
+.hi-a11y-contrast button,
+.hi-a11y-contrast .btn-primary {
+  background: #FFD166 !important;
+  color: #111 !important;
+  border: 2px solid #FFD166 !important;
+}
+
+/* Secondary / neutral buttons */
+.hi-a11y-contrast .btn-secondary,
+.hi-a11y-contrast button.secondary {
+  background: #222 !important;
+  color: #fff !important;
+  border: 2px solid #555 !important;
+}
+
+/* Links */
+.hi-a11y-contrast a { color: #63b3ff !important; }
+.hi-a11y-contrast a:focus-visible, .hi-a11y-contrast button:focus-visible {
+  outline: 3px solid #63b3ff !important;
+  outline-offset: 2px !important;
+  border-radius: 4px;
+}
+
+/* Input fields */
+.hi-a11y-contrast input, .hi-a11y-contrast select, .hi-a11y-contrast textarea {
+  background: #181818 !important;
+  color: #fff !important;
+  border: 2px solid #FFD166 !important;
+}
+
+/* Cards / panels */
+.hi-a11y-contrast .card, .hi-a11y-contrast .panel, .hi-a11y-contrast .welcome-panel {
+  background: #1b1b1b !important;
+  color: #fff !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.6) !important;
+  border: 1px solid #333 !important;
+}
+
+/* Badges & tags */
+.hi-a11y-contrast .badge, .hi-a11y-contrast .tag {
+  background: #FF7B24 !important;
+  color: #111 !important;
+  border: 1px solid #FF7B24 !important;
+}
+
+/* High-contrast banner (offline) */
+.hi-a11y-contrast #hi-offline-banner {
+  background: #FF7B24 !important;
+  color: #111 !important;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.4) !important;
+}
+
+/* Focus helper for testing */
+.hi-a11y-contrast .debug-focus-outline:focus {
+  outline: 3px solid #FFD166 !important;
+}
+
+/* Gradients replaced with readable solid backgrounds where necessary */
+.hi-a11y-contrast .gradient-bg, .hi-a11y-contrast .brand-gradient {
+  background: #222 !important;
+}
+
+/* Optional performance metrics text */
+.hi-a11y-contrast .perf-metric { color: #FFD166 !important; }
