@@ -56,6 +56,8 @@
   
   <!-- Monitoring breadcrumbs (lightweight) -->
   <script type="module" src="./lib/HiMonitor.js"></script>
+  <!-- Env-safe path resolver (dev /public vs prod root) -->
+  <script src="./assets/hi-paths.js"></script>
   <!-- Unified Monitoring Init (errors + tracking) -->
   <script src="./lib/boot/monitoring-init.js"></script>
   <!-- Database & Hi Island Integration (Async) -->
@@ -64,6 +66,12 @@
   <script type="module" src="./lib/HiLoading.js"></script>
   <!-- AuthReady orchestrator: unified session + membership (externalized) -->
   <script type="module" src="./lib/boot/authready-listener.js"></script>
+  <!-- Membership bridge: unify events and simple API -->
+  <script src="./lib/membership/HiMembershipBridge.js"></script>
+  <!-- AccessGate (scaffold) -->
+  <script src="./lib/access/AccessGate.js"></script>
+  <!-- AccessGate Modal (appears only for explicit anonymous blocks) -->
+  <script src="./components/AccessGateModal.js"></script>
   <!-- Unified Admin Access Orchestrator (events + caching) -->
   <script src="./lib/admin/AdminAccessManager.js"></script>
   <!-- Unified MC Access Core (replaces admin-link-autoinit + mc-quick-access + integrity) -->
@@ -112,8 +120,8 @@
   
   <!-- Premium Authentication & UX (Async) -->
   <script src="assets/post-auth-path.js"></script>
-  <script src="assets/progressive-auth.js" async></script>
-  <script src="assets/anonymous-access-modal.js" async></script>
+  <!-- Removed progressive-auth.js (replaced by unified AccessGate + AuthShim) -->
+  <script src="lib/access/AuthShim.js"></script>
   <script src="./lib/HiMembership.js" defer></script>
   <script src="./lib/HiBrandTiers.js" defer></script>
   <script src="./lib/RealUserCount.js" defer></script>

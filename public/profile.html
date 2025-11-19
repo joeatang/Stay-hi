@@ -9,6 +9,8 @@
   <script type="module" src="./lib/boot/contrast-mode.js"></script>
   
   <!-- Tesla-Grade Performance: Essential Assets Only -->
+  <!-- Env-safe path resolver for dev/prod safe navigation -->
+  <script src="assets/hi-paths.js"></script>
   <script src="assets/avatar-utils.js"></script>
   <script src="assets/location-picker.js"></script>
   <script type="module" src="./lib/HiPerformance.js"></script>
@@ -2858,11 +2860,16 @@ FOR INSERT WITH CHECK (
     
     // Expose membership modal for security system
     window.showMembershipModal = () => {
+      if(window.AccessGate?.request){
+        const decision = window.AccessGate.request('membership:upgrade');
+        return !!decision.allow;
+      }
       if (window.anonymousAccessModal) {
         window.anonymousAccessModal.showAccessModal();
-      } else {
-        console.warn('⚠️ Anonymous access modal not loaded');
+        return false;
       }
+      console.warn('⚠️ No AccessGate or AnonymousAccessModal for membership upgrade');
+      return false;
     };
     
     console.log('✅ Tesla Profile System Ready - WITH SECURITY BARRIERS');
@@ -2881,7 +2888,7 @@ FOR INSERT WITH CHECK (
   <!-- Location Picker Functions -->
   <script src="./lib/boot/profile-locationpicker-log.js"></script>
   <script>
-      },
+    const locationData = {
       'Canada': {
         'Ontario': ['Toronto', 'Ottawa', 'Mississauga', 'Brampton', 'Hamilton', 'London', 'Markham', 'Vaughan', 'Kitchener', 'Windsor'],
         'Quebec': ['Montreal', 'Quebec City', 'Laval', 'Gatineau', 'Longueuil', 'Sherbrooke', 'Levis', 'Saguenay', 'Trois-Rivières'],
@@ -3020,6 +3027,10 @@ FOR INSERT WITH CHECK (
   
   <!-- Tesla-Grade Navigation System (externalized) -->
   <script src="./lib/boot/profile-navigation.js"></script>
+  <!-- Seamless anonymous→auth profile merge -->
+  <script src="./lib/profile/ProfileMerge.js"></script>
+  <!-- Unified Auth Shim (removes dependency on progressive-auth.js) -->
+  <script src="./lib/access/AuthShim.js"></script>
   <script type="module">
     class SmartNavigation {
       constructor() {
@@ -3187,34 +3198,19 @@ FOR INSERT WITH CHECK (
       // Initialize Tesla-Grade Smart Navigation
       const smartNav = new SmartNavigation();
       
-      // Initialize anonymous access modal AFTER auth systems are ready
-      setTimeout(async () => {
-        if (typeof AnonymousAccessModal !== 'undefined') {
-          // Wait for auth systems to be ready
-          let authReady = false;
-          let attempts = 0;
-          
-          while (!authReady && attempts < 30) {
-            if (window.supabaseClient || window.supabase || window.sb) {
-              authReady = true;
-              break;
-            }
-            await new Promise(resolve => setTimeout(resolve, 200));
-            attempts++;
+      // Unified access gating instead of legacy modal boot
+      setTimeout(() => {
+        if(window.AccessGate?.request){
+          window.AccessGate.request('profile:view');
+        } else if(typeof AnonymousAccessModal !== 'undefined') {
+          if (!window.anonymousAccessModal) {
+            window.anonymousAccessModal = new AnonymousAccessModal();
           }
-          
-          if (authReady) {
-            if (!window.anonymousAccessModal) {
-              window.anonymousAccessModal = new AnonymousAccessModal();
-              console.log('🔒 Anonymous access modal initialized after auth ready');
-            }
-          } else {
-            console.log('⚠️ Auth systems not ready, skipping anonymous modal');
-          }
+          window.anonymousAccessModal.showAccessModal();
         } else {
-          console.warn('⚠️ AnonymousAccessModal not loaded');
+          console.warn('⚠️ No AccessGate or AnonymousAccessModal for profile gating');
         }
-      }, 2000); // Wait 2 seconds for all systems to initialize
+      }, 500);
       
       // Initialize profile display
       if (typeof updateProfileDisplay === 'function' && currentProfile) {

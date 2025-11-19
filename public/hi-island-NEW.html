@@ -20,12 +20,16 @@
   <link rel="dns-prefetch" href="//unpkg.com">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1/dist/umd/supabase.min.js" integrity="sha384-XLEuzmdNfK1V09d59bu+Uv3EFtEp5kFP8BmseBq85CUpeFZXhUfqjk4ZeR/biZmS" crossorigin="anonymous"></script>
 
-  <!-- 🚀 Tesla-Grade Anonymous Access Modal System (Async) -->
-  <script src="assets/anonymous-access-modal.js" async></script>
+  <!-- Unified Access Gate (replaces legacy anonymous modal) -->
+  <script src="assets/hi-paths.js"></script>
+  <script src="lib/membership/HiMembershipBridge.js"></script>
+  <script src="lib/access/AccessGate.js"></script>
+  <script src="components/AccessGateModal.js"></script>
   
   <!-- 🔐 Authentication System (Tesla-Grade Progressive Auth) -->
   <script src="assets/post-auth-path.js"></script>
-  <script src="assets/progressive-auth.js" async></script>
+  <!-- Unified Auth Shim replaces progressive-auth.js -->
+  <script src="lib/access/AuthShim.js"></script>
   <!-- Silence verbose logs in production unless debug flags are present -->
   <script src="lib/boot/prod-quiet-console.js"></script>
   

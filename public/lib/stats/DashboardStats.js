@@ -209,20 +209,22 @@ async function initializePersonalStats() {
     // Get user info - support both auth systems
     let user = null;
     try {
-      // Try ProgressiveAuth first
-      if (window.ProgressiveAuth) {
-        const authState = window.ProgressiveAuth.getAuthState();
-        if (authState.isAuthenticated && authState.session?.user) {
-          user = authState.session.user;
+      // Prefer unified membership session exposure if available
+      if(window.HiMembership && !window.HiMembership.get().isAnonymous){
+        const sess = window.supabaseClient || window.sb;
+        if(sess){
+          const s = await sess.auth.getSession();
+            if(s?.data?.session?.user) user = s.data.session.user;
         }
       }
-      // Fallback to direct hiAuth if available
-      if (!user && window.hiAuth?.getCurrentUser) {
-        user = window.hiAuth.getCurrentUser();
+      if(!user){
+        const sess = window.supabaseClient || window.sb;
+        if(sess){
+          const s = await sess.auth.getSession();
+          if(s?.data?.session?.user) user = s.data.session.user;
+        }
       }
-    } catch (error) {
-      console.warn('⚠️ Auth user detection failed in initializePersonalStats:', error);
-    }
+    } catch (error) { console.warn('⚠️ Unified auth user detection failed:', error); }
     
     const isAnonymous = !user || user.id === 'anonymous';
     
@@ -341,20 +343,15 @@ async function handleMedallionTap() {
     // Get user info - support both auth systems
     let user = null;
     try {
-      // Try ProgressiveAuth first
-      if (window.ProgressiveAuth) {
-        const authState = window.ProgressiveAuth.getAuthState();
-        if (authState.isAuthenticated && authState.session?.user) {
-          user = authState.session.user;
-        }
+      if(window.HiMembership && !window.HiMembership.get().isAnonymous){
+        const sess = window.supabaseClient || window.sb;
+        if(sess){ const s = await sess.auth.getSession(); if(s?.data?.session?.user) user = s.data.session.user; }
       }
-      // Fallback to direct hiAuth if available
-      if (!user && window.hiAuth?.getCurrentUser) {
-        user = window.hiAuth.getCurrentUser();
+      if(!user){
+        const sess = window.supabaseClient || window.sb;
+        if(sess){ const s = await sess.auth.getSession(); if(s?.data?.session?.user) user = s.data.session.user; }
       }
-    } catch (error) {
-      console.warn('⚠️ Auth user detection failed in handleMedallionTap:', error);
-    }
+    } catch(error){ console.warn('⚠️ Unified auth user detection failed in handleMedallionTap:', error); }
     
     if (!user || user.id === 'anonymous') {
       console.log('🏅 Anonymous user - processing guest tap...');

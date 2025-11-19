@@ -19,8 +19,11 @@
   <!-- Tesla-grade auth system - health monitor first -->
   <script src="assets/url-path-fixer.js"></script>
   <script src="./lib/HiSupabase.js" type="module"></script>
-  <!-- 🚀 Tesla-Grade Anonymous Access Modal System -->
-  <script src="assets/anonymous-access-modal.js"></script>
+  <!-- Unified Access Gate (replaces legacy anonymous modal) -->
+  <script src="assets/hi-paths.js"></script>
+  <script src="lib/membership/HiMembershipBridge.js"></script>
+  <script src="lib/access/AccessGate.js"></script>
+  <script src="components/AccessGateModal.js"></script>
   <!-- Unified Admin Access Manager -->
   <script src="./lib/admin/AdminAccessManager.js"></script>
   <!-- Unified MC Access Core (consolidated gating) -->
@@ -28,7 +31,8 @@
   
   <!-- 🔐 Authentication System (Tesla-Grade Progressive Auth) -->
   <script src="assets/post-auth-path.js"></script>
-  <script src="assets/progressive-auth.js" async></script>
+  <!-- Unified Auth Shim replaces progressive-auth.js -->
+  <script src="lib/access/AuthShim.js"></script>
 
   <!-- 🌟 WOZNIAK-GRADE: Gold Standard Modal System (Unified Auth/Share Modals) -->
   <script src="lib/HiGoldStandardModal.js" async></script>
