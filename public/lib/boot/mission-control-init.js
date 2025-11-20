@@ -172,7 +172,11 @@ function showUnauthorizedAccess(message) {
       const retry = document.createElement('div');
       retry.className='admin-retry';
       retry.style.cssText='margin-top:24px;font-size:13px;opacity:.85;';
-      retry.innerHTML = `<button id="retryAdminCheck" style="background:#334155;color:#fff;border:1px solid #556372;padding:8px 14px;border-radius:8px;font-weight:600;cursor:pointer;">Retry Verification</button><div style="margin-top:8px;opacity:.7;line-height:1.4">Reason: ${message || 'unknown'}<br/>If you believe this is an error: 1) Ensure you are signed in with an admin email. 2) Refresh the page. 3) Use dashboard first to establish session. 4) Contact support to audit access logs.</div>`;
+      retry.innerHTML = `<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+        <button id="retryAdminCheck" style="background:#334155;color:#fff;border:1px solid #556372;padding:8px 14px;border-radius:8px;font-weight:600;cursor:pointer;">Retry Verification</button>
+        <button id="openSelfCheck" style="background:#0ea5e9;color:#0b1b1e;border:1px solid #38bdf8;padding:8px 14px;border-radius:8px;font-weight:700;cursor:pointer;">Run Self-Check</button>
+      </div>
+      <div style="margin-top:8px;opacity:.7;line-height:1.4">Reason: ${message || 'unknown'}<br/>If you believe this is an error: 1) Ensure you are signed in with an admin email. 2) Refresh the page. 3) Use dashboard first to establish session. 4) Contact support to audit access logs.</div>`;
       content.appendChild(retry);
       document.getElementById('retryAdminCheck').addEventListener('click', async ()=>{
         screen.style.display='none';
@@ -181,6 +185,8 @@ function showUnauthorizedAccess(message) {
         document.getElementById('progressBar').style.width='15%';
         try { await window.AdminAccessManager.checkAdmin({ force:true }); const st = window.AdminAccessManager.getState(); if (st.isAdmin){ initializeSecuritySystem(); } else { showUnauthorizedAccess(st.reason); } } catch(e){ showUnauthorizedAccess(e.message); }
       });
+      const openBtn = document.getElementById('openSelfCheck');
+      if (openBtn){ openBtn.addEventListener('click', ()=>{ try{ window.HiAdminSelfCheck && window.HiAdminSelfCheck.open(); } catch{} }); }
     }
   } catch {}
   console.error('🚨 SECURITY INCIDENT:', { timestamp: new Date().toISOString(), user_agent: navigator.userAgent, message, url: window.location.href });
