@@ -329,67 +329,12 @@ try {
 } catch {}
 
 // 🎫 INVITATION MANAGEMENT FUNCTIONS
-async function generateInviteCode() {
-  try {
-    const sb = getClient(); if(!sb) throw new Error('Supabase unavailable');
-    const { data, error } = await sb.rpc('admin_generate_invite_code', {
-      p_created_by: currentUser.id,
-      p_max_uses: 1,
-      p_expires_in_hours: 168 // 7 days
-    });
+// Invitation code generation disabled (policy: passcode-only admin access)
+async function generateInviteCode() { console.warn('[MissionControl] Invitation code generation disabled'); }
 
-    if (error) throw error;
-    // Present structured code card plus raw JSON for audit
-    const code = data?.code || 'UNKNOWN';
-    const expires = data?.expires_at || 'n/a';
-    const remaining = data?.uses_remaining ?? '?';
-    const jsonBlock = JSON.stringify(data, null, 2);
-    showResults('New Invitation Code Generated', jsonBlock);
-    showSuccess('Invitation code generated successfully!');
-    injectInviteCodeCard({ code, expires, remaining });
-    await loadDashboardData();
+async function listInviteCodes() { console.warn('[MissionControl] Invitation code listing disabled'); }
 
-  } catch (error) {
-    console.error('Error generating invite code:', error);
-    showError('Failed to generate invitation code: ' + error.message);
-  }
-}
-
-async function listInviteCodes() {
-  try {
-    const sb = getClient(); if(!sb) throw new Error('Supabase unavailable');
-    const { data, error } = await sb.rpc('admin_list_invite_codes');
-
-    if (error) throw error;
-
-    showResults('All Invitation Codes', JSON.stringify(data, null, 2));
-    renderInviteCards(data || []);
-
-  } catch (error) {
-    console.error('Error listing invite codes:', error);
-    showError('Failed to retrieve invitation codes: ' + error.message);
-  }
-}
-
-async function getActiveInvites() {
-  try {
-    const sb = getClient(); if(!sb) throw new Error('Supabase unavailable');
-    const { data, error } = await sb
-      .from('invitation_codes')
-      .select('*')
-      .eq('is_active', true)
-      .gt('expires_at', new Date().toISOString());
-
-    if (error) throw error;
-
-    showResults('Active Invitation Codes', JSON.stringify(data, null, 2));
-    renderInviteCards(data || []);
-
-  } catch (error) {
-    console.error('Error getting active invites:', error);
-    showError('Failed to retrieve active invitations: ' + error.message);
-  }
-}
+async function getActiveInvites() { console.warn('[MissionControl] Active invitation retrieval disabled'); }
 
 // 🛠️ UTILITY FUNCTIONS
 function showResults(title, content) {
@@ -423,84 +368,9 @@ function showSuccess(message) {
   setTimeout(() => successEl.remove(), 3000);
 }
 
-function injectInviteCodeCard(meta){
-  const existing = document.getElementById('latestInviteCodeCard');
-  if (existing) existing.remove();
-  const container = document.getElementById('dashboardContainer');
-  const card = document.createElement('div');
-  card.id = 'latestInviteCodeCard';
-  card.style.cssText = 'background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.3);padding:20px;border-radius:16px;margin:18px 0;position:relative;';
-  card.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-      <div style="font-size:16px;font-weight:600;color:#00d4ff;">🎫 Invitation Code Ready</div>
-      <button type="button" style="background:#00d4ff;color:#0f172a;border:none;padding:6px 12px;border-radius:8px;font-weight:600;cursor:pointer;font-size:12px;" onclick="copyInviteCode()">Copy</button>
-    </div>
-    <div style="font-family:Menlo,monospace;font-size:20px;letter-spacing:2px;background:#0f2538;padding:12px 16px;border-radius:12px;color:#e2e8f0;" id="inviteCodeValue">${meta.code}</div>
-    <div style="margin-top:12px;font-size:12px;opacity:.8;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;">
-      <div><strong>Expires:</strong><br>${meta.expires}</div>
-      <div><strong>Remaining Uses:</strong><br>${meta.remaining}</div>
-      <div><strong>Status:</strong><br>${(meta.remaining>0)?'Active':'Exhausted'}</div>
-    </div>
-    <div style="margin-top:14px;font-size:12px;opacity:.7;">Share this code privately. Redemption UI will validate <code>uses_remaining</code> & <code>expires_at</code>.</div>
-  `;
-  container.insertBefore(card, container.children[1]);
-  window.copyInviteCode = function(){
-    const val = meta.code;
-    navigator.clipboard.writeText(val).then(()=>{
-      showSuccess('Code copied to clipboard');
-    }).catch(()=> showError('Clipboard copy failed'));
-  };
-}
+function injectInviteCodeCard(){ /* disabled */ }
 
-function renderInviteCards(rows){
-  const wrap = document.getElementById('inviteCardsContainer');
-  if (!wrap) return;
-  wrap.innerHTML='';
-  if (!rows.length){
-    wrap.innerHTML = '<div style="opacity:.6;font-size:12px;">No invitation codes found.</div>';
-    return;
-  }
-  const now = Date.now();
-  rows.forEach(r=>{
-    const expiresTs = r.expires_at ? Date.parse(r.expires_at) : 0;
-    const remaining = r.uses_remaining ?? 0;
-    const active = r.is_active && remaining>0 && expiresTs>now;
-    const card = document.createElement('div');
-    card.className = 'invite-card ' + (active ? 'active':'exhausted');
-    card.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
-        <div style="font-size:12px;font-weight:600;letter-spacing:.5px;">${active?'ACTIVE':'INACTIVE'}</div>
-        <div style="font-size:10px;opacity:.55;">${r.created_at ? new Date(r.created_at).toLocaleDateString() : ''}</div>
-      </div>
-      <div class="invite-code-value">${r.code || 'UNKNOWN'}</div>
-      <div class="invite-meta">
-        <div><strong>Uses Left:</strong><br>${remaining}</div>
-        <div><strong>Max Uses:</strong><br>${r.max_uses ?? '?'}</div>
-        <div><strong>Expires:</strong><br>${r.expires_at ? new Date(r.expires_at).toLocaleString() : 'n/a'}</div>
-      </div>
-      <div class="invite-actions">
-        <button type="button" data-code="${r.code}">Copy</button>
-        ${active?'<button type="button" data-code="'+r.code+'" data-action="share">Share</button>':''}
-      </div>
-    `;
-    wrap.appendChild(card);
-  });
-  // Wire buttons
-  wrap.querySelectorAll('button[data-code]').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const code = btn.getAttribute('data-code');
-      if (btn.getAttribute('data-action')==='share'){
-        try {
-          const shareData = { title:'Hi Invitation', text:`Join Hi with invite code: ${code}`, url: location.origin+'/welcome.html?invite='+encodeURIComponent(code) };
-          if (navigator.share){ navigator.share(shareData).catch(()=>{}); }
-          else { navigator.clipboard.writeText(code).then(()=> showSuccess('Copied for sharing')); }
-        } catch { navigator.clipboard.writeText(code).then(()=> showSuccess('Copied')); }
-      } else {
-        navigator.clipboard.writeText(code).then(()=> showSuccess('Code copied')).catch(()=> showError('Clipboard copy failed'));
-      }
-    });
-  });
-}
+function renderInviteCards(){ /* disabled */ }
 
 function startSessionTimer(expiresAt) {
   const expiryTime = new Date(expiresAt).getTime();

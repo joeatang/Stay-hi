@@ -70,9 +70,15 @@
       const user = sessionData?.session?.user || null;
       STATE.user = user;
       if (!user){ STATE.status='denied'; STATE.isAdmin=false; STATE.reason='no_session'; STATE.lastChecked=Date.now(); writeCache(); dispatchState(); return STATE; }
-      const { data, error } = await client.rpc('check_admin_access', { p_required_role: 'admin', p_ip_address: null });
+      // v2-only: deterministic signature; legacy overloads dropped
+      let rpcData=null, rpcError=null;
+      try {
+        const { data, error } = await client.rpc('check_admin_access_v2', { p_required_role: 'admin', p_ip_address: null });
+        rpcData = data; rpcError = error;
+      } catch(e){ rpcError = e; }
       STATE.lastChecked = Date.now();
-      // Support both legacy { has_access, reason } and current { access_granted, error, error_code }
+      const data = rpcData; const error = rpcError;
+      // Support legacy { has_access } or new { access_granted }
       const granted = (!!data?.has_access) || (!!data?.access_granted);
       if (!error && granted){
         STATE.status='granted'; STATE.isAdmin=true; STATE.reason=null; writeCache(); sessionStorage.setItem(LEGACY_FLAG,'true'); dispatchState(); return STATE;
