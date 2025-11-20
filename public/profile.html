@@ -3415,22 +3415,37 @@ FOR INSERT WITH CHECK (
       // Initialize Tesla-Grade Smart Navigation
       const smartNav = new SmartNavigation();
       
-      // Unified access gating instead of legacy modal boot
-      setTimeout(() => {
-        if (window.__HI_PROFILE_DEBUG__) {
-          console.log('[ProfileDebug] Gating suppressed.');
-        } else {
-          if(window.AccessGate?.request){
-            window.AccessGate.request('profile:view');
-          } else if(typeof AnonymousAccessModal !== 'undefined') {
-            if (!window.anonymousAccessModal) {
-              window.anonymousAccessModal = new AnonymousAccessModal();
-            }
-            window.anonymousAccessModal.showAccessModal();
+      // Tesla-Grade Security: Load data with authentication check FIRST
+      // then apply access gating only for anonymous users
+      setTimeout(async () => {
+        console.log('🔒 Initializing secure profile loading...');
+        
+        // Check authentication state before any gating
+        const { data: session } = await window.supabaseClient.auth.getSession();
+        const isAuthenticated = !!session?.session?.user;
+        
+        if (!isAuthenticated) {
+          // Only show access gate for anonymous users
+          if (window.__HI_PROFILE_DEBUG__) {
+            console.log('[ProfileDebug] Gating suppressed.');
           } else {
-            console.warn('⚠️ No AccessGate or AnonymousAccessModal for profile gating');
+            if(window.AccessGate?.request){
+              window.AccessGate.request('profile:view');
+            } else if(typeof AnonymousAccessModal !== 'undefined') {
+              if (!window.anonymousAccessModal) {
+                window.anonymousAccessModal = new AnonymousAccessModal();
+              }
+              window.anonymousAccessModal.showAccessModal();
+            } else {
+              console.warn('⚠️ No AccessGate or AnonymousAccessModal for profile gating');
+            }
           }
+        } else {
+          console.log('✅ Authenticated user - bypassing access gate');
         }
+        
+        // Load profile data (handles both authenticated and anonymous flows)
+        await loadProfileData();
       }, 500);
       
       // Initialize profile display
@@ -3443,11 +3458,6 @@ FOR INSERT WITH CHECK (
       if (typeof updateStatsDisplay === 'function' && userStats) {
         updateStatsDisplay(userStats);
       }
-      
-      // Tesla-Grade Security: Load data with authentication check
-      setTimeout(() => {
-        console.log('🔒 Initializing secure profile loading...');
-        loadProfileData();
       }, 500);
       
       // Avatar file input handler

@@ -56,9 +56,8 @@
           <a href="hi-muscle.html" role="menuitem">💪 Hi Gym</a>
           <a href="hi-island-NEW.html" role="menuitem">🏝️ Hi Island</a>
           <a href="profile.html?from=${getCurrentPageName()}" role="menuitem">👤 Profile</a>
-          <div id="adminMenuSection" style="display: block;">
-            <div class="sep"></div>
-            <button id="openMissionControl" class="menu-item-btn" role="menuitem" style="color: #FFD166; font-weight: 700; background:transparent;border:none;cursor:pointer">🏛️ Mission Control</button>
+          <div id="tierBadgeSection" style="padding:8px 14px;opacity:0.7;font-size:12px;color:#9CA3AF;display:none">
+            <span id="tierBadgeText">Loading tier...</span>
           </div>
           <div class="sep"></div>
           <button id="btnSignOut" class="menu-item-btn" role="menuitem">🚪 Sign Out</button>
@@ -109,40 +108,112 @@
   // In case admin already cached before header loads
   try { if (window.AdminAccessManager?.getState?.().isAdmin) { showVerifiedBanner(); updateBannerRole(); } } catch {}
 
+  // === Tier Badge Display ===
+  async function updateTierBadge() {
+    const section = document.getElementById('tierBadgeSection');
+    const text = document.getElementById('tierBadgeText');
+    if (!section || !text) return;
+    
+    try {
+      // Check authentication
+      const { data: session } = await window.supabaseClient.auth.getSession();
+      if (!session?.session?.user) {
+        section.style.display = 'none';
+        return;
+      }
+      
+      // Get tier from HiTier module
+      const tier = await window.HiTier?.getCurrentTier?.();
+      if (!tier) {
+        section.style.display = 'none';
+        return;
+      }
+      
+      // Map tier to display
+      const tierMap = {
+        free: '🌱 Free Tier',
+        bronze: '🥉 Bronze Member',
+        silver: '🥈 Silver Member', 
+        gold: '🥇 Gold Member',
+        platinum: '💎 Platinum Member'
+      };
+      
+      text.textContent = tierMap[tier] || `Tier: ${tier}`;
+      section.style.display = 'block';
+      
+    } catch (error) {
+      console.warn('Tier badge update failed:', error);
+      section.style.display = 'none';
+    }
+  }
+  
+  // Update tier badge on auth changes
+  window.addEventListener('hi:auth-ready', updateTierBadge);
+  window.addEventListener('hi:membership-changed', updateTierBadge);
+  // Initial check
+  setTimeout(updateTierBadge, 1000);
+
   // === Resilient Mission Control link injection ===
   function ensureMissionControlLink(){
     const sheet = document.getElementById('menuSheet');
     if (!sheet) return;
-    let btn = document.getElementById('openMissionControl');
-    if (btn && btn.__mcBound) return; // already bound & present
-    if (!btn){
-      // Create section wrapper if missing
-      let section = document.getElementById('adminMenuSection');
-      if (!section){
-        section = document.createElement('div');
-        section.id='adminMenuSection';
+    
+    // Check admin state from AdminAccessManager
+    const adminState = window.AdminAccessManager?.getState?.() || {};
+    const isAdmin = adminState.isAdmin === true;
+    
+    let section = document.getElementById('adminMenuSection');
+    
+    if (!isAdmin) {
+      // Remove section if user is not admin
+      if (section) section.remove();
+      return;
+    }
+    
+    // Admin confirmed - ensure section and button exist
+    if (!section) {
+      section = document.createElement('div');
+      section.id = 'adminMenuSection';
+      section.style.display = 'block';
+      
+      // Insert before the final separator + sign out button
+      const signOutBtn = document.getElementById('btnSignOut');
+      if (signOutBtn && signOutBtn.previousElementSibling) {
+        sheet.insertBefore(section, signOutBtn.previousElementSibling);
+      } else {
         sheet.appendChild(section);
       }
-      const sep = document.createElement('div'); sep.className='sep';
+    }
+    
+    let btn = document.getElementById('openMissionControl');
+    if (!btn) {
+      const sep = document.createElement('div');
+      sep.className = 'sep';
+      
       btn = document.createElement('button');
-      btn.id='openMissionControl';
-      btn.className='menu-item-btn';
-      btn.setAttribute('role','menuitem');
-      btn.style.cssText='color:#FFD166;font-weight:700;background:transparent;border:none;cursor:pointer;display:block;width:100%;text-align:left;padding:10px 14px;font-size:14px;letter-spacing:.3px';
-      btn.textContent='🏛️ Mission Control';
-      // Insert near top of admin section
+      btn.id = 'openMissionControl';
+      btn.className = 'menu-item-btn';
+      btn.setAttribute('role', 'menuitem');
+      btn.style.cssText = 'color:#FFD166;font-weight:700;background:transparent;border:none;cursor:pointer;display:block;width:100%;text-align:left;padding:10px 14px;font-size:14px;letter-spacing:.3px';
+      btn.textContent = '🏛️ Mission Control';
+      
       section.appendChild(sep);
       section.appendChild(btn);
     }
-    // Mark bound for later checks
+    
+    // Ensure visibility
+    section.style.display = 'block';
+    btn.style.display = 'block';
     btn.__mcBound = true;
   }
+  
   // Initial attempt
   ensureMissionControlLink();
   // Retry a few times for late DOM mutations (mobile slow loads)
   let mcRetries=0; const mcInterval=setInterval(()=>{ mcRetries++; ensureMissionControlLink(); if (mcRetries>5) clearInterval(mcInterval); }, 300);
   // Re-inject on admin state changes (in case header rebuilt or removed)
   window.addEventListener('hi:admin-state-changed', ensureMissionControlLink);
+  window.addEventListener('hi:admin-confirmed', ensureMissionControlLink);
   // Re-inject when menu opened (visibility edge cases on mobile)
   document.getElementById('btnMore')?.addEventListener('click', ensureMissionControlLink);
 
