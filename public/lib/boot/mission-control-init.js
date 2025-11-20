@@ -1,7 +1,13 @@
 console.log('🎬 Mission Control script starting (Woz unified admin access)...');
-// Unified client from global (avoid duplicate anon key exposure here)
-const supabaseClient = (window.hiSupabase) || (window.HiSupabase?.getClient && window.HiSupabase.getClient()) || window.supabase || null;
-console.log('🔌 Supabase client available:', !!supabaseClient);
+// Lazy client getter to avoid capturing a null before upgrade
+function getClient(){
+  return (window.hiSupabase)
+    || (window.HiSupabase?.getClient && window.HiSupabase.getClient())
+    || window.supabaseClient
+    || window.sb
+    || null;
+}
+console.log('🔌 Supabase client available:', !!getClient());
 
 // 🔐 SECURITY GLOBALS
 let currentUser = null;
@@ -55,6 +61,38 @@ window.addEventListener('hi:auth-ready', async () => {
       // If we were still on loading, finalize UI
       finalizeAdminUI();
     }
+    try {
+      const badge = document.querySelector('.security-badge');
+      const auth = (window.getAuthState && window.getAuthState()) || null;
+      const uid = auth?.session?.user?.id;
+      const tier = auth?.membership?.tier;
+      if (badge && (uid || tier)){
+        const short = uid ? (uid.split('-')[0]) : 'user';
+        badge.textContent = `🔒 Admin • ${short}${tier?` • ${tier.toUpperCase()}`:''}`;
+      }
+    } catch {}
+  }
+});
+
+// Also respond to auth updates (e.g., stub->real upgrade revealing a session)
+window.addEventListener('hi:auth-updated', async () => {
+  console.log('[MissionControl] auth-updated received -> revalidate admin');
+  if (window.AdminAccessManager) {
+    await window.AdminAccessManager.checkAdmin({ force:true });
+    const st = window.AdminAccessManager.getState();
+    if (st.isAdmin && document.getElementById('securityLoading')?.style.display!=='none') {
+      finalizeAdminUI();
+    }
+    try {
+      const badge = document.querySelector('.security-badge');
+      const auth = (window.getAuthState && window.getAuthState()) || null;
+      const uid = auth?.session?.user?.id;
+      const tier = auth?.membership?.tier;
+      if (badge && (uid || tier)){
+        const short = uid ? (uid.split('-')[0]) : 'user';
+        badge.textContent = `🔒 Admin • ${short}${tier?` • ${tier.toUpperCase()}`:''}`;
+      }
+    } catch {}
   }
 });
 
@@ -70,16 +108,27 @@ async function initializeSecuritySystem() {
     statusEl.textContent = 'Verifying admin privileges...';
     progressBar.style.width = '25%';
     // Unified manager check (cached or fresh)
-    const mgr = window.AdminAccessManager;
+    let mgr = window.AdminAccessManager;
+    if (!mgr){
+      // Wait briefly for late-loading script before failing
+      for (let i=0;i<10 && !mgr;i++){
+        // 50ms x10 = 500ms grace
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise(r=>setTimeout(r,50));
+        mgr = window.AdminAccessManager;
+      }
+    }
     if (!mgr) throw new Error('Admin access system unavailable');
     const state = await mgr.checkAdmin({ force:true }); // force to avoid stale cached denial
     if (!state.isAdmin) throw new Error(state.reason || 'Administrative privileges required');
     currentUser = state.user;
     statusEl.textContent = 'Establishing secure session...';
     progressBar.style.width = '55%';
+    const sb = getClient();
+    if (!sb) throw new Error('Supabase unavailable');
     const clientIP = await getClientIP();
-    const { data: sessionData, error: sessionError } = await supabaseClient.rpc('create_admin_session', { p_ip_address: clientIP, p_user_agent: navigator.userAgent });
-    if (sessionError || !sessionData?.success) throw new Error('Session creation failed');
+    const { data: sessionData, error: sessionError } = await sb.rpc('create_admin_session', { p_ip_address: clientIP, p_user_agent: navigator.userAgent });
+    if (sessionError || !sessionData) throw new Error('Session creation failed');
     adminSession = sessionData;
     statusEl.textContent = 'Loading dashboard data...';
     progressBar.style.width = '75%';
@@ -99,6 +148,16 @@ function finalizeAdminUI(){
   const dash = document.getElementById('dashboardContainer');
   if (loading) loading.style.display='none';
   if (dash) dash.style.display='block';
+  try {
+    const badge = document.querySelector('.security-badge');
+    const auth = (window.getAuthState && window.getAuthState()) || null;
+    const uid = auth?.session?.user?.id;
+    const tier = auth?.membership?.tier;
+    if (badge && (uid || tier)){
+      const short = uid ? (uid.split('-')[0]) : 'user';
+      badge.textContent = `🔒 Admin • ${short}${tier?` • ${tier.toUpperCase()}`:''}`;
+    }
+  } catch {}
 }
 
 function showUnauthorizedAccess(message) {
@@ -130,6 +189,8 @@ function showUnauthorizedAccess(message) {
 // Attempt to rebuild a Supabase session from local storage
 async function tryRestoreSessionFromStorage() {
   try {
+    const sb = getClient();
+    if (!sb) return false;
     const keys = Object.keys(localStorage);
     const sbKey = keys.find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
     if (!sbKey) {
@@ -147,7 +208,7 @@ async function tryRestoreSessionFromStorage() {
       return false;
     }
     const { data, error } = await withTimeout(
-      supabaseClient.auth.setSession({ access_token, refresh_token }),
+      sb.auth.setSession({ access_token, refresh_token }),
       5000,
       'supabase.auth.setSession'
     );
@@ -161,7 +222,9 @@ async function tryRestoreSessionFromStorage() {
 
 async function loadDashboardData() {
   try {
-    const { data: stats, error } = await supabaseClient.rpc('get_admin_dashboard_stats');
+    const sb = getClient();
+    if (!sb) throw new Error('Supabase unavailable');
+    const { data: stats, error } = await sb.rpc('get_admin_dashboard_stats');
     if (error) throw error;
 
     displayStats(stats);
@@ -238,7 +301,8 @@ try {
 // 🎫 INVITATION MANAGEMENT FUNCTIONS
 async function generateInviteCode() {
   try {
-    const { data, error } = await supabaseClient.rpc('admin_generate_invite_code', {
+    const sb = getClient(); if(!sb) throw new Error('Supabase unavailable');
+    const { data, error } = await sb.rpc('admin_generate_invite_code', {
       p_created_by: currentUser.id,
       p_max_uses: 1,
       p_expires_in_hours: 168 // 7 days
@@ -263,7 +327,8 @@ async function generateInviteCode() {
 
 async function listInviteCodes() {
   try {
-    const { data, error } = await supabaseClient.rpc('admin_list_invite_codes');
+    const sb = getClient(); if(!sb) throw new Error('Supabase unavailable');
+    const { data, error } = await sb.rpc('admin_list_invite_codes');
 
     if (error) throw error;
 
@@ -278,7 +343,8 @@ async function listInviteCodes() {
 
 async function getActiveInvites() {
   try {
-    const { data, error } = await supabaseClient
+    const sb = getClient(); if(!sb) throw new Error('Supabase unavailable');
+    const { data, error } = await sb
       .from('invitation_codes')
       .select('*')
       .eq('is_active', true)
@@ -443,7 +509,8 @@ function delay(ms) {
 // 🧹 ADDITIONAL ADMIN FUNCTIONS
 async function deactivateExpiredCodes() {
   try {
-    const { data, error } = await supabaseClient
+    const sb = getClient(); if(!sb) throw new Error('Supabase unavailable');
+    const { data, error } = await sb
       .from('invitation_codes')
       .update({ is_active: false })
       .lt('expires_at', new Date().toISOString())
@@ -461,7 +528,8 @@ async function deactivateExpiredCodes() {
 
 async function getUserStats() {
   try {
-    const { data, error } = await supabaseClient
+    const sb = getClient(); if(!sb) throw new Error('Supabase unavailable');
+    const { data, error } = await sb
       .from('auth.users')
       .select('created_at, email_confirmed_at')
       .order('created_at', { ascending: false })
@@ -481,7 +549,8 @@ async function getRecentSignups() {
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
   try {
-    const { data, error } = await supabaseClient
+    const sb = getClient(); if(!sb) throw new Error('Supabase unavailable');
+    const { data, error } = await sb
       .from('auth.users')
       .select('id, created_at, email, email_confirmed_at')
       .gte('created_at', sevenDaysAgo.toISOString())
@@ -498,7 +567,8 @@ async function getRecentSignups() {
 
 async function getMembershipStats() {
   try {
-    const { data, error } = await supabaseClient
+    const sb = getClient(); if(!sb) throw new Error('Supabase unavailable');
+    const { data, error } = await sb
       .from('user_memberships')
       .select('status, created_at, membership_type')
       .order('created_at', { ascending: false });
@@ -514,7 +584,8 @@ async function getMembershipStats() {
 
 async function getSecurityEvents() {
   try {
-    const { data, error } = await supabaseClient
+    const sb = getClient(); if(!sb) throw new Error('Supabase unavailable');
+    const { data, error } = await sb
       .from('admin_access_logs')
       .select('*')
       .eq('success', false)

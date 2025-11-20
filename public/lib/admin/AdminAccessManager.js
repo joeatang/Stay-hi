@@ -15,7 +15,16 @@
   const listeners = new Set();
 
   function getClient(){
-    return (window.hiSupabase) || (window.HiSupabase?.getClient && window.HiSupabase.getClient()) || window.supabase || null;
+    const candidates = [
+      window.hiSupabase,
+      (window.HiSupabase?.getClient && window.HiSupabase.getClient()),
+      window.supabaseClient,
+      window.sb
+    ];
+    for (const c of candidates){
+      if (c && c.auth && typeof c.auth.getSession === 'function') return c;
+    }
+    return null;
   }
 
   function loadCache(){
@@ -63,10 +72,13 @@
       if (!user){ STATE.status='denied'; STATE.isAdmin=false; STATE.reason='no_session'; STATE.lastChecked=Date.now(); writeCache(); dispatchState(); return STATE; }
       const { data, error } = await client.rpc('check_admin_access', { p_required_role: 'admin', p_ip_address: null });
       STATE.lastChecked = Date.now();
-      if (!error && data?.has_access){
+      // Support both legacy { has_access, reason } and current { access_granted, error, error_code }
+      const granted = (!!data?.has_access) || (!!data?.access_granted);
+      if (!error && granted){
         STATE.status='granted'; STATE.isAdmin=true; STATE.reason=null; writeCache(); sessionStorage.setItem(LEGACY_FLAG,'true'); dispatchState(); return STATE;
       }
-      STATE.status='denied'; STATE.isAdmin=false; STATE.reason=data?.reason || error?.message || 'unauthorized'; writeCache(); dispatchState(); return STATE;
+      const reason = data?.reason || data?.error || error?.message || 'unauthorized';
+      STATE.status='denied'; STATE.isAdmin=false; STATE.reason=reason; writeCache(); dispatchState(); return STATE;
     } catch(e){
       STATE.status='error'; STATE.isAdmin=false; STATE.reason=e.message||'unknown'; STATE.lastChecked=Date.now(); writeCache(); dispatchState(); return STATE;
     }
@@ -82,8 +94,10 @@
 
   function init(){ loadCache(); if (STATE.status!=='cached'){ // warm check asynchronously
       setTimeout(()=>{ checkAdmin().catch(()=>{}); }, 200); }
-    // Also revalidate on auth-ready
+    // Also revalidate on auth-ready and client upgrade to avoid stub false-negatives
     window.addEventListener('hi:auth-ready', ()=>{ checkAdmin({ force:true }); });
+    window.addEventListener('hi:auth-updated', ()=>{ checkAdmin({ force:true }); });
+    window.addEventListener('supabase-upgraded', ()=>{ checkAdmin({ force:true }); });
   }
 
   window.AdminAccessManager = { init, checkAdmin, requireAdmin, getState: () => ({ ...STATE }), onChange };
