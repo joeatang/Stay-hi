@@ -140,6 +140,19 @@ async function initializeSecuritySystem() {
   } catch (error) {
     console.error('Security verification failed:', error);
     showUnauthorizedAccess(error.message);
+    // WOZ-grade fallback: if we have no Supabase client session after grace, auto redirect to sign-in
+    try {
+      const sb = getClient();
+      const hasAuth = !!(await sb?.auth?.getSession())?.data?.session;
+      if (!hasAuth) {
+        setTimeout(()=>{
+          // Avoid redirect loop if already on signin
+          if (!/signin\.html/.test(location.pathname)) {
+            location.href = '/signin.html?redirect=/hi-mission-control.html';
+          }
+        }, 1800);
+      }
+    } catch {}
   }
 }
 
@@ -187,6 +200,17 @@ function showUnauthorizedAccess(message) {
       });
       const openBtn = document.getElementById('openSelfCheck');
       if (openBtn){ openBtn.addEventListener('click', ()=>{ try{ window.HiAdminSelfCheck && window.HiAdminSelfCheck.open(); } catch{} }); }
+      // If we detect stub client (no rpc) surface explicit guidance
+      try {
+        const sb = getClient();
+        const isStub = sb && (!sb.rpc || !sb.auth || !sb.auth.getSession);
+        if (isStub) {
+          const hint = document.createElement('div');
+          hint.style.cssText='margin-top:12px;font-size:12px;opacity:.65;';
+          hint.textContent='Supabase client stub active – likely CDN blocked or not yet upgraded. Will auto-redirect to sign-in shortly.';
+          content.appendChild(hint);
+        }
+      } catch {}
     }
   } catch {}
   console.error('🚨 SECURITY INCIDENT:', { timestamp: new Date().toISOString(), user_agent: navigator.userAgent, message, url: window.location.href });
