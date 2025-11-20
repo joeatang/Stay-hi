@@ -19,6 +19,11 @@
       if (anchor.__hiGateAttached) return; anchor.__hiGateAttached = true;
       anchor.addEventListener('click', async (e)=>{
         e.preventDefault();
+        // Hold: if debug/self-check active, do not gate
+        if (sessionStorage.getItem('hi_admin_debug')==='1' || /self-check/i.test(location.hash)){
+          window.location.href = 'hi-mission-control.html#self-check';
+          return;
+        }
         try{
           if (window.AdminAccessManager){
             const st = await window.AdminAccessManager.checkAdmin({ force:true });
@@ -105,5 +110,9 @@
     document.addEventListener('DOMContentLoaded', attachHandler, { once:true });
   } else {
     attachHandler();
+  }
+  // Disable gate if already on mission control and debug flag active
+  if (/hi-mission-control\.html/.test(location.pathname) && (sessionStorage.getItem('hi_admin_debug')==='1' || /self-check/i.test(location.hash))){
+    try { document.querySelectorAll('#mcAccessGateModal').forEach(m=>m.remove()); } catch {}
   }
 })();

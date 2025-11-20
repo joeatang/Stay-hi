@@ -52,6 +52,8 @@
     } catch(e){ /* noop */ }
   }
   function open(){ ensure(); document.getElementById('hiSelfcheckBackdrop').style.display='flex'; run(); }
+  // Set debug flag to suppress gating redirects site-wide
+  try { sessionStorage.setItem('hi_admin_debug','1'); } catch {}
   function close(){ const el=document.getElementById('hiSelfcheckBackdrop'); if(el) el.style.display='none'; }
   window.HiAdminSelfCheck = { open, close };
   // Auto-open via hash

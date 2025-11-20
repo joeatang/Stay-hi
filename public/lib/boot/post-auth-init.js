@@ -105,13 +105,18 @@ async function finishAuth() {
           const isAdmin = memberData.is_admin;
           const status = memberData.status;
           
+          const selfCheckHold = /self-check/i.test(location.hash) || /selfcheck=1/i.test(location.search);
           if (isAdmin) {
             // Root fix: mission control access priority for admins on magic-link auth
             // Allow explicit next override or opt-out via ?stay=1
             const urlParams = new URLSearchParams(location.search);
             const stayParam = urlParams.get('stay');
             const explicitNext = urlParams.get('next');
-            const target = (stayParam === '1') ? (explicitNext || 'hi-dashboard.html') : (explicitNext && !/hi-dashboard.html/i.test(explicitNext) ? explicitNext : 'hi-mission-control.html');
+            let target = (stayParam === '1') ? (explicitNext || 'hi-dashboard.html') : (explicitNext && !/hi-dashboard.html/i.test(explicitNext) ? explicitNext : 'hi-mission-control.html');
+            if (selfCheckHold) {
+              console.log('🧪 Self-check hold active – suppressing redirect, staying on sign-in page');
+              return; // do not redirect away; user requested diagnostics
+            }
             console.log('✅ Admin user detected - routing to', target);
             setTimeout(()=>go(target), 600);
             return;
@@ -119,6 +124,10 @@ async function finishAuth() {
           if (tier === 'collective') {
             console.log('✅ Collective user - routing to dashboard');
             const nextPage = new URLSearchParams(location.search).get('next') || 'hi-dashboard.html';
+            if (/self-check/i.test(location.hash) || /selfcheck=1/i.test(location.search)) {
+              console.log('🧪 Self-check hold for collective user – suppress redirect');
+              return;
+            }
             setTimeout(()=>go(nextPage), 900);
             return;
           }
@@ -152,7 +161,12 @@ async function finishAuth() {
       setTimeout(()=>go('hi-mission-control.html'), 600);
       return;
     }
+    const hold = /self-check/i.test(location.hash) || /selfcheck=1/i.test(location.search);
     const nextPage = nextParamFinal || 'hi-dashboard.html';
+    if (hold){
+      console.log('🧪 Self-check hold at final fallback – staying put');
+      return;
+    }
     console.log('🔄 Redirecting authenticated member to:', nextPage);
     setTimeout(()=>go(nextPage), 900);
   } catch (err) {
