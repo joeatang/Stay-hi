@@ -95,17 +95,11 @@
   }
 
   // Dynamic admin tab append after admin confirmation OR always as gate if feature flag set
-  function appendAdminTab(forceGate=true){
-    if (hiFooterTabs.some(t=> t.id==='admin')) return;
-    hiFooterTabs.push({ id:'admin', label:'Admin', icon:'🛡️', href:'hi-mission-control.html', pages:['hi-mission-control.html'] });
-    initHiFooter();
-  }
+  // Admin tab intentionally disabled (policy: header-only admin access)
+  function appendAdminTab(){ /* disabled */ }
 
   // Listen for admin events to reflect active state
-  window.addEventListener('hi:admin-confirmed', ()=> appendAdminTab(false));
-  window.addEventListener('hi:admin-state-changed', (e)=>{ if (e?.detail?.isAdmin) appendAdminTab(false); });
-  // Always ensure gate exists (append even before confirmation for deterministic access)
-  appendAdminTab(true);
+  // Removed auto-append events; admin access handled exclusively by header menu modal.
 
   // Global HiFooter interface
   window.HiFooter = {

@@ -212,11 +212,7 @@
     modal.innerHTML = `
       <div role="dialog" aria-modal="true" aria-labelledby="adminAccessTitle" aria-describedby="adminAccessDesc" tabindex="-1" style="max-width:420px;width:92%;background:#0f1228;border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:20px;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,0.4)">
         <h3 id="adminAccessTitle" style="margin:0 0 8px;font-size:18px">Admin Access Required</h3>
-        <p id="adminAccessDesc" style="margin:0 0 12px;color:#cfd2ea">Mission Control is for admins. If you have access, we’ll verify it now. If not, you can enter an invite code to upgrade your membership.</p>
-        <div style="display:flex;gap:8px;align-items:center;margin:10px 0 6px">
-          <input id="inviteCodeInline" placeholder="Invite code (optional)" style="flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:10px;color:#fff" />
-          <button id="redeemInviteInline" class="menu-item-btn" style="background:#FFD166;color:#0f1228;border:none;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer">Redeem</button>
-        </div>
+        <p id="adminAccessDesc" style="margin:0 0 12px;color:#cfd2ea">Mission Control is for admins. Enter the admin passcode to unlock secure access. If you already have access, tap Recheck.</p>
         <div style="display:flex;gap:8px;align-items:center;margin:6px 0 6px">
           <input id="adminPasscodeInline" placeholder="Admin passcode" inputmode="numeric" autocomplete="one-time-code" style="flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:10px;color:#fff" />
           <button id="unlockAdminInline" class="menu-item-btn" style="background:#7AE582;color:#0f1228;border:none;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer">Unlock</button>
@@ -270,11 +266,19 @@
 
     btn.addEventListener('click', async (e)=>{
       e.preventDefault();
+      // Unified access gate check (non-blocking for authenticated/admin users)
+      try {
+        const gate = window.AccessGate?.request?.('admin_mission_control');
+        if (gate && gate.allow === false) {
+          // AccessGateModal will appear via event listener; abort further admin logic
+          return;
+        }
+      } catch(_){}
       // Prefer AdminAccessManager when available
       try{
         if (window.AdminAccessManager){
           const st = await window.AdminAccessManager.checkAdmin({ force:true });
-          if (st?.isAdmin){ window.location.href = 'hi-mission-control.html'; return; }
+          if (st?.isAdmin){ window.location.href = (window.hiPaths?.resolve ? window.hiPaths.resolve('hi-mission-control.html') : 'hi-mission-control.html'); return; }
         }
       }catch{}
       // Fallback: try direct DB role probe (non-blocking)
@@ -283,7 +287,7 @@
         const { data: { user } } = await supabase.auth.getUser();
         if (user){
           const { data: adminRow } = await supabase.from('admin_roles').select('role_type,is_active').eq('user_id', user.id).eq('is_active', true).maybeSingle();
-          if (adminRow && (adminRow.role_type==='super_admin' || adminRow.role_type==='admin')){ window.location.href='hi-mission-control.html'; return; }
+          if (adminRow && (adminRow.role_type==='super_admin' || adminRow.role_type==='admin')){ window.location.href=(window.hiPaths?.resolve ? window.hiPaths.resolve('hi-mission-control.html') : 'hi-mission-control.html'); return; }
         }
       } catch {}
       // If not admin, show help modal
@@ -296,25 +300,11 @@
       msg.textContent = 'Rechecking…';
       try{
         const st = await window.AdminAccessManager?.checkAdmin({ force:true });
-        if (st?.isAdmin){ window.location.href='hi-mission-control.html'; return; }
+        if (st?.isAdmin){ window.location.href=(window.hiPaths?.resolve ? window.hiPaths.resolve('hi-mission-control.html') : 'hi-mission-control.html'); return; }
         msg.textContent = 'No admin access on this account.';
       } catch(e){ msg.textContent = 'Could not verify admin access.'; }
     });
-    modal.querySelector('#redeemInviteInline').addEventListener('click', async ()=>{
-      const code = (modal.querySelector('#inviteCodeInline').value||'').trim();
-      const msg = modal.querySelector('#adminAccessMsg');
-      if (!code){ msg.textContent = 'Enter an invite code first.'; return; }
-      msg.textContent = 'Redeeming…';
-      try {
-        const { supabase } = await import('../lib/HiSupabase.v3.js');
-        const { error } = await supabase.rpc('activate_unified_invite_code', { invite_code: code });
-        if (error){ msg.textContent = error.message || 'Invite redemption failed.'; return; }
-        msg.textContent = 'Invite redeemed. Rechecking access…';
-        const st = await window.AdminAccessManager?.checkAdmin({ force:true });
-        if (st?.isAdmin){ window.location.href='hi-mission-control.html'; }
-        else msg.textContent = 'Upgraded membership applied. Admin access not detected.';
-      } catch(e){ msg.textContent = e.message || 'Error redeeming code.'; }
-    });
+    // Invite redemption removed (passcode-only policy)
 
     // Admin passcode unlock flow
     modal.querySelector('#unlockAdminInline').addEventListener('click', async ()=>{
@@ -330,9 +320,9 @@
           msg.textContent = 'Access granted. Preparing Mission Control…';
           // Recheck admin via unified manager to sync cache/events
           const st = await window.AdminAccessManager?.checkAdmin({ force:true });
-          if (st?.isAdmin){ window.location.href='hi-mission-control.html'; return; }
+          if (st?.isAdmin){ window.location.href=(window.hiPaths?.resolve ? window.hiPaths.resolve('hi-mission-control.html') : 'hi-mission-control.html'); return; }
           // Fallback direct nav if manager not present
-          window.location.href='hi-mission-control.html';
+          window.location.href=(window.hiPaths?.resolve ? window.hiPaths.resolve('hi-mission-control.html') : 'hi-mission-control.html');
         } else {
           msg.textContent = data?.message || 'Invalid passcode.';
         }
@@ -381,12 +371,12 @@
       localStorage.clear();
       
       // Redirect to signin
-      window.location.href = '/signin.html';
+      window.location.href = (window.hiPaths?.resolve ? window.hiPaths.resolve('signin.html') : '/signin.html');
     } catch (error) {
       console.error('Sign out error:', error);
       // Fallback: just clear storage and redirect
       localStorage.clear();
-      window.location.href = '/signin.html';
+      window.location.href = (window.hiPaths?.resolve ? window.hiPaths.resolve('signin.html') : '/signin.html');
     }
   });
   }
