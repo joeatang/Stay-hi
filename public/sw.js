@@ -4,8 +4,8 @@
 // Build tag for diagnostics
 const BUILD_TAG = 'v1.0.0-20251119';
 // Bump cache versions to force update on deploy
-const CACHE_NAME = 'hi-collective-v1.2.5';
-const STATIC_CACHE_NAME = 'hi-static-v1.2.5';
+const CACHE_NAME = 'hi-collective-v1.2.6';
+const STATIC_CACHE_NAME = 'hi-static-v1.2.6';
 const OFFLINE_FALLBACK = '/public/offline.html';
 
 // Core app shell files that should always be cached
@@ -14,6 +14,7 @@ const APP_SHELL_FILES = [
   '/welcome.html',
   '/hi-dashboard.html',
   '/hi-mission-control.html',
+  '/admin-self-check.html',
   OFFLINE_FALLBACK,
   '/signin.html', 
   '/signup.html',
@@ -361,4 +362,31 @@ self.addEventListener('message', event => {
       })
     );
   }
+
+  // Avatar precache request
+  if (event.data.type === 'AVATAR_PRECACHE' && event.data.avatarUrl) {
+    event.waitUntil((async () => {
+      try {
+        const cache = await caches.open(CACHE_NAME);
+        const req = new Request(event.data.avatarUrl, { mode:'no-cors' });
+        const resp = await fetch(req);
+        if (resp.ok || resp.type === 'opaque') {
+          await cache.put(req, resp.clone());
+          console.log('[SW] Cached avatar:', event.data.avatarUrl);
+        } else {
+          console.warn('[SW] Avatar fetch not ok:', event.data.avatarUrl, resp.status);
+        }
+      } catch(e){ console.warn('[SW] Avatar precache failed:', e.message); }
+    })());
+  }
 });
+
+// Listen for avatar-precache events from client pages via broadcast channel fallback
+try {
+  const channel = new BroadcastChannel('hi-avatar-precache');
+  channel.onmessage = (msg) => {
+    if (msg.data && msg.data.type === 'AVATAR_PRECACHE') {
+      self.dispatchEvent(new MessageEvent('message', { data: msg.data }));
+    }
+  };
+} catch(_) { /* BroadcastChannel unsupported */ }
