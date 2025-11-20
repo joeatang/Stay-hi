@@ -64,8 +64,87 @@
           <button id="btnSignOut" class="menu-item-btn" role="menuitem">🚪 Sign Out</button>
         </div>
       </div>
+      <div id="adminVerifiedBanner" class="admin-verified-banner" aria-live="polite" role="status" style="display:none;white-space:nowrap;position:absolute;right:8px;top:8px;background:#059669;border:1px solid #10b981;color:#0f172a;padding:4px 10px;font-size:11px;font-weight:600;border-radius:14px;box-shadow:0 4px 12px rgba(0,0,0,.25);letter-spacing:.5px">✅ Admin verified</div>
     </div>
   `;
+
+  // Inject lightweight CSS only once (optional future theming)
+  if (!document.getElementById('adminVerifiedBannerStyles')) {
+    const styleEl = document.createElement('style');
+    styleEl.id = 'adminVerifiedBannerStyles';
+    styleEl.textContent = `.admin-verified-banner[data-role="super_admin"]{background:#fbbf24;border-color:#f59e0b;color:#0f172a}
+    body[data-admin-mode="true"] .admin-verified-banner{animation:adminBadgePulse 4s ease-in-out infinite}
+    @keyframes adminBadgePulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.15)}}`;
+    document.head.appendChild(styleEl);
+  }
+
+  // Show banner when admin confirmed (roleType sourced from AdminAccessManager)
+  function showVerifiedBanner(){
+    const banner = document.getElementById('adminVerifiedBanner');
+    if (!banner) return;
+    if (banner.dataset.shown === 'true') return; // idempotent
+    const state = window.AdminAccessManager?.getState?.() || {};
+    if (!state.isAdmin) return; // only show for admins
+    banner.style.display='block';
+    banner.dataset.shown='true';
+    document.body.dataset.adminMode='true';
+    if (state.roleType){
+      banner.textContent = state.roleType === 'super_admin' ? '👑 Super Admin verified' : '✅ Admin verified';
+      banner.dataset.role = state.roleType;
+    }
+  }
+
+  // Update banner text when roleType becomes known after initial admin confirmation
+  function updateBannerRole(){
+    const banner = document.getElementById('adminVerifiedBanner');
+    if (!banner || banner.dataset.role) return;
+    const state = window.AdminAccessManager?.getState?.() || {};
+    if (!state.isAdmin || !state.roleType) return;
+    banner.textContent = state.roleType === 'super_admin' ? '👑 Super Admin verified' : '✅ Admin verified';
+    banner.dataset.role = state.roleType;
+  }
+
+  window.addEventListener('hi:admin-confirmed', showVerifiedBanner);
+  window.addEventListener('hi:admin-role-known', updateBannerRole);
+  // In case admin already cached before header loads
+  try { if (window.AdminAccessManager?.getState?.().isAdmin) { showVerifiedBanner(); updateBannerRole(); } } catch {}
+
+  // === Resilient Mission Control link injection ===
+  function ensureMissionControlLink(){
+    const sheet = document.getElementById('menuSheet');
+    if (!sheet) return;
+    let btn = document.getElementById('openMissionControl');
+    if (btn && btn.__mcBound) return; // already bound & present
+    if (!btn){
+      // Create section wrapper if missing
+      let section = document.getElementById('adminMenuSection');
+      if (!section){
+        section = document.createElement('div');
+        section.id='adminMenuSection';
+        sheet.appendChild(section);
+      }
+      const sep = document.createElement('div'); sep.className='sep';
+      btn = document.createElement('button');
+      btn.id='openMissionControl';
+      btn.className='menu-item-btn';
+      btn.setAttribute('role','menuitem');
+      btn.style.cssText='color:#FFD166;font-weight:700;background:transparent;border:none;cursor:pointer;display:block;width:100%;text-align:left;padding:10px 14px;font-size:14px;letter-spacing:.3px';
+      btn.textContent='🏛️ Mission Control';
+      // Insert near top of admin section
+      section.appendChild(sep);
+      section.appendChild(btn);
+    }
+    // Mark bound for later checks
+    btn.__mcBound = true;
+  }
+  // Initial attempt
+  ensureMissionControlLink();
+  // Retry a few times for late DOM mutations (mobile slow loads)
+  let mcRetries=0; const mcInterval=setInterval(()=>{ mcRetries++; ensureMissionControlLink(); if (mcRetries>5) clearInterval(mcInterval); }, 300);
+  // Re-inject on admin state changes (in case header rebuilt or removed)
+  window.addEventListener('hi:admin-state-changed', ensureMissionControlLink);
+  // Re-inject when menu opened (visibility edge cases on mobile)
+  document.getElementById('btnMore')?.addEventListener('click', ensureMissionControlLink);
 
   // ======= RESTORED: Header scroll behavior with performance optimization =======
   let lastScrollY = window.scrollY;

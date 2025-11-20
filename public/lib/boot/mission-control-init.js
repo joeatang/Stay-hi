@@ -99,6 +99,7 @@ window.addEventListener('hi:auth-updated', async () => {
 async function initializeSecuritySystem() {
   const statusEl = document.getElementById('securityStatus');
   const progressBar = document.getElementById('progressBar');
+  try { const dash = document.getElementById('dashboardContainer'); dash?.setAttribute('aria-busy','true'); } catch {}
 
   console.log('🔐 initializeSecuritySystem started');
   console.log('📍 Status element:', statusEl);
@@ -107,6 +108,7 @@ async function initializeSecuritySystem() {
   try {
     statusEl.textContent = 'Verifying admin privileges...';
     progressBar.style.width = '25%';
+    try { progressBar.setAttribute('aria-valuenow','25'); } catch {}
     // Unified manager check (cached or fresh)
     let mgr = window.AdminAccessManager;
     if (!mgr){
@@ -124,6 +126,7 @@ async function initializeSecuritySystem() {
     currentUser = state.user;
     statusEl.textContent = 'Establishing secure session...';
     progressBar.style.width = '55%';
+    try { progressBar.setAttribute('aria-valuenow','55'); } catch {}
     const sb = getClient();
     if (!sb) throw new Error('Supabase unavailable');
     const clientIP = await getClientIP();
@@ -132,9 +135,11 @@ async function initializeSecuritySystem() {
     adminSession = sessionData;
     statusEl.textContent = 'Loading dashboard data...';
     progressBar.style.width = '75%';
+    try { progressBar.setAttribute('aria-valuenow','75'); } catch {}
     await loadDashboardData();
     statusEl.textContent = 'Mission Control Ready';
     progressBar.style.width = '100%';
+    try { progressBar.setAttribute('aria-valuenow','100'); } catch {}
     finalizeAdminUI();
     startSessionTimer(adminSession.expires_at);
   } catch (error) {
@@ -161,6 +166,7 @@ function finalizeAdminUI(){
   const dash = document.getElementById('dashboardContainer');
   if (loading) loading.style.display='none';
   if (dash) dash.style.display='block';
+  try { dash?.setAttribute('aria-busy','false'); } catch {}
   try {
     const badge = document.querySelector('.security-badge');
     const auth = (window.getAuthState && window.getAuthState()) || null;
@@ -178,6 +184,8 @@ function showUnauthorizedAccess(message) {
   const screen = document.getElementById('unauthorizedScreen');
   if (loading) loading.style.display = 'none';
   if (screen) screen.style.display = 'flex';
+  try { screen?.setAttribute('role','alert'); } catch {}
+  try { if (!screen.getAttribute('tabindex')) screen.setAttribute('tabindex','-1'); screen.focus({ preventScroll:true }); } catch {}
   // Append retry guidance
   try {
     const content = screen.querySelector('.unauthorized-content');
@@ -264,9 +272,11 @@ async function loadDashboardData() {
       const g = await loadGlobalStats();
       augmentGlobalStats(g);
     } catch(e){ console.warn('[MissionControl] Unified global stats optional:', e); }
+    try { window.HiAudit?.log('dashboard_stats_loaded', { resource:'get_admin_dashboard_stats' }); } catch {}
   } catch (error) {
     console.error('Failed to load dashboard stats:', error);
     showError('Failed to load dashboard statistics');
+    try { window.HiAudit?.log('dashboard_stats_failed', { resource:'get_admin_dashboard_stats' }, { success:false, failureReason: error.message }); } catch {}
   }
 }
 
@@ -375,6 +385,16 @@ function renderInviteCards(){ /* disabled */ }
 function startSessionTimer(expiresAt) {
   const expiryTime = new Date(expiresAt).getTime();
   const timerEl = document.getElementById('sessionTimer');
+  let warned5 = false;
+  let warned1 = false;
+  let liveRegion = document.getElementById('sessionTimerLive');
+  if (!liveRegion){
+    liveRegion = document.createElement('div');
+    liveRegion.id='sessionTimerLive';
+    liveRegion.setAttribute('aria-live','polite');
+    liveRegion.style.cssText='position:absolute;left:-999px;top:auto;width:1px;height:1px;overflow:hidden;';
+    document.body.appendChild(liveRegion);
+  }
 
   sessionTimeout = setInterval(() => {
     const now = Date.now();
@@ -382,10 +402,16 @@ function startSessionTimer(expiresAt) {
     const minutesLeft = Math.floor(timeLeft / (1000 * 60));
 
     timerEl.textContent = minutesLeft;
+    if (!warned5 && minutesLeft === 5){
+      warned5 = true; liveRegion.textContent = 'Session will expire in 5 minutes.'; try { window.HiAudit?.log('session_expiry_warning_5', { resource:'admin_session' }); } catch {}
+    }
+    if (!warned1 && minutesLeft === 1){
+      warned1 = true; liveRegion.textContent = 'Session will expire in 1 minute.'; try { window.HiAudit?.log('session_expiry_warning_1', { resource:'admin_session' }); } catch {}
+    }
 
     if (minutesLeft <= 0) {
       clearInterval(sessionTimeout);
-      alert('⚠️ Session expired. Redirecting to login...');
+      try { liveRegion.textContent='Session expired. Redirecting to login.'; } catch {}
       window.location.href = '/';
     }
   }, 60000); // Update every minute

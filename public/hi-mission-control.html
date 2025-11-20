@@ -360,9 +360,9 @@
     <div class="security-loading" id="securityLoading">
         <div class="security-logo">🛡️</div>
         <div class="security-text">Hi Mission Control</div>
-        <div class="security-status" id="securityStatus">Initializing secure connection...</div>
+        <div class="security-status" id="securityStatus" role="status" aria-live="polite">Initializing secure connection...</div>
         <div class="security-progress">
-            <div class="security-progress-bar" id="progressBar"></div>
+            <div class="security-progress-bar" id="progressBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-describedby="securityStatus"></div>
         </div>
     </div>
     
@@ -488,17 +488,21 @@
         <script>
             // Mission Control Admin Tools (Passcode + Invite RPCs)
             (function(){
-                const getClient = ()=> (window.HiSupabase && window.HiSupabase.getClient && window.HiSupabase.getClient()) || window.supabaseClient || null;
-                async function checkAdminRole(){
-                    try {
-                        const st = await window.AdminAccessManager?.checkAdmin?.({ force:true });
-                        return st?.role_type || (st?.isAdmin ? 'admin' : null);
-                    } catch { return null; }
-                }
-                async function initPasscodePanel(){
-                    const role = await checkAdminRole();
-                    if (role === 'super_admin'){ document.getElementById('passcodePanel').style.display='block'; }
-                }
+                const getClient = ()=> (window.HiSupabase && window.HiSupabase.getClient && window.HiSupabase.getClient()) || window.supabaseClient || window.sb || null;
+                                async function initPasscodePanel(){
+                                        try {
+                                            const state = window.AdminAccessManager?.getState?.() || {};
+                                            if (state.roleType === 'super_admin'){ document.getElementById('passcodePanel').style.display='block'; return; }
+                                            // If admin but roleType not yet loaded, wait for role-known event
+                                            if (state.isAdmin && !state.roleType){
+                                                window.addEventListener('hi:admin-role-known', (e)=>{
+                                                    if (e.detail?.roleType === 'super_admin'){
+                                                        document.getElementById('passcodePanel').style.display='block';
+                                                    }
+                                                }, { once:true });
+                                            }
+                                        } catch {}
+                                }
                 async function rotatePasscode(){
                     const msg = document.getElementById('passcodeMsg'); msg.textContent='Rotating…';
                     const pc = (document.getElementById('newPasscode').value||'').trim();
@@ -510,6 +514,7 @@
                         msg.textContent = 'Passcode rotated. Metadata reloading…';
                         document.getElementById('newPasscode').value='';
                         await fetchPasscodeMeta();
+                        try { window.HiAudit?.log('rotate_passcode', { resource: 'admin_passcode_config' }, { success:true }); } catch {}
                     } catch(e){ msg.textContent = e.message || 'Error rotating passcode.'; }
                 }
                 async function fetchPasscodeMeta(){
@@ -531,12 +536,15 @@
                         if (error){ msg.textContent = error.message || 'Unlock failed.'; return; }
                         msg.textContent = data?.success ? 'Success: admin access confirmed (force recheck next).' : (data?.message || 'Invalid passcode.');
                         if (data?.success){ try { await window.AdminAccessManager?.checkAdmin({ force:true }); } catch {} }
+                        try { window.HiAudit?.log('test_passcode_unlock', { resource: 'admin_unlock_with_passcode' }, { success: !!data?.success, failureReason: data?.success ? null : (data?.message || 'invalid') }); } catch {}
                     } catch(e){ msg.textContent = e.message || 'Error during unlock.'; }
                 }
                 window.rotatePasscode = rotatePasscode;
                 window.fetchPasscodeMeta = fetchPasscodeMeta;
                 window.testPasscodeUnlock = testPasscodeUnlock;
                 document.addEventListener('DOMContentLoaded', initPasscodePanel);
+                // Also react when admin confirmed to reveal panel if role upgraded post-load
+                window.addEventListener('hi:admin-confirmed', initPasscodePanel);
             })();
         </script>
         <script>

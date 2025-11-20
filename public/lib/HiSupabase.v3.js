@@ -4,8 +4,14 @@
 // Ensures global alias exists immediately for harness & dependent modules (HiFlags).
 // Uses top-level await (module context) supported in modern browsers (Chrome, Safari 15+, Edge, Firefox 89+).
 
-const REAL_SUPABASE_URL = "https://gfcubvroxgfvjhacinic.supabase.co";
-const REAL_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g";
+// Production config override strategy:
+// 1. Use window.SUPABASE_URL / window.SUPABASE_ANON_KEY if defined (injected by env script)
+// 2. Else use meta tags <meta name="supabase-url" content="..."> + <meta name="supabase-anon-key" content="...">
+// 3. Else fall back to embedded anon key (non-sensitive) — rotate by updating env script.
+function readMeta(name){ try { return document.querySelector(`meta[name="${name}"]`)?.content || null; } catch { return null; } }
+const REAL_SUPABASE_URL = window.SUPABASE_URL || readMeta('supabase-url') || "https://gfcubvroxgfvjhacinic.supabase.co";
+const REAL_SUPABASE_KEY = window.SUPABASE_ANON_KEY || readMeta('supabase-anon-key') || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g";
+let __hiSupabaseIsStub = false;
 
 // Provide an ultra-safe stub with methods used by current flag system.
 function createStubClient() {
@@ -47,10 +53,14 @@ if (window.__HI_SUPABASE_CLIENT) {
     createdClient = real;
     window.__HI_SUPABASE_CLIENT = real;
     window.hiSupabase = real;
+    // Back-compat aliases
+    try { window.supabaseClient = real; } catch(_){ }
+    try { window.sb = real; } catch(_){ }
     console.log('✅ HiSupabase v3 client created from global UMD');
   } else {
     // Immediate stub exposure for early consumers
     createdClient = createStubClient();
+    __hiSupabaseIsStub = true;
     window.__HI_SUPABASE_CLIENT = createdClient;
     window.hiSupabase = createdClient;
     // Progressive upgrade: inject jsdelivr UMD script (allowed by CSP)
@@ -67,8 +77,14 @@ if (window.__HI_SUPABASE_CLIENT) {
               const realClient = window.supabase.createClient(REAL_SUPABASE_URL, REAL_SUPABASE_KEY);
               window.__HI_SUPABASE_CLIENT = realClient;
               window.hiSupabase = realClient;
+              try { window.supabaseClient = realClient; } catch(_){ }
+              try { window.sb = realClient; } catch(_){ }
               createdClient = realClient;
+              const wasStub = __hiSupabaseIsStub; __hiSupabaseIsStub = false;
               console.log('✅ HiSupabase v3 client upgraded from injected UMD');
+              try {
+                window.dispatchEvent(new CustomEvent('supabase-upgraded', { detail: { client: realClient, wasStub } }));
+              } catch(_){ }
             }
           } catch (e) {
             console.warn('[HiSupabase.v3] UMD upgrade failed after load:', e);
@@ -108,3 +124,21 @@ if (!window.HiSupabase) {
 } else if (!window.HiSupabase.getClient) {
   window.HiSupabase.getClient = getHiSupabase;
 }
+
+// Add explicit back-compat aliases commonly used across legacy modules
+try {
+  if (!window.supabaseClient) window.supabaseClient = createdClient;
+} catch(_){}
+try {
+  if (!window.sb) window.sb = createdClient;
+} catch(_){}
+
+// Emit readiness event once (idempotent) so consumers like auth.js can reliably wait.
+try {
+  if (!window.__HI_SUPABASE_EVENT_EMITTED) {
+    window.__HI_SUPABASE_EVENT_EMITTED = true;
+    window.dispatchEvent(new CustomEvent('supabase-ready', {
+      detail: { client: createdClient, stub: __hiSupabaseIsStub }
+    }));
+  }
+} catch(_) { /* swallow */ }

@@ -11,7 +11,7 @@
   const CACHE_KEY = 'hi_admin_state';
   const LEGACY_FLAG = 'hi_admin_access';
   const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes freshness window
-  const STATE = { status: 'idle', isAdmin: false, reason: null, lastChecked: 0, user: null };
+  const STATE = { status: 'idle', isAdmin: false, reason: null, lastChecked: 0, user: null, roleType: null };
   const listeners = new Set();
 
   function getClient(){
@@ -45,7 +45,7 @@
   }
 
   function writeCache(){
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ isAdmin: STATE.isAdmin, ts: STATE.lastChecked })); } catch {}
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ isAdmin: STATE.isAdmin, ts: STATE.lastChecked, roleType: STATE.roleType || null })); } catch {}
   }
 
   function dispatchState(){
@@ -56,20 +56,39 @@
     }
   }
 
+  async function fetchRoleType(client){
+    if (!STATE.isAdmin) return null;
+    try {
+      const { data, error } = await client
+        .from('admin_roles')
+        .select('role_type')
+        .eq('user_id', STATE.user?.id)
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle();
+      if (error || !data) return null;
+      return data.role_type || null;
+    } catch { return null; }
+  }
+
   async function checkAdmin({ force=false } = {}){
     const client = getClient();
     if (!client || !client.rpc){
       STATE.status='error'; STATE.reason='supabase_unavailable'; dispatchState(); return STATE;
     }
     if (!force && STATE.status==='cached' && STATE.isAdmin){
-      return STATE; // already good
+      // If cached but roleType missing, attempt lightweight fetch (non-blocking)
+      if (!STATE.roleType){
+        fetchRoleType(client).then(rt=>{ if(rt){ STATE.roleType=rt; writeCache(); window.dispatchEvent(new CustomEvent('hi:admin-role-known', { detail:{ roleType: rt } })); dispatchState(); } });
+      }
+      return STATE; // already good (cached path)
     }
     STATE.status='checking'; dispatchState();
     try {
       const { data: sessionData } = await client.auth.getSession();
       const user = sessionData?.session?.user || null;
       STATE.user = user;
-      if (!user){ STATE.status='denied'; STATE.isAdmin=false; STATE.reason='no_session'; STATE.lastChecked=Date.now(); writeCache(); dispatchState(); return STATE; }
+      if (!user){ STATE.status='denied'; STATE.isAdmin=false; STATE.reason='no_session'; STATE.lastChecked=Date.now(); STATE.roleType=null; writeCache(); dispatchState(); return STATE; }
       // v2-only: deterministic signature; legacy overloads dropped
       let rpcData=null, rpcError=null;
       try {
@@ -81,12 +100,17 @@
       // Support legacy { has_access } or new { access_granted }
       const granted = (!!data?.has_access) || (!!data?.access_granted);
       if (!error && granted){
-        STATE.status='granted'; STATE.isAdmin=true; STATE.reason=null; writeCache(); sessionStorage.setItem(LEGACY_FLAG,'true'); dispatchState(); return STATE;
+        STATE.status='granted'; STATE.isAdmin=true; STATE.reason=null;
+        // Fetch roleType (parallel but we await briefly for immediate banner specialization)
+        try { STATE.roleType = await fetchRoleType(client); } catch { STATE.roleType=null; }
+        writeCache(); sessionStorage.setItem(LEGACY_FLAG,'true');
+        if (STATE.roleType){ window.dispatchEvent(new CustomEvent('hi:admin-role-known', { detail:{ roleType: STATE.roleType } })); }
+        dispatchState(); return STATE;
       }
       const reason = data?.reason || data?.error || error?.message || 'unauthorized';
-      STATE.status='denied'; STATE.isAdmin=false; STATE.reason=reason; writeCache(); dispatchState(); return STATE;
+      STATE.status='denied'; STATE.isAdmin=false; STATE.reason=reason; STATE.roleType=null; writeCache(); dispatchState(); return STATE;
     } catch(e){
-      STATE.status='error'; STATE.isAdmin=false; STATE.reason=e.message||'unknown'; STATE.lastChecked=Date.now(); writeCache(); dispatchState(); return STATE;
+      STATE.status='error'; STATE.isAdmin=false; STATE.reason=e.message||'unknown'; STATE.lastChecked=Date.now(); STATE.roleType=null; writeCache(); dispatchState(); return STATE;
     }
   }
 

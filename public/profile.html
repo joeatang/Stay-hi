@@ -41,8 +41,6 @@
   <script src="assets/anonymous-access-modal.js"></script>
   <!-- Unified Admin Access Manager -->
   <script src="./lib/admin/AdminAccessManager.js"></script>
-  <!-- Unified MC Access Core -->
-  <script src="./lib/boot/mc-access-core.js" defer></script>
   
   <!-- Membership System for Tier Display -->
   <script type="module" src="./lib/membership/MembershipSystem.js"></script>
@@ -1091,6 +1089,10 @@
   </style>
 </head>
 <body>
+  <!-- Unified Standard Header Mount -->
+  <div id="app-header"></div>
+  <script src="assets/header.js"></script>
+  <style>.tesla-header{display:none !important;}#navigationModal{display:none !important;}</style>
   <!-- Tesla-Grade Header with Centered Branding -->
   <header class="tesla-header">
     <div class="header-left">
@@ -1184,7 +1186,8 @@
     <!-- Profile Hero Section -->
     <section class="profile-hero">
       <div class="profile-avatar-container" onclick="openAvatarCrop()">
-        <img id="profileAvatar" class="profile-avatar" src="" alt="Profile Avatar" />
+        <img id="profileAvatar" class="profile-avatar" src="" alt="Profile avatar image" aria-describedby="profileAvatarDesc" />
+        <div id="profileAvatarDesc" class="sr-only" style="position:absolute;left:-999px;top:auto;width:1px;height:1px;overflow:hidden;">User avatar. Use the edit controls to update your image.</div>
         <div class="avatar-placeholder" id="avatarPlaceholder">
           <div class="placeholder-content">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -2671,6 +2674,11 @@ FOR INSERT WITH CHECK (
     async function loadProfileData() {
       console.log('🔄 Loading profile data with Tesla-grade security...');
       
+      // Race mitigation: prevent duplicate secure loads triggered by timers + events
+      if (window.__PROFILE_DATA_LOADED) {
+        console.log('[ProfileRace] loadProfileData skipped (already loaded)');
+        return;
+      }
       try {
         // CRITICAL SECURITY: Check authentication first
         const { data: session } = await window.supabaseClient.auth.getSession();
@@ -2682,6 +2690,8 @@ FOR INSERT WITH CHECK (
           console.log('🚨 Anonymous user detected - blocking Supabase access');
           // Anonymous users get local-only demo profile
           await loadAnonymousDemoProfile();
+          window.__PROFILE_DATA_LOADED = true; // prevent repeat anonymous loads
+          try { window.HiAudit?.log('profile_load_anonymous', { resource:'profile' }); } catch {}
           return;
         }
         
@@ -2720,11 +2730,15 @@ FOR INSERT WITH CHECK (
         populateEditForm(currentProfile);
         
         console.log('✅ Authenticated profile loaded successfully:', currentProfile.username);
+        try { window.HiAudit?.log('profile_load_authenticated', { resource:'profile' }); } catch {}
+        window.__PROFILE_DATA_LOADED = true;
         
       } catch (error) {
         console.error('❌ Profile loading error:', error);
         // Fallback to anonymous demo profile
         await loadAnonymousDemoProfile();
+        window.__PROFILE_DATA_LOADED = true;
+        try { window.HiAudit?.log('profile_load_error', { resource:'profile' }, { success:false, failureReason: error.message }); } catch {}
       }
     }
 
@@ -3532,6 +3546,8 @@ FOR INSERT WITH CHECK (
 
   <!-- Progressive Enhancement Scripts (externalized) -->
   <script src="./lib/boot/profile-progressive.js"></script>
+  <!-- Race mitigation to ensure single secure load after auth-ready -->
+  <script src="./lib/boot/profile-race-mitigation.js"></script>
 
   <!-- HiFooter Component -->
   <script src="./ui/HiFooter/HiFooter.js" defer></script>
