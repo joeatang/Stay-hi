@@ -58,11 +58,7 @@
       modal.innerHTML = `
         <div role="dialog" aria-modal="true" aria-labelledby="mcAccessTitle" aria-describedby="mcAccessDesc" tabindex="-1" style="max-width:420px;width:92%;background:#0f1228;border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:20px;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,0.4)">
           <h3 id="mcAccessTitle" style="margin:0 0 8px;font-size:18px">Admin Access Required</h3>
-          <p id="mcAccessDesc" style="margin:0 0 12px;color:#cfd2ea">Enter an admin invite code or passcode to proceed. If you already have access, tap Recheck.</p>
-          <div style="display:flex;gap:8px;align-items:center;margin:10px 0 6px">
-            <input id="mcInviteCode" placeholder="Invite code (optional)" style="flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:10px;color:#fff" />
-            <button id="mcRedeemInvite" class="menu-item-btn" style="background:#FFD166;color:#0f1228;border:none;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer">Redeem</button>
-          </div>
+          <p id="mcAccessDesc" style="margin:0 0 12px;color:#cfd2ea">Enter the admin passcode to unlock Mission Control. If you already have access, tap Recheck.</p>
           <div style="display:flex;gap:8px;align-items:center;margin:6px 0 6px">
             <input id="mcPasscode" placeholder="Admin passcode" inputmode="numeric" autocomplete="one-time-code" style="flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:10px;color:#fff" />
             <button id="mcUnlock" class="menu-item-btn" style="background:#7AE582;color:#0f1228;border:none;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer">Unlock</button>
@@ -80,11 +76,7 @@
         const msg = modal.querySelector('#mcMsg'); msg.textContent = 'Rechecking…';
         try{ const st = await window.AdminAccessManager?.checkAdmin({ force:true }); if (st?.isAdmin){ window.location.href='hi-mission-control.html'; } else { msg.textContent = 'No admin access on this account.'; } } catch(e){ msg.textContent = e.message || 'Could not verify admin access.'; }
       });
-      modal.querySelector('#mcRedeemInvite').addEventListener('click', async ()=>{
-        const msg = modal.querySelector('#mcMsg'); const code = (modal.querySelector('#mcInviteCode').value||'').trim(); if(!code){ msg.textContent='Enter an invite code first.'; return; }
-        msg.textContent = 'Redeeming…';
-        try{ const sb = getClient(); if(!sb){ msg.textContent='Supabase unavailable'; return; } const { error } = await sb.rpc('activate_unified_invite_code', { invite_code: code }); if (error){ msg.textContent = error.message || 'Invite redemption failed.'; return; } msg.textContent='Invite redeemed. Rechecking access…'; const st = await window.AdminAccessManager?.checkAdmin({ force:true }); if (st?.isAdmin){ window.location.href='hi-mission-control.html'; } else { msg.textContent='Upgraded membership applied. Admin access not detected.'; } } catch(e){ msg.textContent = e.message || 'Error redeeming code.'; }
-      });
+      // Invite UI removed per current policy (passcode only)
       modal.querySelector('#mcUnlock').addEventListener('click', async ()=>{
         const msg = modal.querySelector('#mcMsg'); const passcode = (modal.querySelector('#mcPasscode').value||'').trim(); if(!passcode){ msg.textContent='Enter the admin passcode.'; return; }
         msg.textContent = 'Verifying passcode…';

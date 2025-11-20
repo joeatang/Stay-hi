@@ -3329,6 +3329,50 @@ FOR INSERT WITH CHECK (
         if (/profiledebug=1/i.test(location.search)) {
           console.log('[ProfileDebug] Active – skipping anonymous gating modal.');
           window.__HI_PROFILE_DEBUG__ = true;
+          // Lightweight debug HUD
+          const hud = document.createElement('div');
+          hud.id = 'profileDebugHud';
+          hud.style.cssText = 'position:fixed;bottom:16px;right:16px;z-index:99999;background:rgba(255,209,102,.15);border:1px solid rgba(255,209,102,.4);color:#ffd166;padding:8px 10px;border-radius:10px;font:12px/1.3 system-ui;backdrop-filter:blur(6px)';
+          hud.textContent = 'ProfileDebug ON';
+          document.addEventListener('DOMContentLoaded', ()=>{ try{ document.body.appendChild(hud);}catch{} });
+          const log = (...a)=>{ console.log('[ProfileDebug]', ...a); try{ hud.textContent = 'ProfileDebug: '+(a[0]||'event'); }catch{} };
+          window.__HI_PROFILE_LOG__ = log;
+          // Log auth state if available
+          setTimeout(async ()=>{
+            try {
+              const sb = (window.HiSupabase?.getClient && window.HiSupabase.getClient()) || window.hiSupabase || null;
+              if (sb?.auth?.getSession){
+                const { data: { session } } = await sb.auth.getSession();
+                log('session', !!session);
+              } else {
+                log('no supabase client');
+              }
+            } catch(e){ log('auth check error', e?.message); }
+          }, 100);
+          // Patch AccessGate if present later
+          const patchAccessGate = ()=>{
+            try {
+              if (window.AccessGate && !window.AccessGate.__patched){
+                const orig = window.AccessGate.request?.bind(window.AccessGate);
+                if (typeof orig === 'function'){
+                  window.AccessGate.request = function(token){ log('AccessGate.request', token); return orig(token); };
+                  window.AccessGate.__patched = true;
+                }
+              }
+            } catch{}
+          };
+          setInterval(patchAccessGate, 500);
+          // Click navigation tracer
+          document.addEventListener('click', (ev)=>{
+            const t = ev.target.closest('a,button');
+            if (!t) return;
+            const href = t.getAttribute('href') || t.dataset?.destination || '';
+            log('click', t.tagName, href);
+          }, true);
+          // Unload & visibility hooks
+          ['visibilitychange','pagehide','beforeunload','popstate','hashchange'].forEach(evt=>{
+            window.addEventListener(evt, ()=> log('event', evt));
+          });
         }
       } catch {}
       
