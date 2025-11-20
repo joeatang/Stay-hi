@@ -17,9 +17,9 @@ jobs:
       - name: Install deps
         run: npm ci
       - name: SRI Drift Check
-        run: node scripts/update-sri.js --check
+        run: node scripts/update-sri.cjs --check
       - name: Branding Check (Hi Speak)
-        run: node scripts/branding-check.js
+        run: node scripts/branding-check.cjs
       - name: Start local server
         run: |
           python3 -m http.server 3030 &
