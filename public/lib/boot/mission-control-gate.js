@@ -24,6 +24,18 @@
           window.location.href = 'hi-mission-control.html#self-check';
           return;
         }
+        // NEW: Require authenticated session before any gating flows to prevent navigating to Mission Control unauthenticated.
+        try {
+          const sbPre = getClient();
+          if (sbPre?.auth?.getSession) {
+            const { data: { session: preSession } } = await sbPre.auth.getSession();
+            if (!preSession) {
+              // Direct user to sign-in with redirect preserving self-check for diagnostics
+              window.location.href = '/signin.html?redirect=/hi-mission-control.html#self-check';
+              return;
+            }
+          }
+        } catch {}
         try{
           if (window.AdminAccessManager){
             const st = await window.AdminAccessManager.checkAdmin({ force:true });
@@ -76,7 +88,19 @@
       modal.querySelector('#mcUnlock').addEventListener('click', async ()=>{
         const msg = modal.querySelector('#mcMsg'); const passcode = (modal.querySelector('#mcPasscode').value||'').trim(); if(!passcode){ msg.textContent='Enter the admin passcode.'; return; }
         msg.textContent = 'Verifying passcode…';
-        try{ const sb = getClient(); if(!sb){ msg.textContent='Supabase unavailable'; return; } const { data, error } = await sb.rpc('admin_unlock_with_passcode', { p_passcode: passcode }); if (error){ msg.textContent = error.message || 'Passcode verification failed.'; return; } if (data?.success){ msg.textContent='Access granted. Opening Mission Control…'; try { await window.AdminAccessManager?.checkAdmin({ force:true }); } catch {} window.location.href='hi-mission-control.html'; } else { msg.textContent = data?.message || 'Invalid passcode.'; } } catch(e){ msg.textContent = e.message || 'Error unlocking admin access.'; }
+        try{ const sb = getClient(); if(!sb){ msg.textContent='Supabase unavailable'; return; } const { data, error } = await sb.rpc('admin_unlock_with_passcode', { p_passcode: passcode }); if (error){ msg.textContent = error.message || 'Passcode verification failed.'; return; } if (data?.success){
+            msg.textContent='Access granted. Opening Mission Control…';
+            // Optional debug escalation when ?admindebug=1 present to bypass legacy ambiguity until role + v2 RPC fixed
+            if (/admindebug=1/i.test(location.search)){
+              try {
+                sessionStorage.setItem('hi_admin_access','true');
+                localStorage.setItem('hi_admin_state', JSON.stringify({ isAdmin:true, ts: Date.now() }));
+                window.dispatchEvent(new CustomEvent('hi:admin-state-changed', { detail:{ status:'granted', isAdmin:true, reason:null, lastChecked: Date.now(), user: null } }));
+              } catch {}
+            }
+            try { await window.AdminAccessManager?.checkAdmin({ force:true }); } catch {}
+            window.location.href='hi-mission-control.html';
+          } else { msg.textContent = data?.message || 'Invalid passcode.'; } } catch(e){ msg.textContent = e.message || 'Error unlocking admin access.'; }
       });
     }
     modal.style.display = 'flex';
