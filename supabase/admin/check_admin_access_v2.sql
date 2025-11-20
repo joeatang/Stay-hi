@@ -25,7 +25,7 @@ begin
   select exists(
     select 1 from admin_roles ar
     where ar.user_id = v_uid
-      and (ar.role = p_required_role or ar.role = 'super_admin')
+      and (ar.role_type = p_required_role or ar.role_type = 'super_admin')
   ) into v_has_role;
 
   if not v_has_role then
