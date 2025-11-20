@@ -199,8 +199,18 @@
       navigationModal.classList.add('show'); navigationModal.style.display='block'; document.body.style.overflow='hidden';
       const dialog = navigationModal.querySelector('.navigation-content'); const closeBtn = document.getElementById('closeNavigation');
       (dialog||navigationModal).setAttribute('tabindex','-1'); setTimeout(()=>{ (closeBtn||dialog||navigationModal).focus({preventScroll:true}); },0);
-      const adminSection = document.getElementById('adminSection'); if (adminSection && (localStorage.getItem('isAdmin')==='true' || window.location.href.includes('admin'))) adminSection.style.display='block';
-      __dbg('🎯 Navigation menu opened');
+      
+      // Check admin status from AdminAccessManager (unified source of truth)
+      const adminState = window.AdminAccessManager?.getState?.() || {};
+      const isAdmin = adminState.isAdmin === true;
+      const adminSection = document.getElementById('adminSection');
+      if (adminSection && isAdmin) {
+        adminSection.style.display='block';
+      } else if (adminSection) {
+        adminSection.style.display='none';
+      }
+      
+      __dbg('🎯 Navigation menu opened | Admin:', isAdmin);
       // Ensure Mission Control link exists (robust fallback)
       try {
         if (typeof window.ensureAdminEntryExists === 'function') {
@@ -387,6 +397,26 @@
       }
       setupGlobalStatsEventBridge();
     } catch (e) { console.warn('⚠️ Global stats bridge not installed:', e); }
+
+    // Admin state listeners - update adminSection visibility on state changes
+    try {
+      function updateAdminSectionVisibility() {
+        const adminState = window.AdminAccessManager?.getState?.() || {};
+        const isAdmin = adminState.isAdmin === true;
+        const adminSection = document.getElementById('adminSection');
+        if (adminSection) {
+          adminSection.style.display = isAdmin ? 'block' : 'none';
+          __dbg('🔐 Admin section visibility updated:', isAdmin);
+        }
+      }
+      
+      // Listen for admin state changes
+      window.addEventListener('hi:admin-confirmed', updateAdminSectionVisibility);
+      window.addEventListener('hi:admin-state-changed', updateAdminSectionVisibility);
+      
+      // Initial check
+      setTimeout(updateAdminSectionVisibility, 100);
+    } catch (e) { console.warn('⚠️ Admin section listeners not installed:', e); }
 
     try { const currentPage={ url:location.href, name:'Dashboard', timestamp:Date.now() }; const navHistory=JSON.parse(sessionStorage.getItem('hiNavHistory')||'[]'); const filtered=navHistory.filter(p=>p.url!==currentPage.url); filtered.unshift(currentPage); filtered.splice(10); sessionStorage.setItem('hiNavHistory', JSON.stringify(filtered)); } catch{}
     setupNavigationHandler();

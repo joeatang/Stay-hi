@@ -122,7 +122,21 @@ async function initializeSecuritySystem() {
     }
     if (!mgr) throw new Error('Admin access system unavailable');
     const state = await mgr.checkAdmin({ force:true }); // force to avoid stale cached denial
-    if (!state.isAdmin) throw new Error(state.reason || 'Administrative privileges required');
+    
+    console.log('🔍 DIAGNOSTIC - Admin check result:', {
+      isAdmin: state.isAdmin,
+      status: state.status,
+      reason: state.reason,
+      user: state.user?.email || state.user?.id || 'no user',
+      roleType: state.roleType,
+      lastChecked: state.lastChecked ? new Date(state.lastChecked).toISOString() : 'never'
+    });
+    
+    if (!state.isAdmin) {
+      const errorMsg = `Access check failed: ${state.reason || 'unknown'} | Status: ${state.status} | User: ${state.user?.email || 'none'}`;
+      console.error('🚨 DIAGNOSTIC - Admin access denied:', errorMsg);
+      throw new Error(errorMsg);
+    }
     currentUser = state.user;
     statusEl.textContent = 'Establishing secure session...';
     progressBar.style.width = '55%';
