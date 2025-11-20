@@ -33,13 +33,12 @@ begin
     return;
   end if;
 
-  -- Optional logging (ignore errors to avoid false denials)
+  -- Logging with correct column names (action_type, resource_accessed, request_ip, success)
   begin
-    insert into admin_access_logs(user_id, ip_address, user_agent, success, details)
-    values (v_uid, p_ip_address, null, true, 'v2 access check');
+    insert into admin_access_logs(user_id, action_type, resource_accessed, request_ip, success)
+    values (v_uid, 'access_check_v2', 'mission_control_gate', nullif(p_ip_address,'')::inet, true);
   exception when others then
-    -- swallow logging errors
-    null;
+    null; -- swallow logging errors
   end;
 
   return query select true, null;

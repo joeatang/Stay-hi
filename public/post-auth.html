@@ -8,6 +8,10 @@
   <link rel="stylesheet" href="assets/create-parity.css" />
   <!-- HI-OS: Early SW unregister to guarantee fresh auth when ?no-sw=1 is present -->
   <script src="./lib/boot/post-auth-early.js"></script>
+  <!-- Env-safe path resolver + membership/access bridges -->
+  <script src="./assets/hi-paths.js"></script>
+  <script src="./lib/membership/HiMembershipBridge.js"></script>
+  <script src="./lib/access/AccessGate.js"></script>
   <style>
     /* Hi-Grade Gold Standard Auth Processing UI */
     * {

@@ -67,3 +67,23 @@ export async function waitAuthReady(){
 }
 
 export function getAuthState(){ return _result; }
+
+// If the Supabase client upgrades from stub->real, refresh state and notify listeners
+try {
+  window.addEventListener('supabase-upgraded', async ()=>{
+    try {
+      const sb = getHiSupabase();
+      let { data: { session } } = await sb.auth.getSession();
+      if (!session) { await salvageTokens(sb); ({ data: { session } } = await sb.auth.getSession()); }
+      const membership = session ? await fetchMembership(sb) : null;
+      const prevUser = _result?.session?.user?.id;
+      const nextUser = session?.user?.id;
+      const changed = (!!prevUser !== !!nextUser) || (prevUser !== nextUser) || (_result?.membership?.tier !== membership?.tier);
+      _result = { session, membership };
+      if (changed) {
+        window.dispatchEvent(new CustomEvent('hi:auth-updated', { detail: _result }));
+        console.log('[AuthReady] updated', { user: nextUser, tier: membership?.tier, admin: membership?.is_admin });
+      }
+    } catch(e){ console.warn('[AuthReady] upgrade refresh failed', e); }
+  });
+} catch(_){}

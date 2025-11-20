@@ -12,8 +12,17 @@ window.addEventListener('hi:auth-ready', async (e) => {
     if (!isMembershipAdmin && window.hiSupabase?.rpc) {
       try {
         const clientIP = null; // Optional: supply if available
-        const { data, error } = await window.hiSupabase.rpc('check_admin_access', { p_required_role: 'admin', p_ip_address: clientIP });
-        if (!error && data?.has_access) {
+        let data=null, error=null;
+        try {
+          const resV2 = await window.hiSupabase.rpc('check_admin_access_v2', { p_required_role: 'admin', p_ip_address: clientIP });
+          data = resV2.data; error = resV2.error;
+        } catch(v2Err){
+          const missing=/does not exist|not found/i.test(v2Err.message||'');
+          if(!missing){ error=v2Err; } else {
+            try { const resLegacy = await window.hiSupabase.rpc('check_admin_access', { p_required_role: 'admin', p_ip_address: clientIP }); data=resLegacy.data; error=resLegacy.error; } catch(legacyErr){ error=legacyErr; }
+          }
+        }
+        if (!error && (data?.has_access || data?.access_granted)) {
           hasDbAdminAccess = true;
           console.log('[Dashboard][AuthReady] Elevated via DB admin access');
           // Cache result to avoid repeated RPCs this session

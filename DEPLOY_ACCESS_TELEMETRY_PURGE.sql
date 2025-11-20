@@ -1,0 +1,6 @@
+-- Purge strategy advisory (actual deletion executed by telemetry-purge.js / GitHub Action)
+-- Recommended retention: 30 days for raw access_telemetry; daily aggregates retained longer (e.g., 180 days).
+-- If you need manual purge:
+-- DELETE FROM public.access_telemetry WHERE ts < now() - interval '30 days';
+-- Vacuum after large deletions if necessary:
+-- VACUUM ANALYZE public.access_telemetry;

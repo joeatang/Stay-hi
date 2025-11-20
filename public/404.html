@@ -252,7 +252,7 @@
     </div>
 
     <script>
-        // Tesla-grade 404 recovery system
+        // Tesla-grade 404 recovery system (enhanced with Mission Control guard)
         class TeslaRecoverySystem {
             constructor() {
                 this.init();
@@ -269,6 +269,9 @@
                 
                 // Track 404 for analytics (non-blocking)
                 this.trackError();
+
+                // Mission Control 404 guard: if a broken mission control path, gently redirect
+                this.guardMissionControl();
             }
             
             detectRecoveryScenario() {
@@ -353,14 +356,32 @@
                 successDiv.innerHTML = `<strong>✅ ${message}</strong> Redirecting you now...`;
                 successDiv.classList.add('show');
             }
+
+            resolve(p){
+                try { return window.hiPaths?.resolve ? window.hiPaths.resolve(p) : p; } catch { return p; }
+            }
+
+            guardMissionControl(){
+                const path = window.location.pathname.toLowerCase();
+                if(path.includes('mission-control')){
+                    // Provide context message upgrade
+                    const msg = document.querySelector('.error-message');
+                    if(msg){
+                        msg.innerHTML = `<strong>🛰️ Mission Control Redirect</strong><br>The admin dashboard route you tried is unavailable here. Redirecting you safely to the standard dashboard.`;
+                    }
+                    this.showSuccess('Routing to dashboard');
+                    setTimeout(()=>{
+                        window.location.replace(this.resolve('hi-dashboard.html'));
+                    }, 1100);
+                }
+            }
             
             // Recovery actions
             goHome() {
                 this.showSuccess('Taking you to the main dashboard');
                 setTimeout(() => {
-                    // Try authenticated dashboard first, fallback to welcome
-                    window.location.href = 'hi-dashboard.html';
-                }, 1000);
+                    window.location.href = this.resolve('hi-dashboard.html');
+                }, 900);
             }
             
             goBack() {
@@ -375,23 +396,22 @@
             trySignIn() {
                 this.showSuccess('Opening sign-in experience');
                 setTimeout(() => {
-                    window.location.href = 'signin.html';
-                }, 1000);
+                    window.location.href = this.resolve('signin.html');
+                }, 900);
             }
             
             contactSupport() {
                 this.showSuccess('Opening support options');
                 setTimeout(() => {
-                    // Could open support chat, email, or help page
                     window.location.href = 'mailto:support@stayhi.com?subject=404 Error Help&body=I encountered a 404 error at: ' + encodeURIComponent(window.location.href);
-                }, 1000);
+                }, 900);
             }
             
             visitPromo() {
                 this.showSuccess('Taking you to join our community');
                 setTimeout(() => {
-                    window.location.href = 'promo.html?source=404';
-                }, 1000);
+                    window.location.href = this.resolve('promo.html?source=404');
+                }, 900);
             }
         }
         

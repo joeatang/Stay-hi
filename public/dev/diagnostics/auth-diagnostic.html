@@ -53,11 +53,37 @@
         let supabase;
         
         async function initSupabase() {
-            if (!supabase && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
-                const { createClient } = supabase;
-                supabase = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-            }
-            return !!supabase;
+            try {
+                if (supabase) return true;
+                // Prefer canonical client if available
+                if (typeof window.getSupabase === 'function') {
+                    supabase = window.getSupabase();
+                    return !!supabase;
+                }
+                if (window.HiSupabase?.getClient) {
+                    supabase = window.HiSupabase.getClient();
+                    return !!supabase;
+                }
+                // Fallback: wait for readiness event
+                const ready = await new Promise((resolve) => {
+                    let settled = false;
+                    const onReady = (e) => { if (settled) return; settled = true; supabase = e.detail.client; resolve(true); };
+                    window.addEventListener('supabase-ready', onReady, { once: true });
+                    // Safety timeout; if UMD already present, use it
+                    setTimeout(() => {
+                        if (settled) return;
+                        if (window.supabase?.createClient && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+                            try {
+                                supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+                                settled = true; resolve(true);
+                            } catch(_) { resolve(false); }
+                        } else {
+                            resolve(false);
+                        }
+                    }, 500);
+                });
+                return ready && !!supabase;
+            } catch { return false; }
         }
         
         function log(message, type = 'info') {

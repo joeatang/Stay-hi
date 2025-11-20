@@ -13,9 +13,11 @@
     if (/hi-mission-control\.html$/i.test(here)) return; // already there
 
     function targetUrl(){
-      const next = params.get('next');
-      if (next && !/hi-dashboard\.html$/i.test(next)) return next;
-      return '/public/hi-mission-control.html';
+      try {
+        const next = params.get('next');
+        if (next && !/hi-dashboard\.html$/i.test(next)) return next;
+        return (window.hiPaths?.resolve ? window.hiPaths.resolve('hi-mission-control.html') : 'hi-mission-control.html');
+      } catch { return 'hi-mission-control.html'; }
     }
 
     function tryRedirect(reason){
@@ -31,7 +33,7 @@
     window.addEventListener('hi:admin-confirmed', () => tryRedirect('event:confirmed'));
     window.addEventListener('hi:admin-state-changed', (e) => { if (e?.detail?.isAdmin) tryRedirect('event:state-changed'); });
     window.addEventListener('hi:auth-ready', () => setTimeout(() => tryRedirect('auth-ready'), 300));
-    setTimeout(() => tryRedirect('timer-fallback'), 2500);
+    // Remove aggressive timer fallback; rely only on auth/admin events
   } catch (e) {
     try { console.warn('[AdminAutoRedirect] suppressed error', e); } catch {}
   }

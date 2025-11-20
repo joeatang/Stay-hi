@@ -55,6 +55,10 @@
     }catch(e){ log('Supabase merge upsert failed', e.message); }
     sessionStorage.setItem(MERGE_FLAG,'1');
     window.dispatchEvent(new CustomEvent('hi:profile-merged', { detail:{ userId, merged } }));
+    if (merged.avatar_url) {
+      // Emit avatar-precache event for service worker / precache system
+      window.dispatchEvent(new CustomEvent('hi:avatar-precache', { detail: { userId, avatarUrl: merged.avatar_url } }));
+    }
     log('Merged anonymous demo profile into authenticated profile.', { userId, fields: Object.keys(merged) });
   }
   window.addEventListener('hi:auth-ready', (e)=>{

@@ -80,20 +80,23 @@
   <script type="module" src="./lib/HiPWA.js"></script>
   
   <!-- Tesla-Grade Milestone Celebration System -->
-  <script src="assets/milestone-celebration-system.js"></script>
+  <script src="assets/milestone-celebration-system.js" defer></script>
   
   <!-- Tesla-Grade Contextual Spotlight System -->
-  <script src="assets/contextual-spotlight-system.js"></script>
+  <script src="assets/contextual-spotlight-system.js" defer></script>
   
   <!-- Tesla-Grade Smart Conversion System -->
-  <script src="assets/smart-conversion-system.js"></script>
+  <script src="assets/smart-conversion-system.js" defer></script>
 
   <!-- Unified Admin Access Manager + auto-reveal/gating -->
   <script src="./lib/admin/AdminAccessManager.js"></script>
-  <!-- Unified MC Access Core (replaces legacy gating scripts) -->
-  <script src="./lib/boot/mc-access-core.js" defer></script>
   <!-- Admin smart auto-redirect retained -->
   <script src="./lib/boot/admin-auto-redirect.js"></script>
+  <!-- Access telemetry + upgrade handlers + SW register -->
+  <script src="./lib/access/AccessGateTelemetry.js"></script>
+  <script src="./lib/access/AccessGateTelemetryExport.js"></script>
+  <script src="./lib/boot/upgrade-cta.js"></script>
+  <script src="./lib/boot/sw-register.js"></script>
 
   <!-- Lightweight diagnostics (only runs with ?diag=1) -->
   <script>
@@ -1303,6 +1306,10 @@
   <noscript><link rel="stylesheet" href="./ui/HiFooter/HiFooter.css"></noscript>
 </head>
 <body data-page="hi-island">
+  <!-- Unified Standard Header Mount (Phase 1 standardization) -->
+  <div id="app-header"></div>
+  <script src="assets/header.js"></script>
+  <style>.tesla-header{display:none !important;}#navigationModal{display:none !important;}</style>
   <!-- Tesla-Grade Dashboard Header -->
   <header class="tesla-header">
     <div class="header-left">
@@ -1377,7 +1384,7 @@
         </div>
         <div class="nav-section" id="adminSection" style="display: none;">
           <div class="nav-section-title">Admin</div>
-          <a href="hi-mission-control.html" class="nav-item admin-item">
+          <a href="hi-mission-control.html" class="nav-item admin-item" data-mc-link>
             <span class="nav-icon">🎛️</span>
             <span>Hi Mission Control</span>
           </a>
@@ -1385,6 +1392,29 @@
       </div>
     </div>
   </div>
+  <script>
+    (function(){
+      function resolveMC(){ try { return window.hiPaths?.resolve ? window.hiPaths.resolve('hi-mission-control.html') : 'hi-mission-control.html'; } catch { return 'hi-mission-control.html'; } }
+      function showAdminSectionIfNeeded(){
+        try {
+          const st = window.AdminAccessManager?.getState?.();
+          if (st?.isAdmin){ const sec = document.getElementById('adminSection'); if (sec) sec.style.display='block'; }
+        } catch {}
+      }
+      function attach(){
+        document.querySelectorAll('[data-mc-link]').forEach(a=>{
+          a.setAttribute('href', resolveMC());
+          if (!a.__mcBound){
+            a.__mcBound=true;
+            a.addEventListener('click', function(e){ if(window.HiMissionControlAccess){ e.preventDefault(); window.HiMissionControlAccess.openGate(); } });
+          }
+        });
+      }
+      showAdminSectionIfNeeded();
+      attach();
+      window.addEventListener('hi:admin-confirmed', ()=>{ showAdminSectionIfNeeded(); attach(); });
+    })();
+  </script>
 
   <!-- Main Content -->
   <main class="wrap">
@@ -1612,8 +1642,8 @@
   <script src="./ui/HiFooter/HiFooter.js" defer></script>
   <!-- Integrity + quick access merged into mc-access-core.js -->
   
-  <!-- Premium Calendar (Flagship - matches index.html) -->
-  <script src="assets/premium-calendar.js"></script>
+  <!-- Premium Calendar lazy loader (on-demand) -->
+  <script src="./lib/lazy/lazy-loaders.js"></script>
   <!-- Island Header Controls (navigation + calendar hooks) -->
   <script src="./lib/boot/island-header.js"></script>
 

@@ -48,6 +48,21 @@ Choose a semantic context string: `feature:verb` (e.g. `calendar:view`, `share:c
 - Add upgrade flow enhancements (tier comparison, benefits) inside `AccessGateModal` without changing callers.
 - Stream telemetry export to Supabase or another endpoint using `__hiAccessTelemetry.export()` on interval.
 
+### Tier Checks (T1/T2/T3)
+- Use `public/lib/access/HiTier.js` for normalized checks:
+	- `HiTier.getTier()` returns `'T1' | 'T2' | 'T3'`.
+	- `HiTier.isAtLeast('T2')` for concise gates in UI or AccessGate internals.
+- `HiTier` listens for `hi:membership-changed` and Supabase auth to keep tier fresh.
+
+### Rewards & Points (MVP)
+- Schema in `DEPLOY_HI_POINTS.sql` with service-only `hi_award_points()`.
+- Client read-only helper `public/lib/rewards/HiPoints.js` to show balances/nudges.
+- Redemptions should be done service-side to maintain integrity.
+
+### Invite-Based Entry
+- Schema in `DEPLOY_INVITE_CODES.sql` with service-only `invite_redeem(code, user)`.
+- Recommended flow: UI collects code → server verifies via function → membership bridge updates tier → emit `hi:membership-changed`.
+
 ## Best Practices
 - Keep contexts short and stable; changing names breaks longitudinal telemetry comparisons.
 - Avoid direct membership checks in UI components; let AccessGate centralize gating logic.

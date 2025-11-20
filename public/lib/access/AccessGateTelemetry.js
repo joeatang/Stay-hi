@@ -9,11 +9,20 @@
     recent: session.recent || [], // [{t,type,context,reason}]
     version: '1.0.0'
   };
+  const allowedContexts = new Set(['dashboard','muscle','island','profile','calendar','upgrade-flow','admin','streaks','share','auth','unknown']);
+  const allowedReasons = new Set(['membership-upgrade','not-authenticated','tier-required','admin-only','quota','limit','success','blocked','upgrade-click','unknown']);
+  function normalize(val,set){
+    if(!val) return 'unknown';
+    const cleaned = String(val).toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+    return set.has(cleaned) ? cleaned : 'unknown';
+  }
   function persist(){
     try { sessionStorage.setItem(storeKey, JSON.stringify(state)); } catch(_){}
   }
   function push(type, detail){
-    const entry = { t: Date.now(), type, context: detail?.context || detail?.decision?.context || 'unknown', reason: detail?.decision?.reason || 'n/a' };
+    const rawContext = detail?.context || detail?.decision?.context || 'unknown';
+    const rawReason = detail?.decision?.reason || 'unknown';
+    const entry = { t: Date.now(), type, context: normalize(rawContext, allowedContexts), reason: normalize(rawReason, allowedReasons) };
     state.recent.unshift(entry);
     if(state.recent.length>40) state.recent.splice(40);
     persist();

@@ -26,8 +26,11 @@
   <script src="components/AccessGateModal.js"></script>
   <!-- Unified Admin Access Manager -->
   <script src="./lib/admin/AdminAccessManager.js"></script>
-  <!-- Unified MC Access Core (consolidated gating) -->
-  <script src="./lib/boot/mc-access-core.js" defer></script>
+  <!-- Access telemetry + upgrade handlers + SW register -->
+  <script src="./lib/access/AccessGateTelemetry.js"></script>
+  <script src="./lib/access/AccessGateTelemetryExport.js"></script>
+  <script src="./lib/boot/upgrade-cta.js"></script>
+  <script src="./lib/boot/sw-register.js"></script>
   
   <!-- 🔐 Authentication System (Tesla-Grade Progressive Auth) -->
   <script src="assets/post-auth-path.js"></script>
@@ -55,13 +58,13 @@
   <script src="lib/stats/GoldStandardTracker.js" type="module"></script>
   
   <!-- Tesla-Grade Milestone Celebration System -->
-  <script src="assets/milestone-celebration-system.js"></script>
+  <script src="assets/milestone-celebration-system.js" defer></script>
   
   <!-- Tesla-Grade Contextual Spotlight System -->
-  <script src="assets/contextual-spotlight-system.js"></script>
+  <script src="assets/contextual-spotlight-system.js" defer></script>
   
   <!-- Tesla-Grade Smart Conversion System -->
-  <script src="assets/smart-conversion-system.js"></script>
+  <script src="assets/smart-conversion-system.js" defer></script>
 
   <!-- 🧭 Tesla-Grade Navigation System -->
   <link rel="stylesheet" href="./lib/navigation/HiStandardNavigation.css"/>
@@ -1254,6 +1257,10 @@
   </style>
 </head>
 <body data-tab="muscle" data-page="hi-muscle">
+  <!-- Unified Standard Header Mount (Phase 1 standardization) -->
+  <div id="app-header"></div>
+  <script src="assets/header.js"></script>
+  <style>.tesla-header{display:none !important;}#navigationModal{display:none !important;}</style>
   <!-- Tesla-Grade Dashboard Header -->
   <header class="tesla-header">
     <div class="header-left">
@@ -1330,14 +1337,32 @@
         
         <div>
           <div class="nav-section-title">Admin</div>
-          <a href="/public/admin-dashboard.html" class="nav-item admin-item">
-            <span class="nav-icon">⚙️</span>
-            Admin Panel
+          <a href="hi-mission-control.html" class="nav-item admin-item" data-mc-link>
+            <span class="nav-icon">🎛️</span>
+            <span>Hi Mission Control</span>
           </a>
         </div>
       </nav>
     </div>
   </div>
+  <script>
+    (function(){
+      function resolveMC(){ try { return window.hiPaths?.resolve ? window.hiPaths.resolve('hi-mission-control.html') : 'hi-mission-control.html'; } catch { return 'hi-mission-control.html'; } }
+      function attach(){
+        document.querySelectorAll('[data-mc-link]').forEach(a=>{
+          const href = resolveMC(); a.setAttribute('href', href);
+          if (!a.__mcBound){
+            a.__mcBound = true;
+            a.addEventListener('click', function(e){
+              if (window.HiMissionControlAccess){ e.preventDefault(); window.HiMissionControlAccess.openGate(); }
+            });
+          }
+        });
+      }
+      attach();
+      window.addEventListener('hi:admin-confirmed', attach);
+    })();
+  </script>
 
   <div class="wrap">
     <h1 class="title">Hi Gym</h1>
@@ -2696,18 +2721,30 @@
       }
     }
 
-    // Calendar functionality - Tesla-grade with fallbacks
+    // Calendar functionality - lazy loaded
     function showCalendar() {
-      if (window.hiCalendarInstance && typeof window.hiCalendarInstance.show === 'function') {
-        window.hiCalendarInstance.show();
-      } else if (window.PremiumCalendar) {
-        // Initialize if not already done
-        console.log('📅 Initializing calendar on Hi Muscle...');
-        window.hiCalendarInstance = new window.PremiumCalendar();
-        window.hiCalendarInstance.show();
+      const ensureShow = () => {
+        if (window.hiCalendarInstance?.show) { window.hiCalendarInstance.show(); return true; }
+        if (window.PremiumCalendar) {
+          if (!window.hiCalendarInstance) { console.log('📅 Initializing calendar on Hi Muscle (lazy)...'); window.hiCalendarInstance = new window.PremiumCalendar(); }
+          if (window.hiCalendarInstance?.show) { window.hiCalendarInstance.show(); return true; }
+        }
+        return false;
+      };
+      if (ensureShow()) return;
+      if (window.HiLazy) {
+        console.log('⏳ Loading premium-calendar.js via HiLazy (muscle)...');
+        window.HiLazy.loadPremiumCalendar().then(() => {
+          if (!ensureShow()) {
+            console.error('❌ Calendar instance not ready after lazy load');
+            alert('📅 Calendar failed to initialize after load.');
+          }
+        }).catch(err => {
+          console.error('❌ Failed to load premium-calendar.js lazily:', err);
+          alert('📅 Calendar failed to load.');
+        });
       } else {
-        console.error('❌ Calendar not available - premium-calendar.js not loaded');
-        // Show user-friendly message
+        console.error('❌ HiLazy unavailable; cannot load calendar');
         alert('📅 Calendar is loading... Please try again in a moment.');
       }
     }
@@ -2791,8 +2828,8 @@
   <script src="./lib/streaks/HiStreakMilestones.js"></script>
   <!-- Centralized streak milestone toast component -->
   <script src="./lib/streaks/HiMilestoneToast.js"></script>
-  <!-- � Premium Calendar System -->
-  <script src="assets/premium-calendar.js"></script>
+  <!-- 🕒 Premium Calendar System lazy loaded -->
+  <script src="./lib/lazy/lazy-loaders.js"></script>
   
   <!-- �🚀 PWA Manager -->
   <script src="assets/pwa-manager.js"></script>

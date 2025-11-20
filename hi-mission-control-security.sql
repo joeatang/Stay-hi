@@ -552,6 +552,7 @@ DECLARE
   v_hash TEXT;
   v_match BOOLEAN := false;
   v_admin_id UUID;
+  v_fail_count INTEGER := 0;
 BEGIN
   IF v_uid IS NULL THEN
     RETURN jsonb_build_object('success', false, 'message', 'Authentication required');
@@ -566,6 +567,20 @@ BEGIN
 
   IF v_hash IS NULL THEN
     RETURN jsonb_build_object('success', false, 'message', 'Passcode not configured');
+  END IF;
+
+  -- Rate limiting: block if too many failed attempts in last 15 minutes
+  SELECT count(*) INTO v_fail_count
+  FROM admin_access_logs
+  WHERE user_id = v_uid
+    AND action_type = 'unlock_with_passcode'
+    AND success = false
+    AND created_at > NOW() - INTERVAL '15 minutes';
+
+  IF v_fail_count >= 5 THEN
+    INSERT INTO admin_access_logs(user_id, action_type, success, failure_reason, security_flags, risk_score)
+    VALUES (v_uid, 'unlock_with_passcode', false, 'Too many failed attempts', ARRAY['passcode_lockout'], 12);
+    RETURN jsonb_build_object('success', false, 'message', 'Too many failed attempts. Try again later');
   END IF;
 
   v_match := crypt(p_passcode, v_hash) = v_hash;

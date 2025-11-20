@@ -60,15 +60,21 @@
       };
       ensureCSS();
 
-      const loadScript = () => new Promise((resolve, reject) => {
-        const existing = Array.from(document.scripts).find(s => (s.getAttribute('src')||'').includes('assets/premium-calendar.js'));
-        if (existing) { resolve(); return; }
-        const s = document.createElement('script');
-        s.src = 'assets/premium-calendar.js';
-        s.onload = () => resolve();
-        s.onerror = () => reject(new Error('calendar script load failed'));
-        document.body.appendChild(s);
-      });
+      const loadScript = () => {
+        if (window.PremiumCalendar) return Promise.resolve();
+        if (window.HiLazy) {
+          return window.HiLazy.loadPremiumCalendar();
+        }
+        return new Promise((resolve, reject) => {
+          const existing = Array.from(document.scripts).find(s => (s.getAttribute('src')||'').includes('assets/premium-calendar.js'));
+          if (existing) { resolve(); return; }
+          const s = document.createElement('script');
+          s.src = 'assets/premium-calendar.js';
+          s.onload = () => resolve();
+          s.onerror = () => reject(new Error('calendar script load failed'));
+          document.body.appendChild(s);
+        });
+      };
 
       loadScript().then(() => {
         setTimeout(() => {

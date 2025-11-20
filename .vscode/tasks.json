@@ -133,6 +133,40 @@
 			],
 			"isBackground": true,
 			"group": "build"
+		},
+		{
+			"label": "Telemetry: Dry Run (Ratio)",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"scripts/telemetry-anomaly-check.js"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Telemetry: Dry Run (Ratio)",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"-e",
+				"TELEMETRY_DRY_RUN=1; import('./scripts/telemetry-anomaly-check.js')"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Telemetry: Dry Run (Ratio)",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"scripts/run-telemetry-dry-ratio.mjs"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
 		}
 	]
 }

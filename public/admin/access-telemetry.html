@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Access Telemetry Dashboard — Stay Hi</title>
+  <link rel="stylesheet" href="../assets/premium-ux.css"/>
+  <style>
+    body{font:14px/1.4 -apple-system,system-ui,Segoe UI,Roboto;color:#222;margin:0;padding:16px;background:#fafafa;}
+    header{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+    h1{font-size:20px;margin:0;}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:20px;}
+    .card{background:#fff;border:1px solid #ddd;border-radius:10px;padding:12px;box-shadow:0 2px 4px rgba(0,0,0,.06);} 
+    .card h2{margin:0 0 8px;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#555;}
+    table{width:100%;border-collapse:collapse;font-size:12px;}
+    th,td{padding:6px 8px;border-bottom:1px solid #eee;text-align:left;}
+    th{background:#f5f5f5;position:sticky;top:0;}
+    tbody tr:hover{background:#f9f9f9;}
+    .pill{display:inline-block;padding:2px 6px;border-radius:12px;font-size:11px;font-weight:600;background:#eee;color:#444;}
+    .pill.requested{background:#d0e7ff;color:#084e8a;} .pill.allowed{background:#d7f9d0;color:#0b5d26;} .pill.blocked{background:#ffe2d6;color:#8a2f08;} .pill.upgradeIntent{background:#f7dfff;color:#5a0b8a;}
+    .status{font-size:11px;color:#666;margin-top:4px;}
+    #refreshBtn{background:#222;color:#fff;border:none;padding:8px 14px;border-radius:6px;font-weight:600;cursor:pointer;} #refreshBtn:disabled{opacity:.4;cursor:wait;}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1"></script>
+  <script src="../lib/HiSupabase.v3.js" type="module"></script>
+  <script src="../lib/admin/AdminAccessManager.js"></script>
+  <script src="../lib/access/AccessGate.js"></script>
+  <script src="../components/AccessGateModal.js"></script>
+  <script src="../lib/access/AuthShim.js"></script>
+  <script src="../lib/access/AccessGateTelemetry.js"></script>
+  <script src="../lib/access/AccessGateTelemetryExport.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Access Telemetry Dashboard</h1>
+    <button id="refreshBtn">Refresh</button>
+  </header>
+  <section class="grid" id="summaryGrid">
+    <div class="card"><h2>Requested</h2><div id="requestedCount">0</div><div class="status" id="requestedRate"></div></div>
+    <div class="card"><h2>Allowed</h2><div id="allowedCount">0</div><div class="status" id="allowedRate"></div></div>
+    <div class="card"><h2>Blocked</h2><div id="blockedCount">0</div><div class="status" id="blockedRate"></div></div>
+    <div class="card"><h2>Upgrade Intents</h2><div id="upgradeIntentCount">0</div><div class="status" id="upgradeRate"></div></div>
+    <div class="card"><h2>Pending Export</h2><div id="pendingExport">0</div><div class="status" id="retryInfo"></div></div>
+    <div class="card"><h2>Yesterday Totals</h2><div id="dailyTotals">—</div><div class="status" id="dailyStatus"></div></div>
+    <div class="card"><h2>Failure Cycle</h2><div id="failureCycle">0</div><div class="status" id="failureStatus">ok</div></div>
+    <div class="card"><h2>Latest Alert</h2><div id="latestAlert">No alerts</div><div class="status" id="alertStatus"></div><div class="status" id="alertSeverity"></div><div class="status" id="alertContext"></div></div>
+    <div class="card"><h2>Latency p95</h2><div id="latencyAlert">No perf alerts</div><div class="status" id="latencyStatus"></div></div>
+  </section>
+  <div class="card" style="overflow:auto;max-height:55vh;">
+    <h2>Recent Events (Last 200)</h2>
+    <table>
+      <thead><tr><th>Time</th><th>Type</th><th>Context</th><th>Reason</th><th>User</th><th>Session</th></tr></thead>
+      <tbody id="eventsTable"></tbody>
+    </table>
+  </div>
+<script>
+(function(){
+  const client = window.supabaseClient || window.sb;
+  const tblBody = document.getElementById('eventsTable');
+  const refreshBtn = document.getElementById('refreshBtn');
+  const metricsEls = {
+    requested: document.getElementById('requestedCount'),
+    allowed: document.getElementById('allowedCount'),
+    blocked: document.getElementById('blockedCount'),
+    upgradeIntent: document.getElementById('upgradeIntentCount'),
+    pending: document.getElementById('pendingExport'),
+    retryInfo: document.getElementById('retryInfo'),
+    dailyTotals: document.getElementById('dailyTotals'),
+    dailyStatus: document.getElementById('dailyStatus')
+    ,failureCycle: document.getElementById('failureCycle')
+    ,failureStatus: document.getElementById('failureStatus')
+    ,latestAlert: document.getElementById('latestAlert')
+    ,alertStatus: document.getElementById('alertStatus')
+    ,alertSeverity: document.getElementById('alertSeverity')
+    ,alertContext: document.getElementById('alertContext')
+    ,latencyAlert: document.getElementById('latencyAlert')
+    ,latencyStatus: document.getElementById('latencyStatus')
+  };
+  let liveBuffer = [];
+  const MAX_ROWS = 200;
+
+  function renderRows(rows){
+    tblBody.innerHTML = '';
+    rows.forEach(row => {
+      const tr = document.createElement('tr');
+      const dt = new Date(row.ts).toLocaleTimeString();
+      tr.innerHTML = `<td>${dt}</td><td><span class="pill ${row.type}">${row.type}</span></td><td>${row.context||''}</td><td>${row.reason||''}</td><td>${row.user_id?row.user_id.slice(0,8)+'…':''}</td><td>${row.session_id?row.session_id.slice(-8):''}</td>`;
+      tblBody.appendChild(tr);
+    });
+  }
+
+  function updateCounts(rows){
+    let counts = { requested:0, allowed:0, blocked:0, upgradeIntent:0 };
+    rows.forEach(r => { counts[r.type] = (counts[r.type]||0)+1; });
+    Object.keys(counts).forEach(k => { if(metricsEls[k]) metricsEls[k].textContent = counts[k]; });
+    const exportStatus = window.__hiAccessTelemetryExport?.status() || {};
+    metricsEls.pending.textContent = exportStatus.pending || 0;
+    metricsEls.retryInfo.textContent = exportStatus.retryDelay ? `Retry in ${Math.round(exportStatus.retryDelay/1000)}s` : 'Stable';
+    metricsEls.failureCycle.textContent = exportStatus.failureCycle || 0;
+    metricsEls.failureStatus.textContent = exportStatus.failureCycle > 0 ? 'retrying' : 'ok';
+  }
+
+  async function fetchEvents(){
+    if(!client){ console.warn('Supabase client not ready'); return; }
+    refreshBtn.disabled = true;
+    try {
+      const { data, error } = await client.from('access_telemetry').select('*').order('ts',{ascending:false}).limit(200);
+      if(error){ console.error('Telemetry fetch error', error.message); return; }
+      liveBuffer = data || [];
+      updateCounts(liveBuffer);
+      renderRows(liveBuffer);
+    } finally { refreshBtn.disabled = false; }
+  }
+  async function fetchDaily(){
+    if(!client) return;
+    try {
+      const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+      const { data, error } = await client.from('access_telemetry_daily').select('*').eq('day', yesterday);
+      if(error){ console.warn('Daily fetch error', error.message); metricsEls.dailyStatus.textContent = 'Error'; return; }
+      if(!data || data.length===0){ metricsEls.dailyTotals.textContent = 'No Data'; metricsEls.dailyStatus.textContent=''; return; }
+      const summary = data.map(r => `${r.type}:${r.total_count}`).join('  ');
+      metricsEls.dailyTotals.textContent = summary;
+      metricsEls.dailyStatus.textContent = yesterday;
+    } catch(e){ metricsEls.dailyStatus.textContent = 'Error'; }
+  }
+  async function fetchLatestAlert(){
+    if(!client) return;
+    try {
+      const { data, error } = await client.from('access_telemetry_alerts').select('*').eq('triggered', true).order('window_end', { ascending: false }).limit(5);
+      if(error){ console.warn('Alert fetch error', error.message); metricsEls.alertStatus.textContent='Error'; return; }
+      if(!data || data.length===0){ metricsEls.latestAlert.textContent = 'No alerts'; metricsEls.alertStatus.textContent=''; return; }
+      // Prefer most severe in latest window
+      data.sort((a,b)=> severityRank(b.severity) - severityRank(a.severity));
+      const a = data[0];
+      const ratioPct = (a.blocked_ratio*100).toFixed(1);
+      const baselinePct = a.baseline_ratio != null ? (a.baseline_ratio*100).toFixed(1) : 'n/a';
+      metricsEls.latestAlert.innerHTML = `${ratioPct}% blocked (${a.total_blocked}/${a.total_requested})<br/>baseline ${baselinePct}% • threshold ${(a.threshold_ratio*100).toFixed(0)}%`;
+      const ts = new Date(a.window_end).toLocaleTimeString();
+      metricsEls.alertStatus.textContent = `Window ended ${ts}`;
+      metricsEls.alertSeverity.textContent = `Severity: ${a.severity}`;
+      metricsEls.alertContext.textContent = `Context: ${a.context}`;
+      if(a.blocked_ratio >= a.threshold_ratio){ metricsEls.latestAlert.style.color='#8a2f08'; } else { metricsEls.latestAlert.style.color='#084e8a'; }
+    } catch(e){ metricsEls.alertStatus.textContent='Error'; }
+  }
+  async function fetchLatestPerf(){
+    if(!client) return;
+    try {
+      const { data, error } = await client.from('access_telemetry_perf_alerts').select('*').eq('triggered', true).order('window_end', { ascending:false }).limit(1);
+      if(error){ metricsEls.latencyStatus.textContent='Error'; return; }
+      if(!data || data.length===0){ metricsEls.latencyAlert.textContent='No perf alerts'; metricsEls.latencyStatus.textContent=''; return; }
+      const a = data[0];
+      metricsEls.latencyAlert.textContent = `p95 ${Math.round(a.p95_latency_ms)}ms (baseline ${a.baseline_p95_ms?Math.round(a.baseline_p95_ms)+'ms':'n/a'})`;
+      metricsEls.latencyStatus.textContent = `Threshold ${Math.round(a.threshold_ms)}ms • ${new Date(a.window_end).toLocaleTimeString()}`;
+      metricsEls.latencyAlert.style.color = a.p95_latency_ms >= a.threshold_ms ? '#8a2f08' : '#084e8a';
+    } catch(_){ metricsEls.latencyStatus.textContent='Error'; }
+  }
+  function severityRank(s){ return s==='critical'?3 : s==='major'?2 : 1; }
+  refreshBtn.addEventListener('click', fetchEvents);
+  // Initial fetch
+  setTimeout(()=>{ fetchEvents(); fetchDaily(); fetchLatestAlert(); fetchLatestPerf(); }, 1500);
+
+  // Realtime subscription
+  function initRealtime(){
+    if(!client || !client.channel){ console.warn('Supabase realtime not available'); return; }
+    const channel = client.channel('public:access_telemetry')
+      .on('postgres_changes', { event:'INSERT', schema:'public', table:'access_telemetry' }, payload => {
+        const row = payload.new;
+        liveBuffer.unshift(row);
+        if(liveBuffer.length > MAX_ROWS) liveBuffer.pop();
+        updateCounts(liveBuffer);
+        // Prepend single row without full re-render for performance
+        const tr = document.createElement('tr');
+        const dt = new Date(row.ts).toLocaleTimeString();
+        tr.innerHTML = `<td>${dt}</td><td><span class="pill ${row.type}">${row.type}</span></td><td>${row.context||''}</td><td>${row.reason||''}</td><td>${row.user_id?row.user_id.slice(0,8)+'…':''}</td><td>${row.session_id?row.session_id.slice(-8):''}</td>`;
+        tblBody.insertBefore(tr, tblBody.firstChild);
+      })
+      .subscribe(status => {
+        if(status === 'SUBSCRIBED'){ console.log('[Telemetry] Realtime subscribed'); }
+      });
+    // Fallback polling every 60s if realtime fails
+    setInterval(()=>{ if(!channel.state || channel.state() !== 'SUBSCRIBED'){ fetchEvents(); } }, 60000);
+  }
+  setTimeout(()=>{ initRealtime(); fetchDaily(); fetchLatestAlert(); fetchLatestPerf(); }, 2200);
+  setInterval(fetchLatestPerf, 120000);
+  // Periodic alert refresh every 2 minutes
+  setInterval(fetchLatestAlert, 120000);
+})();
+</script>
+</body>
+</html>

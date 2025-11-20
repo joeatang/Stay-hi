@@ -180,6 +180,17 @@ function updateStatsDisplaySimple(stats){ const statsGrid=document.getElementByI
 function navigateToHiDashboard(){ window.location.href='hi-dashboard.html'; }
 window.navigateToHiDashboard=navigateToHiDashboard;
 window.currentProfile=currentProfile; window.userStats=userStats; window.TeslaProfile={ openAvatarCrop, closeAvatarCrop, saveAvatar, openCalendar, openEditCalendar, editProfile, shareProfile, loadProfileData, showToast, testSupabaseConnection };
-window.showMembershipModal=()=>{ if(window.anonymousAccessModal){ window.anonymousAccessModal.showAccessModal(); } };
+window.showMembershipModal=()=>{
+  // Unified gating via AccessGate; fallback to legacy modal
+  if(window.AccessGate?.request){
+    const decision = window.AccessGate.request('membership:upgrade');
+    if(decision.allow){ return true; }
+    // AccessGateModal will surface; return false to indicate gated
+    return false;
+  }
+  if(window.anonymousAccessModal){ window.anonymousAccessModal.showAccessModal(); return false; }
+  console.warn('⚠️ No AccessGate or AnonymousAccessModal available for membership upgrade');
+  return false;
+};
 console.log('✅ Tesla Profile System Ready - WITH SECURITY BARRIERS');
 window.testProfilePersistence={ save:()=>saveProfileToStorage(currentProfile), load:()=>loadProfileData(), clear:()=>localStorage.removeItem('stayhi_profile'), showCurrent:()=>console.log('Current Profile:', currentProfile), showSaved:()=>console.log('Saved Profile:', JSON.parse(localStorage.getItem('stayhi_profile') || 'null')) };

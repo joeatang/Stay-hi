@@ -561,7 +561,11 @@ async function handleAnonymousDropHi() {
     await window.showAuthModal('🏝️ Join Hi Island to drop your moments and connect with the community!');
     return;
   }
-  if (window.showAnonymousAccessModal && typeof window.showAnonymousAccessModal === 'function') {
+  // Unified gating first
+  if(window.AccessGate?.request){
+    const decision = window.AccessGate.request('drop_hi');
+    if(!decision.allow){ return; }
+  } else if (window.showAnonymousAccessModal && typeof window.showAnonymousAccessModal === 'function') {
     await window.showAnonymousAccessModal('drop_hi');
     return;
   }

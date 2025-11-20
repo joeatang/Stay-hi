@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Hi Admin Self-Check</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:#0f1424;color:#e2e8f0;margin:0;padding:24px;}
+    h1{margin:0 0 16px;font-size:22px;background:linear-gradient(90deg,#00d4ff,#7ae582);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .grid{display:grid;gap:16px;max-width:920px;margin:0 auto;}
+    .card{background:#121b33;border:1px solid #263657;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 4px 14px -4px rgba(0,0,0,.4);}
+    pre{background:#0b1120;padding:12px;border-radius:10px;font-size:12px;overflow:auto;max-height:320px;margin:0;}
+    .status-ok{color:#10b981;font-weight:600;}
+    .status-bad{color:#ef4444;font-weight:600;}
+    code{font-family:Menlo,monospace;font-size:12px;background:#1e293b;padding:2px 5px;border-radius:6px;}
+    .next{font-size:13px;line-height:1.5;opacity:.85;}
+    .badge{display:inline-block;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;background:#1e293b;color:#e2e8f0;margin-right:6px;}
+    .action{background:#00d4ff;color:#0f172a;font-weight:600;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:13px;}
+    .warn{background:#ef4444;color:#fff;}
+    .inline{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+    a{color:#7ae582;text-decoration:none;}
+    a:hover{text-decoration:underline;}
+  </style>
+</head>
+<body>
+  <h1>🛡️ Hi Admin Self-Check</h1>
+  <div class="grid">
+    <div class="card" id="sessionCard">
+      <div class="inline"><span class="badge">Session</span><span id="sessionStatus">Loading…</span></div>
+      <pre id="sessionRaw">(pending)</pre>
+    </div>
+    <div class="card" id="membershipCard">
+      <div class="inline"><span class="badge">Membership</span><span id="membershipStatus">Loading…</span></div>
+      <pre id="membershipRaw">(pending)</pre>
+    </div>
+    <div class="card" id="adminCard">
+      <div class="inline"><span class="badge">Admin Role</span><span id="adminStatus">Loading…</span></div>
+      <pre id="adminRaw">(pending)</pre>
+    </div>
+    <div class="card" id="nextSteps">
+      <div class="inline"><span class="badge">Next Steps</span><span id="nextStatus">Assessing…</span></div>
+      <div class="next" id="nextContent">(pending)</div>
+    </div>
+  </div>
+
+  <script type="module" src="./lib/HiSupabase.v3.js"></script>
+  <script type="module">
+    async function run(){
+      const delay = ms=> new Promise(r=> setTimeout(r, ms));
+      // Wait briefly for upgrade
+      let sb = window.hiSupabase; for(let i=0;i<10 && (!sb||!sb.auth);i++){ await delay(150); sb = window.hiSupabase; }
+      const sessionEl = document.getElementById('sessionStatus');
+      const sessionRaw = document.getElementById('sessionRaw');
+      const membershipEl = document.getElementById('membershipStatus');
+      const membershipRaw = document.getElementById('membershipRaw');
+      const adminEl = document.getElementById('adminStatus');
+      const adminRaw = document.getElementById('adminRaw');
+      const nextStatus = document.getElementById('nextStatus');
+      const nextContent = document.getElementById('nextContent');
+
+      if(!sb){ sessionEl.innerHTML = '<span class="status-bad">Supabase client unavailable</span>'; return; }
+
+      // Session
+      let { data: { session } } = await sb.auth.getSession();
+      if(!session){ sessionEl.innerHTML = '<span class="status-bad">No active session (sign in first)</span>'; sessionRaw.textContent = 'null'; }
+      else { sessionEl.innerHTML = '<span class="status-ok">Active</span>'; sessionRaw.textContent = JSON.stringify({ user: session.user.id, email: session.user.email }, null, 2); }
+
+      // Membership
+      let membership = null;
+      try { const { data, error } = await sb.rpc('get_unified_membership'); if(error) membershipEl.innerHTML = '<span class="status-bad">RPC error</span>'; else { membership = data; membershipEl.innerHTML = data ? `<span class="status-ok">${data.tier||'NONE'}</span>` : '<span class="status-bad">None</span>'; membershipRaw.textContent = JSON.stringify(data, null, 2); } }
+      catch(e){ membershipEl.innerHTML = '<span class="status-bad">Exception</span>'; membershipRaw.textContent = e.message; }
+
+      // Admin Access
+      let adminResult = null;
+      try { const { data, error } = await sb.rpc('check_admin_access', { p_required_role: 'admin', p_ip_address: null }); if(error){ adminEl.innerHTML='<span class="status-bad">RPC error</span>'; adminRaw.textContent = error.message || String(error); } else { adminResult = data; adminEl.innerHTML = data?.access_granted ? `<span class="status-ok">GRANTED (${data.role_type})</span>` : '<span class="status-bad">DENIED</span>'; adminRaw.textContent = JSON.stringify(data, null, 2); } } catch(e){ adminEl.innerHTML='<span class="status-bad">Exception</span>'; adminRaw.textContent=e.message; }
+
+      // Next Steps logic
+      if(!session){ nextStatus.textContent='Blocked'; nextContent.innerHTML='Sign in, then reload this page.'; return; }
+      if(adminResult?.access_granted){ nextStatus.textContent='Success'; nextContent.innerHTML='Admin access confirmed. Navigate to <code>hi-mission-control.html</code>.'; return; }
+
+      const email = session.user.email;
+      nextStatus.textContent='Admin Role Missing';
+      nextContent.innerHTML = `User <code>${email}</code> lacks an admin role.<br><br>
+        1. Open Supabase SQL editor.<br>
+        2. Run <code>ADMIN_GRANT_SUPERADMIN_JOE.sql</code> (already parameterized for joeatang7@gmail.com).<br>
+        3. Verify with: <code>select check_admin_access('admin', null);</code><br>
+        4. Reload this page (Shift+Reload).<br><br>
+        If still denied, ensure <code>hi-mission-control-security.sql</code> was deployed (tables & functions).`;
+    }
+    run();
+  </script>
+</body>
+</html>

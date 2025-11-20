@@ -28,6 +28,17 @@ class AnonymousAccessModal {
     window.addEventListener('checkAnonymousAccess', (e) => {
       this.checkAccess(e.detail);
     });
+
+    // Auto-dismiss modal when auth becomes ready and user is authenticated
+    window.addEventListener('hi:auth-ready', async () => {
+      try {
+        if (!this.isShown) return;
+        const hasAuth = await this.checkAuthStatus();
+        if (hasAuth) {
+          await this.hideModal();
+        }
+      } catch {}
+    });
   }
   
   async checkAccessOnLoad() {
@@ -130,7 +141,8 @@ class AnonymousAccessModal {
     // Wait for Supabase and auth systems to load with better detection
     let attempts = 0;
     while (attempts < 100) { // Longer timeout
-      if (window.supabase || window.supabaseClient || window.sb || 
+      const canonical = (typeof window.getSupabase === 'function') ? window.getSupabase() : null;
+      if (canonical || window.supabase || window.supabaseClient || window.sb || 
           (window.HiSupabase && typeof window.HiSupabase.getClient === 'function')) {
         console.log('🔓 Auth system detected, continuing...');
         return true;
@@ -147,6 +159,15 @@ class AnonymousAccessModal {
       console.log('🔍 Starting comprehensive auth status check...');
       
       // Method 1: Check Supabase user
+      try {
+        const client = (typeof window.getSupabase === 'function') ? window.getSupabase() : null;
+        if (client?.auth?.getUser) {
+          const { data: { user } } = await client.auth.getUser();
+          if (user) { console.log('✅ Canonical client user found:', user.id); return true; }
+          else { console.log('❌ Canonical client user is null'); }
+        }
+      } catch (e) { console.log('⚠️ Canonical client user check failed:', e.message); }
+
       if (window.supabase && window.supabase.auth && typeof window.supabase.auth.getUser === 'function') {
         try {
           const { data: { user } } = await window.supabase.auth.getUser();
@@ -427,7 +448,8 @@ class AnonymousAccessModal {
     
     // Smooth transition
     await this.hideModal();
-    window.location.href = '/hi-dashboard.html';
+    const target = (window.hiPaths?.resolve ? window.hiPaths.resolve('hi-dashboard.html') : '/hi-dashboard.html');
+    window.location.href = target;
   }
   
   async exploreAction() {
@@ -442,7 +464,19 @@ class AnonymousAccessModal {
   async backAction() {
     // Go back to main app/dashboard
     await this.hideModal();
-    window.location.href = '/hi-dashboard.html';
+    const target = (window.hiPaths?.resolve ? window.hiPaths.resolve('hi-dashboard.html') : this.resolveAppPath('hi-dashboard.html'));
+    window.location.href = target;
+  }
+
+  // Compute webroot-safe path (supports /public dev vs prod root)
+  resolveAppPath(file) {
+    try {
+      const path = window.location.pathname || '';
+      const base = path.includes('/public/') ? '/public/' : '/';
+      return base + file.replace(/^\/+/, '');
+    } catch {
+      return '/' + file.replace(/^\/+/, '');
+    }
   }
   
   async hideModal() {

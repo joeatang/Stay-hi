@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Hi Invite</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; padding: 24px; max-width: 560px; margin: auto; }
+    .box { border: 1px solid #ddd; border-radius: 8px; padding: 16px; }
+    input[type=text]{ width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; }
+    button{ padding: 10px 14px; border-radius: 6px; background: #222; color: #fff; border: 0; cursor: pointer; }
+    .msg{ margin-top: 12px; font-size: 14px; }
+    .ok{ color: #0a6; } .err{ color: #a00; }
+  </style>
+</head>
+<body>
+  <h1>Enter Invite Code</h1>
+  <div class="box">
+    <label for="code">Code</label>
+    <input id="code" type="text" placeholder="e.g. H1WELCOME" />
+    <div style="margin-top:10px;">
+      <button id="redeemBtn">Redeem</button>
+    </div>
+    <div id="msg" class="msg"></div>
+  </div>
+
+  <script>
+    async function ensureAuth(){
+      if(!window.supabaseClient){ document.getElementById('msg').textContent = 'Auth not ready. Please sign in first.'; throw new Error('no supabase'); }
+      const { data } = await supabaseClient.auth.getUser();
+      if(!data?.user){ document.getElementById('msg').textContent = 'Please sign in to redeem an invite.'; throw new Error('no user'); }
+      return data.user;
+    }
+    async function redeem(){
+      const el = document.getElementById('msg'); el.textContent=''; el.className='msg';
+      try {
+        await ensureAuth();
+        const code = document.getElementById('code').value.trim();
+        if(!code){ el.textContent='Enter a code'; return; }
+        const { data, error } = await supabaseClient.rpc('invite_redeem_user', { p_code: code });
+        if(error){ el.textContent = error.message; el.className='msg err'; return; }
+        const tier = data; el.innerHTML = `Welcome! Tier set to <b>${tier}</b>.`; el.className='msg ok';
+        document.dispatchEvent(new CustomEvent('hi:membership-changed', { detail: { tier } }));
+      } catch(e){ /* silent; message already set */ }
+    }
+    document.getElementById('redeemBtn').addEventListener('click', redeem);
+  </script>
+</body>
+</html>

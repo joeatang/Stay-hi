@@ -514,6 +514,18 @@
     const isProdHost = host === 'stay-hi.vercel.app';
     const searchParams = new URLSearchParams(location.search);
     const showBanner = !!hiBuildTag && (searchParams.get('show-build') === '1' || !isProdHost);
+    // Detect beacon endpoint availability (public-root deployments lack /api functions)
+    if (isProdHost) {
+      try {
+        fetch('/integrity-beacon', { method:'HEAD' }).then(r => {
+          if (!r.ok) { window.__HI_BEACON_DISABLED = true; }
+        }).catch(()=> { window.__HI_BEACON_DISABLED = true; });
+      } catch { window.__HI_BEACON_DISABLED = true; }
+    }
+    function sendIntegrityBeacon(payload){
+      if (!isProdHost || window.__HI_BEACON_DISABLED) return;
+      try { navigator.sendBeacon && navigator.sendBeacon('/integrity-beacon', new Blob([JSON.stringify(payload)], { type:'application/json' })); } catch(_) {}
+    }
     function injectBanner(){
       if (!showBanner) return;
       if (document.getElementById('hi-build-banner')) return;
@@ -549,14 +561,14 @@
           if (isProdHost) {
             if (!hasIntegrity) {
               console.warn('[HiIntegrity] Missing integrity attribute for external script:', src);
-              try { navigator.sendBeacon && navigator.sendBeacon('/integrity-beacon', new Blob([JSON.stringify({ type:'missing', src, build: hiBuildTag, ts: Date.now() })], { type:'application/json' })); } catch(_) {}
+              sendIntegrityBeacon({ type:'missing', src, build: hiBuildTag, ts: Date.now() });
                 // Telemetry persistence
                 if (window.HiTelemetry) {
                   try { window.HiTelemetry.persistIntegrity({ type:'missing', src, build: hiBuildTag, ts: Date.now() }); } catch(_) {}
                 }
             } else if (expected && hasIntegrity && !matches) {
               console.warn('[HiIntegrity] Integrity hash mismatch:', { src, expected, actual });
-              try { navigator.sendBeacon && navigator.sendBeacon('/integrity-beacon', new Blob([JSON.stringify({ type:'mismatch', src, expected, actual, build: hiBuildTag, ts: Date.now() })], { type:'application/json' })); } catch(_) {}
+              sendIntegrityBeacon({ type:'mismatch', src, expected, actual, build: hiBuildTag, ts: Date.now() });
                 if (window.HiTelemetry) {
                   try { window.HiTelemetry.persistIntegrity({ type:'mismatch', src, expected, actual, build: hiBuildTag, ts: Date.now() }); } catch(_) {}
                 }

@@ -154,8 +154,20 @@ class ProgressiveAuth {
     }
     
     console.log(`🔐 Auth required for action: ${action}`);
-    
-    // Show contextual auth prompt instead of redirect
+    // Attempt unified AccessGate first (non-invasive, event-driven)
+    try {
+      if (window.AccessGate?.request) {
+        const decision = window.AccessGate.request(action);
+        if (decision && decision.allow === true) {
+          return true;
+        }
+        if (decision && decision.allow === false) {
+          // AccessGateModal (if loaded) will appear; treat as pending auth
+          return false;
+        }
+      }
+    } catch(_){}
+    // Fallback: legacy ProgressiveAuth contextual modal
     return await this.showContextualAuth(action, context);
   }
   
@@ -488,6 +500,20 @@ class ProgressiveAuth {
 
 // Global instance
 window.ProgressiveAuth = new ProgressiveAuth();
+try {
+  console.info('[ProgressiveAuth] Deprecation notice: unified AuthCore + AccessGate superseding this system.');
+  window.addEventListener('hi:membership-changed', (e)=>{
+    try {
+      const tier = e?.detail?.tier;
+      if (!tier) return;
+      if (tier === 'anonymous') {
+        window.ProgressiveAuth.setAuthTier(0,'unified-membership');
+      } else {
+        window.ProgressiveAuth.setAuthTier(2,'unified-membership');
+      }
+    } catch(_){ }
+  });
+} catch(_){ }
 
 // Backward compatibility
 window.isAuthenticated = () => window.ProgressiveAuth.authTier >= 2;

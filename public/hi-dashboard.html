@@ -72,10 +72,13 @@
   <script src="./lib/access/AccessGate.js"></script>
   <!-- AccessGate Modal (appears only for explicit anonymous blocks) -->
   <script src="./components/AccessGateModal.js"></script>
+  <!-- Access telemetry + upgrade handlers + SW register -->
+  <script src="./lib/access/AccessGateTelemetry.js"></script>
+  <script src="./lib/access/AccessGateTelemetryExport.js"></script>
+  <script src="./lib/boot/upgrade-cta.js"></script>
+  <script src="./lib/boot/sw-register.js"></script>
   <!-- Unified Admin Access Orchestrator (events + caching) -->
   <script src="./lib/admin/AdminAccessManager.js"></script>
-  <!-- Unified MC Access Core (replaces admin-link-autoinit + mc-quick-access + integrity) -->
-  <script src="./lib/boot/mc-access-core.js" defer></script>
   <!-- Admin smart auto-redirect (one-time per session) retained for fast-path redirect -->
   <script src="./lib/boot/admin-auto-redirect.js"></script>
   <script src="./lib/HiDB.js" defer></script>
@@ -1203,6 +1206,10 @@
 </head>
 
 <body data-page="hi-dashboard">
+  <!-- Unified Standard Header Mount (Phase 1 standardization) -->
+  <div id="app-header"></div>
+  <script src="assets/header.js"></script>
+  <style>.tesla-header{display:none !important;}#navigationModal{display:none !important;}</style>
   <a class="skip-link" href="#main">Skip to main content</a>
   <style>
     .skip-link{position:absolute;left:-999px;top:auto;width:1px;height:1px;overflow:hidden}
@@ -1458,7 +1465,7 @@
         </div>
         <div class="nav-section" id="adminSection">
           <div class="nav-section-title">Admin</div>
-          <a href="hi-mission-control.html" class="nav-item admin-item">
+          <a href="hi-mission-control.html" class="nav-item admin-item" data-mc-link>
             <span class="nav-icon">🎛️</span>
             <span>Hi Mission Control</span>
           </a>
@@ -1482,11 +1489,25 @@
   <script src="./lib/qa/auth-flow-qa.js" defer></script>
   <script src="./lib/boot/dashboard-main.js" defer></script>
   <!-- Gate scripts consolidated into mc-access-core.js -->
+  <script>
+    (function(){
+      function resolveMC(){ try { return window.hiPaths?.resolve ? window.hiPaths.resolve('hi-mission-control.html') : 'hi-mission-control.html'; } catch { return 'hi-mission-control.html'; } }
+      function attach(){
+        document.querySelectorAll('[data-mc-link]').forEach(a=>{
+          a.setAttribute('href', resolveMC());
+          if (!a.__mcBound){ a.__mcBound=true; a.addEventListener('click', function(e){ if(window.HiMissionControlAccess){ e.preventDefault(); window.HiMissionControlAccess.openGate(); } }); }
+        });
+      }
+      attach();
+      window.addEventListener('hi:admin-confirmed', attach);
+    })();
+  </script>
 
-  <!-- Premium Component Scripts -->
+  <!-- Premium Component Scripts (calendar lazy loaded) -->
   <link rel="stylesheet" href="assets/premium-calendar.css">
   <script src="assets/premium-ux.js" defer></script>
-  <script src="assets/premium-calendar.js" defer></script>
+  <!-- Lazy loader (calendar loaded on demand) -->
+  <script src="./lib/lazy/lazy-loaders.js" defer></script>
   <script src="./ui/HiFooter/HiFooter.js" defer></script>
   <!-- Integrity watchdog merged into mc-access-core.js -->
   
