@@ -16,8 +16,10 @@
   <script type="module" src="./lib/HiPerformance.js"></script>
   <script src="assets/image-optimizer.js"></script>
   <script src="assets/social-avatar-uploader.js"></script>
-  <script src="assets/premium-calendar.js"></script>
-  <!-- Centralized streak milestone registry (load early for streak displays) -->
+   <!-- Lazy loader replaces direct premium calendar include -->
+   <script src="./lib/lazy/lazy-loaders.js"></script>
+   <script src="assets/premium-calendar.js" defer></script>
+  <!-- Centralized streak milestone registry (load early for streak displays; calendar now lazy) -->
   <script src="./lib/streaks/HiStreakMilestones.js"></script>
   <!-- Centralized streak milestone toast component -->
   <script src="./lib/streaks/HiMilestoneToast.js"></script>
@@ -27,6 +29,9 @@
   <!-- Supabase Integration -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1" integrity="sha384-XLEuzmdNfK1V09d59bu+Uv3EFtEp5kFP8BmseBq85CUpeFZXhUfqjk4ZeR/biZmS" crossorigin="anonymous"></script>
   <script src="./lib/HiSupabase.simple.js"></script>
+  <!-- Tier & Points Helpers -->
+  <script src="./lib/access/HiTier.js"></script>
+  <script src="./lib/rewards/HiPoints.js"></script>
   
   <!-- 🚀 INTEGRATION #2: HiBase + HiFlags for Profile operations (flagged rollout) -->
   <script type="module" src="./lib/flags/HiFlags.js"></script>
@@ -51,6 +56,11 @@
   <noscript>
     <link rel="stylesheet" href="assets/premium-ux.css">
     <link rel="stylesheet" href="assets/premium-stats.css">
+      const ensureShow = () => {
+      if (window.hiCalendarInstance && typeof window.hiCalendarInstance.show === 'function') {
+        window.hiCalendarInstance.show();
+        return true;
+      }
     <link rel="stylesheet" href="assets/premium-calendar.css">
     <link rel="stylesheet" href="ui/HiFooter/HiFooter.css">
   </noscript>
@@ -1238,6 +1248,18 @@
     
     <!-- Dashboard Grid -->
     <div class="profile-dashboard">
+      <!-- Tier Perks Section -->
+      <section class="dashboard-section">
+        <div class="section-header">
+          <span class="section-icon">🎁</span>
+          <h3 class="section-title">Your Tier Perks</h3>
+        </div>
+        <div id="tierPerks" class="stats-grid">
+          <div class="stat-item"><div class="stat-value">T1</div><div class="stat-label">Core access</div></div>
+          <div class="stat-item"><div class="stat-value">＋ Daily</div><div class="stat-label">Check-in points</div></div>
+          <div class="stat-item"><div class="stat-value">→ Upgrade</div><div class="stat-label">More perks at T2</div></div>
+        </div>
+      </section>
       <!-- Statistics Section -->
       <section class="dashboard-section">
         <div class="section-header">
@@ -1264,6 +1286,31 @@
         </div>
       </section>
       
+      <!-- Points & Rewards Section -->
+      <section class="dashboard-section">
+        <div class="section-header">
+          <span class="section-icon">💎</span>
+          <h3 class="section-title">Points & Rewards</h3>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-value" id="pointsBalance">0</div>
+            <div class="stat-label">Hi Points</div>
+          </div>
+          <div class="stat-item">
+            <button id="dailyCheckinBtn" class="menu-btn" style="width:100%">Daily Check-in +5</button>
+            <div class="stat-label" id="checkinStatus"></div>
+          </div>
+        </div>
+        <div style="margin-top:14px">
+          <div class="section-header" style="margin-bottom:8px">
+            <span class="section-icon">📜</span>
+            <h3 class="section-title">Recent Points</h3>
+          </div>
+          <ul id="pointsLedger" style="list-style:none;padding:0;margin:0;display:grid;gap:8px"></ul>
+        </div>
+      </section>
+
       <!-- Achievements Section -->
       <section class="dashboard-section">
         <div class="section-header">
@@ -1297,10 +1344,41 @@
           </div>
         </div>
       </section>
+
+      <!-- Archives -->
+      <section class="dashboard-section" id="archivesSection">
+        <div class="section-header">
+          <span class="section-icon">🗂️</span>
+          <h3 class="section-title">Archives</h3>
+        </div>
+        <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:16px;display:grid;gap:16px;font-size:14px;line-height:1.4">
+          <!-- Streak Summary -->
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div style="font-weight:700">Current streak:</div>
+            <div id="archivesStreakValue" style="padding:6px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:10px">—</div>
+          </div>
+          <!-- 35-day Heatmap -->
+          <div>
+            <div style="opacity:.8;margin:0 0 8px">Last 35 days</div>
+            <div id="archivesHeatmap"></div>
+          </div>
+          <!-- Recent Check-ins -->
+          <div>
+            <div style="opacity:.8;margin:0 0 8px">Recent check-ins (14 days)</div>
+            <div id="archivesCheckinsList" style="font-family:ui-monospace,Menlo,monospace"></div>
+          </div>
+          <!-- Points Summary -->
+          <div>
+            <div style="opacity:.8;margin:0 0 8px">Points in last 30 days</div>
+            <div id="archivesPointsSummary" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
   
   <!-- Social Avatar Uploader will create its own overlay dynamically -->
+  <script src="./lib/profile-archives.js"></script>
 
   <!-- Tesla Edit Profile Modal -->
   <div class="tesla-crop-modal" id="editProfileModal">
@@ -1944,8 +2022,27 @@
       });
       
       // Ensure Tesla cropper is initialized
+      // Lazy load cropper if library not yet present
+      if (!window.TeslaAvatarCropper) {
+        console.log('⏳ TeslaAvatarCropper not loaded yet, invoking lazy loader...');
+        const loader = window.HiLazy ? window.HiLazy.loadTeslaAvatarCropper() : Promise.resolve(window.TeslaAvatarCropper);
+        loader.then(() => {
+          if (window.TeslaAvatarCropper && !teslaAvatarCropper) {
+            console.log('🔧 Creating new Tesla cropper instance (lazy)...');
+            teslaAvatarCropper = new window.TeslaAvatarCropper();
+            console.log('✅ Tesla cropper instance created after lazy load:', !!teslaAvatarCropper);
+            // Re-run initialization now that cropper is available
+            initializeTeslaCropper(imgElement);
+          }
+        }).catch(err => {
+          console.error('❌ Failed to load tesla-avatar-cropper.js lazily:', err);
+          showToast('Failed to load cropper library. Retry later.', 'error');
+        });
+        return; // Exit until library loads
+      }
+
       if (!teslaAvatarCropper && window.TeslaAvatarCropper) {
-        console.log('🔧 Creating new Tesla cropper instance...');
+        console.log('🔧 Creating new Tesla cropper instance (eager)...');
         teslaAvatarCropper = new window.TeslaAvatarCropper();
         console.log('✅ Tesla cropper instance created:', !!teslaAvatarCropper);
       }
@@ -2884,6 +2981,54 @@ FOR INSERT WITH CHECK (
     };
     console.log('🧪 Debug functions available: window.testProfilePersistence');
   </script>
+
+  <script>
+    // Initialize points balance and daily check-in
+    document.addEventListener('hi:points-ready', async ()=>{
+      try {
+        const { balance } = await HiPoints.getBalance();
+        const el = document.getElementById('pointsBalance'); if(el) el.textContent = balance;
+      } catch(_){ /* ignore */ }
+    });
+    (function(){
+      const btn = document.getElementById('dailyCheckinBtn');
+      if(!btn || !window.supabaseClient) return;
+      btn.addEventListener('click', async ()=>{
+        const status = document.getElementById('checkinStatus');
+        btn.disabled = true; btn.textContent = 'Checking...';
+        try {
+          const { data, error } = await supabaseClient.rpc('award_daily_checkin');
+          if(error){ status.textContent = error.message; status.style.color = '#f66'; }
+          else {
+            if(data?.awarded){ status.textContent = `+${data.delta} today`; status.style.color = '#6c6'; }
+            else { status.textContent = 'Already checked in today'; status.style.color = '#aaa'; }
+            const el = document.getElementById('pointsBalance'); if(el && typeof data?.balance !== 'undefined') el.textContent = data.balance;
+            try { await refreshLedger(); } catch(_){ }
+          }
+        } catch(e){ const status = document.getElementById('checkinStatus'); if(status){ status.textContent = 'Error'; status.style.color = '#f66'; } }
+        finally { btn.disabled = false; btn.textContent = 'Daily Check-in +5'; }
+      });
+    })();
+
+    async function refreshLedger(){
+      if(!window.HiPoints) return;
+      const list = document.getElementById('pointsLedger'); if(!list) return;
+      const rows = await HiPoints.getLedger(10);
+      list.innerHTML = rows.map(r=>{
+        const sign = r.delta>0 ? '+' : '';
+        const when = new Date(r.ts).toLocaleDateString();
+        return `<li style="display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:8px 10px;background:rgba(255,255,255,0.05)">
+          <div>
+            <div style="font-weight:600">${sign}${r.delta} pts</div>
+            <div style="opacity:.8;font-size:12px">${r.reason || 'adjustment'} • ${r.context || 'general'}</div>
+          </div>
+          <div style="opacity:.8;font-size:12px">${when}</div>
+        </li>`;
+      }).join('');
+    }
+    document.addEventListener('hi:points-ready', refreshLedger);
+    document.addEventListener('hi:auth-ready', refreshLedger, { once:true });
+  </script>
   
   <!-- Location Picker Functions -->
   <script src="./lib/boot/profile-locationpicker-log.js"></script>
@@ -3029,8 +3174,15 @@ FOR INSERT WITH CHECK (
   <script src="./lib/boot/profile-navigation.js"></script>
   <!-- Seamless anonymous→auth profile merge -->
   <script src="./lib/profile/ProfileMerge.js"></script>
+  <!-- Avatar precache dispatcher -->
+  <script src="./lib/profile/avatar-precache.js"></script>
   <!-- Unified Auth Shim (removes dependency on progressive-auth.js) -->
   <script src="./lib/access/AuthShim.js"></script>
+  <!-- Access telemetry + upgrade CTA + SW register -->
+  <script src="./lib/access/AccessGateTelemetry.js"></script>
+  <script src="./lib/access/AccessGateTelemetryExport.js"></script>
+  <script src="./lib/boot/upgrade-cta.js"></script>
+  <script src="./lib/boot/sw-register.js"></script>
   <script type="module">
     class SmartNavigation {
       constructor() {
@@ -3172,6 +3324,13 @@ FOR INSERT WITH CHECK (
     // Tesla-Grade Unified Initialization - All Systems
     document.addEventListener('DOMContentLoaded', function() {
       console.log('🚀 Tesla Profile System Initializing...');
+      // Debug instrumentation: when ?profiledebug=1 present, bypass anonymous gating and log auth/membership
+      try {
+        if (/profiledebug=1/i.test(location.search)) {
+          console.log('[ProfileDebug] Active – skipping anonymous gating modal.');
+          window.__HI_PROFILE_DEBUG__ = true;
+        }
+      } catch {}
       
       // Debug code removed for production
       
@@ -3200,15 +3359,19 @@ FOR INSERT WITH CHECK (
       
       // Unified access gating instead of legacy modal boot
       setTimeout(() => {
-        if(window.AccessGate?.request){
-          window.AccessGate.request('profile:view');
-        } else if(typeof AnonymousAccessModal !== 'undefined') {
-          if (!window.anonymousAccessModal) {
-            window.anonymousAccessModal = new AnonymousAccessModal();
-          }
-          window.anonymousAccessModal.showAccessModal();
+        if (window.__HI_PROFILE_DEBUG__) {
+          console.log('[ProfileDebug] Gating suppressed.');
         } else {
-          console.warn('⚠️ No AccessGate or AnonymousAccessModal for profile gating');
+          if(window.AccessGate?.request){
+            window.AccessGate.request('profile:view');
+          } else if(typeof AnonymousAccessModal !== 'undefined') {
+            if (!window.anonymousAccessModal) {
+              window.anonymousAccessModal = new AnonymousAccessModal();
+            }
+            window.anonymousAccessModal.showAccessModal();
+          } else {
+            console.warn('⚠️ No AccessGate or AnonymousAccessModal for profile gating');
+          }
         }
       }, 500);
       
@@ -3306,6 +3469,19 @@ FOR INSERT WITH CHECK (
             if (window.location.search.includes('profiledebug=1')) { try { refreshProfileDebug(); } catch(e){} }
           }
         }
+        // Render tier perks using HiTier if available
+        try {
+          const container = document.getElementById('tierPerks');
+          if(container && window.HiTier){
+            const t2 = HiTier.isAtLeast('T2');
+            const t3 = HiTier.isAtLeast('T3');
+            container.innerHTML = ''+
+              '<div class="stat-item"><div class="stat-value">✔︎</div><div class="stat-label">Core access</div></div>'+ 
+              '<div class="stat-item"><div class="stat-value">＋5</div><div class="stat-label">Daily check-in</div></div>'+ 
+              (t2 ? '<div class="stat-item"><div class="stat-value">T2</div><div class="stat-label">Early drops</div></div>' : '<div class="stat-item"><div class="stat-value">Upgrade</div><div class="stat-label">Unlock early drops</div></div>')+
+              (t3 ? '<div class="stat-item"><div class="stat-value">T3</div><div class="stat-label">Premium tools</div></div>' : '<div class="stat-item"><div class="stat-value">Pro</div><div class="stat-label">Unlock premium tools</div></div>');
+          }
+        } catch(_){}
       }, 1000);
     });
   </script>
