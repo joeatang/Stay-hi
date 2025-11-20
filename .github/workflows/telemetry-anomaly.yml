@@ -1,0 +1,26 @@
+name: Telemetry Anomaly Check
+on:
+  schedule:
+    - cron: '*/5 * * * *' # Every 5 minutes UTC
+  workflow_dispatch: {}
+
+jobs:
+  anomaly-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install supabase client
+        run: |
+          npm init -y >/dev/null 2>&1 || true
+          npm install @supabase/supabase-js@2.x
+      - name: Run anomaly check
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          node scripts/telemetry-anomaly-check.js

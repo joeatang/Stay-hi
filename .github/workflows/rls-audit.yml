@@ -1,0 +1,28 @@
+name: RLS Audit
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  rls-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install deps
+        run: |
+          if [ -f package.json ]; then npm ci; else echo 'No package.json'; fi
+      - name: Run RLS audit script
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          if [ -f scripts/rls-audit.cjs ]; then node scripts/rls-audit.cjs; else echo 'scripts/rls-audit.cjs missing' && exit 1; fi
+      - name: Fail if audit markers missing
+        run: |
+          if grep -q "RLS AUDIT FAILED" rls-audit.log 2>/dev/null; then echo 'RLS audit reported failures' && cat rls-audit.log && exit 1; else echo 'RLS audit passed'; fi

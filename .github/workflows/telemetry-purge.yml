@@ -1,0 +1,26 @@
+name: Telemetry Purge
+on:
+  schedule:
+    - cron: '30 02 * * 0' # Sundays 02:30 UTC
+  workflow_dispatch: {}
+
+jobs:
+  purge-telemetry:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install supabase client
+        run: |
+          npm init -y >/dev/null 2>&1 || true
+          npm install @supabase/supabase-js@2.x
+      - name: Run purge
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          node scripts/telemetry-purge.cjs
