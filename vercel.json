@@ -10,7 +10,9 @@
     { "source": "/signin-production-ready.html", "destination": "/signin.html", "permanent": true },
     { "source": "/signin-tesla-bulletproof.html", "destination": "/signin.html", "permanent": true },
     { "source": "/signin-backup-20251030_203600.html", "destination": "/signin.html", "permanent": true },
-    { "source": "/signin-backup-20251030_195444.html", "destination": "/signin.html", "permanent": true }
+    { "source": "/signin-backup-20251030_195444.html", "destination": "/signin.html", "permanent": true },
+    { "source": "/admin-self-check", "destination": "/admin-self-check.html", "permanent": false },
+    { "source": "/hi-mission-control", "destination": "/hi-mission-control.html", "permanent": false }
   ],
   "rewrites": [
     { "source": "/", "destination": "/public/index.html" },
