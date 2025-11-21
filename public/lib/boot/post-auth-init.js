@@ -118,7 +118,9 @@ async function finishAuth() {
               return; // do not redirect away; user requested diagnostics
             }
             console.log('✅ Admin user detected - routing to', target);
-            setTimeout(()=>go(target), 600);
+            // CRITICAL FIX: Longer delay for admin to prevent race condition with AdminAccessManager
+            // Session needs time to propagate before mission-control-init.js runs checkAdmin
+            setTimeout(()=>go(target), 1400);
             return;
           }
           if (tier === 'collective') {

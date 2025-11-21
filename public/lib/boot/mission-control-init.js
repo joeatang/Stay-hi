@@ -159,19 +159,8 @@ async function initializeSecuritySystem() {
   } catch (error) {
     console.error('Security verification failed:', error);
     showUnauthorizedAccess(error.message);
-    // WOZ-grade fallback: if we have no Supabase client session after grace, auto redirect to sign-in
-    try {
-      const sb = getClient();
-      const hasAuth = !!(await sb?.auth?.getSession())?.data?.session;
-      if (!hasAuth) {
-        setTimeout(()=>{
-          // Avoid redirect loop if already on signin
-          if (!/signin\.html/.test(location.pathname)) {
-            location.href = '/signin.html?redirect=/hi-mission-control.html';
-          }
-        }, 1800);
-      }
-    } catch {}
+    // NO AUTO-REDIRECT: Let user manually choose retry or sign-in to avoid cascade
+    // Access denied screen provides "Sign in to Continue" and "Retry Verification" buttons
   }
 }
 
@@ -353,12 +342,109 @@ try {
 } catch {}
 
 // 🎫 INVITATION MANAGEMENT FUNCTIONS
-// Invitation code generation disabled (policy: passcode-only admin access)
-async function generateInviteCode() { console.warn('[MissionControl] Invitation code generation disabled'); }
+async function generateInviteCode() {
+  try {
+    const sb = getClient();
+    if (!sb) throw new Error('Supabase client unavailable');
+    
+    console.log('🎫 Generating invitation code...');
+    const { data, error } = await sb.rpc('admin_generate_invite_code', {
+      p_max_uses: 1,
+      p_expires_in_hours: 168 // 7 days
+    });
+    
+    if (error) throw error;
+    if (!data?.success) throw new Error(data?.message || 'Generation failed');
+    
+    console.log('✅ Invite code generated:', data.code);
+    showSuccess(`Code generated: ${data.code} (expires in 7 days)`);
+    
+    // Show code in results
+    const expiry = new Date(data.expires_at).toLocaleString();
+    showResults('New Invitation Code', 
+      `Code: ${data.code}\n` +
+      `Expires: ${expiry}\n` +
+      `Max Uses: ${data.max_uses}\n` +
+      `ID: ${data.id}`
+    );
+    
+    // Refresh dashboard stats
+    await loadDashboardData();
+  } catch (error) {
+    console.error('❌ Invite code generation failed:', error);
+    showError(error.message || 'Failed to generate invitation code');
+  }
+}
 
-async function listInviteCodes() { console.warn('[MissionControl] Invitation code listing disabled'); }
+async function listInviteCodes() {
+  try {
+    const sb = getClient();
+    if (!sb) throw new Error('Supabase client unavailable');
+    
+    console.log('📋 Listing invitation codes...');
+    const { data, error } = await sb.rpc('admin_list_invite_codes', {
+      p_include_expired: false
+    });
+    
+    if (error) throw error;
+    if (!data?.success) throw new Error(data?.message || 'List retrieval failed');
+    
+    const codes = data.codes || [];
+    console.log('✅ Retrieved codes:', codes.length);
+    
+    if (codes.length === 0) {
+      showResults('Invitation Codes', 'No active invitation codes found.');
+      return;
+    }
+    
+    const formatted = codes.map(c => 
+      `Code: ${c.code}\n` +
+      `Type: ${c.code_type}\n` +
+      `Uses: ${c.current_uses}/${c.max_uses} (${c.uses_remaining} remaining)\n` +
+      `Valid Until: ${new Date(c.valid_until).toLocaleString()}\n` +
+      `Active: ${c.is_active ? 'Yes' : 'No'}\n` +
+      `Created: ${new Date(c.created_at).toLocaleString()}\n` +
+      `---`
+    ).join('\n');
+    
+    showResults(`Invitation Codes (${codes.length} active)`, formatted);
+  } catch (error) {
+    console.error('❌ List codes failed:', error);
+    showError(error.message || 'Failed to list invitation codes');
+  }
+}
 
-async function getActiveInvites() { console.warn('[MissionControl] Active invitation retrieval disabled'); }
+async function getActiveInvites() {
+  try {
+    const sb = getClient();
+    if (!sb) throw new Error('Supabase client unavailable');
+    
+    console.log('🔍 Fetching active invites...');
+    const { data, error } = await sb.rpc('admin_list_invite_codes', {
+      p_include_expired: false
+    });
+    
+    if (error) throw error;
+    if (!data?.success) throw new Error(data?.message || 'Retrieval failed');
+    
+    const codes = (data.codes || []).filter(c => c.is_active && c.uses_remaining > 0);
+    console.log('✅ Active invites:', codes.length);
+    
+    if (codes.length === 0) {
+      showResults('Active Invitations', 'No active invitations with remaining uses.');
+      return;
+    }
+    
+    const formatted = codes.map(c => 
+      `${c.code} - ${c.uses_remaining} uses left (expires ${new Date(c.valid_until).toLocaleDateString()})`
+    ).join('\n');
+    
+    showResults(`Active Invitations (${codes.length})`, formatted);
+  } catch (error) {
+    console.error('❌ Get active invites failed:', error);
+    showError(error.message || 'Failed to get active invitations');
+  }
+}
 
 // 🛠️ UTILITY FUNCTIONS
 function showResults(title, content) {
