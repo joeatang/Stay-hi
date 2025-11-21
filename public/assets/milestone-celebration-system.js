@@ -93,41 +93,44 @@
     }
     
     checkTapMilestones() {
-      // First tap celebration
+      // First tap celebration - PURPOSEFUL TIMING: After medallion interaction settles
       if (this.currentTapCount === 1 && !this.milestones.firstTap) {
         this.milestones.firstTap = true;
         this.saveMilestoneState();
         this.queueCelebration({
           type: 'firstTap',
-          message: '🎉 You just sent your first Hi wave!',
+          message: '🎉 sent your first Hi wave!',
           subtitle: 'Watch the stats update in real-time',
-          duration: 4000,
+          duration: 3500,
+          delay: 1200, // Wait for medallion animation to complete
           action: 'highlight-stats'
         });
       }
       
-      // Third tap celebration
+      // Third tap celebration - THOUGHTFUL SPACING: Only if enough time passed
       if (this.currentTapCount === 3 && !this.milestones.thirdTap) {
         this.milestones.thirdTap = true;
         this.saveMilestoneState();
         this.queueCelebration({
           type: 'thirdTap',
-          message: '✨ Building your Hi rhythm!',
+          message: '✨ your Hi rhythm!',
           subtitle: 'You\'re connecting with the global community',
-          duration: 4000,
+          duration: 3500,
+          delay: 800,
           hint: 'Try exploring Hi Island 🏝️ for more community features'
         });
       }
       
-      // Fifth tap celebration
+      // Fifth tap celebration - SMART TIMING: Show only if user is engaged
       if (this.currentTapCount === 5 && !this.milestones.fifthTap) {
         this.milestones.fifthTap = true;
         this.saveMilestoneState();
         this.queueCelebration({
           type: 'fifthTap',
-          message: '🔥 You\'re getting the Hi flow!',
+          message: '🔥 getting the Hi flow!',
           subtitle: 'Ready to unlock the full experience?',
-          duration: 5000,
+          duration: 4000,
+          delay: 1000,
           cta: 'Join the Community',
           ctaAction: 'upgrade-prompt'
         });
@@ -179,10 +182,11 @@
       this.isShowing = true;
       const celebration = this.celebrationQueue.shift();
       
-      // Small delay for natural timing
+      // WOZNIAK-GRADE TIMING: Respect user's cognitive load
+      const delay = celebration.delay || (celebration.contextual ? 1500 : 800);
       setTimeout(() => {
         this.displayCelebration(celebration);
-      }, celebration.contextual ? 1000 : 500);
+      }, delay);
     }
     
     displayCelebration(celebration) {
@@ -199,13 +203,14 @@
       
       celebrationEl.style.cssText = `
         position: fixed;
-        top: 20px;
+        top: 90px;
         left: 50%;
         transform: translateX(-50%) translateY(-20px);
-        z-index: 2000;
+        z-index: 1500;
         opacity: 0;
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        pointer-events: none;
       `;
       
       // Add celebration styles
@@ -281,32 +286,36 @@
           backdrop-filter: blur(20px);
           border: 1px solid rgba(255, 255, 255, 0.2);
           border-radius: 20px;
-          padding: 20px 24px;
+          padding: 16px 20px;
           text-align: center;
           color: white;
           box-shadow: 
             0 20px 40px rgba(78, 205, 196, 0.3),
             0 4px 12px rgba(0, 0, 0, 0.1);
-          max-width: 360px;
+          max-width: 340px;
+          pointer-events: auto;
         }
         
         #milestone-celebration .celebration-message {
-          font-size: 18px;
+          font-size: 16px;
           font-weight: 700;
-          margin-bottom: 6px;
+          margin-bottom: 4px;
+          line-height: 1.3;
         }
         
         #milestone-celebration .celebration-subtitle {
-          font-size: 14px;
+          font-size: 13px;
           opacity: 0.9;
-          margin-bottom: 12px;
+          margin-bottom: 8px;
+          line-height: 1.4;
         }
         
         #milestone-celebration .celebration-hint {
-          font-size: 13px;
-          opacity: 0.8;
+          font-size: 12px;
+          opacity: 0.75;
           font-style: italic;
-          margin-bottom: 16px;
+          margin-bottom: 12px;
+          line-height: 1.3;
         }
         
         #milestone-celebration .celebration-cta {
@@ -334,15 +343,24 @@
         
         @media (max-width: 768px) {
           #milestone-celebration {
-            top: 10px;
-            left: 10px;
-            right: 10px;
+            top: 80px;
+            left: 16px;
+            right: 16px;
             transform: translateY(-10px);
           }
           
           #milestone-celebration .celebration-content {
-            padding: 16px 20px;
+            padding: 14px 18px;
             margin: 0;
+            max-width: 100%;
+          }
+          
+          #milestone-celebration .celebration-message {
+            font-size: 15px;
+          }
+          
+          #milestone-celebration .celebration-subtitle {
+            font-size: 12px;
           }
         }
       `;

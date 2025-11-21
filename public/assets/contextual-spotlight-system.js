@@ -102,13 +102,14 @@
             message: '💝 Daily inspiration appears here',
             subtitle: 'Contextual wisdom for your Hi journey',
             position: 'left',
-            duration: 4000,
+            duration: 3500,
             trigger: 'engagement-moment'
           });
         }
-      }, 3000);
+      }, 4000); // Increased from 3s to 4s - let milestones settle
       
-      // Highlight tier indicator for anonymous users
+      // 🎯 WOZNIAK FIX: Tier indicator MUCH LATER - only after user explores
+      // Moved from 8s to 18s to avoid overwhelming new users
       setTimeout(() => {
         if (!this.spotlights.tierIndicator && this.isAnonymousUser()) {
           this.showSpotlight('tierIndicator', {
@@ -116,12 +117,12 @@
             message: '⭐ Your current access level',
             subtitle: 'Upgrade to unlock full Hi experience',
             position: 'bottom',
-            duration: 3000,
+            duration: 3500,
             cta: 'See Benefits',
             ctaAction: 'show-upgrade-modal'
           });
         }
-      }, 8000);
+      }, 18000); // CRITICAL: 18 seconds gives user time to settle and explore
     }
     
     setupIslandSpotlights() {
@@ -377,14 +378,18 @@
     }
     
     calculateSpotlightPosition(rect, preferredPosition) {
-      const spotlight = { width: 280, height: 80 }; // Estimated spotlight size
+      const isMobile = window.innerWidth <= 768;
+      const spotlight = { width: isMobile ? 300 : 280, height: isMobile ? 90 : 80 };
       const arrow = { size: 8 };
-      const margin = 16;
+      const margin = isMobile ? 20 : 16; // More breathing room on mobile
       
       let position = { x: 0, y: 0, origin: 'center', arrowStyles: '' };
       
+      // 🎯 MOBILE FIX: Respect header space (90px header + 20px margin = 110px safe zone)
+      const safeTopZone = isMobile ? 110 : margin;
+      
       // Determine best position based on available space
-      const canShowAbove = rect.top > spotlight.height + margin;
+      const canShowAbove = rect.top > spotlight.height + safeTopZone;
       const canShowBelow = window.innerHeight - rect.bottom > spotlight.height + margin;
       const canShowLeft = rect.left > spotlight.width + margin;
       const canShowRight = window.innerWidth - rect.right > spotlight.width + margin;
@@ -443,9 +448,10 @@
         `;
       }
       
-      // Keep within viewport bounds
+      // Keep within viewport bounds - MOBILE-AWARE
+      const minY = isMobile ? safeTopZone : margin;
       position.x = Math.max(margin, Math.min(position.x, window.innerWidth - spotlight.width - margin));
-      position.y = Math.max(margin, Math.min(position.y, window.innerHeight - spotlight.height - margin));
+      position.y = Math.max(minY, Math.min(position.y, window.innerHeight - spotlight.height - margin));
       
       return position;
     }
