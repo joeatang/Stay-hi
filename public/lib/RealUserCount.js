@@ -103,9 +103,10 @@ async function loadEnhancedGlobalStats() {
       window.gTotalHis = statsData.total_his || 0;
       window.gWaves = statsData.hi_waves || 0;
       
-      // Cache stats for offline use
-      localStorage.setItem('dashboard_total_cache', window.gTotalHis.toString());
-      localStorage.setItem('dashboard_waves_cache', window.gWaves.toString());
+      // 🔧 FIX: Use unified cache keys (matching UnifiedStatsLoader.js)
+      // This prevents duplicate caches with stale values
+      localStorage.setItem('globalTotalHis', window.gTotalHis.toString());
+      localStorage.setItem('globalHiWaves', window.gWaves.toString());
     }
     
     // Update all UI elements (use global updater when available)

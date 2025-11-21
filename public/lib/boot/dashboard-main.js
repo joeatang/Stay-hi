@@ -506,9 +506,10 @@
     setupHiffirmationsHandler();
     setupFloatingHiffirmationsHandler();
     await setupWeeklyProgress();
-    const savedWaves=localStorage.getItem('dashboard_waves_cache'); const savedTotal=localStorage.getItem('dashboard_total_cache'); const savedUsers=localStorage.getItem('dashboard_users_cache');
+    // 🔧 FIX: Use unified cache keys (matching UnifiedStatsLoader.js)
+    const savedWaves=localStorage.getItem('globalHiWaves'); const savedTotal=localStorage.getItem('globalTotalHis'); const savedUsers=localStorage.getItem('globalTotalUsers');
     if (window.gWaves===undefined){
-      const cacheTime=localStorage.getItem('dashboard_waves_cache_time');
+      const cacheTime=localStorage.getItem('globalHiWaves_time');
       const recent=cacheTime && (Date.now()-parseInt(cacheTime,10))<30000;
       if (savedWaves && recent){
         const v = parseInt(savedWaves,10);
@@ -621,9 +622,10 @@
             const serverWaves = Number(data.hi_waves)||0;
             // Monotonic: never drop below current UI/cached waves
             window.gWaves = Math.max(serverWaves, Number(window.gWaves)||0);
-            localStorage.setItem('dashboard_waves_cache', String(window.gWaves));
-            localStorage.setItem('dashboard_total_cache', String(window.gTotalHis));
-            localStorage.setItem('dashboard_waves_cache_time', String(Date.now()));
+            // 🔧 FIX: Use unified cache keys (matching UnifiedStatsLoader.js)
+            localStorage.setItem('globalHiWaves', String(window.gWaves));
+            localStorage.setItem('globalTotalHis', String(window.gTotalHis));
+            localStorage.setItem('globalHiWaves_time', String(Date.now()));
             updateStatsUI(); realStatsLoaded=true; } } } catch(e){ console.log('Enhanced stats loading failed'); }
       if(!realStatsLoaded){ try { const { data:shareData, error:shareError } = await supabase.from('public_shares').select('total_his').limit(1).single(); if(shareData && !shareError && shareData.total_his){ if(window._gTotalHisIsTemporary || shareData.total_his > window.gTotalHis){ window.gTotalHis=shareData.total_his; window._gTotalHisIsTemporary=false; } updateStatsUI(); realStatsLoaded=true; } } catch(e){ console.log('public_shares query failed'); } }
       if(!realStatsLoaded){ console.log('Real stats unavailable, smart defaults used'); }
