@@ -19,9 +19,11 @@ const REQUIRED_TABLES = [
 
 async function main(){
   const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // Accept either SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SERVICE_KEY (for backwards compatibility)
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
   if(!url || !key){
-    console.error('❌ Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables.');
+    console.error('❌ Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY/SUPABASE_SERVICE_KEY environment variables.');
+    console.error('Available env vars:', Object.keys(process.env).filter(k => k.includes('SUPABASE')).join(', ') || 'none');
     process.exit(2);
   }
   const headers = { 'apikey': key, 'Authorization': `Bearer ${key}` };
