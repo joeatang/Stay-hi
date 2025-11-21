@@ -506,7 +506,7 @@
     setupHiffirmationsHandler();
     setupFloatingHiffirmationsHandler();
     await setupWeeklyProgress();
-    // 🔧 FIX: Use unified cache keys (matching UnifiedStatsLoader.js)
+    // 🔧 SURGICAL FIX: Use unified cache keys for shimmer only (not as source of truth)
     const savedWaves=localStorage.getItem('globalHiWaves'); const savedTotal=localStorage.getItem('globalTotalHis'); const savedUsers=localStorage.getItem('globalTotalUsers');
     if (window.gWaves===undefined){
       const cacheTime=localStorage.getItem('globalHiWaves_time');
@@ -525,7 +525,12 @@
         window._needsWavesRefresh=true;
       }
     }
-    if (window.gTotalHis===undefined){ window.gTotalHis = savedTotal ? parseInt(savedTotal,10) : null; window._gTotalHisIsTemporary = true; }
+    // 🎯 CRITICAL FIX: Never use cache as source of truth for Total His
+    // Always show shimmer until database value arrives
+    if (window.gTotalHis===undefined){ 
+      window.gTotalHis = null; // Shimmer - database will populate
+      window._gTotalHisIsTemporary = true; 
+    }
     if (window.gUsers===undefined){ const cachedUsers=localStorage.getItem('dashboard_users_cache'); window.gUsers = cachedUsers ? parseInt(cachedUsers,10) : 5; window.initializeSmartUserCount?.(); }
     updateStatsUI();
 
@@ -616,8 +621,11 @@
   });
 
   async function loadCurrentStatsFromDatabase(){ console.log('🔄 Background loading real stats from database...'); setTimeout(async ()=>{ try { let supabase = window.getSupabase?.() || window.supabaseClient || window.HiSupabase?.getClient?.() || window.supabase; if(!supabase){ for(let i=0;i<5;i++){ await new Promise(r=>setTimeout(r,100)); supabase = window.getSupabase?.() || window.supabaseClient || window.HiSupabase?.getClient?.() || window.supabase; if(supabase) break; } } if(!supabase){ console.log('No Supabase client available'); return; } let realStatsLoaded=false; try { if(window.loadEnhancedGlobalStats){ await window.loadEnhancedGlobalStats(); realStatsLoaded=true; } else { const { data, error } = await supabase.from('global_stats').select('total_his, hi_waves, total_users').single(); if(data && !error){ const oldTotalHis = window.gTotalHis; const oldWaves = window.gWaves;
-            if (data.total_his && (window._gTotalHisIsTemporary || data.total_his > window.gTotalHis)){
-              window.gTotalHis=data.total_his; window._gTotalHisIsTemporary=false;
+            // 🎯 SURGICAL FIX: Database is ALWAYS source of truth
+            // Never compare with cached values - just take DB value directly
+            if (data.total_his != null){
+              window.gTotalHis = data.total_his;
+              window._gTotalHisIsTemporary = false;
             }
             const serverWaves = Number(data.hi_waves)||0;
             // Monotonic: never drop below current UI/cached waves

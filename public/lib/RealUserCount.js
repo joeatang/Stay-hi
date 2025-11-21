@@ -34,17 +34,21 @@ async function loadRealUserCount() {
     
     // Parse the response structure: data has globalStats and personalStats
     if (data && data.globalStats) {
-      // 🎯 CRITICAL FIX: Always use database values, never preserve local values
-      // This prevents local increments from skewing the real database data
-      window.gWaves = data.globalStats.hiWaves || 0;
-      window.gTotalHis = data.globalStats.totalHis || 0; 
-      window.gUsers = data.globalStats.totalUsers || 0;
-      
-      console.log('✅ Global stats updated from get_user_stats:', {
-        waves: window.gWaves,
-        totalHis: window.gTotalHis,
-        users: window.gUsers
-      });
+      // 🎯 SURGICAL FIX: Only update if we don't already have authoritative values
+      // dashboard-main.js loads first and is source of truth
+      if (window._gTotalHisIsTemporary !== false) {
+        window.gWaves = data.globalStats.hiWaves || 0;
+        window.gTotalHis = data.globalStats.totalHis || 0; 
+        window.gUsers = data.globalStats.totalUsers || 0;
+        
+        console.log('✅ Global stats updated from get_user_stats:', {
+          waves: window.gWaves,
+          totalHis: window.gTotalHis,
+          users: window.gUsers
+        });
+      } else {
+        console.log('ℹ️ Skipping RealUserCount update - dashboard-main already has authoritative values');
+      }
       
       // Mark stats as recently loaded to prevent duplicates
       window._hiStatsLoadedRecently = true;

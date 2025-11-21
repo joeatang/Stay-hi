@@ -209,9 +209,10 @@ class HiGoldStandardModal {
         <div style="background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%); border-radius: 24px; padding: 48px 40px; max-width: 480px; margin: 20px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 209, 102, 0.3); position: relative; animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);">
           
           <button onclick="window.HiGoldStandardModal?.closeModal('${id}')" 
-                  style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 28px; color: #64748b; cursor: pointer; padding: 8px; border-radius: 8px; transition: all 0.2s ease;" 
-                  onmouseover="this.style.background='rgba(100, 116, 139, 0.1)'" 
-                  onmouseout="this.style.background='none'">×</button>
+                  style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 32px; color: #1e293b; cursor: pointer; padding: 8px; border-radius: 8px; transition: all 0.2s ease; font-weight: 300;" 
+                  onmouseover="this.style.background='rgba(30, 41, 59, 0.15)'; this.style.transform='scale(1.1)'" 
+                  onmouseout="this.style.background='none'; this.style.transform='scale(1)'"
+                  aria-label="Close modal">×</button>
 
           <div style="text-align: center;">
             <div style="font-size: 64px; margin-bottom: 24px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));">${icon}</div>

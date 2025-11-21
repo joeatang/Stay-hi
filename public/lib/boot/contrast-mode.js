@@ -34,22 +34,39 @@
       }
     }
   }
-  function injectButton(){
+  function injectFooterLink(){
     if (document.getElementById('hi-contrast-toggle')) return;
-    const btn = document.createElement('button');
-    btn.id = 'hi-contrast-toggle';
-    btn.type = 'button';
-    btn.setAttribute('aria-pressed', enabled ? 'true':'false');
-    btn.setAttribute('aria-label','Toggle high-contrast accessibility mode');
-    btn.textContent = enabled ? 'A11y Contrast: ON' : 'A11y Contrast: OFF';
-    btn.style.cssText = 'position:fixed;bottom:12px;right:12px;z-index:100001;background:#111;color:#FFD166;font:600 12px system-ui;padding:8px 12px;border:1px solid #FFD166;border-radius:8px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.4);';
-    btn.addEventListener('click', ()=>{
+    
+    const link = document.createElement('button');
+    link.id = 'hi-contrast-toggle';
+    link.type = 'button';
+    link.setAttribute('aria-pressed', enabled ? 'true':'false');
+    link.setAttribute('aria-label','Toggle high-contrast accessibility mode');
+    link.textContent = enabled ? 'High Contrast: ON' : 'Accessibility';
+    link.style.cssText = 'position:fixed;bottom:16px;left:16px;z-index:1000;background:transparent;color:rgba(255,255,255,0.4);font:500 11px system-ui;padding:4px 8px;border:none;border-radius:4px;cursor:pointer;text-decoration:underline;transition:all 0.2s ease;';
+    
+    link.addEventListener('mouseenter', ()=>{
+      link.style.color = 'rgba(255,255,255,0.8)';
+    });
+    link.addEventListener('mouseleave', ()=>{
+      link.style.color = 'rgba(255,255,255,0.4)';
+    });
+    link.addEventListener('click', ()=>{
       toggle();
       const active = document.documentElement.classList.contains('hi-a11y-contrast');
-      btn.textContent = active ? 'A11y Contrast: ON' : 'A11y Contrast: OFF';
-      btn.setAttribute('aria-pressed', active ? 'true':'false');
+      link.textContent = active ? 'High Contrast: ON' : 'Accessibility';
+      link.setAttribute('aria-pressed', active ? 'true':'false');
     });
-    document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(btn));
+    
+    document.addEventListener('DOMContentLoaded',()=>{
+      // Insert before footer or at end of body
+      const footer = document.querySelector('footer, .footer, [role="contentinfo"]');
+      if (footer && footer.parentNode) {
+        footer.parentNode.insertBefore(link, footer);
+      } else {
+        document.body.appendChild(link);
+      }
+    });
   }
-  injectButton();
+  injectFooterLink();
 })();
