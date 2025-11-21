@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Access Debug Test</title>
+  <style>
+    body { font-family: system-ui; max-width: 900px; margin: 2rem auto; padding: 1rem; }
+    pre { background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto; }
+    .success { color: #10b981; }
+    .error { color: #ef4444; }
+    button { padding: 0.5rem 1rem; margin: 0.5rem; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>🔍 Admin Access Debug Test</h1>
+  <p>Testing AdminAccessManager and check_admin_access_v2 RPC function</p>
+  
+  <button onclick="testAdminAccess()">1. Test AdminAccessManager.checkAdmin()</button>
+  <button onclick="testDirectRPC()">2. Test Direct RPC Call</button>
+  <button onclick="testAuthSession()">3. Check Auth Session</button>
+  <button onclick="testDatabaseQuery()">4. Query admin_roles Table</button>
+  <button onclick="clearCache()">Clear Cache & Recheck</button>
+  
+  <div id="output"></div>
+
+  <script type="module" src="../lib/HiSupabase.v3.js"></script>
+  <script src="../lib/admin/AdminAccessManager.js"></script>
+  
+  <script>
+    const output = document.getElementById('output');
+    let clientReady = false;
+    
+    // Wait for Supabase client to be ready
+    function waitForClient() {
+      return new Promise((resolve) => {
+        if (window.hiSupabase && typeof window.hiSupabase.rpc === 'function') {
+          clientReady = true;
+          resolve(window.hiSupabase);
+          return;
+        }
+        
+        // Listen for upgrade event
+        window.addEventListener('supabase-upgraded', (e) => {
+          clientReady = true;
+          resolve(e.detail.client);
+        }, { once: true });
+        
+        // Timeout fallback
+        setTimeout(() => {
+          if (window.hiSupabase) {
+            clientReady = true;
+            resolve(window.hiSupabase);
+          } else {
+            resolve(null);
+          }
+        }, 3000);
+      });
+    }
+    
+    function log(title, data, isError = false) {
+      const div = document.createElement('div');
+      div.innerHTML = `
+        <h3 class="${isError ? 'error' : 'success'}">${title}</h3>
+        <pre>${JSON.stringify(data, null, 2)}</pre>
+      `;
+      output.appendChild(div);
+      console.log(title, data);
+    }
+
+    async function testAdminAccess() {
+      output.innerHTML = '<h2>Test 1: AdminAccessManager.checkAdmin()</h2>';
+      try {
+        await waitForClient();
+        
+        if (!clientReady) {
+          log('Client Not Ready', { error: 'Supabase client failed to initialize' }, true);
+          return;
+        }
+        
+        const result = await window.AdminAccessManager.checkAdmin({ force: true });
+        log('AdminAccessManager Result', result, !result.isAdmin);
+        
+        const state = window.AdminAccessManager.getState();
+        log('Current State', state);
+      } catch (error) {
+        log('AdminAccessManager Error', { message: error.message, stack: error.stack }, true);
+      }
+    }
+
+    async function testDirectRPC() {
+      output.innerHTML = '<h2>Test 2: Direct RPC Call</h2>';
+      try {
+        const client = await waitForClient();
+        if (!client) throw new Error('No Supabase client found');
+        
+        log('Supabase Client', { 
+          exists: !!client,
+          hasRpc: typeof client.rpc === 'function',
+          hasAuth: typeof client.auth === 'function',
+          isStub: window.__hiSupabaseIsStub || false
+        });
+
+        const { data, error } = await client.rpc('check_admin_access_v2', {
+          p_required_role: 'admin',
+          p_ip_address: null
+        });
+        
+        if (error) {
+          log('RPC Error', error, true);
+        } else {
+          log('RPC Success', data, !(data?.access_granted || data?.[0]?.access_granted));
+        }
+      } catch (error) {
+        log('Direct RPC Error', { message: error.message, stack: error.stack }, true);
+      }
+    }
+
+    async function testAuthSession() {
+      output.innerHTML = '<h2>Test 3: Auth Session</h2>';
+      try {
+        const client = await waitForClient();
+        if (!client) throw new Error('No Supabase client found');
+        
+        const { data, error } = await client.auth.getSession();
+        
+        if (error) {
+          log('Auth Error', error, true);
+        } else {
+          log('Session Data', {
+            hasSession: !!data.session,
+            user: data.session?.user ? {
+              id: data.session.user.id,
+              email: data.session.user.email,
+              email_confirmed_at: data.session.user.email_confirmed_at
+            } : null
+          });
+        }
+      } catch (error) {
+        log('Auth Session Error', { message: error.message, stack: error.stack }, true);
+      }
+    }
+
+    async function testDatabaseQuery() {
+      output.innerHTML = '<h2>Test 4: Query admin_roles Table</h2>';
+      try {
+        const client = await waitForClient();
+        if (!client) throw new Error('No Supabase client found');
+        
+        // Get current user
+        const { data: sessionData } = await client.auth.getSession();
+        const userId = sessionData?.session?.user?.id;
+        
+        if (!userId) {
+          log('No User ID', { error: 'Not authenticated' }, true);
+          return;
+        }
+
+        log('Current User ID', { userId });
+
+        // Query admin_roles
+        const { data, error } = await client
+          .from('admin_roles')
+          .select('*')
+          .eq('user_id', userId);
+        
+        if (error) {
+          log('admin_roles Query Error', error, true);
+        } else {
+          log('admin_roles Result', data, !data || data.length === 0);
+        }
+      } catch (error) {
+        log('Database Query Error', { message: error.message, stack: error.stack }, true);
+      }
+    }
+
+    function clearCache() {
+      localStorage.removeItem('hi_admin_state');
+      sessionStorage.removeItem('hi_admin_access');
+      output.innerHTML = '<h2>✅ Cache Cleared</h2><p>Now run Test 1 again...</p>';
+      console.log('Cache cleared');
+    }
+
+    // Listen for admin events
+    window.addEventListener('hi:admin-state-changed', (e) => {
+      console.log('🔔 hi:admin-state-changed', e.detail);
+    });
+
+    window.addEventListener('hi:admin-confirmed', (e) => {
+      console.log('🔔 hi:admin-confirmed', e.detail);
+    });
+
+    // Auto-initialize
+    waitForClient().then((client) => {
+      if (client) {
+        console.log('%c✅ Supabase Client Ready', 'font-size: 16px; color: #10b981;', client);
+        console.log('Run tests using buttons or call functions directly from console');
+      } else {
+        console.error('%c❌ Supabase Client Failed to Initialize', 'font-size: 16px; color: #ef4444;');
+      }
+    });
+  </script>
+</body>
+</html>

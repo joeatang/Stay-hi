@@ -1,0 +1,67 @@
+🚨 **DIAGNOSIS: admin_roles TABLE MISSING IN SUPABASE**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 **WHAT THE CONSOLE SHOWS:**
+
+✅ Good: RPC check_admin_access_v2 exists and returns "Access granted: true"
+❌ Bad: HTTP 500 error when querying admin_roles table
+❌ Bad: "Session creation failed" 
+
+**Root Cause:** The admin_roles table doesn't exist in your Supabase database yet!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🛠️ **IMMEDIATE FIX (Takes 30 seconds):**
+
+**STEP 1: Open Supabase Dashboard**
+1. Go to: https://supabase.com/dashboard
+2. Select your project (the one with "gfcubvroxgfvjhacinic" in URL)
+3. Click **SQL Editor** in left sidebar
+
+**STEP 2: Copy Deployment Script**
+1. In VS Code, open: DEPLOY_COMPLETE_ADMIN_SYSTEM.sql
+2. Select ALL (Cmd+A)
+3. Copy (Cmd+C)
+
+**STEP 3: Execute in Supabase**
+1. In SQL Editor, click **New Query**
+2. Paste the copied SQL (Cmd+V)
+3. Click **Run** button (or press Cmd+Enter)
+4. Wait ~2 seconds for "Success ✓"
+
+**STEP 4: Verify Deployment**
+Run this quick check in SQL Editor:
+
+```sql
+SELECT ar.role_type, au.email 
+FROM admin_roles ar 
+JOIN auth.users au ON ar.user_id = au.id;
+```
+
+Expected result: One row showing:
+- role_type: super_admin
+- email: joeatang7@gmail.com
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔄 **STEP 5: Refresh Mission Control**
+
+After deploying schema:
+1. Go back to browser with Mission Control
+2. Click **Retry Verification** button (on Access Denied screen)
+3. OR just refresh page (Cmd+R)
+4. Dashboard should load! ✅
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📝 **WHY THIS HAPPENED:**
+
+The RPC function check_admin_access_v2 was deployed, but the underlying
+admin_roles table wasn't created. The DEPLOY_COMPLETE_ADMIN_SYSTEM.sql
+script creates BOTH in the correct order.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏱️ **ESTIMATED TIME:** 30 seconds total
+
+You're one SQL execution away from Mission Control access! 🚀

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Access Test (Auth Enabled)</title>
+  <style>
+    body { font-family: system-ui; max-width: 900px; margin: 2rem auto; padding: 1rem; }
+    pre { background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto; font-size: 12px; }
+    .success { color: #10b981; }
+    .error { color: #ef4444; }
+    .warning { color: #f59e0b; }
+    button { padding: 0.5rem 1rem; margin: 0.5rem; cursor: pointer; }
+    .login-section { background: #fef3c7; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
+    input { padding: 0.5rem; margin: 0.25rem; width: 300px; }
+  </style>
+</head>
+<body>
+  <h1>🔐 Admin Access Test (Auth Enabled)</h1>
+  
+  <div class="login-section">
+    <h3>Step 1: Login First</h3>
+    <input type="email" id="email" placeholder="joeatang7@gmail.com" value="joeatang7@gmail.com">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="loginWithPassword()">Login with Password</button>
+    <button onclick="sendMagicLink()">Send Magic Link</button>
+    <button onclick="checkCurrentAuth()">Check Current Auth</button>
+  </div>
+
+  <div style="margin: 1rem 0;">
+    <h3>Step 2: Run Admin Tests</h3>
+    <button onclick="testAdminAccess()">Test AdminAccessManager</button>
+    <button onclick="testDirectRPC()">Test Direct RPC</button>
+    <button onclick="testDatabaseQuery()">Query admin_roles</button>
+    <button onclick="clearCache()">Clear Cache</button>
+  </div>
+  
+  <div id="output"></div>
+
+  <script type="module" src="../lib/HiSupabase.v3.js"></script>
+  <script src="../lib/admin/AdminAccessManager.js"></script>
+  
+  <script>
+    const output = document.getElementById('output');
+    let clientReady = false;
+    
+    function waitForClient() {
+      return new Promise((resolve) => {
+        if (window.hiSupabase && typeof window.hiSupabase.rpc === 'function') {
+          clientReady = true;
+          resolve(window.hiSupabase);
+          return;
+        }
+        
+        window.addEventListener('supabase-upgraded', (e) => {
+          clientReady = true;
+          resolve(e.detail.client);
+        }, { once: true });
+        
+        setTimeout(() => {
+          if (window.hiSupabase) {
+            clientReady = true;
+            resolve(window.hiSupabase);
+          } else {
+            resolve(null);
+          }
+        }, 3000);
+      });
+    }
+    
+    function log(title, data, isError = false, isWarning = false) {
+      const div = document.createElement('div');
+      const className = isError ? 'error' : (isWarning ? 'warning' : 'success');
+      div.innerHTML = `
+        <h3 class="${className}">${title}</h3>
+        <pre>${JSON.stringify(data, null, 2)}</pre>
+      `;
+      output.appendChild(div);
+      console.log(title, data);
+    }
+
+    async function checkCurrentAuth() {
+      output.innerHTML = '<h2>Current Auth Status</h2>';
+      try {
+        const client = await waitForClient();
+        const { data, error } = await client.auth.getSession();
+        
+        if (error) {
+          log('Auth Error', error, true);
+        } else if (data.session) {
+          log('✅ Logged In', {
+            email: data.session.user.email,
+            userId: data.session.user.id,
+            emailConfirmed: !!data.session.user.email_confirmed_at
+          });
+        } else {
+          log('❌ Not Logged In', { message: 'No active session' }, false, true);
+        }
+      } catch (error) {
+        log('Error', { message: error.message }, true);
+      }
+    }
+
+    async function loginWithPassword() {
+      output.innerHTML = '<h2>Login with Password</h2>';
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      
+      if (!email || !password) {
+        log('Validation Error', { message: 'Email and password required' }, true);
+        return;
+      }
+      
+      try {
+        const client = await waitForClient();
+        const { data, error } = await client.auth.signInWithPassword({
+          email,
+          password
+        });
+        
+        if (error) {
+          log('Login Failed', error, true);
+        } else {
+          log('✅ Login Success', {
+            email: data.user.email,
+            userId: data.user.id
+          });
+          // Auto-run admin check after login
+          setTimeout(() => testAdminAccess(), 1000);
+        }
+      } catch (error) {
+        log('Login Error', { message: error.message }, true);
+      }
+    }
+
+    async function sendMagicLink() {
+      output.innerHTML = '<h2>Send Magic Link</h2>';
+      const email = document.getElementById('email').value;
+      
+      if (!email) {
+        log('Validation Error', { message: 'Email required' }, true);
+        return;
+      }
+      
+      try {
+        const client = await waitForClient();
+        const { data, error } = await client.auth.signInWithOtp({
+          email,
+          options: {
+            emailRedirectTo: window.location.href
+          }
+        });
+        
+        if (error) {
+          log('Magic Link Failed', error, true);
+        } else {
+          log('✅ Magic Link Sent', {
+            message: `Check ${email} for the login link`,
+            data
+          });
+        }
+      } catch (error) {
+        log('Magic Link Error', { message: error.message }, true);
+      }
+    }
+
+    async function testAdminAccess() {
+      output.innerHTML = '<h2>AdminAccessManager Test</h2>';
+      try {
+        const client = await waitForClient();
+        
+        // First check auth
+        const { data: sessionData } = await client.auth.getSession();
+        if (!sessionData.session) {
+          log('❌ Not Authenticated', { message: 'Login first!' }, false, true);
+          return;
+        }
+        
+        log('Current User', {
+          email: sessionData.session.user.email,
+          userId: sessionData.session.user.id
+        });
+        
+        // Now test admin access
+        const result = await window.AdminAccessManager.checkAdmin({ force: true });
+        log('AdminAccessManager Result', result, !result.isAdmin);
+        
+        const state = window.AdminAccessManager.getState();
+        log('Current State', state);
+      } catch (error) {
+        log('Error', { message: error.message, stack: error.stack }, true);
+      }
+    }
+
+    async function testDirectRPC() {
+      output.innerHTML = '<h2>Direct RPC Test</h2>';
+      try {
+        const client = await waitForClient();
+        
+        // Check auth first
+        const { data: sessionData } = await client.auth.getSession();
+        if (!sessionData.session) {
+          log('❌ Not Authenticated', { message: 'Login first!' }, false, true);
+          return;
+        }
+
+        const { data, error } = await client.rpc('check_admin_access_v2', {
+          p_required_role: 'admin',
+          p_ip_address: null
+        });
+        
+        if (error) {
+          log('RPC Error', error, true);
+        } else {
+          // Handle both array and object responses
+          const result = Array.isArray(data) ? data[0] : data;
+          log('RPC Result', result, !result?.access_granted);
+        }
+      } catch (error) {
+        log('Error', { message: error.message }, true);
+      }
+    }
+
+    async function testDatabaseQuery() {
+      output.innerHTML = '<h2>Query admin_roles Table</h2>';
+      try {
+        const client = await waitForClient();
+        
+        const { data: sessionData } = await client.auth.getSession();
+        if (!sessionData.session) {
+          log('❌ Not Authenticated', { message: 'Login first!' }, false, true);
+          return;
+        }
+        
+        const userId = sessionData.session.user.id;
+        log('Current User ID', { userId });
+
+        const { data, error } = await client
+          .from('admin_roles')
+          .select('*')
+          .eq('user_id', userId);
+        
+        if (error) {
+          log('Query Error', error, true);
+        } else if (!data || data.length === 0) {
+          log('❌ No Admin Role Found', { 
+            message: 'User exists but has no admin_roles entry',
+            userId 
+          }, false, true);
+        } else {
+          log('✅ Admin Role Found', data[0]);
+        }
+      } catch (error) {
+        log('Error', { message: error.message }, true);
+      }
+    }
+
+    function clearCache() {
+      localStorage.removeItem('hi_admin_state');
+      sessionStorage.removeItem('hi_admin_access');
+      output.innerHTML = '<h2>✅ Cache Cleared</h2>';
+      console.log('Cache cleared');
+    }
+
+    // Listen for auth changes
+    waitForClient().then((client) => {
+      if (client) {
+        console.log('✅ Client ready');
+        client.auth.onAuthStateChange((event, session) => {
+          console.log('Auth state changed:', event, session?.user?.email);
+          if (event === 'SIGNED_IN') {
+            log('✅ Auth Event: Signed In', { email: session.user.email });
+          } else if (event === 'SIGNED_OUT') {
+            log('❌ Auth Event: Signed Out', {});
+          }
+        });
+        
+        // Auto-check auth on load
+        setTimeout(() => checkCurrentAuth(), 500);
+      }
+    });
+
+    // Listen for admin events
+    window.addEventListener('hi:admin-state-changed', (e) => {
+      console.log('🔔 hi:admin-state-changed', e.detail);
+    });
+
+    window.addEventListener('hi:admin-confirmed', (e) => {
+      console.log('🔔 hi:admin-confirmed', e.detail);
+    });
+  </script>
+</body>
+</html>

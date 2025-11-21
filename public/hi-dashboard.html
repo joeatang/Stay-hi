@@ -46,13 +46,15 @@
 
   <!-- Tesla-Grade Premium Scripts (Optimized Loading) -->
   <script src="assets/url-path-fixer.js" async></script>
+  
+  <!-- Supabase UMD (required for real auth) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="assets/config.js"></script>
+  
   <!-- Resource Hints for Cross-Navigation Performance -->
-  <!-- Removed UMD Supabase preload (ESM only) -->
-  <!-- <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script"> -->
   <link rel="prefetch" href="hi-island-NEW.html">
   <link rel="prefetch" href="hi-muscle.html">
   <link rel="dns-prefetch" href="//stay-qwguz51c1-joeatangs-projects.vercel.app">
-  <!-- Removed UMD Supabase script (race w/ ESM). Using ./lib/HiSupabase.v3.js exclusively. -->
   
   <!-- Monitoring breadcrumbs (lightweight) -->
   <script type="module" src="./lib/HiMonitor.js"></script>
@@ -79,6 +81,26 @@
   <script src="./lib/boot/sw-register.js"></script>
   <!-- Unified Admin Access Orchestrator (events + caching) -->
   <script src="./lib/admin/AdminAccessManager.js"></script>
+  <!-- Post-Auth Admin Check: Force admin verification after login -->
+  <script>
+    window.addEventListener('hi:auth-ready', async () => {
+      console.log('[Dashboard] Auth ready - forcing admin check for Mission Control visibility');
+      if (window.AdminAccessManager) {
+        try {
+          await window.AdminAccessManager.checkAdmin({ force: true });
+          const state = window.AdminAccessManager.getState();
+          console.log('[Dashboard] Admin check complete:', {
+            isAdmin: state.isAdmin,
+            status: state.status,
+            reason: state.reason,
+            roleType: state.roleType
+          });
+        } catch (error) {
+          console.warn('[Dashboard] Admin check failed:', error);
+        }
+      }
+    });
+  </script>
   <!-- Admin smart auto-redirect (one-time per session) retained for fast-path redirect -->
   <script src="./lib/boot/admin-auto-redirect.js"></script>
   <script src="./lib/HiDB.js" defer></script>
@@ -930,6 +952,15 @@
       transition: all 0.3s ease;
       border: 1px solid transparent;
     }
+    
+    .nav-item-btn {
+      width: 100%;
+      text-align: left;
+      background: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: inherit;
+    }
 
     .nav-item:hover {
       background: rgba(255, 255, 255, 0.1);
@@ -1465,6 +1496,20 @@
             <span class="nav-icon">🎛️</span>
             <span>Hi Mission Control</span>
           </a>
+        </div>
+        <!-- Dynamic Account Section (shows Sign In OR Sign Out based on auth state) -->
+        <div class="nav-section" id="accountSection">
+          <div class="nav-section-title">Account</div>
+          <!-- Sign In button (shown when NOT logged in) -->
+          <a href="signin.html" id="btnSignIn" class="nav-item nav-item-btn" style="display: none;">
+            <span class="nav-icon">🔑</span>
+            <span>Sign In</span>
+          </a>
+          <!-- Sign Out button (shown when logged in) -->
+          <button id="btnSignOut" class="nav-item nav-item-btn" style="display: none;">
+            <span class="nav-icon">🚪</span>
+            <span>Sign Out</span>
+          </button>
         </div>
       </div>
     </div>

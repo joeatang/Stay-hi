@@ -1,0 +1,91 @@
+🚀 **CLEAN DASHBOARD ACCESS - STEP-BY-STEP**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📍 **YOU ARE HERE:**
+   Simple Browser opened: http://localhost:3030/public/signin.html
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🧹 **STEP 1: CLEAN SESSION (Do This First)**
+
+In the Simple Browser window:
+1. Press F12 (or Right-click → Inspect)
+2. Go to **Application** tab
+3. Under Storage, click **Clear site data**
+4. Click **Clear data** button
+5. Close DevTools
+
+OR just click "Sign Out" if you see it in the page
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔐 **STEP 2: FRESH SIGN IN**
+
+In the signin page:
+1. Enter email: joeatang7@gmail.com
+2. Click **Send Magic Link** button
+3. Check your email inbox
+4. Click the magic link in email
+5. You'll be redirected back to Hi Island
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 **STEP 3: ACCESS DASHBOARD**
+
+After magic link redirects you:
+1. You should land on Hi Island (hi-island-NEW.html)
+2. Look for hamburger menu (☰) in top-left
+3. Click hamburger menu
+4. Look for "🏛️ Mission Control" link
+5. Click Mission Control
+
+Expected: Dashboard loads with admin stats, invite code generator
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️ **IF MISSION CONTROL LINK DOESN'T APPEAR:**
+
+You need to deploy the admin schema first!
+1. Open Supabase SQL Editor
+2. Copy all of DEPLOY_COMPLETE_ADMIN_SYSTEM.sql
+3. Paste and Run
+4. Wait for success (2 seconds)
+5. Then repeat Steps 1-3 above
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ **WHAT "CLEAN CONNECTION" MEANS:**
+
+✓ Fresh browser session (no cached auth)
+✓ New magic link signin (not reusing old session)
+✓ Clear localStorage/sessionStorage
+✓ No stale RPC cache
+✓ Admin status re-checked on fresh session
+
+This ensures AdminAccessManager fetches your admin role from scratch!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔍 **TROUBLESHOOTING (Check Browser Console):**
+
+Good signs:
+✅ [AdminAccessManager] Admin status: true
+✅ [AdminAccessManager] Role type: super_admin
+✅ Mission Control access granted
+
+Bad signs:
+❌ [AdminAccessManager] Admin status: false
+❌ RPC error: missing_role
+❌ Access Denied screen
+
+If you see bad signs → deploy DEPLOY_COMPLETE_ADMIN_SYSTEM.sql first!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current Status:
+- Dev Server: Running on port 3030 ✅
+- Signin Page: Open in Simple Browser ✅
+- All Pages Verified: HTTP 200 ✅
+- Code Fixes: In place ✅
+
+Ready to signin! 🚀

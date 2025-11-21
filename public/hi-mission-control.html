@@ -18,6 +18,8 @@
     <script type="module" src="./lib/HiMonitor.js"></script>
     <script type="module" src="./lib/AuthReady.js"></script>
     <script type="module" src="./lib/HiLoading.js"></script>
+    <!-- PWA Session Sync (browser ↔ PWA auth state) -->
+    <script src="./lib/PWASessionSync.js"></script>
     <!-- Unified Admin Access Orchestrator -->
     <script src="./lib/admin/AdminAccessManager.js"></script>
     <!-- Embedded Self-Check (diagnostics overlay, hash: #self-check) -->
@@ -484,6 +486,9 @@
         </footer>
     </div>
 
+        <!-- 🎨 Invite Code Generation Modal -->
+        <script src="./lib/admin/InviteCodeModal.js"></script>
+        
         <script src="./lib/boot/mission-control-init.js"></script>
         <script>
             // Mission Control Admin Tools (Passcode + Invite RPCs)
@@ -548,7 +553,83 @@
             })();
         </script>
         <script>
-            // Lightweight enhancement: auto-focus main after load for accessibility
+            // 🔒 Tesla-Grade Auth Gate - Zero Extra Steps
+            (async function initMissionControlAuth() {
+                const securityLoading = document.getElementById('securityLoading');
+                const unauthorizedScreen = document.getElementById('unauthorizedScreen');
+                const dashboardContainer = document.getElementById('dashboardContainer');
+                const securityStatus = document.getElementById('securityStatus');
+                const progressBar = document.getElementById('progressBar');
+                
+                // Update progress
+                function updateProgress(percent, message) {
+                    if (progressBar) {
+                        progressBar.style.width = `${percent}%`;
+                        progressBar.setAttribute('aria-valuenow', percent);
+                    }
+                    if (securityStatus) securityStatus.textContent = message;
+                }
+                
+                try {
+                    updateProgress(30, 'Checking authentication...');
+                    
+                    // Wait for AdminAccessManager to be ready
+                    if (!window.AdminAccessManager) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+                    
+                    updateProgress(60, 'Verifying admin privileges...');
+                    
+                    // Check admin access
+                    const result = await window.AdminAccessManager.checkAdmin({ force: true });
+                    
+                    updateProgress(90, 'Access granted...');
+                    
+                    if (result.isAdmin) {
+                        // ✅ ADMIN - Show Mission Control
+                        console.log('[Mission Control] ✅ Admin access granted:', result);
+                        
+                        setTimeout(() => {
+                            securityLoading.style.opacity = '0';
+                            setTimeout(() => {
+                                securityLoading.style.display = 'none';
+                                unauthorizedScreen.style.display = 'none';
+                                dashboardContainer.style.display = 'block';
+                                dashboardContainer.focus();
+                            }, 500);
+                        }, 300);
+                        
+                    } else {
+                        // ❌ NOT ADMIN - Show access denied
+                        console.warn('[Mission Control] ❌ Access denied:', result);
+                        
+                        setTimeout(() => {
+                            securityLoading.style.opacity = '0';
+                            setTimeout(() => {
+                                securityLoading.style.display = 'none';
+                                unauthorizedScreen.style.display = 'flex';
+                                dashboardContainer.style.display = 'none';
+                            }, 500);
+                        }, 300);
+                    }
+                    
+                } catch (error) {
+                    console.error('[Mission Control] Auth check failed:', error);
+                    updateProgress(100, 'Authentication error');
+                    
+                    // Show unauthorized on error
+                    setTimeout(() => {
+                        securityLoading.style.opacity = '0';
+                        setTimeout(() => {
+                            securityLoading.style.display = 'none';
+                            unauthorizedScreen.style.display = 'flex';
+                            dashboardContainer.style.display = 'none';
+                        }, 500);
+                    }, 500);
+                }
+            })();
+            
+            // Auto-focus main after load for accessibility
             window.addEventListener('load', ()=>{
                 const mc = document.getElementById('dashboardContainer');
                 if (mc && mc.style.display==='block') mc.focus();

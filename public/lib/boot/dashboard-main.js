@@ -195,22 +195,36 @@
       return;
     }
     btnMenu.style.display='flex'; btnMenu.style.visibility='visible'; btnMenu.style.opacity='1'; btnMenu.style.pointerEvents='auto';
-    const openNavigation = () => {
+    const openNavigation = async () => {
       navigationModal.classList.add('show'); navigationModal.style.display='block'; document.body.style.overflow='hidden';
       const dialog = navigationModal.querySelector('.navigation-content'); const closeBtn = document.getElementById('closeNavigation');
       (dialog||navigationModal).setAttribute('tabindex','-1'); setTimeout(()=>{ (closeBtn||dialog||navigationModal).focus({preventScroll:true}); },0);
       
       // Check admin status from AdminAccessManager (unified source of truth)
-      const adminState = window.AdminAccessManager?.getState?.() || {};
-      const isAdmin = adminState.isAdmin === true;
-      const adminSection = document.getElementById('adminSection');
-      if (adminSection && isAdmin) {
-        adminSection.style.display='block';
-      } else if (adminSection) {
-        adminSection.style.display='none';
+      // CRITICAL FIX: Force fresh admin check to avoid race condition with initial page load
+      let adminState = window.AdminAccessManager?.getState?.() || {};
+      
+      // If status is 'idle' or 'cached' but we haven't checked recently, force a fresh check
+      // with 1.5s timeout to prevent menu hang
+      const needsFreshCheck = !adminState.lastChecked || (Date.now() - adminState.lastChecked > 60000);
+      if (window.AdminAccessManager?.checkAdmin && needsFreshCheck) {
+        try {
+          const checkPromise = window.AdminAccessManager.checkAdmin({ force: false });
+          const timeoutPromise = new Promise(resolve => setTimeout(resolve, 1500));
+          await Promise.race([checkPromise, timeoutPromise]);
+          adminState = window.AdminAccessManager.getState();
+        } catch (e) {
+          console.warn('[Dashboard] Admin check failed:', e);
+        }
       }
       
-      __dbg('🎯 Navigation menu opened | Admin:', isAdmin);
+      const isAdmin = adminState.isAdmin === true;
+      const adminSection = document.getElementById('adminSection');
+      if (adminSection) {
+        adminSection.style.display = isAdmin ? 'block' : 'none';
+      }
+      
+      __dbg('🎯 Navigation menu opened | Admin:', isAdmin, '| Status:', adminState.status, '| Reason:', adminState.reason);
       // Ensure Mission Control link exists (robust fallback)
       try {
         if (typeof window.ensureAdminEntryExists === 'function') {
@@ -242,10 +256,73 @@
       navigationModal.classList.remove('show'); document.body.style.overflow=''; setTimeout(()=>{ if(!navigationModal.classList.contains('show')) navigationModal.style.display='none'; },300); try { btnMenu.focus({preventScroll:true}); } catch {}
       __dbg('🎯 Navigation menu closed');
     };
-    btnMenu.addEventListener('click', openNavigation);
+    
+    // Tesla-grade dynamic Account button (Sign In OR Sign Out based on auth state)
+    const btnSignOut = document.getElementById('btnSignOut');
+    const btnSignIn = document.getElementById('btnSignIn');
+    
+    async function updateAccountButton() {
+      const client = window.hiSupabase || window.supabaseClient || window.sb;
+      const { data } = await client?.auth?.getSession?.() || {};
+      const isLoggedIn = !!data?.session;
+      
+      if (btnSignIn) btnSignIn.style.display = isLoggedIn ? 'none' : 'flex';
+      if (btnSignOut) btnSignOut.style.display = isLoggedIn ? 'flex' : 'none';
+      
+      console.log('[Dashboard] 🔐 Account button updated:', { isLoggedIn, showSignIn: !isLoggedIn, showSignOut: isLoggedIn });
+    }
+    
+    // Wrap openNavigation to update account button first
+    btnMenu.addEventListener('click', async () => {
+      await updateAccountButton();
+      openNavigation();
+    });
     if (closeNavigation) closeNavigation.addEventListener('click', closeNavigationModal);
     if (navigationBackdrop) navigationBackdrop.addEventListener('click', closeNavigationModal);
     document.addEventListener('keydown', e => { if (e.key==='Escape' && navigationModal.classList.contains('show')) closeNavigationModal(); });
+    
+    // Sign out handler
+    if (btnSignOut) {
+      btnSignOut.addEventListener('click', async () => {
+        console.log('[Dashboard] Sign out initiated');
+        try {
+          // Get Supabase client
+          const client = window.hiSupabase || window.supabaseClient || window.sb;
+          if (client?.auth?.signOut) {
+            console.log('[Dashboard] Signing out from Supabase');
+            await client.auth.signOut();
+          }
+          
+          // Clear all cached data
+          console.log('[Dashboard] Clearing auth cache');
+          localStorage.clear();
+          sessionStorage.clear();
+          
+          // Close navigation modal
+          closeNavigationModal();
+          
+          // Redirect to signin
+          console.log('[Dashboard] Redirecting to signin');
+          setTimeout(() => {
+            window.location.href = 'signin.html';
+          }, 300);
+          
+        } catch (error) {
+          console.error('[Dashboard] Sign out error:', error);
+          // Fallback: clear and redirect anyway
+          localStorage.clear();
+          sessionStorage.clear();
+          window.location.href = 'signin.html';
+        }
+      });
+    }
+    
+    // Listen for auth state changes
+    window.addEventListener('hi:auth-ready', updateAccountButton);
+    window.addEventListener('hi:auth-state-changed', updateAccountButton);
+    
+    // Initial update
+    setTimeout(updateAccountButton, 100);
   }
   // Invoke debug overlay after DOM ready
   document.addEventListener('DOMContentLoaded', ensureStreakDebugOverlay);
@@ -406,7 +483,12 @@
         const adminSection = document.getElementById('adminSection');
         if (adminSection) {
           adminSection.style.display = isAdmin ? 'block' : 'none';
-          __dbg('🔐 Admin section visibility updated:', isAdmin);
+          console.log('[Dashboard] 🔐 Admin section visibility updated:', {
+            isAdmin,
+            status: adminState.status,
+            reason: adminState.reason,
+            display: adminSection.style.display
+          });
         }
       }
       

@@ -131,8 +131,42 @@
             document.getElementById('loadingState').style.display = 'none';
         }
         
+        // Check if this is a password recovery callback
+        function checkRecoveryToken() {
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            const type = hashParams.get('type');
+            
+            if (type === 'recovery') {
+                console.log('🔐 Password recovery token detected - redirecting to reset page');
+                hideLoading();
+                showStatus(
+                    `🔐 Password recovery link detected<br><br>` +
+                    `Redirecting you to set your new password...`,
+                    'success'
+                );
+                
+                setTimeout(() => {
+                    // Pass the hash to reset-password page
+                    window.location.href = 'reset-password.html' + window.location.hash;
+                }, 1500);
+                
+                return true;
+            }
+            
+            return false;
+        }
+        
         async function processAuthCallback() {
-            console.log('🔗 Processing magic link callback...');
+            console.log('🔗 Processing auth callback...');
+            console.log('URL:', window.location.href);
+            console.log('Hash:', window.location.hash);
+            
+            // Check for recovery token first
+            if (checkRecoveryToken()) {
+                return; // Redirect handled by checkRecoveryToken
+            }
+            
+            console.log('📧 Processing magic link callback...');
             
             if (!window.supabase) {
                 hideLoading();
@@ -153,7 +187,7 @@
                     hideLoading();
                     showStatus(
                         `🎉 Successfully signed in as ${data.session.user.email}!<br><br>` +
-                        `🚀 Redirecting to your profile...`,
+                        `🚀 Redirecting to your dashboard...`,
                         'success'
                     );
                     
@@ -165,7 +199,7 @@
                     localStorage.setItem('auth_success', 'true');
                     
                     setTimeout(() => {
-                        window.location.href = 'profile.html';
+                        window.location.href = 'hi-dashboard.html';
                     }, 2000);
                     
                 } else {
@@ -213,12 +247,12 @@
                         hideLoading();
                         showStatus(
                             `🎉 Welcome back, ${session.user.email}!<br><br>` +
-                            `🚀 Taking you to your profile...`,
+                            `🚀 Taking you to your dashboard...`,
                             'success'
                         );
                         
                         setTimeout(() => {
-                            window.location.href = 'profile.html';
+                            window.location.href = 'hi-dashboard.html';
                         }, 1500);
                     }
                 });

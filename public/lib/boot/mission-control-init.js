@@ -25,13 +25,17 @@ function withTimeout(promise, ms, label = 'operation') {
 // 🚀 INITIALIZATION
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('🚀 DOMContentLoaded fired. Initial admin state:', window.AdminAccessManager?.getState());
-  // Begin initialization immediately; auth-ready will revalidate later.
+  // GOLD STANDARD: Wait for auth to fully settle before checking admin (prevents flickering)
+  // Give session 2 full seconds to propagate from post-auth redirect
+  await new Promise(resolve => setTimeout(resolve, 2000));
   initializeSecuritySystem();
 });
 
 // React when admin state flips after initial denial (e.g. passcode unlock)
+// BUT: Only if initialization hasn't started yet (prevents duplicate checks)
 window.addEventListener('hi:admin-state-changed', (e) => {
   try {
+    if (initializationComplete) return; // Already initialized, ignore
     const st = e.detail;
     if (st?.isAdmin) {
       document.body.dataset.adminMode = 'true';
@@ -51,57 +55,53 @@ window.addEventListener('hi:admin-state-changed', (e) => {
   } catch {}
 });
 
-// Revalidate on auth-ready (ensures fresh privileges after magic link)
-window.addEventListener('hi:auth-ready', async () => {
-  console.log('[MissionControl] auth-ready received -> revalidate admin');
-  if (window.AdminAccessManager) {
-    await window.AdminAccessManager.checkAdmin({ force:true });
-    const st = window.AdminAccessManager.getState();
-    if (st.isAdmin && document.getElementById('securityLoading')?.style.display!=='none') {
-      // If we were still on loading, finalize UI
-      finalizeAdminUI();
-    }
-    try {
-      const badge = document.querySelector('.security-badge');
-      const auth = (window.getAuthState && window.getAuthState()) || null;
-      const uid = auth?.session?.user?.id;
-      const tier = auth?.membership?.tier;
-      if (badge && (uid || tier)){
-        const short = uid ? (uid.split('-')[0]) : 'user';
-        badge.textContent = `🔒 Admin • ${short}${tier?` • ${tier.toUpperCase()}`:''}`;
-      }
-    } catch {}
+// GOLD STANDARD: Consolidated auth event handler (debounced)
+// Prevents storm of checks from hi:auth-ready + hi:auth-updated firing simultaneously
+let authEventDebounce = null;
+function handleAuthEvent(eventName) {
+  if (initializationComplete) {
+    console.log(`[MissionControl] ${eventName} received but initialization complete, skipping`);
+    return;
   }
-});
+  if (isInitializing) {
+    console.log(`[MissionControl] ${eventName} received but already initializing, queuing`);
+    pendingInitRequests.push(eventName);
+    return;
+  }
+  
+  // Debounce: Only run last event in 300ms window
+  clearTimeout(authEventDebounce);
+  authEventDebounce = setTimeout(async () => {
+    console.log(`[MissionControl] ${eventName} triggered (debounced) -> validate admin`);
+    if (window.AdminAccessManager && !initializationComplete) {
+      const st = await window.AdminAccessManager.checkAdmin({ force: false }); // Use cache if available
+      if (st.isAdmin && document.getElementById('securityLoading')?.style.display !== 'none') {
+        finalizeAdminUI();
+      }
+    }
+  }, 300);
+}
 
-// Also respond to auth updates (e.g., stub->real upgrade revealing a session)
-window.addEventListener('hi:auth-updated', async () => {
-  console.log('[MissionControl] auth-updated received -> revalidate admin');
-  if (window.AdminAccessManager) {
-    await window.AdminAccessManager.checkAdmin({ force:true });
-    const st = window.AdminAccessManager.getState();
-    if (st.isAdmin && document.getElementById('securityLoading')?.style.display!=='none') {
-      finalizeAdminUI();
-    }
-    try {
-      const badge = document.querySelector('.security-badge');
-      const auth = (window.getAuthState && window.getAuthState()) || null;
-      const uid = auth?.session?.user?.id;
-      const tier = auth?.membership?.tier;
-      if (badge && (uid || tier)){
-        const short = uid ? (uid.split('-')[0]) : 'user';
-        badge.textContent = `🔒 Admin • ${short}${tier?` • ${tier.toUpperCase()}`:''}`;
-      }
-    } catch {}
-  }
-});
+window.addEventListener('hi:auth-ready', () => handleAuthEvent('hi:auth-ready'));
+window.addEventListener('hi:auth-updated', () => handleAuthEvent('hi:auth-updated'));
 
 async function initializeSecuritySystem() {
+  // GOLD STANDARD: Guard against multiple simultaneous initializations
+  if (isInitializing) {
+    console.log('⏳ Already initializing, skipping duplicate call');
+    return;
+  }
+  if (initializationComplete) {
+    console.log('✅ Already initialized, skipping');
+    return;
+  }
+  
+  isInitializing = true;
   const statusEl = document.getElementById('securityStatus');
   const progressBar = document.getElementById('progressBar');
   try { const dash = document.getElementById('dashboardContainer'); dash?.setAttribute('aria-busy','true'); } catch {}
 
-  console.log('🔐 initializeSecuritySystem started');
+  console.log('🔐 initializeSecuritySystem started (SINGLE CHECK)');
   console.log('📍 Status element:', statusEl);
   console.log('📊 Progress bar:', progressBar);
 
@@ -156,8 +156,14 @@ async function initializeSecuritySystem() {
     try { progressBar.setAttribute('aria-valuenow','100'); } catch {}
     finalizeAdminUI();
     startSessionTimer(adminSession.expires_at);
+    
+    // GOLD STANDARD: Mark initialization complete
+    initializationComplete = true;
+    isInitializing = false;
+    console.log('✅ Initialization complete, flickering storm prevented');
   } catch (error) {
     console.error('Security verification failed:', error);
+    isInitializing = false; // Reset flag on error
     showUnauthorizedAccess(error.message);
     // NO AUTO-REDIRECT: Let user manually choose retry or sign-in to avoid cascade
     // Access denied screen provides "Sign in to Continue" and "Retry Verification" buttons
@@ -342,37 +348,52 @@ try {
 } catch {}
 
 // 🎫 INVITATION MANAGEMENT FUNCTIONS
+// GOLD STANDARD: Use modal for user input instead of hardcoded values
 async function generateInviteCode() {
-  try {
-    const sb = getClient();
-    if (!sb) throw new Error('Supabase client unavailable');
+  if (typeof window.openInviteCodeModal === 'function') {
+    // Open modal UI for options
+    window.openInviteCodeModal();
     
-    console.log('🎫 Generating invitation code...');
-    const { data, error } = await sb.rpc('admin_generate_invite_code', {
-      p_max_uses: 1,
-      p_expires_in_hours: 168 // 7 days
-    });
-    
-    if (error) throw error;
-    if (!data?.success) throw new Error(data?.message || 'Generation failed');
-    
-    console.log('✅ Invite code generated:', data.code);
-    showSuccess(`Code generated: ${data.code} (expires in 7 days)`);
-    
-    // Show code in results
-    const expiry = new Date(data.expires_at).toLocaleString();
-    showResults('New Invitation Code', 
-      `Code: ${data.code}\n` +
-      `Expires: ${expiry}\n` +
-      `Max Uses: ${data.max_uses}\n` +
-      `ID: ${data.id}`
-    );
-    
-    // Refresh dashboard stats
-    await loadDashboardData();
-  } catch (error) {
-    console.error('❌ Invite code generation failed:', error);
-    showError(error.message || 'Failed to generate invitation code');
+    // Listen for success event to refresh dashboard
+    window.addEventListener('hi:invite-code-generated', async (e) => {
+      const { code } = e.detail;
+      console.log('✅ Code generated via modal:', code);
+      showSuccess(`Code generated: ${code}`);
+      await loadDashboardData();
+    }, { once: true });
+  } else {
+    // Fallback: Direct generation with defaults
+    try {
+      const sb = getClient();
+      if (!sb) throw new Error('Supabase client unavailable');
+      
+      console.log('🎫 Generating invitation code (fallback)...');
+      const { data, error } = await sb.rpc('admin_generate_invite_code', {
+        p_max_uses: 1,
+        p_expires_in_hours: 168 // 7 days
+      });
+      
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.message || 'Generation failed');
+      
+      console.log('✅ Invite code generated:', data.code);
+      showSuccess(`Code generated: ${data.code} (expires in 7 days)`);
+      
+      // Show code in results
+      const expiry = new Date(data.expires_at).toLocaleString();
+      showResults('New Invitation Code', 
+        `Code: ${data.code}\n` +
+        `Expires: ${expiry}\n` +
+        `Max Uses: ${data.max_uses}\n` +
+        `ID: ${data.id}`
+      );
+      
+      // Refresh dashboard stats
+      await loadDashboardData();
+    } catch (error) {
+      console.error('❌ Invite code generation failed:', error);
+      showError(error.message || 'Failed to generate invitation code');
+    }
   }
 }
 

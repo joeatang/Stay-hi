@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quick Admin Setup Guide</title>
+  <style>
+    body { 
+      font-family: -apple-system, system-ui, sans-serif; 
+      max-width: 900px; 
+      margin: 40px auto; 
+      padding: 20px;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #e2e8f0;
+      line-height: 1.6;
+    }
+    h1 { color: #60a5fa; }
+    h2 { color: #34d399; margin-top: 32px; }
+    .step {
+      background: rgba(30, 41, 59, 0.8);
+      border-left: 4px solid #3b82f6;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+    }
+    .step-number {
+      display: inline-block;
+      background: #3b82f6;
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 32px;
+      font-weight: bold;
+      margin-right: 12px;
+    }
+    pre {
+      background: #0f172a;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      border: 1px solid #334155;
+    }
+    code {
+      background: #1e293b;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #60a5fa;
+    }
+    .success { color: #34d399; font-weight: bold; }
+    .warning { color: #fbbf24; }
+    .link {
+      color: #60a5fa;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .link:hover { text-decoration: underline; }
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 8px 4px;
+    }
+    button:hover { background: #2563eb; }
+    .copy-btn {
+      background: #059669;
+      font-size: 13px;
+      padding: 6px 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🚀 Quick Admin Setup Guide</h1>
+  <p>Follow these steps to get Mission Control working in <strong>under 2 minutes</strong>.</p>
+
+  <div class="step">
+    <h2><span class="step-number">1</span>Open Supabase Dashboard</h2>
+    <p>Go to: <a href="https://supabase.com/dashboard/project/gfcubvroxgfvjhacinic" target="_blank" class="link">https://supabase.com/dashboard/project/gfcubvroxgfvjhacinic</a></p>
+    <p>Click on the <strong>SQL Editor</strong> tab in the left sidebar.</p>
+  </div>
+
+  <div class="step">
+    <h2><span class="step-number">2</span>Run the Setup SQL</h2>
+    <p>Copy this SQL (click the button below):</p>
+    <button class="copy-btn" onclick="copySQL()">📋 Copy SQL to Clipboard</button>
+    <pre id="setupSQL">-- Create admin_roles table with correct schema
+DROP TABLE IF EXISTS public.admin_roles CASCADE;
+
+CREATE TABLE public.admin_roles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE NOT NULL,
+  email TEXT NOT NULL,
+  role_type TEXT NOT NULL DEFAULT 'admin',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  notes TEXT,
+  last_accessed_at TIMESTAMPTZ
+);
+
+CREATE INDEX idx_admin_roles_user_id ON public.admin_roles(user_id);
+CREATE INDEX idx_admin_roles_email ON public.admin_roles(email);
+
+ALTER TABLE public.admin_roles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow admin role checks"
+  ON public.admin_roles FOR SELECT TO authenticated USING (true);
+
+-- Add YOU as super admin
+INSERT INTO public.admin_roles (user_id, email, role_type, created_by, is_active)
+SELECT id, email, 'super_admin', id, true
+FROM auth.users
+WHERE email = 'joeatang7@gmail.com'
+ON CONFLICT (user_id) DO UPDATE 
+SET is_active = true, role_type = 'super_admin';
+
+-- Verify
+SELECT * FROM public.admin_roles WHERE email = 'joeatang7@gmail.com';</pre>
+    <p>Paste it into the SQL Editor and click <strong>Run</strong>.</p>
+    <p class="success">✅ You should see 1 row returned with your email and role_type = 'super_admin'</p>
+  </div>
+
+  <div class="step">
+    <h2><span class="step-number">3</span>Clear Your Browser Cache</h2>
+    <p>Run this in your browser console (F12 → Console tab):</p>
+    <pre>localStorage.clear();
+sessionStorage.clear();
+location.reload();</pre>
+    <p>Or just click this button:</p>
+    <button onclick="clearAndReload()">🗑️ Clear Cache & Reload</button>
+  </div>
+
+  <div class="step">
+    <h2><span class="step-number">4</span>Test Mission Control</h2>
+    <p>Visit: <a href="http://localhost:3030/public/hi-mission-control.html" target="_blank" class="link">http://localhost:3030/public/hi-mission-control.html</a></p>
+    <p class="success">✅ You should see the Mission Control dashboard load successfully!</p>
+  </div>
+
+  <hr style="margin: 40px 0; border-color: #334155;">
+
+  <h2>🔍 If It Still Doesn't Work</h2>
+  <ol>
+    <li>Make sure you're signed in with <code>joeatang7@gmail.com</code></li>
+    <li>Check browser console for errors (F12)</li>
+    <li>Verify the SQL ran successfully in Supabase (you should see "Success. No rows returned")</li>
+    <li>Try the <a href="admin-diagnostic.html" class="link">diagnostic page</a> again</li>
+  </ol>
+
+  <h2>📊 What You Can Do After Setup</h2>
+  <ul>
+    <li>✅ Generate invite codes for new users</li>
+    <li>✅ View all invitations and their status</li>
+    <li>✅ See platform statistics</li>
+    <li>✅ Monitor security events</li>
+    <li>✅ Manage admin passcodes (super admin only)</li>
+  </ul>
+
+  <script>
+    function copySQL() {
+      const sql = document.getElementById('setupSQL').textContent;
+      navigator.clipboard.writeText(sql).then(() => {
+        alert('✅ SQL copied to clipboard! Paste it in Supabase SQL Editor.');
+      });
+    }
+
+    function clearAndReload() {
+      localStorage.clear();
+      sessionStorage.clear();
+      alert('✅ Cache cleared! Page will reload now.');
+      location.reload();
+    }
+  </script>
+</body>
+</html>
