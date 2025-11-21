@@ -20,7 +20,7 @@ jobs:
       - name: Run RLS audit script
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
           if [ -f scripts/rls-audit.cjs ]; then node scripts/rls-audit.cjs; else echo 'scripts/rls-audit.cjs missing' && exit 1; fi
       - name: Fail if audit markers missing
