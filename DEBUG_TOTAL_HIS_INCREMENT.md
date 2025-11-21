@@ -80,3 +80,49 @@ The user is seeing the transition from cached value → fresh DB value, which lo
 
 ## Recommended Fix
 Option A - update RealUserCount.js to use `globalTotalHis` key instead of `dashboard_total_cache`
+
+---
+
+## ✅ FIX IMPLEMENTED
+
+### Changes Made:
+
+1. **public/lib/RealUserCount.js** (line 107)
+   - Changed: `localStorage.setItem('dashboard_total_cache', ...)` 
+   - To: `localStorage.setItem('globalTotalHis', ...)`
+   - Changed: `localStorage.setItem('dashboard_waves_cache', ...)`
+   - To: `localStorage.setItem('globalHiWaves', ...)`
+
+2. **public/lib/boot/dashboard-main.js**
+   - Line 509: Changed cache reads to use `globalTotalHis`, `globalHiWaves`, `globalTotalUsers`
+   - Line 624-626: Changed cache writes to use unified keys
+   - Line 510: Changed cache timestamp to `globalHiWaves_time`
+
+3. **public/lib/boot/cache-migration.js** (NEW FILE)
+   - Auto-migrates old cache keys to new unified system
+   - Preserves existing values for smooth transition
+   - Non-breaking: keeps old keys temporarily for multi-tab scenarios
+
+4. **public/hi-dashboard.html**
+   - Added cache-migration.js script before dashboard-main.js
+   - Ensures migration runs before stats loading
+
+### Result:
+- **Single source of truth:** All code now uses `globalTotalHis` key
+- **No more race conditions:** Cache synchronization is instant
+- **User experience:** No more false "increments" on page refresh
+- **Data integrity:** Total His still only increments via share modal submissions
+- **Backward compatible:** Migration script preserves existing user caches
+
+### Deployed:
+- Commit: 0f68ab2
+- Production URL: https://stay-nzi5prbq7-joeatangs-projects.vercel.app
+- GitHub: Pushed to main branch
+
+### Testing Instructions:
+1. Open dashboard, note Total His value
+2. Refresh page 5-10 times
+3. Verify Total His stays same (no spurious increments)
+4. Submit via share modal
+5. Verify Total His increments by exactly 1
+6. Refresh again - should stay at new value
