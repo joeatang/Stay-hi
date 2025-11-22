@@ -146,14 +146,27 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
     let validCode = false;
     let codeId = null;
     try {
+      console.log('🔍 Validating invite code:', invite);
       const { data, error } = await supabaseClient.rpc('validate_invite_code', { code: invite });
-      if (error || !data || !data.is_valid) {
+      console.log('📊 Validation response:', { data, error });
+      
+      if (error) {
+        console.error('❌ RPC error:', error);
         showError('Invalid or expired invite code.');
         return;
       }
+      
+      if (!data || !data.is_valid) {
+        console.error('❌ Code validation failed:', data);
+        showError(data?.reason || 'Invalid or expired invite code.');
+        return;
+      }
+      
       validCode = true;
       codeId = data.code_id;
+      console.log('✅ Code validated successfully:', { codeId, tier: data.grants_tier });
     } catch (err) {
+      console.error('❌ Validation exception:', err);
       showError('Error validating invite code.');
       return;
     }
@@ -206,6 +219,17 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', async () => {
   try {
+    // Auto-fill invite code from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const codeFromUrl = urlParams.get('code');
+    if (codeFromUrl) {
+      const inviteInput = document.getElementById('invite');
+      if (inviteInput) {
+        inviteInput.value = codeFromUrl;
+        console.log('✅ Auto-filled invite code from URL:', codeFromUrl);
+      }
+    }
+    
     if (!window.supabase) {
       await new Promise(resolve => {
         const checkSupabase = () => {
@@ -223,8 +247,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session) {
-      console.log('🔄 User already authenticated, redirecting to main app');
-      window.location.replace('index.html');
+      console.log('🔄 User already authenticated, redirecting to dashboard');
+      window.location.replace('./hi-dashboard.html');
       return;
     }
     

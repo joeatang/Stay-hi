@@ -1,39 +1,23 @@
 -- ========================================
--- 🎫 INVITATION SYSTEM DEPLOYMENT (SAFE VERSION)
--- Deploy ONLY the missing RPC functions
--- Tables already exist - skip table creation
+-- 🎫 INVITATION SYSTEM - COMPLETE SAFE DEPLOYMENT
+-- Includes RLS policies with proper admin_roles check
 -- ========================================
 
--- NOTE: invitation_codes table already exists
--- Skipping table creation to avoid policy conflicts
-
 -- ========================================
--- TABLES ALREADY EXIST - SKIPPING CREATION
--- ========================================
--- Tables confirmed in database:
--- • invitation_codes
--- • user_memberships  
--- • membership_transactions
--- (Policies already created - skipping to avoid conflicts)
-
--- ========================================
--- DEPLOY ONLY MISSING RPC FUNCTIONS
+-- STEP 1: DROP CONFLICTING POLICIES
 -- ========================================
 
--- CRITICAL FIX: Drop existing functions to allow return type changes
-DROP FUNCTION IF EXISTS validate_invite_code(text);
-DROP FUNCTION IF EXISTS use_invite_code(text, uuid);
-DROP FUNCTION IF EXISTS get_admin_dashboard_stats();
-DROP FUNCTION IF EXISTS admin_generate_invite_code(uuid, integer, integer);
-DROP FUNCTION IF EXISTS admin_list_invite_codes(boolean);
-
--- CRITICAL FIX: Ensure RLS policies exist to prevent deployment failures
--- Drop and recreate policies to fix any circular dependencies
-
+-- Drop old circular policies if they exist
 DROP POLICY IF EXISTS "Admin can manage invitation codes" ON invitation_codes;
 DROP POLICY IF EXISTS "Anyone can read active invitation codes" ON invitation_codes;
+DROP POLICY IF EXISTS "Users can read own membership" ON user_memberships;
+DROP POLICY IF EXISTS "Users can update own membership" ON user_memberships;
 
--- Create safe policies using admin_roles (not user_memberships to avoid circular deps)
+-- ========================================
+-- STEP 2: CREATE SAFE RLS POLICIES
+-- ========================================
+
+-- Invitation Codes Policies (using admin_roles table, not user_memberships)
 CREATE POLICY "Admins can manage invitation codes"
 ON invitation_codes
 FOR ALL
@@ -50,12 +34,61 @@ ON invitation_codes
 FOR SELECT
 USING (is_active = true AND (valid_until IS NULL OR valid_until > NOW()));
 
+-- User Memberships Policies
+CREATE POLICY "Users can read own membership"
+ON user_memberships
+FOR SELECT
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Admins can read all memberships"
+ON user_memberships
+FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM admin_roles
+    WHERE admin_roles.user_id = auth.uid()
+    AND admin_roles.role_type IN ('super_admin', 'admin')
+  )
+);
+
+CREATE POLICY "System can insert memberships"
+ON user_memberships
+FOR INSERT
+WITH CHECK (true);
+
+CREATE POLICY "Users can update own membership"
+ON user_memberships
+FOR UPDATE
+USING (auth.uid() = user_id);
+
+-- Membership Transactions Policies
+CREATE POLICY "Users can read own transactions"
+ON membership_transactions
+FOR SELECT
+USING (
+  auth.uid() = user_id
+  OR EXISTS (
+    SELECT 1 FROM admin_roles
+    WHERE admin_roles.user_id = auth.uid()
+    AND admin_roles.role_type IN ('super_admin', 'admin')
+  )
+);
+
+CREATE POLICY "System can insert transactions"
+ON membership_transactions
+FOR INSERT
+WITH CHECK (true);
+
+-- ========================================
+-- STEP 3: DEPLOY RPC FUNCTIONS
+-- ========================================
+
 -- Function 1: Get Admin Dashboard Stats
 CREATE OR REPLACE FUNCTION get_admin_dashboard_stats() RETURNS JSONB AS $$
 DECLARE
   v_stats JSONB;
 BEGIN
-  -- Verify admin access using existing check_admin_access_v2
+  -- Verify admin access using admin_roles
   IF NOT EXISTS (
     SELECT 1 FROM admin_roles 
     WHERE user_id = auth.uid() 
@@ -197,125 +230,27 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Function 4: Validate Invite Code (Public - used during signup)
-CREATE OR REPLACE FUNCTION validate_invite_code(p_code TEXT) RETURNS JSONB AS $$
-DECLARE
-  v_code_record RECORD;
-BEGIN
-  -- Look up the invitation code
-  SELECT 
-    id,
-    code,
-    max_uses,
-    current_uses,
-    is_active,
-    valid_until,
-    grants_tier,
-    trial_days
-  INTO v_code_record
-  FROM invitation_codes
-  WHERE code = p_code;
-
-  -- Check if code exists
-  IF NOT FOUND THEN
-    RETURN jsonb_build_object('is_valid', false, 'reason', 'Code not found');
-  END IF;
-
-  -- Check if code is active
-  IF v_code_record.is_active = false THEN
-    RETURN jsonb_build_object('is_valid', false, 'reason', 'Code is inactive');
-  END IF;
-
-  -- Check if code has expired
-  IF v_code_record.valid_until IS NOT NULL AND v_code_record.valid_until < NOW() THEN
-    RETURN jsonb_build_object('is_valid', false, 'reason', 'Code has expired');
-  END IF;
-
-  -- Check if code has reached max uses
-  IF v_code_record.max_uses IS NOT NULL AND v_code_record.current_uses >= v_code_record.max_uses THEN
-    RETURN jsonb_build_object('is_valid', false, 'reason', 'Code has reached maximum uses');
-  END IF;
-
-  -- Code is valid - return details
-  RETURN jsonb_build_object(
-    'is_valid', true,
-    'code_id', v_code_record.id,
-    'grants_tier', v_code_record.grants_tier,
-    'trial_days', v_code_record.trial_days
-  );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Function 5: Use Invite Code (Public - called after successful signup)
-CREATE OR REPLACE FUNCTION use_invite_code(p_code TEXT, p_user_id UUID) RETURNS JSONB AS $$
-DECLARE
-  v_code_id UUID;
-  v_grants_tier TEXT;
-  v_trial_days INTEGER;
-BEGIN
-  -- Get code details and lock the row for update
-  SELECT id, grants_tier, trial_days
-  INTO v_code_id, v_grants_tier, v_trial_days
-  FROM invitation_codes
-  WHERE code = p_code
-  FOR UPDATE;
-
-  -- Verify code exists
-  IF NOT FOUND THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Code not found');
-  END IF;
-
-  -- Increment usage count
-  UPDATE invitation_codes
-  SET 
-    current_uses = current_uses + 1,
-    last_used_at = NOW()
-  WHERE id = v_code_id;
-
-  -- Create membership record if tier is granted
-  IF v_grants_tier IS NOT NULL THEN
-    INSERT INTO user_memberships (user_id, tier, status, started_at, expires_at)
-    VALUES (
-      p_user_id,
-      v_grants_tier,
-      'active',
-      NOW(),
-      CASE 
-        WHEN v_trial_days IS NOT NULL THEN NOW() + (v_trial_days || ' days')::INTERVAL
-        ELSE NULL  -- Permanent membership
-      END
-    )
-    ON CONFLICT (user_id) DO UPDATE
-    SET 
-      tier = EXCLUDED.tier,
-      status = EXCLUDED.status,
-      started_at = EXCLUDED.started_at,
-      expires_at = EXCLUDED.expires_at;
-  END IF;
-
-  -- Log the transaction
-  INSERT INTO membership_transactions (user_id, transaction_type, tier, invitation_code_id)
-  VALUES (p_user_id, 'invite_code_redemption', v_grants_tier, v_code_id);
-
-  RETURN jsonb_build_object('success', true, 'code_id', v_code_id);
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- ========================================
--- GRANT PERMISSIONS (safe - re-running won't cause errors)
+-- GRANT PERMISSIONS
 -- ========================================
 
 GRANT EXECUTE ON FUNCTION get_admin_dashboard_stats() TO authenticated;
 GRANT EXECUTE ON FUNCTION admin_generate_invite_code(UUID, INTEGER, INTEGER) TO authenticated;
 GRANT EXECUTE ON FUNCTION admin_list_invite_codes(BOOLEAN) TO authenticated;
-GRANT EXECUTE ON FUNCTION validate_invite_code(TEXT) TO anon, authenticated;
-GRANT EXECUTE ON FUNCTION use_invite_code(TEXT, UUID) TO authenticated;
 
 -- ========================================
 -- 🎯 DEPLOYMENT VERIFICATION
 -- ========================================
 
-SELECT 
-  'Invitation system deployed successfully!' AS status,
-  (SELECT COUNT(*) FROM invitation_codes) AS invitation_codes_count,
-  (SELECT COUNT(*) FROM admin_roles WHERE role_type IN ('super_admin', 'admin')) AS admin_count;
+DO $$
+BEGIN
+  RAISE NOTICE '✅ Invitation system deployed successfully!';
+  RAISE NOTICE 'Invitation codes count: %', (SELECT COUNT(*) FROM invitation_codes);
+  RAISE NOTICE 'Admin count: %', (SELECT COUNT(*) FROM admin_roles WHERE role_type IN ('super_admin', 'admin'));
+  RAISE NOTICE 'RLS enabled on invitation_codes: %', (
+    SELECT relrowsecurity FROM pg_class WHERE relname = 'invitation_codes'
+  );
+  RAISE NOTICE 'Active policies on invitation_codes: %', (
+    SELECT COUNT(*) FROM pg_policies WHERE tablename = 'invitation_codes'
+  );
+END $$;

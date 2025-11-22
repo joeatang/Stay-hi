@@ -4,15 +4,34 @@
 
   function safeDispatchOpenCalendar(){
     try {
+      // Try direct instance first
       if (window.hiCalendarInstance && typeof window.hiCalendarInstance.show === 'function') {
+        console.log('📅 Opening calendar via direct instance');
         window.hiCalendarInstance.show();
-      } else if (typeof window.openHiCalendar === 'function') {
-        window.openHiCalendar();
-      } else {
-        window.dispatchEvent(new CustomEvent('open-calendar'));
+        return;
       }
+      
+      // Try helper function
+      if (typeof window.openHiCalendar === 'function') {
+        console.log('📅 Opening calendar via helper function');
+        window.openHiCalendar();
+        return;
+      }
+      
+      // Lazy init if calendar class exists but no instance
+      if (typeof PremiumCalendar === 'function' && !window.hiCalendarInstance) {
+        console.log('📅 Lazy-initializing calendar');
+        window.hiCalendarInstance = new PremiumCalendar();
+        setTimeout(() => window.hiCalendarInstance.show(), 100);
+        return;
+      }
+      
+      // Event dispatch fallback
+      console.log('📅 Opening calendar via event dispatch');
+      window.dispatchEvent(new CustomEvent('open-calendar'));
     } catch (err) {
-      console.warn('[HI DEV] Calendar open fallback due to error:', err);
+      console.warn('[HI DEV] Calendar open error:', err);
+      // Last resort: try event dispatch
       window.dispatchEvent(new CustomEvent('open-calendar'));
     }
   }

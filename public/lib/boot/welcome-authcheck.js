@@ -1,5 +1,5 @@
-// 🎬 TESLA-GRADE LOADING EXPERIENCE V2.0
-// Tesla-grade auth check with beautiful loading experience
+// 🎬 SIMPLE AUTH CHECK (No Loading Screen Conflicts)
+// Redirect authenticated users without fancy loading experience
 async function checkAuthWithLoadingExperience() {
   try {
     const supa = window.supabaseClient;
@@ -12,11 +12,8 @@ async function checkAuthWithLoadingExperience() {
     }
     
     if (session) {
-      console.log('Welcome: User authenticated - starting loading experience');
+      console.log('Welcome: User authenticated - redirecting to dashboard');
       sessionStorage.setItem('from-welcome', 'true');
-      
-      await window.hiLoadingExperience.start('Welcome back! Loading your Hi space...');
-      await window.hiLoadingExperience.hide();
       window.location.replace('./hi-dashboard.html?source=welcome');
     }
   } catch (error) {
