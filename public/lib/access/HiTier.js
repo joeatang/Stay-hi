@@ -1,15 +1,16 @@
 (function(){
-  const allowedTiers = ['T1','T2','T3'];
-  let currentTier = 'T1';
+  const allowedTiers = ['free', 'bronze', 'silver', 'gold', 'premium', 'collective'];
+  let currentTier = 'free';
 
   function normalizeTier(t){
-    if(!t) return 'T1';
-    const up = String(t).toUpperCase();
-    return allowedTiers.includes(up) ? up : 'T1';
+    if(!t) return 'free';
+    const lower = String(t).toLowerCase();
+    return allowedTiers.includes(lower) ? lower : 'free';
   }
 
   function tierRank(t){
-    return { T1: 1, T2: 2, T3: 3 }[normalizeTier(t)] || 1;
+    const ranks = { free: 1, bronze: 2, silver: 3, gold: 4, premium: 5, collective: 6 };
+    return ranks[normalizeTier(t)] || 1;
   }
 
   async function resolveTier(){
@@ -26,7 +27,8 @@
         const metaTier = user?.user_metadata?.tier || user?.app_metadata?.tier;
         if(metaTier) return normalizeTier(metaTier);
         if(user?.id){
-          const { data: mrow, error } = await client.from('user_membership').select('tier').eq('user_id', user.id).maybeSingle();
+          // FIXED: Changed from 'user_membership' to 'user_memberships' (plural)
+          const { data: mrow, error } = await client.from('user_memberships').select('tier').eq('user_id', user.id).maybeSingle();
           if(!error && mrow?.tier) return normalizeTier(mrow.tier);
         }
       }
@@ -36,7 +38,7 @@
       const stored = localStorage.getItem('__hiTier');
       if(stored) return normalizeTier(stored);
     } catch(_){ }
-    return 'T1';
+    return 'free';
   }
 
   async function refresh(){

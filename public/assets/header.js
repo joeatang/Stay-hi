@@ -135,7 +135,8 @@
         bronze: '🥉 Bronze Member',
         silver: '🥈 Silver Member', 
         gold: '🥇 Gold Member',
-        platinum: '💎 Platinum Member'
+        premium: '⭐ Premium Member',
+        collective: '🌟 Collective Member'
       };
       
       text.textContent = tierMap[tier] || `Tier: ${tier}`;
