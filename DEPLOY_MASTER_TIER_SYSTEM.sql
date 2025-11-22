@@ -286,14 +286,10 @@ COMMIT;
 
 SELECT '✅ DEPLOYMENT COMPLETE' as status;
 
--- Test: Generate a bronze tier code
-SELECT admin_generate_invite_code(
-  p_tier := 'bronze',
-  p_max_uses := 1,
-  p_expires_in_hours := 24
-);
+-- NOTE: Test code generation from Mission Control UI, not here
+-- (admin_generate_invite_code requires admin_roles entry)
 
--- View recent codes
+-- View recent codes (safe query)
 SELECT code, grants_tier, trial_days, max_uses, valid_until
 FROM invitation_codes
 ORDER BY created_at DESC
