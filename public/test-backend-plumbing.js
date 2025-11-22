@@ -73,11 +73,23 @@ async function testBackendPlumbing() {
   
 }
 
+// WOZ FIX: Wait for ES6 modules to load before testing
+// Modules load asynchronously - need to poll for window.HiBase.shares
+function runTestWhenReady() {
+  if (window.HiBase?.shares && window.hiRealFeed) {
+    console.log('✅ All modules loaded, running backend plumbing test...');
+    testBackendPlumbing();
+  } else {
+    console.log('⏳ Waiting for modules to load...');
+    setTimeout(runTestWhenReady, 100);
+  }
+}
+
 // Run test when page loads
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', testBackendPlumbing);
+  document.addEventListener('DOMContentLoaded', runTestWhenReady);
 } else {
-  testBackendPlumbing();
+  runTestWhenReady();
 }
 
 // Export for manual testing
