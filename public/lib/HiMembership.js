@@ -4,6 +4,9 @@
  * 🏆 UNIFIED MEMBERSHIP SYSTEM - TESLA GRADE
  * Single source of truth with time-based progression
  * Extensible foundation for future premium tiers
+ * 
+ * UPDATED: 2025-11-22 - Now imports from TIER_CONFIG.js for all tier definitions
+ * NOTE: TIER_CONFIG.js must be loaded before this file (add script tag in HTML)
  */
 
 class UnifiedMembershipSystem {
@@ -158,7 +161,15 @@ class UnifiedMembershipSystem {
   }
 
   // CRITICAL FIX: Define features for each tier
+  // UPDATED: Now imports from TIER_CONFIG.js instead of hardcoding
   getFeaturesByTier(tier) {
+    // Check if TIER_CONFIG is available globally
+    if (typeof window !== 'undefined' && window.HiTierConfig) {
+      return window.HiTierConfig.getTierFeatures(tier);
+    }
+    
+    // Fallback: Use basic tier features if TIER_CONFIG not loaded
+    console.warn('[HiMembership] TIER_CONFIG not loaded, using fallback features');
     const tierFeatures = {
       'anonymous': {
         hiMedallionInteractions: 10,
@@ -214,7 +225,10 @@ class UnifiedMembershipSystem {
         shareCreation: 'unlimited',
         profileAccess: 'full',
         hiMuscleAccess: true,
-        calendarAccess: true
+        calendarAccess: true,
+        adminPanel: true,
+        userManagement: true,
+        inviteCodeGeneration: 'unlimited'
       }
     };
 

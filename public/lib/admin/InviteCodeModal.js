@@ -28,10 +28,21 @@
             Membership Tier
           </label>
           <select id="inviteCodeTier" style="width:100%; padding:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.2); border-radius:12px; color:#fff; font-size:14px; cursor:pointer;">
-            <option value="trial">Free Trial (30 days)</option>
-            <option value="premium" selected>Premium (Full Access)</option>
-            <option value="collective">Collective (Community)</option>
+            <option value="free">🌱 Free Explorer - No paid features</option>
+            <option value="bronze">🥉 Bronze Pathfinder - $5.55 (7-day trial)</option>
+            <option value="silver">🥈 Silver Trailblazer - $15.55 (14-day trial)</option>
+            <option value="gold">🥇 Gold Champion - $25.55 (21-day trial)</option>
+            <option value="premium" selected>⭐ Premium Pioneer - $55.55 (30-day trial)</option>
+            <option value="collective">🌟 Collective Member - $155.55 (90-day trial)</option>
           </select>
+        </div>
+        
+        <div style="margin-bottom:20px;">
+          <label style="color:rgba(255,255,255,0.9); font-size:14px; font-weight:600; display:block; margin-bottom:8px;">
+            Trial Days (Optional Override)
+          </label>
+          <input type="number" id="inviteCodeTrialDays" placeholder="Auto (uses tier default)" min="0" max="365" style="width:100%; padding:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.2); border-radius:12px; color:#fff; font-size:14px;">
+          <div style="color:rgba(255,255,255,0.5); font-size:11px; margin-top:4px;">Leave blank to use tier default trial period</div>
         </div>
         
         <div style="margin-bottom:24px;">
@@ -120,6 +131,8 @@
     const duration = parseInt(document.getElementById('inviteCodeDuration')?.value || '168');
     const tier = document.getElementById('inviteCodeTier')?.value || 'premium';
     const maxUses = parseInt(document.getElementById('inviteCodeMaxUses')?.value || '1');
+    const customTrialDays = document.getElementById('inviteCodeTrialDays')?.value;
+    const trialDays = customTrialDays ? parseInt(customTrialDays) : null; // null = use tier default
     
     const generateBtn = document.getElementById('generateInviteCodeBtn');
     const originalText = generateBtn.textContent;
@@ -133,13 +146,26 @@
       
       if (!sb) throw new Error('Supabase client unavailable');
       
-      const { data, error } = await sb.rpc('admin_generate_invite_code', {
+      // Build RPC params with new tier system
+      const rpcParams = {
+        p_tier: tier,
         p_max_uses: maxUses === 0 ? 999999 : maxUses,
         p_expires_in_hours: duration === 0 ? 87600 : duration // 10 years for unlimited
-      });
+      };
+      
+      // Only include trial_days if user provided custom value
+      if (trialDays !== null) {
+        rpcParams.p_trial_days = trialDays;
+      }
+      
+      console.log('[InviteModal] Generating code with params:', rpcParams);
+      
+      const { data, error } = await sb.rpc('admin_generate_invite_code', rpcParams);
       
       if (error) throw error;
       if (!data?.success) throw new Error(data?.message || 'Generation failed');
+      
+      console.log('[InviteModal] ✅ Code generated:', data);
       
       // Show result
       document.getElementById('inviteCodeValue').textContent = data.code;
@@ -148,10 +174,17 @@
       
       // Trigger success event
       window.dispatchEvent(new CustomEvent('hi:invite-code-generated', {
-        detail: { code: data.code, tier, duration, maxUses }
+        detail: { 
+          code: data.code, 
+          tier: data.tier || tier,
+          trial_days: data.trial_days || trialDays,
+          duration, 
+          maxUses 
+        }
       }));
       
     } catch (err) {
+      console.error('[InviteModal] ❌ Generation failed:', err);
       alert('Failed to generate code: ' + (err.message || err));
       generateBtn.textContent = originalText;
       generateBtn.disabled = false;
