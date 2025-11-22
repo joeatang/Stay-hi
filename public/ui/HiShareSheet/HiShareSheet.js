@@ -119,7 +119,7 @@ export class HiShareSheet {
           <span class="location-loading">📍 Checking location...</span>
         </div>
         
-        <div class="share-options">
+        <div class="share-options" id="hi-share-options-container">
           <button id="hi-save-private" class="share-option private-option">
             <div class="option-icon">🔒</div>
             <div class="option-content">
@@ -128,18 +128,31 @@ export class HiShareSheet {
             </div>
           </button>
           
-          <button id="hi-share-auth-prompt" class="share-option auth-prompt-option">
+          <!-- 🔐 AUTH REQUIRED: Show for anonymous users only -->
+          <button id="hi-share-auth-prompt" class="share-option auth-prompt-option" style="display:none;">
             <div class="option-icon">✨</div>
             <div class="option-content">
               <div class="option-title">Join Community to Share</div>
               <div class="option-desc">Hi Island • Connect & Share • Sign In Required</div>
               <div class="privacy-notice">
-                🌟 Create account to share with the community</div>
+                🌟 Create account to share with the community
               </div>
             </div>
           </button>
           
-          <button id="hi-share-public" class="share-option public-option primary-option">
+          <!-- ✅ AUTHENTICATED: Show for logged-in users -->
+          <button id="hi-share-anon" class="share-option anonymous-option" style="display:none;">
+            <div class="option-icon">🥸</div>
+            <div class="option-content">
+              <div class="option-title">Share Anonymously</div>
+              <div class="option-desc">Hi Island • General Shares • Anonymous</div>
+              <div class="privacy-notice">
+                🔒 Privacy: Only city/state location shared
+              </div>
+            </div>
+          </button>
+          
+          <button id="hi-share-public" class="share-option public-option primary-option" style="display:none;">
             <div class="option-icon">🌟</div>
             <div class="option-content">
               <div class="option-title">Share Publicly</div>
@@ -167,6 +180,7 @@ export class HiShareSheet {
     const charCount = document.getElementById('hi-share-char-count');
     const savePrivateBtn = document.getElementById('hi-save-private');
     const shareAuthPromptBtn = document.getElementById('hi-share-auth-prompt');
+    const shareAnonBtn = document.getElementById('hi-share-anon');
     const sharePublicBtn = document.getElementById('hi-share-public');
     const sheet = document.getElementById('hi-share-sheet');
 
@@ -178,11 +192,12 @@ export class HiShareSheet {
       charCount: !!charCount,
       savePrivateBtn: !!savePrivateBtn,
       shareAuthPromptBtn: !!shareAuthPromptBtn,
+      shareAnonBtn: !!shareAnonBtn,
       sharePublicBtn: !!sharePublicBtn
     });
 
     // 🔧 SAFETY CHECK: Ensure all elements exist before attaching listeners
-    if (!savePrivateBtn || !shareAuthPromptBtn || !sharePublicBtn) {
+    if (!savePrivateBtn || !shareAuthPromptBtn || !shareAnonBtn || !sharePublicBtn) {
       console.error('❌ Critical share buttons not found! Retrying in 100ms...');
       setTimeout(() => this.attachEventListeners(), 100);
       return;
@@ -252,6 +267,7 @@ export class HiShareSheet {
     // Privacy option handlers
     savePrivateBtn.addEventListener('click', (e) => this.handleSavePrivate(e));
     shareAuthPromptBtn.addEventListener('click', (e) => this.handleShareAuthPrompt(e));
+    shareAnonBtn.addEventListener('click', (e) => this.handleShareAnonymous(e));
     sharePublicBtn.addEventListener('click', (e) => this.handleSharePublic(e));
     
     // Location update handler (delegated event)
@@ -266,6 +282,61 @@ export class HiShareSheet {
   // Standardized isReady method (A2 requirement)
   isReady() {
     return this._isReady;
+  }
+
+  // 🔐 TESLA-GRADE: Update share options based on authentication state
+  async updateShareOptionsForAuthState() {
+    // Check authentication via multiple sources (Hi System Standard)
+    const isAuthenticated = await this.checkAuthentication();
+    
+    const authPromptBtn = document.getElementById('hi-share-auth-prompt');
+    const shareAnonBtn = document.getElementById('hi-share-anon');
+    const sharePublicBtn = document.getElementById('hi-share-public');
+    
+    this._dbg('🔐 Auth state check:', { isAuthenticated });
+    
+    if (isAuthenticated) {
+      // ✅ AUTHENTICATED: Show Anonymous + Public options
+      if (authPromptBtn) authPromptBtn.style.display = 'none';
+      if (shareAnonBtn) shareAnonBtn.style.display = 'block';
+      if (sharePublicBtn) sharePublicBtn.style.display = 'block';
+    } else {
+      // 🔒 ANONYMOUS: Show Auth Prompt only
+      if (authPromptBtn) authPromptBtn.style.display = 'block';
+      if (shareAnonBtn) shareAnonBtn.style.display = 'none';
+      if (sharePublicBtn) sharePublicBtn.style.display = 'none';
+    }
+  }
+
+  // 🔐 Check authentication across multiple systems
+  async checkAuthentication() {
+    // Method 1: Supabase auth
+    try {
+      if (window.sb?.auth) {
+        const { data: { session } } = await window.sb.auth.getSession();
+        if (session?.user) {
+          this._dbg('✅ Auth: Supabase session found');
+          return true;
+        }
+      }
+    } catch (err) {
+      this._dbg('⚠️ Supabase auth check failed:', err);
+    }
+
+    // Method 2: Global auth state
+    if (window.__hiAuth?.user || window.__currentUser) {
+      this._dbg('✅ Auth: Global auth state found');
+      return true;
+    }
+
+    // Method 3: Membership system
+    if (window.__hiMembership?.tier && window.__hiMembership.tier !== 'free') {
+      this._dbg('✅ Auth: Membership tier found');
+      return true;
+    }
+
+    this._dbg('🔒 Auth: No authenticated session found');
+    return false;
   }
 
   // Open share sheet
@@ -295,6 +366,9 @@ export class HiShareSheet {
     sheet.classList.add('active');
     this.isOpen = true;
     document.body.style.overflow = 'hidden';
+
+    // 🔐 AUTHENTICATION CHECK: Show correct buttons based on auth state
+    await this.updateShareOptionsForAuthState();
 
     // Practice mode banner/update
     try {
@@ -524,6 +598,41 @@ export class HiShareSheet {
     setTimeout(() => {
       button.dataset.animating = 'false';
     }, 500);
+  }
+
+  // Handle Share Anonymously
+  async handleShareAnonymous(e) {
+    if (e.target.closest('button').dataset.animating === 'true') return;
+    const button = e.target.closest('button');
+    button.dataset.animating = 'true';
+
+    // 🎭 TESLA-GRADE: Anonymous celebration
+    if (window.PremiumUX) {
+      window.PremiumUX.celebrate(button, '🥸 Shared anonymously!');
+      setTimeout(() => {
+        window.PremiumUX.confetti({ count: 12, colors: ['#A8B2D1', '#4ECDC4', '#FFD700'] });
+      }, 100);
+      window.PremiumUX.triggerHapticFeedback('subtle');
+    }
+
+    // Practice mode bypass
+    if (this.practiceMode) {
+      this.showToast('🧪 Practice complete — nothing shared.');
+      this.close();
+    } else {
+      // 🔧 TESLA-GRADE: Non-blocking persist (fire and forget)
+      this.persist({ toIsland: true, anon: true }).catch(err => {
+        console.error('❌ Anonymous share failed:', err);
+        this.showToast('❌ Share failed. Please try again.');
+      });
+      
+      // Close immediately for responsiveness
+      this.close();
+    }
+
+    setTimeout(() => {
+      button.dataset.animating = 'false';
+    }, 800);
   }
 
   // Handle Share Publicly
