@@ -145,7 +145,7 @@ class HiIslandRealFeed {
       console.log('🔍 HiRealFeed: Attempting to load from public_shares...');
       
       // Query REAL public_shares table with proper pagination
-      // 🚨 EMERGENCY FIX: Filter out medallion taps to prevent data contamination
+      // 🚨 EMERGENCY FIX: Filter medallions using NEW SCHEMA column name
       const { data: shares, error } = await supabase
         .from('public_shares')
         .select(`
@@ -156,7 +156,7 @@ class HiIslandRealFeed {
             avatar_url
           )
         `)
-        .not('text', 'ilike', '%medallion tap%')  // Exclude medallion taps from text column
+        .not('content', 'ilike', '%medallion tap%')  // NEW SCHEMA: content column (was 'text')
         .order('created_at', { ascending: false })
         .range(this.pagination.general.page * 20, (this.pagination.general.page + 1) * 20 - 1);
 
