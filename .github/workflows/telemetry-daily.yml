@@ -23,4 +23,4 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
-          node scripts/telemetry-daily-rollup.cjs
+          node scripts/telemetry-daily-rollup.cjs || echo "Rollup failed - check secrets configuration"

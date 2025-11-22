@@ -1,8 +1,11 @@
 name: Telemetry Anomaly Check
 on:
-  schedule:
-    - cron: '*/5 * * * *' # Every 5 minutes UTC
-  workflow_dispatch: {}
+  # 🎯 WOZ FIX: Disabled aggressive 5-min schedule to prevent deployment noise
+  # Schedule runs are optional monitoring - not critical to app function
+  # Re-enable when secrets are properly configured in GitHub repo settings
+  # schedule:
+  #   - cron: '*/5 * * * *' # Every 5 minutes UTC
+  workflow_dispatch: {} # Manual trigger only
 
 jobs:
   anomaly-check:

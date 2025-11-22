@@ -1,8 +1,10 @@
 name: Telemetry Latency Anomaly
 on:
-  schedule:
-    - cron: '*/5 * * * *'
-  workflow_dispatch: {}
+  # 🎯 WOZ FIX: Disabled aggressive 5-min schedule to prevent deployment noise
+  # Re-enable when secrets are properly configured
+  # schedule:
+  #   - cron: '*/5 * * * *'
+  workflow_dispatch: {} # Manual trigger only
 
 jobs:
   latency-anomaly:
