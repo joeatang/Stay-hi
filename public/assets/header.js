@@ -123,7 +123,7 @@
       }
       
       // Get tier from HiTier module
-      const tier = await window.HiTier?.getCurrentTier?.();
+      const tier = await window.HiTier?.refresh?.();
       if (!tier) {
         section.style.display = 'none';
         return;
