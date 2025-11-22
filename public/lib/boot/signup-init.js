@@ -185,52 +185,53 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
       return;
     }
 
-    // 3. Wait for user record to be created in users table (auth trigger)
-    console.log('⏳ Waiting for user record creation...');
-    let userRecordExists = false;
+    // 3. Mark invite code as used (with retry for race condition)
+    console.log('📝 Marking code as used for user:', userId);
+    let usageSuccess = false;
+    let lastError = null;
+    
+    // Retry up to 10 times (5 seconds) to handle auth trigger delay
     for (let attempt = 0; attempt < 10; attempt++) {
-      const { data: userData, error } = await supabaseClient
-        .from('users')
-        .select('id')
-        .eq('id', userId)
-        .single();
-      
-      if (userData) {
-        console.log('✅ User record confirmed in database');
-        userRecordExists = true;
+      try {
+        const { data: usageData, error } = await supabaseClient.rpc('use_invite_code', { 
+          p_code: invite, 
+          p_user_id: userId 
+        });
+        
+        if (error) {
+          // If foreign key error (user not created yet), retry
+          if (error.code === '23503') {
+            console.log(`⏳ Attempt ${attempt + 1}/10: User record not ready, retrying...`);
+            lastError = error;
+            await new Promise(resolve => setTimeout(resolve, 500));
+            continue;
+          }
+          // Other errors - fail immediately
+          console.error('❌ Usage tracking error:', error);
+          showError('Error tracking invite code usage.');
+          return;
+        }
+        
+        console.log('✅ Code marked as used:', usageData);
+        usageSuccess = true;
         break;
+      } catch (err) {
+        console.error('❌ Exception during usage tracking:', err);
+        lastError = err;
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
-      
-      // Wait 500ms before next attempt
-      await new Promise(resolve => setTimeout(resolve, 500));
     }
 
-    if (!userRecordExists) {
-      console.error('❌ User record not created after 5 seconds');
-      showError('Account created but database sync failed. Please contact support.');
+    if (!usageSuccess) {
+      console.error('❌ Failed to mark code as used after 10 attempts:', lastError);
+      showError('Account created but invite tracking failed. Please contact support.');
       return;
     }
 
-    // 4. Mark invite code as used (track usage)
-    try {
-      console.log('📝 Marking code as used for user:', userId);
-      const { data: usageData, error } = await supabaseClient.rpc('use_invite_code', { p_code: invite, p_user_id: userId });
-      console.log('📊 Usage response:', { usageData, error });
-      
-      if (error) {
-        console.error('❌ Usage tracking error:', error);
-        showError('Error tracking invite code usage.');
-        return;
-      }
-    } catch (err) {
-      showError('Error tracking invite code usage.');
-      return;
-    }
-
-    // 5. Process referral code if present (HiBase integration)
+    // 4. Process referral code if present (HiBase integration)
     await processReferralRedemption(userId);
 
-    // 6. Success: show message and redirect with smooth transition
+    // 5. Success: show message and redirect with smooth transition
     showSuccess('🎉 Account created! Check your email to verify and sign in.');
     
     setTimeout(() => {
