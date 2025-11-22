@@ -274,23 +274,16 @@ BEGIN
 
   -- Create membership record if tier is granted
   IF v_grants_tier IS NOT NULL THEN
-    INSERT INTO user_memberships (user_id, tier, status, started_at, expires_at)
+    INSERT INTO user_memberships (user_id, tier, status)
     VALUES (
       p_user_id,
       v_grants_tier,
-      'active',
-      NOW(),
-      CASE 
-        WHEN v_trial_days IS NOT NULL THEN NOW() + (v_trial_days || ' days')::INTERVAL
-        ELSE NULL  -- Permanent membership
-      END
+      'active'
     )
     ON CONFLICT (user_id) DO UPDATE
     SET 
       tier = EXCLUDED.tier,
-      status = EXCLUDED.status,
-      started_at = EXCLUDED.started_at,
-      expires_at = EXCLUDED.expires_at;
+      status = EXCLUDED.status;
   END IF;
 
   -- Log the transaction

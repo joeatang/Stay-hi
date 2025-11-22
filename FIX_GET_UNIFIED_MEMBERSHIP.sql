@@ -28,7 +28,15 @@ BEGIN
       'trial_end', null,
       'days_remaining', null,
       'is_admin', false,
-      'signup_required', true
+      'signup_required', true,
+      'isAnonymous', true,
+      'features', json_build_object(
+        'hiMedallionInteractions', 10,
+        'shareCreation', false,
+        'calendarAccess', false,
+        'hiMuscleAccess', true,
+        'mapAccess', 'preview'
+      )
     );
   END IF;
   
@@ -61,17 +69,87 @@ BEGIN
       'status', 'active',
       'trial_end', null,
       'days_remaining', null,
-      'is_admin', v_is_admin
+      'is_admin', v_is_admin,
+      'isAnonymous', false,
+      'features', json_build_object(
+        'hiMedallionInteractions', 10,
+        'shareCreation', false,
+        'calendarAccess', false,
+        'hiMuscleAccess', true,
+        'mapAccess', 'preview'
+      )
     );
   END IF;
   
-  -- Return actual membership
+  -- Return actual membership with features based on tier
   RETURN json_build_object(
     'tier', v_member.tier,
     'status', v_member.status,
     'trial_end', v_member.trial_end,
     'days_remaining', v_member.days_left,
-    'is_admin', v_is_admin
+    'is_admin', v_is_admin,
+    'isAnonymous', false,
+    'features', CASE v_member.tier
+      -- Free tier: limited access
+      WHEN 'free' THEN json_build_object(
+        'hiMedallionInteractions', 10,
+        'shareCreation', false,
+        'calendarAccess', false,
+        'hiMuscleAccess', true,
+        'mapAccess', 'preview'
+      )
+      -- Bronze tier: basic features
+      WHEN 'bronze' THEN json_build_object(
+        'hiMedallionInteractions', 50,
+        'shareCreation', true,
+        'calendarAccess', false,
+        'hiMuscleAccess', true,
+        'mapAccess', 'basic'
+      )
+      -- Silver tier: enhanced features
+      WHEN 'silver' THEN json_build_object(
+        'hiMedallionInteractions', 'unlimited',
+        'shareCreation', 'unlimited',
+        'calendarAccess', true,
+        'hiMuscleAccess', true,
+        'mapAccess', 'full'
+      )
+      -- Gold tier: premium features
+      WHEN 'gold' THEN json_build_object(
+        'hiMedallionInteractions', 'unlimited',
+        'shareCreation', 'unlimited',
+        'calendarAccess', true,
+        'hiMuscleAccess', true,
+        'mapAccess', 'full'
+      )
+      -- Premium tier: all features (YOUR TIER)
+      WHEN 'premium' THEN json_build_object(
+        'hiMedallionInteractions', 'unlimited',
+        'shareCreation', 'unlimited',
+        'calendarAccess', true,
+        'hiMuscleAccess', true,
+        'mapAccess', 'full',
+        'profileAccess', 'full'
+      )
+      -- Collective tier: full access + admin features
+      WHEN 'collective' THEN json_build_object(
+        'hiMedallionInteractions', 'unlimited',
+        'shareCreation', 'unlimited',
+        'calendarAccess', true,
+        'hiMuscleAccess', true,
+        'mapAccess', 'full',
+        'profileAccess', 'full',
+        'adminFeatures', true
+      )
+      -- Default: same as free
+      ELSE json_build_object(
+        'hiMedallionInteractions', 10,
+        'shareCreation', false,
+        'calendarAccess', false,
+        'hiMuscleAccess', true,
+        'mapAccess', 'preview'
+      )
+    END
   );
 END;
 $$;

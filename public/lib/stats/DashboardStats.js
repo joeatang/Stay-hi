@@ -250,6 +250,24 @@ async function initializePersonalStats() {
           personalStats.currentStreak = dbStats.currentStreak || 0;
           personalStats.personalTaps = dbStats.totalWaves || 0;
           
+          // 🌟 HI POINTS: Display points from milestone system
+          const hiPoints = dbStats.hiPoints || 0;
+          const hiPointsEl = document.getElementById('userHiPoints');
+          const hiPointsStatEl = document.getElementById('hiPointsStat');
+          
+          if (hiPointsEl && hiPointsStatEl) {
+            hiPointsEl.textContent = hiPoints.toLocaleString();
+            hiPointsStatEl.style.display = hiPoints > 0 ? 'flex' : 'none'; // Only show if user has points
+            console.log('🌟 Hi Points updated:', hiPoints);
+          }
+          
+          // Update streak display
+          const streakEl = document.getElementById('userStreak');
+          if (streakEl) {
+            streakEl.textContent = personalStats.currentStreak;
+            console.log('⚡ Streak updated:', personalStats.currentStreak);
+          }
+          
           console.log('👤 Personal Stats (from database):', personalStats);
         } else if (isAnonymous) {
           // 🎯 FIX: Load anonymous personal stats from localStorage
