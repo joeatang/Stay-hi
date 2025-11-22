@@ -193,30 +193,33 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
     // Retry up to 10 times (5 seconds) to handle auth trigger delay
     for (let attempt = 0; attempt < 10; attempt++) {
       try {
+        console.log(`🔄 Attempt ${attempt + 1}/10: Calling use_invite_code RPC...`);
         const { data: usageData, error } = await supabaseClient.rpc('use_invite_code', { 
           p_code: invite, 
           p_user_id: userId 
         });
         
+        console.log(`📊 RPC Response (attempt ${attempt + 1}):`, { usageData, error });
+        
         if (error) {
           // If foreign key error (user not created yet), retry
           if (error.code === '23503') {
-            console.log(`⏳ Attempt ${attempt + 1}/10: User record not ready, retrying...`);
+            console.log(`⏳ Attempt ${attempt + 1}/10: User record not ready (FK error), retrying in 500ms...`);
             lastError = error;
             await new Promise(resolve => setTimeout(resolve, 500));
             continue;
           }
           // Other errors - fail immediately
-          console.error('❌ Usage tracking error:', error);
+          console.error(`❌ Usage tracking error (attempt ${attempt + 1}):`, error);
           showError('Error tracking invite code usage.');
           return;
         }
         
-        console.log('✅ Code marked as used:', usageData);
+        console.log('✅ Code marked as used successfully:', usageData);
         usageSuccess = true;
         break;
       } catch (err) {
-        console.error('❌ Exception during usage tracking:', err);
+        console.error(`❌ Exception during usage tracking (attempt ${attempt + 1}):`, err);
         lastError = err;
         await new Promise(resolve => setTimeout(resolve, 500));
       }
