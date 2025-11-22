@@ -147,6 +147,8 @@
   <script src="assets/post-auth-path.js"></script>
   <!-- Removed progressive-auth.js (replaced by unified AccessGate + AuthShim) -->
   <script src="lib/access/AuthShim.js"></script>
+  <!-- 🎯 TIER CONFIG - Must load BEFORE HiMembership.js -->
+  <script src="./lib/config/TIER_CONFIG.js"></script>
   <script src="./lib/HiMembership.js" defer></script>
   <script src="./lib/HiBrandTiers.js" defer></script>
   <script src="./lib/RealUserCount.js" defer></script>
