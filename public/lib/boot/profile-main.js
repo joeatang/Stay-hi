@@ -59,6 +59,12 @@ function openAvatarCrop() {
     showToast('Avatar system not ready. Please try again.', 'error');
   }
 }
+function closeAvatarCrop() {
+  if (socialAvatarUploader && socialAvatarUploader.close) {
+    socialAvatarUploader.close();
+  }
+  console.log('🔒 Avatar crop modal closed');
+}
 async function uploadAvatarToSupabase(blob, originalFile) {
   console.log('📤 Uploading avatar to Supabase Storage...');
   const useHiBase = await window.HiFlags?.getFlag('hibase_profile_enabled');
