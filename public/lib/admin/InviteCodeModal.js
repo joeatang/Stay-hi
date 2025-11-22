@@ -28,21 +28,21 @@
             Membership Tier
           </label>
           <select id="inviteCodeTier" style="width:100%; padding:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.2); border-radius:12px; color:#fff; font-size:14px; cursor:pointer;">
-            <option value="free">🌱 Free Explorer - No paid features</option>
-            <option value="bronze">🥉 Bronze Pathfinder - $5.55 (7-day trial)</option>
-            <option value="silver">🥈 Silver Trailblazer - $15.55 (14-day trial)</option>
-            <option value="gold">🥇 Gold Champion - $25.55 (21-day trial)</option>
-            <option value="premium" selected>⭐ Premium Pioneer - $55.55 (30-day trial)</option>
-            <option value="collective">🌟 Collective Member - $155.55 (90-day trial)</option>
+            <option value="free">🌱 Free Explorer - $0</option>
+            <option value="bronze">🥉 Bronze Pathfinder - $5.55/mo</option>
+            <option value="silver">🥈 Silver Trailblazer - $15.55/mo</option>
+            <option value="gold">🥇 Gold Champion - $25.55/mo</option>
+            <option value="premium" selected>⭐ Premium Pioneer - $55.55/mo</option>
+            <option value="collective">🌟 Collective Member - $155.55/mo</option>
           </select>
         </div>
         
         <div style="margin-bottom:20px;">
           <label style="color:rgba(255,255,255,0.9); font-size:14px; font-weight:600; display:block; margin-bottom:8px;">
-            Trial Days (Optional Override)
+            Access Duration (Days)
           </label>
-          <input type="number" id="inviteCodeTrialDays" placeholder="Auto (uses tier default)" min="0" max="365" style="width:100%; padding:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.2); border-radius:12px; color:#fff; font-size:14px;">
-          <div style="color:rgba(255,255,255,0.5); font-size:11px; margin-top:4px;">Leave blank to use tier default trial period</div>
+          <input type="number" id="inviteCodeTrialDays" placeholder="Auto: Bronze=7d, Silver=14d, Gold=21d, Premium=30d, Collective=90d" min="0" max="365" style="width:100%; padding:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.2); border-radius:12px; color:#fff; font-size:14px;">
+          <div style="color:rgba(255,255,255,0.5); font-size:11px; margin-top:4px;">Leave blank for auto duration, or override for custom access periods</div>
         </div>
         
         <div style="margin-bottom:24px;">
