@@ -17,22 +17,9 @@ async function initHiIsland() {
       }, 100);
     }
   });
-  // Legacy DB refresh removed; unified loader already handles freshness & caching
-  console.log('🔍 Checking for REAL Hi-Island integration...');
-  setTimeout(() => {
-    if (window.hiIslandIntegration) {
-      console.log('✅ REAL Hi-Island integration active:', window.getHiIslandHealth?.());
-    } else {
-      console.log('⚠️ Waiting for REAL Hi-Island integration...');
-      setTimeout(() => {
-        if (window.hiIslandIntegration) {
-          console.log('✅ REAL Hi-Island integration ready (delayed):', window.getHiIslandHealth?.());
-        } else {
-          console.warn('❌ REAL Hi-Island integration failed to initialize');
-        }
-      }, 2000);
-    }
-  }, 1000);
+  // WOZ SIMPLIFICATION: Let HiRealFeed auto-initialize
+  console.log('✅ Waiting for HiRealFeed auto-initialization...');
+  
   initializeTabSystem();
   initializeOriginFilters();
   initializeTryItLink();
@@ -136,10 +123,14 @@ function initializeTabSystem() {
 }
 
 // Wire origin filter buttons to unified feed
+// WOZ FIX: Wait for hiRealFeed to be ready before attaching listeners
 function initializeOriginFilters() {
   try {
     const btns = Array.from(document.querySelectorAll('.origin-filter-btn'));
-    if (!btns.length) return;
+    if (!btns.length) {
+      console.warn('⚠️ No filter buttons found');
+      return;
+    }
 
     const setActive = (filter) => {
       btns.forEach(b => {
@@ -149,26 +140,45 @@ function initializeOriginFilters() {
       });
     };
 
-    btns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const filter = btn.dataset.filter || 'all';
-        try {
-          if (window.hiRealFeed && typeof window.hiRealFeed.setOriginFilter === 'function') {
-            window.hiRealFeed.setOriginFilter(filter);
-          }
-        } catch (e) {
-          console.warn('Origin filter set failed:', e);
-        }
-        setActive(filter);
-      });
-    });
+    // Wait for hiRealFeed to exist before attaching click handlers
+    const attachHandlers = () => {
+      if (!window.hiRealFeed) {
+        console.log('⏳ Waiting for hiRealFeed...');
+        setTimeout(attachHandlers, 100);
+        return;
+      }
 
-    // Initialize state based on any persisted choice (future) or default 'all'
-    setActive('all');
-    console.log('✅ Origin filters initialized');
+      console.log('✅ hiRealFeed found, attaching filter handlers');
+      
+      btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const filter = btn.dataset.filter || 'all';
+          console.log(`🎯 Filter clicked: ${filter}`);
+          
+          try {
+            if (window.hiRealFeed && typeof window.hiRealFeed.setOriginFilter === 'function') {
+              window.hiRealFeed.setOriginFilter(filter);
+              console.log(`✅ Filter applied: ${filter}`);
+            } else {
+              console.error('❌ hiRealFeed.setOriginFilter not available');
+            }
+          } catch (e) {
+            console.error('❌ Origin filter set failed:', e);
+          }
+          setActive(filter);
+        });
+      });
+
+      // Initialize state
+      setActive('all');
+      console.log('✅ Origin filters initialized and ready');
+    };
+
+    // Start waiting for hiRealFeed
+    attachHandlers();
 
   } catch (e) {
-    console.warn('⚠️ Origin filter init failed:', e);
+    console.error('❌ Origin filter init failed:', e);
   }
 }
 
