@@ -125,25 +125,100 @@ class UnifiedMembershipSystem {
         can_access_calendar: false,
         can_access_hi_muscle: false,
         upgrade_available: true,
-        signup_required: legacyData.signup_required || false
+        signup_required: legacyData.signup_required || false,
+        features: this.getFeaturesByTier('anonymous'),
+        isAnonymous: true
       };
     }
     
-    // If it's already in unified format, return as-is
-    if (legacyData.tier && legacyData.can_access_calendar !== undefined) {
+    // CRITICAL FIX: Add features object based on tier
+    const tier = legacyData.tier || 'anonymous';
+    const features = this.getFeaturesByTier(tier);
+    const isAnonymous = tier === 'anonymous' || tier === 'free';
+    
+    // If it's already in unified format with features, return as-is
+    if (legacyData.tier && legacyData.features) {
       return legacyData;
     }
     
-    // Default transformation for unknown formats
+    // Transform with features added
     return {
-      tier: legacyData.tier || 'anonymous',
-      status: legacyData.status || 'unknown',
-      expires_at: legacyData.expires_at || null,
+      tier: tier,
+      status: legacyData.status || 'active',
+      expires_at: legacyData.expires_at || legacyData.trial_end || null,
       days_remaining: legacyData.days_remaining || null,
-      can_access_calendar: false, // Safe default
-      can_access_hi_muscle: true,
-      upgrade_available: true
+      can_access_calendar: !isAnonymous,
+      can_access_hi_muscle: !isAnonymous,
+      upgrade_available: tier !== 'collective',
+      signup_required: false,
+      features: features,
+      isAnonymous: isAnonymous,
+      is_admin: legacyData.is_admin || false
     };
+  }
+
+  // CRITICAL FIX: Define features for each tier
+  getFeaturesByTier(tier) {
+    const tierFeatures = {
+      'anonymous': {
+        hiMedallionInteractions: 10,
+        mapAccess: 'preview',
+        shareCreation: false,
+        profileAccess: 'view_only',
+        hiMuscleAccess: false,
+        calendarAccess: false
+      },
+      'free': {
+        hiMedallionInteractions: 10,
+        mapAccess: 'preview',
+        shareCreation: false,
+        profileAccess: 'view_only',
+        hiMuscleAccess: false,
+        calendarAccess: false
+      },
+      'bronze': {
+        hiMedallionInteractions: 50,
+        mapAccess: 'limited',
+        shareCreation: 10,
+        profileAccess: 'basic',
+        hiMuscleAccess: true,
+        calendarAccess: false
+      },
+      'silver': {
+        hiMedallionInteractions: 100,
+        mapAccess: 'full',
+        shareCreation: 50,
+        profileAccess: 'full',
+        hiMuscleAccess: true,
+        calendarAccess: true
+      },
+      'gold': {
+        hiMedallionInteractions: 'unlimited',
+        mapAccess: 'full',
+        shareCreation: 'unlimited',
+        profileAccess: 'full',
+        hiMuscleAccess: true,
+        calendarAccess: true
+      },
+      'premium': {
+        hiMedallionInteractions: 'unlimited',
+        mapAccess: 'full',
+        shareCreation: 'unlimited',
+        profileAccess: 'full',
+        hiMuscleAccess: true,
+        calendarAccess: true
+      },
+      'collective': {
+        hiMedallionInteractions: 'unlimited',
+        mapAccess: 'full',
+        shareCreation: 'unlimited',
+        profileAccess: 'full',
+        hiMuscleAccess: true,
+        calendarAccess: true
+      }
+    };
+
+    return tierFeatures[tier] || tierFeatures['free'];
   }
 
   // Set anonymous access (default state)
