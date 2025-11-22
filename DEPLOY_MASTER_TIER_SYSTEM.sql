@@ -205,8 +205,8 @@ DROP FUNCTION IF EXISTS get_unified_membership();
 
 CREATE OR REPLACE FUNCTION get_unified_membership()
 RETURNS json
-LANGUAGE plpgsql
 SECURITY DEFINER
+LANGUAGE plpgsql
 AS $$
 DECLARE
   v_user_id uuid;
@@ -267,7 +267,7 @@ BEGIN
     'isAnonymous', false
   );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- ========================================
 -- STEP 4: Grant permissions
