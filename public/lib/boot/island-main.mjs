@@ -137,6 +137,17 @@ function initializeOriginFilters() {
         const isActive = b.dataset.filter === filter;
         b.classList.toggle('active', isActive);
         b.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        
+        // WOZ FIX: Override inline styles for visual feedback
+        if (isActive) {
+          b.style.background = 'rgba(255, 255, 255, 0.9)';
+          b.style.color = '#111';
+          b.style.fontWeight = '700';
+        } else {
+          b.style.background = 'rgba(255, 255, 255, 0.1)';
+          b.style.color = 'rgba(255, 255, 255, 0.8)';
+          b.style.fontWeight = '600';
+        }
       });
     };
 
