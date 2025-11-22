@@ -147,7 +147,7 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
     let codeId = null;
     try {
       console.log('🔍 Validating invite code:', invite);
-      const { data, error } = await supabaseClient.rpc('validate_invite_code', { code: invite });
+      const { data, error } = await supabaseClient.rpc('validate_invite_code', { p_code: invite });
       console.log('📊 Validation response:', { data, error });
       
       if (error) {
@@ -187,7 +187,7 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
 
     // 3. Mark invite code as used (track usage)
     try {
-      const { error } = await supabaseClient.rpc('use_invite_code', { code: invite, user_id: userId });
+      const { error } = await supabaseClient.rpc('use_invite_code', { p_code: invite, p_user_id: userId });
       if (error) {
         showError('Error tracking invite code usage.');
         return;
