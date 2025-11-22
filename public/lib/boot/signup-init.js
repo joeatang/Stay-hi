@@ -202,6 +202,14 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
         console.log(`📊 RPC Response (attempt ${attempt + 1}):`, { usageData, error });
         
         if (error) {
+          console.log(`🔍 Error details:`, {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            full: error
+          });
+          
           // If foreign key error (user not created yet), retry
           if (error.code === '23503') {
             console.log(`⏳ Attempt ${attempt + 1}/10: User record not ready (FK error), retrying in 500ms...`);
