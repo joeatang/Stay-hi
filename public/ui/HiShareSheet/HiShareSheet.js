@@ -284,28 +284,86 @@ export class HiShareSheet {
     return this._isReady;
   }
 
-  // 🔐 TESLA-GRADE: Update share options based on authentication state
+  // 🔐 TESLA-GRADE: Update share options based on authentication state AND tier
   async updateShareOptionsForAuthState() {
     // Check authentication via multiple sources (Hi System Standard)
     const isAuthenticated = await this.checkAuthentication();
     
+    // 🎯 TIER-AWARE: Get user tier for feature gates
+    const membership = await this.getMembershipTier();
+    const tier = membership?.tier || 'free';
+    
     const authPromptBtn = document.getElementById('hi-share-auth-prompt');
     const shareAnonBtn = document.getElementById('hi-share-anon');
     const sharePublicBtn = document.getElementById('hi-share-public');
+    const sharePrivateBtn = document.getElementById('hi-share-private');
     
-    this._dbg('🔐 Auth state check:', { isAuthenticated });
+    this._dbg('🔐 Auth state check:', { isAuthenticated, tier });
     
     if (isAuthenticated) {
-      // ✅ AUTHENTICATED: Show Anonymous + Public options
+      // ✅ AUTHENTICATED: Show options based on tier
       if (authPromptBtn) authPromptBtn.style.display = 'none';
-      if (shareAnonBtn) shareAnonBtn.style.display = 'block';
-      if (sharePublicBtn) sharePublicBtn.style.display = 'block';
+      
+      // Private sharing: All authenticated users (free tier+)
+      if (sharePrivateBtn) sharePrivateBtn.style.display = 'block';
+      
+      // Anonymous sharing: Bronze tier+ (requires paid subscription)
+      const canShareAnonymously = window.HiTierConfig?.canAccessFeature(tier, 'anonymousSharing') || 
+                                   ['bronze', 'silver', 'gold', 'premium', 'collective'].includes(tier);
+      if (shareAnonBtn) {
+        shareAnonBtn.style.display = canShareAnonymously ? 'block' : 'none';
+        if (!canShareAnonymously) {
+          // Add upgrade hint for free tier
+          this._dbg('🔒 Anonymous sharing requires Bronze tier ($5.55/mo)');
+        }
+      }
+      
+      // Public sharing: Bronze tier+ (requires paid subscription)
+      const canSharePublicly = window.HiTierConfig?.canAccessFeature(tier, 'publicSharing') || 
+                                ['bronze', 'silver', 'gold', 'premium', 'collective'].includes(tier);
+      if (sharePublicBtn) {
+        sharePublicBtn.style.display = canSharePublicly ? 'block' : 'none';
+        if (!canSharePublicly) {
+          // Add upgrade hint for free tier
+          this._dbg('🔒 Public sharing requires Bronze tier ($5.55/mo)');
+        }
+      }
     } else {
       // 🔒 ANONYMOUS: Show Auth Prompt only
       if (authPromptBtn) authPromptBtn.style.display = 'block';
       if (shareAnonBtn) shareAnonBtn.style.display = 'none';
       if (sharePublicBtn) sharePublicBtn.style.display = 'none';
+      if (sharePrivateBtn) sharePrivateBtn.style.display = 'none';
     }
+  }
+
+  // 🎯 Get user membership tier
+  async getMembershipTier() {
+    try {
+      // Method 1: Global membership system
+      if (window.__hiMembership?.tier) {
+        return { tier: window.__hiMembership.tier };
+      }
+      
+      // Method 2: HiMembership module
+      if (window.HiMembership?.getMembership) {
+        const membership = await window.HiMembership.getMembership();
+        return membership;
+      }
+      
+      // Method 3: Query database directly
+      if (window.sb?.rpc) {
+        const { data } = await window.sb.rpc('get_unified_membership');
+        if (data?.tier) {
+          return data;
+        }
+      }
+    } catch (err) {
+      this._dbg('⚠️ Membership tier check failed:', err);
+    }
+    
+    // Default to free tier
+    return { tier: 'free' };
   }
 
   // 🔐 Check authentication across multiple systems
