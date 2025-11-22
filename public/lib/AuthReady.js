@@ -49,10 +49,21 @@ async function initialize(){
 
   _result = { session, membership };
   _ready = true;
+  
+  // CRITICAL FIX: Set window.__hiMembership for HiTier.js to read
+  if (membership) {
+    window.__hiMembership = membership;
+  }
+  
   if (!_emitted) {
     window.dispatchEvent(new CustomEvent('hi:auth-ready', { detail: _result }));
     console.log('[AuthReady] ready', { user: session?.user?.id, tier: membership?.tier, admin: membership?.is_admin });
     _emitted = true;
+    
+    // CRITICAL FIX: Trigger membership-changed event for HiTier.js to refresh
+    if (membership) {
+      window.dispatchEvent(new CustomEvent('hi:membership-changed', { detail: membership }));
+    }
   }
   return _result;
 }
@@ -80,9 +91,20 @@ try {
       const nextUser = session?.user?.id;
       const changed = (!!prevUser !== !!nextUser) || (prevUser !== nextUser) || (_result?.membership?.tier !== membership?.tier);
       _result = { session, membership };
+      
+      // CRITICAL FIX: Update window.__hiMembership when auth changes
+      if (membership) {
+        window.__hiMembership = membership;
+      }
+      
       if (changed) {
         window.dispatchEvent(new CustomEvent('hi:auth-updated', { detail: _result }));
         console.log('[AuthReady] updated', { user: nextUser, tier: membership?.tier, admin: membership?.is_admin });
+        
+        // CRITICAL FIX: Trigger membership-changed event for HiTier.js to refresh
+        if (membership) {
+          window.dispatchEvent(new CustomEvent('hi:membership-changed', { detail: membership }));
+        }
       }
     } catch(e){ console.warn('[AuthReady] upgrade refresh failed', e); }
   });
