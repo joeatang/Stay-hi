@@ -61,6 +61,13 @@ class HiAuthTierSystem {
     const supabase = this.getSupabaseClient();
     
     try {
+      // Check if supabase.auth is available (defensive check)
+      if (!supabase || !supabase.auth || typeof supabase.auth.getSession !== 'function') {
+        console.warn('⚠️ Tier system: Supabase auth not ready, defaulting to anonymous');
+        this.setTier(0);
+        return;
+      }
+      
       // Check authentication status
       const { data: { session }, error } = await supabase.auth.getSession();
       

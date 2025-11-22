@@ -197,13 +197,22 @@ class UnifiedHiIslandController {
   }
 }
 
-// Create global instance
-window.unifiedHiIslandController = new UnifiedHiIslandController();
+// Create global instance with correct name for island-main.mjs
+const controller = new UnifiedHiIslandController();
+window.unifiedHiIslandController = controller;
+window.hiIslandIntegration = controller; // Name expected by island-main.mjs
+
+// Health check function expected by island-main.mjs
+window.getHiIslandHealth = () => ({
+  initialized: controller.isInitialized,
+  hasFeed: !!controller.feedInstance,
+  currentTab: controller.currentTab
+});
 
 // Auto-initialize
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    await window.unifiedHiIslandController.init();
+    await controller.init();
     console.log('🎉 Unified Hi-Island Controller ready!');
   } catch (error) {
     console.error('❌ Unified Controller auto-init failed:', error);
