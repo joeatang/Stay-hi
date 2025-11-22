@@ -185,7 +185,33 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
       return;
     }
 
-    // 3. Mark invite code as used (track usage)
+    // 3. Wait for user record to be created in users table (auth trigger)
+    console.log('⏳ Waiting for user record creation...');
+    let userRecordExists = false;
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const { data: userData, error } = await supabaseClient
+        .from('users')
+        .select('id')
+        .eq('id', userId)
+        .single();
+      
+      if (userData) {
+        console.log('✅ User record confirmed in database');
+        userRecordExists = true;
+        break;
+      }
+      
+      // Wait 500ms before next attempt
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    if (!userRecordExists) {
+      console.error('❌ User record not created after 5 seconds');
+      showError('Account created but database sync failed. Please contact support.');
+      return;
+    }
+
+    // 4. Mark invite code as used (track usage)
     try {
       console.log('📝 Marking code as used for user:', userId);
       const { data: usageData, error } = await supabaseClient.rpc('use_invite_code', { p_code: invite, p_user_id: userId });
@@ -201,10 +227,10 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
       return;
     }
 
-    // 3.5. Process referral code if present (HiBase integration)
+    // 5. Process referral code if present (HiBase integration)
     await processReferralRedemption(userId);
 
-    // 4. Success: show message and redirect with smooth transition
+    // 6. Success: show message and redirect with smooth transition
     showSuccess('🎉 Account created! Check your email to verify and sign in.');
     
     setTimeout(() => {
