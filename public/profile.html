@@ -1552,6 +1552,14 @@
       }
     }
     
+    // Close avatar crop modal
+    function closeAvatarCrop() {
+      if (socialAvatarUploader && socialAvatarUploader.close) {
+        socialAvatarUploader.close();
+      }
+      console.log('🔒 Avatar crop modal closed');
+    }
+    
     // Gold Standard Supabase Avatar Upload Functions
     async function uploadAvatarToSupabase(blob, originalFile) {
       console.log('📤 Uploading avatar to Supabase Storage...');
@@ -2875,28 +2883,8 @@ FOR INSERT WITH CHECK (
       return userId;
     }
 
-    function populateEditForm(profile) {
-      // Populate edit form with current data
-      const displayNameEl = document.getElementById('editDisplayName');
-      const usernameEl = document.getElementById('editUsername');
-      const bioEl = document.getElementById('editBio');
-      const publicEl = document.getElementById('editIsPublic');
-      const locationEl = document.getElementById('sheetLocationInput');
-      
-      if (displayNameEl) displayNameEl.value = profile.display_name || '';
-      if (usernameEl) usernameEl.value = profile.username || '';
-      if (bioEl) bioEl.value = profile.bio || '';
-      // Tesla Security: Public profile feature removed
-      if (locationEl) locationEl.value = profile.location || '';
-      
-      console.log('✅ Edit form populated:', {
-        display_name: profile.display_name,
-        username: profile.username,
-        bio: profile.bio?.length || 0,
-        location: profile.location
-      });
-    }
-
+    // populateEditForm defined earlier (line 2302) - duplicate removed to fix syntax error
+    
     // Tesla-Grade Profile Display Update System (consolidated) - DUPLICATE REMOVED
     
     function updateStatsDisplay(stats) {
