@@ -731,34 +731,40 @@ class HiIslandRealFeed {
         hasMetadata: !!(share.metadata && Object.keys(share.metadata).length)
       });
 
-      // Try to parse metadata for proper Hi format
+      // 🎯 WOZ FIX: Try metadata object first, then fall back to individual columns
       const metadata = share.metadata || {};
       
-      if (metadata.currentEmoji || metadata.desiredEmoji) {
-        // Reconstruct proper Hi format from metadata
+      // Prioritize individual columns (current schema) over metadata object
+      const currentEmoji = share.current_emoji || metadata.currentEmoji;
+      const currentName = share.current_name || metadata.currentName;
+      const desiredEmoji = share.desired_emoji || metadata.desiredEmoji;
+      const desiredName = share.desired_name || metadata.desiredName;
+      
+      if (currentEmoji || desiredEmoji) {
+        // Reconstruct proper Hi format from available data
         let hiFormat = '';
         
-        if (metadata.currentEmoji && metadata.currentName) {
-          hiFormat += `<span class="hi-current-state">${metadata.currentEmoji} ${this.escapeHtml(metadata.currentName)}</span>`;
+        if (currentEmoji && currentName) {
+          hiFormat += `<span class="hi-current-state">${currentEmoji} ${this.escapeHtml(currentName)}</span>`;
         }
         
-        if (metadata.desiredEmoji && metadata.desiredName) {
+        if (desiredEmoji && desiredName) {
           if (hiFormat) hiFormat += ' → ';
-          hiFormat += `<span class="hi-desired-state">${metadata.desiredEmoji} ${this.escapeHtml(metadata.desiredName)}</span>`;
+          hiFormat += `<span class="hi-desired-state">${desiredEmoji} ${this.escapeHtml(desiredName)}</span>`;
         }
         
-        // Add additional text if present
-        const additionalText = this.extractAdditionalText(share.content, metadata);
-        if (additionalText) {
+        // Add additional text if present (from share.text field)
+        const additionalText = share.text || share.content;
+        if (additionalText && !additionalText.includes(currentEmoji)) {
           hiFormat += `<p class="hi-additional-text">${this.escapeHtml(additionalText)}</p>`;
         }
         
-        console.log('✅ Created Hi formatted content:', hiFormat);
+        console.log('✅ Created Hi formatted content from columns:', { currentEmoji, desiredEmoji, hiFormat });
         return `<div class="hi-formatted-content">${hiFormat}</div>`;
       } else {
-        // Fallback to content as-is (for legacy or simple shares)
-        console.log('⚠️ No metadata found, using raw content');
-        return `<p class="share-text">${this.escapeHtml(share.content || 'Hi! 👋')}</p>`;
+        // Fallback to text/content field
+        console.log('⚠️ No emoji data found, using text field');
+        return `<p class="share-text">${this.escapeHtml(share.text || share.content || 'Hi! 👋')}</p>`;
       }
     } catch (error) {
       console.warn('⚠️ Error formatting Hi content:', error);
