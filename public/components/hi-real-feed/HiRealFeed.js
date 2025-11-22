@@ -1248,9 +1248,17 @@ class HiIslandRealFeed {
 // Initialize and export
 window.HiIslandRealFeed = HiIslandRealFeed;
 
-// Auto-initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
+// WOZ FIX: Initialize IMMEDIATELY instead of waiting for DOMContentLoaded
+// Modules load unpredictably, so we need hiRealFeed available ASAP
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    window.hiRealFeed = new HiIslandRealFeed();
+    console.log('✅ hiRealFeed initialized (DOMContentLoaded)');
+  });
+} else {
+  // DOM already loaded, initialize now
   window.hiRealFeed = new HiIslandRealFeed();
-});
+  console.log('✅ hiRealFeed initialized (immediate)');
+}
 
 export default HiIslandRealFeed;
