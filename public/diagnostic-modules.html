@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ES6 Module Diagnostic</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #000; color: #0f0; }
+    .error { color: #f00; }
+    .success { color: #0f0; }
+    .warning { color: #ff0; }
+  </style>
+</head>
+<body>
+  <h1>🔍 ES6 Module Load Diagnostic</h1>
+  <div id="output"></div>
+
+  <script type="module">
+    const output = document.getElementById('output');
+    
+    function log(msg, type = 'info') {
+      const div = document.createElement('div');
+      div.className = type;
+      div.textContent = msg;
+      output.appendChild(div);
+      console.log(msg);
+    }
+
+    log('🚀 Starting module diagnostic...', 'warning');
+
+    // Test 1: Can we import island-hibase-shares.mjs?
+    try {
+      log('📦 Test 1: Importing island-hibase-shares.mjs...', 'warning');
+      const module1 = await import('./lib/boot/island-hibase-shares.mjs');
+      log('✅ island-hibase-shares.mjs loaded successfully', 'success');
+      log(`   window.HiBase.shares = ${typeof window.HiBase?.shares}`, 'success');
+      
+      if (window.HiBase?.shares) {
+        const methods = Object.keys(window.HiBase.shares).filter(k => k !== '_module');
+        log(`   Available methods: ${methods.join(', ')}`, 'success');
+        
+        methods.forEach(method => {
+          log(`   - ${method}: ${typeof window.HiBase.shares[method]}`, 'success');
+        });
+      }
+    } catch (e) {
+      log(`❌ island-hibase-shares.mjs FAILED: ${e.message}`, 'error');
+      log(`   Stack: ${e.stack}`, 'error');
+    }
+
+    // Test 2: Can we import HiRealFeed.js?
+    try {
+      log('\n📦 Test 2: Importing HiRealFeed.js...', 'warning');
+      const module2 = await import('./components/hi-real-feed/HiRealFeed.js');
+      log('✅ HiRealFeed.js loaded successfully', 'success');
+      log(`   window.hiRealFeed = ${typeof window.hiRealFeed}`, 'success');
+      log(`   window.HiIslandRealFeed = ${typeof window.HiIslandRealFeed}`, 'success');
+    } catch (e) {
+      log(`❌ HiRealFeed.js FAILED: ${e.message}`, 'error');
+      log(`   Stack: ${e.stack}`, 'error');
+    }
+
+    // Test 3: Can we import shares.js directly?
+    try {
+      log('\n📦 Test 3: Importing lib/hibase/shares.js directly...', 'warning');
+      const module3 = await import('./lib/hibase/shares.js');
+      log('✅ shares.js loaded successfully', 'success');
+      log(`   Exports: ${Object.keys(module3).join(', ')}`, 'success');
+    } catch (e) {
+      log(`❌ shares.js FAILED: ${e.message}`, 'error');
+      log(`   Stack: ${e.stack}`, 'error');
+    }
+
+    // Test 4: Check dependencies
+    try {
+      log('\n📦 Test 4: Checking shares.js dependencies...', 'warning');
+      
+      const dep1 = await import('./lib/hibase/HiBaseClient.js');
+      log('✅ HiBaseClient.js loads', 'success');
+      
+      const dep2 = await import('./lib/hibase/_telemetry.js');
+      log('✅ _telemetry.js loads', 'success');
+      
+      const dep3 = await import('./lib/auth/HiAuthCore.js');
+      log('✅ HiAuthCore.js loads', 'success');
+      
+    } catch (e) {
+      log(`❌ Dependency load FAILED: ${e.message}`, 'error');
+      log(`   Stack: ${e.stack}`, 'error');
+    }
+
+    log('\n✅ Diagnostic complete. Check console for details.', 'success');
+  </script>
+</body>
+</html>
