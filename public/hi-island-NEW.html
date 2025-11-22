@@ -1604,7 +1604,8 @@
   <script src="components/hi-real-feed/UnifiedHiIslandController.js" type="module"></script>
   
   <!-- 🚨 EMERGENCY: Freeze diagnostic tool for Tesla-grade debugging -->
-  <script src="lib/diagnostic/HiShareFreezeDiagnostic.js"></script>
+  <!-- WOZ FIX: Diagnostic script crashes on line 88 - interceptAsyncFunction doesn't exist -->
+  <!-- <script src="lib/diagnostic/HiShareFreezeDiagnostic.js"></script> -->
   
   <!-- 🚀 TESLA FIX: Initialize Supabase client before other modules -->
   <script type="module" src="./lib/boot/island-supabase-verify.mjs"></script>
