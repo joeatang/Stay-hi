@@ -102,27 +102,28 @@ async function loadEnhancedGlobalStats() {
     // Process stats result
     const { data: statsData, error: statsError } = statsResult;
     if (statsData && !statsError) {
-      // 🎯 CRITICAL: Always use database values (never fall back to cached)
-      // This prevents bouncing between old cached values and new DB values
+      // 🔬 SURGICAL FIX: Database is ALWAYS source of truth - direct assignment
+      // NEVER write to localStorage during page navigation refreshes
+      // Only update in-memory values, let explicit user actions update cache
       window.gTotalHis = statsData.total_his || 0;
       window.gWaves = statsData.hi_waves || 0;
+      window.gUsers = userCount || window.gUsers || 5;
       
-      // 🔧 FIX: Use unified cache keys (matching UnifiedStatsLoader.js)
-      // This prevents duplicate caches with stale values
-      localStorage.setItem('globalTotalHis', window.gTotalHis.toString());
-      localStorage.setItem('globalHiWaves', window.gWaves.toString());
+      // ❌ REMOVED: localStorage writes that were causing stat drift on navigation
+      // localStorage.setItem('globalTotalHis', window.gTotalHis.toString());
+      // localStorage.setItem('globalHiWaves', window.gWaves.toString());
+      
+      console.log('✅ Enhanced stats loaded (memory-only, no cache write):', {
+        totalHis: window.gTotalHis,
+        waves: window.gWaves, 
+        users: window.gUsers
+      });
     }
     
     // Update all UI elements (use global updater when available)
     if (typeof window.updateGlobalStats === 'function') {
       window.updateGlobalStats(true);
     }
-    
-    console.log('✅ Enhanced stats loaded:', {
-      totalHis: window.gTotalHis,
-      waves: window.gWaves, 
-      users: window.gUsers
-    });
     
   } catch (error) {
     console.error('❌ Enhanced stats loading failed:', error);

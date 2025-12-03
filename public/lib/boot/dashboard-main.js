@@ -670,17 +670,24 @@
             // REMOVED: public_shares fallback that was causing stat drift
             const { data, error } = await supabase.from('global_stats').select('total_his, hi_waves, total_users').single(); 
             if(data && !error){ 
-              // Database is ALWAYS source of truth - no comparison, just assign
+              // 🔬 SURGICAL FIX: Database is ALWAYS source of truth - NEVER use Math.max() or compare with cache
+              // Direct assignment prevents stat creep on page navigation
               if (data.total_his != null){
                 window.gTotalHis = data.total_his;
                 window._gTotalHisIsTemporary = false;
               }
-              const serverWaves = Number(data.hi_waves)||0;
-              // Monotonic: never drop below current UI/cached waves
-              window.gWaves = Math.max(serverWaves, Number(window.gWaves)||0);
+              if (data.hi_waves != null){
+                window.gWaves = data.hi_waves;  // ✅ FIXED: Direct assignment, no Math.max()
+                window.__wavesConfirmed = true;
+              }
+              if (data.total_users != null){
+                window.gUsers = data.total_users;
+                window.__usersConfirmed = true;
+              }
               // 🔧 FIX: Use unified cache keys (matching UnifiedStatsLoader.js)
               localStorage.setItem('globalHiWaves', String(window.gWaves));
               localStorage.setItem('globalTotalHis', String(window.gTotalHis));
+              localStorage.setItem('globalTotalUsers', String(window.gUsers));
               localStorage.setItem('globalHiWaves_time', String(Date.now()));
               updateStatsUI(); 
               realStatsLoaded=true; 
