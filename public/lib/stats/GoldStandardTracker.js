@@ -1,11 +1,23 @@
 /**
  * 🏆 GOLD STANDARD: Share Submission Tracker
- * MISSION: Simple, reliable Total His increment for ALL share submissions
+ * MISSION: Simple, reliable Total His increment for PUBLIC share submissions ONLY
  * Works for: Hi-Dashboard, Hi-Island, Hi-Muscle
+ * 
+ * 🎯 CRITICAL: Only increments for submissionType === 'public'
+ * Private and anonymous shares do NOT increment the global counter
  */
 export async function trackShareSubmission(source = 'dashboard', metadata = {}) {
   console.log(`🎯 [GOLD STANDARD] Share submitted from ${source}:`, metadata);
   console.log('🔍 Current Total His before tracking:', window.gTotalHis || 0);
+  
+  // 🎯 CRITICAL FILTER: Only increment Total His for PUBLIC shares
+  const submissionType = metadata.submissionType || metadata.type || 'unknown';
+  if (submissionType !== 'public') {
+    console.log(`⏭️ Skipping Total His increment (${submissionType} share - only public shares count)`);
+    return { success: true, skipped: true, reason: 'non-public share', submissionType };
+  }
+  
+  console.log('✅ Public share confirmed - proceeding with Total His increment');
   
   // � EMERGENCY FIX: Use unified HiDB client to prevent multiple client creation
   const supabase = window.hiDB?.getSupabase?.() || window.supabaseClient || window.sb || 

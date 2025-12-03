@@ -1,3 +1,25 @@
+// 🎯 SMART NAVIGATION: Detect where user came from and adjust back button
+(function() {
+  const referrer = document.referrer;
+  const backBtn = document.getElementById('backBtn');
+  
+  if (backBtn) {
+    if (referrer.includes('welcome.html')) {
+      // User came from welcome page - keep "Back to Welcome"
+      backBtn.href = 'welcome.html';
+      backBtn.textContent = 'Back to Welcome';
+    } else if (referrer && !referrer.includes('signin.html')) {
+      // User came from some other page - go back
+      backBtn.href = 'index.html';
+      backBtn.textContent = 'Back';
+    } else {
+      // Direct navigation or refresh - default to welcome
+      backBtn.href = 'welcome.html';
+      backBtn.textContent = 'Back to Welcome';
+    }
+  }
+})();
+
 // Tesla-Grade Direct Supabase Initialization
 let supabaseClient = null;
 
