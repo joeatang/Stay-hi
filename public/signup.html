@@ -9,6 +9,9 @@
   
   <!-- Tesla-Grade Security Headers -->
   
+  <!-- 🔒 SECURE: Load Supabase configuration (config-local.js for dev, env vars for production) -->
+  <script src="./assets/config.js"></script>
+  <script src="./assets/config-local.js" onerror="console.log('No config-local.js found, using env vars')"></script>
   
   <!-- Premium Styles -->
   <link rel="stylesheet" href="assets/theme.css"/>
@@ -22,6 +25,18 @@
   <script src="./lib/config/TIER_CONFIG.js"></script>
 
 <style>
+  /* 🎯 TESLA-GRADE SMOOTH FOUNDATION */
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
   body {
     font-family: var(--f-sans);
     margin: 0;
@@ -30,6 +45,10 @@
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
+    /* GPU acceleration for smooth scrolling */
+    will-change: scroll-position;
+    transform: translateZ(0);
+    -webkit-overflow-scrolling: touch;
   }
   
   /* Tesla-grade background particles */
@@ -76,13 +95,28 @@
   .logo-section {
     text-align: center;
     margin-bottom: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
   .logo-section img {
     width: 64px;
     height: 64px;
-    margin-bottom: 1rem;
+    margin: 0 auto 1rem auto;
+    display: block;
     filter: drop-shadow(0 4px 20px rgba(255, 215, 0, 0.3));
+    animation: logoGlow 3s ease-in-out infinite;
+  }
+
+  @keyframes logoGlow {
+    0%, 100% {
+      filter: drop-shadow(0 4px 20px rgba(255, 215, 0, 0.3));
+    }
+    50% {
+      filter: drop-shadow(0 6px 28px rgba(255, 215, 0, 0.5));
+    }
   }
 
   .logo-section h1 {
@@ -142,6 +176,9 @@
     box-shadow: 0 2px 8px rgba(255, 215, 0, 0.15);
     backdrop-filter: blur(12px);
     box-sizing: border-box;
+    /* GPU acceleration for smooth animations */
+    will-change: transform, box-shadow, border-color;
+    transform: translateZ(0);
   }
 
   .input:focus {
@@ -149,7 +186,12 @@
     border-color: rgba(255, 215, 0, 0.6);
     background: rgba(24, 26, 34, 0.9);
     box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.1), 0 8px 32px rgba(255, 215, 0, 0.2);
-    transform: translateY(-2px);
+    transform: translateY(-2px) translateZ(0);
+  }
+  
+  .input:hover:not(:focus) {
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
   }
 
   .input::placeholder {
@@ -170,15 +212,51 @@
     box-shadow: 0 10px 24px rgba(255, 122, 24, 0.15), 0 2px 8px rgba(255, 215, 0, 0.15);
     letter-spacing: -0.01em;
     text-transform: none;
+    /* GPU acceleration for buttery-smooth hover */
+    will-change: transform, box-shadow;
+    transform: translateZ(0);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Ripple effect on click */
+  .btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+  
+  .btn:active::before {
+    width: 300px;
+    height: 300px;
   }
 
   .btn:hover {
-    transform: translateY(-3px);
+    transform: translateY(-3px) translateZ(0);
     box-shadow: 0 16px 40px rgba(255, 122, 24, 0.25), 0 4px 16px rgba(255, 215, 0, 0.2);
   }
 
   .btn:active {
-    transform: translateY(-1px);
+    transform: translateY(-1px) scale(0.99) translateZ(0);
+    transition: all 0.1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  .btn:disabled:hover {
+    transform: none;
+    box-shadow: 0 10px 24px rgba(255, 122, 24, 0.15), 0 2px 8px rgba(255, 215, 0, 0.15);
   }
 
   .error, .success {
@@ -214,6 +292,196 @@
 
   .back-link:hover {
     color: #FFD166;
+  }
+
+  /* 🎯 TESLA-GRADE RESPONSIVE DESIGN: Mobile-First */
+  
+  /* Mobile Portrait (320px - 480px) */
+  @media (max-width: 480px) {
+    body {
+      padding: 0 1rem;
+    }
+    
+    .signup-glass {
+      margin: 2rem auto 1.5rem auto;
+      padding: 2rem 1.5rem 1.5rem 1.5rem;
+      max-width: 100%;
+      border-radius: 24px;
+    }
+    
+    .logo-section {
+      margin-bottom: 2rem;
+    }
+    
+    .logo-section img {
+      width: 56px;
+      height: 56px;
+    }
+    
+    .logo-section h1 {
+      font-size: 1.8rem;
+    }
+    
+    .welcome-text h2 {
+      font-size: 1.3rem;
+    }
+    
+    .welcome-text p {
+      font-size: 0.9rem;
+    }
+    
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    
+    .input {
+      padding: 0.9rem 1rem;
+      font-size: 16px; /* Prevents iOS zoom on focus */
+      border-radius: 14px;
+    }
+    
+    .btn {
+      padding: 1.1rem;
+      font-size: 1rem;
+      border-radius: 14px;
+    }
+    
+    label {
+      font-size: 0.9rem;
+    }
+  }
+  
+  /* Tablet Portrait (481px - 768px) */
+  @media (min-width: 481px) and (max-width: 768px) {
+    .signup-glass {
+      margin: 2.5rem auto 2rem auto;
+      padding: 2.5rem 2rem 2rem 2rem;
+      max-width: 520px;
+    }
+    
+    .logo-section img {
+      width: 60px;
+      height: 60px;
+    }
+    
+    .logo-section h1 {
+      font-size: 2rem;
+    }
+    
+    .welcome-text h2 {
+      font-size: 1.4rem;
+    }
+    
+    .input {
+      font-size: 16px; /* Prevents iOS zoom */
+    }
+  }
+  
+  /* Tablet Landscape & Small Desktop (769px - 1024px) */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .signup-glass {
+      max-width: 500px;
+      margin: 3rem auto 2rem auto;
+    }
+  }
+  
+  /* Large Desktop (1025px+) */
+  @media (min-width: 1025px) {
+    .signup-glass {
+      max-width: 520px;
+      margin: 4rem auto 2rem auto;
+    }
+    
+    .signup-glass:hover {
+      transform: translateY(-4px);
+      box-shadow: 
+        0 36px 96px rgba(0, 0, 0, 0.5),
+        0 12px 40px rgba(255, 215, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  }
+  
+  /* Touch Device Optimizations */
+  @media (hover: none) and (pointer: coarse) {
+    .input {
+      font-size: 16px; /* Critical: Prevents zoom on iOS */
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    .btn {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    
+    .btn:active {
+      transform: translateY(0) scale(0.98);
+    }
+  }
+  
+  /* Landscape Orientation Fixes */
+  @media (orientation: landscape) and (max-height: 600px) {
+    .signup-glass {
+      margin: 1.5rem auto 1rem auto;
+      padding: 2rem 2.5rem 1.5rem 2.5rem;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    
+    .logo-section {
+      margin-bottom: 1.5rem;
+    }
+    
+    .logo-section img {
+      width: 48px;
+      height: 48px;
+    }
+    
+    .welcome-text {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-group {
+      margin-bottom: 1rem;
+    }
+  }
+  
+  /* High-DPI Display Optimizations */
+  @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .logo-section img {
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+    }
+  }
+  
+  /* Reduced Motion Accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    
+    .signup-glass {
+      animation: none;
+    }
+    
+    .logo-section img {
+      animation: none;
+      filter: drop-shadow(0 4px 20px rgba(255, 215, 0, 0.3));
+    }
+  }
+  
+  /* Dark Mode Support */
+  @media (prefers-color-scheme: dark) {
+    /* Already optimized for dark theme */
+  }
+  
+  /* Ultra-Wide Displays (1440px+) */
+  @media (min-width: 1440px) {
+    .signup-glass {
+      max-width: 560px;
+    }
   }
 </style>
 </head>

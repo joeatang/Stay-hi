@@ -4,9 +4,14 @@ let supabaseClient = null;
 // Initialize Supabase
 async function initializeSupabase() {
   try {
-    const SUPABASE_URL = 'https://gfcubvroxgfvjhacinic.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g';
+    // Use credentials from config.js (or config-local.js for dev)
+    const SUPABASE_URL = window.SUPABASE_URL;
+    const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY;
     
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      throw new Error('Missing Supabase configuration. Check config.js or config-local.js');
+    }
+
     supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { persistSession: true, autoRefreshToken: true }
     });
@@ -242,12 +247,12 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
     // 4. Process referral code if present (HiBase integration)
     await processReferralRedemption(userId);
 
-    // 5. Success: show message and redirect with smooth transition
-    showSuccess('🎉 Account created! Check your email to verify and sign in.');
+    // 5. Success: redirect to profile setup for new users
+    showSuccess('🎉 Account created! Complete your profile to get started.');
     
     setTimeout(() => {
-      window.location.href = 'signin.html';
-    }, 2500);
+      window.location.href = 'profile.html?onboarding=true';
+    }, 2000);
 
   } catch (error) {
     console.error('Signup error:', error);

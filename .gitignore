@@ -5,4 +5,21 @@ node_modules/
 dist/
 build/
 .DS_Store
-.vercel
+
+# Supabase credentials (CRITICAL - never commit!)
+config.js
+config-local.js
+public/assets/config.js
+public/assets/config-local.js
+
+# Backup and test files
+*.backup
+*.bak
+*-backup-*.html
+*-corrupted.html
+*-diagnostic.html
+*-forensics.html
+dev/
+archive/
+public/dev/
+public/archive/

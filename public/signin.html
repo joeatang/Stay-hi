@@ -14,6 +14,10 @@
   <script src="./lib/membership/HiMembershipBridge.js"></script>
   <script src="./lib/access/AccessGate.js"></script>
   
+  <!-- 🔒 SECURE: Load Supabase configuration (config-local.js for dev, env vars for production) -->
+  <script src="./assets/config.js"></script>
+  <script src="./assets/config-local.js" onerror="console.log('No config-local.js found, using env vars')"></script>
+  
   <!-- Tesla-Grade CDN Loading (Fixed ERR_FAILED) -->
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1/dist/umd/supabase.min.js" integrity="sha384-XLEuzmdNfK1V09d59bu+Uv3EFtEp5kFP8BmseBq85CUpeFZXhUfqjk4ZeR/biZmS" crossorigin="anonymous"></script>
@@ -22,12 +26,28 @@
   <link rel="stylesheet" href="assets/create-parity.css"/>
 
   <style>
+    /* 🎯 TESLA-GRADE SMOOTH FOUNDATION */
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+    
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+    
     /* Premium Tesla-inspired layout */
     body {
       background: linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #ffd166 100%);
       min-height: 100vh;
       padding: 0;
       margin: 0;
+      /* GPU acceleration for smooth scrolling */
+      will-change: scroll-position;
+      transform: translateZ(0);
+      -webkit-overflow-scrolling: touch;
     }
     
     /* Tesla-grade background particles */
@@ -52,25 +72,40 @@
     }
     
     .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      justify-content:center;
-      margin-bottom:24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 24px;
       animation: fadeInUp 0.8s ease-out;
     }
     
     .brand .logo{
-      width:44px;
-      height:44px;
-      border-radius:12px;
-      background:var(--grad-ember);
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: block;
+      margin: 0 auto;
+      background: var(--grad-ember);
       box-shadow: 0 8px 25px rgba(255, 122, 24, 0.3);
-      transition: transform 0.3s ease;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      animation: logoGlow 3s ease-in-out infinite;
+      /* GPU acceleration */
+      will-change: transform;
+      transform: translateZ(0);
+    }
+    
+    @keyframes logoGlow {
+      0%, 100% {
+        box-shadow: 0 8px 25px rgba(255, 122, 24, 0.3);
+      }
+      50% {
+        box-shadow: 0 12px 35px rgba(255, 122, 24, 0.5);
+      }
     }
     
     .brand .logo:hover {
-      transform: scale(1.05) rotate(2deg);
+      transform: scale(1.05) rotate(2deg) translateZ(0);
     }
     
     .brand h1 {
@@ -243,6 +278,161 @@
       line-height:1.4;
       opacity:0.9;
     }
+    
+    /* 🎯 TESLA-GRADE RESPONSIVE DESIGN: Mobile-First */
+    
+    /* Mobile Portrait (320px - 480px) */
+    @media (max-width: 480px) {
+      body {
+        padding: 0 1rem;
+      }
+      
+      .wrap {
+        max-width: 100%;
+        margin: 3vh auto;
+        padding: 12px;
+      }
+      
+      .brand .logo {
+        width: 40px;
+        height: 40px;
+      }
+      
+      .brand h1 {
+        font-size: 1.5rem;
+      }
+      
+      .card {
+        padding: 24px 20px;
+        border-radius: 24px;
+      }
+      
+      .h2 {
+        font-size: 1.4rem !important;
+      }
+      
+      .hi-input {
+        font-size: 16px !important; /* Prevents iOS zoom */
+        padding: 12px 14px !important;
+      }
+      
+      .row {
+        flex-direction: column;
+        gap: 8px;
+      }
+      
+      .row > * {
+        width: 100%;
+      }
+    }
+    
+    /* Tablet Portrait (481px - 768px) */
+    @media (min-width: 481px) and (max-width: 768px) {
+      .wrap {
+        max-width: 540px;
+        margin: 4vh auto;
+      }
+      
+      .card {
+        padding: 28px;
+      }
+      
+      .hi-input {
+        font-size: 16px !important; /* Prevents iOS zoom */
+      }
+    }
+    
+    /* Tablet Landscape & Small Desktop (769px - 1024px) */
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .wrap {
+        max-width: 560px;
+      }
+    }
+    
+    /* Large Desktop (1025px+) */
+    @media (min-width: 1025px) {
+      .wrap {
+        max-width: 580px;
+        margin: 7vh auto;
+      }
+      
+      .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 
+          0 36px 96px rgba(0, 0, 0, 0.5),
+          0 12px 40px rgba(255, 215, 0, 0.15),
+          inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+    }
+    
+    /* Touch Device Optimizations */
+    @media (hover: none) and (pointer: coarse) {
+      .hi-input {
+        font-size: 16px !important; /* Critical: Prevents zoom on iOS */
+        -webkit-tap-highlight-color: transparent;
+      }
+      
+      button {
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+      }
+    }
+    
+    /* Landscape Orientation Fixes */
+    @media (orientation: landscape) and (max-height: 600px) {
+      .wrap {
+        margin: 2vh auto;
+        max-height: 95vh;
+        overflow-y: auto;
+      }
+      
+      .brand {
+        margin-bottom: 16px;
+      }
+      
+      .brand .logo {
+        width: 36px;
+        height: 36px;
+      }
+      
+      .card {
+        padding: 20px;
+      }
+    }
+    
+    /* High-DPI Display Optimizations */
+    @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+      .brand .logo {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+      }
+    }
+    
+    /* Reduced Motion Accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      
+      .brand .logo {
+        animation: none;
+        box-shadow: 0 8px 25px rgba(255, 122, 24, 0.3);
+      }
+      
+      .card {
+        animation: none;
+      }
+    }
+    
+    /* Ultra-Wide Displays (1440px+) */
+    @media (min-width: 1440px) {
+      .wrap {
+        max-width: 620px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -256,10 +446,20 @@
 
     <div class="card">
       <h2 class="h2" style="margin-top:0">Sign in</h2>
-      <p class="muted" style="margin-top:0">We’ll email you a magic link. No password needed.</p>
+      <p class="muted" style="margin-top:0">Enter your email and password to continue.</p>
 
       <label for="email" class="hint">Email</label>
       <input id="email" type="email" class="hi-input" placeholder="you@example.com" autocomplete="email" required />
+
+      <label for="password" class="hint" style="margin-top:16px">Password</label>
+      <div style="position:relative">
+        <input id="password" type="password" class="hi-input" placeholder="Enter your password" autocomplete="current-password" required style="padding-right:48px" />
+        <button id="togglePassword" type="button" aria-label="Show password" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.6);cursor:pointer;font-size:18px;padding:8px;transition:color 0.2s" onmouseover="this.style.color='rgba(255,255,255,0.9)'" onmouseout="this.style.color='rgba(255,255,255,0.6)'">👁️</button>
+      </div>
+
+      <div style="text-align:right;margin-top:8px">
+        <a href="reset-password.html" style="color:rgba(255,255,255,0.7);font-size:12px;text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='#FFD166'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Forgot password?</a>
+      </div>
 
       <!-- Optional: Invite code capture (revealed by ?invite= or via toggle) -->
       <div id="inviteRow" class="row" style="margin-top:12px; display:none; justify-content:space-between">
@@ -273,7 +473,7 @@
       <div class="row">
         <a href="index.html" class="hi-btn hi-btn--ghost premium-hover focus-premium" style="background:rgba(255,255,255,0.1);color:white;border-color:rgba(255,255,255,0.2)">Cancel</a>
         <button id="send" class="btn-premium btn-primary-premium celebration-trigger focus-premium">
-          <span>Send magic link</span>
+          <span>Sign in</span>
           <div class="loading-dots" style="display:none">
             <span></span>
             <span></span>
@@ -281,19 +481,6 @@
           </div>
         </button>
       </div>
-
-      <!-- PWA-friendly OTP verification (no context switch) -->
-      <div style="margin-top:16px; text-align:right">
-        <button id="toggleOtp" type="button" class="hi-btn hi-btn--ghost" style="padding:6px 8px;font-size:12px;background:rgba(255,255,255,0.08);color:white;border-color:rgba(255,255,255,0.2)">Use a 6‑digit email code</button>
-      </div>
-      <div id="otpRow" class="row" style="margin-top:12px; display:none; justify-content:space-between">
-        <label for="otpCode" class="hint" style="margin:0;flex:0 0 auto">6‑digit code</label>
-        <div style="display:flex; gap:8px; align-items:center">
-          <input id="otpCode" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" class="hi-input" placeholder="••••••" style="width:130px; text-align:center; letter-spacing:3px" autocomplete="one-time-code" />
-          <button id="verifyOtpBtn" type="button" class="hi-btn hi-btn--primary">Verify</button>
-        </div>
-      </div>
-      <p id="otpHelp" class="hint" style="display:none;color:rgba(255,255,255,0.7);font-size:12px;margin-top:6px;text-align:right">Tip: If your email opened in another app, you can paste the 6‑digit code here to finish sign‑in without switching back.</p>
 
       <div id="success" class="tesla-success">
         <div class="tesla-success-content">
@@ -305,8 +492,8 @@
             </svg>
           </div>
           <div class="tesla-text">
-            <h3 class="tesla-title">🔐 Secure link sent</h3>
-            <p class="tesla-subtitle">Hi Collective member verified ✅ Check your inbox and tap the link to continue</p>
+            <h3 class="tesla-title">✅ Signed in successfully</h3>
+            <p class="tesla-subtitle">Redirecting to your dashboard...</p>
           </div>
         </div>
       </div>
