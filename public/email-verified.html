@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Email Verified · Stay Hi</title>
+  <meta name="theme-color" content="#0f1024">
+  <meta name="robots" content="noindex,nofollow">
+  
+  <style>
+    :root {
+      --accent: #FFD166;
+      --accent-end: #FF7B24;
+      --bg: #0f1024;
+      --panel: #161a33;
+      --text: #ffffff;
+      --text-muted: rgba(255, 255, 255, 0.7);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Mindful gradient background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, 
+        rgba(255, 209, 102, 0.1) 0%, 
+        rgba(255, 123, 36, 0.05) 50%, 
+        rgba(15, 16, 36, 1) 100%
+      );
+      z-index: -1;
+      animation: gentlePulse 8s ease-in-out infinite alternate;
+    }
+
+    @keyframes gentlePulse {
+      0% { opacity: 0.8; }
+      100% { opacity: 1; }
+    }
+
+    .container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .success-card {
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 48px 40px;
+      border-radius: 24px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      /* GPU acceleration */
+      will-change: transform;
+      transform: translateZ(0);
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px) translateZ(0);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) translateZ(0);
+      }
+    }
+
+    .success-icon {
+      font-size: 72px;
+      margin-bottom: 24px;
+      animation: celebrate 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes celebrate {
+      0% {
+        transform: scale(0) rotate(-180deg);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.2) rotate(10deg);
+      }
+      100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+      }
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-end));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .success-message {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+
+    .redirect-notice {
+      background: rgba(255, 209, 102, 0.1);
+      border: 1px solid rgba(255, 209, 102, 0.2);
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      font-size: 0.95rem;
+      color: var(--accent);
+    }
+
+    #countdown {
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-end));
+      color: #111;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 8px 24px rgba(255, 122, 24, 0.2);
+      /* GPU acceleration */
+      will-change: transform, box-shadow;
+      transform: translateZ(0);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px) translateZ(0);
+      box-shadow: 0 12px 32px rgba(255, 122, 24, 0.3);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0) scale(0.98) translateZ(0);
+    }
+
+    .btn-primary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 4px;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .success-card {
+        padding: 36px 28px;
+      }
+
+      h1 {
+        font-size: 1.6rem;
+      }
+
+      .success-icon {
+        font-size: 64px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="success-card" role="main" aria-labelledby="success-title">
+      <div class="success-icon" aria-hidden="true">✅</div>
+      
+      <h1 id="success-title">Email Verified!</h1>
+      
+      <p class="success-message">
+        Your account is now active. Let's complete your profile and start your journey.
+      </p>
+      
+      <div class="redirect-notice" role="status" aria-live="polite">
+        Redirecting in <span id="countdown">3</span> seconds...
+      </div>
+      
+      <button 
+        class="btn-primary" 
+        onclick="redirectToProfile()"
+        aria-label="Complete your profile now">
+        Complete Profile Now
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Auto-redirect with countdown
+    let count = 3;
+    const countdownEl = document.getElementById('countdown');
+    
+    const interval = setInterval(() => {
+      count--;
+      if (countdownEl) {
+        countdownEl.textContent = count;
+      }
+      if (count === 0) {
+        clearInterval(interval);
+        redirectToProfile();
+      }
+    }, 1000);
+
+    function redirectToProfile() {
+      window.location.href = 'profile.html?onboarding=true';
+    }
+
+    // Handle back button - prevent going back to verification link
+    window.history.pushState(null, '', window.location.href);
+    window.addEventListener('popstate', function() {
+      window.history.pushState(null, '', window.location.href);
+    });
+  </script>
+</body>
+</html>

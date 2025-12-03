@@ -1,46 +1,6 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Hi Speak · Offline</title>
-  <meta name="robots" content="noindex,nofollow" />
-  
-  <style>
-    :root { --accent:#FFD166; --bg:#0f1022; --panel:#161a33; --fg:#ffffff; }
-    html,body { margin:0; padding:0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background:var(--bg); color:var(--fg); min-height:100vh; }
-    .wrap { max-width:560px; margin:0 auto; padding:32px 24px 48px; }
-    h1 { font-size:1.6rem; margin:0 0 12px; background:linear-gradient(135deg,#FFD166,#FF7B24); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-    p { line-height:1.5; }
-    .card { background:var(--panel); border:1px solid rgba(255,255,255,0.08); padding:20px 24px; border-radius:20px; backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); box-shadow:0 12px 32px rgba(0,0,0,0.35); }
-    ul { padding-left:18px; }
-    code { background:#212946; padding:2px 6px; border-radius:6px; font-size:0.85rem; }
-    a { color:var(--accent); text-decoration:none; }
-    a:focus-visible { outline:2px solid var(--accent); outline-offset:4px; border-radius:6px; }
-    .retry { margin-top:22px; display:inline-block; background:linear-gradient(135deg,#FFD166,#FF7B24); color:#111; font-weight:600; border:none; border-radius:12px; padding:12px 22px; font-size:15px; cursor:pointer; }
-    .retry:focus-visible { outline:2px solid #FF7B24; outline-offset:3px; }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="card" role="dialog" aria-labelledby="offline-title" aria-modal="true">
-      <h1 id="offline-title">You Are Offline</h1>
-      <p>The Hi experience is temporarily unavailable because your connection dropped. Your device will retry automatically. You can also refresh manually once you are back online.</p>
-      <p>What you can do now:</p>
-      <ul>
-        <li>Check Wi‑Fi or cellular connection strength.</li>
-        <li>Toggle airplane mode off if enabled.</li>
-        <li>Return to a previously opened tab when back online.</li>
-      </ul>
-      <button class="retry" onclick="window.location.reload()">🔁 Try Again</button>
-      <p style="margin-top:28px; font-size:12px; opacity:0.7">Cached offline page · Build <span id="hi-build"></span></p>
-    </div>
-  </div>
-  <script>try{document.getElementById('hi-build').textContent = (window.HI_BUILD||window.__BUILD_STAMP||'local');}catch(e){}</script>
-</body>
-</html><!doctype html>
-<html lang="en">
-<head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Offline — Hi Collective</title>

@@ -170,6 +170,22 @@ class HiIslandRealFeed {
         });
         throw error;
       }
+      
+      // 🔬 SURGICAL DEBUG: Log raw database response
+      console.log('🗄️ Database returned', shares?.length || 0, 'shares from public_shares table');
+      if (shares && shares.length > 0) {
+        console.log('📊 Raw database sample:', {
+          id: shares[0].id,
+          content: shares[0].content,
+          visibility: shares[0].visibility,
+          metadata: shares[0].metadata,
+          user_id: shares[0].user_id,
+          profiles: shares[0].profiles,
+          created_at: shares[0].created_at
+        });
+      } else {
+        console.warn('⚠️ No shares found in public_shares table');
+      }
 
       // 🎯 TESLA-GRADE: Process shares with NEW SCHEMA alignment
       const processedShares = (shares || []).map(share => {
@@ -548,8 +564,26 @@ class HiIslandRealFeed {
   }
 
   renderFeedItems(tabName, shares) {
+    // 🔬 SURGICAL DEBUG: Log what's being rendered
+    console.log(`🎨 Rendering ${shares.length} items for ${tabName} tab`);
+    
+    if (shares.length > 0) {
+      console.log('📋 Sample share data:', {
+        id: shares[0].id,
+        content: shares[0].content,
+        visibility: shares[0].visibility,
+        display_name: shares[0].display_name,
+        avatar_url: shares[0].avatar_url,
+        metadata: shares[0].metadata,
+        origin: shares[0].origin
+      });
+    }
+    
     const container = document.getElementById(`${tabName}Feed`);
-    if (!container) return;
+    if (!container) {
+      console.warn(`❌ Feed container not found: ${tabName}Feed`);
+      return;
+    }
 
     // Remove loading state on first render
     if (this.pagination[tabName].page === 0) {
@@ -576,6 +610,8 @@ class HiIslandRealFeed {
     if (this.feedData[tabName].length === 0) {
       this.showEmptyState(tabName);
     }
+    
+    console.log(`✅ Rendered ${shares.length} shares to ${tabName} feed`);
   }
 
   // Apply current origin filter to a tab's data

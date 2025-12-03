@@ -210,8 +210,23 @@
   
   // Initial attempt
   ensureMissionControlLink();
-  // Retry a few times for late DOM mutations (mobile slow loads)
-  let mcRetries=0; const mcInterval=setInterval(()=>{ mcRetries++; ensureMissionControlLink(); if (mcRetries>5) clearInterval(mcInterval); }, 300);
+  
+  // ✅ FIX: Use MutationObserver instead of setInterval for instant detection
+  const menuSheet = document.getElementById('menuSheet');
+  if (menuSheet) {
+    const observer = new MutationObserver(() => {
+      ensureMissionControlLink();
+    });
+    observer.observe(menuSheet, { 
+      childList: true,      // Watch for added/removed children
+      subtree: true,        // Watch entire subtree
+      attributes: false     // Don't watch attribute changes
+    });
+  } else {
+    // Fallback: If menuSheet not found, use minimal retry
+    setTimeout(ensureMissionControlLink, 100);
+  }
+  
   // Re-inject on admin state changes (in case header rebuilt or removed)
   window.addEventListener('hi:admin-state-changed', ensureMissionControlLink);
   window.addEventListener('hi:admin-confirmed', ensureMissionControlLink);

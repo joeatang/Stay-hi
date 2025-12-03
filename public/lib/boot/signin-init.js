@@ -56,6 +56,19 @@ async function initializeSupabase() {
     try {
       const sb = await waitForSupabase();
       const { data: { session } } = await sb.auth.getSession();
+      
+      // Check for password reset success message
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('password_reset') === 'success') {
+        if (ok) {
+          ok.textContent = '✅ Password reset successful! You can now sign in with your new password.';
+          ok.style.display = 'block';
+        }
+        // Remove parameter from URL without reload
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      }
+      
       if (session) {
         const next = new URLSearchParams(location.search).get('next') || 'hi-dashboard.html';
         if (window.teslaRedirect) {

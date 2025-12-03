@@ -1,0 +1,115 @@
+/**
+ * 🎨 Medallion Curiosity System Styles
+ * Minimal, elegant, non-intrusive
+ */
+
+.medallion-hint {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.medallion-hint.visible {
+  opacity: 1;
+}
+
+.medallion-hint.fade-out {
+  opacity: 0;
+}
+
+.hint-bubble {
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 215, 102, 0.3);
+  border-radius: 20px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+}
+
+.hint-bubble.celebration {
+  background: linear-gradient(135deg, rgba(78, 205, 196, 0.2), rgba(16, 185, 129, 0.2));
+  border-color: rgba(78, 205, 196, 0.5);
+  animation: celebrationPulse 0.6s ease-out;
+}
+
+@keyframes celebrationPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.hint-emoji {
+  font-size: 20px;
+  animation: gentleBounce 2s ease-in-out infinite;
+}
+
+@keyframes gentleBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.hint-text {
+  color: #FFD166;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+}
+
+/* Mobile optimization */
+@media (max-width: 480px) {
+  .medallion-hint {
+    top: -50px;
+  }
+  
+  .hint-bubble {
+    padding: 8px 14px;
+    border-radius: 16px;
+  }
+  
+  .hint-text {
+    font-size: 13px;
+  }
+  
+  .hint-emoji {
+    font-size: 18px;
+  }
+}
+
+/* Ultra-small screens */
+@media (max-width: 360px) {
+  .medallion-hint {
+    top: -45px;
+  }
+  
+  .hint-bubble {
+    padding: 8px 12px;
+  }
+  
+  .hint-text {
+    font-size: 12px;
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .hint-emoji {
+    animation: none;
+  }
+  
+  .hint-bubble.celebration {
+    animation: none;
+  }
+  
+  .medallion-hint {
+    transition: none;
+  }
+}

@@ -53,5 +53,37 @@ document.addEventListener('DOMContentLoaded', () => {
   if(menuBtn && navigationModal){ menuBtn.addEventListener('click', ()=>{ navigationModal.style.display='flex'; document.body.style.overflow='hidden'; }); [closeBtn, backdrop].forEach(el=>{ if(el){ el.addEventListener('click', ()=>{ navigationModal.style.display='none'; document.body.style.overflow='auto'; }); } }); }
   const calBtn=document.getElementById('btnCal'); if(calBtn){ calBtn.addEventListener('click', ()=>{ console.log('📅 Calendar clicked'); }); }
   const hiffirmationsBtn=document.getElementById('hiffirmationsTrigger'); if(hiffirmationsBtn){ hiffirmationsBtn.addEventListener('click', ()=>{ console.log('✨ Hiffirmations clicked'); }); }
-  setTimeout(()=>{ if(window.HiMembership && window.HiMembership.isInitialized()){ const user=window.HiMembership.getCurrentUser(); const tierIndicator=document.getElementById('hi-tier-indicator'); if(tierIndicator && user){ const tierText=tierIndicator.querySelector('.tier-text'); tierText.textContent=user.tierInfo.name; tierIndicator.style.color=user.tierInfo.color || '#6B7280'; if(user.membershipTier==='ADMIN'){ const adminSection=document.getElementById('adminSection'); if(adminSection) adminSection.style.display='block'; } console.log('🎫 [Profile] Membership tier displayed:', user.tierInfo.name); } } },1000);
+  
+  // ✨ Tier Display Update System (synced with dashboard logic)
+  function updateBrandTierDisplay() {
+    const tierIndicator = document.getElementById('hi-tier-indicator');
+    if (!tierIndicator) return;
+    if (!window.HiBrandTiers) return;
+    
+    let tierKey = 'anonymous';
+    if (window.unifiedMembership?.membershipStatus?.tier) {
+      tierKey = window.unifiedMembership.membershipStatus.tier;
+    } else if (window.HiMembership?.currentUser?.tierInfo?.name) {
+      tierKey = window.HiMembership.currentUser.tierInfo.name.toLowerCase();
+    }
+    
+    window.HiBrandTiers.updateTierPill(tierIndicator, tierKey, {
+      showEmoji: false,
+      useGradient: false
+    });
+    
+    // Show admin section if admin
+    if (window.HiMembership?.currentUser?.membershipTier === 'ADMIN') {
+      const adminSection = document.getElementById('adminSection');
+      if (adminSection) adminSection.style.display = 'block';
+    }
+    
+    console.log('🎫 [Profile] Tier updated:', tierKey);
+  }
+  
+  // Initialize tier display on page load and listen for changes
+  setTimeout(() => updateBrandTierDisplay(), 1000);
+  window.addEventListener('membershipStatusChanged', () => updateBrandTierDisplay());
+  setTimeout(() => { if (window.unifiedMembership?.membershipStatus?.tier) updateBrandTierDisplay(); }, 2500);
+  setTimeout(() => { if (window.unifiedMembership?.membershipStatus?.tier) updateBrandTierDisplay(); }, 5000);
 });

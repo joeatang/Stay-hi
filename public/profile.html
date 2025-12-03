@@ -34,6 +34,7 @@
   <!-- Tier & Points Helpers -->
   <script src="./lib/access/HiTier.js"></script>
   <script src="./lib/rewards/HiPoints.js"></script>
+  <script src="./lib/HiBrandTiers.js" async></script>
   
   <!-- 🚀 INTEGRATION #2: HiBase + HiFlags for Profile operations (flagged rollout) -->
   <script type="module" src="./lib/flags/HiFlags.js"></script>
@@ -1089,6 +1090,9 @@
       }
     }
   </style>
+  
+  <!-- Tier Loading Skeleton CSS -->
+  <link rel="stylesheet" href="./assets/tier-loading-skeleton.css">
 </head>
 <body>
   <!-- Tesla-Grade Header (matches Dashboard pattern) -->
@@ -1143,8 +1147,8 @@
       </button>
       
       <!-- Membership Tier Indicator (Brand-consistent) -->
-      <div id="hi-tier-indicator" class="tier-indicator" title="Your membership tier">
-        <span class="tier-text">Hi Friend</span>
+      <div id="hi-tier-indicator" class="tier-indicator" title="Loading tier..." data-auth-loading="true">
+        <span class="tier-text tier-loading">⏳</span>
       </div>
       
       <button id="btnMenu" class="menu-btn" aria-label="Open menu" title="Navigation Menu">
@@ -3532,6 +3536,37 @@ FOR INSERT WITH CHECK (
           }
         } catch(_){}
       }, 1000);
+      
+      // 🎉 Onboarding: Auto-open profile editor for new users
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('onboarding') === 'true') {
+        console.log('🎉 Welcome! Starting profile setup...');
+        
+        setTimeout(() => {
+          const modal = document.getElementById('editProfileModal');
+          if (modal) {
+            modal.classList.add('active');
+            
+            // Show welcome message
+            const header = modal.querySelector('.crop-header h3');
+            if (header) {
+              header.textContent = '🎉 Welcome to Hi! Set up your profile';
+            }
+            
+            // Focus on display name field
+            const displayNameInput = document.getElementById('editDisplayName');
+            if (displayNameInput) {
+              displayNameInput.focus();
+            }
+            
+            // Remove onboarding param from URL without reload
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, '', newUrl);
+            
+            console.log('✅ Onboarding modal opened');
+          }
+        }, 1500);
+      }
     });
   </script>
 

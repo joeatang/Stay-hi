@@ -270,6 +270,14 @@
     const authenticated = await isAuthenticated();
     console.log('[auth-guard] Authenticated:', authenticated);
     
+    // Start session monitoring if authenticated
+    if (authenticated) {
+      const session = await window.hiAuth?.getSession?.();
+      if (session?.expires_at) {
+        startSessionMonitor(session.expires_at);
+      }
+    }
+    
     if (!authenticated) {
       console.log('[auth-guard] ❌ Auth required but not authenticated - redirecting to welcome');
       redirectToWelcome();
@@ -288,3 +296,133 @@
     authGuard();
   }
 })();
+
+// Session expiry monitoring
+function startSessionMonitor(expiresAt) {
+  if (window.__sessionMonitorActive) return; // Prevent duplicate monitors
+  window.__sessionMonitorActive = true;
+  
+  const expiryTime = typeof expiresAt === 'number' ? expiresAt * 1000 : new Date(expiresAt).getTime();
+  const now = Date.now();
+  const timeUntilExpiry = expiryTime - now;
+  
+  if (timeUntilExpiry <= 0) return; // Already expired
+  
+  // Warn 5 minutes before expiry
+  const warnTime = timeUntilExpiry - (5 * 60 * 1000);
+  if (warnTime > 0) {
+    setTimeout(() => {
+      showSessionWarning(5);
+    }, warnTime);
+  }
+  
+  // Warn 1 minute before expiry
+  const warnTime1 = timeUntilExpiry - (60 * 1000);
+  if (warnTime1 > 0) {
+    setTimeout(() => {
+      showSessionWarning(1);
+    }, warnTime1);
+  }
+  
+  // Redirect on expiry
+  setTimeout(() => {
+    window.location.href = 'signin.html?session_expired=true';
+  }, timeUntilExpiry);
+}
+
+function showSessionWarning(minutesLeft) {
+  // Check if toast already exists
+  if (document.getElementById('session-warning-toast')) return;
+  
+  const toast = document.createElement('div');
+  toast.id = 'session-warning-toast';
+  toast.innerHTML = `
+    <div class="toast-content">
+      <span class="toast-icon">⏰</span>
+      <div class="toast-text">
+        <p class="toast-title">Session Expiring Soon</p>
+        <p class="toast-message">You'll be signed out in ${minutesLeft} ${minutesLeft === 1 ? 'minute' : 'minutes'}</p>
+      </div>
+      <button onclick="extendSession()" class="toast-action">Extend</button>
+    </div>
+  `;
+  
+  // Add styles
+  const style = document.createElement('style');
+  style.textContent = `
+    #session-warning-toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(22, 26, 51, 0.98);
+      border: 1px solid rgba(255, 209, 102, 0.4);
+      padding: 16px 20px;
+      border-radius: 14px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+      z-index: 10000;
+      opacity: 0;
+      transform: translateX(400px);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      max-width: 360px;
+    }
+    #session-warning-toast.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    #session-warning-toast .toast-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #fff;
+    }
+    #session-warning-toast .toast-icon {
+      font-size: 24px;
+    }
+    #session-warning-toast .toast-text {
+      flex: 1;
+    }
+    #session-warning-toast .toast-title {
+      font-weight: 700;
+      margin: 0 0 4px;
+      color: #FFD166;
+    }
+    #session-warning-toast .toast-message {
+      margin: 0;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+    #session-warning-toast .toast-action {
+      background: linear-gradient(135deg, #FFD166, #FF7B24);
+      border: none;
+      color: #111;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    #session-warning-toast .toast-action:hover {
+      transform: scale(1.05);
+    }
+    @media (max-width: 480px) {
+      #session-warning-toast {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+      }
+    }
+  `;
+  
+  document.head.appendChild(style);
+  document.body.appendChild(toast);
+  
+  // Animate in
+  setTimeout(() => toast.classList.add('show'), 100);
+}
+
+window.extendSession = function() {
+  // Reload page to refresh session
+  window.location.reload();
+};

@@ -24,6 +24,7 @@
   <!-- 🎯 TIER CONFIG - Must load BEFORE HiMembership -->
   <script src="lib/config/TIER_CONFIG.js"></script>
   <script src="lib/membership/HiMembershipBridge.js"></script>
+  <script src="lib/HiBrandTiers.js" async></script>
   <script src="lib/access/AccessGate.js"></script>
   <script src="components/AccessGateModal.js"></script>
   <!-- Unified Admin Access Manager -->
@@ -1257,6 +1258,9 @@
       border-radius: 0 0 4px 0;
     }
   </style>
+  
+  <!-- Tier Loading Skeleton CSS -->
+  <link rel="stylesheet" href="./assets/tier-loading-skeleton.css">
 </head>
 <body data-tab="muscle" data-page="hi-muscle">
   <!-- Tesla-Grade Dashboard Header -->
@@ -1282,8 +1286,8 @@
     </div>
     
     <div class="header-right">
-      <div id="hi-tier-indicator" class="tier-indicator" title="Your membership tier">
-        <span class="tier-text">Standard</span>
+      <div id="hi-tier-indicator" class="tier-indicator" title="Loading tier..." data-auth-loading="true">
+        <span class="tier-text tier-loading">⏳</span>
       </div>
       <button class="menu-btn" onclick="openNavigation()">
         <span style="font-size: 18px;">☰</span>

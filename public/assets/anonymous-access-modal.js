@@ -11,18 +11,35 @@ class AnonymousAccessModal {
   
   init() {
     this.checkInProgress = false; // Guard against duplicate checks
+    this.authReadyFired = false;
     
-    // Check immediately on init
-    setTimeout(() => {
-      this.checkAccessOnLoad();
-    }, 100); // Very short delay to ensure DOM is ready
+    // ✅ FIX: Wait for AuthReady BEFORE checking (prevents modal flash)
+    window.addEventListener('hi:auth-ready', async (e) => {
+      this.authReadyFired = true;
+      const { session, membership } = e.detail || {};
+      
+      // If session exists, user is authenticated - don't show modal
+      if (session?.user) {
+        console.log('✅ User authenticated via hi:auth-ready, no modal needed');
+        return;
+      }
+      
+      // Only check if truly appears anonymous
+      if (!session && (!membership || membership.tier === 'anonymous')) {
+        console.log('🔍 No session in hi:auth-ready, checking if modal needed...');
+        this.checkAccessOnLoad();
+      } else {
+        console.log('✅ User has membership, no modal needed');
+      }
+    }, { once: true });
     
-    // Also check after a longer delay in case of slow loading
+    // Fallback: If AuthReady doesn't fire in 3s, check anyway
     setTimeout(() => {
-      if (!this.isShown && !this.checkInProgress) {
+      if (!this.authReadyFired && !this.isShown && !this.checkInProgress) {
+        console.log('⚠️ AuthReady timeout, checking auth status as fallback...');
         this.checkAccessOnLoad();
       }
-    }, 2000);
+    }, 3000);
     
     // Listen for access check requests
     window.addEventListener('checkAnonymousAccess', (e) => {
@@ -30,11 +47,12 @@ class AnonymousAccessModal {
     });
 
     // Auto-dismiss modal when auth becomes ready and user is authenticated
-    window.addEventListener('hi:auth-ready', async () => {
+    window.addEventListener('hi:auth-updated', async (e) => {
       try {
         if (!this.isShown) return;
-        const hasAuth = await this.checkAuthStatus();
-        if (hasAuth) {
+        const { session } = e.detail || {};
+        if (session?.user) {
+          console.log('✅ User authenticated via hi:auth-updated, hiding modal');
           await this.hideModal();
         }
       } catch {}
@@ -49,6 +67,24 @@ class AnonymousAccessModal {
     
     this.checkInProgress = true;
     console.log('🔍 Anonymous Access Modal: Starting checkAccessOnLoad');
+    
+    // ✅ FIX: Check membership cache FIRST (instant tier recognition)
+    const membershipCache = localStorage.getItem('unified_membership_cache');
+    if (membershipCache) {
+      try {
+        const { membership, cachedAt } = JSON.parse(membershipCache);
+        const age = Date.now() - cachedAt;
+        
+        // If cache is fresh (< 5min) and tier is not anonymous, skip modal
+        if (age < 5 * 60 * 1000 && membership?.tier && membership.tier !== 'anonymous') {
+          console.log(`✅ Membership cache valid: ${membership.tier} - no modal needed`);
+          this.checkInProgress = false;
+          return;
+        }
+      } catch (e) {
+        console.log('⚠️ Failed to read membership cache:', e.message);
+      }
+    }
     
     // Check if current page requires authentication
     const protectedPages = ['/profile.html'];
@@ -106,29 +142,34 @@ class AnonymousAccessModal {
   async quickAuthCheck() {
     console.log('⚡ Performing quick auth check...');
     
-    // Check localStorage tokens immediately (no waiting)
-    const tokenKeys = [
-      'sb-access-token', 
-      'sb-refresh-token',
-      'hiAccess',
-      'supabase.auth.token'
-    ];
+    // ✅ FIX: Check actual Supabase v2 token key pattern
+    const supabaseKeyPattern = /^sb-.*-auth-token$/;
+    let hasSession = false;
     
-    const hasTokens = tokenKeys.some(key => {
-      const value = localStorage.getItem(key);
-      return value && value !== 'null' && value !== 'undefined' && value.length > 0;
-    });
-    
-    if (hasTokens) {
-      console.log('⚡ Quick check: Auth tokens found');
-      return true;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (supabaseKeyPattern.test(key)) {
+        const value = localStorage.getItem(key);
+        try {
+          const parsed = JSON.parse(value);
+          if (parsed?.access_token && parsed?.user) {
+            console.log('⚡ Quick check: Valid Supabase session found in', key);
+            hasSession = true;
+            break;
+          }
+        } catch (e) {
+          // Invalid JSON, skip
+        }
+      }
     }
+    
+    if (hasSession) return true;
     
     // Check for anonymous exploration mode
     const anonymousAccess = localStorage.getItem('anonymous_access_granted');
     const discoveryMode = localStorage.getItem('hi_discovery_mode');
     
-    if (anonymousAccess || discoveryMode === 'anonymous') {
+    if (anonymousAccess === 'true' || discoveryMode === 'anonymous') {
       console.log('⚡ Quick check: Anonymous exploration mode active');
       return true;
     }

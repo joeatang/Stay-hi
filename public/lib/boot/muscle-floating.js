@@ -711,3 +711,29 @@ class HiQuoteCardGenerator {
 
 // Initialize quote card generator for Hi Muscle
 window.HiQuoteCardGenerator = new HiQuoteCardGenerator();
+
+// ✨ Tier Display Update System (synced with dashboard logic)
+function updateBrandTierDisplay() {
+  const tierIndicator = document.getElementById('hi-tier-indicator');
+  if (!tierIndicator) return;
+  if (!window.HiBrandTiers) return;
+  
+  let tierKey = 'anonymous';
+  if (window.unifiedMembership?.membershipStatus?.tier) {
+    tierKey = window.unifiedMembership.membershipStatus.tier;
+  } else if (window.HiMembership?.currentUser?.tierInfo?.name) {
+    tierKey = window.HiMembership.currentUser.tierInfo.name.toLowerCase();
+  }
+  
+  window.HiBrandTiers.updateTierPill(tierIndicator, tierKey, {
+    showEmoji: false,
+    useGradient: false
+  });
+  console.log('🎫 [Hi Gym] Tier updated:', tierKey);
+}
+
+// Initialize tier display on page load and listen for changes
+setTimeout(() => updateBrandTierDisplay(), 1000);
+window.addEventListener('membershipStatusChanged', () => updateBrandTierDisplay());
+setTimeout(() => { if (window.unifiedMembership?.membershipStatus?.tier) updateBrandTierDisplay(); }, 2500);
+setTimeout(() => { if (window.unifiedMembership?.membershipStatus?.tier) updateBrandTierDisplay(); }, 5000);

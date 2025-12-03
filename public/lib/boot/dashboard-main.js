@@ -429,7 +429,20 @@
   }
 
   async function setupWeeklyProgress(){ const weekStrip=document.getElementById('weekStrip'); if(!weekStrip) return; const today=new Date(); let html=''; const weeklyActivity=await getUserWeeklyActivity(); for(let i=6;i>=0;i--){ const date=new Date(today); date.setDate(today.getDate()-i); const label=date.toLocaleDateString(undefined,{weekday:'short'}).toUpperCase(); const dayNum=date.getDate(); const isToday=i===0; const dateKey=date.toISOString().split('T')[0]; const metClass=weeklyActivity.activeDays.includes(dateKey)?'met':''; const milestoneClass=isToday && weeklyActivity.milestone?.current ? 'milestone' : ''; html+=`<div class="weekdot ${isToday?'today':''} ${milestoneClass}"><div class="lbl">${label}</div><div class="c ${metClass}">${dayNum}</div>${isToday && weeklyActivity.milestone?.current ? `<div class="milestone-badge">${weeklyActivity.milestone.current.emoji}</div>`:''}</div>`; } weekStrip.innerHTML=html; }
-  async function getUserWeeklyActivity(){ try { const currentUser=window.hiAuth?.getCurrentUser?.(); if (currentUser && currentUser.id && currentUser.id!=='anonymous'){ const streakResult=await window.HiBase?.streaks?.getUserStreak?.(currentUser.id); if (streakResult?.data){ return generateWeeklyFromStreak(streakResult.data); } } return generateAnonymousWeeklyPreview(); } catch(e){ return generateAnonymousWeeklyPreview(); } }
+  async function getUserWeeklyActivity(){ try { const currentUser=window.hiAuth?.getCurrentUser?.(); if (currentUser && currentUser.id && currentUser.id!=='anonymous'){ const streakResult=await window.HiBase?.streaks?.getUserStreak?.(currentUser.id); if (streakResult?.data){ return generateWeeklyFromStreak(streakResult.data); } } return generateAnonymousWeeklyPreview(); } catch(e){ console.error('Weekly activity load failed:', e); return generateAnonymousWeeklyPreview(); } }
+
+  // Network error retry handler
+  window.retryDashboardLoad = async function() {
+    const statsDisplay = document.getElementById('hi-stats-display');
+    if (statsDisplay) {
+      statsDisplay.innerHTML = '<div class="hi-loading-skeleton"><div class="loading-msg">Loading your stats...</div></div>';
+    }
+    try {
+      await loadDashboardData();
+    } catch (error) {
+      console.error('Retry failed:', error);
+    }
+  };
   function generateWeeklyFromStreak(streakData){ const activeDays=[]; const today=new Date(); const currentStreak=streakData.current||0; const lastHiDate=streakData.lastHiDate; const milestoneInfo=checkStreakMilestones(currentStreak); if (lastHiDate && currentStreak>0){ const streakStart=new Date(lastHiDate); streakStart.setDate(streakStart.getDate()-currentStreak+1); for(let i=0;i<currentStreak && i<7;i++){ const activeDate=new Date(streakStart); activeDate.setDate(streakStart.getDate()+i); const daysAgo=Math.floor((today-activeDate)/(86400000)); if (daysAgo>=0 && daysAgo<=6){ activeDays.push(activeDate.toISOString().split('T')[0]); } } } return { activeDays, source:'real_streak', milestone: milestoneInfo }; }
   function checkStreakMilestones(streak){ const milestones=[{threshold:3,name:'Hi Habit',emoji:'🔥'},{threshold:7,name:'Week Keeper',emoji:'🔥'},{threshold:30,name:'Monthly Hi',emoji:'🔥'},{threshold:100,name:'Steady Light',emoji:'🔥'}]; const achieved=milestones.filter(m=>streak>=m.threshold); const latest=achieved[achieved.length-1]; const upcoming=milestones.find(m=>streak < m.threshold); return { current: latest||null, next: upcoming||null, isNewMilestone:false }; }
   // Prefer centralized milestone definition if loaded
@@ -620,41 +633,143 @@
     } catch{}
   });
 
-  async function loadCurrentStatsFromDatabase(){ console.log('🔄 Background loading real stats from database...'); setTimeout(async ()=>{ try { let supabase = window.getSupabase?.() || window.supabaseClient || window.HiSupabase?.getClient?.() || window.supabase; if(!supabase){ for(let i=0;i<5;i++){ await new Promise(r=>setTimeout(r,100)); supabase = window.getSupabase?.() || window.supabaseClient || window.HiSupabase?.getClient?.() || window.supabase; if(supabase) break; } } if(!supabase){ console.log('No Supabase client available'); return; } let realStatsLoaded=false; try { if(window.loadEnhancedGlobalStats){ await window.loadEnhancedGlobalStats(); realStatsLoaded=true; } else { const { data, error } = await supabase.from('global_stats').select('total_his, hi_waves, total_users').single(); if(data && !error){ const oldTotalHis = window.gTotalHis; const oldWaves = window.gWaves;
-            // 🎯 SURGICAL FIX: Database is ALWAYS source of truth
-            // Never compare with cached values - just take DB value directly
-            if (data.total_his != null){
-              window.gTotalHis = data.total_his;
-              window._gTotalHisIsTemporary = false;
-            }
-            const serverWaves = Number(data.hi_waves)||0;
-            // Monotonic: never drop below current UI/cached waves
-            window.gWaves = Math.max(serverWaves, Number(window.gWaves)||0);
-            // 🔧 FIX: Use unified cache keys (matching UnifiedStatsLoader.js)
-            localStorage.setItem('globalHiWaves', String(window.gWaves));
-            localStorage.setItem('globalTotalHis', String(window.gTotalHis));
-            localStorage.setItem('globalHiWaves_time', String(Date.now()));
-            updateStatsUI(); realStatsLoaded=true; } } } catch(e){ console.log('Enhanced stats loading failed'); }
-      if(!realStatsLoaded){ try { const { data:shareData, error:shareError } = await supabase.from('public_shares').select('total_his').limit(1).single(); if(shareData && !shareError && shareData.total_his){ if(window._gTotalHisIsTemporary || shareData.total_his > window.gTotalHis){ window.gTotalHis=shareData.total_his; window._gTotalHisIsTemporary=false; } updateStatsUI(); realStatsLoaded=true; } } catch(e){ console.log('public_shares query failed'); } }
-      if(!realStatsLoaded){ console.log('Real stats unavailable, smart defaults used'); }
-      if(window.hiWavesRealtime){ setTimeout(async ()=>{ const success = await window.hiWavesRealtime.initialize(); if(success){ window.hiWavesRealtime.startRealTimeUpdates(3000); } },2000); }
-    } catch(e){ console.log('Background stats loading failed:', e); } },100); }
+  async function loadCurrentStatsFromDatabase(){ 
+    console.log('🔄 Background loading real stats from database...');
+    
+    // 🎯 SURGICAL FIX: Dedupe guard to prevent concurrent refreshes
+    if (window.__statsRefreshInProgress) {
+      console.log('⏭️ Stats refresh already in progress, skipping');
+      return;
+    }
+    
+    window.__statsRefreshInProgress = true;
+    
+    setTimeout(async ()=>{ 
+      try { 
+        let supabase = window.getSupabase?.() || window.supabaseClient || window.HiSupabase?.getClient?.() || window.supabase; 
+        if(!supabase){ 
+          for(let i=0;i<5;i++){ 
+            await new Promise(r=>setTimeout(r,100)); 
+            supabase = window.getSupabase?.() || window.supabaseClient || window.HiSupabase?.getClient?.() || window.supabase; 
+            if(supabase) break; 
+          } 
+        } 
+        if(!supabase){ 
+          console.log('No Supabase client available'); 
+          window.__statsRefreshInProgress = false;
+          return; 
+        } 
+        
+        let realStatsLoaded=false; 
+        try { 
+          if(window.loadEnhancedGlobalStats){ 
+            await window.loadEnhancedGlobalStats(); 
+            realStatsLoaded=true; 
+          } else { 
+            // 🎯 CRITICAL FIX: Only read from global_stats (single source of truth)
+            // REMOVED: public_shares fallback that was causing stat drift
+            const { data, error } = await supabase.from('global_stats').select('total_his, hi_waves, total_users').single(); 
+            if(data && !error){ 
+              // Database is ALWAYS source of truth - no comparison, just assign
+              if (data.total_his != null){
+                window.gTotalHis = data.total_his;
+                window._gTotalHisIsTemporary = false;
+              }
+              const serverWaves = Number(data.hi_waves)||0;
+              // Monotonic: never drop below current UI/cached waves
+              window.gWaves = Math.max(serverWaves, Number(window.gWaves)||0);
+              // 🔧 FIX: Use unified cache keys (matching UnifiedStatsLoader.js)
+              localStorage.setItem('globalHiWaves', String(window.gWaves));
+              localStorage.setItem('globalTotalHis', String(window.gTotalHis));
+              localStorage.setItem('globalHiWaves_time', String(Date.now()));
+              updateStatsUI(); 
+              realStatsLoaded=true; 
+            } 
+          } 
+        } catch(e){ 
+          console.log('Enhanced stats loading failed', e); 
+        }
+        
+        // 🎯 REMOVED: public_shares.total_his fallback (was causing drift)
+        // Database value from global_stats is the ONLY source of truth
+        
+        if(!realStatsLoaded){ 
+          console.log('Real stats unavailable, using cached/shimmer values'); 
+        }
+        
+        if(window.hiWavesRealtime){ 
+          setTimeout(async ()=>{ 
+            const success = await window.hiWavesRealtime.initialize(); 
+            if(success){ 
+              window.hiWavesRealtime.startRealTimeUpdates(3000); 
+            } 
+          },2000); 
+        }
+      } catch(e){ 
+        console.log('Background stats loading failed:', e); 
+      } finally {
+        window.__statsRefreshInProgress = false;
+      }
+    },100); 
+  }
 
   // Expose shared refresh function globally for other modules (e.g., HiShareSheet)
   window.loadCurrentStatsFromDatabase = loadCurrentStatsFromDatabase;
 
   // Refresh on page visibility/pageshow (handles BFCache returns)
+  // 🎯 SURGICAL FIX: Smart refresh with time-based guards
   (function(){
     let lastFetchAt = 0;
-    const MIN_FETCH_INTERVAL = 3000; // 3s guard to avoid bursts
+    let lastVisibilityChange = 0;
+    const MIN_FETCH_INTERVAL = 5000; // 5s guard (increased from 3s)
+    const MIN_AWAY_TIME = 30000; // Only refresh if away >30s
+    
     function safeRefresh(){
       const now = Date.now();
-      if (now - lastFetchAt < MIN_FETCH_INTERVAL) { updateGlobalStats(); return; }
+      
+      // Guard: prevent bursts
+      if (now - lastFetchAt < MIN_FETCH_INTERVAL) { 
+        console.log('⏭️ Skipping refresh (too soon - last refresh', Math.round((now - lastFetchAt)/1000), 's ago)');
+        updateGlobalStats(); // Just update UI from cached values
+        return; 
+      }
+      
+      // Guard: only refresh if page was hidden for significant time
+      if (lastVisibilityChange > 0 && (now - lastVisibilityChange) < MIN_AWAY_TIME) {
+        console.log('⏭️ Skipping refresh (quick tab switch -', Math.round((now - lastVisibilityChange)/1000), 's away)');
+        updateGlobalStats();
+        return;
+      }
+      
       lastFetchAt = now;
-      try { updateGlobalStats(); loadCurrentStatsFromDatabase(); } catch(e){ console.warn('Stats refresh failed:', e); }
+      console.log('✅ Refreshing stats (away for', Math.round((now - lastVisibilityChange)/1000), 's)');
+      try { 
+        updateGlobalStats(); 
+        loadCurrentStatsFromDatabase(); 
+      } catch(e){ 
+        console.warn('Stats refresh failed:', e); 
+      }
     }
-    window.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') safeRefresh(); });
-    window.addEventListener('pageshow', (e) => { if (e.persisted || document.visibilityState === 'visible') safeRefresh(); });
+    
+    // Track when page becomes hidden
+    window.addEventListener('visibilitychange', () => { 
+      if (document.visibilityState === 'hidden') {
+        lastVisibilityChange = Date.now();
+        console.log('📴 Page hidden at', new Date().toLocaleTimeString());
+      } else if (document.visibilityState === 'visible') {
+        console.log('👁️ Page visible at', new Date().toLocaleTimeString());
+        safeRefresh(); 
+      }
+    });
+    
+    window.addEventListener('pageshow', (e) => { 
+      if (e.persisted) {
+        console.log('🔄 Page restored from BFCache');
+      }
+      if (e.persisted || document.visibilityState === 'visible') {
+        safeRefresh(); 
+      }
+    });
   })();
 
   function updateStatsUI(){

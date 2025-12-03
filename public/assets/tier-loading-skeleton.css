@@ -1,0 +1,83 @@
+/* ============================================================================
+   TIER PILL LOADING SKELETON - Prevent Race Condition Flicker
+   ============================================================================
+   
+   PROBLEM: Tier pill shows "Hi Friend" briefly before auth completes
+   SOLUTION: Show loading skeleton (⏳) until hi:auth-ready fires
+   
+   USAGE: Add to global CSS file (e.g., hi-dashboard.html <style> section)
+   ============================================================================ */
+
+/* Loading state for tier pill */
+#hi-tier-indicator[data-auth-loading="true"] {
+  opacity: 0.6;
+  cursor: wait;
+  animation: pulse-tier 1.5s ease-in-out infinite;
+}
+
+#hi-tier-indicator[data-auth-loading="true"] .tier-text {
+  font-size: 16px;
+  animation: spin-loading 2s linear infinite;
+}
+
+/* Pulse animation for loading state */
+@keyframes pulse-tier {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+/* Spin animation for hourglass emoji */
+@keyframes spin-loading {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Smooth transition when tier loads */
+#hi-tier-indicator {
+  transition: opacity 0.3s ease, color 0.3s ease;
+}
+
+#hi-tier-indicator .tier-text {
+  transition: font-size 0.2s ease, transform 0.2s ease;
+}
+
+/* Remove animations when loaded */
+#hi-tier-indicator:not([data-auth-loading]) {
+  opacity: 1;
+  cursor: pointer;
+  animation: none;
+}
+
+#hi-tier-indicator:not([data-auth-loading]) .tier-text {
+  animation: none;
+  transform: rotate(0deg);
+}
+
+/* ============================================================================
+   DEPLOYMENT INSTRUCTIONS
+   ============================================================================
+   
+   1. Add this CSS to each HTML page that has #hi-tier-indicator:
+      - hi-dashboard.html
+      - profile.html
+      - hi-muscle.html
+      - hi-island-NEW.html
+   
+   2. Update HTML tier pill elements to include data-auth-loading="true":
+      <div id="hi-tier-indicator" class="tier-indicator" 
+           title="Loading tier..." data-auth-loading="true">
+        <span class="tier-text tier-loading">⏳</span>
+      </div>
+   
+   3. HiBrandTiers.js will automatically remove data-auth-loading when
+      updateTierPill() is called with the real tier.
+   
+   ============================================================================ */

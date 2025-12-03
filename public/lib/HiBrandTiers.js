@@ -269,6 +269,12 @@ class HiBrandTierSystem {
       console.log('🔧 Created missing .tier-text element');
     }
     
+    // ✅ FIX: Remove loading state when tier is set
+    if (element.dataset.authLoading === 'true') {
+      delete element.dataset.authLoading;
+      tierText.classList.remove('tier-loading');
+    }
+    
     // Update text content
     tierText.textContent = this.formatForDisplay(tierKey, { showEmoji });
     console.log('🎨 Tier pill updated:', tierKey, '→', tierText.textContent);

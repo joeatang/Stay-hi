@@ -1303,6 +1303,9 @@
     .hi-cluster__count { font-size: 14px; }
   </style>
   
+  <!-- Tier Loading Skeleton CSS -->
+  <link rel="stylesheet" href="./assets/tier-loading-skeleton.css">
+  
   <!-- HiFooter CSS - Dashboard Parity -->
   <link rel="preload" href="./ui/HiFooter/HiFooter.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="./ui/HiFooter/HiFooter.css"></noscript>
@@ -1331,8 +1334,8 @@
     </div>
     
     <div class="header-right">
-      <div id="hi-tier-indicator" class="tier-indicator" title="Your membership tier">
-        <span class="tier-text">Hi Friend</span>
+      <div id="hi-tier-indicator" class="tier-indicator" title="Loading tier..." data-auth-loading="true">
+        <span class="tier-text tier-loading">⏳</span>
       </div>
       <button class="menu-btn" onclick="openNavigation()">
         <span style="font-size: 18px;">☰</span>

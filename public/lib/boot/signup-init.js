@@ -247,11 +247,11 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
     // 4. Process referral code if present (HiBase integration)
     await processReferralRedemption(userId);
 
-    // 5. Success: redirect to profile setup for new users
-    showSuccess('🎉 Account created! Complete your profile to get started.');
+    // 5. Success: redirect to awaiting verification page
+    showSuccess('📧 Account created! Check your email to verify your account.');
     
     setTimeout(() => {
-      window.location.href = 'profile.html?onboarding=true';
+      window.location.href = 'awaiting-verification.html?email=' + encodeURIComponent(email);
     }, 2000);
 
   } catch (error) {
