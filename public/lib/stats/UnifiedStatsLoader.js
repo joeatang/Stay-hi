@@ -19,11 +19,13 @@ export async function getSupabaseClient() {
 function readCache() {
   return {
     waves: Number(localStorage.getItem('globalHiWaves')) || null,
-    totalHis: Number(localStorage.getItem('globalTotalHis')) || null,
+    // 🎯 CRITICAL FIX: Never read totalHis from cache - always fetch fresh to avoid flash
+    // (Cache had stale 451, DB has correct 471, causing visible flash)
+    totalHis: null,
     totalUsers: Number(localStorage.getItem('globalTotalUsers')) || null,
     _source: {
       waves: localStorage.getItem('globalHiWaves') ? 'cache' : 'none',
-      totalHis: localStorage.getItem('globalTotalHis') ? 'cache' : 'none',
+      totalHis: 'none', // Never use cache for totalHis
       totalUsers: localStorage.getItem('globalTotalUsers') ? 'cache' : 'none'
     }
   };
