@@ -502,7 +502,7 @@ export async function trackShareSubmission(source = 'dashboard', metadata = {}) 
   console.log(`[ShareTrack] submission from ${source}`, metadata);
   const submissionType = metadata.submissionType || metadata.type || 'public';
   if (submissionType !== 'public') {
-    console.log('🚫 Skipping Total His increment (non-public):', submissionType);
+    console.log('🚫 Skipping Total His tracking (non-public):', submissionType);
     return;
   }
   try {
@@ -512,19 +512,20 @@ export async function trackShareSubmission(source = 'dashboard', metadata = {}) 
       console.warn('⚠️ No Supabase client available for tracking');
       return;
     }
-    const { data, error } = await supabase.rpc('increment_total_hi');
+    // 🔬 SURGICAL FIX: Database trigger auto-increments, just refresh stats
+    const { data, error } = await supabase.rpc('get_global_stats');
     if (error) {
-      console.error('❌ increment_total_hi() error:', error);
+      console.error('❌ get_global_stats() error:', error);
       return;
     }
-    if (typeof data === 'number') {
-      window.gTotalHis = data;
+    if (data && typeof data.total_his === 'number') {
+      window.gTotalHis = data.total_his;
       const el = document.getElementById('globalTotalHis') || document.getElementById('totalHis');
       if (el) el.textContent = window.gTotalHis.toLocaleString();
       console.log('✅ Total His updated:', window.gTotalHis);
       if (window.updateGlobalStats) { window.updateGlobalStats(); }
     } else {
-      console.warn('⚠️ Unexpected increment_total_hi() response:', data);
+      console.warn('⚠️ Unexpected get_global_stats() response:', data);
     }
   } catch (err) {
     console.error('❌ Share tracking failed:', err);
