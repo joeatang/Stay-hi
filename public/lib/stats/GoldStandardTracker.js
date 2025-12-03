@@ -1,10 +1,16 @@
 /**
  * 🏆 GOLD STANDARD: Share Submission Tracker
- * MISSION: Simple, reliable Total His increment for PUBLIC share submissions ONLY
+ * MISSION: Track PUBLIC share submissions and refresh Total His from database
  * Works for: Hi-Dashboard, Hi-Island, Hi-Muscle
  * 
- * 🎯 CRITICAL: Only increments for submissionType === 'public'
- * Private and anonymous shares do NOT increment the global counter
+ * 🎯 CRITICAL DISCOVERY (Dec 3, 2025):
+ * Database has TRIGGER on public_shares table: AFTER INSERT → increment_total_hi()
+ * This means Total His auto-increments when HiDB.insertPublicShare() runs
+ * 
+ * 🔬 SURGICAL FIX:
+ * - Do NOT call increment_total_hi() manually (causes double increment)
+ * - Just call get_global_stats() to refresh UI with new value
+ * - Only for submissionType === 'public' (private/anonymous don't increment)
  */
 export async function trackShareSubmission(source = 'dashboard', metadata = {}) {
   console.log(`🎯 [GOLD STANDARD] Share submitted from ${source}:`, metadata);
@@ -17,43 +23,34 @@ export async function trackShareSubmission(source = 'dashboard', metadata = {}) 
     return { success: true, skipped: true, reason: 'non-public share', submissionType };
   }
   
-  console.log('✅ Public share confirmed - proceeding with Total His increment');
+  console.log('✅ Public share confirmed - database trigger will auto-increment Total His');
   
-  // � EMERGENCY FIX: Use unified HiDB client to prevent multiple client creation
+  // 🎯 SURGICAL FIX (Dec 3, 2025): Database has TRIGGER on public_shares that AUTO-increments
+  // Do NOT call increment_total_hi() manually - just refresh stats from DB
   const supabase = window.hiDB?.getSupabase?.() || window.supabaseClient || window.sb || 
                   window.HiSupabase?.getClient?.() || window.__HI_SUPABASE_CLIENT;
   
   if (supabase) {
     try {
-      console.log('⚡ Calling increment_total_hi()...');
-      const { data, error } = await supabase.rpc('increment_total_hi');
+      console.log('🔄 Refreshing stats from database (trigger already incremented)...');
+      const { data, error } = await supabase.rpc('get_global_stats');
       
       if (error) {
         console.error('❌ Database increment failed:', error);
         throw error;
       }
       
-      if (data && typeof data === 'number') {
-        // ✅ SUCCESS: Update global counter and UI with smooth transition
+      if (data && typeof data.total_his === 'number') {
+        // ✅ SUCCESS: Update global counter with value from database
         const oldValue = window.gTotalHis;
-        window.gTotalHis = data;
-        window._gTotalHisIsTemporary = false; // Mark as authoritative
+        window.gTotalHis = data.total_his;
+        window._gTotalHisIsTemporary = false;
         
-        console.log('✅ Total His updated from database:', `${oldValue} → ${window.gTotalHis}`);
+        console.log('✅ Total His refreshed from database:', `${oldValue} → ${window.gTotalHis}`);
         
-        // Update UI displays with smooth transition for large jumps
+        // Update UI displays
         document.querySelectorAll('.total-his-count, #globalTotalHis, #totalHis').forEach(el => {
-          const diff = window.gTotalHis - oldValue;
-          if (diff > 50 && oldValue < 100) {
-            // Smooth large jumps from temporary values
-            el.style.transition = 'all 0.8s ease-out';
-            setTimeout(() => {
-              el.textContent = window.gTotalHis.toLocaleString();
-              setTimeout(() => el.style.transition = '', 1000);
-            }, 100);
-          } else {
-            el.textContent = window.gTotalHis.toLocaleString();
-          }
+          el.textContent = window.gTotalHis.toLocaleString();
         });
         
         // Update cache if available
@@ -65,7 +62,7 @@ export async function trackShareSubmission(source = 'dashboard', metadata = {}) 
           }
         }
         
-        console.log('🎯 GOLD STANDARD SUCCESS: Total His incremented to', window.gTotalHis);
+        console.log('🎯 GOLD STANDARD SUCCESS: Total His updated to', window.gTotalHis);
         return { success: true, newTotal: window.gTotalHis };
         
       } else {
@@ -74,22 +71,13 @@ export async function trackShareSubmission(source = 'dashboard', metadata = {}) 
       }
       
     } catch (error) {
-      console.error('❌ Database operation failed:', error);
-      
-      // 🎯 CRITICAL FIX: NO LOCAL INCREMENT - Only track to database
-      // Local increments cause stats skewing on page refresh
-      console.log('❌ Database operation failed - no local fallback to maintain accuracy');
-      
-      // Keep current database value, don't increment locally
-      console.log('📊 Current Total His (unchanged):', window.gTotalHis);
+      console.error('❌ Stats refresh failed:', error);
+      console.log('📊 Total His unchanged (keeping current value):', window.gTotalHis);
       
       return { success: false, error: error.message, fallback: true, newTotal: window.gTotalHis };
     }
   } else {
-    // 🎯 CRITICAL FIX: NO LOCAL INCREMENT - Database-only tracking
-    console.warn('⚠️ No Supabase client available - cannot track share submission');
-    
-    // Keep database values unchanged to prevent skewing
+    console.warn('⚠️ No Supabase client - cannot refresh stats');
     console.log('📊 Total His unchanged (no database connection):', window.gTotalHis);
     
     return { success: false, error: 'No database connection', fallback: true, newTotal: window.gTotalHis };
