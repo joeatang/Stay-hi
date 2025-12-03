@@ -32,9 +32,6 @@ async function initializeSupabase() {
   const sendBtn = document.getElementById('send');
   const ok = document.getElementById('success');
   const err = document.getElementById('err');
-  const toggleInviteBtn = document.getElementById('toggleInvite');
-  const inviteRow = document.getElementById('inviteRow');
-  const inviteInput = document.getElementById('inviteCode');
   const togglePasswordBtn = document.getElementById('togglePassword');
 
   // Wait for Supabase to be ready
@@ -79,20 +76,6 @@ async function initializeSupabase() {
         password.type = isPassword ? 'text' : 'password';
         togglePasswordBtn.textContent = isPassword ? '🙈' : '👁️';
       });
-    }
-
-    // Invite code from URL
-    const qs = new URLSearchParams(location.search);
-    if (qs.get('invite')){
-      if (inviteRow) inviteRow.style.display = 'flex';
-      if (inviteInput) inviteInput.value = qs.get('invite').trim();
-    }
-    if (toggleInviteBtn && inviteRow){ 
-      toggleInviteBtn.addEventListener('click', ()=>{
-        const showing = inviteRow.style.display !== 'none';
-        inviteRow.style.display = showing ? 'none' : 'flex';
-        if (!showing) inviteInput?.focus();
-      }); 
     }
   })();
 
@@ -142,12 +125,6 @@ async function initializeSupabase() {
       }
 
       console.log('✅ Password signin successful:', data);
-
-      // Persist invite code (if any) for redemption post-auth
-      const inviteVal = (inviteInput?.value || '').trim();
-      if (inviteVal) {
-        sessionStorage.setItem('hi_pending_invite_code', inviteVal.toUpperCase());
-      }
 
       // ✅ SUCCESS CONFIRMATION with Tesla-grade animation
       ok.style.display = 'block';
