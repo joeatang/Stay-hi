@@ -263,25 +263,18 @@ document.addEventListener('DOMContentLoaded', function() {
       console.log('🔐 [MOBILE DEBUG] Signing in with password:', emailVal);
       console.log('🔵 [AUTH] Supabase client ready, calling signInWithPassword...');
       
-      const authPromise = sb.auth.signInWithPassword({
-        email: emailVal,
-        password: passwordVal
-      });
-      
-      // Race the auth call with a 10-second timeout
+      // Race the auth call with a 10-second timeout (FIXED: removed duplicate call)
       const { data, error } = await Promise.race([
-        authPromise,
+        sb.auth.signInWithPassword({
+          email: emailVal,
+          password: passwordVal
+        }),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Sign-in request timeout - check network')), 10000)
         )
       ]);
       
       console.log('🔵 [AUTH] Sign-in response received:', { hasData: !!data, hasError: !!error });
-      
-      const { data, error } = await sb.auth.signInWithPassword({
-        email: emailVal,
-        password: password.value
-      });
 
       if (error) {
         console.error('❌ Password signin error:', error);
