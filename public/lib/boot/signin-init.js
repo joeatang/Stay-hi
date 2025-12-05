@@ -140,17 +140,13 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🔵 [MOBILE DEBUG] handleSubmit called');
     console.log('🔵 [MOBILE DEBUG] Email value:', email?.value);
     console.log('🔵 [MOBILE DEBUG] Password filled:', !!password?.value);
-    console.log('🔵 [MOBILE DEBUG] Button state:', {
-      disabled: sendBtn?.disabled,
-      exists: !!sendBtn
-    });
     
     err.style.display = 'none'; 
     ok.style.display = 'none';
 
     const emailVal = (email.value || '').trim();
     if (!emailVal) {
-      err.textContent = 'Enter a valid email.';
+      err.textContent = '📧 Please enter your email address';
       err.style.display = 'block';
       email.focus();
       email.style.borderColor = '#ef4444';
@@ -159,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const passwordVal = (password.value || '').trim();
     if (!passwordVal) {
-      err.textContent = 'Enter your password.';
+      err.textContent = '🔒 Please enter your password';
       err.style.display = 'block';
       password.focus();
       password.style.borderColor = '#ef4444';
@@ -173,11 +169,24 @@ document.addEventListener('DOMContentLoaded', function() {
     buttonText.style.display = 'none';
     loadingDots.style.display = 'inline-flex';
     sendBtn.style.transform = 'scale(0.98)';
+    
+    // 🔧 TIMEOUT PROTECTION: Show error if taking too long
+    const timeoutId = setTimeout(() => {
+      if (sendBtn.disabled) {
+        err.textContent = '⏱️ Sign-in is taking longer than expected. Please check your connection and try again.';
+        err.style.display = 'block';
+        sendBtn.disabled = false;
+        buttonText.textContent = 'Sign in';
+        buttonText.style.display = 'inline-block';
+        loadingDots.style.display = 'none';
+        sendBtn.style.transform = 'scale(1)';
+      }
+    }, 15000); // 15 second timeout
 
     try {
       const sb = await waitForSupabase();
 
-      console.log('🔐 Signing in with password:', emailVal);
+      console.log('🔐 [MOBILE DEBUG] Signing in with password:', emailVal);
       
       const { data, error } = await sb.auth.signInWithPassword({
         email: emailVal,
@@ -189,16 +198,24 @@ document.addEventListener('DOMContentLoaded', function() {
         throw error;
       }
 
-      console.log('✅ Password signin successful:', data);
+      console.log('✅ [MOBILE DEBUG] Password signin successful:', data);
+      
+      clearTimeout(timeoutId); // Clear timeout on success
 
       // ✅ SUCCESS CONFIRMATION with Tesla-grade animation
       ok.style.display = 'block';
+      ok.classList.add('show');
+      buttonText.textContent = '✅ Success!';
+      buttonText.style.display = 'inline-block';
+      loadingDots.style.display = 'none';
       sendBtn.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
       sendBtn.style.transform = 'scale(1)';
       
       const next = new URLSearchParams(location.search).get('next') || 'hi-dashboard.html';
       
+      console.log('🔵 [MOBILE DEBUG] Redirecting to:', next);
       setTimeout(() => {
+        console.log('🔵 [MOBILE DEBUG] Executing redirect...');
         if (window.teslaRedirect) {
           window.teslaRedirect.redirectAfterAuth(next);
         } else {
@@ -207,16 +224,33 @@ document.addEventListener('DOMContentLoaded', function() {
       }, 1500);
 
     } catch (e) {
-      console.error('❌ Sign in error:', e);
-      err.textContent = e.message || 'Sign in failed. Check your password.';
+      clearTimeout(timeoutId); // Clear timeout on error
+      console.error('❌ [MOBILE DEBUG] Sign in error:', e);
+      
+      // User-friendly error messages
+      let errorMsg = '❌ Sign in failed. ';
+      if (e.message?.includes('Invalid login credentials')) {
+        errorMsg = '🔒 Invalid email or password. Please try again.';
+      } else if (e.message?.includes('Email not confirmed')) {
+        errorMsg = '📧 Please verify your email first. Check your inbox.';
+      } else if (e.message?.includes('Too many requests')) {
+        errorMsg = '⏱️ Too many attempts. Please wait a minute and try again.';
+      } else {
+        errorMsg += e.message || 'Please check your credentials and try again.';
+      }
+      
+      err.textContent = errorMsg;
       err.style.display = 'block';
 
       sendBtn.style.animation = 'shake 0.5s ease-in-out';
       setTimeout(() => sendBtn.style.animation = '', 500);
-    } finally {
+      
+      // Reset button state on error
       sendBtn.disabled = false;
-      buttonText.style.display = 'inline';
+      buttonText.textContent = 'Sign in';
+      buttonText.style.display = 'inline-block';
       loadingDots.style.display = 'none';
+      sendBtn.style.transform = 'scale(1)';
     }
   };
 
