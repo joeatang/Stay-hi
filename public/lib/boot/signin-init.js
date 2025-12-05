@@ -25,26 +25,59 @@ let supabaseClient = null;
 
 async function initializeSupabase() {
   try {
+    console.log('🔵 [INIT] Starting Supabase initialization...');
+    
+    // Wait for Supabase SDK to load
+    if (!window.supabase) {
+      console.log('⏳ [INIT] Waiting for Supabase SDK...');
+      await new Promise((resolve, reject) => {
+        let attempts = 0;
+        const checkSDK = setInterval(() => {
+          attempts++;
+          if (window.supabase) {
+            clearInterval(checkSDK);
+            resolve();
+          } else if (attempts > 50) { // 5 seconds max
+            clearInterval(checkSDK);
+            reject(new Error('Supabase SDK failed to load'));
+          }
+        }, 100);
+      });
+    }
+    
+    console.log('✅ [INIT] Supabase SDK loaded');
+    
     // Use credentials from config.js (or config-local.js for dev)
     const SUPABASE_URL = window.SUPABASE_URL;
     const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY;
+    
+    console.log('🔵 [INIT] Config check:', {
+      hasURL: !!SUPABASE_URL,
+      hasKey: !!SUPABASE_ANON_KEY,
+      urlPreview: SUPABASE_URL?.substring(0, 30) + '...'
+    });
     
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
       throw new Error('Missing Supabase configuration. Check config.js or config-local.js');
     }
 
-    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true }
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { 
+        persistSession: true, 
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        flowType: 'pkce'
+      }
     });
 
     // Compatibility aliases
     window.supabaseClient = supabaseClient;
     window.sb = supabaseClient;
 
-    console.log('✅ Supabase client initialized for sign-in');
+    console.log('✅ [INIT] Supabase client initialized successfully');
     return supabaseClient;
   } catch (error) {
-    console.error('❌ Supabase initialization failed:', error);
+    console.error('❌ [INIT] Supabase initialization failed:', error);
     throw error;
   }
 }
@@ -184,9 +217,31 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 15000); // 15 second timeout
 
     try {
-      const sb = await waitForSupabase();
+      console.log('🔵 [AUTH] Getting Supabase client...');
+      const sb = await Promise.race([
+        waitForSupabase(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Supabase client timeout')), 5000)
+        )
+      ]);
 
       console.log('🔐 [MOBILE DEBUG] Signing in with password:', emailVal);
+      console.log('🔵 [AUTH] Supabase client ready, calling signInWithPassword...');
+      
+      const authPromise = sb.auth.signInWithPassword({
+        email: emailVal,
+        password: passwordVal
+      });
+      
+      // Race the auth call with a 10-second timeout
+      const { data, error } = await Promise.race([
+        authPromise,
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Sign-in request timeout - check network')), 10000)
+        )
+      ]);
+      
+      console.log('🔵 [AUTH] Sign-in response received:', { hasData: !!data, hasError: !!error });
       
       const { data, error } = await sb.auth.signInWithPassword({
         email: emailVal,
