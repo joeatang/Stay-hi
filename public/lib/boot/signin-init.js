@@ -27,6 +27,21 @@ async function initializeSupabase() {
   try {
     console.log('🔵 [INIT] Starting Supabase initialization...');
     
+    // Check if there's already a global Supabase client
+    if (window.supabaseClient) {
+      console.log('✅ [INIT] Using existing window.supabaseClient');
+      supabaseClient = window.supabaseClient;
+      window.sb = supabaseClient;
+      return supabaseClient;
+    }
+    
+    if (window.sb) {
+      console.log('✅ [INIT] Using existing window.sb');
+      supabaseClient = window.sb;
+      window.supabaseClient = supabaseClient;
+      return supabaseClient;
+    }
+    
     // Wait for Supabase SDK to load
     if (!window.supabase) {
       console.log('⏳ [INIT] Waiting for Supabase SDK...');
@@ -47,18 +62,21 @@ async function initializeSupabase() {
     
     console.log('✅ [INIT] Supabase SDK loaded');
     
-    // Use credentials from config.js (or config-local.js for dev)
+    // Use credentials from config.js or config-local.js
     const SUPABASE_URL = window.SUPABASE_URL;
     const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY;
     
     console.log('🔵 [INIT] Config check:', {
       hasURL: !!SUPABASE_URL,
       hasKey: !!SUPABASE_ANON_KEY,
-      urlPreview: SUPABASE_URL?.substring(0, 30) + '...'
+      urlPreview: SUPABASE_URL?.substring(0, 40) + '...'
     });
     
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-      throw new Error('Missing Supabase configuration. Check config.js or config-local.js');
+      console.error('❌ [INIT] Missing Supabase configuration');
+      console.error('window.SUPABASE_URL:', SUPABASE_URL ? 'SET' : 'MISSING');
+      console.error('window.SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY ? 'SET' : 'MISSING');
+      throw new Error('Missing Supabase configuration. Ensure config-local.js or config.js is loaded.');
     }
 
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -78,6 +96,14 @@ async function initializeSupabase() {
     return supabaseClient;
   } catch (error) {
     console.error('❌ [INIT] Supabase initialization failed:', error);
+    
+    // Show user-friendly error
+    const errEl = document.getElementById('err');
+    if (errEl) {
+      errEl.textContent = '❌ Configuration error. Please refresh the page or contact support.';
+      errEl.style.display = 'block';
+    }
+    
     throw error;
   }
 }

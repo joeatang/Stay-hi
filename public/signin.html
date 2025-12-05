@@ -15,8 +15,23 @@
   <script src="./lib/access/AccessGate.js"></script>
   
   <!-- 🔒 SECURE: Load Supabase configuration (config-local.js for dev, env vars for production) -->
-  <script src="./assets/config.js"></script>
-  <script src="./assets/config-local.js" onerror="console.log('No config-local.js found, using env vars')"></script>
+  <script>
+    // Ensure config is loaded before anything else
+    console.log('📋 [CONFIG] Loading Supabase configuration...');
+  </script>
+  <script src="./assets/config-local.js" onerror="console.log('⚠️ No config-local.js found, trying config.js')"></script>
+  <script src="./assets/config.js" onerror="console.log('⚠️ No config.js found, credentials must be in env')"></script>
+  <script>
+    // Verify config loaded
+    if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+      console.log('✅ [CONFIG] Supabase credentials loaded successfully');
+      console.log('   URL:', window.SUPABASE_URL?.substring(0, 40) + '...');
+    } else {
+      console.error('❌ [CONFIG] Missing Supabase credentials!');
+      console.error('   URL:', window.SUPABASE_URL ? 'SET' : 'MISSING');
+      console.error('   KEY:', window.SUPABASE_ANON_KEY ? 'SET' : 'MISSING');
+    }
+  </script>
   
   <!-- Tesla-Grade CDN Loading (Fixed ERR_FAILED) -->
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
