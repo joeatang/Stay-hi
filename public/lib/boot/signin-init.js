@@ -1,3 +1,5 @@
+console.log('🚀 [SCRIPT] signin-init.js loaded and executing');
+
 // 🎯 SMART NAVIGATION: Detect where user came from and adjust back button
 (function() {
   const referrer = document.referrer;
@@ -346,22 +348,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
-  // Attach to button click
-  sendBtn.addEventListener('click', (e) => {
-    console.log('🔵 [CLICK] Button clicked!');
+  // 🔧 TEST: Add inline onclick as backup (for diagnostic)
+  sendBtn.onclick = (e) => {
+    console.log('🟢 [INLINE] Inline onclick fired!');
     e.preventDefault();
     e.stopPropagation();
-    handleSubmit();
+    handleSubmit(e);
+  };
+  
+  // Attach to button click via addEventListener
+  sendBtn.addEventListener('click', (e) => {
+    console.log('🔵 [CLICK] addEventListener click fired!');
+    e.preventDefault();
+    e.stopPropagation();
+    handleSubmit(e);
   });
   
   // 🔧 Verify button is interactive
   console.log('✅ [MOBILE DEBUG] Click listener attached to button');
+  console.log('🔍 [MOBILE DEBUG] Button element:', sendBtn);
   console.log('🔍 [MOBILE DEBUG] Button state:', {
     disabled: sendBtn.disabled,
     display: window.getComputedStyle(sendBtn).display,
     pointerEvents: window.getComputedStyle(sendBtn).pointerEvents,
     visibility: window.getComputedStyle(sendBtn).visibility,
-    opacity: window.getComputedStyle(sendBtn).opacity
+    opacity: window.getComputedStyle(sendBtn).opacity,
+    zIndex: window.getComputedStyle(sendBtn).zIndex
   });
   
   // 🔧 IMMEDIATE VISUAL FEEDBACK on touch/mouse down
