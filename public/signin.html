@@ -433,6 +433,18 @@
         max-width: 620px;
       }
     }
+    
+    /* Loading dots animation */
+    @keyframes bounce {
+      0%, 80%, 100% { 
+        transform: scale(0);
+        opacity: 0.5;
+      }
+      40% { 
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
   </style>
 </head>
 <body>
@@ -464,12 +476,12 @@
 
       <div class="row" style="margin-top:24px">
         <a id="backBtn" href="welcome.html" class="hi-btn hi-btn--ghost premium-hover focus-premium" style="background:rgba(255,255,255,0.1);color:white;border-color:rgba(255,255,255,0.2)">Back to Welcome</a>
-        <button id="send" type="submit" class="btn-premium btn-primary-premium celebration-trigger focus-premium">
-          <span>Sign in</span>
-          <div class="loading-dots" style="display:none">
-            <span></span>
-            <span></span>
-            <span></span>
+        <button id="send" type="submit" class="hi-btn hi-btn--primary" style="min-height:48px;font-size:16px;font-weight:600;width:100%;background:linear-gradient(135deg,#10B981 0%,#059669 100%);color:white;border:none;border-radius:14px;cursor:pointer;transition:all 0.3s ease;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">
+          <span style="display:inline-block;">Sign in</span>
+          <div class="loading-dots" style="display:none;gap:6px;">
+            <span style="width:8px;height:8px;background:white;border-radius:50%;display:inline-block;animation:bounce 1.4s infinite ease-in-out both;"></span>
+            <span style="width:8px;height:8px;background:white;border-radius:50%;display:inline-block;animation:bounce 1.4s infinite ease-in-out both;animation-delay:-0.32s;"></span>
+            <span style="width:8px;height:8px;background:white;border-radius:50%;display:inline-block;animation:bounce 1.4s infinite ease-in-out both;animation-delay:-0.16s;"></span>
           </div>
         </button>
       </div>

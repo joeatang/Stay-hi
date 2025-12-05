@@ -137,6 +137,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 🔧 MOBILE FIX: Handle Enter key submission (critical for mobile keyboards)
   const handleSubmit = async () => {
+    console.log('🔵 [MOBILE DEBUG] handleSubmit called');
+    console.log('🔵 [MOBILE DEBUG] Email value:', email?.value);
+    console.log('🔵 [MOBILE DEBUG] Password filled:', !!password?.value);
+    console.log('🔵 [MOBILE DEBUG] Button state:', {
+      disabled: sendBtn?.disabled,
+      exists: !!sendBtn
+    });
+    
     err.style.display = 'none'; 
     ok.style.display = 'none';
 
@@ -214,21 +222,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Attach to button click
   sendBtn.addEventListener('click', handleSubmit);
+  console.log('✅ [MOBILE DEBUG] Click listener attached to button');
   
   // 🔧 MOBILE FIX: Form submit handler (critical for mobile keyboards)
   const signinForm = document.getElementById('signinForm');
   if (signinForm) {
     signinForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      console.log('📱 Form submitted (mobile keyboard "Go" button)');
+      console.log('📱 [MOBILE DEBUG] Form submitted (mobile keyboard "Go" button)');
       handleSubmit();
     });
+    console.log('✅ [MOBILE DEBUG] Form submit listener attached');
+  } else {
+    console.error('❌ [MOBILE DEBUG] signinForm not found!');
   }
   
   // 🔧 MOBILE FIX: Enter key support (fallback for non-form inputs)
   email.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
+      console.log('⌨️ [MOBILE DEBUG] Enter pressed on email field');
       handleSubmit();
     }
   });
@@ -236,8 +249,18 @@ document.addEventListener('DOMContentLoaded', function() {
   password.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
+      console.log('⌨️ [MOBILE DEBUG] Enter pressed on password field');
       handleSubmit();
     }
+  });
+  
+  // 🔧 MOBILE DEBUG: Add touch event monitoring
+  sendBtn.addEventListener('touchstart', () => {
+    console.log('👆 [MOBILE DEBUG] Touch started on button');
+  });
+  
+  sendBtn.addEventListener('touchend', () => {
+    console.log('👆 [MOBILE DEBUG] Touch ended on button');
   });
 
   const style = document.createElement('style');
