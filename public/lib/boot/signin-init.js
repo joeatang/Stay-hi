@@ -169,10 +169,19 @@ document.addEventListener('DOMContentLoaded', function() {
   })();
 
   // 🔧 MOBILE FIX: Handle Enter key submission (critical for mobile keyboards)
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    // Prevent any default behavior
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     console.log('🔵 [MOBILE DEBUG] handleSubmit called');
     console.log('🔵 [MOBILE DEBUG] Email value:', email?.value);
     console.log('🔵 [MOBILE DEBUG] Password filled:', !!password?.value);
+    
+    // Immediate visual feedback
+    sendBtn.style.transform = 'scale(0.98)';
     
     err.style.display = 'none'; 
     ok.style.display = 'none';
@@ -310,14 +319,45 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 
   // Attach to button click
-  sendBtn.addEventListener('click', handleSubmit);
+  sendBtn.addEventListener('click', (e) => {
+    console.log('🔵 [CLICK] Button clicked!');
+    e.preventDefault();
+    e.stopPropagation();
+    handleSubmit();
+  });
   console.log('✅ [MOBILE DEBUG] Click listener attached to button');
+  
+  // 🔧 IMMEDIATE VISUAL FEEDBACK on touch/mouse down
+  sendBtn.addEventListener('mousedown', () => {
+    console.log('👆 [TOUCH] Mouse down on button');
+    sendBtn.style.transform = 'scale(0.96)';
+    sendBtn.style.opacity = '0.9';
+  });
+  
+  sendBtn.addEventListener('mouseup', () => {
+    console.log('👆 [TOUCH] Mouse up on button');
+    sendBtn.style.transform = 'scale(1)';
+    sendBtn.style.opacity = '1';
+  });
+  
+  sendBtn.addEventListener('touchstart', (e) => {
+    console.log('👆 [MOBILE DEBUG] Touch started on button');
+    sendBtn.style.transform = 'scale(0.96)';
+    sendBtn.style.opacity = '0.9';
+  }, { passive: true });
+  
+  sendBtn.addEventListener('touchend', (e) => {
+    console.log('👆 [MOBILE DEBUG] Touch ended on button');
+    sendBtn.style.transform = 'scale(1)';
+    sendBtn.style.opacity = '1';
+  }, { passive: true });
   
   // 🔧 MOBILE FIX: Form submit handler (critical for mobile keyboards)
   const signinForm = document.getElementById('signinForm');
   if (signinForm) {
     signinForm.addEventListener('submit', (e) => {
       e.preventDefault();
+      e.stopPropagation();
       console.log('📱 [MOBILE DEBUG] Form submitted (mobile keyboard "Go" button)');
       handleSubmit();
     });
@@ -341,15 +381,6 @@ document.addEventListener('DOMContentLoaded', function() {
       console.log('⌨️ [MOBILE DEBUG] Enter pressed on password field');
       handleSubmit();
     }
-  });
-  
-  // 🔧 MOBILE DEBUG: Add touch event monitoring
-  sendBtn.addEventListener('touchstart', () => {
-    console.log('👆 [MOBILE DEBUG] Touch started on button');
-  });
-  
-  sendBtn.addEventListener('touchend', () => {
-    console.log('👆 [MOBILE DEBUG] Touch ended on button');
   });
 
   const style = document.createElement('style');
