@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Profile Header Debug</title>
+</head>
+<body>
+  <h1>Tier Badge Structure Test</h1>
+  
+  <div id="test-tier-indicator" class="tier-indicator" title="Loading..." data-auth-loading="true">
+    <span class="tier-text tier-loading">⏳</span>
+  </div>
+  
+  <button onclick="updateTest()">Update to Premium</button>
+  
+  <script src="./public/lib/HiBrandTiers.js"></script>
+  <script>
+    function updateTest() {
+      const indicator = document.getElementById('test-tier-indicator');
+      window.HiBrandTiers.updateTierPill(indicator, 'premium', {showEmoji: false, useGradient: false});
+      console.log('After update:', indicator.outerHTML);
+      console.log('Text content:', indicator.querySelector('.tier-text').textContent);
+    }
+  </script>
+</body>
+</html>

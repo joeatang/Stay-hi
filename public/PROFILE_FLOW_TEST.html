@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Profile Flow Test</title>
+  <script src="./assets/config.js"></script>
+  <script src="./assets/config-local.js"></script>
+  <style>
+    body { background: #1a1a2e; color: #eee; font: 14px monospace; padding: 20px; }
+    .step { padding: 10px; margin: 5px 0; border-left: 3px solid #4CAF50; }
+    .error { border-color: #f44336; }
+    .warning { border-color: #ff9800; }
+  </style>
+</head>
+<body>
+  <h1>🔬 Profile Loading Flow Test</h1>
+  <div id="log"></div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1"></script>
+  <script type="module">
+    const logEl = document.getElementById('log');
+    const log = (msg, type = 'step') => {
+      console.log(msg);
+      logEl.innerHTML += `<div class="${type}">${new Date().toLocaleTimeString()}: ${msg}</div>`;
+    };
+    
+    log('1️⃣ Page loaded');
+    
+    // Simulate AuthReady.js behavior
+    setTimeout(async () => {
+      log('2️⃣ AuthReady initializing (simulated delay)...');
+      
+      const supabase = window.supabase.createClient(
+        window.SUPABASE_URL,
+        window.SUPABASE_ANON_KEY
+      );
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        log('⚠️ No session found - user is ANONYMOUS', 'warning');
+        window.dispatchEvent(new CustomEvent('hi:auth-ready', {
+          detail: { session: null, membership: null }
+        }));
+      } else {
+        log(`✅ Session found: ${session.user.email}`);
+        
+        const { data: membership } = await supabase.rpc('get_unified_membership');
+        log(`✅ Membership: tier=${membership?.tier}, admin=${membership?.is_admin}`);
+        
+        window.dispatchEvent(new CustomEvent('hi:auth-ready', {
+          detail: { session, membership }
+        }));
+      }
+    }, 1000);
+    
+    // Simulate profile page listener
+    window.addEventListener('hi:auth-ready', async (e) => {
+      log('3️⃣ hi:auth-ready event received');
+      
+      const { session, membership } = e.detail || {};
+      
+      if (!session?.user) {
+        log('4️⃣ Loading DEMO profile (anonymous user)', 'warning');
+      } else {
+        log(`4️⃣ Loading REAL profile for: ${session.user.email}`);
+        log(`   Tier: ${membership?.tier || 'unknown'}`);
+        log(`   Admin: ${membership?.is_admin || false}`);
+      }
+    });
+    
+    log('⏳ Waiting for auth-ready event...');
+  </script>
+</body>
+</html>

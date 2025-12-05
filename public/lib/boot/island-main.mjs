@@ -477,11 +477,19 @@ window.handleDropHiClick = async function() {
       window.location.href = '/auth.html?redirect=hi-island.html&action=drop-hi';
       return;
     }
-    if (!window.checkHiFeatureAccess?.('drop_hi', 'drop-hi')) {
+    // 🎯 FIX: Premium users should always have access, bypass old tier system
+    const membership = window.HiMembership?.get?.();
+    const hasPremiumAccess = membership && (membership.tier === 'premium' || membership.is_admin);
+    
+    if (!hasPremiumAccess && !window.checkHiFeatureAccess?.('drop_hi', 'drop-hi')) {
       console.log('🔒 Drop Hi access denied - showing upgrade modal');
       button.classList.remove('loading');
       button.disabled = false;
       return;
+    }
+    
+    if (hasPremiumAccess) {
+      console.log('✅ [DROP HI] Premium access granted, bypassing old tier check');
     }
     if (window.hiIslandShareSheet && typeof window.hiIslandShareSheet.open === 'function') {
       await window.hiIslandShareSheet.open();
@@ -552,6 +560,25 @@ window.handleDropHiClick = async function() {
 
 async function getUserTypeWithFallbacks() {
   try {
+    // 🎯 FIX #1: Check HiMembership FIRST (most reliable)
+    if (window.HiMembership?.get) {
+      const membership = window.HiMembership.get();
+      if (membership && !membership.isAnonymous) {
+        console.log('✅ [DROP HI] User authenticated via HiMembership:', membership.tier);
+        return membership.tier === 'premium' ? 'premium' : 'authenticated';
+      }
+    }
+    
+    // 🎯 FIX #2: Check Supabase session directly
+    if (window.supabaseClient?.auth) {
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      if (session?.user) {
+        console.log('✅ [DROP HI] User authenticated via Supabase session');
+        return 'authenticated';
+      }
+    }
+    
+    // Fallback: legacy auth check
     if (window.checkAuthentication && typeof window.checkAuthentication === 'function') {
       const isAuth = await window.checkAuthentication();
       if (isAuth) {
@@ -559,16 +586,20 @@ async function getUserTypeWithFallbacks() {
         return userTier === 'premium' ? 'premium' : 'authenticated';
       }
     }
+    
     if (window.hiDB?.supabase?.auth) {
       const { data: { user } } = await window.hiDB.supabase.auth.getUser();
       if (user) {
         return 'authenticated';
       }
     }
+    
     const session = localStorage.getItem('hiUserSession');
     if (session && session !== 'null') {
       return 'authenticated';
     }
+    
+    console.log('ℹ️ [DROP HI] No authentication found, user is anonymous');
     return 'anonymous';
   } catch (error) {
     console.warn('⚠️ [DROP HI] User type detection failed:', error);

@@ -88,10 +88,10 @@ class UnifiedHiIslandController {
               <h3>Community Hi 5s</h3>
               <p>Public and anonymous shares from the Hi community</p>
             </div>
-            <div id="generalFeed" class="hi-feed-container">
+            <div id="generalFeed" class="hi-feed-container" style="overflow-y: auto; max-height: calc(100vh - 400px);">
               <div class="loading-state">
                 <div class="loading-spinner"></div>
-                <p>Loading community shares...</p>
+                <p>Loading shares...</p>
               </div>
             </div>
           </div>
@@ -102,7 +102,7 @@ class UnifiedHiIslandController {
               <h3>My Hi Archives</h3>
               <p>Your personal Hi moments and memories</p>
             </div>
-            <div id="archivesFeed" class="hi-feed-container">
+            <div id="archivesFeed" class="hi-feed-container" style="overflow-y: auto; max-height: calc(100vh - 400px);">
               <div class="loading-state">
                 <div class="loading-spinner"></div>
                 <p>Loading your archives...</p>

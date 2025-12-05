@@ -93,7 +93,10 @@ class AnonymousAccessModal {
     console.log(`🛤️ Current path: ${currentPath}`);
     console.log(`🔒 Protected pages: ${protectedPages}`);
     
-    if (protectedPages.some(page => currentPath.includes(page))) {
+    // ✅ CRITICAL FIX: Skip automatic modal for profile - let page handle it
+    const isProfilePage = currentPath.includes('/profile.html');
+    
+    if (protectedPages.some(page => currentPath.includes(page)) && !isProfilePage) {
       console.log('✅ This is a protected page, checking auth immediately...');
       
       // Quick auth check first (no waiting)

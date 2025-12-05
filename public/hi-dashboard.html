@@ -16,6 +16,10 @@
   <!-- Silence verbose logs in production unless debug flags are present -->
   <script src="./lib/boot/prod-quiet-console.js"></script>
 
+  <!-- 🔒 SECURE: Load Supabase configuration (config-local.js for dev, env vars for production) -->
+  <script src="./assets/config.js"></script>
+  <script src="./assets/config-local.js" onerror="console.log('No config-local.js found, using env vars')"></script>
+
   <!-- 📱 PWA Configuration -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#FFD166">

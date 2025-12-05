@@ -31,17 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('🚀 Tesla Profile System Initializing...');
   try { const currentPage={ url:window.location.href, name:'Profile', timestamp:Date.now() }; const navHistory=JSON.parse(sessionStorage.getItem('hiNavHistory')||'[]'); const filtered=navHistory.filter(page=> page.url!==currentPage.url); filtered.unshift(currentPage); filtered.splice(10); sessionStorage.setItem('hiNavHistory', JSON.stringify(filtered)); } catch(_){ }
   const smartNav=new SmartNavigation();
-  // Unified access request instead of legacy anonymous modal initialization
-  setTimeout(() => {
-    if(window.AccessGate?.request){
-      window.AccessGate.request('profile:view');
-    } else if(typeof AnonymousAccessModal !== 'undefined') {
-      if(!window.anonymousAccessModal){ window.anonymousAccessModal = new AnonymousAccessModal(); }
-      window.anonymousAccessModal.showAccessModal();
-    } else {
-      console.warn('⚠️ No AccessGate or AnonymousAccessModal for profile gating');
-    }
-  },500);
+  // ✅ REMOVED: No longer show modal automatically - wait for auth-ready event instead
+  // Modal will auto-show via anonymous-access-modal.js if truly anonymous after auth check
   if(typeof updateProfileDisplay==='function' && window.currentProfile){ updateProfileDisplay(window.currentProfile); }
   if(typeof updateStatsDisplay==='function' && window.userStats){ updateStatsDisplay(window.userStats); }
   setTimeout(()=>{ console.log('🔒 Initializing secure profile loading...'); if(typeof loadProfileData==='function') loadProfileData(); },500);
@@ -49,19 +40,170 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(()=>{ if(typeof initializeTeslaAvatarSystem==='function') initializeTeslaAvatarSystem(); },100);
   if(typeof showToast==='function') showToast('Profile loaded successfully! 🎉');
   console.log('✅ Tesla Profile System fully initialized');
-  const menuBtn=document.getElementById('btnMenu'); const navigationModal=document.getElementById('navigationModal'); const closeBtn=document.getElementById('closeNavigation'); const backdrop=document.getElementById('navigationBackdrop');
-  if(menuBtn && navigationModal){ menuBtn.addEventListener('click', ()=>{ navigationModal.style.display='flex'; document.body.style.overflow='hidden'; }); [closeBtn, backdrop].forEach(el=>{ if(el){ el.addEventListener('click', ()=>{ navigationModal.style.display='none'; document.body.style.overflow='auto'; }); } }); }
-  const calBtn=document.getElementById('btnCal'); if(calBtn){ calBtn.addEventListener('click', ()=>{ console.log('📅 Calendar clicked'); }); }
-  const hiffirmationsBtn=document.getElementById('hiffirmationsTrigger'); if(hiffirmationsBtn){ hiffirmationsBtn.addEventListener('click', ()=>{ console.log('✨ Hiffirmations clicked'); }); }
+  // ✨ Navigation & Modal Handlers (synced with dashboard-main.js)
+  const menuBtn=document.getElementById('btnMenu'); 
+  const navigationModal=document.getElementById('navigationModal'); 
+  const closeBtn=document.getElementById('closeNavigation'); 
+  const backdrop=document.getElementById('navigationBackdrop');
+  
+  const openNavigation = async () => {
+    if (!navigationModal) return;
+    navigationModal.classList.add('show'); 
+    navigationModal.style.display='block'; 
+    document.body.style.overflow='hidden';
+    
+    // Check admin status from AdminAccessManager
+    let adminState = window.AdminAccessManager?.getState?.() || {};
+    const needsFreshCheck = !adminState.lastChecked || (Date.now() - adminState.lastChecked > 60000);
+    if (window.AdminAccessManager?.checkAdmin && needsFreshCheck) {
+      try {
+        const checkPromise = window.AdminAccessManager.checkAdmin({ force: false });
+        const timeoutPromise = new Promise(resolve => setTimeout(resolve, 1500));
+        await Promise.race([checkPromise, timeoutPromise]);
+        adminState = window.AdminAccessManager.getState();
+      } catch (e) {
+        console.warn('[Profile] Admin check failed:', e);
+      }
+    }
+    
+    const isAdmin = adminState.isAdmin === true;
+    const adminSection = document.getElementById('adminSection');
+    if (adminSection) {
+      adminSection.style.display = isAdmin ? 'block' : 'none';
+    }
+    
+    console.log('🎯 [Profile] Navigation menu opened | Admin:', isAdmin);
+  };
+  
+  const closeNavigationModal = () => {
+    if (!navigationModal) return;
+    navigationModal.classList.remove('show'); 
+    document.body.style.overflow=''; 
+    setTimeout(()=>{ 
+      if(!navigationModal.classList.contains('show')) navigationModal.style.display='none'; 
+    }, 300); 
+    try { menuBtn?.focus({preventScroll:true}); } catch {}
+    console.log('🎯 [Profile] Navigation menu closed');
+  };
+  
+  if(menuBtn && navigationModal){ 
+    menuBtn.addEventListener('click', openNavigation);
+  }
+  if (closeBtn) closeBtn.addEventListener('click', closeNavigationModal);
+  if (backdrop) backdrop.addEventListener('click', closeNavigationModal);
+  document.addEventListener('keydown', e => { 
+    if (e.key==='Escape' && navigationModal?.classList.contains('show')) closeNavigationModal(); 
+  });
+  
+  const homeBtn=document.getElementById('btnHome'); 
+  if(homeBtn){ 
+    homeBtn.addEventListener('click', ()=>{ window.location.href='hi-dashboard.html'; }); 
+  }
+  
+  const calBtn=document.getElementById('btnCal'); 
+  if(calBtn){ 
+    calBtn.addEventListener('click', ()=>{ 
+      if(typeof openCalendar==='function'){ 
+        openCalendar(); 
+      } else { 
+        console.log('📅 Calendar not available'); 
+      } 
+    }); 
+  }
+  
+  const hiffirmationsBtn=document.getElementById('hiffirmationsTrigger'); 
+  if(hiffirmationsBtn){ 
+    hiffirmationsBtn.addEventListener('click', (e) =>{ 
+      e.preventDefault(); 
+      showHiffirmationsModal(); 
+    }); 
+  }
+  
+  // ✨ Hiffirmations Modal System (copied from dashboard-main.js)
+  function getDailyHiffirmation(date=new Date()){
+    const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`; 
+    let hash=0; 
+    for(let i=0;i<key.length;i++){ 
+      hash=(hash*31+key.charCodeAt(i))|0; 
+    }
+    const hiffirmations=["✨ Stay Hi! You're on a Hi level of positive energy today","🌟 Your Hi vibes are lifting others to new Hi-ghts of joy","💫 Hi there! You have the power to get someone Hi on life today","🔥 Hi amazing soul! Your authentic self is Hi-ly inspiring","🌈 Every Hi you share lifts our world to Hi-er dimensions","⭐ Hi friend! You're exactly Hi enough, right Hi and now","💝 Hi incredible human! Your presence gets everyone Hi on good vibes","🌺 Hi warrior! You're reaching Hi-er levels with each Hi moment","🎯 Hi there! Trust your journey, you're flying Hi and amazing","💎 Hi shining star! Your Hi energy can never be brought low","🚀 Hi unstoppable force! Your potential reaches the Hi-est peaks","🌸 Hi beautiful! You bring Hi-quality beauty to every moment","⚡ Hi energy! Your Hi frequency lights up every space you enter","🏔️ Hi mountain mover! You're Hi above any challenge life brings","🎨 Hi creative soul! Your imagination paints the world in Hi definition","🌊 Hi flowing river! You ride Hi through all of life's changes","🔮 Hi intuitive being! Your inner wisdom operates on the Hi-est level","🦋 Hi transformer! You're evolving into your Hi-est, most amazing self","🌅 Hi sunrise! Each day brings Hi-level opportunities just for you","💪 Hi resilient heart! Your bounce-back ability is Hi-ly remarkable" ];
+    const selectedMessage = hiffirmations[Math.abs(hash % hiffirmations.length)];
+    const lastHiffirmationDate = localStorage.getItem('lastHiffirmationDate'); 
+    const today = new Date().toDateString(); 
+    const isDaily = lastHiffirmationDate !== today;
+    if (isDaily){ 
+      localStorage.setItem('lastHiffirmationDate', today); 
+      return selectedMessage; 
+    }
+    const hiBoosts=["Stay Hi! Keep that Hi energy shining! ✨","Hi beautiful! You've got that Hi-level magic! 💪","Hi amazing! Keep riding Hi! 🚀","Hi superstar! Stay on that Hi frequency! 🌟"]; 
+    return hiBoosts[Math.floor(Math.random()*hiBoosts.length)];
+  }
+  
+  function getNextHiffirmationCountdown(){ 
+    const now=new Date(); 
+    const tomorrow=new Date(now); 
+    tomorrow.setDate(tomorrow.getDate()+1); 
+    tomorrow.setHours(0,0,0,0); 
+    const timeLeft=tomorrow-now; 
+    return { 
+      hours:Math.floor(timeLeft/3600000), 
+      minutes:Math.floor((timeLeft%3600000)/60000), 
+      timeLeft 
+    }; 
+  }
+  
+  function showHiffirmationsModal(customDate=null){ 
+    const targetDate=customDate||new Date(); 
+    const dailyHiffirmation=getDailyHiffirmation(targetDate); 
+    const countdown=getNextHiffirmationCountdown(); 
+    const isToday = !customDate || (targetDate.toDateString()===new Date().toDateString()); 
+    const dateLabel = isToday? 'Today' : targetDate.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+    
+    const modal=document.createElement('div'); 
+    modal.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:15000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);';
+    modal.innerHTML=`<div style="background:rgba(15,16,34,0.95);backdrop-filter:blur(25px);border:1px solid rgba(255,255,255,0.15);border-radius:24px;padding:32px;max-width:400px;width:90vw;text-align:center;color:#fff;box-shadow:0 20px 40px rgba(0,0,0,.3);position:relative;">`+
+    `<h3 style="margin:0 0 8px;color:#FFD166;font-size:24px;">✨ ${(function(){const lastDate=localStorage.getItem('lastHiffirmationDate');const todayString=new Date().toDateString();const isDailyHi=!customDate && (lastDate!==todayString);if(!isToday) return dateLabel+' Hiffirmation';return isDailyHi ? 'Daily Hiffirmation' : 'Hi Boost';})()}</h3>`+
+    `<p style="font-size:18px;line-height:1.6;margin:20px 0;color:rgba(255,255,255,0.95);">${dailyHiffirmation}</p>`+
+    (isToday?`<p style="font-size:12px;color:rgba(255,255,255,0.6);margin:16px 0 0;">Next Hiffirmation in ${countdown.hours}h ${countdown.minutes}m</p>`:'') +
+    `<div style="display:flex;gap:12px;margin-top:24px;justify-content:center;">`+
+    `<button class="close-hiffirmation" style="flex:1;padding:12px 20px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;cursor:pointer;font-size:14px;font-weight:600;transition:all 0.3s ease;">Close</button>`+
+    `<button class="hiffirmation-share" style="flex:1;padding:12px 20px;background:linear-gradient(135deg,#FFD166,#F4A261);border:none;border-radius:12px;color:#1E2A4A;cursor:pointer;font-size:14px;font-weight:600;transition:all 0.3s ease;">Share</button>`+
+    `</div></div>`;
+    
+    document.body.appendChild(modal);
+    const closeModal = () => { modal.remove(); document.body.style.overflow=''; };
+    modal.addEventListener('click',e=>{ if(e.target===modal) closeModal(); });
+    modal.querySelector('.close-hiffirmation').addEventListener('click', closeModal);
+    modal.querySelector('.hiffirmation-share').addEventListener('click', async () => {
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: 'Stay Hi Hiffirmation', text: dailyHiffirmation, url: window.location.origin });
+        } else {
+          await navigator.clipboard.writeText(dailyHiffirmation);
+          alert('Hiffirmation copied to clipboard! ✨');
+        }
+      } catch(e){ console.log('Share cancelled or failed'); }
+    });
+    document.body.style.overflow='hidden';
+  }
   
   // ✨ Tier Display Update System (synced with dashboard logic)
-  function updateBrandTierDisplay() {
+  function updateBrandTierDisplay(eventOrTier) {
     const tierIndicator = document.getElementById('hi-tier-indicator');
     if (!tierIndicator) return;
     if (!window.HiBrandTiers) return;
     
     let tierKey = 'anonymous';
-    if (window.unifiedMembership?.membershipStatus?.tier) {
+    
+    // ✅ CRITICAL: Check hi:auth-ready event detail FIRST (authoritative source from database)
+    if (eventOrTier?.detail?.membership?.tier) {
+      tierKey = eventOrTier.detail.membership.tier;
+    } else if (typeof eventOrTier === 'string') {
+      tierKey = eventOrTier;
+    } else if (window.__hiMembership?.tier) {
+      // Check AuthReady cached membership
+      tierKey = window.__hiMembership.tier;
+    } else if (window.unifiedMembership?.membershipStatus?.tier) {
       tierKey = window.unifiedMembership.membershipStatus.tier;
     } else if (window.HiMembership?.currentUser?.tierInfo?.name) {
       tierKey = window.HiMembership.currentUser.tierInfo.name.toLowerCase();
@@ -72,18 +214,32 @@ document.addEventListener('DOMContentLoaded', () => {
       useGradient: false
     });
     
-    // Show admin section if admin
-    if (window.HiMembership?.currentUser?.membershipTier === 'ADMIN') {
+    // Show admin section if admin or premium
+    const isAdmin = eventOrTier?.detail?.membership?.is_admin || window.__hiMembership?.is_admin || tierKey === 'admin' || tierKey === 'premium';
+    if (isAdmin) {
       const adminSection = document.getElementById('adminSection');
       if (adminSection) adminSection.style.display = 'block';
     }
     
-    console.log('🎫 [Profile] Tier updated:', tierKey);
+    console.log('🎫 [Profile Nav] Tier updated:', tierKey, eventOrTier?.detail?.membership ? `(from auth-ready event, DB tier: ${eventOrTier.detail.membership.tier})` : '(from fallback)');
   }
   
-  // Initialize tier display on page load and listen for changes
-  setTimeout(() => updateBrandTierDisplay(), 1000);
+  // Initialize tier display - WAIT for auth-ready event instead of early timeout
   window.addEventListener('membershipStatusChanged', () => updateBrandTierDisplay());
-  setTimeout(() => { if (window.unifiedMembership?.membershipStatus?.tier) updateBrandTierDisplay(); }, 2500);
-  setTimeout(() => { if (window.unifiedMembership?.membershipStatus?.tier) updateBrandTierDisplay(); }, 5000);
+  window.addEventListener('hi:auth-ready', (e) => {
+    console.log('🔔 [Profile Nav] hi:auth-ready received, tier:', e.detail?.membership?.tier);
+    updateBrandTierDisplay(e);
+  });
+  
+  // Fallback updates only if auth hasn't completed
+  setTimeout(() => { 
+    if (window.__hiMembership?.tier || window.unifiedMembership?.membershipStatus?.tier) {
+      updateBrandTierDisplay(); 
+    }
+  }, 3000);
+  setTimeout(() => { 
+    if (window.__hiMembership?.tier || window.unifiedMembership?.membershipStatus?.tier) {
+      updateBrandTierDisplay(); 
+    }
+  }, 6000);
 });

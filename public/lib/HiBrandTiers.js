@@ -251,6 +251,13 @@ class HiBrandTierSystem {
     
     if (!element) return;
     
+    // ✅ FIX: Guard against duplicate updates (prevents multiple systems fighting)
+    if (element._lastTierUpdate === tierKey) {
+      console.log('🎫 Tier already set to', tierKey, '- skipping duplicate update');
+      return;
+    }
+    element._lastTierUpdate = tierKey;
+    
     const info = this.getDisplayInfo(tierKey);
     
     // Update text content with defensive fallback

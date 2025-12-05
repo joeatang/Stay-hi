@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Nuclear Profile Reload</title>
+</head>
+<body style="background:#1a1a2e;color:#eee;font:16px system-ui;padding:40px;text-align:center">
+  <h1>🔥 Nuclear Cache Clear</h1>
+  <p>Clearing all caches and reloading profile...</p>
+  <script>
+    (async () => {
+      // Clear ALL caches
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(key => caches.delete(key)));
+        console.log('✅ Deleted', keys.length, 'cache(s)');
+      }
+      
+      // Clear storage
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Redirect with cache-busting timestamp
+      setTimeout(() => {
+        window.location.href = `/public/profile.html?v=${Date.now()}&fresh=true`;
+      }, 500);
+    })();
+  </script>
+</body>
+</html>

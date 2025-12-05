@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Profile Auth Test</title>
+  <script src="./assets/config.js"></script>
+  <script src="./assets/config-local.js" onerror="console.log('No config-local.js')"></script>
+</head>
+<body style="background:#1a1a2e;color:#eee;font:14px monospace;padding:20px">
+  <h1>🔬 Profile Authentication Test</h1>
+  <div id="output"></div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1"></script>
+  <script type="module">
+    const output = document.getElementById('output');
+    const log = (msg) => {
+      console.log(msg);
+      output.innerHTML += msg + '<br>';
+    };
+    
+    log('1️⃣ Initializing Supabase...');
+    const supabase = window.supabase.createClient(
+      window.SUPABASE_URL || 'MISSING',
+      window.SUPABASE_ANON_KEY || 'MISSING'
+    );
+    
+    log('2️⃣ Checking session...');
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError) {
+      log(`❌ Session error: ${sessionError.message}`);
+    } else if (!sessionData.session) {
+      log('⚠️ No active session - user is ANONYMOUS');
+    } else {
+      log(`✅ Session found: ${sessionData.session.user.email}`);
+      log(`   User ID: ${sessionData.session.user.id}`);
+      
+      log('3️⃣ Calling get_unified_membership RPC...');
+      const { data: membership, error: membershipError } = await supabase.rpc('get_unified_membership');
+      
+      if (membershipError) {
+        log(`❌ RPC error: ${membershipError.message}`);
+      } else {
+        log('✅ Membership data:');
+        log(`   Tier: ${membership.tier}`);
+        log(`   Status: ${membership.status}`);
+        log(`   Is Admin: ${membership.is_admin}`);
+        log(`   Full data: ${JSON.stringify(membership, null, 2)}`);
+      }
+    }
+  </script>
+</body>
+</html>

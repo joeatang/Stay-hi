@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Am I Signed In?</title>
+</head>
+<body style="background:#1a1a2e;color:#eee;font:16px monospace;padding:40px;max-width:600px">
+  <h1>🔐 Authentication Check</h1>
+  <div id="result">Checking...</div>
+  
+  <script>
+    // Check for Supabase auth token in localStorage
+    const keys = Object.keys(localStorage);
+    const authKeys = keys.filter(k => k.includes('auth-token') || k.includes('supabase'));
+    
+    const result = document.getElementById('result');
+    
+    if (authKeys.length === 0) {
+      result.innerHTML = `
+        <h2 style="color:#ef4444">❌ NOT SIGNED IN</h2>
+        <p>No authentication tokens found in localStorage.</p>
+        <p><strong>This is why you see "Hi Friend" (anonymous tier)</strong></p>
+        <hr>
+        <p>To sign in:</p>
+        <ol>
+          <li>Go to <a href="/public/signin.html" style="color:#ffd166">Sign In Page</a></li>
+          <li>Enter your email: joeatang7@gmail.com</li>
+          <li>Check your email for magic link</li>
+          <li>Click the link to authenticate</li>
+        </ol>
+      `;
+    } else {
+      result.innerHTML = `
+        <h2 style="color:#10b981">✅ SIGNED IN</h2>
+        <p>Found ${authKeys.length} auth token(s):</p>
+        <ul>
+          ${authKeys.map(k => `<li><code>${k}</code></li>`).join('')}
+        </ul>
+        <hr>
+        <p><strong>If you're seeing "Hi Friend" instead of "Hi Pioneer":</strong></p>
+        <p>The database tier might be wrong. Run FIX_ADMIN_TIER.sql in Supabase.</p>
+      `;
+    }
+  </script>
+</body>
+</html>

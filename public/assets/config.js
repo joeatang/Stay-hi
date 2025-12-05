@@ -6,6 +6,15 @@
 // For now, we'll use a fallback mechanism that checks multiple sources
 
 (function() {
+  // Check if already configured by config-local.js (must have REAL values, not empty strings)
+  const alreadyConfigured = window.SUPABASE_URL && window.SUPABASE_URL.length > 0 && 
+                            window.SUPABASE_ANON_KEY && window.SUPABASE_ANON_KEY.length > 0;
+  
+  if (alreadyConfigured) {
+    console.log('✅ Supabase configuration already loaded (from config-local.js)');
+    return; // Don't overwrite existing config
+  }
+  
   // Check if running in Vercel build environment
   const isVercelBuild = typeof process !== 'undefined' && process.env?.VERCEL;
   

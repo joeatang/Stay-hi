@@ -1,5 +1,8 @@
 // AccessGateTelemetryExport - batches and persists access telemetry to Supabase
 (function(){
+  // 🎯 CRITICAL FIX: Disable telemetry if table doesn't exist (prevents 404 spam)
+  const TELEMETRY_ENABLED = false; // Set to true when access_telemetry table is deployed
+  
   const EXPORT_INTERVAL = 15000; // 15s batching window base
   const MAX_BATCH = 20;
   const TABLE = 'access_telemetry';
@@ -75,6 +78,7 @@
   }
 
   async function flush(){
+    if (!TELEMETRY_ENABLED) return; // Skip if disabled
     if (flushing || pending.length === 0) return;
     if (!window.supabaseClient) { return; }
     flushing = true;
@@ -112,16 +116,20 @@
   }
 
   function schedule(){
+    if (!TELEMETRY_ENABLED) return; // Skip scheduling if disabled
     setInterval(()=>{ if(Date.now()-lastFlush >= EXPORT_INTERVAL) flush(); }, 5000);
   }
   function scheduleRetry(){
+    if (!TELEMETRY_ENABLED) return; // Skip retry scheduling if disabled
     retryDelay = Math.min(retryDelay * 2, MAX_RETRY_DELAY);
     setTimeout(()=>{ flush(); }, retryDelay);
   }
 
-  ['hi:access-requested','hi:access-allowed','hi:access-blocked','hi:membership-changed'].forEach(ev=>{
-    window.addEventListener(ev, capture);
-  });
+  if (TELEMETRY_ENABLED) {
+    ['hi:access-requested','hi:access-allowed','hi:access-blocked','hi:membership-changed'].forEach(ev=>{
+      window.addEventListener(ev, capture);
+    });
+  }
 
   window.__hiAccessTelemetryExport = {
     flush,

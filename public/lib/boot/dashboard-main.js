@@ -578,6 +578,7 @@
     }).catch(e=> console.error('❌ Stats initialization failed:', e));
     setTimeout(()=> updateBrandTierDisplay(),1000);
     window.addEventListener('membershipStatusChanged', ()=> updateBrandTierDisplay());
+    window.addEventListener('hi:auth-ready', ()=> updateBrandTierDisplay()); // ✅ FIX: Update on auth ready
     setTimeout(()=>{ if(window.unifiedMembership?.membershipStatus?.tier) updateBrandTierDisplay(); },2500);
     setTimeout(()=>{ if(window.unifiedMembership?.membershipStatus?.tier) updateBrandTierDisplay(); },5000);
     function updateBrandTierDisplay(){ const tierIndicator=document.getElementById('hi-tier-indicator'); if(!tierIndicator) return; if(!window.HiBrandTiers) return; let tierKey='anonymous'; if (window.unifiedMembership?.membershipStatus?.tier){ tierKey=window.unifiedMembership.membershipStatus.tier; } else if (window.HiMembership?.currentUser?.tierInfo?.name){ tierKey=window.HiMembership.currentUser.tierInfo.name.toLowerCase(); } window.HiBrandTiers.updateTierPill(tierIndicator, tierKey,{ showEmoji:false, useGradient:false }); }

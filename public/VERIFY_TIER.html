@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="/public/assets/config-local.js"></script>
+  <script src="/public/assets/config.js"></script>
+</head>
+<body style="background:#1a1a2e;color:#eee;font:14px monospace;padding:20px">
+  <h1>🔬 Tier Verification</h1>
+  <button onclick="check()">Check My Tier</button>
+  <pre id="output"></pre>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1"></script>
+  <script type="module">
+    window.check = async function() {
+      const out = document.getElementById('output');
+      out.textContent = 'Checking...\n';
+      
+      const supabase = window.supabase.createClient(
+        window.SUPABASE_URL,
+        window.SUPABASE_ANON_KEY
+      );
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      out.textContent += `Session: ${session?.user?.email || 'NONE'}\n`;
+      
+      if (!session) {
+        out.textContent += '\n❌ NOT SIGNED IN - This is why you see "Hi Friend"\n';
+        return;
+      }
+      
+      const { data: membership, error } = await supabase.rpc('get_unified_membership');
+      
+      if (error) {
+        out.textContent += `\n❌ RPC Error: ${error.message}\n`;
+        return;
+      }
+      
+      out.textContent += `\n✅ MEMBERSHIP DATA FROM DATABASE:\n`;
+      out.textContent += JSON.stringify(membership, null, 2);
+      
+      out.textContent += `\n\n🎯 YOUR TIER: ${membership.tier}\n`;
+      out.textContent += `🎯 IS ADMIN: ${membership.is_admin}\n`;
+      
+      if (membership.tier === 'premium') {
+        out.textContent += `\n✅ You SHOULD see "Hi Pioneer" (orange)\n`;
+      } else if (membership.tier === 'anonymous') {
+        out.textContent += `\n⚠️ Database says you're anonymous!\n`;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sign In Debug</title>
+  <script src="./assets/config.js"></script>
+  <script src="./assets/config-local.js" onerror="console.log('No local config')"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1/dist/umd/supabase.min.js"></script>
+</head>
+<body style="background: #1a1a2e; color: white; font-family: monospace; padding: 20px;">
+  <h1>🔍 Sign-In Diagnostic</h1>
+  <input type="email" id="email" placeholder="Email" value="joeatang7@gmail.com" style="width: 300px; padding: 8px; margin: 10px 0;">
+  <input type="password" id="pass" placeholder="Password" style="width: 300px; padding: 8px; margin: 10px 0;">
+  <button onclick="testSignIn()" style="padding: 10px 20px; background: #4CAF50; color: white; border: none; cursor: pointer;">TEST SIGN IN</button>
+  <pre id="log" style="background: black; padding: 15px; margin-top: 20px; max-height: 500px; overflow: auto;"></pre>
+
+  <script>
+    const log = (msg) => {
+      const time = new Date().toLocaleTimeString();
+      document.getElementById('log').textContent += `[${time}] ${msg}\n`;
+      console.log(msg);
+    };
+
+    async function testSignIn() {
+      log('=== STARTING DIAGNOSTIC ===');
+      
+      try {
+        // Check config
+        log(`Config URL: ${window.SUPABASE_URL ? 'EXISTS' : 'MISSING'}`);
+        log(`Config KEY: ${window.SUPABASE_ANON_KEY ? 'EXISTS (length: ' + window.SUPABASE_ANON_KEY.length + ')' : 'MISSING'}`);
+        
+        if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+          log('❌ CRITICAL: Supabase config missing!');
+          return;
+        }
+
+        // Create client
+        log('Creating Supabase client...');
+        const sb = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        log('✅ Client created');
+
+        // Get credentials
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('pass').value;
+        log(`Attempting sign-in for: ${email}`);
+
+        // Try sign-in
+        log('Calling signInWithPassword...');
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+        if (error) {
+          log(`❌ ERROR: ${error.message}`);
+          log(`Error code: ${error.status || 'none'}`);
+          log(`Full error: ${JSON.stringify(error, null, 2)}`);
+          return;
+        }
+
+        log('✅ SIGN-IN SUCCESSFUL!');
+        log(`User ID: ${data.user?.id}`);
+        log(`Email: ${data.user?.email}`);
+        log(`Session expires: ${new Date(data.session?.expires_at * 1000).toLocaleString()}`);
+        
+        // Check tier
+        log('\nFetching membership tier...');
+        const { data: tierData, error: tierError } = await sb.rpc('get_unified_membership');
+        if (tierError) {
+          log(`⚠️ Tier fetch error: ${tierError.message}`);
+        } else {
+          log(`✅ Tier: ${tierData?.tier || 'unknown'}`);
+          log(`Admin: ${tierData?.is_admin || false}`);
+        }
+
+        log('\n🎉 Everything works! Redirecting in 3 seconds...');
+        setTimeout(() => location.href = 'profile.html', 3000);
+
+      } catch (e) {
+        log(`❌ EXCEPTION: ${e.message}`);
+        log(`Stack: ${e.stack}`);
+      }
+    }
+
+    log('✅ Page loaded - ready for testing');
+    log('Click button to test sign-in flow');
+  </script>
+</body>
+</html>

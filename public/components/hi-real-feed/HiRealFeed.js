@@ -187,25 +187,36 @@ class HiIslandRealFeed {
         console.warn('⚠️ No shares found in public_shares table');
       }
 
-      // 🎯 TESLA-GRADE: Process shares with NEW SCHEMA alignment
+      // 🎯 TESLA-GRADE: Process shares with ACTUAL SCHEMA
       const processedShares = (shares || []).map(share => {
         const processed = {
           id: share.id,
-          content: share.content || 'Shared a Hi 5 moment!', // NEW SCHEMA: content field
-          visibility: share.visibility || 'public', // NEW SCHEMA: visibility field
-          metadata: share.metadata || {}, // NEW SCHEMA: metadata field with Hi format
+          content: share.text || share.content || 'Shared a Hi 5 moment!', // ACTUAL SCHEMA: 'text' column
+          visibility: share.visibility || (share.is_anonymous ? 'anonymous' : 'public'),
+          metadata: share.metadata || {},
           created_at: share.created_at,
           user_id: share.user_id,
-          location: share.location_data?.location || share.location, // NEW SCHEMA: location_data
-          origin: share.metadata?.origin || 'unknown',
-          type: share.metadata?.type || 'hi5'
+          location: share.location || 'Location unavailable', // ACTUAL SCHEMA: 'location' column
+          origin: share.origin || 'unknown',
+          type: share.type || 'hi5'
         };
 
-        // Handle anonymization using NEW SCHEMA
-        if (share.visibility === 'anonymous') {
+        // 🎯 SCHEMA FIX: Support both top-level columns AND metadata storage
+        // After CRITICAL_FIX_PUBLIC_SHARES_SCHEMA.sql runs, columns will be top-level
+        // Until then, read from metadata
+        if (share.visibility === 'anonymous' || share.is_anonymous) {
           processed.display_name = 'Hi Friend';
           processed.avatar_url = null;
+        } else if (share.avatar_url || share.display_name) {
+          // NEW SCHEMA: Use top-level columns (after migration)
+          processed.display_name = share.display_name || 'Hi Friend';
+          processed.avatar_url = share.avatar_url;
+        } else if (share.metadata?.avatar_url || share.metadata?.display_name) {
+          // TEMP SCHEMA: Read from metadata (current state)
+          processed.display_name = share.metadata.display_name || 'Hi Friend';
+          processed.avatar_url = share.metadata.avatar_url;
         } else if (share.profiles) {
+          // FALLBACK: Use profile JOIN for old shares
           processed.display_name = share.profiles.display_name || share.profiles.username || 'Hi Friend';
           processed.avatar_url = share.profiles.avatar_url;
         } else {
@@ -265,17 +276,17 @@ class HiIslandRealFeed {
         throw error;
       }
 
-      // 🎯 TESLA-GRADE: Process archive data with NEW SCHEMA alignment
+      // 🎯 TESLA-GRADE: Process archive data with ACTUAL SCHEMA
       const processedArchives = (archives || []).map(archive => ({
         id: archive.id,
-        content: archive.content || 'Personal Hi 5 moment', // NEW SCHEMA: content field
-        visibility: archive.visibility || 'private', // NEW SCHEMA: visibility field  
-        metadata: archive.metadata || {}, // NEW SCHEMA: metadata field with Hi format
+        content: archive.journal || archive.text || 'Personal Hi 5 moment', // ACTUAL SCHEMA: 'journal' column
+        visibility: archive.visibility || 'private',
+        metadata: archive.metadata || {},
         created_at: archive.created_at,
         user_id: archive.user_id,
-        location: archive.location_data?.location || archive.location, // NEW SCHEMA: location_data
-        origin: archive.metadata?.origin || 'unknown',
-        type: archive.metadata?.type || 'hi5',
+        location: archive.location || 'Location unavailable', // ACTUAL SCHEMA: 'location' column
+        origin: archive.origin || 'unknown',
+        type: archive.type || 'hi5',
         display_name: 'You', // User's own archives
         avatar_url: null // Will be filled from user profile if needed
       }));
@@ -579,9 +590,24 @@ class HiIslandRealFeed {
       });
     }
     
-    const container = document.getElementById(`${tabName}Feed`);
+    // Map tab names to container IDs
+    const containerMap = {
+      'general': 'generalFeed',
+      'archives': 'archivesFeed',
+      'archive': 'archivesFeed' // Handle both 'archive' and 'archives'
+    };
+    
+    const containerId = containerMap[tabName] || `${tabName}Feed`;
+    const container = document.getElementById(containerId);
+    
     if (!container) {
-      console.warn(`❌ Feed container not found: ${tabName}Feed`);
+      console.warn(`❌ Feed container not found: ${containerId}`);
+      console.log('🔍 Available containers:', {
+        generalFeed: !!document.getElementById('generalFeed'),
+        archivesFeed: !!document.getElementById('archivesFeed'),
+        hiIslandFeedRoot: !!document.getElementById('hi-island-feed-root'),
+        feedContent: !!document.querySelector('.hi-feed-content')
+      });
       return;
     }
 
@@ -739,6 +765,7 @@ class HiIslandRealFeed {
       <div class="share-content">
         ${formattedContent}
         ${location ? `<p class="share-location">${this.escapeHtml(location)}</p>` : ''}
+        ${this.getOriginBadge(share)}
       </div>
       
       <div class="share-actions">
@@ -756,52 +783,18 @@ class HiIslandRealFeed {
     return element;
   }
 
-  // 🎯 TESLA-GRADE: Format Hi content from new schema
+  // 🎯 SIMPLE: Display content as formatted by createShareContent (already has tags/emojis/location)
   formatHiContent(share) {
     try {
-      // Debug logging to see what data we have
-      console.log('🔍 Formatting share content:', {
-        id: share.id,
-        content: share.content,
-        metadata: share.metadata,
-        hasMetadata: !!(share.metadata && Object.keys(share.metadata).length)
-      });
-
-      // 🎯 WOZ FIX: Try metadata object first, then fall back to individual columns
-      const metadata = share.metadata || {};
+      // SIMPLE: Content is already properly formatted by HiDB.createShareContent
+      // Hi Gym shares: emoji journey + text + #higym + location
+      // Hi Island/Dashboard shares: text + #hi5 + location
+      const content = share.content || share.text || 'Hi! 👋';
       
-      // Prioritize individual columns (current schema) over metadata object
-      const currentEmoji = share.current_emoji || metadata.currentEmoji;
-      const currentName = share.current_name || metadata.currentName;
-      const desiredEmoji = share.desired_emoji || metadata.desiredEmoji;
-      const desiredName = share.desired_name || metadata.desiredName;
+      // Convert newlines to <br> for display, preserve hashtags and emojis
+      const formatted = this.escapeHtml(content).replace(/\\n/g, '<br>');
       
-      if (currentEmoji || desiredEmoji) {
-        // Reconstruct proper Hi format from available data
-        let hiFormat = '';
-        
-        if (currentEmoji && currentName) {
-          hiFormat += `<span class="hi-current-state">${currentEmoji} ${this.escapeHtml(currentName)}</span>`;
-        }
-        
-        if (desiredEmoji && desiredName) {
-          if (hiFormat) hiFormat += ' → ';
-          hiFormat += `<span class="hi-desired-state">${desiredEmoji} ${this.escapeHtml(desiredName)}</span>`;
-        }
-        
-        // Add additional text if present (from share.text field)
-        const additionalText = share.text || share.content;
-        if (additionalText && !additionalText.includes(currentEmoji)) {
-          hiFormat += `<p class="hi-additional-text">${this.escapeHtml(additionalText)}</p>`;
-        }
-        
-        console.log('✅ Created Hi formatted content from columns:', { currentEmoji, desiredEmoji, hiFormat });
-        return `<div class="hi-formatted-content">${hiFormat}</div>`;
-      } else {
-        // Fallback to text/content field
-        console.log('⚠️ No emoji data found, using text field');
-        return `<p class="share-text">${this.escapeHtml(share.text || share.content || 'Hi! 👋')}</p>`;
-      }
+      return `<p class="share-text">${formatted}</p>`;
     } catch (error) {
       console.warn('⚠️ Error formatting Hi content:', error);
       return `<p class="share-text">${this.escapeHtml(share.content || 'Hi! 👋')}</p>`;
@@ -828,6 +821,29 @@ class HiIslandRealFeed {
   }
 
   // Utility methods (same as before)
+  getOriginBadge(share) {
+    const origin = String(share.origin || '').toLowerCase();
+    const type = String(share.type || '').toLowerCase();
+    
+    // Hi Gym / Muscle Journey
+    if (origin.includes('gym') || origin.includes('muscle') || type.includes('muscle') || type.includes('journey')) {
+      return '<span class="origin-badge origin-higym" title="Shared from Hi Gym">💪 HiGym</span>';
+    }
+    
+    // Hi Island
+    if (origin.includes('island')) {
+      return '<span class="origin-badge origin-island" title="Shared from Hi Island">🏝️ Island</span>';
+    }
+    
+    // Hi5 / Quick Hi / Dashboard
+    if (['hi5', 'self_hi5', 'self-hi5', 'index', 'hi-dashboard', 'dashboard'].includes(origin) || type.includes('hi5')) {
+      return '<span class="origin-badge origin-hi5" title="Shared from Hi Dashboard">⚡ Hi5</span>';
+    }
+    
+    // No badge for unknown origins
+    return '';
+  }
+  
   getVisibilityIcon(visibility) {
     switch (visibility) {
       case 'public': return '🌍 Public';
@@ -1150,6 +1166,39 @@ class HiIslandRealFeed {
         margin: 0;
         font-size: 14px;
         opacity: 0.8;
+      }
+
+      .origin-badge {
+        display: inline-block;
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 6px;
+        margin-top: 8px;
+        font-weight: 600;
+        opacity: 0.7;
+        transition: opacity 0.2s ease;
+      }
+      
+      .origin-badge:hover {
+        opacity: 1;
+      }
+      
+      .origin-hi5 {
+        background: rgba(59, 130, 246, 0.2);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        color: #93C5FD;
+      }
+      
+      .origin-higym {
+        background: rgba(239, 68, 68, 0.2);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #FCA5A5;
+      }
+      
+      .origin-island {
+        background: rgba(34, 197, 94, 0.2);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        color: #86EFAC;
       }
 
       .share-actions {

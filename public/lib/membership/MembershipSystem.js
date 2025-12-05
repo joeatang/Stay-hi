@@ -22,14 +22,17 @@ export class HiMembershipSystem {
     this.tiers = {
       // Public Access
       ANONYMOUS: { level: 0, price: 0, name: 'Anonymous', color: '#6B7280' },
+      anonymous: { level: 0, price: 0, name: 'Anonymous', color: '#6B7280' }, // ✅ NEW: Support lowercase
       
       // Stan Membership Entry Point  
       STAN_MEMBER: { level: 1, price: 0, name: 'Stan Member', color: '#3B82F6', source: 'stan' },
+      member: { level: 1, price: 0, name: 'Member', color: '#3B82F6' }, // ✅ NEW: Support lowercase
       
       // Hi Network Paid Tiers
       TIER_1: { level: 2, price: 5.55, name: 'Hi Starter', color: '#FF9A3C' },
       TIER_2: { level: 3, price: 15.55, name: 'Hi Explorer', color: '#D84B8A' },  
       TIER_3: { level: 4, price: 55.55, name: 'Hi Collective', color: '#8B5CF6' },
+      premium: { level: 4, price: 55.55, name: 'Premium', color: '#8B5CF6' }, // ✅ NEW: Support lowercase premium
       
       // Woz + Jobs 7th Tier: Creator/Community Builder
       HI_ARCHITECT: { 
@@ -41,7 +44,8 @@ export class HiMembershipSystem {
       },
       
       // System Administration
-      ADMIN: { level: 99, price: 0, name: 'Hi Council', color: '#10B981' }
+      ADMIN: { level: 99, price: 0, name: 'Hi Council', color: '#10B981' },
+      admin: { level: 99, price: 0, name: 'Admin', color: '#10B981' } // ✅ NEW: Support lowercase
     };
     
     this.accessModes = {
@@ -288,16 +292,26 @@ export class HiMembershipSystem {
     const tierInfo = this.currentUser.tierInfo;
     const mode = this.currentUser.accessMode;
     
-    // Update header if tier indicator exists
+    // ✅ FIX: Use HiBrandTiers API instead of direct textContent manipulation
     const tierIndicator = document.getElementById('hi-tier-indicator');
-    if (tierIndicator) {
-      tierIndicator.textContent = tierInfo.name;
-      tierIndicator.style.color = tierInfo.color;
+    if (tierIndicator && window.HiBrandTiers) {
+      // Get tier key from current user (convert display name to database tier)
+      const tierKey = this.currentUser.membershipTier.toLowerCase();
       
+      // Use HiBrandTiers to properly update the pill (preserves HTML structure)
+      window.HiBrandTiers.updateTierPill(tierIndicator, tierKey, {
+        showEmoji: false,
+        useGradient: false
+      });
+      
+      // If temporary access, add time remaining
       if (mode === 'temporary') {
         const timeLeft = this.currentUser.expiresAt - Date.now();
         const hours = Math.ceil(timeLeft / (1000 * 60 * 60));
-        tierIndicator.textContent += ` (${hours}h left)`;
+        const tierText = tierIndicator.querySelector('.tier-text');
+        if (tierText) {
+          tierText.textContent += ` (${hours}h left)`;
+        }
       }
     }
     

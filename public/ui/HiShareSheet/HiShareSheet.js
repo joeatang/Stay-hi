@@ -974,19 +974,17 @@ export class HiShareSheet {
       
       this._dbg('🎯 Tesla persist:', { submissionId, text, toIsland, anon, origin: this.origin, type: this.shareType });
     
-      // 🚨 TESLA FIX: Make location completely non-blocking
-    let location = 'Location unavailable';
-    
-    // Fire location detection in background (don't await)
-    Promise.race([
-      this.getUserLocation(),
-      new Promise(resolve => setTimeout(() => resolve('Location unavailable'), 1000))
-    ]).then(result => {
-      location = result || 'Location unavailable';
-      this._dbg('📍 Tesla location result:', location);
-    }).catch(err => {
-      console.warn('Tesla location failed:', err);
-    });
+      // 🔥 FIX: Make location BLOCKING - get it BEFORE creating shares
+      let location = 'Location unavailable';
+      try {
+        location = await Promise.race([
+          this.getUserLocation(),
+          new Promise(resolve => setTimeout(() => resolve('Location unavailable'), 2000))
+        ]);
+        this._dbg('📍 Tesla location captured:', location);
+      } catch (err) {
+        console.warn('Tesla location failed:', err);
+      }
     
     // 🎯 TESLA CRITICAL FIX: Get or create anonymous user ID for consistent archiving
     let userId = null;

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tier Badge Inspector</title>
+  <script src="./assets/config-local.js"></script>
+  <script src="./assets/config.js"></script>
+</head>
+<body style="background:#1a1a2e;color:#eee;font:14px monospace;padding:20px">
+  <h1>🔬 Tier Badge Inspector</h1>
+  <button onclick="inspect()">Inspect Profile Tier Badge</button>
+  <pre id="output"></pre>
+  
+  <script>
+    function inspect() {
+      const out = document.getElementById('output');
+      
+      // Open profile in iframe to inspect
+      const iframe = document.createElement('iframe');
+      iframe.src = '/public/profile.html';
+      iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:white';
+      document.body.appendChild(iframe);
+      
+      setTimeout(() => {
+        const tierBadge = iframe.contentDocument.getElementById('hi-tier-indicator');
+        if (!tierBadge) {
+          out.textContent = '❌ Tier badge not found!';
+          return;
+        }
+        
+        out.textContent = `
+✅ Tier Badge Found!
+
+HTML Structure:
+${tierBadge.outerHTML}
+
+Inner Text: "${tierBadge.innerText}"
+Text Content: "${tierBadge.textContent}"
+
+Children:
+${Array.from(tierBadge.children).map((el, i) => 
+  `  [${i}] ${el.tagName}.${el.className} = "${el.textContent}"`
+).join('\n')}
+
+Computed Style:
+  color: ${getComputedStyle(tierBadge).color}
+  background: ${getComputedStyle(tierBadge).background}
+  
+::before content: ${getComputedStyle(tierBadge, '::before').content}
+::after content: ${getComputedStyle(tierBadge, '::after').content}
+`;
+        
+        document.body.removeChild(iframe);
+      }, 3000);
+    }
+  </script>
+</body>
+</html>

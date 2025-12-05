@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="refresh" content="0;url=profile.html?v=CACHEBUST_$(date +%s)">
+  <script>
+    // Nuclear cache clear
+    if ('caches' in window) {
+      caches.keys().then(names => names.forEach(name => caches.delete(name)));
+    }
+    localStorage.removeItem('profile_cache');
+    sessionStorage.clear();
+    location.replace('profile.html?v=' + Date.now());
+  </script>
+</head>
+<body style="background: #1a1a2e; color: white; font-family: monospace; padding: 40px; text-align: center;">
+  <h1>🔄 Clearing cache and refreshing...</h1>
+  <p>If you're not redirected, <a href="profile.html" style="color: #4CAF50">click here</a></p>
+</body>
+</html>

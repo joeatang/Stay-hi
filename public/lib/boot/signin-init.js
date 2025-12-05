@@ -51,10 +51,11 @@ async function initializeSupabase() {
           attempts++;
           if (window.supabase) {
             clearInterval(checkSDK);
+            console.log(`✅ [INIT] SDK loaded after ${attempts * 100}ms`);
             resolve();
-          } else if (attempts > 50) { // 5 seconds max
+          } else if (attempts > 100) { // 10 seconds max for slow mobile networks
             clearInterval(checkSDK);
-            reject(new Error('Supabase SDK failed to load'));
+            reject(new Error('Supabase SDK failed to load after 10 seconds'));
           }
         }, 100);
       });
@@ -135,12 +136,26 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   console.log('✅ All sign-in form elements found');
+  
+  // 🚀 CRITICAL: Initialize Supabase immediately on page load (not when button clicked)
+  console.log('🔵 [INIT] Starting early Supabase initialization...');
+  initializeSupabase().catch(err => {
+    console.error('❌ [INIT] Early initialization failed:', err);
+  });
 
   // Wait for Supabase to be ready
   async function waitForSupabase() {
-    if (supabaseClient) return supabaseClient;
-    if (window.sb) return window.sb;
+    console.log('🔵 [WAIT] Checking for Supabase client...');
+    if (supabaseClient) {
+      console.log('✅ [WAIT] Using existing supabaseClient');
+      return supabaseClient;
+    }
+    if (window.sb) {
+      console.log('✅ [WAIT] Using existing window.sb');
+      return window.sb;
+    }
 
+    console.log('⏳ [WAIT] Client not ready, polling...');
     return new Promise((resolve) => {
       const check = () => {
         if (supabaseClient || window.sb) {
@@ -237,14 +252,14 @@ document.addEventListener('DOMContentLoaded', function() {
     buttonText.style.display = 'none';
     loadingDots.style.display = 'inline-flex';
     sendBtn.style.transform = 'scale(0.98)';
-    
-    // 🔧 TIMEOUT PROTECTION: Show error if taking too long
-    const timeoutId = setTimeout(() => {
-      if (sendBtn.disabled) {
-        err.textContent = '⏱️ Sign-in is taking longer than expected. Please check your connection and try again.';
-        err.style.display = 'block';
-        sendBtn.disabled = false;
-        buttonText.textContent = 'Sign in';
+    try {
+      console.log('🔵 [AUTH] Getting Supabase client...');
+      const sb = await Promise.race([
+        waitForSupabase(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Supabase client timeout - SDK or config not loading')), 12000)
+        )
+      ]);uttonText.textContent = 'Sign in';
         buttonText.style.display = 'inline-block';
         loadingDots.style.display = 'none';
         sendBtn.style.transform = 'scale(1)';

@@ -65,6 +65,16 @@ export async function trackShareSubmission(source = 'dashboard', metadata = {}) 
         console.log('🎯 GOLD STANDARD SUCCESS: Total His updated to', window.gTotalHis);
         return { success: true, newTotal: window.gTotalHis };
         
+      } else if (data && typeof data === 'object') {
+        // Handle alternate RPC response format (single object)
+        const stats = data;
+        if (stats.total_his !== undefined) {
+          window.gTotalHis = stats.total_his;
+          console.log('🎯 GOLD STANDARD SUCCESS (alt format): Total His =', window.gTotalHis);
+          return { success: true, newTotal: window.gTotalHis };
+        }
+        console.warn('⚠️ Unexpected database response format:', { data, error });
+        throw new Error('Invalid database response - missing total_his field');
       } else {
         console.warn('⚠️ Unexpected database response:', { data, error });
         throw new Error('Invalid database response');

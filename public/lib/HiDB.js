@@ -69,30 +69,46 @@
   }
 
   // 🎯 HELPER: Convert Hi entry format to readable content
+  // SIMPLE LOGIC: Hi Gym = emojis + #higym | Hi Island/Dashboard = text + #hi5 only
   function createShareContent(entry) {
     const parts = [];
+    const origin = entry.origin || entry.type || 'hi5';
+    const isHiGym = origin === 'higym' || origin === 'hi-gym';
     
-    if (entry.currentEmoji && entry.currentName) {
-      parts.push(`${entry.currentEmoji} ${entry.currentName}`);
+    // Only add emoji journey for Hi Gym shares
+    if (isHiGym) {
+      if (entry.currentEmoji && entry.currentName) {
+        parts.push(`${entry.currentEmoji} ${entry.currentName}`);
+      }
+      
+      if (entry.desiredEmoji && entry.desiredName) {
+        const arrow = parts.length > 0 ? ' → ' : '';
+        parts.push(`${arrow}${entry.desiredEmoji} ${entry.desiredName}`);
+      }
     }
     
-    if (entry.desiredEmoji && entry.desiredName) {
-      const arrow = parts.length > 0 ? ' → ' : '';
-      parts.push(`${arrow}${entry.desiredEmoji} ${entry.desiredName}`);
-    }
-    
+    // Add user text if provided
     if (entry.text) {
       const separator = parts.length > 0 ? '\n\n' : '';
       parts.push(`${separator}${entry.text}`);
     }
     
-    return parts.join('') || 'Hi!';
+    // Add tag based on origin
+    const tag = isHiGym ? ' #higym' : ' #hi5';
+    const content = parts.join('') || 'Hi!';
+    
+    // Add location if available
+    const locationTag = entry.location ? ` 📍 ${entry.location}` : '';
+    
+    return content + tag + locationTag;
   }
 
   // 🎯 PHASE 1: Schema-aligned public share insertion
   // 🚀 TESLA ENHANCED: insertPublicShare with enhanced visibility controls
   async function insertPublicShare(entry) {
     let user_id = null;
+    let avatar_url = null;
+    let display_name = null;
     
     // Tesla Enhancement: Support provided user_id or get from auth
     if (entry.user_id) {
@@ -101,25 +117,48 @@
       user_id = await getUserId();
     }
     
-    const shareContent = createShareContent(entry);
+    // 🎯 TESLA FIX: Snapshot user profile data at share time for immutable history
+    if (user_id && !entry.isAnonymous) {
+      try {
+        const supa = getSupabase();
+        if (supa) {
+          const { data: profile } = await supa
+            .from('profiles')
+            .select('avatar_url, display_name, username')
+            .eq('id', user_id)
+            .single();
+          
+          if (profile) {
+            avatar_url = profile.avatar_url;
+            display_name = profile.display_name || profile.username || 'Hi Friend';
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ Could not fetch profile for avatar snapshot:', error);
+        // Continue without avatar - not critical
+      }
+    }
+    
+    // Use user's text exactly as they typed it
+    const shareText = entry.text || '';
     
     console.log('🎯 Tesla insertPublicShare:', { 
       user_id, 
-      content: shareContent.substring(0, 50), 
+      avatar_url,
+      display_name,
+      text: shareText.substring(0, 50), 
       visibility: entry.isAnonymous ? 'anonymous' : 'public',
       entry 
     });
     
     const row = {
       user_id, // null for anonymous, actual user_id for authenticated shares
-      text: shareContent, // TESLA FIX: Correct field name is 'text' not 'content'
+      text: shareText, // PRESERVE USER TEXT EXACTLY
       current_emoji: entry.currentEmoji || '🙌',
-      current_name: entry.currentName || null,
-      desired_emoji: entry.desiredEmoji || '✨', // TESLA SCHEMA FIX: Never null (required field)
-      desired_name: entry.desiredName || null,
-      is_anonymous: entry.isAnonymous || false, // TESLA FIX: Correct field name
-      location: entry.location || null // TESLA SCHEMA FIX: Simple location field
-      // TESLA SCHEMA FIX: Remove 'origin' and 'type' fields - don't exist in production schema
+      desired_emoji: entry.desiredEmoji || '✨',
+      location: entry.location || null
+      // Database has: id, user_id, current_emoji, desired_emoji, text, location, created_at
+      // NO origin or type columns in this table
     };
 
     try {
@@ -150,16 +189,21 @@
   async function insertArchive(entry) {
     // Tesla Fix: Support provided user_id (for anonymous users) or get authenticated user_id
     const user_id = entry.user_id || await getUserId();
-    const shareContent = entry.journal || createShareContent(entry);
+    // Use user's journal text exactly as they typed it
+    const journalText = entry.journal || entry.text || '';
     
-    console.log('🎯 Tesla insertArchive:', { user_id, content: shareContent.substring(0, 50), entry });
+    console.log('🎯 Tesla insertArchive:', { user_id, journal: journalText.substring(0, 50), entry });
     
+    // ACTUAL SCHEMA: Match real hi_archives columns
+    // Database has: id, user_id, current_emoji, desired_emoji, journal, location, created_at, origin, type, text, content
     const row = {
       user_id,
+      journal: journalText, // PRESERVE USER TEXT EXACTLY
       current_emoji: entry.currentEmoji || '🙌',
       desired_emoji: entry.desiredEmoji || '✨',
-      journal: shareContent, // TESLA FIX: Correct field name is 'journal'
-      current_emoji: entry.currentEmoji || '🙌' // TESLA SCHEMA FIX: Remove location, origin, type - don't exist in production
+      location: entry.location || null,
+      origin: entry.origin || 'hi-island',
+      type: entry.type || 'hi5'
     };
 
     try {
@@ -337,74 +381,66 @@
 
   // 🎯 NORMALIZERS: Database -> UI conversion with actual schema fields
   function normalizePublicRow(r) {
-    const metadata = r.metadata || {};
-    
     return {
       id: r.id,
-      currentEmoji: metadata.currentEmoji || "👋",
-      currentName: metadata.currentName || "",
-      desiredEmoji: metadata.desiredEmoji || "✨",
-      desiredName: metadata.desiredName || "",
-      text: r.content, // Actual field: content (not text)
-      isAnonymous: r.visibility === 'anonymous',
-      userName: r.visibility === 'anonymous' ? "Hi Friend" : "You",
-      location: r.location_data?.location || "", // Actual field: location_data
+      currentEmoji: r.current_emoji || '👋',
+      currentName: '',
+      desiredEmoji: r.desired_emoji || '✨',
+      desiredName: '',
+      text: r.text || '', // ACTUAL SCHEMA: 'text' column
+      isAnonymous: false,
+      userName: 'You',
+      location: r.location || '',
       createdAt: r.created_at,
-      origin: metadata.origin || 'quick',
-      type: metadata.type || 'self_hi5'
+      origin: r.origin || 'quick',
+      type: r.type || 'self_hi5'
     };
   }
   
   function normalizePublicRowFromClient(row) {
-    const metadata = row.metadata || {};
-    
     return {
-      id: "local_" + Date.now(),
-      currentEmoji: metadata.currentEmoji || "👋",
-      currentName: metadata.currentName || "",
-      desiredEmoji: metadata.desiredEmoji || "✨", 
-      desiredName: metadata.desiredName || "",
-      text: row.content,
-      isAnonymous: row.visibility === 'anonymous',
-      userName: row.visibility === 'anonymous' ? "Hi Friend" : "You",
-      location: row.location_data?.location || "",
+      id: 'local_' + Date.now(),
+      currentEmoji: row.current_emoji || '👋',
+      currentName: '',
+      desiredEmoji: row.desired_emoji || '✨', 
+      desiredName: '',
+      text: row.text || '',
+      isAnonymous: false,
+      userName: 'You',
+      location: row.location || '',
       createdAt: new Date().toISOString(),
-      origin: metadata.origin || 'quick',
-      type: metadata.type || 'self_hi5'
+      origin: row.origin || 'quick',
+      type: row.type || 'self_hi5'
     };
   }
 
   function normalizeArchiveRow(r) {
-    const metadata = r.metadata || {};
-    
     return {
       id: r.id,
-      currentEmoji: metadata.currentEmoji || "👋",
-      currentName: metadata.currentName || "",
-      desiredEmoji: metadata.desiredEmoji || "✨",
-      desiredName: metadata.desiredName || "",
-      journalEntry: r.content, // Actual field: content (not journal)
-      text: r.content, // Feed uses 'text', map from content
-      isAnonymous: r.visibility === 'anonymous',
-      userName: r.visibility === 'anonymous' ? "Hi Friend" : "You",
-      location: r.location_data?.location || "", // Actual field: location_data
-      origin: metadata.origin || 'hi5',
-      type: metadata.type || 'self_hi5',
+      currentEmoji: r.current_emoji || '👋',
+      currentName: '',
+      desiredEmoji: r.desired_emoji || '✨',
+      desiredName: '',
+      journalEntry: r.journal || r.text || '', // ACTUAL SCHEMA: 'journal' column
+      text: r.journal || r.text || '', // Feed uses 'text', map from journal
+      isAnonymous: false,
+      userName: 'You',
+      location: r.location || '',
+      origin: r.origin || 'hi5',
+      type: r.type || 'self_hi5',
       createdAt: r.created_at,
     };
   }
   
   function normalizeArchiveRowFromClient(row) {
-    const metadata = row.metadata || {};
-    
     return {
-      id: "local_" + Date.now(),
-      currentEmoji: metadata.currentEmoji || "👋",
-      currentName: metadata.currentName || "",
-      desiredEmoji: metadata.desiredEmoji || "✨",
-      desiredName: metadata.desiredName || "",
-      journalEntry: row.content,
-      text: row.content, // Feed uses 'text', map from content
+      id: 'local_' + Date.now(),
+      currentEmoji: row.current_emoji || '👋',
+      currentName: '',
+      desiredEmoji: row.desired_emoji || '✨',
+      desiredName: '',
+      journalEntry: row.journal || '',
+      text: row.journal || '', // Feed uses 'text', map from journal
       isAnonymous: row.visibility === 'anonymous',
       userName: row.visibility === 'anonymous' ? "Hi Friend" : "You",
       location: row.location_data?.location || "",

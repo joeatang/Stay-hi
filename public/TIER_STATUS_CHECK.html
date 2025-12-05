@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tier Status Check</title>
+  <script src="./assets/config-local.js"></script>
+  <script src="./assets/config.js"></script>
+  <style>
+    body { background: #1a1a2e; color: #eee; font: 14px monospace; padding: 20px; }
+    .status { padding: 10px; margin: 10px 0; border-left: 3px solid #4CAF50; }
+    .error { border-color: #f44336; }
+  </style>
+</head>
+<body>
+  <h1>�� Current Tier Status</h1>
+  <button onclick="checkStatus()">Check My Tier</button>
+  <div id="output"></div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1"></script>
+  <script>
+    async function checkStatus() {
+      const out = document.getElementById('output');
+      out.innerHTML = '<div class="status">Checking...</div>';
+      
+      const supabase = window.supabase.createClient(
+        window.SUPABASE_URL,
+        window.SUPABASE_ANON_KEY
+      );
+      
+      // 1. Check session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        out.innerHTML = '<div class="error">❌ NO SESSION - You are ANONYMOUS</div>';
+        return;
+      }
+      
+      out.innerHTML += `<div class="status">✅ Session: ${session.user.email}</div>`;
+      
+      // 2. Check membership tier from database
+      const { data: membership, error } = await supabase.rpc('get_unified_membership');
+      
+      if (error) {
+        out.innerHTML += `<div class="error">❌ RPC Error: ${error.message}</div>`;
+        return;
+      }
+      
+      out.innerHTML += `<div class="status">✅ Database Tier: <strong>${membership.tier}</strong></div>`;
+      out.innerHTML += `<div class="status">✅ Admin Status: ${membership.is_admin}</div>`;
+      
+      // 3. Check what tier badge SHOULD show
+      const displayName = {
+        'anonymous': 'Hi Friend',
+        'free': 'Hi Friend',
+        'premium': 'Hi Pioneer',
+        'member': 'Hi Family',
+        'admin': 'Admin'
+      }[membership.tier] || membership.tier;
+      
+      out.innerHTML += `<div class="status">✅ Display Name: <strong>${displayName}</strong></div>`;
+      
+      // 4. VERDICT
+      if (membership.tier === 'premium' && displayName === 'Hi Pioneer') {
+        out.innerHTML += '<div class="status" style="border-color:#4CAF50;background:rgba(76,175,80,0.1)">🎯 <strong>CORRECT</strong>: You should see "Hi Pioneer" everywhere</div>';
+      } else {
+        out.innerHTML += `<div class="error">⚠️ Mismatch detected!</div>`;
+      }
+    }
+  </script>
+</body>
+</html>
