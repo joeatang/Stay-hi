@@ -100,19 +100,18 @@ async function initializeSupabase() {
   } catch (error) {
     console.error('❌ [INIT] Supabase initialization failed:', error);
     
-    // Show user-friendly error
-    const errEl = document.getElementById('err');
-    if (errEl) {
-      errEl.textContent = '❌ Configuration error. Please refresh the page or contact support.';
-      errEl.style.display = 'block';
-    }
+    // Don't show error to user yet - err element might not exist
+    // Error will be shown when user tries to sign in
     
     throw error;
   }
 }
 
-// ✅ CRITICAL: Initialize Supabase immediately
-initializeSupabase().catch(e => console.error('Supabase init error:', e));
+// ✅ CRITICAL: Initialize Supabase immediately (silently - UI not ready yet)
+initializeSupabase().catch(e => {
+  console.error('❌ [EARLY INIT] Failed:', e);
+  // Silent failure - will retry when user clicks sign in
+});
 
 // 🔧 CRITICAL FIX: Wrap in DOMContentLoaded to ensure DOM elements exist
 document.addEventListener('DOMContentLoaded', function() {
@@ -190,7 +189,10 @@ document.addEventListener('DOMContentLoaded', function() {
           location.replace(next);
         }
       }
-    } catch {}
+    } catch (e) {
+      // Silent failure - user not logged in yet, this is expected
+      console.log('🔵 [AUTH CHECK] No existing session (expected on sign-in page)');
+    }
   })();
 
   // UI toggles
@@ -270,6 +272,10 @@ document.addEventListener('DOMContentLoaded', function() {
           setTimeout(() => reject(new Error('Supabase client timeout - SDK or config not loading')), 12000)
         )
       ]);
+      
+      if (!sb) {
+        throw new Error('Supabase client not available');
+      }
 
       console.log('🔐 [MOBILE DEBUG] Signing in with password:', emailVal);
       console.log('🔵 [AUTH] Supabase client ready, calling signInWithPassword...');
@@ -329,6 +335,10 @@ document.addEventListener('DOMContentLoaded', function() {
         errorMsg = '📧 Please verify your email first. Check your inbox.';
       } else if (e.message?.includes('Too many requests')) {
         errorMsg = '⏱️ Too many attempts. Please wait a minute and try again.';
+      } else if (e.message?.includes('timeout')) {
+        errorMsg = '⏱️ Connection timeout. Please check your internet and try again.';
+      } else if (e.message?.includes('not available')) {
+        errorMsg = '⚙️ Service not ready. Please refresh the page and try again.';
       } else {
         errorMsg += e.message || 'Please check your credentials and try again.';
       }
