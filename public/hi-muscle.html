@@ -2610,17 +2610,36 @@
         
         // 🔧 WOZNIAK-GRADE: Override window.openHiShareSheet with auth check + tracking
         // MATCH EXACT PATTERN: Use same signature as original HiShareSheet.init()
-        window.openHiShareSheet = (origin = 'higym', options = {}) => {
+        window.openHiShareSheet = async (origin = 'higym', options = {}) => {
           console.log('💪 [HiGYM] Opening share sheet with tracking-enabled instance:', { origin, options });
           
           // 🔒 WOZNIAK-GRADE: Auth check for anonymous users BEFORE opening share sheet
-          const canShare = window.hiAccessManager?.canAccess?.('shareCreation') || 
-                          window.HiTierSystem?.hasCapability?.('drop_hi') ||
-                          window.unifiedMembership?.hasAccess?.('shareCreation') ||
-                          window.supabase?.auth?.getUser?.()?.data?.user; // Additional auth check
+          // Wait for membership to load if needed
+          if (!window.unifiedMembership?.membershipStatus) {
+            console.log('⏳ Waiting for membership to load...');
+            await window.unifiedMembership?.loadMembershipStatus?.();
+          }
+          
+          // Check auth status - CRITICAL: Check for actual logged-in user first
+          const hasSession = window.supabase?.auth?.getSession ? 
+            !!(await window.supabase.auth.getSession())?.data?.session : false;
+          
+          // Check membership tier access
+          const hasShareAccess = window.unifiedMembership?.canAccess?.('shareCreation');
+          
+          // User must be logged in AND not anonymous tier
+          const canShare = hasSession && hasShareAccess;
+          
+          console.log('🔍 [HiGYM] Share access check:', { 
+            hasSession, 
+            hasShareAccess, 
+            canShare,
+            tier: window.unifiedMembership?.membershipStatus?.tier,
+            isAnonymous: window.unifiedMembership?.membershipStatus?.isAnonymous
+          });
           
           if (!canShare) {
-            console.log('🔒 Anonymous user trying to share journey - showing Hi Muscle auth modal');
+            console.log('🔒 User cannot share - showing Hi Muscle auth modal');
             
             // Store journey data for post-auth continuation
             localStorage.setItem('pendingHiMuscleJourney', JSON.stringify({
@@ -2756,33 +2775,48 @@
       window.location.href = 'hi-dashboard.html';
     }
 
-    // Membership tier management
-    async function updateMembershipTier() {
-      try {
-        if (window.HiMembership && typeof window.HiMembership.getCurrentTier === 'function') {
-          const tierData = await window.HiMembership.getCurrentTier();
-          const tierElement = document.getElementById('membershipTier');
-          const tierText = tierElement?.querySelector('.tier-text');
-          
-          if (tierText && tierData) {
-            tierText.textContent = tierData.name || 'Standard';
-            
-            // Apply tier-specific styling
-            const tierColors = {
-              'Standard': '#6B7280',
-              'Premium': '#FFD166', 
-              'Elite': '#FF6B6B',
-              'Legend': '#4ECDC4'
-            };
-            
-            const color = tierColors[tierData.name] || '#6B7280';
-            document.documentElement.style.setProperty('--hi-tier-color', color);
-          }
-        }
-      } catch (error) {
-        console.log('Membership tier update:', error.message);
+    // ✨ Tier Display Update System (synced with dashboard/profile logic)
+    function updateBrandTierDisplay(eventOrTier) {
+      const tierIndicator = document.getElementById('hi-tier-indicator');
+      if (!tierIndicator) return;
+      if (!window.HiBrandTiers) return;
+      
+      let tierKey = 'anonymous';
+      
+      // ✅ CRITICAL: Check hi:auth-ready event detail FIRST (authoritative source from database)
+      if (eventOrTier?.detail?.membership?.tier) {
+        tierKey = eventOrTier.detail.membership.tier;
+      } else if (typeof eventOrTier === 'string') {
+        tierKey = eventOrTier;
+      } else if (window.__hiMembership?.tier) {
+        tierKey = window.__hiMembership.tier;
+      } else if (window.unifiedMembership?.membershipStatus?.tier) {
+        tierKey = window.unifiedMembership.membershipStatus.tier;
+      } else if (window.HiMembership?.currentUser?.tierInfo?.name) {
+        tierKey = window.HiMembership.currentUser.tierInfo.name.toLowerCase();
       }
+      
+      window.HiBrandTiers.updateTierPill(tierIndicator, tierKey, {
+        showEmoji: false,
+        useGradient: false
+      });
+      
+      console.log('🎫 [Hi Muscle] Tier updated:', tierKey, eventOrTier?.detail?.membership ? `(from auth-ready event, DB tier: ${eventOrTier.detail.membership.tier})` : '(from fallback)');
     }
+    
+    // Initialize tier display - WAIT for auth-ready event
+    window.addEventListener('membershipStatusChanged', () => updateBrandTierDisplay());
+    window.addEventListener('hi:auth-ready', (e) => {
+      console.log('🔔 [Hi Muscle] hi:auth-ready received, tier:', e.detail?.membership?.tier);
+      updateBrandTierDisplay(e);
+    });
+    
+    // Fallback updates
+    setTimeout(() => { 
+      if (window.__hiMembership?.tier || window.unifiedMembership?.membershipStatus?.tier) {
+        updateBrandTierDisplay(); 
+      }
+    }, 3000);
 
     // Initialize header on DOM load
     document.addEventListener('DOMContentLoaded', () => {
@@ -2806,8 +2840,7 @@
         // Silent fail for tracking
       }
 
-      // Update membership tier
-      updateMembershipTier();
+      // Tier update handled by event listeners above
       
       // Add keyboard navigation support
       document.addEventListener('keydown', (e) => {

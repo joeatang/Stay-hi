@@ -314,6 +314,7 @@
   <script>
     let supabaseClient = null;
     let userEmail = '';
+    let sessionCheckInterval = null;
 
     // Initialize on load
     document.addEventListener('DOMContentLoaded', async () => {
@@ -336,11 +337,50 @@
         
         if (SUPABASE_URL && SUPABASE_ANON_KEY) {
           supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          
+          // Start checking for verification every 3 seconds
+          startSessionCheck();
         }
       } catch (error) {
         console.error('Supabase init failed:', error);
       }
     });
+
+    function startSessionCheck() {
+      if (!supabaseClient) return;
+      
+      // Check immediately
+      checkForVerifiedSession();
+      
+      // Then check every 3 seconds
+      sessionCheckInterval = setInterval(checkForVerifiedSession, 3000);
+    }
+
+    async function checkForVerifiedSession() {
+      try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        
+        if (session && session.user) {
+          console.log('✅ Email verified! User session detected:', session.user.id);
+          
+          // Clear interval
+          if (sessionCheckInterval) {
+            clearInterval(sessionCheckInterval);
+            sessionCheckInterval = null;
+          }
+          
+          // Show success message
+          showToast('✅ Email verified! Redirecting to profile setup...', 'success');
+          
+          // Redirect to profile page after 1.5 seconds
+          setTimeout(() => {
+            window.location.href = 'profile.html?onboarding=true';
+          }, 1500);
+        }
+      } catch (error) {
+        console.error('Session check error:', error);
+      }
+    }
 
     async function resendVerification() {
       if (!userEmail) {

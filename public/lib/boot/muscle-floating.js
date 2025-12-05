@@ -735,5 +735,6 @@ function updateBrandTierDisplay() {
 // Initialize tier display on page load and listen for changes
 setTimeout(() => updateBrandTierDisplay(), 1000);
 window.addEventListener('membershipStatusChanged', () => updateBrandTierDisplay());
+window.addEventListener('hi:auth-ready', () => updateBrandTierDisplay()); // ✅ FIX: Update on auth ready
 setTimeout(() => { if (window.unifiedMembership?.membershipStatus?.tier) updateBrandTierDisplay(); }, 2500);
 setTimeout(() => { if (window.unifiedMembership?.membershipStatus?.tier) updateBrandTierDisplay(); }, 5000);
