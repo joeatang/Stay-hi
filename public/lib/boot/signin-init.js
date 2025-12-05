@@ -248,14 +248,14 @@ document.addEventListener('DOMContentLoaded', function() {
     buttonText.style.display = 'none';
     loadingDots.style.display = 'inline-flex';
     sendBtn.style.transform = 'scale(0.98)';
-    try {
-      console.log('🔵 [AUTH] Getting Supabase client...');
-      const sb = await Promise.race([
-        waitForSupabase(),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Supabase client timeout - SDK or config not loading')), 12000)
-        )
-      ]);uttonText.textContent = 'Sign in';
+    
+    // 🔧 TIMEOUT PROTECTION: Show error if taking too long
+    const timeoutId = setTimeout(() => {
+      if (sendBtn.disabled) {
+        err.textContent = '⏱️ Sign-in is taking longer than expected. Please check your connection and try again.';
+        err.style.display = 'block';
+        sendBtn.disabled = false;
+        buttonText.textContent = 'Sign in';
         buttonText.style.display = 'inline-block';
         loadingDots.style.display = 'none';
         sendBtn.style.transform = 'scale(1)';
@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const sb = await Promise.race([
         waitForSupabase(),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Supabase client timeout')), 5000)
+          setTimeout(() => reject(new Error('Supabase client timeout - SDK or config not loading')), 12000)
         )
       ]);
 
