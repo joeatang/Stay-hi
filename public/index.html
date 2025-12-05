@@ -5,67 +5,83 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stay Hi</title>
     
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Config -->
+    <script src="config-local.js"></script>
+    <script src="config.js"></script>
+    
     <!-- Tesla-Grade Loading Experience Styles -->
     <link rel="stylesheet" href="assets/hi-loading-experience.css">
     
     <script>
-        // 🚀 TESLA-GRADE BULLETPROOF WELCOME FLOW ARCHITECTURE
-        // Steve Wozniak-level first-principles routing system
-        (function() {
-            console.log('🎯 TESLA-GRADE ROUTING: Initializing bulletproof flow');
+        // 🚀 WOZ-LEVEL ROUTING FIX: Auth state is the ONLY source of truth
+        // First principles: Don't trust localStorage breadcrumbs - check actual session
+        (async function() {
+            console.log('🎯 WOZ ROUTING: Initializing auth-based routing...');
             
-            // PHASE 1: Instant routing decision (< 50ms)
-            const indicators = [
-                'hi-usage-start', 'hi-anonymous-usage', 'hiAccess', 
-                'hi_discovery_mode', 'sb-access-token', 'hiCounts', 'hiHistory'
-            ];
+            // Wait for Supabase to load
+            while (!window.supabase) {
+                console.log('⏳ Waiting for Supabase SDK...');
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
             
-            const hasHistory = indicators.some(key => localStorage.getItem(key));
-            const visitedBefore = sessionStorage.getItem('visited-before');
+            // Initialize Supabase client
+            const SUPABASE_URL = window.SUPABASE_URL;
+            const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY;
             
-            // PHASE 2: Check for magic links (Supabase auth redirects)
-            const url = window.location.href;
-            const hash = window.location.hash;
-            const isMagicLink = hash.includes('access_token') || 
-                               hash.includes('refresh_token') ||
-                               url.includes('access_token') ||
-                               url.includes('refresh_token');
+            if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+                console.error('❌ Missing Supabase config - defaulting to welcome');
+                window.location.replace('/welcome.html');
+                return;
+            }
             
-            if (isMagicLink) {
-                console.log('🔐 MAGIC LINK DETECTED: Loading dashboard with auth');
-                // Continue to dashboard (this page will load dashboard content)
-                window.sessionStorage.setItem('magic-link-flow', 'true');
-            } else if (!hasHistory && !visitedBefore) {
-                console.log('👋 NEW VISITOR: Initiating welcome flow');
-                sessionStorage.setItem('visited-before', 'true');
+            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            
+            try {
+                // 1. Check for magic link (email verification flow)
+                const hash = window.location.hash;
+                const isMagicLink = hash.includes('access_token') || hash.includes('refresh_token');
                 
-                // PHASE 3: Load Tesla-grade loading experience then redirect
-                document.addEventListener('DOMContentLoaded', function() {
-                    // 🚀 Initialize Phase3Loader for optimized assets
-                    if (window.Phase3Loader) {
-                        const loader = new Phase3Loader();
-                        loader.loadCriticalAssets();
-                    }
-                    
-                    // 🎬 Initialize beautiful glowing Hi loading experience
+                if (isMagicLink) {
+                    console.log('🔐 MAGIC LINK DETECTED → Dashboard');
+                    sessionStorage.setItem('magic-link-flow', 'true');
+                    window.location.replace('/hi-dashboard.html');
+                    return;
+                }
+                
+                // 2. Check actual authentication state (source of truth)
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
+                
+                if (error) {
+                    console.error('❌ Session check failed:', error);
+                    console.log('🏠 Defaulting to welcome page');
+                    window.location.replace('/welcome.html');
+                    return;
+                }
+                
+                if (session) {
+                    console.log('✅ AUTHENTICATED USER → Dashboard');
+                    window.location.replace('/hi-dashboard.html');
+                } else {
+                    console.log('👋 UNAUTHENTICATED → Welcome');
+                    // Load beautiful welcome flow
                     if (window.hiLoadingExperience) {
                         window.hiLoadingExperience.start('Welcome to Stay Hi...');
-                        
-                        // 500ms Tesla-grade loading then redirect to welcome
                         setTimeout(async () => {
                             await window.hiLoadingExperience.hide();
                             window.location.replace('/welcome.html');
                         }, 500);
                     } else {
                         // Fallback if loading system not available
-                        setTimeout(() => {
-                            window.location.replace('/welcome.html');
-                        }, 100);
+                        window.location.replace('/welcome.html');
                     }
-                });
-            } else {
-                console.log('🔄 RETURNING VISITOR: Loading dashboard');
-                // Continue to dashboard (this page will load dashboard content)
+                }
+            } catch (error) {
+                console.error('❌ Routing failed:', error);
+                // Safe fallback: always go to welcome on error
+                window.location.replace('/welcome.html');
             }
         })();
     </script>
@@ -73,51 +89,9 @@
 <body style="background: linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #ffd166 100%); min-height: 100vh; margin: 0;">
     <!-- Beautiful glowing Hi loading appears via hi-loading-experience.js -->
     
-    <!-- Dashboard Content (loads for returning visitors and magic links) -->
-    <div id="dashboard-content" style="display: none;">
-        <div style="text-align:center;padding:50px;font-family:system-ui;color:white;">
-            <h2>🚀 Stay Hi Dashboard</h2>
-            <p>Loading your Hi experience...</p>
-        </div>
-    </div>
-    
     <!-- 🎬 Load Tesla-Grade Loading Experience Script -->
     <script src="assets/hi-loading-experience.js"></script>
     
-    <!-- 🚀 TESLA-GRADE SYSTEM INTEGRATION -->
-    <script src="../phase3-loader.js"></script>
-    <script src="assets/tesla-supabase-manager.js"></script>
-    <script src="assets/tesla-auth-controller.js"></script>
-    
-    <!-- Dashboard loading logic -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const magicLinkFlow = sessionStorage.getItem('magic-link-flow');
-            const indicators = [
-                'hi-usage-start', 'hi-anonymous-usage', 'hiAccess', 
-                'hi_discovery_mode', 'sb-access-token', 'hiCounts', 'hiHistory'
-            ];
-            const hasHistory = indicators.some(key => localStorage.getItem(key));
-            const visitedBefore = sessionStorage.getItem('visited-before');
-            
-            // Show dashboard for returning visitors or magic link users
-            if (magicLinkFlow || hasHistory || visitedBefore) {
-                document.getElementById('dashboard-content').style.display = 'block';
-                
-                // 🚀 TESLA-GRADE: Redirect directly to dashboard for returning visitors  
-                setTimeout(() => {
-                    window.location.replace('/hi-dashboard.html');
-                }, 500);
-            }
-        });
-        
-        // 🚀 Load Tesla Navigation System for index routing
-        const navScript = document.createElement('script');
-        navScript.src = './lib/navigation/HiNavigationSystem.js';
-        navScript.onload = () => {
-            console.log('🧭 Navigation system loaded for index routing');
-        };
-        document.head.appendChild(navScript);
-    </script>
+    <!-- Routing happens in <head>, body just shows loading if needed -->
 </body>
 </html>

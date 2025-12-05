@@ -11,6 +11,12 @@
   <!-- Tesla-Grade Performance: Essential Assets Only -->
   <!-- Env-safe path resolver for dev/prod safe navigation -->
   <script src="assets/hi-paths.js"></script>
+  
+  <!-- 🔒 SECURE: Load Supabase configuration FIRST -->
+  <!-- Load config-local.js BEFORE config.js so local values take priority -->
+  <script src="./assets/config-local.js" onerror="console.log('No config-local.js found, using env vars')"></script>
+  <script src="./assets/config.js"></script>
+  
   <script src="assets/avatar-utils.js"></script>
   <script src="assets/location-picker.js"></script>
   <script type="module" src="./lib/HiPerformance.js"></script>
@@ -29,8 +35,12 @@
   <!-- Supabase Integration -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1" integrity="sha384-XLEuzmdNfK1V09d59bu+Uv3EFtEp5kFP8BmseBq85CUpeFZXhUfqjk4ZeR/biZmS" crossorigin="anonymous"></script>
   <script src="./lib/HiSupabase.simple.js" type="module"></script>
+  <!-- ✅ CRITICAL: AuthReady orchestrates session + membership and fires hi:auth-ready event -->
+  <script type="module" src="./lib/AuthReady.js"></script>
   <!-- 🎯 TIER CONFIG - Must load BEFORE HiTier.js and MembershipSystem -->
   <script src="./lib/config/TIER_CONFIG.js" type="module"></script>
+  <!-- ✅ Unified Membership Bridge for tier detection -->
+  <script src="./lib/membership/HiMembershipBridge.js"></script>
   <!-- Tier & Points Helpers -->
   <script src="./lib/access/HiTier.js"></script>
   <script src="./lib/rewards/HiPoints.js"></script>
@@ -45,7 +55,7 @@
   <!-- Unified Admin Access Manager -->
   <script src="./lib/admin/AdminAccessManager.js"></script>
   
-  <!-- Membership System for Tier Display -->
+  <!-- Membership System for Tier Display (Legacy - being phased out) -->
   <script type="module" src="./lib/membership/MembershipSystem.js"></script>
   
   <!-- Tesla CSS: Critical + Progressive Enhancement -->
@@ -83,93 +93,163 @@
     
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    /* Tesla-Grade Header with Mini Stats - Dashboard Standard */
+    /* 🏗️ TESLA-GRADE: Universal viewport header (matches dashboard) */
     .tesla-header {
       position: fixed;
       top: 0;
       left: 0;
-      right: 0;
-      height: 60px;
+      width: 100%;
+      max-width: 100vw;
+      height: clamp(50px, calc(60px + env(safe-area-inset-top, 0px)), 100px);
+      min-height: calc(44px + env(safe-area-inset-top, 10px));
       background: rgba(15, 16, 34, 0.95);
       backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 0 20px;
-      z-index: 1000;
+      align-items: flex-end;
+      padding: 0 clamp(12px, 4vw, 24px) clamp(8px, 2vh, 12px);
+      padding-top: clamp(8px, env(safe-area-inset-top, 10px), 20px);
+      z-index: 10000;
+      box-sizing: border-box;
+      contain: layout style paint;
     }
 
     .header-left {
       display: flex;
       align-items: center;
-      width: 60px; /* Fixed width for symmetry */
+      gap: 8px;
+      width: auto;
+      min-width: 90px;
+      flex-shrink: 0;
     }
 
     .header-center {
-      flex: 1;
+      flex: 0 1 auto;
       display: flex;
       justify-content: center;
       align-items: center;
+      max-width: 200px;
     }
 
     .header-right {
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      width: 140px; /* Expanded for tier indicator */
+      width: auto;
+      min-width: 220px;
+      max-width: 300px;
       gap: 8px;
+      overflow: visible !important;
+      position: relative;
+      z-index: 10001;
+      flex-shrink: 0;
     }
     
-    /* UX-First: Membership Tier Indicator */
+    /* 🎨 TESLA-GRADE: Spatially Intelligent Tier Indicator */
     .tier-indicator {
       display: flex;
       align-items: center;
-      padding: 4px 8px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      justify-content: center;
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       font-size: 11px;
       font-weight: 600;
-      color: var(--hi-tier-color, #6B7280);
-      transition: all 0.3s ease;
-      cursor: default;
-      min-width: 60px;
-      text-align: center;
+      letter-spacing: 0.3px;
+      color: var(--hi-tier-color, #FFD166);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .tier-indicator::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left 0.5s ease;
     }
     
     .tier-indicator:hover {
-      background: rgba(255, 255, 255, 0.15);
-      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-1px) scale(1.02);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .tier-indicator:hover::before {
+      left: 100%;
     }
     
     .tier-text {
       white-space: nowrap;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
     
-    /* Hiffirmations Header Pill - Brand Consistent */
-    .hiffirmations-header-pill {
+    /* Smart Hiffirmations Pill - Contextual Access */
+    .hiffirmations-smart-pill {
       display: flex;
       align-items: center;
-      padding: 4px 12px;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 12px;
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.2);
-      font-size: 11px;
-      font-weight: 600;
-      color: #6B7280;
       transition: all 0.3s ease;
       cursor: pointer;
-      min-width: 90px;
-      text-align: center;
-      margin-left: 8px;
+      margin-right: 8px;
     }
     
-    .hiffirmations-header-pill:hover {
-      background: rgba(255, 255, 255, 0.15);
+    .hiffirmations-smart-pill:hover {
+      background: rgba(255, 209, 102, 0.2);
       transform: translateY(-1px);
+      border-color: rgba(255, 209, 102, 0.3);
+    }
+    
+    .pill-icon {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .calendar-btn, .menu-btn, .home-nav-btn {
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.15) !important;
+      color: #FFD166 !important;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      visibility: visible !important;
+      opacity: 1 !important;
+      z-index: 10001 !important;
+      position: relative !important;
+      flex-shrink: 0 !important;
+    }
+
+    .calendar-btn:hover, .menu-btn:hover, .home-nav-btn:hover {
+      background: rgba(255, 209, 102, 0.2) !important;
+      transform: translateY(-1px);
+    }
+    
+    .calendar-btn svg, .menu-btn svg, .home-nav-btn svg {
+      display: block;
+      pointer-events: none;
     }
 
     .brand-container {
@@ -179,8 +259,8 @@
     }
 
     .brand-hi-logo {
-      width: 24px;
-      height: 24px;
+      width: 32px;
+      height: 32px;
       filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
     }
 
@@ -203,7 +283,7 @@
       z-index: 999;
     }
 
-    .smart-back-btn, .menu-btn {
+    .smart-back-btn {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -220,7 +300,7 @@
       font-weight: 600;
     }
 
-    .smart-back-btn:hover, .menu-btn:hover {
+    .smart-back-btn:hover {
       background: rgba(255, 209, 102, 0.2);
       transform: translateY(-1px);
     }
@@ -280,6 +360,7 @@
       background: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
+      z-index: 1;
     }
 
     .navigation-content {
@@ -296,6 +377,7 @@
       padding: 24px;
       color: white;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      z-index: 2;
     }
 
     .navigation-header {
@@ -351,10 +433,14 @@
       padding: 12px 16px;
       border-radius: 12px;
       text-decoration: none;
-      color: white;
+      color: white !important;
       font-weight: 600;
       transition: all 0.3s ease;
       border: 1px solid transparent;
+    }
+    
+    .nav-item:visited {
+      color: white !important;
     }
 
     .nav-item:hover {
@@ -1172,9 +1258,9 @@
       <div class="navigation-menu">
         <div class="nav-section">
           <div class="nav-section-title">Navigate</div>
-          <a href="index.html" class="nav-item">
+          <a href="hi-dashboard.html" class="nav-item">
             <span class="nav-icon">🏠</span>
-            <span>Hi Today</span>
+            <span>Hi Dashboard</span>
           </a>
           <a href="hi-island-NEW.html" class="nav-item">
             <span class="nav-icon">🏝️</span>
@@ -1190,9 +1276,9 @@
           </a>
         </div>
         <div class="nav-section" id="adminSection" style="display: none;">
-          <div class="nav-section-title">Administration</div>
-          <a href="hi-mission-control.html" class="nav-item admin-item">
-            <span class="nav-icon">🚀</span>
+          <div class="nav-section-title">Admin</div>
+          <a href="hi-mission-control.html" class="nav-item admin-item" data-mc-link>
+            <span class="nav-icon">🎛️</span>
             <span>Hi Mission Control</span>
           </a>
         </div>
@@ -1464,15 +1550,110 @@
       id: null
     };
     
-    // Tesla Stats Data - Live Ready
-    const userStats = {
-      hi_moments: Math.floor(Math.random() * 200) + 50,
-      current_streak: Math.floor(Math.random() * 30) + 1,
-      longest_streak: Math.floor(Math.random() * 60) + 20,
-      total_waves: Math.floor(Math.random() * 150) + 30,
-      total_starts: Math.floor(Math.random() * 40) + 5,
-      days_active: Math.floor(Math.random() * 100) + 10
+    // Tesla Stats Data - Live Ready (loaded from database)
+    let userStats = {
+      hi_moments: 0,
+      current_streak: 0,
+      longest_streak: 0,
+      total_waves: 0,
+      total_starts: 0,
+      days_active: 0,
+      loading: true
     };
+
+    // 🎯 TESLA-GRADE: Load real user stats from database
+    async function loadUserStats(userId) {
+      if (!userId) {
+        console.log('📊 No user ID, using default stats for anonymous');
+        userStats.loading = false;
+        updateStatsDisplay();
+        return;
+      }
+
+      try {
+        console.log('📊 Loading stats for user:', userId);
+        
+        // Try HiBase first (preferred)
+        if (window.HiBase?.stats?.getUserStats) {
+          const stats = await window.HiBase.stats.getUserStats(userId);
+          if (stats) {
+            userStats = {
+              hi_moments: stats.total_shares || stats.hi_moments || 0,
+              current_streak: stats.current_streak || 0,
+              longest_streak: stats.longest_streak || 0,
+              total_waves: stats.total_waves || 0,
+              total_starts: stats.total_starts || 0,
+              days_active: stats.days_active || 0,
+              loading: false
+            };
+            console.log('✅ Stats loaded from HiBase:', userStats);
+            updateStatsDisplay();
+            return;
+          }
+        }
+
+        // Fallback: Direct Supabase query
+        const supabase = window.hiSupabase || window.supabase;
+        if (supabase) {
+          const { data, error } = await supabase
+            .from('user_stats')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+
+          if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
+            console.warn('⚠️ Stats query error:', error.message);
+          }
+
+          if (data) {
+            userStats = {
+              hi_moments: data.total_shares || data.hi_moments || 0,
+              current_streak: data.current_streak || 0,
+              longest_streak: data.longest_streak || 0,
+              total_waves: data.total_waves || 0,
+              total_starts: data.total_starts || 0,
+              days_active: data.days_active || 0,
+              loading: false
+            };
+            console.log('✅ Stats loaded from Supabase:', userStats);
+          } else {
+            console.log('📊 No stats found, user is new - using zeros');
+            userStats.loading = false;
+          }
+        }
+
+        updateStatsDisplay();
+      } catch (error) {
+        console.error('❌ Failed to load user stats:', error);
+        userStats.loading = false;
+        updateStatsDisplay();
+      }
+    }
+
+    // Update stats display in DOM
+    function updateStatsDisplay() {
+      const statElements = {
+        'hi_moments': document.querySelector('[data-stat="hi_moments"]'),
+        'current_streak': document.querySelector('[data-stat="current_streak"]'),
+        'longest_streak': document.querySelector('[data-stat="longest_streak"]'),
+        'total_waves': document.querySelector('[data-stat="total_waves"]'),
+        'total_starts': document.querySelector('[data-stat="total_starts"]'),
+        'days_active': document.querySelector('[data-stat="days_active"]')
+      };
+
+      Object.keys(statElements).forEach(key => {
+        const el = statElements[key];
+        if (el) {
+          if (userStats.loading) {
+            el.textContent = '—';
+            el.classList.add('loading');
+          } else {
+            el.textContent = userStats[key] || 0;
+            el.classList.remove('loading');
+          }
+        }
+      });
+    }
 
     // Optional debug overlay: ?profiledebug=1 shows live streak + milestone progress
     function initProfileDebug(){
@@ -1790,6 +1971,27 @@
           })
         ).catch(() => {});
       }
+      
+      // 🔧 CACHE FIX: Update localStorage immediately after database update
+      currentProfile.avatar_url = avatarUrl;
+      currentProfile.updated_at = new Date().toISOString();
+      
+      // Get user ID for cache key
+      const user = await window.HiSupabase.getClient().auth.getUser();
+      const userId = currentProfile.id || user.data?.user?.id;
+      
+      if (userId) {
+        const storageKey = `stayhi_profile_${userId}`;
+        localStorage.setItem(storageKey, JSON.stringify(currentProfile));
+        console.log('✅ Profile cache updated with new avatar');
+      }
+      
+      // Trigger profile refresh event for UI consistency
+      window.dispatchEvent(new CustomEvent('profile:updated', { 
+        detail: { avatar_url: avatarUrl, userId } 
+      }));
+      
+      console.log('✅ Profile avatar updated in database and cache');
     }
     
     function saveAvatar() {
@@ -2326,6 +2528,12 @@ FOR INSERT WITH CHECK (
       const modal = document.getElementById('editProfileModal');
       modal.classList.add('active');
       
+      // 🔧 WOZ FIX: Prevent clicks during slide-up animation (400ms)
+      modal.style.pointerEvents = 'none';
+      setTimeout(() => {
+        modal.style.pointerEvents = 'auto';
+      }, 400);
+      
       // Populate current profile data
       populateEditForm();
       
@@ -2336,6 +2544,35 @@ FOR INSERT WITH CHECK (
       const modal = document.getElementById('editProfileModal');
       modal.classList.remove('active');
     }
+    
+    // 🔧 WOZ FIX: Add defensive backdrop click handler
+    document.addEventListener('DOMContentLoaded', () => {
+      const modal = document.getElementById('editProfileModal');
+      
+      if (!modal) {
+        console.warn('⚠️ editProfileModal not found');
+        return;
+      }
+      
+      // Close modal when clicking backdrop (not content)
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          console.log('🎯 Backdrop clicked - closing modal');
+          closeEditProfile();
+          e.stopPropagation();
+        }
+      });
+      
+      // Close modal on Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+          console.log('⌨️ Escape pressed - closing modal');
+          closeEditProfile();
+        }
+      });
+      
+      console.log('✅ Profile modal event listeners attached');
+    });
     
     function populateEditForm() {
       document.getElementById('editDisplayName').value = currentProfile.display_name || '';
@@ -2709,11 +2946,31 @@ FOR INSERT WITH CHECK (
         return;
       }
       try {
-        // CRITICAL SECURITY: Check authentication first
-        const { data: session } = await window.supabaseClient.auth.getSession();
-        const isAuthenticated = !!session?.session?.user;
+        // ✅ CRITICAL FIX: Wait for AuthReady to complete BEFORE checking session
+        console.log('⏳ Waiting for AuthReady to complete...');
+        let authReady = window.__hiMembership ? { session: { user: { id: 'cached' } }, membership: window.__hiMembership } : null;
+        
+        // Wait up to 5 seconds for hi:auth-ready event
+        if (!authReady) {
+          authReady = await new Promise((resolve) => {
+            const timeout = setTimeout(() => {
+              console.warn('⚠️ AuthReady timeout - checking session directly');
+              resolve(null);
+            }, 5000);
+            
+            window.addEventListener('hi:auth-ready', (e) => {
+              clearTimeout(timeout);
+              console.log('✅ AuthReady event received in loadProfileData');
+              resolve(e.detail);
+            }, { once: true });
+          });
+        }
+        
+        // Now check authentication from AuthReady result
+        const isAuthenticated = !!(authReady?.session?.user);
         
         console.log('🔐 Authentication status:', isAuthenticated ? 'AUTHENTICATED' : 'ANONYMOUS');
+        console.log('🔍 Session user:', authReady?.session?.user?.email || 'none');
         
         if (!isAuthenticated) {
           console.log('🚨 Anonymous user detected - blocking Supabase access');
@@ -2726,7 +2983,7 @@ FOR INSERT WITH CHECK (
         
         // Tesla-Grade Loading Priority for authenticated users: localStorage → Supabase → demo fallback
         let profile = null;
-        const userId = session.session.user.id;
+        const userId = authReady.session.user.id;
         
         // Layer 1: Check user-specific localStorage first (fastest)
         const savedProfile = localStorage.getItem(`stayhi_profile_${userId}`);
@@ -2742,6 +2999,13 @@ FOR INSERT WITH CHECK (
         // Layer 2: Try user-specific Supabase data
         if (!profile && window.supabaseClient) {
           profile = await loadAuthenticatedProfileFromSupabase(userId);
+          
+          // 🔧 CACHE FIX: If we got fresh data from Supabase, update localStorage
+          if (profile) {
+            const storageKey = `stayhi_profile_${userId}`;
+            localStorage.setItem(storageKey, JSON.stringify(profile));
+            console.log('✅ Profile cache refreshed from database');
+          }
         }
         
         // Layer 3: Create new authenticated profile
@@ -2749,7 +3013,8 @@ FOR INSERT WITH CHECK (
           console.log('📊 Creating new authenticated profile...');
           profile = { ...currentProfile };
           profile.id = userId;
-          profile.username = profile.username || `user_${userId.slice(-6)}`;
+          profile.email = authReady.session.user.email || '';
+          profile.username = profile.username || authReady.session.user.email?.split('@')[0] || `user_${userId.slice(-6)}`;
           await saveProfileToStorage(profile, userId);
         }
         
@@ -2757,6 +3022,9 @@ FOR INSERT WITH CHECK (
         Object.assign(currentProfile, profile);
         updateProfileDisplay(currentProfile);
         populateEditForm(currentProfile);
+        
+        // 🎯 TESLA-GRADE: Load real user stats
+        await loadUserStats(userId);
         
         console.log('✅ Authenticated profile loaded successfully:', currentProfile.username);
         try { window.HiAudit?.log('profile_load_authenticated', { resource:'profile' }); } catch {}
@@ -2864,6 +3132,9 @@ FOR INSERT WITH CHECK (
       updateProfileDisplay(currentProfile);
       populateEditForm(currentProfile);
       
+      // Anonymous users get zero stats
+      await loadUserStats(null);
+      
       // Modal will be triggered automatically by anonymous access modal system
       
       console.log('✅ Anonymous demo profile loaded safely');
@@ -2928,15 +3199,7 @@ FOR INSERT WITH CHECK (
     
     // Old navigation system removed - using Tesla-grade SmartNavigation class instead
     
-    // Tesla-Grade Initialization - CONSOLIDATED
-    // Note: This handler was moved to the main DOMContentLoaded handler to avoid conflicts
-      if (avatarInput) {
-        avatarInput.addEventListener('change', (e) => {
-          if (e.target.files && e.target.files[0]) {
-            openAvatarCrop();
-          }
-        });
-      }
+    // ✅ REMOVED: Orphaned avatarInput code block (defined in DOMContentLoaded handler instead)
     
     // Global exposure for debugging and integration
     window.currentProfile = currentProfile;
@@ -3402,36 +3665,34 @@ FOR INSERT WITH CHECK (
       
       // Tesla-Grade Security: Load data with authentication check FIRST
       // then apply access gating only for anonymous users
-      setTimeout(async () => {
-        console.log('🔒 Initializing secure profile loading...');
+      // ✅ CRITICAL FIX: Wait for hi:auth-ready before gating (prevents race condition)
+      let authCheckComplete = false;
+      
+      window.addEventListener('hi:auth-ready', async (e) => {
+        authCheckComplete = true;
+        const { session } = e.detail || {};
         
-        // Check authentication state before any gating
-        const { data: session } = await window.supabaseClient.auth.getSession();
-        const isAuthenticated = !!session?.session?.user;
+        console.log('🔒 Profile access check (auth-ready):', { 
+          hasSession: !!session?.user, 
+          userId: session?.user?.id 
+        });
         
-        if (!isAuthenticated) {
-          // Only show access gate for anonymous users
-          if (window.__HI_PROFILE_DEBUG__) {
-            console.log('[ProfileDebug] Gating suppressed.');
-          } else {
-            if(window.AccessGate?.request){
-              window.AccessGate.request('profile:view');
-            } else if(typeof AnonymousAccessModal !== 'undefined') {
-              if (!window.anonymousAccessModal) {
-                window.anonymousAccessModal = new AnonymousAccessModal();
-              }
-              window.anonymousAccessModal.showAccessModal();
-            } else {
-              console.warn('⚠️ No AccessGate or AnonymousAccessModal for profile gating');
-            }
-          }
-        } else {
-          console.log('✅ Authenticated user - bypassing access gate');
+        // If session exists, user is authenticated - skip modal entirely
+        if (session?.user) {
+          console.log('✅ Authenticated user - bypassing access gate, loading profile...');
         }
         
-        // Load profile data (handles both authenticated and anonymous flows)
+        // ✅ CRITICAL: Load profile data AFTER auth is confirmed
         await loadProfileData();
-      }, 500);
+      }, { once: true });
+      
+      // Fallback: If auth-ready doesn't fire in 5 seconds, load anyway
+      setTimeout(async () => {
+        if (authCheckComplete) return; // Auth already checked
+        
+        console.log('🔒 Auth timeout - loading profile with fallback check...');
+        await loadProfileData();
+      }, 5000);
       
       // Initialize profile display
       if (typeof updateProfileDisplay === 'function' && currentProfile) {
@@ -3484,14 +3745,7 @@ FOR INSERT WITH CHECK (
         });
       }
 
-      // Calendar button
-      const calBtn = document.getElementById('btnCal');
-      if (calBtn) {
-        calBtn.addEventListener('click', () => {
-          console.log('📅 Calendar clicked - would open Hi Calendar');
-          // TODO: Implement Hi Calendar modal
-        });
-      }
+      // Calendar button (handled by profile-navigation.js - no duplicate listener needed)
 
       // Hiffirmations button  
       const hiffirmationsBtn = document.getElementById('hiffirmationsTrigger');
@@ -3502,26 +3756,9 @@ FOR INSERT WITH CHECK (
         });
       }
 
-      // Update tier indicator when membership loads
+      // ✅ Tier badge update handled by profile-navigation.js (external script loaded at line 3173)
+      // Removed duplicate inline function to prevent double-firing on hi:auth-ready event
       setTimeout(() => {
-        if (window.HiMembership && window.HiMembership.isInitialized()) {
-          const user = window.HiMembership.getCurrentUser();
-          const tierIndicator = document.getElementById('hi-tier-indicator');
-          if (tierIndicator && user) {
-            const tierText = tierIndicator.querySelector('.tier-text');
-            tierText.textContent = user.tierInfo.name;
-            tierIndicator.style.color = user.tierInfo.color || '#6B7280';
-            
-            // Show admin section if admin
-            if (user.membershipTier === 'ADMIN') {
-              const adminSection = document.getElementById('adminSection');
-              if (adminSection) adminSection.style.display = 'block';
-            }
-            
-            console.log('🎫 [Profile] Membership tier displayed:', user.tierInfo.name);
-            if (window.location.search.includes('profiledebug=1')) { try { refreshProfileDebug(); } catch(e){} }
-          }
-        }
         // Render tier perks using HiTier if available
         try {
           const container = document.getElementById('tierPerks');
@@ -3567,7 +3804,7 @@ FOR INSERT WITH CHECK (
           }
         }, 1500);
       }
-    });
+    }); // ✅ Close DOMContentLoaded handler
   </script>
 
   <!-- Progressive Enhancement Scripts (externalized) -->

@@ -41,6 +41,7 @@ async function initializeSupabase() {
     window.supabaseClient = supabaseClient;
     window.sb = supabaseClient;
 
+    console.log('✅ Supabase client initialized for sign-in');
     return supabaseClient;
   } catch (error) {
     console.error('❌ Supabase initialization failed:', error);
@@ -48,13 +49,33 @@ async function initializeSupabase() {
   }
 }
 
-(function(){
+// ✅ CRITICAL: Initialize Supabase immediately
+initializeSupabase().catch(e => console.error('Supabase init error:', e));
+
+// 🔧 CRITICAL FIX: Wrap in DOMContentLoaded to ensure DOM elements exist
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🎯 DOM ready - initializing sign-in form...');
+  
   const email = document.getElementById('email');
   const password = document.getElementById('password');
   const sendBtn = document.getElementById('send');
   const ok = document.getElementById('success');
   const err = document.getElementById('err');
   const togglePasswordBtn = document.getElementById('togglePassword');
+  
+  // 🛡️ Defensive null checks
+  if (!email || !password || !sendBtn || !ok || !err) {
+    console.error('❌ CRITICAL: Sign-in form elements not found!', {
+      email: !!email,
+      password: !!password,
+      sendBtn: !!sendBtn,
+      ok: !!ok,
+      err: !!err
+    });
+    return;
+  }
+  
+  console.log('✅ All sign-in form elements found');
 
   // Wait for Supabase to be ready
   async function waitForSupabase() {
@@ -199,37 +220,9 @@ async function initializeSupabase() {
     }
   `;
   document.head.appendChild(style);
-})();
-
-// Initialize Supabase when page loads
-document.addEventListener('DOMContentLoaded', async () => {
-  try {
-    if (!window.supabase) {
-      await new Promise(resolve => {
-        const checkSupabase = () => {
-          if (window.supabase) {
-            resolve();
-          } else {
-            setTimeout(checkSupabase, 100);
-          }
-        };
-        checkSupabase();
-      });
-    }
-
-    await initializeSupabase();
-
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (session) {
-      console.log('🔄 User already authenticated, redirecting to dashboard');
-      const next = new URLSearchParams(location.search).get('next') || 'hi-dashboard.html';
-      window.location.replace(next);
-      return;
-    }
-
-    console.log('✅ Signin page initialized successfully');
-
-  } catch (error) {
-    console.error('❌ Signin initialization failed:', error);
-  }
+  
+  console.log('🎯 Sign-in event listeners attached successfully');
 });
+
+// ❌ REMOVED DUPLICATE DOMContentLoaded HANDLER - Already handled above
+// The auth check is now done inside the main DOMContentLoaded handler
