@@ -136,14 +136,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   console.log('✅ All sign-in form elements found');
-  
-  // 🚀 CRITICAL: Initialize Supabase immediately on page load (not when button clicked)
-  console.log('🔵 [INIT] Starting early Supabase initialization...');
-  initializeSupabase().catch(err => {
-    console.error('❌ [INIT] Early initialization failed:', err);
-  });
 
-  // Wait for Supabase to be ready
+  // Wait for Supabase to be ready (initialized at top of file)
   async function waitForSupabase() {
     console.log('🔵 [WAIT] Checking for Supabase client...');
     if (supabaseClient) {
@@ -359,7 +353,16 @@ document.addEventListener('DOMContentLoaded', function() {
     e.stopPropagation();
     handleSubmit();
   });
+  
+  // 🔧 Verify button is interactive
   console.log('✅ [MOBILE DEBUG] Click listener attached to button');
+  console.log('🔍 [MOBILE DEBUG] Button state:', {
+    disabled: sendBtn.disabled,
+    display: window.getComputedStyle(sendBtn).display,
+    pointerEvents: window.getComputedStyle(sendBtn).pointerEvents,
+    visibility: window.getComputedStyle(sendBtn).visibility,
+    opacity: window.getComputedStyle(sendBtn).opacity
+  });
   
   // 🔧 IMMEDIATE VISUAL FEEDBACK on touch/mouse down
   sendBtn.addEventListener('mousedown', () => {
