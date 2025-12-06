@@ -84,6 +84,13 @@ async function initializeSupabase() {
     }
     
     console.log('🔵 [INIT] Creating Supabase client...');
+    
+    if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+      console.error('❌ [INIT] window.supabase.createClient is not available!');
+      console.error('window.supabase:', window.supabase);
+      throw new Error('Supabase SDK loaded but createClient function not found');
+    }
+    
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { 
         persistSession: true, 
@@ -111,8 +118,10 @@ async function initializeSupabase() {
 }
 
 // ✅ CRITICAL: Initialize Supabase immediately (silently - UI not ready yet)
+let initAttempted = false;
 initializeSupabase().catch(e => {
   console.error('❌ [EARLY INIT] Failed:', e);
+  initAttempted = true; // Mark that we tried
   // Silent failure - will retry when user clicks sign in
 });
 
@@ -154,6 +163,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     console.log('⏳ [WAIT] Client not ready, polling for up to 15 seconds...');
+    
+    // If early init failed, retry now
+    if (initAttempted && !supabaseClient) {
+      console.log('🔄 [WAIT] Early init failed, retrying initialization...');
+      try {
+        await initializeSupabase();
+        if (supabaseClient || window.sb) {
+          return supabaseClient || window.sb;
+        }
+      } catch (retryError) {
+        console.error('❌ [WAIT] Retry failed:', retryError);
+        throw retryError;
+      }
+    }
+    
     return new Promise((resolve, reject) => {
       let attempts = 0;
       const maxAttempts = 150; // 15 seconds max
