@@ -72,16 +72,18 @@ async function initializeSupabase() {
     console.log('🔵 [INIT] Config check:', {
       hasURL: !!SUPABASE_URL,
       hasKey: !!SUPABASE_ANON_KEY,
-      urlPreview: SUPABASE_URL?.substring(0, 40) + '...'
+      urlPreview: SUPABASE_URL?.substring(0, 40) + '...',
+      keyPreview: SUPABASE_ANON_KEY?.substring(0, 20) + '...'
     });
     
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
       console.error('❌ [INIT] Missing Supabase configuration');
       console.error('window.SUPABASE_URL:', SUPABASE_URL ? 'SET' : 'MISSING');
       console.error('window.SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY ? 'SET' : 'MISSING');
-      throw new Error('Missing Supabase configuration. Ensure config-local.js or config.js is loaded.');
+      throw new Error('Missing Supabase configuration. Config files did not load.');
     }
-
+    
+    console.log('🔵 [INIT] Creating Supabase client...');
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { 
         persistSession: true, 
@@ -90,6 +92,7 @@ async function initializeSupabase() {
         flowType: 'pkce'
       }
     });
+    console.log('✅ [INIT] Client created successfully');
 
     // Compatibility aliases
     window.supabaseClient = supabaseClient;
@@ -150,11 +153,17 @@ document.addEventListener('DOMContentLoaded', function() {
       return window.sb;
     }
 
-    console.log('⏳ [WAIT] Client not ready, polling...');
-    return new Promise((resolve) => {
+    console.log('⏳ [WAIT] Client not ready, polling for up to 15 seconds...');
+    return new Promise((resolve, reject) => {
+      let attempts = 0;
+      const maxAttempts = 150; // 15 seconds max
       const check = () => {
+        attempts++;
         if (supabaseClient || window.sb) {
+          console.log(`✅ [WAIT] Client ready after ${attempts * 100}ms`);
           resolve(supabaseClient || window.sb);
+        } else if (attempts >= maxAttempts) {
+          reject(new Error('Client initialization timeout after 15 seconds'));
         } else {
           setTimeout(check, 100);
         }
@@ -266,16 +275,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     try {
       console.log('🔵 [AUTH] Getting Supabase client...');
-      const sb = await Promise.race([
-        waitForSupabase(),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Supabase client timeout - SDK or config not loading')), 12000)
-        )
-      ]);
+      const sb = await waitForSupabase();
       
       if (!sb) {
         throw new Error('Supabase client not available');
       }
+      
+      console.log('✅ [AUTH] Client ready, starting sign-in...');
 
       console.log('🔐 [MOBILE DEBUG] Signing in with password:', emailVal);
       console.log('🔵 [AUTH] Supabase client ready, calling signInWithPassword...');
