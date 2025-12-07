@@ -15,15 +15,15 @@
   // CRITICAL: These are replaced at build time by Vercel
   // __SUPABASE_URL__ and __SUPABASE_ANON_KEY__ are placeholders
   // Vercel's build process will replace them with actual values
-  window.SUPABASE_URL = 'https://gfcubvroxgfvjhacinic.supabase.co';
-  window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g';
+  window.SUPABASE_URL = '__SUPABASE_URL__';
+  window.SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
   
   // If placeholders weren't replaced, try window.ENV as fallback
-  if (window.SUPABASE_URL === 'https://gfcubvroxgfvjhacinic.supabase.co' || !window.SUPABASE_URL) {
+  if (window.SUPABASE_URL === '__SUPABASE_URL__' || !window.SUPABASE_URL) {
     window.SUPABASE_URL = window.ENV?.SUPABASE_URL || '';
   }
   
-  if (window.SUPABASE_ANON_KEY === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g' || !window.SUPABASE_ANON_KEY) {
+  if (window.SUPABASE_ANON_KEY === '__SUPABASE_ANON_KEY__' || !window.SUPABASE_ANON_KEY) {
     window.SUPABASE_ANON_KEY = window.ENV?.SUPABASE_ANON_KEY || '';
   }
   
