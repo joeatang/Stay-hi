@@ -287,15 +287,27 @@ document.addEventListener('DOMContentLoaded', function() {
     // 🔧 TIMEOUT PROTECTION: Show error if taking too long
     const timeoutId = setTimeout(() => {
       if (sendBtn.disabled) {
-        err.textContent = '⏱️ Sign-in is taking longer than expected. Please check your connection and try again.';
+        err.textContent = '⏱️ Still trying to connect... Mobile networks can be slow.';
         err.style.display = 'block';
+        err.style.background = 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)';
+        err.style.borderColor = '#fbbf24';
+      }
+    }, 10000); // Show warning at 10 seconds
+    
+    // Final timeout at 35 seconds
+    const finalTimeoutId = setTimeout(() => {
+      if (sendBtn.disabled) {
+        err.textContent = '❌ Connection timeout. Please check your internet and try again.';
+        err.style.display = 'block';
+        err.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+        err.style.borderColor = '#ef4444';
         sendBtn.disabled = false;
         buttonText.textContent = 'Sign in';
         buttonText.style.display = 'inline-block';
         loadingDots.style.display = 'none';
         sendBtn.style.transform = 'scale(1)';
       }
-    }, 15000); // 15 second timeout
+    }, 35000);
 
     try {
       console.log('🔵 [AUTH] Getting Supabase client...');
@@ -309,19 +321,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
       console.log('🔐 [MOBILE DEBUG] Signing in with password:', emailVal);
       console.log('🔵 [AUTH] Supabase client ready, calling signInWithPassword...');
+      console.log('📡 [AUTH] Making request to Supabase API...');
       
-      // Race the auth call with a 10-second timeout (FIXED: removed duplicate call)
+      // Race the auth call with a 30-second timeout for mobile networks
+      const authStartTime = Date.now();
       const { data, error } = await Promise.race([
         sb.auth.signInWithPassword({
           email: emailVal,
           password: passwordVal
         }),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Sign-in request timeout - check network')), 10000)
+          setTimeout(() => reject(new Error('Sign-in request timeout - Supabase API not responding')), 30000)
         )
       ]);
       
-      console.log('🔵 [AUTH] Sign-in response received:', { hasData: !!data, hasError: !!error });
+      clearTimeout(timeoutId); // Clear timeout on success
+      clearTimeout(finalTimeoutId);
+      
+      const authDuration = Date.now() - authStartTime;
+      console.log(`🔵 [AUTH] Sign-in response received in ${authDuration}ms:`, { hasData: !!data, hasError: !!error });
 
       if (error) {
         console.error('❌ Password signin error:', error);
@@ -352,9 +370,10 @@ document.addEventListener('DOMContentLoaded', function() {
           location.replace(next);
         }
       }, 1500);
-
     } catch (e) {
       clearTimeout(timeoutId); // Clear timeout on error
+      clearTimeout(finalTimeoutId);
+      console.error('❌ [MOBILE DEBUG] Sign in error:', e);
       console.error('❌ [MOBILE DEBUG] Sign in error:', e);
       
       // User-friendly error messages
