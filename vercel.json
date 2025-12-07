@@ -2,6 +2,7 @@
   "version": 2,
   "name": "stay-hi",
   "public": true,
+  "buildCommand": "npm run build",
   "builds": [
     { "src": "public/**/*", "use": "@vercel/static" }
   ],
