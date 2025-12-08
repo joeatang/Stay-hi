@@ -2,10 +2,14 @@
   "version": 2,
   "name": "stay-hi",
   "public": true,
-  "buildCommand": "npm install && npm run build",
-  "outputDirectory": "public",
   "builds": [
-    { "src": "package.json", "use": "@vercel/static-build" }
+    { 
+      "src": "package.json", 
+      "use": "@vercel/static-build",
+      "config": { 
+        "distDir": "public"
+      }
+    }
   ],
   "redirects": [
     { "source": "/signin-enhanced.html", "destination": "/signin.html", "permanent": true },
