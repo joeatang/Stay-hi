@@ -4,7 +4,7 @@
   "public": true,
   "builds": [
     { 
-      "src": "package.json", 
+      "src": "public/**", 
       "use": "@vercel/static"
     }
   ],
