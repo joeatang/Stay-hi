@@ -20,9 +20,12 @@ console.log('🔑 [BUILD] SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY ? 'SET (length:
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   console.warn('⚠️  [BUILD] WARNING: Environment variables not set!');
-  console.warn('    Local development should use config-local.js');
-  console.warn('    Production builds require SUPABASE_URL and SUPABASE_ANON_KEY in Vercel');
-  // Don't fail - local dev will use config-local.js
+  console.warn('    SUPABASE_URL:', SUPABASE_URL ? 'SET' : 'MISSING');
+  console.warn('    SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY ? 'SET' : 'MISSING');
+  console.warn('    This is OK for local dev (uses config-local.js)');
+  console.warn('    Production builds REQUIRE these variables in Vercel dashboard');
+  console.warn('    Exiting with success to allow local dev builds...');
+  // Exit with 0 so local builds don't fail - production should set env vars
   process.exit(0);
 }
 
