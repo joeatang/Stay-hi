@@ -284,56 +284,44 @@ export class HiShareSheet {
     return this._isReady;
   }
 
-  // 🔐 TESLA-GRADE: Update share options based on authentication state AND tier
+  // 🔐 TESLA-GRADE: Update share options based on authentication state
   async updateShareOptionsForAuthState() {
     // Check authentication via multiple sources (Hi System Standard)
     const isAuthenticated = await this.checkAuthentication();
     
-    // 🎯 TIER-AWARE: Get user tier for feature gates
-    const membership = await this.getMembershipTier();
-    const tier = membership?.tier || 'free';
+    // 🎯 FUTURE: Tier system infrastructure ready (currently unused)
+    // const membership = await this.getMembershipTier();
+    // const tier = membership?.tier || 'free';
     
     const authPromptBtn = document.getElementById('hi-share-auth-prompt');
     const shareAnonBtn = document.getElementById('hi-share-anon');
     const sharePublicBtn = document.getElementById('hi-share-public');
     const sharePrivateBtn = document.getElementById('hi-share-private');
     
-    this._dbg('🔐 Auth state check:', { isAuthenticated, tier });
+    this._dbg('🔐 Auth state check:', { isAuthenticated });
     
     if (isAuthenticated) {
-      // ✅ AUTHENTICATED: Show options based on tier
+      // ✅ AUTHENTICATED: Show ALL 3 options (SOURCES_OF_TRUTH standard)
+      // Per SOURCES_OF_TRUTH.md lines 61-73: Authenticated users get Private, Anonymous, Public
       if (authPromptBtn) authPromptBtn.style.display = 'none';
-      
-      // Private sharing: All authenticated users (free tier+)
       if (sharePrivateBtn) sharePrivateBtn.style.display = 'block';
+      if (shareAnonBtn) shareAnonBtn.style.display = 'block';
+      if (sharePublicBtn) sharePublicBtn.style.display = 'block';
       
-      // Anonymous sharing: Bronze tier+ (requires paid subscription)
-      const canShareAnonymously = window.HiTierConfig?.canAccessFeature(tier, 'anonymousSharing') || 
-                                   ['bronze', 'silver', 'gold', 'premium', 'collective'].includes(tier);
-      if (shareAnonBtn) {
-        shareAnonBtn.style.display = canShareAnonymously ? 'block' : 'none';
-        if (!canShareAnonymously) {
-          // Add upgrade hint for free tier
-          this._dbg('🔒 Anonymous sharing requires Bronze tier ($5.55/mo)');
-        }
-      }
+      // 🎯 TIER-GATING DISABLED: All authenticated users get full access
+      // When tier system launches, uncomment lines 292-293 and add feature gates
+      // Example: shareAnonBtn.style.display = tier !== 'free' ? 'block' : 'none';
       
-      // Public sharing: Bronze tier+ (requires paid subscription)
-      const canSharePublicly = window.HiTierConfig?.canAccessFeature(tier, 'publicSharing') || 
-                                ['bronze', 'silver', 'gold', 'premium', 'collective'].includes(tier);
-      if (sharePublicBtn) {
-        sharePublicBtn.style.display = canSharePublicly ? 'block' : 'none';
-        if (!canSharePublicly) {
-          // Add upgrade hint for free tier
-          this._dbg('🔒 Public sharing requires Bronze tier ($5.55/mo)');
-        }
-      }
+      this._dbg('✅ Showing all 3 share options for authenticated user');
     } else {
-      // 🔒 ANONYMOUS: Show Auth Prompt only
+      // 🔒 ANONYMOUS: Show Auth Prompt only (SOURCES_OF_TRUTH standard)
+      // Per SOURCES_OF_TRUTH.md lines 75-80: Anonymous users get Private + Join prompt
       if (authPromptBtn) authPromptBtn.style.display = 'block';
       if (shareAnonBtn) shareAnonBtn.style.display = 'none';
       if (sharePublicBtn) sharePublicBtn.style.display = 'none';
-      if (sharePrivateBtn) sharePrivateBtn.style.display = 'none';
+      if (sharePrivateBtn) sharePrivateBtn.style.display = 'block';  // Anonymous can still save privately to local storage
+      
+      this._dbg('🔒 Anonymous user: showing auth prompt');
     }
   }
 
