@@ -2687,7 +2687,6 @@ FOR INSERT WITH CHECK (
 
         // Layer 2: Supabase Database (cloud persistence) - ONLY for authenticated users
         if (window.supabaseClient && userId) {
-          profileData.user_id = userId; // Ensure user_id is set
           await saveProfileToSupabase(profileData);
         } else if (!userId) {
           console.log('🎭 Demo profile - skipping Supabase sync');
@@ -2704,10 +2703,17 @@ FOR INSERT WITH CHECK (
 
     async function saveProfileToSupabase(profile) {
       try {
+        // Get authenticated user's UUID
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        if (!user) {
+          console.warn('⚠️ No authenticated user - cannot save to Supabase');
+          return;
+        }
+
         const { data, error } = await window.supabaseClient
           .from('profiles')
           .upsert({
-            id: profile.id || profile.username,
+            id: user.id, // Use auth user UUID, not username
             username: profile.username,
             display_name: profile.display_name,
             bio: profile.bio,
@@ -2715,7 +2721,7 @@ FOR INSERT WITH CHECK (
             avatar_url: profile.avatar_url,
             updated_at: new Date().toISOString()
           }, {
-            onConflict: 'username'
+            onConflict: 'id' // PRIMARY KEY is 'id', not 'username'
           });
 
         if (error) {
