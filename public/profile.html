@@ -2985,27 +2985,22 @@ FOR INSERT WITH CHECK (
         return;
       }
       try {
-        // ✅ CRITICAL FIX: Wait for AuthReady to complete BEFORE checking session
-        console.log('⏳ Waiting for AuthReady to complete...');
-        let authReady = window.__hiMembership ? { session: { user: { id: 'cached' } }, membership: window.__hiMembership } : null;
+        // ✅ SURGICAL FIX: Since profile-race-mitigation.js only calls us AFTER hi:auth-ready fires,
+        // we should check the stored auth state directly instead of waiting for an event that already happened
+        console.log('🔐 Checking stored auth state...');
         
-        // Wait up to 5 seconds for hi:auth-ready event
-        if (!authReady) {
-          authReady = await new Promise((resolve) => {
-            const timeout = setTimeout(() => {
-              console.warn('⚠️ AuthReady timeout - checking session directly');
-              resolve(null);
-            }, 5000);
-            
-            window.addEventListener('hi:auth-ready', (e) => {
-              clearTimeout(timeout);
-              console.log('✅ AuthReady event received in loadProfileData');
-              resolve(e.detail);
-            }, { once: true });
-          });
+        // Check if auth is ready from stored state (set by AuthReady.js)
+        let authReady = window.__hiAuthReady || window.__hiMembership;
+        
+        // Fallback: Check supabase session directly
+        if (!authReady && window.supabaseClient) {
+          const { data: { session } } = await window.supabaseClient.auth.getSession();
+          if (session?.user) {
+            authReady = { session, membership: { tier: 'premium' } };
+          }
         }
         
-        // Now check authentication from AuthReady result
+        // Now check authentication from stored state
         const isAuthenticated = !!(authReady?.session?.user);
         
         console.log('🔐 Authentication status:', isAuthenticated ? 'AUTHENTICATED' : 'ANONYMOUS');
