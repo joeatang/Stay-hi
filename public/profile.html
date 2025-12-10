@@ -2976,6 +2976,20 @@ FOR INSERT WITH CHECK (
     // Avatar system will be initialized from main DOMContentLoaded handler
     
     // Tesla-Grade Secure Data Loading
+    // 🛑 WOZ DEFENSE: Resilient Supabase client getter (handles module loading race)
+    async function getSupabaseClient(maxRetries = 10, delayMs = 100) {
+      for (let i = 0; i < maxRetries; i++) {
+        const client = window.supabaseClient || window.hiSupabase || window.sb || window.__HI_SUPABASE_CLIENT;
+        if (client && client.auth) {
+          if (i > 0) console.log(`✅ Supabase client ready after ${i} retries`);
+          return client;
+        }
+        if (i === 0) console.log('⏳ Waiting for Supabase client to initialize...');
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+      throw new Error('Supabase client not available after retries');
+    }
+
     async function loadProfileData() {
       console.log('🔄 Loading profile data with Tesla-grade security...');
       
@@ -2985,11 +2999,11 @@ FOR INSERT WITH CHECK (
         return;
       }
       try {
-        // ✅ SURGICAL FIX: profile-race-mitigation.js calls us AFTER hi:auth-ready fires
-        // Check Supabase session directly (source of truth for authentication)
+        // 🛑 WOZ FIX: Wait for Supabase client to be ready (prevents undefined crash)
         console.log('🔐 Checking authentication status...');
+        const supabase = await getSupabaseClient();
         
-        const { data: { session } } = await window.supabaseClient.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession();
         const isAuthenticated = !!(session?.user);
         
         console.log('🔐 Authentication status:', isAuthenticated ? 'AUTHENTICATED' : 'ANONYMOUS');
@@ -3009,24 +3023,22 @@ FOR INSERT WITH CHECK (
         const userId = session.user.id;
         
         // Layer 1: ALWAYS load from database first (source of truth)
-        if (window.supabaseClient) {
-          console.log('📥 LOADING FROM DATABASE (source of truth) for user:', userId);
-          profile = await loadAuthenticatedProfileFromSupabase(userId);
+        console.log('📥 LOADING FROM DATABASE (source of truth) for user:', userId);
+        profile = await loadAuthenticatedProfileFromSupabase(userId);
+        
+        if (profile) {
+          console.log('📥 GOT FROM DATABASE:', {
+            username: profile.username,
+            display_name: profile.display_name,
+            avatar_url: profile.avatar_url
+          });
           
-          if (profile) {
-            console.log('📥 GOT FROM DATABASE:', {
-              username: profile.username,
-              display_name: profile.display_name,
-              avatar_url: profile.avatar_url
-            });
-            
-            // ✅ Update localStorage cache with fresh database data
-            const storageKey = `stayhi_profile_${userId}`;
-            localStorage.setItem(storageKey, JSON.stringify(profile));
-            console.log('✅ localStorage cache updated from database');
-          } else {
-            console.warn('⚠️ NO PROFILE FOUND IN DATABASE');
-          }
+          // ✅ Update localStorage cache with fresh database data
+          const storageKey = `stayhi_profile_${userId}`;
+          localStorage.setItem(storageKey, JSON.stringify(profile));
+          console.log('✅ localStorage cache updated from database');
+        } else {
+          console.warn('⚠️ NO PROFILE FOUND IN DATABASE');
         }
         
         // Layer 2: Fallback to localStorage only if database fails
