@@ -224,22 +224,37 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('🎫 [Profile Nav] Tier updated:', tierKey, eventOrTier?.detail?.membership ? `(from auth-ready event, DB tier: ${eventOrTier.detail.membership.tier})` : '(from fallback)');
   }
   
-  // Initialize tier display - WAIT for auth-ready event instead of early timeout
-  window.addEventListener('membershipStatusChanged', () => updateBrandTierDisplay());
-  window.addEventListener('hi:auth-ready', (e) => {
-    console.log('🔔 [Profile Nav] hi:auth-ready received, tier:', e.detail?.membership?.tier);
-    updateBrandTierDisplay(e);
-  });
+  // 🛑 WOZ FIX: Check if auth already ready BEFORE listening for event
+  const checkAuthAlreadyReady = () => {
+    if (window.__hiMembership?.tier) {
+      console.log('🔍 [Profile Nav] Auth ALREADY ready, tier:', window.__hiMembership.tier);
+      updateBrandTierDisplay();
+      return true;
+    }
+    return false;
+  };
   
-  // Fallback updates only if auth hasn't completed
-  setTimeout(() => { 
-    if (window.__hiMembership?.tier || window.unifiedMembership?.membershipStatus?.tier) {
-      updateBrandTierDisplay(); 
-    }
-  }, 3000);
-  setTimeout(() => { 
-    if (window.__hiMembership?.tier || window.unifiedMembership?.membershipStatus?.tier) {
-      updateBrandTierDisplay(); 
-    }
-  }, 6000);
+  // Initialize tier display - check if already ready, then listen for event
+  const alreadyReady = checkAuthAlreadyReady();
+  
+  if (!alreadyReady) {
+    console.log('⏳ [Profile Nav] Waiting for hi:auth-ready event...');
+    window.addEventListener('hi:auth-ready', (e) => {
+      console.log('🔔 [Profile Nav] hi:auth-ready received, tier:', e.detail?.membership?.tier);
+      updateBrandTierDisplay(e);
+    });
+    
+    // Fallback updates only if auth hasn't completed
+    setTimeout(() => { 
+      if (window.__hiMembership?.tier || window.unifiedMembership?.membershipStatus?.tier) {
+        console.log('⏰ [Profile Nav] Fallback tier update (3s)');
+        updateBrandTierDisplay(); 
+      }
+    }, 3000);
+  }
+  
+  window.addEventListener('membershipStatusChanged', () => {
+    console.log('🔄 [Profile Nav] Membership status changed');
+    updateBrandTierDisplay();
+  });
 });

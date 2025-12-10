@@ -3000,14 +3000,21 @@ FOR INSERT WITH CHECK (
       }
       try {
         // 🛑 WOZ FIX: Wait for Supabase client to be ready (prevents undefined crash)
-        console.log('🔐 Checking authentication status...');
+        console.log('🔐 [INLINE] Checking authentication status...');
         const supabase = await getSupabaseClient();
+        console.log('✅ [INLINE] Supabase client obtained:', !!supabase);
         
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) {
+          console.error('❌ [INLINE] Session error:', sessionError);
+          throw sessionError;
+        }
+        
         const isAuthenticated = !!(session?.user);
         
-        console.log('🔐 Authentication status:', isAuthenticated ? 'AUTHENTICATED' : 'ANONYMOUS');
-        console.log('🔍 Session user:', session?.user?.email || 'none');
+        console.log('🔐 [INLINE] Authentication status:', isAuthenticated ? 'AUTHENTICATED' : 'ANONYMOUS');
+        console.log('🔍 [INLINE] Session user:', session?.user?.email || 'none');
+        console.log('🔍 [INLINE] User ID:', session?.user?.id || 'none');
         
         if (!isAuthenticated) {
           console.log('🚨 Anonymous user detected - blocking Supabase access');
@@ -3023,11 +3030,13 @@ FOR INSERT WITH CHECK (
         const userId = session.user.id;
         
         // Layer 1: ALWAYS load from database first (source of truth)
-        console.log('📥 LOADING FROM DATABASE (source of truth) for user:', userId);
+        console.log('📥 [INLINE] LOADING FROM DATABASE (source of truth) for user:', userId);
         profile = await loadAuthenticatedProfileFromSupabase(userId);
+        console.log('📥 [INLINE] Database query returned:', !!profile, profile ? `(${profile.username})` : '(null)');
         
         if (profile) {
-          console.log('📥 GOT FROM DATABASE:', {
+          console.log('📥 [INLINE] GOT FROM DATABASE:', {
+            id: profile.id,
             username: profile.username,
             display_name: profile.display_name,
             avatar_url: profile.avatar_url
@@ -3079,13 +3088,15 @@ FOR INSERT WITH CHECK (
         
         console.log('✅ Authenticated profile loaded successfully:', currentProfile.username);
         try { window.HiAudit?.log('profile_load_authenticated', { resource:'profile' }); } catch {}
-        window.__PROFILE_DATA_LOADED = true;
-        
       } catch (error) {
-        console.error('❌ Profile loading error:', error);
+        console.error('❌ [INLINE] Profile loading error:', error);
+        console.error('❌ [INLINE] Error stack:', error.stack);
+        console.error('❌ [INLINE] This caused fallback to demo profile!');
         // Fallback to anonymous demo profile
         await loadAnonymousDemoProfile();
         window.__PROFILE_DATA_LOADED = true;
+        try { window.HiAudit?.log('profile_load_error', { resource:'profile' }, { success:false, failureReason: error.message }); } catch {}
+      } window.__PROFILE_DATA_LOADED = true;
         try { window.HiAudit?.log('profile_load_error', { resource:'profile' }, { success:false, failureReason: error.message }); } catch {}
       }
     }
