@@ -2724,6 +2724,13 @@ FOR INSERT WITH CHECK (
           return;
         }
 
+        console.log('📤 SAVING TO SUPABASE:', {
+          id: user.id,
+          username: profile.username,
+          display_name: profile.display_name,
+          avatar_url: profile.avatar_url
+        });
+
         const { data, error } = await window.supabaseClient
           .from('profiles')
           .upsert({
@@ -2739,10 +2746,11 @@ FOR INSERT WITH CHECK (
           });
 
         if (error) {
-          console.warn('⚠️ Supabase save failed:', error.message);
-          // Don't throw - localStorage still works
+          console.error('❌ SUPABASE SAVE FAILED:', error);
+          throw error; // Make it visible!
         } else {
-          console.log('☁️ Profile synced to Supabase');
+          console.log('✅ SUPABASE SAVE SUCCESS');
+          console.log('📊 Saved data:', data);
         }
       } catch (error) {
         console.warn('⚠️ Supabase unavailable:', error.message);
@@ -3007,24 +3015,40 @@ FOR INSERT WITH CHECK (
         
         // Layer 1: Check user-specific localStorage first (fastest)
         const savedProfile = localStorage.getItem(`stayhi_profile_${userId}`);
+        console.log('💾 CHECKING LOCALSTORAGE for user:', userId);
         if (savedProfile) {
           try {
             profile = JSON.parse(savedProfile);
-            console.log('💾 Authenticated profile loaded from localStorage:', profile.username);
+            console.log('💾 FOUND IN LOCALSTORAGE:', {
+              username: profile.username,
+              display_name: profile.display_name,
+              avatar_url: profile.avatar_url
+            });
           } catch (e) {
             console.warn('⚠️ Invalid localStorage profile data');
           }
+        } else {
+          console.log('💾 NO LOCALSTORAGE DATA - will check database');
         }
         
         // Layer 2: Try user-specific Supabase data
         if (!profile && window.supabaseClient) {
+          console.log('📥 LOADING FROM SUPABASE for user:', userId);
           profile = await loadAuthenticatedProfileFromSupabase(userId);
           
-          // 🔧 CACHE FIX: If we got fresh data from Supabase, update localStorage
           if (profile) {
+            console.log('📥 GOT FROM DATABASE:', {
+              username: profile.username,
+              display_name: profile.display_name,
+              avatar_url: profile.avatar_url
+            });
+            
+            // 🔧 CACHE FIX: If we got fresh data from Supabase, update localStorage
             const storageKey = `stayhi_profile_${userId}`;
             localStorage.setItem(storageKey, JSON.stringify(profile));
             console.log('✅ Profile cache refreshed from database');
+          } else {
+            console.warn('⚠️ NO PROFILE FOUND IN DATABASE');
           }
         }
         
