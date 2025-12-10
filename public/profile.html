@@ -2836,9 +2836,9 @@ FOR INSERT WITH CHECK (
       console.log('✅ Profile display updated');
     }
     
-    // Tesla Stats Display System
-    function updateStatsDisplay(statsData) {
-      console.log('📊 Updating stats display...', statsData);
+    // Tesla Stats Display System (with animation)
+    function animateStatsDisplay(statsData) {
+      console.log('📊 Animating stats display...', statsData);
       
       // Update individual stat values with Tesla-grade animation
       Object.entries(statsData).forEach(([key, value], index) => {
