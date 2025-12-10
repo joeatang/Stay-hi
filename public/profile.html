@@ -2985,26 +2985,15 @@ FOR INSERT WITH CHECK (
         return;
       }
       try {
-        // ✅ SURGICAL FIX: Since profile-race-mitigation.js only calls us AFTER hi:auth-ready fires,
-        // we should check the stored auth state directly instead of waiting for an event that already happened
-        console.log('🔐 Checking stored auth state...');
+        // ✅ SURGICAL FIX: profile-race-mitigation.js calls us AFTER hi:auth-ready fires
+        // Check Supabase session directly (source of truth for authentication)
+        console.log('🔐 Checking authentication status...');
         
-        // Check if auth is ready from stored state (set by AuthReady.js)
-        let authReady = window.__hiAuthReady || window.__hiMembership;
-        
-        // Fallback: Check supabase session directly
-        if (!authReady && window.supabaseClient) {
-          const { data: { session } } = await window.supabaseClient.auth.getSession();
-          if (session?.user) {
-            authReady = { session, membership: { tier: 'premium' } };
-          }
-        }
-        
-        // Now check authentication from stored state
-        const isAuthenticated = !!(authReady?.session?.user);
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
+        const isAuthenticated = !!(session?.user);
         
         console.log('🔐 Authentication status:', isAuthenticated ? 'AUTHENTICATED' : 'ANONYMOUS');
-        console.log('🔍 Session user:', authReady?.session?.user?.email || 'none');
+        console.log('🔍 Session user:', session?.user?.email || 'none');
         
         if (!isAuthenticated) {
           console.log('🚨 Anonymous user detected - blocking Supabase access');
@@ -3017,7 +3006,7 @@ FOR INSERT WITH CHECK (
         
         // Tesla-Grade Loading Priority for authenticated users: DATABASE FIRST (source of truth)
         let profile = null;
-        const userId = authReady.session.user.id;
+        const userId = session.user.id;
         
         // Layer 1: ALWAYS load from database first (source of truth)
         if (window.supabaseClient) {
