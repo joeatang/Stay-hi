@@ -2665,8 +2665,12 @@ FOR INSERT WITH CHECK (
         // Update current profile immediately
         Object.assign(currentProfile, formData);
         
+        // Get authenticated user ID
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        const userId = user?.id;
+        
         // Tesla-Grade Persistence: Multi-layer storage strategy
-        await saveProfileToStorage(currentProfile);
+        await saveProfileToStorage(currentProfile, userId);
         
         // Update UI immediately for instant feedback
         updateProfileDisplay(currentProfile);
