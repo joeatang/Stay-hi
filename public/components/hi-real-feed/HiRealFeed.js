@@ -144,20 +144,44 @@ class HiIslandRealFeed {
       
       console.log('🔍 HiRealFeed: Attempting to load from public_shares...');
       
-      // Query REAL public_shares table with proper pagination
-      // WOZ FIX: Remove column filter - schema varies between environments
-      const { data: shares, error } = await supabase
-        .from('public_shares')
-        .select(`
-          *,
-          profiles (
-            username,
-            display_name, 
-            avatar_url
-          )
-        `)
-        .order('created_at', { ascending: false })
-        .range(this.pagination.general.page * 20, (this.pagination.general.page + 1) * 20 - 1);
+      // 🏆 Gold Standard: Use view with LIVE profile data (not snapshots)
+      // Query tries Gold Standard first, falls back to legacy if view doesn't exist
+      let shares, error;
+      
+      try {
+        // Try Gold Standard view first (profile updates propagate immediately)
+        const result = await supabase
+          .from('public_shares_with_live_profiles')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .range(this.pagination.general.page * 20, (this.pagination.general.page + 1) * 20 - 1);
+        
+        shares = result.data;
+        error = result.error;
+        
+        if (!error && shares) {
+          console.log('🏆 Loaded shares with LIVE profile data (Gold Standard)');
+        }
+      } catch (viewError) {
+        console.log('⚠️ Gold Standard view not available, falling back to legacy query');
+        
+        // Fallback: Legacy query with JOIN
+        const result = await supabase
+          .from('public_shares')
+          .select(`
+            *,
+            profiles (
+              username,
+              display_name, 
+              avatar_url
+            )
+          `)
+          .order('created_at', { ascending: false })
+          .range(this.pagination.general.page * 20, (this.pagination.general.page + 1) * 20 - 1);
+        
+        shares = result.data;
+        error = result.error;
+      }
 
       if (error) {
         console.error('❌ Failed to load from public_shares:', error);
@@ -180,6 +204,9 @@ class HiIslandRealFeed {
           visibility: shares[0].visibility,
           metadata: shares[0].metadata,
           user_id: shares[0].user_id,
+          username: shares[0].username,
+          display_name: shares[0].display_name,
+          avatar_url: shares[0].avatar_url,
           profiles: shares[0].profiles,
           created_at: shares[0].created_at
         });
@@ -189,6 +216,11 @@ class HiIslandRealFeed {
 
       // 🎯 TESLA-GRADE: Process shares with ACTUAL SCHEMA
       const processedShares = (shares || []).map(share => {
+        // 🏆 Gold Standard: Use top-level profile fields (from view) or profiles object (from JOIN)
+        const username = share.username || share.profiles?.username || 'Anonymous';
+        const displayName = share.display_name || share.profiles?.display_name || username;
+        const avatarUrl = share.avatar_url || share.profiles?.avatar_url || null;
+        
         const processed = {
           id: share.id,
           content: share.text || share.content || 'Shared a Hi 5 moment!', // ACTUAL SCHEMA: 'text' column
@@ -198,6 +230,10 @@ class HiIslandRealFeed {
           user_id: share.user_id,
           location: share.location || 'Location unavailable', // ACTUAL SCHEMA: 'location' column
           origin: share.origin || 'unknown',
+          // 🏆 Use LIVE profile data
+          username,
+          displayName,
+          avatarUrl,
           type: share.type || 'hi5'
         };
 
