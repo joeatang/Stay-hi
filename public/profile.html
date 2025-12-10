@@ -3020,31 +3020,13 @@ FOR INSERT WITH CHECK (
           return;
         }
         
-        // Tesla-Grade Loading Priority for authenticated users: localStorage → Supabase → demo fallback
+        // Tesla-Grade Loading Priority for authenticated users: DATABASE FIRST (source of truth)
         let profile = null;
         const userId = authReady.session.user.id;
         
-        // Layer 1: Check user-specific localStorage first (fastest)
-        const savedProfile = localStorage.getItem(`stayhi_profile_${userId}`);
-        console.log('💾 CHECKING LOCALSTORAGE for user:', userId);
-        if (savedProfile) {
-          try {
-            profile = JSON.parse(savedProfile);
-            console.log('💾 FOUND IN LOCALSTORAGE:', {
-              username: profile.username,
-              display_name: profile.display_name,
-              avatar_url: profile.avatar_url
-            });
-          } catch (e) {
-            console.warn('⚠️ Invalid localStorage profile data');
-          }
-        } else {
-          console.log('💾 NO LOCALSTORAGE DATA - will check database');
-        }
-        
-        // Layer 2: Try user-specific Supabase data
-        if (!profile && window.supabaseClient) {
-          console.log('📥 LOADING FROM SUPABASE for user:', userId);
+        // Layer 1: ALWAYS load from database first (source of truth)
+        if (window.supabaseClient) {
+          console.log('📥 LOADING FROM DATABASE (source of truth) for user:', userId);
           profile = await loadAuthenticatedProfileFromSupabase(userId);
           
           if (profile) {
@@ -3054,12 +3036,30 @@ FOR INSERT WITH CHECK (
               avatar_url: profile.avatar_url
             });
             
-            // 🔧 CACHE FIX: If we got fresh data from Supabase, update localStorage
+            // ✅ Update localStorage cache with fresh database data
             const storageKey = `stayhi_profile_${userId}`;
             localStorage.setItem(storageKey, JSON.stringify(profile));
-            console.log('✅ Profile cache refreshed from database');
+            console.log('✅ localStorage cache updated from database');
           } else {
             console.warn('⚠️ NO PROFILE FOUND IN DATABASE');
+          }
+        }
+        
+        // Layer 2: Fallback to localStorage only if database fails
+        if (!profile) {
+          const savedProfile = localStorage.getItem(`stayhi_profile_${userId}`);
+          console.log('💾 Database empty, checking localStorage fallback...');
+          if (savedProfile) {
+            try {
+              profile = JSON.parse(savedProfile);
+              console.log('💾 Using localStorage fallback:', {
+                username: profile.username,
+                display_name: profile.display_name,
+                avatar_url: profile.avatar_url
+              });
+            } catch (e) {
+              console.warn('⚠️ Invalid localStorage profile data');
+            }
           }
         }
         
