@@ -144,12 +144,10 @@ class HiIslandRealFeed {
       
       console.log('🔍 HiRealFeed: Attempting to load from public_shares...');
       
-      // 🏆 Gold Standard: Use view with LIVE profile data (not snapshots)
-      // Query tries Gold Standard first, falls back to legacy if view doesn't exist
       let shares, error;
       
+      // Try the view first (if it exists), fall back to direct table query
       try {
-        // Try Gold Standard view first (profile updates propagate immediately)
         const result = await supabase
           .from('public_shares_with_live_profiles')
           .select('*')
@@ -160,19 +158,21 @@ class HiIslandRealFeed {
         error = result.error;
         
         if (!error && shares) {
-          console.log('🏆 Loaded shares with LIVE profile data (Gold Standard)');
+          console.log('🏆 Loaded shares with LIVE profile data (view exists)');
         }
       } catch (viewError) {
-        console.log('⚠️ Gold Standard view not available, falling back to legacy query');
-        
-        // Fallback: Legacy query with JOIN
+        console.log('📊 View not available, using JOIN query');
+      }
+      
+      // Fallback: Direct JOIN if view doesn't exist
+      if (!shares || error) {
         const result = await supabase
           .from('public_shares')
           .select(`
             *,
             profiles (
               username,
-              display_name, 
+              display_name,
               avatar_url
             )
           `)

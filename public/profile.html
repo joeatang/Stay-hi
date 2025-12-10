@@ -3708,7 +3708,6 @@ FOR INSERT WITH CHECK (
         // If session exists, user is authenticated - skip modal entirely
         if (session?.user) {
           console.log('✅ Authenticated user - bypassing access gate, loading profile...');
-          
         }
         
         // ✅ CRITICAL: Load profile data AFTER auth is confirmed
