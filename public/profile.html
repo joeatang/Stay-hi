@@ -29,9 +29,6 @@
   <script src="./lib/streaks/HiStreakMilestones.js"></script>
   <!-- Centralized streak milestone toast component -->
   <script src="./lib/streaks/HiMilestoneToast.js"></script>
-  <!-- 🏆 Gold Standard Profile System (Finch/Zero-like historical data) -->
-  <script src="./lib/profile/GoldStandardProfile.js"></script>
-  <script src="./lib/profile/ProfileHistoryTimeline.js"></script>
   <!-- Auth QA harness (runs only when ?runAuthQA=1) -->
   <script src="./lib/qa/auth-flow-qa.js"></script>
   
@@ -3067,38 +3064,6 @@ FOR INSERT WITH CHECK (
       try {
         console.log('☁️ Loading authenticated profile from Supabase for user:', userId);
         
-        // 🏆 Gold Standard: Try complete profile first (includes stats, milestones)
-        if (window.goldProfile) {
-          try {
-            const completeProfile = await window.goldProfile.getCompleteProfile(userId);
-            if (completeProfile && completeProfile.profile) {
-              console.log('🏆 Loaded complete profile with stats and milestones');
-              
-              // Also load historical data in background
-              Promise.all([
-                window.goldProfile.getMilestoneTimeline(userId, 10),
-                window.goldProfile.getStreakHistory(userId),
-                window.goldProfile.getActivityHistory(userId)
-              ]).then(([milestones, streaks, activities]) => {
-                console.log('📊 Historical data loaded:', {
-                  milestones: milestones.length,
-                  streakDays: streaks.length,
-                  activities: activities.length
-                });
-                
-                // Store for UI rendering
-                window.__profileHistory = { milestones, streaks, activities };
-              }).catch(err => {
-                console.warn('⚠️ Could not load historical data:', err.message);
-              });
-              
-              return completeProfile.profile;
-            }
-          } catch (err) {
-            console.warn('⚠️ Gold Standard profile load failed, falling back to legacy:', err.message);
-          }
-        }
-        
         // 🚀 INTEGRATION #2: Profile reads via HiBase (flagged rollout)
         const useHiBase = await window.HiFlags?.getFlag('hibase_profile_enabled');
         console.log(`🔄 Profile read via ${useHiBase ? 'HiBase' : 'legacy'} path`);
@@ -3744,35 +3709,10 @@ FOR INSERT WITH CHECK (
         if (session?.user) {
           console.log('✅ Authenticated user - bypassing access gate, loading profile...');
           
-          // 🏆 Initialize Gold Standard Profile System
-          if (window.GoldStandardProfile && window.supabaseClient) {
-            window.goldProfile = new window.GoldStandardProfile(window.supabaseClient);
-            console.log('🏆 Gold Standard Profile System initialized');
-            
-            // Initialize history timeline
-            if (window.ProfileHistoryTimeline) {
-              window.historyTimeline = new window.ProfileHistoryTimeline('profileHistoryTimeline');
-              
-              // Show history section for authenticated users
-              const historySection = document.getElementById('historySection');
-              if (historySection) {
-                historySection.style.display = 'block';
-              }
-            }
-          }
         }
         
         // ✅ CRITICAL: Load profile data AFTER auth is confirmed
         await loadProfileData();
-        
-        // 🏆 Load history timeline after profile loads
-        if (session?.user && window.historyTimeline) {
-          setTimeout(() => {
-            window.historyTimeline.init(session.user.id).catch(err => {
-              console.warn('⚠️ Could not load profile history:', err);
-            });
-          }, 1000);
-        }
       }, { once: true });
       
       // Fallback: If auth-ready doesn't fire in 5 seconds, load anyway
