@@ -1598,7 +1598,7 @@
           const { data, error } = await supabase
             .from('user_stats')
             .select('*')
-            .eq('user_id', userId)
+            .eq('user_id', userId)  // ✅ CORRECT: user_stats HAS user_id column
             .single();
 
           if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
@@ -3077,7 +3077,7 @@ FOR INSERT WITH CHECK (
           const result = await window.supabaseClient
             .from('profiles')
             .select('*')
-            .eq('user_id', userId)
+            .eq('id', userId)  // 🔧 FIXED: profiles table uses 'id' not 'user_id'
             .order('updated_at', { ascending: false })
             .limit(1);
 
@@ -3233,13 +3233,21 @@ FOR INSERT WITH CHECK (
     
     console.log('✅ Tesla Profile System Ready - WITH SECURITY BARRIERS');
     
-    // Debug: Add test functions to window for manual testing
+    // 🧑‍🔧 DEV TOOLS: Manual profile persistence testing
     window.testProfilePersistence = {
       save: () => saveProfileToStorage(currentProfile),
       load: () => loadProfileData(),
-      clear: () => localStorage.removeItem('stayhi_profile'),
+      clear: (userId) => {
+        // 🔒 SECURITY: Clear user-specific cache only
+        const key = userId ? `stayhi_profile_${userId}` : `stayhi_profile_${currentProfile.id}`;
+        localStorage.removeItem(key);
+        console.log('🧹 Cleared profile cache:', key);
+      },
       showCurrent: () => console.log('Current Profile:', currentProfile),
-      showSaved: () => console.log('Saved Profile:', JSON.parse(localStorage.getItem('stayhi_profile') || 'null'))
+      showSaved: (userId) => {
+        const key = userId ? `stayhi_profile_${userId}` : `stayhi_profile_${currentProfile.id}`;
+        console.log(`Saved Profile (${key}):`, JSON.parse(localStorage.getItem(key) || 'null'));
+      }
     };
     console.log('🧪 Debug functions available: window.testProfilePersistence');
   </script>
