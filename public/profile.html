@@ -2662,12 +2662,19 @@ FOR INSERT WITH CHECK (
       }
       
       try {
-        // Update current profile immediately
-        Object.assign(currentProfile, formData);
-        
-        // Get authenticated user ID
+        // Get authenticated user ID FIRST
         const { data: { user } } = await window.supabaseClient.auth.getUser();
         const userId = user?.id;
+        
+        // Update current profile with form data
+        // ✅ CRITICAL: Preserve id, email, created_at (don't let form overwrite these)
+        Object.assign(currentProfile, formData);
+        if (userId && !currentProfile.id) {
+          currentProfile.id = userId; // Ensure id is set
+        }
+        if (user?.email && !currentProfile.email) {
+          currentProfile.email = user.email;
+        }
         
         // Tesla-Grade Persistence: Multi-layer storage strategy
         await saveProfileToStorage(currentProfile, userId);
