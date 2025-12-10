@@ -8,19 +8,11 @@
 -- Create view that shows LIVE profile data in feeds
 CREATE OR REPLACE VIEW public_shares_with_live_profiles AS
 SELECT 
-  ps.id,
-  ps.user_id,
-  ps.content,
-  ps.visibility,
-  ps.share_type,
-  ps.location_data,
-  ps.total_his,
-  ps.created_at,
-  ps.updated_at,
+  ps.*,
   -- LIVE profile data from profiles table
-  COALESCE(p.username, 'Anonymous') as username,
-  COALESCE(p.display_name, p.username, 'Anonymous') as display_name,
-  COALESCE(p.avatar_url, '') as avatar_url
+  p.username,
+  p.display_name,
+  p.avatar_url
 FROM public_shares ps
 LEFT JOIN profiles p ON ps.user_id = p.id;
 
