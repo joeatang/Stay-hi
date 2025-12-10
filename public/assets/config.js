@@ -15,7 +15,7 @@
   // 🚀 PRODUCTION: Hardcoded values (safe - these are PUBLIC keys)
   // SUPABASE_ANON_KEY is designed to be exposed to browsers (it's in every API call anyway)
   window.SUPABASE_URL = 'https://gfcubvroxgfvjhacinic.supabase.co';
-  window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjdWJ2cm94Z2Z2amhhY2luaWMiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcyNzU2MDI1MiwiZXhwIjoyMDQzMTM2MjUyfQ.pLa5YrUcziJO6VdnWZ_Bvug-HmXFxOdl0wm76Gp-6NU';
+  window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g';
   
   console.log('✅ Supabase configuration loaded (production)');
   console.log('📍 URL:', window.SUPABASE_URL.substring(0, 40) + '...');
