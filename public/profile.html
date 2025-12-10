@@ -31,6 +31,7 @@
   <script src="./lib/streaks/HiMilestoneToast.js"></script>
   <!-- 🏆 Gold Standard Profile System (Finch/Zero-like historical data) -->
   <script src="./lib/profile/GoldStandardProfile.js"></script>
+  <script src="./lib/profile/ProfileHistoryTimeline.js"></script>
   <!-- Auth QA harness (runs only when ?runAuthQA=1) -->
   <script src="./lib/qa/auth-flow-qa.js"></script>
   
@@ -1485,6 +1486,20 @@
             <div id="archivesPointsSummary" style="display:flex;gap:8px;flex-wrap:wrap"></div>
           </div>
         </div>
+      </section>
+
+      <!-- 🏆 Gold Standard: Profile History Timeline -->
+      <section class="dashboard-section" id="historySection" style="display: none;">
+        <div class="section-header">
+          <span class="section-icon">📊</span>
+          <h3 class="section-title">Your Journey</h3>
+        </div>
+        <div id="profileHistoryTimeline" style="
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 14px;
+          padding: 20px;
+        "></div>
       </section>
     </div>
   </div>
@@ -3733,11 +3748,31 @@ FOR INSERT WITH CHECK (
           if (window.GoldStandardProfile && window.supabaseClient) {
             window.goldProfile = new window.GoldStandardProfile(window.supabaseClient);
             console.log('🏆 Gold Standard Profile System initialized');
+            
+            // Initialize history timeline
+            if (window.ProfileHistoryTimeline) {
+              window.historyTimeline = new window.ProfileHistoryTimeline('profileHistoryTimeline');
+              
+              // Show history section for authenticated users
+              const historySection = document.getElementById('historySection');
+              if (historySection) {
+                historySection.style.display = 'block';
+              }
+            }
           }
         }
         
         // ✅ CRITICAL: Load profile data AFTER auth is confirmed
         await loadProfileData();
+        
+        // 🏆 Load history timeline after profile loads
+        if (session?.user && window.historyTimeline) {
+          setTimeout(() => {
+            window.historyTimeline.init(session.user.id).catch(err => {
+              console.warn('⚠️ Could not load profile history:', err);
+            });
+          }, 1000);
+        }
       }, { once: true });
       
       // Fallback: If auth-ready doesn't fire in 5 seconds, load anyway
