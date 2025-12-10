@@ -41,16 +41,16 @@
       const client = window.supabaseClient || window.sb;
       if(client){
         client.from('profiles').upsert({
-          user_id: userId,
+          id: userId, // PRIMARY KEY is 'id' not 'user_id'
           username: merged.username?.replace('@','') || `user_${userId.slice(-6)}`,
           display_name: merged.display_name || merged.username || 'Stay Hi User',
           bio: merged.bio || '',
           location: merged.location || '',
           avatar_url: merged.avatar_url || '',
           updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' }).then(()=>{
-          log('Supabase profile upsert after merge complete');
-        }).catch(err=> log('Supabase upsert error', err.message));
+        }, { onConflict: 'id' }).then(()=>{
+          log('✅ Profile synced to database after merge');
+        }).catch(err=> log('❌ Database sync error:', err.message));
       }
     }catch(e){ log('Supabase merge upsert failed', e.message); }
     sessionStorage.setItem(MERGE_FLAG,'1');
