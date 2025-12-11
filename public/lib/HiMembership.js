@@ -75,12 +75,26 @@ class UnifiedMembershipSystem {
         const result = await this.supabase.rpc('get_unified_membership');
         membership = result.data;
         memberError = result.error;
+        console.log('🔍 [HiMembership] RPC get_unified_membership result:', { 
+          data: membership, 
+          error: memberError,
+          dataType: typeof membership,
+          hasData: !!membership,
+          keys: membership ? Object.keys(membership) : []
+        });
       } catch (error) {
         // Fallback to existing get_my_membership function
         console.log('🔄 Using fallback membership function');
         const result = await this.supabase.rpc('get_my_membership');
         membership = result.data;
         memberError = result.error;
+        console.log('🔍 [HiMembership] RPC get_my_membership fallback result:', { 
+          data: membership, 
+          error: memberError,
+          dataType: typeof membership,
+          hasData: !!membership,
+          keys: membership ? Object.keys(membership) : []
+        });
         
         // Transform existing response to unified format
         if (membership) {
