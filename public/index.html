@@ -40,28 +40,57 @@
             const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             
             try {
-                // 1. Check for PASSWORD RECOVERY first (priority)
+                // Parse hash parameters once
                 const hashParams = new URLSearchParams(window.location.hash.substring(1));
-                const isRecovery = hashParams.get('type') === 'recovery';
+                const tokenType = hashParams.get('type');
+                const hash = window.location.hash;
                 
-                if (isRecovery) {
-                    console.log('🔐 PASSWORD RECOVERY TOKEN DETECTED → Redirecting to reset-password.html');
-                    window.location.replace('/public/reset-password.html' + window.location.hash);
+                console.log('🔍 [INDEX ROUTER] Analyzing URL...', { 
+                    hasHash: !!hash, 
+                    tokenType, 
+                    hasAccessToken: hash.includes('access_token'),
+                    fullHash: hash
+                });
+                
+                // 1. PASSWORD RECOVERY: Redirect to reset password page
+                if (tokenType === 'recovery') {
+                    console.log('🔐 [INDEX ROUTER] Password recovery → reset-password.html');
+                    window.location.replace('/public/reset-password.html' + hash);
                     return;
                 }
                 
-                // 2. Check for magic link (email verification flow)
-                const hash = window.location.hash;
+                // 2. EMAIL CONFIRMATION: Supabase automatically processes this
+                // If type=signup, Supabase SDK auto-confirms and creates session
+                // Just redirect to dashboard - session will be ready
+                if (tokenType === 'signup' || tokenType === 'email_confirmation' || tokenType === 'email') {
+                    console.log('📧 [INDEX ROUTER] Email confirmation detected → processing...');
+                    // Give Supabase a moment to process the token
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    // Check if session was created
+                    const { data: { session }, error } = await supabaseClient.auth.getSession();
+                    
+                    if (session) {
+                        console.log('✅ [INDEX ROUTER] Email confirmed, session active → dashboard');
+                        window.location.replace('/public/hi-dashboard.html');
+                    } else {
+                        console.warn('⚠️ [INDEX ROUTER] Email confirmation processed but no session:', error);
+                        window.location.replace('/public/signin.html?message=confirmed');
+                    }
+                    return;
+                }
+                
+                // 3. MAGIC LINK: Has access_token, creates immediate session
                 const isMagicLink = hash.includes('access_token') || hash.includes('refresh_token');
                 
                 if (isMagicLink) {
-                    console.log('🔐 MAGIC LINK DETECTED → Dashboard');
+                    console.log('🔐 [INDEX ROUTER] Magic link → dashboard');
                     sessionStorage.setItem('magic-link-flow', 'true');
                     window.location.replace('/hi-dashboard.html');
                     return;
                 }
                 
-                // 2. Check actual authentication state (source of truth)
+                // 4. NO TOKEN: Check session state
                 const { data: { session }, error } = await supabaseClient.auth.getSession();
                 
                 if (error) {
