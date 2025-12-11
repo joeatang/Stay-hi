@@ -146,9 +146,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function triggerHi5Flow(){
-    const canShare = window.hiAccessManager?.canAccess?.('shareCreation') || 
-      window.HiTierSystem?.hasCapability?.('drop_hi') ||
-      window.unifiedMembership?.hasAccess?.('shareCreation');
+    // 🛑 WOZ FIX: Wrap in try-catch because canAccess can throw if features undefined
+    let canShare = false;
+    try {
+      canShare = window.hiAccessManager?.canAccess?.('shareCreation') || 
+        window.HiTierSystem?.hasCapability?.('drop_hi') ||
+        window.unifiedMembership?.hasAccess?.('shareCreation');
+    } catch (err) {
+      console.warn('⚠️ Error checking share access:', err);
+      canShare = false;
+    }
+    
     if (!canShare) {
       console.log('🔒 Anonymous user long-press - showing auth modal');
       if (window.showShareAuthModal) {
