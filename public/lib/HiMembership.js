@@ -308,6 +308,12 @@ class UnifiedMembershipSystem {
       return false;
     }
     
+    // 🛑 WOZ CRITICAL FIX: Check if features object exists before accessing
+    if (!this.membershipStatus.features) {
+      console.warn('⚠️ membershipStatus.features is undefined, treating as no access');
+      return false;
+    }
+    
     const access = this.membershipStatus.features[feature];
     
     switch (feature) {
