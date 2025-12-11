@@ -224,35 +224,66 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('🎫 [Profile Nav] Tier updated:', tierKey, eventOrTier?.detail?.membership ? `(from auth-ready event, DB tier: ${eventOrTier.detail.membership.tier})` : '(from fallback)');
   }
   
-  // 🛑 WOZ FIX: Check if auth already ready BEFORE listening for event
-  const checkAuthAlreadyReady = () => {
-    if (window.__hiMembership?.tier) {
-      console.log('🔍 [Profile Nav] Auth ALREADY ready, tier:', window.__hiMembership.tier);
-      updateBrandTierDisplay();
-      return true;
+  // 🛑 WOZ FIX: Robust tier initialization that handles all timing scenarios
+  const initializeTierDisplay = () => {
+    const tierIndicator = document.getElementById('hi-tier-indicator');
+    if (!tierIndicator) {
+      console.warn('⚠️ [Profile Nav] Tier indicator element not found');
+      return;
     }
-    return false;
+    
+    // Check multiple sources for tier data
+    const checkTierSources = () => {
+      if (window.__hiMembership?.tier) {
+        console.log('🔍 [Profile Nav] Found tier in __hiMembership:', window.__hiMembership.tier);
+        return window.__hiMembership.tier;
+      }
+      if (window.unifiedMembership?.membershipStatus?.tier) {
+        console.log('🔍 [Profile Nav] Found tier in unifiedMembership:', window.unifiedMembership.membershipStatus.tier);
+        return window.unifiedMembership.membershipStatus.tier;
+      }
+      return null;
+    };
+    
+    const existingTier = checkTierSources();
+    
+    if (existingTier) {
+      console.log('✅ [Profile Nav] Auth ALREADY ready, updating tier immediately:', existingTier);
+      updateBrandTierDisplay();
+    } else {
+      console.log('⏳ [Profile Nav] No tier data yet, setting up listeners...');
+      
+      // Listen for auth-ready event
+      window.addEventListener('hi:auth-ready', (e) => {
+        console.log('🔔 [Profile Nav] hi:auth-ready received, tier:', e.detail?.membership?.tier);
+        updateBrandTierDisplay(e);
+      });
+      
+      // Fallback: Check every 500ms for up to 5 seconds
+      let checkAttempts = 0;
+      const maxAttempts = 10;
+      const checkInterval = setInterval(() => {
+        checkAttempts++;
+        const tier = checkTierSources();
+        
+        if (tier) {
+          console.log('✅ [Profile Nav] Tier found after', checkAttempts, 'checks:', tier);
+          clearInterval(checkInterval);
+          updateBrandTierDisplay();
+        } else if (checkAttempts >= maxAttempts) {
+          console.warn('⚠️ [Profile Nav] Tier not found after', maxAttempts, 'checks - may be anonymous');
+          clearInterval(checkInterval);
+          // Keep loading state or set to anonymous
+          updateBrandTierDisplay('anonymous');
+        }
+      }, 500);
+    }
   };
   
-  // Initialize tier display - check if already ready, then listen for event
-  const alreadyReady = checkAuthAlreadyReady();
+  // Start tier initialization
+  initializeTierDisplay();
   
-  if (!alreadyReady) {
-    console.log('⏳ [Profile Nav] Waiting for hi:auth-ready event...');
-    window.addEventListener('hi:auth-ready', (e) => {
-      console.log('🔔 [Profile Nav] hi:auth-ready received, tier:', e.detail?.membership?.tier);
-      updateBrandTierDisplay(e);
-    });
-    
-    // Fallback updates only if auth hasn't completed
-    setTimeout(() => { 
-      if (window.__hiMembership?.tier || window.unifiedMembership?.membershipStatus?.tier) {
-        console.log('⏰ [Profile Nav] Fallback tier update (3s)');
-        updateBrandTierDisplay(); 
-      }
-    }, 3000);
-  }
-  
+  // Also listen for membership changes
   window.addEventListener('membershipStatusChanged', () => {
     console.log('🔄 [Profile Nav] Membership status changed');
     updateBrandTierDisplay();
