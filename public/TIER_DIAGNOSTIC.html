@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tier Diagnostic</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./assets/config.js"></script>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #0a0a0a; color: #0f0; }
+        pre { background: #1a1a1a; padding: 15px; border-radius: 8px; overflow-x: auto; }
+        h2 { color: #0ff; }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+    </style>
+</head>
+<body>
+    <h1>🔍 TIER SYSTEM DIAGNOSTIC</h1>
+    <button onclick="runDiagnostic()">Run Full Diagnostic</button>
+    <div id="output"></div>
+
+    <script>
+        async function runDiagnostic() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<h2>Running diagnostic...</h2>';
+            
+            try {
+                const client = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+                
+                // Get session
+                const { data: { session }, error: sessionError } = await client.auth.getSession();
+                
+                if (sessionError || !session) {
+                    output.innerHTML += '<p class="error">❌ Not signed in</p>';
+                    return;
+                }
+                
+                const userId = session.user.id;
+                output.innerHTML += `<p class="success">✅ Signed in: ${userId}</p>`;
+                
+                // Get membership from hi_members
+                const { data: member, error: memberError } = await client
+                    .from('hi_members')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .single();
+                
+                output.innerHTML += '<h2>📊 HI_MEMBERS TABLE:</h2>';
+                output.innerHTML += `<pre>${JSON.stringify(member, null, 2)}</pre>`;
+                
+                // Get user metadata
+                output.innerHTML += '<h2>👤 USER METADATA:</h2>';
+                output.innerHTML += `<pre>${JSON.stringify(session.user.user_metadata, null, 2)}</pre>`;
+                
+                // Check what tier config says
+                output.innerHTML += '<h2>📚 TIER_CONFIG.JS STATUS:</h2>';
+                if (window.HiTierConfig) {
+                    const tierNames = ['free', 'bronze', 'silver', 'gold', 'premium', 'collective'];
+                    output.innerHTML += '<p>Available tiers in config:</p><ul>';
+                    tierNames.forEach(name => {
+                        const config = window.HiTierConfig.getTierConfig(name);
+                        if (config) {
+                            output.innerHTML += `<li>${name}: ${config.displayName} (level ${config.level})</li>`;
+                        }
+                    });
+                    output.innerHTML += '</ul>';
+                } else {
+                    output.innerHTML += '<p class="error">❌ HiTierConfig not loaded</p>';
+                }
+                
+                // Call get_unified_membership RPC
+                output.innerHTML += '<h2>🔧 GET_UNIFIED_MEMBERSHIP RPC:</h2>';
+                const { data: rpcData, error: rpcError } = await client.rpc('get_unified_membership');
+                
+                if (rpcError) {
+                    output.innerHTML += `<p class="error">❌ RPC Error: ${rpcError.message}</p>`;
+                } else {
+                    output.innerHTML += `<pre>${JSON.stringify(rpcData, null, 2)}</pre>`;
+                }
+                
+                // Check HiMembership module if loaded
+                output.innerHTML += '<h2>📦 HiMembership.js STATUS:</h2>';
+                if (window.HiMembership) {
+                    try {
+                        const membership = await window.HiMembership.get();
+                        output.innerHTML += `<pre>${JSON.stringify(membership, null, 2)}</pre>`;
+                    } catch (e) {
+                        output.innerHTML += `<p class="error">❌ Error: ${e.message}</p>`;
+                    }
+                } else {
+                    output.innerHTML += '<p class="error">❌ HiMembership not loaded</p>';
+                }
+                
+            } catch (error) {
+                output.innerHTML += `<p class="error">❌ Fatal error: ${error.message}</p>`;
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
