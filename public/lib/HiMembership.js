@@ -171,6 +171,12 @@ class UnifiedMembershipSystem {
         }
       }
 
+      // ✅ CRITICAL: Ensure features exist (populate from tier if missing)
+      if (membership && membership.tier && !membership.features) {
+        console.log('🔧 [HiMembership] Membership missing features, populating from tier:', membership.tier);
+        membership.features = this.getFeaturesByTier(membership.tier);
+      }
+
       this.membershipStatus = membership;
       try {
         localStorage.setItem('isAdmin', membership?.is_admin ? 'true' : 'false');
