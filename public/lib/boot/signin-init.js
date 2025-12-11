@@ -379,9 +379,9 @@ document.addEventListener('DOMContentLoaded', function() {
       // User-friendly error messages
       let errorMsg = '❌ Sign in failed. ';
       if (e.message?.includes('Invalid login credentials')) {
-        errorMsg = '🔒 Invalid email or password. Please try again.';
+        errorMsg = '🔒 Invalid email or password. If you just signed up, please verify your email first by clicking the link we sent you.';
       } else if (e.message?.includes('Email not confirmed')) {
-        errorMsg = '📧 Please verify your email first. Check your inbox.';
+        errorMsg = '📧 Please verify your email before signing in. Check your inbox for the verification link.';
       } else if (e.message?.includes('Too many requests')) {
         errorMsg = '⏱️ Too many attempts. Please wait a minute and try again.';
       } else if (e.message?.includes('timeout')) {

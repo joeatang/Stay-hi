@@ -179,13 +179,34 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
     // 2. Create user in Supabase auth
     let userId = null;
     try {
-      const { data, error } = await supabaseClient.auth.signUp({ email, password });
+      // Get the site URL for email redirects
+      const siteUrl = window.location.origin;
+      const redirectUrl = `${siteUrl}/public/hi-dashboard.html`;
+      
+      console.log('📧 Creating account with email redirect:', redirectUrl);
+      
+      const { data, error } = await supabaseClient.auth.signUp({ 
+        email, 
+        password,
+        options: {
+          emailRedirectTo: redirectUrl
+        }
+      });
+      
       if (error) {
         showError(error.message || 'Sign up failed.');
         return;
       }
       userId = data.user?.id;
+      
+      if (!userId) {
+        showError('Account creation failed - no user ID returned.');
+        return;
+      }
+      
+      console.log('✅ User created:', userId);
     } catch (err) {
+      console.error('❌ Signup error:', err);
       showError('Error creating account.');
       return;
     }
