@@ -170,7 +170,47 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } else {
       console.log('✅ Authenticated user - proceeding with Hi 5 creation');
-      // TODO: Implement authenticated Hi 5 creation flow
+      
+      // 🛑 WOZ FIX: Wait for share sheet to be ready if not initialized yet
+      const openShareSheet = () => {
+        const shareSheetInstance = window.__hiComponentsInitialized?.shareSheetInstance;
+        if (shareSheetInstance && typeof shareSheetInstance.open === 'function') {
+          console.log('🎯 Opening share sheet for Hi 5 flow');
+          shareSheetInstance.open({ 
+            context: 'dashboard', 
+            preset: 'hi5', 
+            prefilledText: '✨ Celebrating this moment of growth! ',
+            type: 'Hi5' 
+          });
+          return true;
+        } else if (window.openHiShareSheet) {
+          console.log('🎯 Opening share sheet via global function');
+          window.openHiShareSheet('hi5', { 
+            context: 'dashboard',
+            prefilledText: '✨ Celebrating this moment of growth! ',
+            type: 'Hi5' 
+          });
+          return true;
+        }
+        return false;
+      };
+      
+      // Try immediately
+      if (!openShareSheet()) {
+        console.log('⏳ Share sheet not ready, waiting...');
+        // Wait up to 2 seconds for share sheet to initialize
+        let attempts = 0;
+        const checkInterval = setInterval(() => {
+          attempts++;
+          if (openShareSheet()) {
+            clearInterval(checkInterval);
+            console.log(`✅ Share sheet opened after ${attempts} attempts`);
+          } else if (attempts >= 20) {
+            clearInterval(checkInterval);
+            console.warn('⚠️ Share sheet initialization timeout');
+          }
+        }, 100);
+      }
     }
   }
 
