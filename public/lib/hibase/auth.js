@@ -149,9 +149,9 @@ export async function getCurrentUser() {
  */
 export async function resetPassword(email) {
     return hiBaseClient.execute(async (client) => {
-        const { data, error } = await client.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/public/reset-password.html`
-        });
+        // WOZ FIX: Don't send redirectTo - let Supabase use default Site URL
+        // welcome.html will intercept recovery tokens and redirect properly
+        const { data, error } = await client.auth.resetPasswordForEmail(email);
 
         if (error) {
             return { data: null, error };
