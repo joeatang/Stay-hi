@@ -11,13 +11,16 @@
  * - Feature escalation: higher tiers get ALL lower tier features PLUS more
  * - Database stores tier name (lowercase), frontend displays brand name
  * 
- * USAGE:
- *   import { TIER_CONFIG, getTierConfig, getTierFeatures } from './config/TIER_CONFIG.js';
- *   const config = getTierConfig('premium');
- *   const features = getTierFeatures('premium');
+ * USAGE (Global Script):
+ *   <script src="./lib/config/TIER_CONFIG.js"></script>
+ *   const config = window.HiTierConfig.getTierConfig('premium');
+ *   const features = window.HiTierConfig.getTierFeatures('premium');
+ * 
+ * 🛑 NOTE: This is a GLOBAL SCRIPT, not an ES6 module
+ * Loaded via <script src> in HTML, exposes window.HiTierConfig
  */
 
-export const TIER_CONFIG = {
+const TIER_CONFIG = {
   // ===== TIER 1: FREE (Default/Anonymous) =====
   free: {
     level: 1,
@@ -336,7 +339,7 @@ export const TIER_CONFIG = {
  * @param {string} tierName - Tier name (free, bronze, silver, gold, premium, collective)
  * @returns {object} Tier configuration object
  */
-export function getTierConfig(tierName) {
+function getTierConfig(tierName) {
   const normalizedTier = (tierName || 'free').toLowerCase();
   return TIER_CONFIG[normalizedTier] || TIER_CONFIG.free;
 }
@@ -346,7 +349,7 @@ export function getTierConfig(tierName) {
  * @param {string} tierName - Tier name
  * @returns {object} Tier features object
  */
-export function getTierFeatures(tierName) {
+function getTierFeatures(tierName) {
   return getTierConfig(tierName).features;
 }
 
@@ -356,7 +359,7 @@ export function getTierFeatures(tierName) {
  * @param {string} feature - Feature name
  * @returns {boolean|number|string} Feature value (true/false/number/'unlimited')
  */
-export function canAccessFeature(tierName, feature) {
+function canAccessFeature(tierName, feature) {
   const features = getTierFeatures(tierName);
   const value = features[feature];
   
@@ -381,7 +384,7 @@ export function canAccessFeature(tierName, feature) {
  * @param {string} tierName - Tier name
  * @returns {number} Tier level (1-6)
  */
-export function getTierRank(tierName) {
+function getTierRank(tierName) {
   return getTierConfig(tierName).level;
 }
 
@@ -391,7 +394,7 @@ export function getTierRank(tierName) {
  * @param {string} tierB - Second tier
  * @returns {boolean} True if tierA >= tierB
  */
-export function isAtLeast(tierA, tierB) {
+function isAtLeast(tierA, tierB) {
   return getTierRank(tierA) >= getTierRank(tierB);
 }
 
@@ -399,7 +402,7 @@ export function isAtLeast(tierA, tierB) {
  * Get all tier names in order
  * @returns {string[]} Array of tier names
  */
-export function getAllTiers() {
+function getAllTiers() {
   return ['free', 'bronze', 'silver', 'gold', 'premium', 'collective'];
 }
 
@@ -408,7 +411,7 @@ export function getAllTiers() {
  * @param {string} tierName - Current tier
  * @returns {object} { prompt: string, ctaText: string|null }
  */
-export function getUpgradeCTA(tierName) {
+function getUpgradeCTA(tierName) {
   const config = getTierConfig(tierName);
   return {
     prompt: config.upgradePrompt,
@@ -421,7 +424,7 @@ export function getUpgradeCTA(tierName) {
  * @param {string} tierName - Tier to validate
  * @returns {boolean} True if valid tier
  */
-export function isValidTier(tierName) {
+function isValidTier(tierName) {
   return getAllTiers().includes((tierName || '').toLowerCase());
 }
 
