@@ -5,6 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <title>Welcome — Stay Hi</title>
   
+  <!-- 🚨 CRITICAL: Password Recovery Token Interceptor -->
+  <script>
+    (function() {
+      // Check if this is a password recovery callback that Supabase incorrectly sent here
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const urlParams = new URLSearchParams(window.location.search);
+      const type = hashParams.get('type') || urlParams.get('type');
+      
+      if (type === 'recovery') {
+        console.log('🔐 [RECOVERY INTERCEPTOR] Password recovery token detected on welcome page');
+        console.log('🔀 [RECOVERY INTERCEPTOR] Redirecting to reset-password.html...');
+        
+        // Preserve the entire hash/query for the reset page
+        const fullHash = window.location.hash || '';
+        const fullSearch = window.location.search || '';
+        
+        // Redirect to proper reset password page
+        window.location.href = '/public/reset-password.html' + fullHash + fullSearch;
+      }
+    })();
+  </script>
+  
   <!-- Optional High-Contrast Accessibility Mode (non-destructive) -->
   <script type="module" src="./lib/boot/contrast-mode.js"></script>
   
