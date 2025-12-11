@@ -243,10 +243,11 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
             await new Promise(resolve => setTimeout(resolve, 500));
             continue;
           }
-          // Other errors - fail immediately
+          // Other errors - fail immediately but don't block signup
           console.error(`❌ Usage tracking error (attempt ${attempt + 1}):`, error);
-          showError('Error tracking invite code usage.');
-          return;
+          console.warn('⚠️ Invite tracking failed but user account was created - proceeding with signup');
+          lastError = error;
+          break; // Exit retry loop, continue with signup flow
         }
         
         console.log('✅ Code marked as used successfully:', usageData);
@@ -261,15 +262,20 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
 
     if (!usageSuccess) {
       console.error('❌ Failed to mark code as used after 10 attempts:', lastError);
-      showError('Account created but invite tracking failed. Please contact support.');
-      return;
+      console.warn('⚠️ Proceeding with signup despite tracking failure - user account exists');
+      // Don't block signup - the account is created and email sent
+      // Admin can manually mark code as used later if needed
     }
 
     // 4. Process referral code if present (HiBase integration)
     await processReferralRedemption(userId);
 
     // 5. Success: redirect to awaiting verification page
-    showSuccess('📧 Account created! Check your email to verify your account.');
+    if (usageSuccess) {
+      showSuccess('📧 Account created! Check your email to verify your account.');
+    } else {
+      showSuccess('📧 Account created! Check your email to verify your account.<br><small>Note: Invite tracking may need manual verification.</small>');
+    }
     
     setTimeout(() => {
       window.location.href = 'awaiting-verification.html?email=' + encodeURIComponent(email);
