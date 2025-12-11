@@ -150,7 +150,7 @@ export async function getCurrentUser() {
 export async function resetPassword(email) {
     return hiBaseClient.execute(async (client) => {
         const { data, error } = await client.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/reset-password`
+            redirectTo: `${window.location.origin}/public/reset-password.html`
         });
 
         if (error) {
