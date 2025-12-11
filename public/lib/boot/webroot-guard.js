@@ -23,6 +23,12 @@
   if (PASS) console.log(`${tag} ${msg}`); else console.error(`${tag} ${msg}`);
   try {
     const injectBadge = () => {
+      // Only show badge in dev (localhost) - hide in production
+      if (isProdHost) {
+        console.log('[HI-OS][WEBROOT] Badge hidden in production');
+        return;
+      }
+      
       const badge = document.createElement('div');
       badge.textContent = msg;
       badge.setAttribute('id', 'hi-webroot-guard');
