@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tier Mismatch Diagnostic</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./assets/config.js"></script>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #0a0a0a; color: #0f0; }
+        pre { background: #1a1a1a; padding: 15px; border-radius: 8px; overflow-x: auto; border-left: 4px solid #0ff; }
+        h2 { color: #0ff; margin-top: 30px; }
+        .error { color: #f00; }
+        .warning { color: #ff0; }
+        .success { color: #0f0; }
+        .mismatch { background: #330000; border-left: 4px solid #f00; padding: 10px; margin: 10px 0; }
+        .match { background: #003300; border-left: 4px solid #0f0; padding: 10px; margin: 10px 0; }
+        button { 
+            background: #0ff; 
+            color: #000; 
+            border: none; 
+            padding: 10px 20px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button:hover { background: #0aa; }
+        .table-name { color: #ff0; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🔍 TIER MISMATCH DIAGNOSTIC</h1>
+    <p>Compares tier values across all system layers</p>
+    <button onclick="runDiagnostic()">Run Full Diagnostic</button>
+    <div id="output"></div>
+
+    <script>
+        async function runDiagnostic() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<h2>Running diagnostic...</h2>';
+            
+            try {
+                const client = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+                
+                // Get session
+                const { data: { session }, error: sessionError } = await client.auth.getSession();
+                
+                if (sessionError || !session) {
+                    output.innerHTML += '<p class="error">❌ Not signed in - Please sign in first</p>';
+                    return;
+                }
+                
+                const userId = session.user.id;
+                output.innerHTML += `<p class="success">✅ Signed in</p>`;
+                output.innerHTML += `<p>User ID: <code>${userId}</code></p>`;
+                
+                // ===== TABLE 1: hi_members =====
+                output.innerHTML += '<h2>📊 TABLE 1: <span class="table-name">hi_members</span></h2>';
+                const { data: hiMember, error: hiMemberError } = await client
+                    .from('hi_members')
+                    .select('user_id, membership_tier, access_tier, is_admin')
+                    .eq('user_id', userId)
+                    .single();
+                
+                if (hiMemberError) {
+                    output.innerHTML += `<p class="error">❌ Error: ${hiMemberError.message}</p>`;
+                } else if (!hiMember) {
+                    output.innerHTML += '<p class="warning">⚠️ No entry found</p>';
+                } else {
+                    output.innerHTML += `<pre>${JSON.stringify(hiMember, null, 2)}</pre>`;
+                }
+                
+                // ===== TABLE 2: user_memberships =====
+                output.innerHTML += '<h2>📊 TABLE 2: <span class="table-name">user_memberships</span></h2>';
+                const { data: userMembership, error: userMembershipError } = await client
+                    .from('user_memberships')
+                    .select('user_id, tier, status, trial_start, trial_end, trial_days_total, invitation_code')
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                
+                if (userMembershipError) {
+                    output.innerHTML += `<p class="error">❌ Error: ${userMembershipError.message}</p>`;
+                } else if (!userMembership) {
+                    output.innerHTML += '<p class="warning">⚠️ No entry found (user might have free tier by default)</p>';
+                } else {
+                    output.innerHTML += `<pre>${JSON.stringify(userMembership, null, 2)}</pre>`;
+                }
+                
+                // ===== RPC: get_unified_membership =====
+                output.innerHTML += '<h2>🔧 RPC: <span class="table-name">get_unified_membership()</span></h2>';
+                const { data: rpcData, error: rpcError } = await client.rpc('get_unified_membership');
+                
+                if (rpcError) {
+                    output.innerHTML += `<p class="error">❌ RPC Error: ${rpcError.message}</p>`;
+                } else {
+                    output.innerHTML += `<pre>${JSON.stringify(rpcData, null, 2)}</pre>`;
+                }
+                
+                // ===== COMPARISON =====
+                output.innerHTML += '<h2>⚖️ TIER VALUE COMPARISON</h2>';
+                
+                const hiMemberTier = hiMember?.membership_tier || 'NOT FOUND';
+                const userMembershipTier = userMembership?.tier || 'NOT FOUND';
+                const rpcTier = rpcData?.tier || 'NOT FOUND';
+                
+                output.innerHTML += '<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">';
+                output.innerHTML += '<tr style="background: #1a1a1a;"><th style="padding: 10px; text-align: left;">Source</th><th style="padding: 10px; text-align: left;">Tier Value</th></tr>';
+                output.innerHTML += `<tr style="background: #0a0a0a;"><td style="padding: 10px;">hi_members.membership_tier</td><td style="padding: 10px; color: #0ff;">${hiMemberTier}</td></tr>`;
+                output.innerHTML += `<tr style="background: #1a1a1a;"><td style="padding: 10px;">user_memberships.tier</td><td style="padding: 10px; color: #0ff;">${userMembershipTier}</td></tr>`;
+                output.innerHTML += `<tr style="background: #0a0a0a;"><td style="padding: 10px;">RPC returns</td><td style="padding: 10px; color: #0ff;">${rpcTier}</td></tr>`;
+                output.innerHTML += '</table>';
+                
+                // Check for mismatches
+                const allMatch = hiMemberTier === userMembershipTier && userMembershipTier === rpcTier;
+                
+                if (allMatch && hiMemberTier !== 'NOT FOUND') {
+                    output.innerHTML += '<div class="match">✅ ALL TIER VALUES MATCH - System is consistent</div>';
+                } else {
+                    output.innerHTML += '<div class="mismatch">❌ TIER MISMATCH DETECTED</div>';
+                    
+                    if (hiMemberTier !== userMembershipTier) {
+                        output.innerHTML += `<p class="warning">⚠️ hi_members (${hiMemberTier}) != user_memberships (${userMembershipTier})</p>`;
+                    }
+                    
+                    if (userMembershipTier !== rpcTier) {
+                        output.innerHTML += `<p class="warning">⚠️ user_memberships (${userMembershipTier}) != RPC (${rpcTier})</p>`;
+                        output.innerHTML += '<p>🔧 <strong>FIX:</strong> RPC should read from user_memberships and return exact tier value</p>';
+                    }
+                    
+                    if (hiMemberTier !== rpcTier) {
+                        output.innerHTML += `<p class="warning">⚠️ hi_members (${hiMemberTier}) != RPC (${rpcTier})</p>`;
+                    }
+                }
+                
+                // ===== DISPLAY NAME CHECK =====
+                output.innerHTML += '<h2>🎨 DISPLAY NAME CHECK</h2>';
+                
+                if (window.HiTierConfig) {
+                    const displayName = window.HiTierConfig.getTierConfig(rpcTier)?.displayName || 'NOT FOUND';
+                    output.innerHTML += `<p>For tier <code>${rpcTier}</code>, display name should be: <strong style="color: #0ff;">${displayName}</strong></p>`;
+                    
+                    if (displayName === 'NOT FOUND') {
+                        output.innerHTML += '<p class="error">❌ TIER_CONFIG.js does not have entry for this tier!</p>';
+                    } else {
+                        output.innerHTML += '<p class="success">✅ Display name found in TIER_CONFIG.js</p>';
+                    }
+                } else {
+                    output.innerHTML += '<p class="error">❌ HiTierConfig not loaded</p>';
+                }
+                
+                // ===== RECOMMENDATIONS =====
+                output.innerHTML += '<h2>💡 RECOMMENDATIONS</h2>';
+                
+                if (!allMatch) {
+                    output.innerHTML += '<ol style="color: #fff;">';
+                    output.innerHTML += '<li><strong>Standardize on ONE table:</strong> Use <code>user_memberships.tier</code> as single source of truth</li>';
+                    output.innerHTML += '<li><strong>Fix RPC:</strong> Ensure <code>get_unified_membership()</code> reads from <code>user_memberships</code> table</li>';
+                    output.innerHTML += '<li><strong>Sync data:</strong> Update <code>hi_members.membership_tier</code> to match <code>user_memberships.tier</code></li>';
+                    output.innerHTML += '<li><strong>Update TIER_CONFIG.js:</strong> Ensure all 6 tiers (free, bronze, silver, gold, premium, collective) have entries</li>';
+                    output.innerHTML += '<li><strong>Fix frontend:</strong> Update HiMembership.js to use tier from RPC without transformation</li>';
+                    output.innerHTML += '</ol>';
+                } else {
+                    output.innerHTML += '<p class="success">✅ No action needed - system is consistent</p>';
+                }
+                
+            } catch (error) {
+                output.innerHTML += `<p class="error">❌ Fatal error: ${error.message}</p>`;
+                console.error(error);
+            }
+        }
+        
+        // Auto-run on load
+        window.addEventListener('load', () => {
+            setTimeout(runDiagnostic, 500);
+        });
+    </script>
+</body>
+</html>
