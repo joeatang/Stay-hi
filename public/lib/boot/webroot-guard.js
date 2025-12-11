@@ -22,21 +22,28 @@
   const tag = '[HI-OS][WEBROOT]';
   if (PASS) console.log(`${tag} ${msg}`); else console.error(`${tag} ${msg}`);
   try {
-    const badge = document.createElement('div');
-    badge.textContent = msg;
-    badge.setAttribute('id', 'hi-webroot-guard');
-    badge.style.position = 'fixed';
-    badge.style.bottom = '12px';
-    badge.style.right = '12px';
-    badge.style.zIndex = '99999';
-    badge.style.padding = '8px 10px';
-    badge.style.fontFamily = 'system-ui,-apple-system,Segoe UI,Roboto,Arial';
-    badge.style.fontSize = '12px';
-    badge.style.borderRadius = '6px';
-    badge.style.border = PASS ? '1px solid #1f7a1f' : '1px solid #a00';
-    badge.style.background = PASS ? '#eaffea' : '#ffecec';
-    badge.style.color = PASS ? '#0c540c' : '#7a0000';
-    document.body.appendChild(badge);
+    const injectBadge = () => {
+      const badge = document.createElement('div');
+      badge.textContent = msg;
+      badge.setAttribute('id', 'hi-webroot-guard');
+      badge.style.position = 'fixed';
+      badge.style.bottom = '12px';
+      badge.style.right = '12px';
+      badge.style.zIndex = '99999';
+      badge.style.padding = '8px 10px';
+      badge.style.fontFamily = 'system-ui,-apple-system,Segoe UI,Roboto,Arial';
+      badge.style.fontSize = '12px';
+      badge.style.borderRadius = '6px';
+      badge.style.border = PASS ? '1px solid #1f7a1f' : '1px solid #a00';
+      badge.style.background = PASS ? '#eaffea' : '#ffecec';
+      badge.style.color = PASS ? '#0c540c' : '#7a0000';
+      document.body.appendChild(badge);
+    };
+    if (document.body) {
+      injectBadge();
+    } else {
+      document.addEventListener('DOMContentLoaded', injectBadge);
+    }
   } catch (e) {
     console.warn('[HI-OS][WEBROOT] badge inject failed:', e);
   }

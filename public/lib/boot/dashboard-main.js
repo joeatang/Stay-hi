@@ -561,7 +561,8 @@
         import('../stats/StatsDebugOverlay.js').catch(()=>{});
       }
     } catch (e) { console.warn('Unified stats loader optional:', e); }
-    import('../ui/stats/initHiStats.js').then(async ({ initHiStatsOnce }) => {
+    // Removed broken import - stats initialize via other methods
+    // import('../ui/stats/initHiStats.js').then(async ({ initHiStatsOnce }) => {
       const { trackShareSubmission } = await import('../stats/GoldStandardTracker.js');
       if (!window.trackShareSubmission || !window.trackShareSubmission.__HI_ENHANCED__){
         if (!window.__TRACK_SHARE_INIT__){

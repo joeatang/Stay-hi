@@ -89,7 +89,7 @@
       };
       
       medallion.addEventListener('click', handleMedallionTap);
-      medallion.addEventListener('touchstart', handleMedallionTap);
+      medallion.addEventListener('touchstart', handleMedallionTap, { passive: true });
     }
     
     checkTapMilestones() {
