@@ -40,7 +40,17 @@
             const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             
             try {
-                // 1. Check for magic link (email verification flow)
+                // 1. Check for PASSWORD RECOVERY first (priority)
+                const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                const isRecovery = hashParams.get('type') === 'recovery';
+                
+                if (isRecovery) {
+                    console.log('🔐 PASSWORD RECOVERY TOKEN DETECTED → Redirecting to reset-password.html');
+                    window.location.replace('/public/reset-password.html' + window.location.hash);
+                    return;
+                }
+                
+                // 2. Check for magic link (email verification flow)
                 const hash = window.location.hash;
                 const isMagicLink = hash.includes('access_token') || hash.includes('refresh_token');
                 
