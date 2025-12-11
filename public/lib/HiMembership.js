@@ -94,6 +94,13 @@ class UnifiedMembershipSystem {
         return;
       }
 
+      // 🛑 CRITICAL FIX: Handle null/undefined membership data from database
+      if (!membership) {
+        console.warn('⚠️ No membership data returned from database, setting anonymous access');
+        this.setAnonymousAccess();
+        return;
+      }
+
       this.membershipStatus = membership;
       try {
         localStorage.setItem('isAdmin', membership?.is_admin ? 'true' : 'false');
