@@ -102,56 +102,53 @@ class UnifiedMembershipSystem {
         const DEV_USER_ID = '7878a4d0-0df3-4a43-a3e9-26449d44db5f';
         if (user.id === DEV_USER_ID) {
           console.log('🔧 DEV MODE: Auto-provisioning premium membership for dev user');
-          try {
-            // Try to create membership via RPC
-            const provisionResult = await this.supabase.rpc('provision_dev_membership', {
-              p_user_id: user.id,
-              p_tier: 'premium'
-            }).catch(() => null);
-            
-            // If RPC doesn't exist, try direct insert
-            if (!provisionResult || provisionResult.error) {
-              console.log('🔧 Trying direct membership creation...');
-              const { data: insertedMembership, error: insertError } = await this.supabase
+          
+          // ⚡ IMMEDIATE FALLBACK: Use local premium membership without database
+          // This ensures dev experience is not blocked by database issues
+          membership = {
+            tier: 'premium',
+            level: 5,
+            status: 'active',
+            created_at: new Date().toISOString(),
+            expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+            days_remaining: 365,
+            can_access_calendar: true,
+            can_access_hi_muscle: true,
+            upgrade_available: false,
+            features: this.getFeaturesByTier('premium'),
+            isAnonymous: false,
+            is_admin: false,
+            _dev_mode: true // Flag to indicate this is a dev-provisioned membership
+          };
+          
+          console.log('✅ DEV: Using local premium membership (features fully unlocked)');
+          
+          // Try to persist to database in background (non-blocking)
+          setTimeout(async () => {
+            try {
+              console.log('🔧 Attempting background database sync for dev membership...');
+              const { error: insertError } = await this.supabase
                 .from('memberships')
                 .upsert({
                   user_id: user.id,
                   tier: 'premium',
                   status: 'active',
                   created_at: new Date().toISOString(),
-                  expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 year
+                  expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
                 }, { 
-                  onConflict: 'user_id',
-                  returning: 'representation' 
-                })
-                .select()
-                .single();
+                  onConflict: 'user_id'
+                });
               
               if (insertError) {
-                console.error('❌ Auto-provision failed:', insertError);
-                console.log('📋 Please run CREATE_PREMIUM_MEMBERSHIP.sql manually');
-                this.setAnonymousAccess();
-                return;
+                console.warn('⚠️ Background DB sync failed (RLS policy?), continuing with local membership');
+                console.log('📋 Run CREATE_PREMIUM_MEMBERSHIP.sql in Supabase to persist membership');
+              } else {
+                console.log('✅ Dev membership synced to database');
               }
-              
-              // Success! Use the premium tier features directly
-              membership = {
-                tier: 'premium',
-                status: 'active',
-                expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-                features: this.getFeaturesByTier('premium'),
-                isAnonymous: false,
-                is_admin: false
-              };
-              
-              console.log('✅ DEV: Premium membership auto-created!');
+            } catch (err) {
+              console.warn('⚠️ Background sync exception:', err.message);
             }
-          } catch (autoProvisionError) {
-            console.error('❌ Auto-provision exception:', autoProvisionError);
-            console.log('📋 Please run CREATE_PREMIUM_MEMBERSHIP.sql manually in Supabase SQL Editor');
-            this.setAnonymousAccess();
-            return;
-          }
+          }, 1000);
         } else {
           // Non-dev user with no membership → anonymous access
           this.setAnonymousAccess();
