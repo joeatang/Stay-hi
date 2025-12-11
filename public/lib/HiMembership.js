@@ -96,9 +96,67 @@ class UnifiedMembershipSystem {
 
       // 🛑 CRITICAL FIX: Handle null/undefined membership data from database
       if (!membership) {
-        console.warn('⚠️ No membership data returned from database, setting anonymous access');
-        this.setAnonymousAccess();
-        return;
+        console.warn('⚠️ No membership data returned from database');
+        
+        // 🔧 DEV AUTO-PROVISION: Create premium membership for specific dev user
+        const DEV_USER_ID = '7878a4d0-0df3-4a43-a3e9-26449d44db5f';
+        if (user.id === DEV_USER_ID) {
+          console.log('🔧 DEV MODE: Auto-provisioning premium membership for dev user');
+          try {
+            // Try to create membership via RPC
+            const provisionResult = await this.supabase.rpc('provision_dev_membership', {
+              p_user_id: user.id,
+              p_tier: 'premium'
+            }).catch(() => null);
+            
+            // If RPC doesn't exist, try direct insert
+            if (!provisionResult || provisionResult.error) {
+              console.log('🔧 Trying direct membership creation...');
+              const { data: insertedMembership, error: insertError } = await this.supabase
+                .from('memberships')
+                .upsert({
+                  user_id: user.id,
+                  tier: 'premium',
+                  status: 'active',
+                  created_at: new Date().toISOString(),
+                  expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 year
+                }, { 
+                  onConflict: 'user_id',
+                  returning: 'representation' 
+                })
+                .select()
+                .single();
+              
+              if (insertError) {
+                console.error('❌ Auto-provision failed:', insertError);
+                console.log('📋 Please run CREATE_PREMIUM_MEMBERSHIP.sql manually');
+                this.setAnonymousAccess();
+                return;
+              }
+              
+              // Success! Use the premium tier features directly
+              membership = {
+                tier: 'premium',
+                status: 'active',
+                expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+                features: this.getFeaturesByTier('premium'),
+                isAnonymous: false,
+                is_admin: false
+              };
+              
+              console.log('✅ DEV: Premium membership auto-created!');
+            }
+          } catch (autoProvisionError) {
+            console.error('❌ Auto-provision exception:', autoProvisionError);
+            console.log('📋 Please run CREATE_PREMIUM_MEMBERSHIP.sql manually in Supabase SQL Editor');
+            this.setAnonymousAccess();
+            return;
+          }
+        } else {
+          // Non-dev user with no membership → anonymous access
+          this.setAnonymousAccess();
+          return;
+        }
       }
 
       this.membershipStatus = membership;
