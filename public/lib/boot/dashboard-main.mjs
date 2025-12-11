@@ -90,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!medallionElement || medallionElement.__longPressSetup) return;
     medallionElement.__longPressSetup = true;
     let longPressTimer = null; let rafId = null; let startTime = 0; let startX=0; let startY=0;
+    let longPressCompleted = false; // 🛑 WOZ: Track if long-press completed
     const LONG_PRESS_DURATION = 1500; // slightly easier
     const MOVE_TOLERANCE = 12; // px
     function loop(){
@@ -100,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
       rafId = requestAnimationFrame(loop);
     }
     function startLongPress(e){
+      longPressCompleted = false; // 🛑 WOZ: Reset flag
       e.preventDefault();
       const pt = (e.touches && e.touches[0]) || e;
       startX = pt.clientX || 0; startY = pt.clientY || 0;
@@ -114,8 +116,26 @@ document.addEventListener('DOMContentLoaded', () => {
       const dx = (pt.clientX||0) - startX; const dy = (pt.clientY||0) - startY;
       return (dx*dx + dy*dy) > (MOVE_TOLERANCE*MOVE_TOLERANCE);
     }
-    function cancelLongPress(){ if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer=null; } if(rafId){ cancelAnimationFrame(rafId); rafId=null; } medallionElement.classList.remove('long-press-active','long-press-filling','long-press-complete'); medallionElement.style.removeProperty('--progress'); }
-    function completeLongPress(){ cancelLongPress(); medallionElement.classList.add('long-press-complete'); try{ navigator?.vibrate?.(100);}catch{} console.log('🎯 Long-press completed - triggering Hi 5 flow'); triggerHi5Flow(); setTimeout(()=>{ medallionElement.classList.remove('long-press-complete'); }, 500); }
+    function cancelLongPress(){ longPressCompleted = false; if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer=null; } if(rafId){ cancelAnimationFrame(rafId); rafId=null; } medallionElement.classList.remove('long-press-active','long-press-filling','long-press-complete'); medallionElement.style.removeProperty('--progress'); }
+    function completeLongPress(){ 
+      longPressCompleted = true; // 🛑 WOZ: Mark as completed
+      cancelLongPress(); 
+      medallionElement.classList.add('long-press-complete'); 
+      try{ navigator?.vibrate?.(100);}catch{} 
+      console.log('🎯 Long-press completed - triggering Hi 5 flow'); 
+      triggerHi5Flow(); 
+      setTimeout(()=>{ medallionElement.classList.remove('long-press-complete'); longPressCompleted = false; }, 500); 
+    }
+    
+    // 🛑 WOZ FIX: Block click events if long-press completed to prevent double-fire
+    medallionElement.addEventListener('click', (e) => {
+      if (longPressCompleted) {
+        console.log('🚫 Blocking click after long-press completion');
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      }
+    }, { capture: true }); // Use capture phase to intercept BEFORE other listeners
+    
     medallionElement.addEventListener('touchstart', startLongPress, { passive:false });
     medallionElement.addEventListener('mousedown', startLongPress);
     medallionElement.addEventListener('touchend', cancelLongPress);
