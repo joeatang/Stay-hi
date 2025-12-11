@@ -94,9 +94,10 @@ class UnifiedMembershipSystem {
         return;
       }
 
-      // 🛑 CRITICAL FIX: Handle null/undefined membership data from database
-      if (!membership) {
-        console.warn('⚠️ No membership data returned from database');
+      // 🛑 CRITICAL FIX: Handle null/undefined/empty membership data from database
+      // Check for: null, undefined, empty object, or object without tier
+      if (!membership || (typeof membership === 'object' && !membership.tier)) {
+        console.warn('⚠️ No membership data returned from database', { membership, userId: user.id });
         
         // 🔧 DEV AUTO-PROVISION: Create premium membership for specific dev user
         const DEV_USER_ID = '7878a4d0-0df3-4a43-a3e9-26449d44db5f';
@@ -121,7 +122,7 @@ class UnifiedMembershipSystem {
             _dev_mode: true // Flag to indicate this is a dev-provisioned membership
           };
           
-          console.log('✅ DEV: Using local premium membership (features fully unlocked)');
+          console.log('✅ DEV: Using local premium membership (features fully unlocked)', membership);
           
           // Try to persist to database in background (non-blocking)
           setTimeout(async () => {
