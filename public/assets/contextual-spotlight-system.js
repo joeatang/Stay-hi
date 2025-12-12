@@ -283,8 +283,10 @@
       // Highlight sharing capabilities
       const shareButtons = document.querySelectorAll('[class*="share"], [id*="share"]');
       if (shareButtons.length > 0) {
+        // Pass CSS selector string, not DOM element
+        const selector = shareButtons[0].id ? `#${shareButtons[0].id}` : `.${shareButtons[0].className.split(' ')[0]}`;
         this.showSpotlight('shareButtons', {
-          selector: shareButtons[0],
+          selector: selector,
           message: '📱 Share your Hi moments',
           subtitle: 'Connect with the global community',
           position: 'auto',

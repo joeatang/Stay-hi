@@ -82,15 +82,56 @@ class HiBrandTierSystem {
         description: 'Permanent Hi member'
       },
       
-      // ===== HI-OS MEMBERSHIP TIERS =====
-      'collective': {
-        name: 'Collective',
-        color: '#8B5CF6',
-        emoji: '🏛️',
-        gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        description: 'Hi Collective - Full access + Admin'
+      // ===== HI-OS MEMBERSHIP TIERS (PRODUCTION V1) =====
+      'free': {
+        name: 'Hi Explorer',
+        color: '#10B981',
+        emoji: '🌱',
+        gradient: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+        description: 'Free tier - 5 shares/month, private only'
       },
       
+      'bronze': {
+        name: 'Hi Pathfinder',
+        color: '#CD7F32',
+        emoji: '🧭',
+        gradient: 'linear-gradient(135deg, #f2994a 0%, #f2c94c 100%)',
+        description: 'Bronze tier - 30 shares/month, all types'
+      },
+      
+      'silver': {
+        name: 'Hi Trailblazer',
+        color: '#C0C0C0',
+        emoji: '⚡',
+        gradient: 'linear-gradient(135deg, #bdc3c7 0%, #2c3e50 100%)',
+        description: 'Silver tier - 75 shares/month, all types'
+      },
+      
+      'gold': {
+        name: 'Hi Champion',
+        color: '#FFD700',
+        emoji: '🏆',
+        gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+        description: 'Gold tier - 150 shares/month, all types'
+      },
+      
+      'premium': {
+        name: 'Hi Pioneer',
+        color: '#F59E0B',
+        emoji: '🔥',
+        gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+        description: 'Premium tier - Unlimited shares'
+      },
+      
+      'collective': {
+        name: 'Hi Collective',
+        color: '#8B5CF6',
+        emoji: '🌟',
+        gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        description: 'Collective tier - Unlimited + Admin access'
+      },
+      
+      // ===== LEGACY TIERS (DEPRECATED) =====
       'enhanced': {
         name: 'Enhanced',
         color: '#3B82F6',
@@ -107,7 +148,7 @@ class HiBrandTierSystem {
         description: 'Starter tier - Core features'
       },
       
-      // ===== LEGACY/ALTERNATE NAMES =====
+      // ===== LEGACY/ALTERNATE NAMES (DEPRECATED) =====
       'registered': {
         name: 'Hi Friend',
         color: '#6B7280',
@@ -121,15 +162,31 @@ class HiBrandTierSystem {
         color: '#3B82F6',
         emoji: '⚡',
         gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        description: 'Standard access'
+        description: 'Standard access (OLD - use bronze instead)'
       },
       
-      'premium': {
-        name: 'Hi Pioneer',
-        color: '#F59E0B',
-        emoji: '🔥',
-        gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-        description: 'Premium member'
+      'trial': {
+        name: 'Hi Explorer',
+        color: '#10B981',
+        emoji: '🌱',
+        gradient: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+        description: 'Trial access (OLD - use free instead)'
+      },
+      
+      'beta': {
+        name: 'Hi Pathfinder',
+        color: '#CD7F32',
+        emoji: '🧭',
+        gradient: 'linear-gradient(135deg, #f2994a 0%, #f2c94c 100%)',
+        description: 'Beta access (OLD - use bronze instead)'
+      },
+      
+      'lifetime': {
+        name: 'Hi Collective',
+        color: '#8B5CF6',
+        emoji: '🌟',
+        gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        description: 'Lifetime access (OLD - use collective instead)'
       },
       
       'elite': {

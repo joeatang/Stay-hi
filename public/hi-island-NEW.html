@@ -22,8 +22,8 @@
 
   <!-- Unified Access Gate (replaces legacy anonymous modal) -->
   <script src="assets/hi-paths.js"></script>
-  <!-- 🎯 TIER CONFIG - Must load BEFORE HiMembership -->
-  <script src="lib/config/TIER_CONFIG.js" type="module"></script>
+  <!-- 🎯 TIER CONFIG - Must load BEFORE HiMembership (GLOBAL SCRIPT, not module) -->
+  <script src="lib/config/TIER_CONFIG.js"></script>
   <script src="lib/membership/HiMembershipBridge.js"></script>
   <script src="lib/access/AccessGate.js"></script>
   <script src="components/AccessGateModal.js"></script>
@@ -34,9 +34,6 @@
   <script src="lib/access/AuthShim.js"></script>
   <!-- Silence verbose logs in production unless debug flags are present -->
   <script src="lib/boot/prod-quiet-console.js"></script>
-  
-  <!-- 🎯 Tesla-Grade Tier System -->
-  <script src="assets/hi-tier-system.js" async></script>
   
   <!-- 🚀 Hi Upgrade Modal System -->
   <link rel="stylesheet" href="ui/HiUpgradeModal/HiUpgradeModal.css">

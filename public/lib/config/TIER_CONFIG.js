@@ -20,8 +20,10 @@
  * Loaded via <script src> in HTML, exposes window.HiTierConfig
  */
 
+console.log('🎯 TIER_CONFIG.js loading...');
+
 const TIER_CONFIG = {
-  // ===== TIER 1: FREE (Default/Anonymous) =====
+  // ===== TIER 1: FREE (Beta Tester) =====
   free: {
     level: 1,
     name: 'Free Explorer',
@@ -29,114 +31,115 @@ const TIER_CONFIG = {
     emoji: '🌱',
     color: '#6B7280',
     gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    trialDays: 0,
+    trialDays: 90, // 90-day beta testing period
     price: 0,
-    description: 'Discover Hi with limited features',
+    description: 'Test Hi with limited sharing (invite required)',
     
     features: {
       // Medallion Interactions
-      hiMedallionInteractions: 10, // 10 taps per day
-      tapCooldown: 60, // seconds between taps
+      hiMedallionInteractions: 'unlimited', // Unlimited taps for all tiers
+      tapCooldown: 0, // No cooldown
       
       // Map Access
-      mapAccess: 'preview', // Can view 5 locations
-      mapRadius: 5, // miles
+      mapAccess: 'full', // Full map access for all tiers
+      mapRadius: 'unlimited',
       
       // Sharing
-      shareCreation: false, // Cannot create shares
-      shareViewing: 'public_only', // Can only view public shares
-      
-      // Profile
-      profileAccess: 'view_only', // Can view but not edit
-      avatarUpload: false,
-      usernameChange: false,
-      
-      // Advanced Features
-      hiMuscleAccess: false, // No emotional journey tracking
-      calendarAccess: false, // No calendar view
-      trendsAccess: false, // No trend analytics
-      archiveAccess: 'none', // Cannot save moments
-      
-      // Community
-      communityStats: 'view_only',
-      leaderboard: 'hidden'
-    },
-    
-    upgradePrompt: 'Upgrade to unlock unlimited taps, sharing, and emotional journey tracking!',
-    ctaText: 'Upgrade to Bronze'
-  },
-
-  // ===== TIER 2: BRONZE (Entry Level) =====
-  bronze: {
-    level: 2,
-    name: 'Bronze Member',
-    displayName: 'Hi Pathfinder',
-    emoji: '🥉',
-    color: '#CD7F32',
-    gradient: 'linear-gradient(135deg, #D4A574 0%, #8B6F47 100%)',
-    trialDays: 7, // 7-day trial
-    price: 5.55,
-    description: 'Start your Hi journey with essential features',
-    
-    features: {
-      // Medallion Interactions
-      hiMedallionInteractions: 50, // 50 taps per day
-      tapCooldown: 30, // seconds between taps
-      
-      // Map Access
-      mapAccess: 'basic', // Can view 20 locations
-      mapRadius: 20, // miles
-      
-      // Sharing
-      shareCreation: 10, // 10 shares per month
-      shareViewing: 'all', // View all shares (public + anonymous + private with access)
-      shareTypes: ['public', 'anonymous'], // Can create public and anonymous shares
+      shareCreation: 5, // 5 shares per month (test drive)
+      shareViewing: 'all', // Can view all public shares
+      shareTypes: ['private'], // Private shares only
       
       // Profile
       profileAccess: 'basic', // Can edit profile
-      avatarUpload: true,
-      usernameChange: true, // Once per month
+      avatarUpload: false, // Default avatar only
+      usernameChange: true,
       
       // Advanced Features
-      hiMuscleAccess: 'basic', // Basic emotional journey tracking (10 journeys/month)
-      calendarAccess: false, // No calendar view
-      trendsAccess: false, // No trend analytics
-      archiveAccess: 'basic', // Save up to 50 moments
+      hiMuscleAccess: true, // Hi Muscle access for all tiers
+      calendarAccess: true, // Calendar access for all paid tiers (free gets it too for beta)
+      trendsAccess: false,
+      archiveAccess: 'basic',
       
       // Community
       communityStats: 'basic',
       leaderboard: 'visible'
     },
     
-    upgradePrompt: 'Upgrade to Silver for unlimited shares and full emotional analytics!',
+    upgradePrompt: 'Upgrade to Bronze for 30 shares/month and public sharing!',
+    ctaText: 'Upgrade to Bronze'
+  },
+
+  // ===== TIER 2: BRONZE (Entry Premium) =====
+  bronze: {
+    level: 2,
+    name: 'Bronze Member',
+    displayName: 'Hi Pathfinder',
+    emoji: '🧭',
+    color: '#CD7F32',
+    gradient: 'linear-gradient(135deg, #D4A574 0%, #8B6F47 100%)',
+    trialDays: 90, // 90-day beta testing period
+    price: 5.55,
+    description: 'Share daily with the Hi community',
+    
+    features: {
+      // Medallion Interactions
+      hiMedallionInteractions: 'unlimited',
+      tapCooldown: 0,
+      
+      // Map Access
+      mapAccess: 'full',
+      mapRadius: 'unlimited',
+      
+      // Sharing
+      shareCreation: 30, // 30 shares per month (1 per day)
+      shareViewing: 'all',
+      shareTypes: ['private', 'public', 'anonymous'], // All share types
+      
+      // Profile
+      profileAccess: 'full',
+      avatarUpload: true,
+      usernameChange: 'unlimited',
+      
+      // Advanced Features
+      hiMuscleAccess: true,
+      calendarAccess: true,
+      trendsAccess: false,
+      archiveAccess: 'full',
+      
+      // Community
+      communityStats: 'full',
+      leaderboard: 'visible'
+    },
+    
+    upgradePrompt: 'Upgrade to Silver for 75 shares/month!',
     ctaText: 'Upgrade to Silver'
   },
 
-  // ===== TIER 3: SILVER (Popular Choice) =====
+  // ===== TIER 3: SILVER (Power User) =====
   silver: {
     level: 3,
     name: 'Silver Member',
     displayName: 'Hi Trailblazer',
-    emoji: '🥈',
+    emoji: '⚡',
     color: '#C0C0C0',
     gradient: 'linear-gradient(135deg, #E8E8E8 0%, #A0A0A0 100%)',
-    trialDays: 14, // 14-day trial
+    trialDays: 90, // 90-day beta testing period
     price: 15.55,
-    description: 'Enhanced features with unlimited sharing',
+    description: 'Share multiple times daily',
     
     features: {
       // Medallion Interactions
-      hiMedallionInteractions: 100, // 100 taps per day
-      tapCooldown: 15, // seconds between taps
+      hiMedallionInteractions: 'unlimited',
+      tapCooldown: 0,
       
       // Map Access
-      mapAccess: 'full', // Can view all locations
+      mapAccess: 'full',
       mapRadius: 'unlimited',
       
       // Sharing
-      shareCreation: 50, // 50 shares per month
+      shareCreation: 75, // 75 shares per month (2-3 per day)
       shareViewing: 'all',
-      shareTypes: ['public', 'anonymous', 'private'], // All share types
+      shareTypes: ['private', 'public', 'anonymous'], // All share types
       
       // Profile
       profileAccess: 'full', // Full profile editing
@@ -155,91 +158,91 @@ const TIER_CONFIG = {
       leaderboard: 'visible_with_rank'
     },
     
-    upgradePrompt: 'Upgrade to Gold for unlimited taps and premium analytics!',
+    upgradePrompt: 'Upgrade to Gold for 150 shares/month!',
     ctaText: 'Upgrade to Gold'
   },
 
-  // ===== TIER 4: GOLD (Premium Features) =====
+  // ===== TIER 4: GOLD (Enthusiast) =====
   gold: {
     level: 4,
     name: 'Gold Member',
     displayName: 'Hi Champion',
-    emoji: '🥇',
+    emoji: '🏆',
     color: '#FFD700',
     gradient: 'linear-gradient(135deg, #FFE066 0%, #CC9900 100%)',
-    trialDays: 21, // 21-day trial
+    trialDays: 90, // 90-day beta testing period
     price: 25.55,
-    description: 'Premium access with advanced analytics',
+    description: 'Share multiple times daily',
     
     features: {
       // Medallion Interactions
-      hiMedallionInteractions: 'unlimited', // Unlimited taps
-      tapCooldown: 0, // No cooldown
+      hiMedallionInteractions: 'unlimited',
+      tapCooldown: 0,
       
       // Map Access
       mapAccess: 'full',
       mapRadius: 'unlimited',
-      mapFilters: true, // Advanced map filters
+      mapFilters: true,
       
       // Sharing
-      shareCreation: 'unlimited', // Unlimited shares
+      shareCreation: 150, // 150 shares per month (5 per day)
       shareViewing: 'all',
-      shareTypes: ['public', 'anonymous', 'private', 'scheduled'], // + scheduled shares
-      shareAnalytics: 'basic', // View share performance
+      shareTypes: ['private', 'public', 'anonymous'], // All share types
+      shareAnalytics: 'basic',
       
       // Profile
       profileAccess: 'full',
       avatarUpload: true,
       usernameChange: 'unlimited',
       customThemes: true,
-      profileBadges: true, // Display achievement badges
+      profileBadges: true,
       
       // Advanced Features
-      hiMuscleAccess: 'unlimited', // Unlimited emotional journey tracking
+      hiMuscleAccess: true,
       calendarAccess: true,
-      trendsAccess: 'full', // Full trend analytics with insights
+      trendsAccess: 'full',
       archiveAccess: 'unlimited',
-      exportData: true, // Export all personal data
+      exportData: true,
       
       // Community
       communityStats: 'full',
       leaderboard: 'visible_with_rank',
-      directMessages: 'basic' // DM other users
+      directMessages: 'basic'
     },
     
-    upgradePrompt: 'Upgrade to Premium for priority support and exclusive features!',
+    upgradePrompt: 'Upgrade to Premium for unlimited shares!',
     ctaText: 'Upgrade to Premium'
   },
 
-  // ===== TIER 5: PREMIUM (All Features) =====
+  // ===== TIER 5: PREMIUM (Unlimited) =====
   premium: {
     level: 5,
     name: 'Premium Member',
     displayName: 'Hi Pioneer',
-    emoji: '⭐',
+    emoji: '🔥',
     color: '#F59E0B',
     gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-    trialDays: 30, // 30-day trial (current default)
+    trialDays: 90, // 90-day beta testing period
     price: 55.55,
-    description: 'Complete Hi experience with all features unlocked',
+    description: 'Unlimited sharing and all features',
     
     features: {
       // Medallion Interactions
       hiMedallionInteractions: 'unlimited',
       tapCooldown: 0,
-      tapInsights: true, // Advanced tap analytics
+      tapInsights: true,
       
       // Map Access
       mapAccess: 'full',
       mapRadius: 'unlimited',
       mapFilters: true,
-      mapHeatmap: true, // Emotional heatmap overlay
+      mapHeatmap: true,
       
       // Sharing
       shareCreation: 'unlimited',
       shareViewing: 'all',
-      shareTypes: ['public', 'anonymous', 'private', 'scheduled', 'collaborative'], // + collaborative shares
-      shareAnalytics: 'full', // Full share analytics + insights
+      shareTypes: ['private', 'public', 'anonymous'], // All share types
+      shareAnalytics: 'full',
       shareScheduling: 'unlimited',
       
       // Profile
@@ -294,7 +297,7 @@ const TIER_CONFIG = {
       mapHeatmap: true,
       shareCreation: 'unlimited',
       shareViewing: 'all',
-      shareTypes: ['public', 'anonymous', 'private', 'scheduled', 'collaborative'],
+      shareTypes: ['private', 'public', 'anonymous'], // All share types
       shareAnalytics: 'full',
       shareScheduling: 'unlimited',
       profileAccess: 'full',
@@ -441,4 +444,5 @@ if (typeof window !== 'undefined') {
     getUpgradeCTA,
     isValidTier
   };
+  console.log('✅ window.HiTierConfig initialized with', Object.keys(TIER_CONFIG).length, 'tiers');
 }

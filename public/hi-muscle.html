@@ -2614,28 +2614,18 @@
           console.log('💪 [HiGYM] Opening share sheet with tracking-enabled instance:', { origin, options });
           
           // 🔒 WOZNIAK-GRADE: Auth check for anonymous users BEFORE opening share sheet
-          // Wait for membership to load if needed
-          if (!window.unifiedMembership?.membershipStatus) {
-            console.log('⏳ Waiting for membership to load...');
-            await window.unifiedMembership?.loadMembershipStatus?.();
-          }
-          
-          // Check auth status - CRITICAL: Check for actual logged-in user first
+          // Check if user has active session
           const hasSession = window.supabase?.auth?.getSession ? 
             !!(await window.supabase.auth.getSession())?.data?.session : false;
           
-          // Check membership tier access
-          const hasShareAccess = window.unifiedMembership?.canAccess?.('shareCreation');
-          
-          // User must be logged in AND not anonymous tier
-          const canShare = hasSession && hasShareAccess;
+          // All authenticated users can open share sheet
+          // Tier enforcement happens INSIDE HiShareSheet.js (lines 328-377)
+          const canShare = hasSession;
           
           console.log('🔍 [HiGYM] Share access check:', { 
             hasSession, 
-            hasShareAccess, 
             canShare,
-            tier: window.unifiedMembership?.membershipStatus?.tier,
-            isAnonymous: window.unifiedMembership?.membershipStatus?.isAnonymous
+            tier: window.HiMembership?.tier || window.unifiedMembership?.membershipStatus?.tier
           });
           
           if (!canShare) {

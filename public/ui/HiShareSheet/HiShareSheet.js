@@ -286,17 +286,27 @@ export class HiShareSheet {
 
   // 🔐 TESLA-GRADE: Update share options based on authentication state
   async updateShareOptionsForAuthState() {
-    // Check authentication via multiple sources (Hi System Standard)
-    const isAuthenticated = await this.checkAuthentication();
+    console.log('🔐 [updateShareOptionsForAuthState] FUNCTION CALLED');
     
-    // 🎯 FUTURE: Tier system infrastructure ready (currently unused)
-    // const membership = await this.getMembershipTier();
-    // const tier = membership?.tier || 'free';
+    try {
+      // Check authentication via multiple sources (Hi System Standard)
+      console.log('🔍 [AUTH CHECK] Calling checkAuthentication()...');
+      const isAuthenticated = await this.checkAuthentication();
+      console.log('✅ [AUTH CHECK] Result:', isAuthenticated);
+    
+    // 🎯 TIER SYSTEM ACTIVE: Check membership tier for feature gating
+    console.log('🔍 [TIER CHECK] Calling getMembershipTier()...');
+    const membership = await this.getMembershipTier();
+    console.log('✅ [TIER CHECK] Result:', membership);
+    const tier = membership?.tier || 'free';
+    console.log('✅ [TIER] Final tier value:', tier);
     
     const authPromptBtn = document.getElementById('hi-share-auth-prompt');
     const shareAnonBtn = document.getElementById('hi-share-anon');
     const sharePublicBtn = document.getElementById('hi-share-public');
-    const sharePrivateBtn = document.getElementById('hi-share-private');
+    const sharePrivateBtn = document.getElementById('hi-save-private'); // FIXED: Correct ID
+    
+    console.log('🔍 [BUTTONS] Found:', { authPromptBtn: !!authPromptBtn, shareAnonBtn: !!shareAnonBtn, sharePublicBtn: !!sharePublicBtn, sharePrivateBtn: !!sharePrivateBtn });
     
     this._dbg('🔐 Auth state check:', { isAuthenticated });
     
@@ -308,11 +318,13 @@ export class HiShareSheet {
       if (shareAnonBtn) shareAnonBtn.style.display = 'block';
       if (sharePublicBtn) sharePublicBtn.style.display = 'block';
       
-      // 🎯 TIER-GATING DISABLED: All authenticated users get full access
-      // When tier system launches, uncomment lines 292-293 and add feature gates
-      // Example: shareAnonBtn.style.display = tier !== 'free' ? 'block' : 'none';
+      console.log('🔓 [SHARE SHEET] Before tier enforcement - all buttons shown');
       
-      this._dbg('✅ Showing all 3 share options for authenticated user');
+      // 🎯 TIER ENFORCEMENT ACTIVE: Filter share options by membership tier
+      await this.enforceTierLimits(tier, { shareAnonBtn, sharePublicBtn, sharePrivateBtn });
+      
+      console.log('✅ [SHARE SHEET] After tier enforcement for tier:', tier);
+      this._dbg('✅ Share options configured for tier:', tier);
     } else {
       // 🔒 ANONYMOUS: Show Auth Prompt only (SOURCES_OF_TRUTH standard)
       // Per SOURCES_OF_TRUTH.md lines 75-80: Anonymous users get Private + Join prompt
@@ -323,6 +335,230 @@ export class HiShareSheet {
       
       this._dbg('🔒 Anonymous user: showing auth prompt');
     }
+    } catch (error) {
+      console.error('💥 [updateShareOptionsForAuthState] ERROR CAUGHT:', error);
+      console.error('💥 [updateShareOptionsForAuthState] Stack:', error.stack);
+      // Fail open - show all buttons if auth check fails
+      const sharePrivateBtn = document.getElementById('hi-save-private');
+      const shareAnonBtn = document.getElementById('hi-share-anon');
+      const sharePublicBtn = document.getElementById('hi-share-public');
+      if (sharePrivateBtn) sharePrivateBtn.style.display = 'block';
+      if (shareAnonBtn) shareAnonBtn.style.display = 'block';
+      if (sharePublicBtn) sharePublicBtn.style.display = 'block';
+    }
+  }
+
+  // 🎯 Enforce tier-based feature limits
+  async enforceTierLimits(tier, buttons) {
+    console.log('🔥 [enforceTierLimits] CALLED with tier:', tier, '| buttons:', buttons);
+    try {
+      console.log('🔥 [enforceTierLimits] Inside try block');
+      console.log('🔥 [enforceTierLimits] window.HiTierConfig:', window.HiTierConfig);
+      console.log('🔥 [enforceTierLimits] getTierFeatures function:', window.HiTierConfig?.getTierFeatures);
+      
+      // Get tier features from TIER_CONFIG
+      const features = window.HiTierConfig?.getTierFeatures?.(tier) || {};
+      console.log('🎯 [TIER CHECK] Tier:', tier, '| Features:', features);
+      
+      // Check if user can create shares at all
+      if (features.shareCreation === false || features.shareCreation === 0) {
+        // Free tier: Block all sharing
+        this._dbg('🚫 Free tier: Share creation blocked');
+        this.showTierUpgradePrompt('sharing', 'bronze');
+        if (buttons.shareAnonBtn) buttons.shareAnonBtn.style.display = 'none';
+        if (buttons.sharePublicBtn) buttons.sharePublicBtn.style.display = 'none';
+        if (buttons.sharePrivateBtn) buttons.sharePrivateBtn.style.display = 'none';
+        return;
+      }
+      
+      // Check monthly quota for bronze/silver tiers
+      if (typeof features.shareCreation === 'number') {
+        const quota = await this.checkShareQuota(tier, features.shareCreation);
+        if (quota.exceeded) {
+          this._dbg(`🚫 Monthly limit reached: ${quota.used}/${quota.limit}`);
+          this.showQuotaReached(quota.used, quota.limit, tier);
+          if (buttons.shareAnonBtn) buttons.shareAnonBtn.style.display = 'none';
+          if (buttons.sharePublicBtn) buttons.sharePublicBtn.style.display = 'none';
+          if (buttons.sharePrivateBtn) buttons.sharePrivateBtn.style.display = 'none';
+          return;
+        } else {
+          // Show quota counter
+          this.displayShareQuota(quota.used, quota.limit);
+        }
+      }
+      
+      // Filter share types by tier
+      const allowedTypes = features.shareTypes || ['public'];
+      console.log('🎯 [BUTTON FILTER] Allowed types:', allowedTypes, '| Buttons:', Object.keys(buttons));
+      if (buttons.shareAnonBtn) {
+        buttons.shareAnonBtn.style.display = allowedTypes.includes('anonymous') ? 'block' : 'none';
+        console.log('  → Anonymous button:', allowedTypes.includes('anonymous') ? 'SHOW' : 'HIDE');
+      }
+      if (buttons.sharePublicBtn) {
+        buttons.sharePublicBtn.style.display = allowedTypes.includes('public') ? 'block' : 'none';
+        console.log('  → Public button:', allowedTypes.includes('public') ? 'SHOW' : 'HIDE');
+      }
+      if (buttons.sharePrivateBtn) {
+        buttons.sharePrivateBtn.style.display = allowedTypes.includes('private') ? 'block' : 'none';
+        console.log('  → Private button:', allowedTypes.includes('private') ? 'SHOW' : 'HIDE');
+      }
+      
+      this._dbg('✅ Tier limits enforced:', { tier, allowed: allowedTypes });
+      
+    } catch (err) {
+      console.error('⚠️ Tier enforcement failed:', err);
+      // Fail open: Don't block user if tier check fails
+    }
+  }
+
+  // 🎯 Check monthly share quota
+  async checkShareQuota(tier, limit) {
+    try {
+      // Try server-side count first
+      if (window.sb?.rpc) {
+        const { data, error } = await window.sb.rpc('get_user_share_count', { period: 'month' });
+        if (!error && data) {
+          return {
+            used: data.count || 0,
+            limit: limit,
+            exceeded: (data.count || 0) >= limit
+          };
+        }
+      }
+      
+      // Fallback: Client-side tracking (less reliable but better than nothing)
+      const monthKey = new Date().toISOString().slice(0, 7); // '2025-12'
+      const storageKey = `hi_share_count_${monthKey}`;
+      const stored = localStorage.getItem(storageKey);
+      const count = stored ? parseInt(stored, 10) : 0;
+      
+      return {
+        used: count,
+        limit: limit,
+        exceeded: count >= limit
+      };
+    } catch (err) {
+      console.warn('⚠️ Quota check failed:', err);
+      return { used: 0, limit: limit, exceeded: false }; // Fail open
+    }
+  }
+
+  // 🎯 Display share quota counter
+  displayShareQuota(used, limit) {
+    try {
+      const container = document.querySelector('.hi-share-modal');
+      if (!container) return;
+      
+      // Remove existing counter
+      const existing = container.querySelector('.hi-share-quota');
+      if (existing) existing.remove();
+      
+      // Add quota display
+      const quotaHtml = `
+        <div class="hi-share-quota" style="
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: rgba(78, 205, 196, 0.1);
+          border: 1px solid rgba(78, 205, 196, 0.3);
+          border-radius: 12px;
+          padding: 6px 12px;
+          font-size: 12px;
+          color: #4ECDC4;
+          font-weight: 500;
+        ">
+          ${used}/${limit} shares this month
+        </div>
+      `;
+      container.insertAdjacentHTML('afterbegin', quotaHtml);
+    } catch (err) {
+      console.warn('⚠️ Quota display failed:', err);
+    }
+  }
+
+  // 🎯 Show tier upgrade prompt
+  showTierUpgradePrompt(feature, requiredTier) {
+    const tierNames = {
+      'bronze': 'Hi Pathfinder',
+      'silver': 'Hi Trailblazer',
+      'gold': 'Hi Champion'
+    };
+    
+    const messages = {
+      'sharing': `Upgrade to ${tierNames[requiredTier] || 'Bronze'} to start sharing your Hi-5s with the community!`
+    };
+    
+    this.showToast(messages[feature] || 'This feature requires a membership upgrade', 'info');
+    
+    // Show upgrade button in modal
+    setTimeout(() => {
+      const container = document.querySelector('.hi-share-modal');
+      if (container && !container.querySelector('.hi-upgrade-cta')) {
+        const upgradeHtml = `
+          <div class="hi-upgrade-cta" style="
+            margin: 16px 0;
+            padding: 16px;
+            background: linear-gradient(135deg, rgba(78, 205, 196, 0.1), rgba(255, 107, 107, 0.1));
+            border-radius: 16px;
+            text-align: center;
+          ">
+            <p style="margin: 0 0 12px; color: #4ECDC4; font-weight: 600;">Unlock Sharing</p>
+            <a href="/upgrade.html?feature=${feature}" style="
+              display: inline-block;
+              padding: 10px 24px;
+              background: linear-gradient(135deg, #4ECDC4, #FF6B6B);
+              color: white;
+              text-decoration: none;
+              border-radius: 12px;
+              font-weight: 600;
+              transition: transform 0.2s;
+            ">View Plans</a>
+          </div>
+        `;
+        const journal = container.querySelector('#hi-share-journal');
+        if (journal) {
+          journal.parentElement.insertAdjacentHTML('beforebegin', upgradeHtml);
+        }
+      }
+    }, 100);
+  }
+
+  // 🎯 Show quota reached message
+  showQuotaReached(used, limit, tier) {
+    const nextTier = tier === 'bronze' ? 'Silver (Hi Trailblazer)' : 'Gold (Hi Champion)';
+    this.showToast(`You've used all ${limit} shares this month. Upgrade to ${nextTier} for more!`, 'info');
+    
+    setTimeout(() => {
+      const container = document.querySelector('.hi-share-modal');
+      if (container && !container.querySelector('.hi-quota-reached')) {
+        const quotaHtml = `
+          <div class="hi-quota-reached" style="
+            margin: 16px 0;
+            padding: 16px;
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            border-radius: 16px;
+            text-align: center;
+          ">
+            <p style="margin: 0 0 8px; color: #FF6B6B; font-weight: 600;">Monthly Limit Reached</p>
+            <p style="margin: 0 0 12px; font-size: 14px; color: #888;">You've shared ${used}/${limit} times this month</p>
+            <a href="/upgrade.html?from=quota" style="
+              display: inline-block;
+              padding: 10px 24px;
+              background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+              color: white;
+              text-decoration: none;
+              border-radius: 12px;
+              font-weight: 600;
+            ">Upgrade for Unlimited</a>
+          </div>
+        `;
+        const journal = container.querySelector('#hi-share-journal');
+        if (journal) {
+          journal.parentElement.insertAdjacentHTML('beforebegin', quotaHtml);
+        }
+      }
+    }, 100);
   }
 
   // 🎯 Get user membership tier
@@ -354,31 +590,51 @@ export class HiShareSheet {
     return { tier: 'free' };
   }
 
+  // 🎯 Increment share count (client-side tracking)
+  incrementShareCount() {
+    try {
+      const monthKey = new Date().toISOString().slice(0, 7); // '2025-12'
+      const storageKey = `hi_share_count_${monthKey}`;
+      const current = localStorage.getItem(storageKey);
+      const count = current ? parseInt(current, 10) : 0;
+      localStorage.setItem(storageKey, (count + 1).toString());
+      this._dbg('📊 Share count updated:', count + 1);
+    } catch (err) {
+      console.warn('⚠️ Share count increment failed:', err);
+    }
+  }
+
   // 🔐 Check authentication across multiple systems
   async checkAuthentication() {
-    // Method 1: Supabase auth
+    // Method 1: Membership system (FASTEST - synchronous check)
+    if (window.__hiMembership?.tier && window.__hiMembership.tier !== 'free') {
+      this._dbg('✅ Auth: Membership tier found');
+      return true;
+    }
+
+    // Method 2: Global auth state (synchronous)
+    if (window.__hiAuth?.user || window.__currentUser) {
+      this._dbg('✅ Auth: Global auth state found');
+      return true;
+    }
+
+    // Method 3: Supabase auth (SLOWEST - async with timeout)
     try {
       if (window.sb?.auth) {
-        const { data: { session } } = await window.sb.auth.getSession();
+        // Add 1-second timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Auth check timeout')), 1000)
+        );
+        const authPromise = window.sb.auth.getSession();
+        
+        const { data: { session } } = await Promise.race([authPromise, timeoutPromise]);
         if (session?.user) {
           this._dbg('✅ Auth: Supabase session found');
           return true;
         }
       }
     } catch (err) {
-      this._dbg('⚠️ Supabase auth check failed:', err);
-    }
-
-    // Method 2: Global auth state
-    if (window.__hiAuth?.user || window.__currentUser) {
-      this._dbg('✅ Auth: Global auth state found');
-      return true;
-    }
-
-    // Method 3: Membership system
-    if (window.__hiMembership?.tier && window.__hiMembership.tier !== 'free') {
-      this._dbg('✅ Auth: Membership tier found');
-      return true;
+      this._dbg('⚠️ Supabase auth check failed or timed out:', err.message);
     }
 
     this._dbg('🔒 Auth: No authenticated session found');
@@ -387,6 +643,8 @@ export class HiShareSheet {
 
   // Open share sheet
   async open(options = {}) {
+    console.log('🚀 [SHARE SHEET] open() called with options:', options);
+    
     if (!this._isReady) {
       console.error('❌ HiShareSheet not ready, call init() first');
       return;
@@ -956,6 +1214,32 @@ export class HiShareSheet {
     }
     
     try {
+      // 🎯 SERVER-SIDE VALIDATION: Check tier limits before proceeding
+      if (toIsland && window.sb?.rpc) {
+        const shareType = anon ? 'anonymous' : 'public';
+        const { data: validation, error: validationError } = await window.sb.rpc('validate_share_creation', {
+          p_share_type: shareType,
+          p_origin: this.origin
+        });
+        
+        if (validationError || !validation?.allowed) {
+          this._persisting = false;
+          const reason = validation?.reason || 'Share validation failed';
+          this.showToast(`❌ ${reason}`, 'error');
+          
+          if (validation?.upgrade_required) {
+            this.showQuotaReached(
+              validation.quota?.used || 0,
+              validation.quota?.limit || 0,
+              validation.tier || 'free'
+            );
+          }
+          return;
+        }
+        
+        this._dbg('✅ Server validation passed:', validation);
+      }
+      
       const journal = document.getElementById('hi-share-journal');
       const raw = (journal.value || '').trim();
       const text = raw || 'Marked a Hi-5 ✨';
@@ -1047,6 +1331,19 @@ export class HiShareSheet {
         }
       }
 
+      // 🎯 TIER TRACKING: Server-side quota tracking
+      if (toIsland && window.sb?.rpc) {
+        const shareType = anon ? 'anonymous' : 'public';
+        window.sb.rpc('track_share_submission', {
+          p_share_type: shareType,
+          p_origin: this.origin,
+          p_content_preview: text
+        }).catch(err => console.warn('⚠️ Server-side tracking failed:', err));
+      }
+      
+      // 🎯 TIER TRACKING: Increment client-side share counter (fallback)
+      this.incrementShareCount();
+      
       // Show success toast immediately
       if (toIsland) {
         this.showToast(anon ? '✨ Shared anonymously!' : '🌟 Shared publicly!');

@@ -477,20 +477,10 @@ window.handleDropHiClick = async function() {
       window.location.href = '/auth.html?redirect=hi-island.html&action=drop-hi';
       return;
     }
-    // 🎯 FIX: Premium users should always have access, bypass old tier system
+    // 🎯 AUTHENTICATED: All tiers can access share sheet
+    // Tier enforcement happens INSIDE HiShareSheet.js (lines 328-377)
     const membership = window.HiMembership?.get?.();
-    const hasPremiumAccess = membership && (membership.tier === 'premium' || membership.is_admin);
-    
-    if (!hasPremiumAccess && !window.checkHiFeatureAccess?.('drop_hi', 'drop-hi')) {
-      console.log('🔒 Drop Hi access denied - showing upgrade modal');
-      button.classList.remove('loading');
-      button.disabled = false;
-      return;
-    }
-    
-    if (hasPremiumAccess) {
-      console.log('✅ [DROP HI] Premium access granted, bypassing old tier check');
-    }
+    console.log('✅ [DROP HI] Authenticated user - opening share sheet for tier:', membership?.tier || 'unknown');
     if (window.hiIslandShareSheet && typeof window.hiIslandShareSheet.open === 'function') {
       await window.hiIslandShareSheet.open();
       console.log('✅ Opened Hi-Island share sheet (initialized)');

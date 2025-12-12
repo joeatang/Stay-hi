@@ -187,7 +187,10 @@ class UnifiedMembershipSystem {
       // Proactively update tier pill if helper exists
       try {
         if (window.HiBrandTiers?.updateTierPill && membership?.tier) {
-          window.HiBrandTiers.updateTierPill(membership.tier);
+          const tierIndicator = document.getElementById('hi-tier-indicator');
+          if (tierIndicator) {
+            window.HiBrandTiers.updateTierPill(tierIndicator, membership.tier, { showEmoji: true });
+          }
         }
       } catch {}
       
