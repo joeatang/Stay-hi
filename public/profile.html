@@ -2858,8 +2858,8 @@ FOR INSERT WITH CHECK (
       
       // Update display name
       const displayNameEl = document.getElementById('profileDisplayName');
-      if (displayNameEl && profileData.display_name) {
-        displayNameEl.textContent = profileData.display_name;
+      if (displayNameEl) {
+        displayNameEl.textContent = profileData.display_name || 'Stay Hi User';
       }
       
       // Update bio
