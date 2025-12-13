@@ -3118,9 +3118,8 @@ FOR INSERT WITH CHECK (
         await loadAnonymousDemoProfile();
         window.__PROFILE_DATA_LOADED = true;
         try { window.HiAudit?.log('profile_load_error', { resource:'profile' }, { success:false, failureReason: error.message }); } catch {}
-      } window.__PROFILE_DATA_LOADED = true;
-        try { window.HiAudit?.log('profile_load_error', { resource:'profile' }, { success:false, failureReason: error.message }); } catch {}
       }
+      window.__PROFILE_DATA_LOADED = true;
     }
 
     // Tesla-Grade Authenticated Supabase Loading
