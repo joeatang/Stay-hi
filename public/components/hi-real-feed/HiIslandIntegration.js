@@ -179,6 +179,26 @@ class HiIslandIntegration {
     } catch (error) {
       console.warn('⚠️ Could not set up real-time updates:', error);
     }
+
+    // 🎯 WOZ PATTERN: Listen for profile updates (from profile page edits)
+    window.addEventListener('profile:updated', (event) => {
+      console.log('🔔 Profile updated event received:', event.detail);
+      this.handleProfileUpdate(event.detail);
+    });
+
+    // 🎯 CROSS-TAB SYNC: Listen for storage events (profile changes in other tabs)
+    window.addEventListener('storage', (event) => {
+      if (event.key && event.key.startsWith('stayhi_profile_')) {
+        console.log('🔔 Profile updated in another tab');
+        // Refresh feed to show updated profile data
+        if (this.feedSystem?.currentTab === 'general') {
+          this.feedSystem.pagination.general.page = 0;
+          this.feedSystem.loadGeneralSharesFromPublicShares();
+        }
+      }
+    });
+
+    console.log('✅ Profile update listeners active');
   }
 
   // Handle new public share in real-time
@@ -198,6 +218,32 @@ class HiIslandIntegration {
       
     } catch (error) {
       console.error('❌ Error handling new public share:', error);
+    }
+  }
+
+  // Handle profile update in real-time (WOZ pattern)
+  handleProfileUpdate(profileData) {
+    if (!this.feedSystem || !profileData) return;
+    
+    try {
+      console.log('🔄 Refreshing feed for profile update');
+      
+      // Refresh general feed if viewing (profile data used in feed cards)
+      if (this.feedSystem.currentTab === 'general') {
+        this.feedSystem.pagination.general.page = 0;
+        this.feedSystem.loadGeneralSharesFromPublicShares();
+      }
+      
+      // Refresh archives if viewing (user's own profile data)
+      if (this.feedSystem.currentTab === 'archives') {
+        this.feedSystem.pagination.archives.page = 0;
+        this.feedSystem.loadUserArchivesFromHiArchives();
+      }
+      
+      console.log('✅ Feed refreshed for profile update');
+      
+    } catch (error) {
+      console.error('❌ Error handling profile update:', error);
     }
   }
 
