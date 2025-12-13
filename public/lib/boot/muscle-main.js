@@ -3,6 +3,72 @@
   
   try { await hiAuth.ensureSessionMaybe?.(); } catch {}
 
+  // 🎯 TIER CHECK: Validate Hi Muscle access
+  const membership = window.__hiMembership || {};
+  const tier = membership.tier || 'free';
+  const features = window.HiTierConfig?.getTierFeatures?.(tier) || {};
+  
+  if (!features.hiMuscleAccess || features.hiMuscleAccess === false) {
+    console.log('🚫 Hi Muscle blocked for tier:', tier);
+    
+    // Show access denied modal
+    const accessDeniedHtml = `
+      <div style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+        color: white;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      ">
+        <div style="
+          max-width: 400px;
+          padding: 32px;
+          background: linear-gradient(135deg, rgba(78, 205, 196, 0.1), rgba(255, 107, 107, 0.1));
+          border: 2px solid rgba(78, 205, 196, 0.3);
+          border-radius: 24px;
+          text-align: center;
+        ">
+          <h2 style="margin: 0 0 16px; font-size: 24px; color: #4ECDC4;">💪 Hi Muscle</h2>
+          <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.6; color: #ccc;">
+            Track your emotional journeys and build your Hi Muscle with Bronze membership or higher.
+          </p>
+          <a href="/upgrade.html?feature=muscle" style="
+            display: inline-block;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #4ECDC4, #FF6B6B);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: transform 0.2s;
+          ">Unlock Hi Muscle</a>
+          <p style="margin: 24px 0 0; font-size: 12px; color: #888;">
+            <a href="/hi-dashboard.html" style="color: #4ECDC4; text-decoration: none;">← Back to Dashboard</a>
+          </p>
+        </div>
+      </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', accessDeniedHtml);
+    
+    // Redirect after 3 seconds
+    setTimeout(() => {
+      window.location.href = '/hi-dashboard.html';
+    }, 3000);
+    
+    return; // Stop execution
+  }
+  
+  console.log('✅ Hi Muscle access granted for tier:', tier);
+
   // 🎯 Initialize global stats variables (required for Total His tracking)
   if (window.gTotalHis === undefined) window.gTotalHis = 0;
   if (window.gWaves === undefined) window.gWaves = 0; 

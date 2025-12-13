@@ -55,9 +55,6 @@
   <!-- Unified Admin Access Manager -->
   <script src="./lib/admin/AdminAccessManager.js"></script>
   
-  <!-- Membership System for Tier Display (Legacy - being phased out) -->
-  <script type="module" src="./lib/membership/MembershipSystem.js"></script>
-  
   <!-- Tesla CSS: Critical + Progressive Enhancement -->
   <link rel="stylesheet" href="assets/location-picker.css">
   <link rel="preload" href="assets/premium-ux.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -3752,8 +3749,13 @@ FOR INSERT WITH CHECK (
           console.log('✅ Authenticated user - bypassing access gate, loading profile...');
         }
         
-        // ✅ CRITICAL: Load profile data AFTER auth is confirmed
-        await loadProfileData();
+        // 🎯 GOLD STANDARD: Call profile-main.js version (single source of truth)
+        if (window.TeslaProfile?.loadProfileData) {
+          await window.TeslaProfile.loadProfileData();
+        } else {
+          console.warn('⚠️ TeslaProfile.loadProfileData not ready, using inline fallback');
+          await loadProfileData();
+        }
       }, { once: true });
       
       // Fallback: If auth-ready doesn't fire in 5 seconds, load anyway
@@ -3761,7 +3763,12 @@ FOR INSERT WITH CHECK (
         if (authCheckComplete) return; // Auth already checked
         
         console.log('🔒 Auth timeout - loading profile with fallback check...');
-        await loadProfileData();
+        // 🎯 GOLD STANDARD: Call profile-main.js version (single source of truth)
+        if (window.TeslaProfile?.loadProfileData) {
+          await window.TeslaProfile.loadProfileData();
+        } else {
+          await loadProfileData();
+        }
       }, 5000);
       
       // Initialize profile display
