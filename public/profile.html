@@ -193,6 +193,25 @@
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
     
+    /* 🎯 GOLD STANDARD: Hide profile content until real data loads (prevents flash) */
+    [data-profile-loading="true"] .profile-display-name,
+    [data-profile-loading="true"] .profile-username,
+    [data-profile-loading="true"] .profile-bio,
+    [data-profile-loading="true"] .profile-location,
+    [data-profile-loading="true"] .profile-joined {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    [data-profile-loading="false"] .profile-display-name,
+    [data-profile-loading="false"] .profile-username,
+    [data-profile-loading="false"] .profile-bio,
+    [data-profile-loading="false"] .profile-location,
+    [data-profile-loading="false"] .profile-joined {
+      opacity: 1;
+      transition: opacity 0.4s ease;
+    }
+    
     /* Smart Hiffirmations Pill - Contextual Access */
     .hiffirmations-smart-pill {
       display: flex;
@@ -1313,11 +1332,11 @@
         <input type="file" id="avatarFileInput" accept="image/jpeg,image/jpg,image/png,image/webp" style="display: none;" />
       </div>
       
-      <div class="profile-info">
-        <h1 id="profileDisplayName" class="profile-display-name">Stay Hi User</h1>
-        <h2 id="profileUsername" class="profile-username">@user_abc123</h2>
-        <p id="profileBio" class="profile-bio">Living life one Hi at a time! 👋 Spreading positivity everywhere I go.</p>
-        <p id="profileLocation" class="profile-location">📍 Somewhere Awesome</p>
+      <div class="profile-info" data-profile-loading="true">
+        <h1 id="profileDisplayName" class="profile-display-name">Loading...</h1>
+        <h2 id="profileUsername" class="profile-username">@...</h2>
+        <p id="profileBio" class="profile-bio">Loading profile...</p>
+        <p id="profileLocation" class="profile-location">📍 ...</p>
         <p id="profileJoined" class="profile-joined">Member since October 2025</p>
       </div>
       
@@ -2867,6 +2886,12 @@ FOR INSERT WITH CHECK (
       // Update avatar if available
       if (profileData.avatar_url) {
         updateProfileAvatar(profileData.avatar_url);
+      }
+      
+      // 🎯 GOLD STANDARD: Remove loading state to fade in real content (no flash)
+      const profileInfo = document.querySelector('.profile-info');
+      if (profileInfo) {
+        profileInfo.setAttribute('data-profile-loading', 'false');
       }
       
       console.log('✅ Profile display updated');
