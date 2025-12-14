@@ -551,6 +551,10 @@
     setupHiffirmationsHandler();
     setupFloatingHiffirmationsHandler();
     await setupWeeklyProgress();
+    
+    // ✅ FIX: Load user streak on dashboard initialization
+    await loadUserStreak();
+    
     // 🔧 SURGICAL FIX: Use unified cache keys for shimmer only (not as source of truth)
     const savedWaves=localStorage.getItem('globalHiWaves'); const savedTotal=localStorage.getItem('globalTotalHis'); const savedUsers=localStorage.getItem('globalTotalUsers');
     if (window.gWaves===undefined){

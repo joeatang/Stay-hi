@@ -172,6 +172,10 @@ class HiIslandRealFeed {
     try {
       this.isLoading = true;
       
+      console.log('🔍 [LOAD] loadGeneralSharesFromPublicShares called');
+      console.log('🔍 [LOAD] pagination.general.page:', this.pagination.general.page);
+      console.log('🔍 [LOAD] feedData.general BEFORE load:', this.feedData.general?.length || 0, 'items');
+      
       console.log('🔍 HiRealFeed: Attempting to load from public_shares...');
       
       let shares, error;
@@ -277,6 +281,9 @@ class HiIslandRealFeed {
         const contentRaw = String(share.content || share.text || '').toLowerCase();
         const metadata = share.metadata || {};
         
+        // Check origin first for island shares
+        const isIsland = originRaw.includes('island') || originRaw === 'hi-island';
+        
         // Check multiple signals for gym detection
         hasGymOrigin = originRaw.includes('muscle') || originRaw.includes('gym') || originRaw.includes('higym');
         hasGymMetadata = String(metadata.type || '').toLowerCase().includes('gym');
@@ -284,7 +291,15 @@ class HiIslandRealFeed {
                              (share.content || '').includes('→'); // Emoji arrow indicates emotional journey
         
         isGym = hasGymOrigin || hasGymMetadata || hasGymContent;
-        derivedType = isGym ? 'higym' : 'hi5';
+        
+        // Derive type: island > gym > hi5 (order matters)
+        if (isIsland) {
+          derivedType = 'island';
+        } else if (isGym) {
+          derivedType = 'higym';
+        } else {
+          derivedType = 'hi5';
+        }
       }
 
         // 🔬 DEBUG: Log pill derivation for first share
@@ -349,10 +364,14 @@ class HiIslandRealFeed {
 
       // Update feed data
       if (this.pagination.general.page === 0) {
+        console.log(`📦 [UPDATE] Setting feedData.general = processedShares (${processedShares.length} items) - page 0 REPLACE`);
         this.feedData.general = processedShares;
       } else {
+        console.log(`📦 [UPDATE] Appending to feedData.general (+${processedShares.length} items) - page ${this.pagination.general.page}`);
         this.feedData.general = [...this.feedData.general, ...processedShares];
       }
+      
+      console.log(`📦 [UPDATE] feedData.general now has ${this.feedData.general?.length || 0} items total`);
 
       // Render with current filter applied
       this.renderFeedItems('general', this.getFilteredItems('general'));
@@ -813,12 +832,38 @@ class HiIslandRealFeed {
 
   // Apply current origin filter to a tab's data
   getFilteredItems(tabName) {
+    console.log(`🔍 [GET FILTERED] Called for tab: ${tabName}`);
+    console.log(`🔍 [GET FILTERED] this.feedData keys:`, Object.keys(this.feedData || {}));
+    console.log(`🔍 [GET FILTERED] this.feedData.general exists:`, !!this.feedData?.general);
+    console.log(`🔍 [GET FILTERED] this.feedData.general type:`, typeof this.feedData?.general);
+    console.log(`🔍 [GET FILTERED] this.feedData.general isArray:`, Array.isArray(this.feedData?.general));
+    
     if (tabName !== 'general') return this.feedData[tabName] || [];
     if (this.originFilter === 'all') return this.feedData.general || [];
 
     const filter = this.originFilter;
     const items = this.feedData.general || [];
-    return items.filter((share) => this.matchesOriginFilter(share, filter));
+    
+    console.log(`🔍 [GET FILTERED] items retrieved:`, items.length);
+    
+    const filtered = items.filter((share) => this.matchesOriginFilter(share, filter));
+    
+    // 🔧 DEBUG: Log filtering details (first time only)
+    if (!window.__filterDebugLogged) {
+      console.log('🔍 Filter Debug:', {
+        filter,
+        totalItems: items.length,
+        filteredItems: filtered.length,
+        sampleTypes: items.slice(0, 3).map(s => ({
+          origin: s.origin,
+          type: s.type,
+          matches: this.matchesOriginFilter(s, filter)
+        }))
+      });
+      window.__filterDebugLogged = true;
+    }
+    
+    return filtered;
   }
 
   matchesOriginFilter(share, filter) {
@@ -836,6 +881,9 @@ class HiIslandRealFeed {
         return o.includes('muscle') || o.includes('gym') || ['hi-muscle','muscle','gym','hi_muscle_journey'].includes(o);
       }
       if (filter === 'island') {
+        // Primary: derived pill type
+        if (t === 'island' || t === 'hi_island') return true;
+        // Secondary: origin keywords
         return (o.includes('island') || o === 'hi-island');
       }
       return true;
@@ -846,9 +894,15 @@ class HiIslandRealFeed {
 
   // Public API to set origin filter and re-render general tab
   setOriginFilter(filter = 'all') {
+    console.log(`🔧 [FILTER] setOriginFilter called with: ${filter}`);
+    console.log(`🔧 [FILTER] this.feedData.general has ${this.feedData?.general?.length || 0} items`);
+    console.log(`🔧 [FILTER] this._feedDataInternal.general has ${this._feedDataInternal?.general?.length || 0} items`);
+    
     this.originFilter = filter;
     if (this.currentTab === 'general') {
-      this.renderFeedItems('general', this.getFilteredItems('general'));
+      const filtered = this.getFilteredItems('general');
+      console.log(`🔧 [FILTER] getFilteredItems returned ${filtered.length} items`);
+      this.renderFeedItems('general', filtered);
       this.updateTabCount('general');
     }
   }

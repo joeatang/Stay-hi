@@ -36,14 +36,24 @@ class UnifiedHiIslandController {
       // Create proper DOM structure for feed system
       this.createUnifiedFeedStructure();
       
-      // Initialize the feed with proper container
-      this.feedInstance = new window.HiIslandRealFeed();
+      // 🔧 WOZ FIX: Use the EXISTING window.hiRealFeed instance if it exists
+      // This ensures filter buttons (which call window.hiRealFeed) work correctly
+      if (window.hiRealFeed) {
+        console.log('🔧 Unified Controller: Using existing window.hiRealFeed instance');
+        this.feedInstance = window.hiRealFeed;
+      } else {
+        console.log('🔧 Unified Controller: Creating NEW window.hiRealFeed instance');
+        this.feedInstance = new window.HiIslandRealFeed();
+        window.hiRealFeed = this.feedInstance;
+      }
       
       // Override the render method to use our container
       this.patchFeedForHiIsland();
       
-      // Initialize the feed
-      await this.feedInstance.init();
+      // Initialize the feed (only if not already initialized)
+      if (!this.feedInstance.isInitialized) {
+        await this.feedInstance.init();
+      }
       
       // Set up profile update listeners
       this.setupProfileListener();

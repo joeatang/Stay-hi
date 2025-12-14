@@ -234,6 +234,100 @@
       }
     }
 
+    /* 🌟 GOLD STANDARD: Sticky Step Guidance - Universal Top Position */
+    .floating-step-guidance {
+      position: sticky;
+      top: calc(60px + env(safe-area-inset-top)); /* Below nav, respects notch */
+      z-index: 150;
+      background: linear-gradient(135deg, 
+        rgba(16, 185, 129, 0.96) 0%, 
+        rgba(5, 150, 105, 0.96) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 12px 16px;
+      margin: 0 0 16px 0;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      border-radius: 0 0 16px 16px; /* Rounded bottom for sleek look */
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-top: none;
+      animation: slideDownFade 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.3s ease;
+    }
+
+    @keyframes slideDownFade {
+      from {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .sticky-step-guide {
+      text-align: center;
+      color: #fff;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .step-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.85;
+      margin-bottom: 4px;
+    }
+
+    .step-question {
+      font-size: 0.95rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+      line-height: 1.25;
+    }
+
+    .step-hint {
+      font-size: 0.8rem;
+      opacity: 0.9;
+      line-height: 1.35;
+    }
+
+    /* Tablet & Desktop: More breathing room */
+    @media (min-width: 768px) {
+      .floating-step-guidance {
+        top: calc(70px + env(safe-area-inset-top));
+        padding: 16px 24px;
+        margin: 0 16px 20px 16px;
+        border-radius: 16px; /* Full rounded on desktop */
+        border-top: 1px solid rgba(255, 255, 255, 0.25);
+      }
+
+      .step-label {
+        font-size: 0.75rem;
+        margin-bottom: 6px;
+      }
+
+      .step-question {
+        font-size: 1.1rem;
+        margin-bottom: 6px;
+      }
+
+      .step-hint {
+        font-size: 0.9rem;
+      }
+    }
+
+    /* Large desktop: Constrain width */
+    @media (min-width: 1024px) {
+      .floating-step-guidance {
+        margin: 0 auto 24px;
+        max-width: 640px;
+        padding: 18px 28px;
+      }
+    }
+
     /* Tesla-Grade Emotion Category Tabs */
     .tabs {
       display: flex;
@@ -2314,7 +2408,7 @@
           }
           
           if (shouldProceed) {
-            saveDraft(); // Save progress
+            // saveDraft(); // Disabled - fresh check-in each visit
           }
         });
 
@@ -2397,9 +2491,9 @@
       p1.classList.toggle('filled', state.step >= 2);
       p2.classList.toggle('filled', state.step >= 3);
 
-      // Show/hide guidance cards
+      // 🌟 WOZ FIX: Control floating step guidance
       const guidanceCard = document.getElementById('guidanceCard');
-      const stepGuidance = document.getElementById('stepGuidance');
+      const floatingGuidance = document.getElementById('floatingStepGuidance');
       const step1Guide = document.getElementById('step1Guide');
       const step2Guide = document.getElementById('step2Guide');
       const step3Guide = document.getElementById('step3Guide');
@@ -2408,16 +2502,16 @@
       // Hide main guidance once user starts engaging
       if (state.step > 1 || state.current) {
         guidanceCard.style.display = 'none';
-        stepGuidance.style.display = '';
+        if (floatingGuidance) floatingGuidance.style.display = '';
       } else {
         guidanceCard.style.display = '';
-        stepGuidance.style.display = 'none';
+        if (floatingGuidance) floatingGuidance.style.display = 'none';
       }
 
-      // Show step-specific guidance
-      step1Guide.style.display = (state.step === 1) ? '' : 'none';
-      step2Guide.style.display = (state.step === 2) ? '' : 'none';
-      step3Guide.style.display = (state.step === 3) ? '' : 'none';
+      // Show step-specific guidance in floating banner
+      if (step1Guide) step1Guide.style.display = (state.step === 1) ? '' : 'none';
+      if (step2Guide) step2Guide.style.display = (state.step === 2) ? '' : 'none';
+      if (step3Guide) step3Guide.style.display = (state.step === 3) ? '' : 'none';
 
       // Smart filtering: no double-low selections
       if (state.step === 2 && state.current) {
@@ -2443,7 +2537,7 @@
       }
 
       validate();
-      saveDraft();
+      // saveDraft(); // Disabled - fresh check-in each visit
       
       // 🎯 TESLA-GRADE: Update sticky progress bar
       updateStickyProgress(state.step);
@@ -2592,7 +2686,7 @@
     journal.addEventListener('input', () => {
       updateCharCount();
       validate();
-      saveDraft();
+      // saveDraft(); // Disabled - fresh check-in each visit
     });
 
     // Enhanced profile-first location management with traveling support
@@ -2651,7 +2745,8 @@
 
     // Initialize Hi-Muscle emotional journey
     state.startTime = Date.now(); // Track session duration
-    loadDraft();
+    // 🧠 GOLD STANDARD: Don't load drafts - fresh emotional check-in each time
+    // loadDraft(); // Commented out - defeats purpose of "how do you feel NOW"
     loadUserLocation();
     setStep(state.step || 1);
     validate();

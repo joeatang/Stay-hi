@@ -113,6 +113,10 @@ class HiFeatureFlags {
       rewards_streaks_enabled: { enabled: false, config: {}, source: 'default' },
       rewards_global_events: { enabled: false, config: {}, source: 'default' },
       
+      // HiBase Features
+      hibase_streaks_enabled: { enabled: true, config: {}, source: 'default' },
+      metrics_separation_enabled: { enabled: true, config: {}, source: 'default' },
+      
       // Features
       location_sharing: { enabled: true, config: {}, source: 'default' },
       hi_island_map: { enabled: true, config: {}, source: 'default' },
