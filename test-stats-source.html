@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stats Source Verification Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f1022;
+      color: #fff;
+      padding: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .test-section {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    h2 {
+      color: #FFD166;
+      margin-top: 0;
+    }
+    .result {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 16px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      white-space: pre-wrap;
+      margin-top: 16px;
+      font-size: 14px;
+    }
+    button {
+      background: #FFD166;
+      color: #0f1022;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-right: 12px;
+      margin-bottom: 12px;
+    }
+    button:hover {
+      background: #FFC947;
+    }
+    .pass {
+      color: #4ADE80;
+    }
+    .fail {
+      color: #F87171;
+    }
+    .info {
+      color: #60A5FA;
+    }
+  </style>
+  <script src="./assets/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+  <h1>📊 Stats Source Verification Test</h1>
+  <p>This test verifies that Dashboard and Hi Island use the same stats source from Supabase.</p>
+  
+  <div class="test-section">
+    <h2>🔌 Supabase Connection Test</h2>
+    <button onclick="testSupabaseConnection()">Test Connection</button>
+    <div id="connectionResult" class="result"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>📈 Global Stats Table Test</h2>
+    <button onclick="testGlobalStatsTable()">Query global_stats Table</button>
+    <div id="globalStatsResult" class="result"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>🎯 UnifiedStatsLoader Test</h2>
+    <button onclick="testUnifiedStatsLoader()">Test UnifiedStatsLoader</button>
+    <div id="unifiedLoaderResult" class="result"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>🏝️ Hi Island Stats Method Test</h2>
+    <button onclick="testHiIslandMethod()">Test Hi Island Stats Load</button>
+    <div id="hiIslandResult" class="result"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>📊 Dashboard Stats Method Test</h2>
+    <button onclick="testDashboardMethod()">Test Dashboard Stats Load</button>
+    <div id="dashboardResult" class="result"></div>
+  </div>
+  
+  <div class="test-section">
+    <h2>✅ Final Verification</h2>
+    <button onclick="runAllTests()">Run All Tests</button>
+    <div id="finalResult" class="result"></div>
+  </div>
+
+  <script type="module">
+    // Initialize Supabase
+    let supabase = null;
+    
+    window.initSupabase = function() {
+      try {
+        if (typeof window.supabase === 'undefined') {
+          const supabaseUrl = window.HI_CONFIG?.supabaseUrl || 'https://gfcubvroxgfvjhacinic.supabase.co';
+          const supabaseKey = window.HI_CONFIG?.supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjk5ODkwMTksImV4cCI6MjA0NTU2NTAxOX0.ULOo4FJdNm20pLCyINxRXY0VvW3feCFPDpIIOZFwLnI';
+          supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        } else {
+          supabase = window.supabase;
+        }
+        return supabase;
+      } catch (error) {
+        console.error('Failed to initialize Supabase:', error);
+        return null;
+      }
+    };
+    
+    window.testSupabaseConnection = async function() {
+      const resultEl = document.getElementById('connectionResult');
+      resultEl.textContent = 'Testing connection...';
+      
+      try {
+        const sb = initSupabase();
+        if (!sb) {
+          resultEl.innerHTML = '<span class="fail">❌ FAIL: Could not initialize Supabase client</span>';
+          return;
+        }
+        
+        // Test simple query
+        const { data, error } = await sb.from('profiles').select('id').limit(1);
+        
+        if (error) {
+          resultEl.innerHTML = `<span class="fail">❌ FAIL: ${error.message}</span>`;
+        } else {
+          resultEl.innerHTML = `<span class="pass">✅ PASS: Supabase connection successful</span>\n<span class="info">Data: ${JSON.stringify(data, null, 2)}</span>`;
+        }
+      } catch (error) {
+        resultEl.innerHTML = `<span class="fail">❌ ERROR: ${error.message}</span>`;
+      }
+    };
+    
+    window.testGlobalStatsTable = async function() {
+      const resultEl = document.getElementById('globalStatsResult');
+      resultEl.textContent = 'Querying global_stats table...';
+      
+      try {
+        const sb = initSupabase();
+        const { data, error } = await sb
+          .from('global_stats')
+          .select('hi_waves, total_his, total_users, updated_at')
+          .single();
+        
+        if (error) {
+          resultEl.innerHTML = `<span class="fail">❌ FAIL: ${error.message}</span>\n<span class="info">Status: ${error.code}</span>`;
+        } else {
+          resultEl.innerHTML = `<span class="pass">✅ PASS: Successfully queried global_stats table</span>\n<span class="info">Data:\n${JSON.stringify(data, null, 2)}</span>`;
+        }
+      } catch (error) {
+        resultEl.innerHTML = `<span class="fail">❌ ERROR: ${error.message}</span>`;
+      }
+    };
+    
+    window.testUnifiedStatsLoader = async function() {
+      const resultEl = document.getElementById('unifiedLoaderResult');
+      resultEl.textContent = 'Loading UnifiedStatsLoader...';
+      
+      try {
+        const { loadGlobalStats } = await import('./lib/stats/UnifiedStatsLoader.js');
+        resultEl.textContent = 'Fetching stats via UnifiedStatsLoader...';
+        
+        const stats = await loadGlobalStats();
+        
+        resultEl.innerHTML = `<span class="pass">✅ PASS: UnifiedStatsLoader successfully loaded stats</span>
+<span class="info">Results:
+  - Waves: ${stats.waves?.toLocaleString() || 'N/A'}
+  - Total His: ${stats.totalHis?.toLocaleString() || 'N/A'}
+  - Total Users: ${stats.totalUsers?.toLocaleString() || 'N/A'}
+  - Source: ${stats.overall || 'unknown'}
+  - Detailed sources: ${JSON.stringify(stats._source, null, 2)}
+  - Timing: ${stats._timing?.totalMs?.toFixed(2)}ms</span>`;
+      } catch (error) {
+        resultEl.innerHTML = `<span class="fail">❌ ERROR: ${error.message}</span>\n${error.stack}`;
+      }
+    };
+    
+    window.testHiIslandMethod = async function() {
+      const resultEl = document.getElementById('hiIslandResult');
+      resultEl.textContent = 'Testing Hi Island stats loading method...';
+      
+      try {
+        const { loadGlobalStats } = await import('./lib/stats/UnifiedStatsLoader.js');
+        const stats = await loadGlobalStats();
+        
+        resultEl.innerHTML = `<span class="pass">✅ PASS: Hi Island uses UnifiedStatsLoader</span>
+<span class="info">Method: loadGlobalStats() from UnifiedStatsLoader.js
+Stats loaded:
+  - Waves: ${stats.waves?.toLocaleString() || 'N/A'} (from ${stats._source?.waves})
+  - Total His: ${stats.totalHis?.toLocaleString() || 'N/A'} (from ${stats._source?.totalHis})
+  - Total Users: ${stats.totalUsers?.toLocaleString() || 'N/A'} (from ${stats._source?.totalUsers})
+Overall source: ${stats.overall}</span>`;
+      } catch (error) {
+        resultEl.innerHTML = `<span class="fail">❌ ERROR: ${error.message}</span>`;
+      }
+    };
+    
+    window.testDashboardMethod = async function() {
+      const resultEl = document.getElementById('dashboardResult');
+      resultEl.textContent = 'Testing Dashboard stats loading method...';
+      
+      try {
+        const sb = initSupabase();
+        const { data, error } = await sb
+          .from('global_stats')
+          .select('total_his, hi_waves, total_users')
+          .single();
+        
+        if (error) {
+          resultEl.innerHTML = `<span class="fail">❌ FAIL: ${error.message}</span>`;
+        } else {
+          resultEl.innerHTML = `<span class="pass">✅ PASS: Dashboard queries global_stats table directly</span>
+<span class="info">Method: supabase.from('global_stats').select().single()
+Stats loaded:
+  - Waves: ${data.hi_waves?.toLocaleString() || 'N/A'}
+  - Total His: ${data.total_his?.toLocaleString() || 'N/A'}
+  - Total Users: ${data.total_users?.toLocaleString() || 'N/A'}</span>`;
+        }
+      } catch (error) {
+        resultEl.innerHTML = `<span class="fail">❌ ERROR: ${error.message}</span>`;
+      }
+    };
+    
+    window.runAllTests = async function() {
+      const resultEl = document.getElementById('finalResult');
+      resultEl.textContent = 'Running all tests...\n';
+      
+      const tests = [
+        { name: 'Supabase Connection', fn: testSupabaseConnection },
+        { name: 'Global Stats Table', fn: testGlobalStatsTable },
+        { name: 'UnifiedStatsLoader', fn: testUnifiedStatsLoader },
+        { name: 'Hi Island Method', fn: testHiIslandMethod },
+        { name: 'Dashboard Method', fn: testDashboardMethod }
+      ];
+      
+      for (const test of tests) {
+        resultEl.textContent += `\nRunning: ${test.name}...`;
+        await test.fn();
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      resultEl.textContent += '\n\n✅ All tests complete! Check results above.';
+    };
+  </script>
+</body>
+</html>

@@ -94,6 +94,7 @@ const HiBase = {
     streaks: {
         getStreaks: streaks.getStreaks,
         getUserStreak: streaks.getUserStreak,
+        getMyStreaks: streaks.getMyStreaks,
         insertStreak: streaks.insertStreak,
         updateStreak: streaks.updateStreak,
         useStreakFreeze: streaks.useStreakFreeze,
@@ -227,4 +228,4 @@ export {
 };
 
 // Export unified HiBase object as default
-export default HiBase;
+export default HiBase;/* Export getMyStreaks 1765740071 */

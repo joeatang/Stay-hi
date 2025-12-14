@@ -73,6 +73,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="assets/config.js"></script>
   
+  <!-- 🏆 WOZ FIX: ProfileManager - Single Source of Truth -->
+  <script src="./lib/ProfileManager.js"></script>
+  
   <!-- Resource Hints for Cross-Navigation Performance -->
   <link rel="prefetch" href="hi-island-NEW.html">
   <link rel="prefetch" href="hi-muscle.html">
@@ -133,6 +136,9 @@
 
   <!-- 🌟 WOZNIAK-GRADE: Gold Standard Modal System (Unified Auth/Share Modals) -->
   <script src="lib/HiGoldStandardModal.js" async></script>
+  
+  <!-- 🛡️ WOZ-GRADE: Stats Write Guard (prevents cross-nav counter drift) -->
+  <script src="lib/stats/StatsWriteGuard.js"></script>
   
   <!-- 🔥 Phase 7: Hi Experience Layer Components (Async Loading) -->
   <script type="module" src="./lib/hifeed/index.js"></script>
@@ -1584,6 +1590,7 @@
   <!-- Premium Component Scripts (calendar lazy loaded) -->
   <link rel="stylesheet" href="assets/premium-calendar.css">
   <script src="assets/premium-calendar.js" defer></script>
+  <link rel="stylesheet" href="assets/premium-ux.css">
   <script src="assets/premium-ux.js" defer></script>
   <!-- Lazy loader (calendar loaded on demand) -->
   <script src="./lib/lazy/lazy-loaders.js" defer></script>

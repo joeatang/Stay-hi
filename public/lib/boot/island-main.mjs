@@ -3,6 +3,21 @@
 
 async function initHiIsland() {
   console.log('🏝️ Hi Island initializing...');
+  
+  // 🏆 WOZ FIX: Initialize ProfileManager first
+  if (window.ProfileManager && !window.ProfileManager.isReady()) {
+    console.log('🏆 Initializing ProfileManager...');
+    try {
+      await window.ProfileManager.init();
+      console.log('✅ ProfileManager ready');
+    } catch (error) {
+      console.warn('⚠️ ProfileManager init failed (non-critical):', error);
+    }
+  }
+  
+  // 🎯 Setup membership tier listener for pill display
+  setupMembershipTierListener();
+  
   // Unified stats only: remove legacy multi-path cache bootstrap
   loadRealStats().catch(err => console.warn('Stats loading failed:', err));
   await new Promise(resolve => {
@@ -25,6 +40,74 @@ async function initHiIsland() {
   initializeTryItLink();
   initializeHiMap();
   console.log('✅ Hi Island ready with Gold Standard UI');
+}
+
+// 🎯 Membership Tier Listener (Hi Island Parity with Dashboard)
+function setupMembershipTierListener() {
+  const tierPill = document.querySelector('[data-tier-pill]');
+  
+  if (!tierPill) {
+    console.warn('⚠️ Tier pill not found on Hi Island');
+    return;
+  }
+  
+  // Initial load from HiMembership
+  if (window.HiMembership) {
+    const membership = window.HiMembership.get();
+    if (membership && membership.tier) {
+      updateTierPill(membership.tier);
+    }
+  }
+  
+  // Listen for membership changes
+  window.addEventListener('hi:membership-changed', (e) => {
+    const membership = e.detail || {};
+    if (membership.tier) {
+      updateTierPill(membership.tier);
+    }
+  });
+  
+  // Fallback: listen to auth-ready
+  window.addEventListener('hi:auth-ready', (e) => {
+    const { membership } = e.detail || {};
+    if (membership && membership.tier) {
+      updateTierPill(membership.tier);
+    }
+  });
+  
+  // Add spinner timeout (prevent infinite hourglass)
+  if (tierPill.classList.contains('loading') || tierPill.textContent === '⏳') {
+    setTimeout(() => {
+      if (tierPill.classList.contains('loading') || tierPill.textContent === '⏳') {
+        console.warn('⚠️ Tier pill timeout - using fallback');
+        const cachedTier = localStorage.getItem('hi_membership_tier') || 'member';
+        updateTierPill(cachedTier);
+      }
+    }, 5000); // 5s timeout
+  }
+  
+  console.log('✅ Tier pill listener active on Hi Island');
+}
+
+function updateTierPill(tier) {
+  const tierPill = document.querySelector('[data-tier-pill]');
+  if (!tierPill) return;
+  
+  // Remove loading state
+  tierPill.classList.remove('loading');
+  
+  // Update text
+  const displayTier = tier.toUpperCase();
+  tierPill.textContent = displayTier;
+  
+  // Cache for next load
+  try {
+    localStorage.setItem('hi_membership_tier', tier);
+  } catch (e) {
+    // Silent fail
+  }
+  
+  console.log('🎯 Tier pill updated:', displayTier);
 }
 
 function initializeTabSystem() {
@@ -312,12 +395,32 @@ function initializeHiMap() {
       attribution: '© OpenStreetMap contributors',
       maxZoom: 18
     }).addTo(map);
+    // Resolve Supabase client (align with HiRealFeed/HiDB resolution order)
+    const resolveSupabase = () => {
+      if (window.getSupabase) {
+        const c = window.getSupabase();
+        if (c) return c;
+      }
+      if (window.__HI_SUPABASE_CLIENT) return window.__HI_SUPABASE_CLIENT;
+      if (window.supabaseClient) return window.supabaseClient;
+      if (window.sb) return window.sb;
+      if (window.supabase?.createClient) {
+        const url = 'https://gfcubvroxgfvjhacinic.supabase.co';
+        const key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g';
+        return window.supabase.createClient(url, key);
+      }
+      return null;
+    };
+
+    const supabase = resolveSupabase();
+    const membershipTier = (window.HiMembership?.get?.()?.tier || 'free').toLowerCase();
+
     const sampleLocations = [
+      { lat: 37.7749, lng: -122.4194, name: 'San Francisco' },
       { lat: 40.7128, lng: -74.0060, name: 'New York' },
       { lat: 51.5074, lng: -0.1278, name: 'London' },
       { lat: 35.6762, lng: 139.6503, name: 'Tokyo' },
-      { lat: -33.8688, lng: 151.2093, name: 'Sydney' },
-      { lat: 37.7749, lng: -122.4194, name: 'San Francisco' }
+      { lat: -33.8688, lng: 151.2093, name: 'Sydney' }
     ];
     const makeWaveMarker = (location) => {
       const waveIcon = L.divIcon({
@@ -330,27 +433,98 @@ function initializeHiMap() {
       return L.marker([location.lat, location.lng], { icon: waveIcon }).bindPopup(`Hi from ${location.name}! 👋`);
     };
 
-    // Use MarkerCluster if available; fallback to direct markers otherwise
-    if (typeof L.markerClusterGroup === 'function') {
-      const cluster = L.markerClusterGroup({
-        showCoverageOnHover: false,
-        maxClusterRadius: 60,
-        iconCreateFunction: function(cluster) {
-          const count = cluster.getChildCount();
-          // Custom brand cluster bubble
-          const html = `
-            <div class="hi-cluster">
-              <span class="hi-cluster__emoji">👋</span>
-              <span class="hi-cluster__count">${count}</span>
-            </div>`;
-          return L.divIcon({ html, className: 'hi-cluster-wrapper', iconSize: [44, 44] });
+    const addMarkers = (locations) => {
+      if (typeof L.markerClusterGroup === 'function') {
+        const cluster = L.markerClusterGroup({
+          showCoverageOnHover: false,
+          maxClusterRadius: 60,
+          iconCreateFunction: function(cluster) {
+            const count = cluster.getChildCount();
+            const html = `
+              <div class="hi-cluster">
+                <span class="hi-cluster__emoji">👋</span>
+                <span class="hi-cluster__count">${count}</span>
+              </div>`;
+            return L.divIcon({ html, className: 'hi-cluster-wrapper', iconSize: [44, 44] });
+          }
+        });
+        locations.map(makeWaveMarker).forEach(m => cluster.addLayer(m));
+        map.addLayer(cluster);
+      } else {
+        locations.map(makeWaveMarker).forEach(m => m.addTo(map));
+      }
+    };
+
+    const geocodeIfNeeded = async (records) => {
+      const locations = [];
+      console.log(`🗺️ Geocoding ${records.length} records...`);
+      for (const r of records) {
+        let name = r.location || null;
+        // Fallback: attempt to parse a plausible location from content like "City, ST" or "City, Country"
+        if (!name && typeof r.content === 'string') {
+          const m = r.content.match(/([A-Za-z\-\.\s]+,\s*[A-Za-z\-\.\s]+)/);
+          if (m && m[1]) name = m[1].trim();
         }
-      });
-      sampleLocations.map(makeWaveMarker).forEach(m => cluster.addLayer(m));
-      map.addLayer(cluster);
-    } else {
-      sampleLocations.map(makeWaveMarker).forEach(m => m.addTo(map));
-    }
+        if (!name) continue;
+        // If GeocodingService exists, attempt geocoding; else skip
+        if (window.GeocodingService?.geocode) {
+          try {
+            const res = await window.GeocodingService.geocode(name);
+            if (res && res.lat && res.lng) {
+              locations.push({ lat: res.lat, lng: res.lng, name });
+              console.log(`✅ Geocoded: ${name} → ${res.lat}, ${res.lng}`);
+            } else {
+              console.log(`❌ Failed to geocode: ${name}`);
+            }
+          } catch (e) {
+            console.log(`❌ Geocoding error for ${name}:`, e.message);
+          }
+        }
+      }
+      console.log(`🗺️ Geocoded ${locations.length} of ${records.length} records`);
+      return locations;
+    };
+
+    (async () => {
+      try {
+        if (!supabase) {
+          console.warn('⚠️ Supabase client unavailable for map; showing sample locations');
+          addMarkers(sampleLocations);
+          return;
+        }
+        // Prefer tier-aware RPC, fallback to normalized view, then table
+        let records = [];
+        try {
+          const { data, error } = await supabase.rpc('get_public_shares_map_tier', { p_tier: membershipTier });
+          if (!error && Array.isArray(data)) {
+            records = data;
+          }
+        } catch {}
+        if (!records.length) {
+          try {
+            const { data, error } = await supabase.from('public_shares_map').select('*').order('created_at', { ascending: false }).limit(200);
+            if (!error && Array.isArray(data)) {
+              records = data;
+            }
+          } catch {}
+        }
+        if (!records.length) {
+          // Minimal fallback: public shares with location
+          const { data } = await supabase.from('public_shares').select('id, location, content, created_at, is_public, is_anonymous').eq('is_public', true).not('location', 'is', null).order('created_at', { ascending: false }).limit(200);
+          records = Array.isArray(data) ? data : [];
+        }
+        const locations = await geocodeIfNeeded(records);
+        if (locations.length) {
+          addMarkers(locations);
+        } else {
+          console.warn('⚠️ No geocoded locations; showing sample markers');
+          addMarkers(sampleLocations);
+        }
+      } catch (e) {
+        console.warn('⚠️ Map data load failed:', e);
+        addMarkers(sampleLocations);
+      }
+    })();
     // Ensure proper sizing on mobile after layout/keyboard changes
     try {
       setTimeout(() => { try { map.invalidateSize(false); } catch{} }, 300);
@@ -369,6 +543,15 @@ window.loadCurrentStatsFromDatabase = async () => {
 
 // Refresh on page visibility/pageshow to keep stats fresh across revisits
 (function(){
+      // 🔒 Disable HiBase share writes on Hi Island to ensure single writer path
+      try {
+        if (window.HiFlags && typeof window.HiFlags.set === 'function') {
+          window.HiFlags.set('hibase_shares_enabled', false);
+          console.log('🔒 Disabled HiBase share writes (single-writer: HiDB)');
+        }
+      } catch (e) {
+        console.warn('⚠️ Could not set HiFlags.hibase_shares_enabled:', e);
+      }
   let lastFetchAt = 0;
   const MIN_FETCH_INTERVAL = 3000; // 3s guard
   function safeRefresh(){
@@ -438,8 +621,14 @@ window.handleShareSuccess = function(shareData) {
       window.refreshHiIslandFeed?.();
       console.log('🔄 REAL Hi-Island feed refreshed after share');
     } else if (window.hiRealFeed) {
-      window.hiRealFeed.refreshFeedData();
-      console.log('🔄 REAL feed system refreshed after share');
+      // 🎯 FIX: Call the actual method that exists
+      if (typeof window.hiRealFeed.loadGeneralSharesFromPublicShares === 'function') {
+        window.hiRealFeed.pagination.general.page = 0; // Reset to show latest
+        window.hiRealFeed.loadGeneralSharesFromPublicShares();
+        console.log('🔄 REAL feed system refreshed after share');
+      } else {
+        console.warn('⚠️ loadGeneralSharesFromPublicShares not available');
+      }
     } else {
       console.warn('⚠️ REAL feed system not available for refresh');
     }

@@ -37,6 +37,10 @@
   <script src="./lib/HiSupabase.simple.js" type="module"></script>
   <!-- ✅ CRITICAL: AuthReady orchestrates session + membership and fires hi:auth-ready event -->
   <script type="module" src="./lib/AuthReady.js"></script>
+  
+  <!-- 🏆 WOZ FIX: ProfileManager - Single Source of Truth -->
+  <script src="./lib/ProfileManager.js"></script>
+  
   <!-- 🎯 TIER CONFIG - Must load BEFORE HiTier.js and MembershipSystem -->
   <script src="./lib/config/TIER_CONFIG.js" type="module"></script>
   <!-- ✅ Unified Membership Bridge for tier detection -->
@@ -3039,12 +3043,14 @@ FOR INSERT WITH CHECK (
         console.log('🔍 [INLINE] User ID:', session?.user?.id || 'none');
         
         if (!isAuthenticated) {
-          console.log('🚨 Anonymous user detected - blocking Supabase access');
-          // Anonymous users get local-only demo profile
-          await loadAnonymousDemoProfile();
-          window.__PROFILE_DATA_LOADED = true; // prevent repeat anonymous loads
-          try { window.HiAudit?.log('profile_load_anonymous', { resource:'profile' }); } catch {}
-          return;
+          console.log('🚨 Anonymous user detected - profile page requires authentication');
+          // 🔒 SECURITY: Redirect anonymous users to sign in
+          const isLocal = window.location.hostname === 'localhost';
+          const signinPath = isLocal ? '/public/signin.html' : '/signin.html';
+          const redirectUrl = signinPath + '?redirect=' + encodeURIComponent(window.location.pathname);
+          console.log('🔄 Redirecting to:', redirectUrl);
+          window.location.href = redirectUrl;
+          return; // Stop execution - page will redirect
         }
         
         // Tesla-Grade Loading Priority for authenticated users: DATABASE FIRST (source of truth)

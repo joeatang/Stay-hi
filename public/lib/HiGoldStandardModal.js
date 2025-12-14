@@ -292,7 +292,9 @@ class HiGoldStandardModal {
       callbacks.onPrimary();
     } else {
       // Default: redirect to sign in page
-      window.location.href = '/signin.html?redirect=' + encodeURIComponent(window.location.pathname);
+      const isLocal = window.location.hostname === 'localhost';
+      const signinPath = isLocal ? '/public/signin.html' : '/signin.html';
+      window.location.href = signinPath + '?redirect=' + encodeURIComponent(window.location.pathname);
     }
     this.closeModal(id);
   }
@@ -302,8 +304,10 @@ class HiGoldStandardModal {
     if (callbacks?.onSecondary) {
       callbacks.onSecondary();
     } else {
-      // Default: redirect to sign up page
-      window.location.href = '/signup.html?redirect=' + encodeURIComponent(window.location.pathname);
+      // Default: redirect to sign up page with source tracking
+      const isLocal = window.location.hostname === 'localhost';
+      const signupPath = isLocal ? '/public/signup.html' : '/signup.html';
+      window.location.href = signupPath + '?source=welcome&redirect=' + encodeURIComponent(window.location.pathname);
     }
     this.closeModal(id);
   }

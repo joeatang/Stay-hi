@@ -45,6 +45,9 @@ class UnifiedHiIslandController {
       // Initialize the feed
       await this.feedInstance.init();
       
+      // Set up profile update listeners
+      this.setupProfileListener();
+      
       this.isInitialized = true;
       console.log('✅ Unified Controller: Feed system ready');
       
@@ -186,6 +189,97 @@ class UnifiedHiIslandController {
     }
   }
 
+  // 🎯 PROFILE UPDATE WIRING: Listen for profile changes and refresh feed
+  setupProfileListener() {
+    window.addEventListener('profile:updated', (event) => {
+      console.log('🔔 Profile updated, refreshing Hi-Island feed:', event.detail);
+      if (this.feedInstance && this.currentTab === 'general') {
+        this.feedInstance.pagination.general.page = 0;
+        this.feedInstance.loadGeneralSharesFromPublicShares();
+      }
+    });
+    
+    // Cross-tab sync
+    window.addEventListener('storage', (event) => {
+      if (event.key && event.key.startsWith('stayhi_profile_')) {
+        console.log('🔔 Profile updated in another tab, refreshing feed');
+        if (this.feedInstance && this.currentTab === 'general') {
+          this.feedInstance.pagination.general.page = 0;
+          this.feedInstance.loadGeneralSharesFromPublicShares();
+        }
+      }
+    });
+    
+    console.log('✅ Profile update listeners active');
+  }
+
+  // 🚀 SHARE EVENT WIRING: Refresh tabs when new shares are created
+  setupShareCreatedListener() {
+    window.addEventListener('share:created', async (event) => {
+      try {
+        const detail = event.detail || {};
+        const visibility = detail.visibility;
+        // Decide which tab to refresh based on visibility
+        const tabsToRefresh = new Set();
+        if (visibility === 'public' || visibility === 'anonymous') {
+          tabsToRefresh.add('general');
+        }
+        // Always refresh archives for the owner
+        tabsToRefresh.add('archives');
+
+        // Ensure feed instance exists
+        if (!this.feedInstance) {
+          await this.init();
+        }
+
+        // Reset pagination for fresh load
+        for (const tab of tabsToRefresh) {
+          if (tab === 'general' && this.feedInstance.pagination?.general) {
+            this.feedInstance.pagination.general.page = 0;
+            this.feedInstance.feedData.general = [];
+          }
+          if (tab === 'archives' && this.feedInstance.pagination?.archives) {
+            this.feedInstance.pagination.archives.page = 0;
+            this.feedInstance.feedData.archives = [];
+          }
+        }
+
+        // 🔧 WOZ FIX: Delay to let database replicate new share before querying
+        // Supabase REST API has slight propagation delay on new inserts
+        // Increased to 500ms for reliable propagation across all read replicas
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Refresh active tab first for responsiveness
+        const activeTab = this.currentTab;
+        if (tabsToRefresh.has(activeTab)) {
+          await this.feedInstance.loadFeedData(activeTab);
+        }
+
+        // Refresh the other tab in background
+        for (const tab of tabsToRefresh) {
+          if (tab !== activeTab) {
+            this.feedInstance.loadFeedData(tab).catch(() => {});
+          }
+        }
+
+        console.log('✅ Hi-Island feed refreshed after share:created', detail);
+
+        // 🔄 Stats refresh: update global counters if available
+        try {
+          if (window.loadCurrentStatsFromDatabase) {
+            window.loadCurrentStatsFromDatabase();
+          } else if (window.HiMetrics?.refresh) {
+            window.HiMetrics.refresh();
+          }
+        } catch (e) {
+          console.warn('⚠️ Stats refresh failed after share:created:', e);
+        }
+      } catch (err) {
+        console.error('❌ Failed to handle share:created event:', err);
+      }
+    });
+  }
+
   // Debug method
   getStatus() {
     return {
@@ -213,6 +307,7 @@ window.getHiIslandHealth = () => ({
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     await controller.init();
+    controller.setupShareCreatedListener();
     console.log('🎉 Unified Hi-Island Controller ready!');
   } catch (error) {
     console.error('❌ Unified Controller auto-init failed:', error);

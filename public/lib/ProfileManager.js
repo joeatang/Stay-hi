@@ -1,0 +1,426 @@
+/**
+ * 🏆 PROFILE MANAGER - Gold Standard Single Source of Truth
+ * 
+ * WOZ PRINCIPLE: One class, one responsibility, zero ambiguity
+ * 
+ * WHAT IT SOLVES:
+ * - 14 different ways to get user_id → NOW: ONE way
+ * - 6 different profile storage locations → NOW: ONE source of truth
+ * - Race conditions on auth → NOW: Guaranteed ready before any write
+ * - Hardcoded defaults → NOW: Database-first loading
+ * - Profile updates don't sync → NOW: Retroactive metadata updates
+ * 
+ * USAGE:
+ *   await ProfileManager.init(); // Call once on app load
+ *   const userId = await ProfileManager.ensureUserId(); // Never null
+ *   const profile = ProfileManager.getProfile(); // Always current
+ */
+
+class ProfileManager {
+  constructor() {
+    if (ProfileManager.instance) {
+      return ProfileManager.instance;
+    }
+    
+    // Singleton state
+    this._initialized = false;
+    this._authReady = false;
+    this._profile = null;
+    this._userId = null;
+    this._supabase = null;
+    
+    // Promise resolvers for blocking waits
+    this._authReadyPromise = null;
+    this._authReadyResolve = null;
+    
+    ProfileManager.instance = this;
+  }
+
+  /**
+   * Initialize ProfileManager - call once on app load
+   * WOZ: Blocks until auth is ready, then loads profile from database
+   */
+  async init() {
+    if (this._initialized) {
+      console.log('✅ ProfileManager already initialized');
+      return;
+    }
+
+    console.log('🚀 ProfileManager initializing...');
+
+    try {
+      // Step 1: Wait for Supabase client
+      this._supabase = await this._waitForSupabase();
+      
+      // Step 2: Wait for auth to be ready
+      await this._waitForAuth();
+      
+      // Step 3: Load profile from database (no hardcoded defaults)
+      await this._loadProfileFromDatabase();
+      
+      // Step 4: Set up event listeners
+      this._setupEventListeners();
+      
+      this._initialized = true;
+      console.log('✅ ProfileManager ready:', {
+        userId: this._userId,
+        username: this._profile?.username,
+        authenticated: !!this._userId
+      });
+
+      // Expose globally for legacy compatibility
+      window.__ProfileManager = this;
+      
+    } catch (error) {
+      console.error('❌ ProfileManager initialization failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * WOZ CRITICAL: Ensures user_id exists before any database write
+   * Blocks until auth is ready, never returns null
+   */
+  async ensureUserId() {
+    if (this._userId) {
+      return this._userId;
+    }
+
+    // Wait for auth to be ready
+    if (!this._authReady) {
+      console.log('⏳ Waiting for auth before getting user_id...');
+      await this._waitForAuth();
+    }
+
+    if (!this._userId) {
+      throw new Error('User ID not available - user may not be authenticated');
+    }
+
+    return this._userId;
+  }
+
+  /**
+   * Get current profile (synchronous, always up-to-date)
+   */
+  getProfile() {
+    return this._profile;
+  }
+
+  /**
+   * Get user_id synchronously (may be null if not authenticated)
+   */
+  getUserId() {
+    return this._userId;
+  }
+
+  /**
+   * Check if user is authenticated
+   */
+  isAuthenticated() {
+    return !!this._userId && this._userId !== 'anonymous';
+  }
+
+  /**
+   * Update profile (saves to database, updates all copies)
+   * WOZ: Single write propagates everywhere
+   */
+  async updateProfile(updates) {
+    if (!this._userId) {
+      throw new Error('Cannot update profile - not authenticated');
+    }
+
+    console.log('💾 ProfileManager updating profile:', updates);
+
+    try {
+      // Update database
+      const { data, error } = await this._supabase
+        .from('profiles')
+        .upsert({
+          id: this._userId,
+          ...updates,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'id' })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Profile update failed:', error);
+        throw error;
+      }
+
+      // Update in-memory cache
+      this._profile = { ...this._profile, ...updates };
+
+      // Update localStorage
+      const storageKey = `stayhi_profile_${this._userId}`;
+      localStorage.setItem(storageKey, JSON.stringify(this._profile));
+
+      // Update legacy currentProfile if it exists
+      if (window.currentProfile) {
+        Object.assign(window.currentProfile, updates);
+      }
+
+      // Fire profile:updated event for feed refresh
+      window.dispatchEvent(new CustomEvent('profile:updated', {
+        detail: {
+          userId: this._userId,
+          ...updates
+        }
+      }));
+
+      console.log('✅ Profile updated across all systems');
+      
+      // WOZ CRITICAL: Update existing shares' metadata retroactively
+      await this._updateExistingSharesMetadata(updates);
+
+      return { success: true, data };
+
+    } catch (error) {
+      console.error('❌ ProfileManager update failed:', error);
+      return { success: false, error };
+    }
+  }
+
+  /**
+   * WOZ INNOVATION: Update existing shares when profile changes
+   * Ensures old shares show new avatar/name
+   */
+  async _updateExistingSharesMetadata(updates) {
+    try {
+      if (!updates.avatar_url && !updates.display_name) {
+        return; // Nothing to update
+      }
+
+      console.log('🔄 Updating existing shares metadata...');
+
+      // Build metadata update object
+      const metadataUpdate = {};
+      if (updates.avatar_url) metadataUpdate.avatar_url = updates.avatar_url;
+      if (updates.display_name) metadataUpdate.display_name = updates.display_name;
+
+      // Update public_shares metadata (JSONB column)
+      const { error: publicError } = await this._supabase
+        .from('public_shares')
+        .update({
+          metadata: this._supabase.raw(`metadata || '${JSON.stringify(metadataUpdate)}'::jsonb`)
+        })
+        .eq('user_id', this._userId);
+
+      if (publicError) {
+        console.warn('⚠️ Could not update public_shares metadata:', publicError);
+      } else {
+        console.log('✅ Updated public_shares metadata');
+      }
+
+      // Update hi_archives metadata
+      const { error: archiveError } = await this._supabase
+        .from('hi_archives')
+        .update({
+          metadata: this._supabase.raw(`metadata || '${JSON.stringify(metadataUpdate)}'::jsonb`)
+        })
+        .eq('user_id', this._userId);
+
+      if (archiveError) {
+        console.warn('⚠️ Could not update hi_archives metadata:', archiveError);
+      } else {
+        console.log('✅ Updated hi_archives metadata');
+      }
+
+    } catch (error) {
+      console.warn('⚠️ Metadata update failed (non-critical):', error);
+    }
+  }
+
+  /**
+   * Wait for Supabase client to be available
+   */
+  async _waitForSupabase() {
+    const maxAttempts = 50; // 5 seconds
+    for (let i = 0; i < maxAttempts; i++) {
+      const client = window.supabaseClient || window.sb || window.__HI_SUPABASE_CLIENT;
+      if (client && client.auth) {
+        console.log('✅ Supabase client ready');
+        return client;
+      }
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    throw new Error('Supabase client not available after 5 seconds');
+  }
+
+  /**
+   * Wait for auth to be ready (user_id available or confirmed anonymous)
+   */
+  async _waitForAuth() {
+    if (this._authReady) {
+      return;
+    }
+
+    // Create promise if not exists
+    if (!this._authReadyPromise) {
+      this._authReadyPromise = new Promise(resolve => {
+        this._authReadyResolve = resolve;
+      });
+    }
+
+    try {
+      // Check auth session
+      const { data: { session }, error } = await this._supabase.auth.getSession();
+
+      if (error) {
+        console.warn('⚠️ Auth session error:', error);
+      }
+
+      if (session?.user) {
+        this._userId = session.user.id;
+        this._authReady = true;
+        console.log('✅ Auth ready - authenticated user:', this._userId);
+      } else {
+        // Anonymous user
+        this._userId = null;
+        this._authReady = true;
+        console.log('ℹ️ Auth ready - anonymous user');
+      }
+
+      if (this._authReadyResolve) {
+        this._authReadyResolve();
+      }
+
+    } catch (error) {
+      console.error('❌ Auth check failed:', error);
+      this._authReady = true; // Mark ready anyway to unblock
+      if (this._authReadyResolve) {
+        this._authReadyResolve();
+      }
+    }
+
+    return this._authReadyPromise;
+  }
+
+  /**
+   * Load profile from database (database-first, no hardcoded defaults)
+   */
+  async _loadProfileFromDatabase() {
+    if (!this._userId) {
+      console.log('ℹ️ No user_id - skipping profile load');
+      this._profile = this._getAnonymousProfile();
+      return;
+    }
+
+    try {
+      console.log('📥 Loading profile from database for user:', this._userId);
+
+      const { data, error } = await this._supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', this._userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
+        console.error('❌ Database query failed:', error);
+        throw error;
+      }
+
+      if (data) {
+        console.log('✅ Profile loaded from database:', {
+          username: data.username,
+          display_name: data.display_name,
+          bio: data.bio
+        });
+        this._profile = data;
+
+        // Update localStorage cache
+        const storageKey = `stayhi_profile_${this._userId}`;
+        localStorage.setItem(storageKey, JSON.stringify(data));
+
+      } else {
+        console.log('ℹ️ No profile in database, creating default');
+        // Create minimal profile in database
+        this._profile = {
+          id: this._userId,
+          username: `user_${this._userId.slice(-6)}`,
+          display_name: 'Stay Hi User',
+          bio: '', // NO hardcoded fallback
+          location: '',
+          avatar_url: null,
+          created_at: new Date().toISOString()
+        };
+
+        // Save to database
+        await this._supabase
+          .from('profiles')
+          .upsert(this._profile, { onConflict: 'id' });
+      }
+
+    } catch (error) {
+      console.error('❌ Profile load failed:', error);
+      // Fallback to localStorage
+      const storageKey = `stayhi_profile_${this._userId}`;
+      const cached = localStorage.getItem(storageKey);
+      if (cached) {
+        console.log('📦 Using cached profile from localStorage');
+        this._profile = JSON.parse(cached);
+      } else {
+        this._profile = this._getAnonymousProfile();
+      }
+    }
+  }
+
+  /**
+   * Get anonymous profile structure
+   */
+  _getAnonymousProfile() {
+    return {
+      id: null,
+      username: 'Anonymous',
+      display_name: 'Hi Friend',
+      bio: '', // NO hardcoded default
+      location: '',
+      avatar_url: null,
+      created_at: new Date().toISOString()
+    };
+  }
+
+  /**
+   * Set up event listeners for auth changes
+   */
+  _setupEventListeners() {
+    // Listen for auth state changes
+    this._supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔐 Auth state changed:', event);
+      
+      if (event === 'SIGNED_IN' && session?.user) {
+        this._userId = session.user.id;
+        this._loadProfileFromDatabase();
+      } else if (event === 'SIGNED_OUT') {
+        this._userId = null;
+        this._profile = this._getAnonymousProfile();
+        // Clear localStorage
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('stayhi_profile_')) {
+            localStorage.removeItem(key);
+          }
+        });
+      }
+    });
+  }
+
+  /**
+   * Check if ProfileManager is ready
+   */
+  isReady() {
+    return this._initialized && this._authReady;
+  }
+}
+
+// Create singleton instance
+const profileManager = new ProfileManager();
+
+// Export for ES6 modules
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = profileManager;
+}
+
+// Expose globally
+window.ProfileManager = profileManager;
+
+console.log('📦 ProfileManager class loaded (singleton pattern)');

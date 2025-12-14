@@ -42,6 +42,9 @@
   <!-- 🌟 WOZNIAK-GRADE: Gold Standard Modal System (Unified Auth/Share Modals) -->
   <script src="lib/HiGoldStandardModal.js" async></script>
   
+  <!-- 🛡️ WOZ-GRADE: Stats Write Guard (prevents navigation increments) -->
+  <script src="lib/stats/StatsWriteGuard.js"></script>
+  
   <!-- 🎨 Hi Brand Tier System (Single Source of Truth) -->
   <script src="lib/HiBrandTiers.js" async></script>
 
@@ -1521,7 +1524,7 @@
           pointer-events: auto;
           position: relative;
           z-index: 10;
-        "><span class="emoji-test">Hi5️⃣</span></button>
+        "><span class="emoji-test">⚡ Hi5</span></button>
         <button class="origin-filter-btn" data-filter="muscle" style="
           padding: 6px 12px; 
           border: 1px solid rgba(255, 255, 255, 0.2); 
@@ -1535,7 +1538,7 @@
           pointer-events: auto;
           position: relative;
           z-index: 10;
-        ">💪 Muscle</button>
+        ">💪 HiGym</button>
         <button class="origin-filter-btn" data-filter="island" style="
           padding: 6px 12px; 
           border: 1px solid rgba(255, 255, 255, 0.2); 
@@ -1577,6 +1580,9 @@
   <!-- 🚀 TESLA FIX: Initialize HiSupabase before HiDB -->
   <script type="module" src="./lib/boot/island-supabase-prime.mjs"></script>
   
+  <!-- 🏆 WOZ FIX: ProfileManager - Single Source of Truth -->
+  <script src="./lib/ProfileManager.js"></script>
+  
   <script src="./lib/HiDB.js" defer></script>
   <script src="assets/avatar-utils.js"></script>
   <script src="assets/geocoding-service.js"></script>
@@ -1600,8 +1606,8 @@
   <!-- TEMPORARILY DISABLED: HiIslandIntegration.js - conflicts with main feed -->
   <!-- TEMPORARILY DISABLED: HiGoldStandardIntegration.js - DOM structure mismatch -->
   <!-- ✅ UNIFIED FEED SYSTEM: Single controller for all feed operations -->
-  <script src="components/hi-real-feed/HiRealFeed.js" type="module"></script>
-  <script src="components/hi-real-feed/UnifiedHiIslandController.js" type="module"></script>
+  <script src="components/hi-real-feed/HiRealFeed.js?v=20241213" type="module"></script>
+  <script src="components/hi-real-feed/UnifiedHiIslandController.js?v=20241213" type="module"></script>
   
   <!-- 🚨 EMERGENCY: Freeze diagnostic tool for Tesla-grade debugging -->
   <!-- WOZ FIX: Diagnostic script crashes on line 88 - interceptAsyncFunction doesn't exist -->
@@ -1632,8 +1638,16 @@
   <!-- 🚀 HI OS ENHANCEMENT: Optional enhancement layer -->
   <script type="module" src="./lib/boot/island-enhancement-delay.mjs"></script>
 
-  <!-- 🧪 BACKEND PLUMBING TEST (Temporary) -->
-  <script src="test-backend-plumbing.js"></script>
+  <!-- 🧪 BACKEND PLUMBING TEST (opt-in: add ?diag=backend) -->
+  <script>
+    (() => {
+      const params = new URLSearchParams(location.search);
+      if (params.get('diag') !== 'backend') return;
+      const s = document.createElement('script');
+      s.src = 'test-backend-plumbing.js';
+      document.head.appendChild(s);
+    })();
+  </script>
   
   <!-- Header: Using Tesla-Grade Dashboard Header (no HiHeader.js needed) -->
   

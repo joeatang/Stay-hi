@@ -35,19 +35,30 @@ async function loadRealUserCount() {
     // Parse the response structure: data has globalStats and personalStats
     if (data && data.globalStats) {
       // 🎯 SURGICAL FIX: Only update if we don't already have authoritative values
-      // dashboard-main.js loads first and is source of truth
-      if (window._gTotalHisIsTemporary !== false) {
+      // UnifiedStatsLoader is source of truth - this is fallback only
+      const shouldUpdate = (
+        window.gTotalHis === undefined || 
+        window.gTotalHis === null ||
+        window._gTotalHisIsTemporary === true
+      );
+      
+      if (shouldUpdate) {
         window.gWaves = data.globalStats.hiWaves || 0;
         window.gTotalHis = data.globalStats.totalHis || 0; 
         window.gUsers = data.globalStats.totalUsers || 0;
         
-        console.log('✅ Global stats updated from get_user_stats:', {
+        console.log('✅ Global stats updated from get_user_stats (fallback):', {
           waves: window.gWaves,
           totalHis: window.gTotalHis,
           users: window.gUsers
         });
+
+        if (typeof window.markStatsAuthoritative === 'function') {
+          window.markStatsAuthoritative('RealUserCount:get_user_stats');
+        }
       } else {
-        console.log('ℹ️ Skipping RealUserCount update - dashboard-main already has authoritative values');
+        console.log('ℹ️ Skipping RealUserCount update - authoritative values already set');
+        return;
       }
       
       // Mark stats as recently loaded to prevent duplicates
@@ -108,6 +119,10 @@ async function loadEnhancedGlobalStats() {
       window.gTotalHis = statsData.total_his || 0;
       window.gWaves = statsData.hi_waves || 0;
       window.gUsers = userCount || window.gUsers || 5;
+      
+      if (typeof window.markStatsAuthoritative === 'function') {
+        window.markStatsAuthoritative('RealUserCount:global_stats');
+      }
       
       // ❌ REMOVED: localStorage writes that were causing stat drift on navigation
       // localStorage.setItem('globalTotalHis', window.gTotalHis.toString());

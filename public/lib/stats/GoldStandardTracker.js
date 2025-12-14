@@ -40,10 +40,15 @@ export async function trackShareSubmission(source = 'dashboard', metadata = {}) 
         throw error;
       }
       
-      if (data && typeof data.total_his === 'number') {
-        // ✅ SUCCESS: Update global counter with value from database
+      // 🎯 CRITICAL FIX: get_global_stats() returns TABLE (array of rows), not object
+      // Expected format: data = [{ total_his: 123, hi_waves: 456, updated_at: ... }]
+      console.log('🔍 Raw database response:', data);
+      
+      if (Array.isArray(data) && data.length > 0 && typeof data[0].total_his === 'number') {
+        // ✅ SUCCESS: Extract total_his from first row
+        const stats = data[0];
         const oldValue = window.gTotalHis;
-        window.gTotalHis = data.total_his;
+        window.gTotalHis = stats.total_his;
         window._gTotalHisIsTemporary = false;
         
         console.log('✅ Total His refreshed from database:', `${oldValue} → ${window.gTotalHis}`);
@@ -65,19 +70,15 @@ export async function trackShareSubmission(source = 'dashboard', metadata = {}) 
         console.log('🎯 GOLD STANDARD SUCCESS: Total His updated to', window.gTotalHis);
         return { success: true, newTotal: window.gTotalHis };
         
-      } else if (data && typeof data === 'object') {
-        // Handle alternate RPC response format (single object)
-        const stats = data;
-        if (stats.total_his !== undefined) {
-          window.gTotalHis = stats.total_his;
-          console.log('🎯 GOLD STANDARD SUCCESS (alt format): Total His =', window.gTotalHis);
-          return { success: true, newTotal: window.gTotalHis };
-        }
+      } else if (data && typeof data.total_his === 'number') {
+        // Handle alternate format (single object - shouldn't happen but fallback)
+        window.gTotalHis = data.total_his;
+        window._gTotalHisIsTemporary = false;
+        console.log('🎯 GOLD STANDARD SUCCESS (alt format): Total His =', window.gTotalHis);
+        return { success: true, newTotal: window.gTotalHis };
+      } else {
         console.warn('⚠️ Unexpected database response format:', { data, error });
         throw new Error('Invalid database response - missing total_his field');
-      } else {
-        console.warn('⚠️ Unexpected database response:', { data, error });
-        throw new Error('Invalid database response');
       }
       
     } catch (error) {

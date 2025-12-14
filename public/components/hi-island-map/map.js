@@ -149,6 +149,9 @@ class HiIslandMap {
       this.mapInitialized = true;
       console.log('✅ Hi Island Map initialized with clustering');
 
+      // Setup share listener for live updates
+      this.setupShareListener();
+
       // Load markers after map is ready
       setTimeout(() => this.loadMarkers(), 500);
 
@@ -157,14 +160,9 @@ class HiIslandMap {
     }
   }
 
-  // Load markers from hiDB
+  // Load markers from live shares (unified with feed)
   async loadMarkers() {
-    console.log('🔍 Starting marker loading process...');
-    
-    if (!window.hiDB) {
-      console.error('❌ hiDB not available - database not initialized!');
-      return;
-    }
+    console.log('🔍 Loading markers from live shares...');
     
     if (!this.map) {
       console.error('❌ Map not initialized yet');
@@ -172,78 +170,80 @@ class HiIslandMap {
     }
 
     try {
-      console.log('📡 Fetching public shares from database...');
-      const shares = await window.hiDB.fetchPublicShares({ limit: 100 });
+      // 🎯 WOZ GRADE: Use same query as General tab feed
+      const sb = await this.getSupabaseClient();
+      if (!sb) {
+        console.error('❌ Supabase client not available');
+        return;
+      }
+      
+      console.log('📡 Querying public_shares for map markers...');
+      
+      // Query public + anonymous shares with location data
+      const { data: shares, error } = await sb
+        .from('public_shares')
+        .select(`
+          id,
+          content,
+          metadata,
+          location_data,
+          created_at,
+          is_public,
+          is_anonymous
+        `)
+        .or('is_public.eq.true,is_anonymous.eq.true')
+        .not('location_data', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(200);
+      
+      if (error) {
+        console.error('❌ Failed to load shares for map:', error);
+        return;
+      }
       
       // Clear existing markers
       this.clearMarkers();
 
-      console.log(`🗺️ Received ${shares.length} shares from database`);
+      console.log(`🗺️ Received ${shares?.length || 0} shares with location data`);
       
-      // Debug: Log share details
-      if (shares.length > 0) {
-        console.log('📊 Share sample:', {
-          total: shares.length,
-          firstShare: {
-            id: shares[0].id,
-            location: shares[0].location,
-            text: shares[0].text?.substring(0, 50) + '...',
-            userName: shares[0].userName,
-            hasLocation: !!shares[0].location
-          }
-        });
-      } else {
-        console.warn('⚠️ No shares returned from database - this is likely why no clusters are showing!');
+      if (!shares || shares.length === 0) {
+        console.warn('⚠️ No shares with location data found');
+        this.showEmptyMapMessage();
+        return;
       }
       
-      // Filter shares with valid locations
-      const sharesWithLocation = shares.filter(s => s.location && s.location.trim());
-      console.log(`📍 ${sharesWithLocation.length} shares have location data`);
-      
-      if (sharesWithLocation.length === 0) {
-        console.warn('⚠️ No shares have location data - need to create some Hi shares with locations!');
-      }
-      
-      // Get unique locations to batch geocode
-      const uniqueLocations = [...new Set(sharesWithLocation.map(s => s.location))];
-      console.log(`🌍 ${uniqueLocations.length} unique locations to geocode`);
-      
-      // Geocode each unique location (with caching)
-      const locationCache = {};
-      const geocodingResults = { success: [], failed: [] };
-      
-      for (const location of uniqueLocations) {
-        console.log(`🔍 Geocoding: "${location}"`);
-        const coords = await this.geocodeLocation(location);
-        if (coords) {
-          locationCache[location] = coords;
-          geocodingResults.success.push({ location, coords });
-          console.log(`✅ Geocoded "${location}" to [${coords.lat}, ${coords.lng}]`);
-        } else {
-          geocodingResults.failed.push(location);
-          console.warn(`⚠️ Failed to geocode: "${location}"`);
-        }
-      }
-      
-      // Log comprehensive geocoding summary
-      console.log('🗺️ Geocoding Summary:', {
-        totalLocations: uniqueLocations.length,
-        successful: geocodingResults.success.length,
-        failed: geocodingResults.failed.length,
-        failedLocations: geocodingResults.failed,
-        successRate: `${Math.round((geocodingResults.success.length / uniqueLocations.length) * 100)}%`
-      });
-      
-      // Add markers for all shares with valid coordinates
+      // Add markers from shares
       let markersAdded = 0;
       const bounds = [];
       
-      for (const share of sharesWithLocation) {
-        const coords = locationCache[share.location];
-        if (coords) {
-          this.addMarkerAt(coords.lat, coords.lng, share);
-          bounds.push([coords.lat, coords.lng]);
-          markersAdded++;
+      for (const share of shares) {
+        try {
+          const locationData = share.location_data;
+          
+          // Check if we have coordinates
+          if (locationData && (locationData.lat || locationData.latitude) && (locationData.lng || locationData.longitude)) {
+            const lat = locationData.lat || locationData.latitude;
+            const lng = locationData.lng || locationData.longitude;
+            
+            // Transform share to map marker format
+            const markerData = {
+              id: share.id,
+              text: share.content,
+              currentEmoji: share.metadata?.current_emoji || '👋',
+              desiredEmoji: share.metadata?.desired_emoji || '✨',
+              userName: share.is_anonymous ? 'Anonymous' : (share.metadata?.display_name || 'Hi Member'),
+              isAnonymous: share.is_anonymous,
+              location: locationData.name || locationData.location_name || `${lat.toFixed(2)}, ${lng.toFixed(2)}`,
+              origin: share.metadata?.origin || 'hi5',
+              createdAt: share.created_at
+            };
+            
+            this.addMarkerAt(lat, lng, markerData);
+            bounds.push([lat, lng]);
+            markersAdded++;
+          }
+        } catch (err) {
+          console.warn('⚠️ Failed to process share for map:', err);
         }
       }
       
@@ -257,10 +257,63 @@ class HiIslandMap {
           maxZoom: 8 // Don't zoom in too close
         });
         console.log(`🗺️ Map fitted to ${bounds.length} marker positions`);
+      } else {
+        this.showEmptyMapMessage();
       }
       
-      // 🎯 TESLA-GRADE: Intelligent marker management
-      console.log(`🎯 Marker Summary: Database shares: ${shares.length}, With locations: ${sharesWithLocation.length}, Successfully geocoded: ${markersAdded}`);
+    } catch (error) {
+      console.error('❌ Error loading map markers:', error);
+      console.error('Error details:', error.stack);
+      this.showEmptyMapMessage();
+    }
+  }
+  
+  // Get Supabase client
+  async getSupabaseClient() {
+    return (
+      window.HiSupabase?.getClient?.() ||
+      window.hiSupabase ||
+      window.supabaseClient ||
+      window.sb ||
+      window.__HI_SUPABASE_CLIENT ||
+      null
+    );
+  }
+  
+  // Show empty map message
+  showEmptyMapMessage() {
+    if (!this.map) return;
+    
+    const messagePopup = L.popup()
+      .setLatLng([20, 0])
+      .setContent(`
+        <div style="text-align: center; padding: 10px;">
+          <h3>🌍 Hi Island</h3>
+          <p>Share a Hi moment with location to see it on the map!</p>
+          <small>Shares with location data will appear as markers</small>
+        </div>
+      `)
+      .openOn(this.map);
+  }
+
+  // Listen for new shares and refresh map
+  setupShareListener() {
+    window.addEventListener('share:created', async (event) => {
+      const detail = event.detail || {};
+      
+      // Only refresh if share has location
+      if (detail.location || detail.locationData) {
+        console.log('🗺️ New share with location detected, refreshing map...');
+        
+        // Small delay to allow database to update
+        setTimeout(() => {
+          this.loadMarkers();
+        }, 1000);
+      }
+    });
+    
+    console.log('✅ Map share listener active');
+  }
       
       // Only add seed data if we have NO database shares OR no successfully geocoded shares
       const shouldInitializeSeed = shares.length === 0 || (sharesWithLocation.length > 0 && markersAdded === 0);

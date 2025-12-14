@@ -16,10 +16,27 @@ class HiIslandRealFeed {
   constructor() {
     this.currentTab = 'general';
     this.currentUserId = null;
-    this.feedData = {
+    
+    // Simple internal storage
+    this._feedDataInternal = {
       general: [],
       archives: []
     };
+    
+    // Simplified Proxy - removed Object.defineProperty that was causing interference
+    this.feedData = new Proxy(this._feedDataInternal, {
+      get: (target, prop) => {
+        return target[prop];
+      },
+      set: (target, prop, value) => {
+        if (prop === 'general') {
+          console.log(`📦 [FEED DATA] Setting feedData.general to array with ${value?.length || 0} items`);
+        }
+        target[prop] = value;
+        return true;
+      }
+    });
+    
     this.isLoading = false;
     this.pagination = {
       general: { page: 0, hasMore: true },
@@ -43,6 +60,19 @@ class HiIslandRealFeed {
     try {
       // Get current user for personal archives
       await this.getCurrentUser();
+      // Try to fetch user's public share count via RPC; fail gracefully
+      try {
+        const supabase = this.getSupabase();
+        if (supabase && this.currentUserId) {
+          const { getUserShareCount } = await import('../../lib/rpc/getUserShareCount.js');
+          this.userPublicShareCount = await getUserShareCount(supabase, this.currentUserId);
+        } else {
+          this.userPublicShareCount = 0;
+        }
+      } catch (e) {
+        console.warn('⚠️ HiRealFeed: getUserShareCount unavailable:', e);
+        this.userPublicShareCount = 0;
+      }
       
       // Render the interface
       this.render();
@@ -146,10 +176,10 @@ class HiIslandRealFeed {
       
       let shares, error;
       
-      // Try the view first (if it exists), fall back to direct table query
+      // Try normalized view first, fall back to direct table query
       try {
         const result = await supabase
-          .from('public_shares_with_live_profiles')
+          .from('public_shares_enriched')
           .select('*')
           .order('created_at', { ascending: false })
           .range(this.pagination.general.page * 20, (this.pagination.general.page + 1) * 20 - 1);
@@ -216,25 +246,79 @@ class HiIslandRealFeed {
 
       // 🎯 TESLA-GRADE: Process shares with ACTUAL SCHEMA
       const processedShares = (shares || []).map(share => {
-        // 🏆 Gold Standard: Use top-level profile fields (from view) or profiles object (from JOIN)
+        // 🏆 Gold Standard: Prioritize immutable metadata snapshot over profiles JOIN
+        // This ensures avatar updates show immediately without waiting for JOIN refresh
         const username = share.username || share.profiles?.username || 'Anonymous';
-        const displayName = share.display_name || share.profiles?.display_name || username;
-        const avatarUrl = share.avatar_url || share.profiles?.avatar_url || null;
+        const displayName = share.metadata?.display_name || share.display_name || share.profiles?.display_name || username;
+        const avatarUrl = share.metadata?.avatar_url || share.avatar_url || share.profiles?.avatar_url || null;
         
+      // 🔬 Debug: Log first share to reveal ACTUAL schema from view
+      if (!window.__publicShareSchemaLogged) {
+        console.log('🔍 ACTUAL PUBLIC_SHARES SCHEMA:', Object.keys(share));
+        window.__publicShareSchemaLogged = true;
+      }
+      
+      // Derive pill/type: Check database pill field FIRST, then fall back to content detection
+      // 🎯 AUTHORITATIVE SOURCE: Database pill field (set by share creation)
+      let derivedType;
+      let isGym = false;
+      let hasGymOrigin = false;
+      let hasGymMetadata = false;
+      let hasGymContent = false;
+      
+      if (share.pill) {
+        // Use explicit pill from database
+        derivedType = share.pill;
+        // Set isGym for logging
+        isGym = (derivedType === 'higym');
+      } else {
+        // FALLBACK: Content-based detection for shares without explicit pill
+        const originRaw = String(share.origin || '').toLowerCase();
+        const contentRaw = String(share.content || share.text || '').toLowerCase();
+        const metadata = share.metadata || {};
+        
+        // Check multiple signals for gym detection
+        hasGymOrigin = originRaw.includes('muscle') || originRaw.includes('gym') || originRaw.includes('higym');
+        hasGymMetadata = String(metadata.type || '').toLowerCase().includes('gym');
+        hasGymContent = contentRaw.includes('#higym') || contentRaw.includes('muscle journey') || 
+                             (share.content || '').includes('→'); // Emoji arrow indicates emotional journey
+        
+        isGym = hasGymOrigin || hasGymMetadata || hasGymContent;
+        derivedType = isGym ? 'higym' : 'hi5';
+      }
+
+        // 🔬 DEBUG: Log pill derivation for first share
+        if (!window.__pillDerivationLogged) {
+          console.log('🔬 Pill derivation:', { 
+            origin: share.origin, 
+            content: (share.content || '').substring(0, 50), 
+            derivedType, 
+            isGym,
+            signals: { hasGymOrigin, hasGymMetadata, hasGymContent }
+          });
+          window.__pillDerivationLogged = true;
+        }
+
         const processed = {
           id: share.id,
-          content: share.text || share.content || 'Shared a Hi 5 moment!', // ACTUAL SCHEMA: 'text' column
-          visibility: share.visibility || (share.is_anonymous ? 'anonymous' : 'public'),
-          metadata: share.metadata || {},
-          created_at: share.created_at,
           user_id: share.user_id,
           location: share.location || 'Location unavailable', // ACTUAL SCHEMA: 'location' column
-          origin: share.origin || 'unknown',
+          origin: share.origin || 'hi-island',
           // 🏆 Use LIVE profile data
           username,
           displayName,
           avatarUrl,
-          type: share.type || 'hi5'
+          type: share.pill || share.type || derivedType,
+          // 🎯 CRITICAL: Display content from actual schema columns
+          text: share.text || '', // Legacy text column
+          content: share.content || share.text || 'Hi! 👋', // New content column OR text fallback
+          visibility: share.visibility || (share.is_anonymous ? 'anonymous' : (share.is_public ? 'public' : 'private')),
+          created_at: share.created_at,
+          // 🏆 Add medallion/emoji data for rendering
+          currentEmoji: share.current_emoji || '👋',
+          currentName: share.current_name || 'Hi',
+          desiredEmoji: share.desired_emoji || '👋',
+          desiredName: share.desired_name || 'Hi'
         };
 
         // 🎯 SCHEMA FIX: Support both top-level columns AND metadata storage
@@ -299,6 +383,19 @@ class HiIslandRealFeed {
     try {
       this.isLoading = true;
 
+      // Ensure archives container exists before rendering
+      const containerCheck = document.getElementById('archivesFeed') || document.querySelector('.hi-feed-content');
+      if (!containerCheck) {
+        // Render archives tab content structure proactively to avoid race conditions
+        try {
+          this.renderTabContent('archives');
+          // Allow DOM to settle
+          await new Promise(resolve => setTimeout(resolve, 50));
+        } catch (e) {
+          console.warn('⚠️ Could not render archives tab content pre-query:', e);
+        }
+      }
+
       // Query REAL hi_archives table for user's personal data
       const { data: archives, error } = await supabase
         .from('hi_archives')
@@ -313,19 +410,44 @@ class HiIslandRealFeed {
       }
 
       // 🎯 TESLA-GRADE: Process archive data with ACTUAL SCHEMA
-      const processedArchives = (archives || []).map(archive => ({
-        id: archive.id,
-        content: archive.journal || archive.text || 'Personal Hi 5 moment', // ACTUAL SCHEMA: 'journal' column
-        visibility: archive.visibility || 'private',
-        metadata: archive.metadata || {},
-        created_at: archive.created_at,
-        user_id: archive.user_id,
-        location: archive.location || 'Location unavailable', // ACTUAL SCHEMA: 'location' column
-        origin: archive.origin || 'unknown',
-        type: archive.type || 'hi5',
-        display_name: 'You', // User's own archives
-        avatar_url: null // Will be filled from user profile if needed
-      }));
+      const processedArchives = (archives || []).map(archive => {
+        // 🔬 Debug: log first archive to reveal ACTUAL schema
+        if (!window.__archiveSchemaLogged) {
+          console.log('🔍 ACTUAL ARCHIVE SCHEMA:', Object.keys(archive));
+          window.__archiveSchemaLogged = true;
+        }
+        
+        // 🔬 DEBUG: Log type field for investigation
+        if (!window.__archiveTypeLogged) {
+          console.log('🔍 Archive Type Debug:', {
+            raw_type: archive.type,
+            raw_origin: archive.origin,
+            content_preview: (archive.content || archive.text || '').substring(0, 50),
+            created_at: archive.created_at
+          });
+          window.__archiveTypeLogged = true;
+        }
+        
+        return {
+          id: archive.id,
+          content: archive.content || archive.text || 'Personal Hi 5 moment', // Try all variants
+          text: archive.text || '',
+          visibility: archive.visibility || (archive.is_anonymous ? 'anonymous' : 'private'),
+          metadata: archive.metadata || {},
+          created_at: archive.created_at,
+          user_id: archive.user_id,
+          location: archive.location || 'Location unavailable',
+          origin: archive.origin || 'unknown',
+          type: archive.type || 'hi5',
+          display_name: 'You', // User's own archives
+          avatar_url: null, // Will be filled from user profile if needed
+          // 🏆 Add medallion/emoji data
+          currentEmoji: archive.current_emoji || '👋',
+          currentName: archive.current_name || 'Hi',
+          desiredEmoji: archive.desired_emoji || '👋',
+          desiredName: archive.desired_name || 'Hi'
+        };
+      });
 
       // Update feed data
       if (this.pagination.archives.page === 0) {
@@ -334,6 +456,11 @@ class HiIslandRealFeed {
         this.feedData.archives = [...this.feedData.archives, ...processedArchives];
       }
 
+      // Render: archive container can be missing if DOM not yet built; ensure structure exists
+      const hasArchivesContainer = !!document.getElementById('archivesFeed');
+      if (!hasArchivesContainer) {
+        this.renderTabContent('archives');
+      }
       this.renderFeedItems('archives', processedArchives);
       this.updateTabCount('archives');
 
@@ -382,6 +509,9 @@ class HiIslandRealFeed {
             <div class="tab-header">
               <h3>Community Hi 5s</h3>
               <p>Public and anonymous shares from the Hi community</p>
+              <div id="hiFeedStats" style="margin-top:8px; font-size:12px; opacity:0.85;">
+                ${typeof this.userPublicShareCount === 'number' ? `<span class="hi-feed-stats-badge" style="display:inline-block; padding:4px 8px; border-radius:10px; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25);">Your public shares: ${this.userPublicShareCount}</span>` : ''}
+              </div>
             </div>
             
             <div id="generalFeed" class="hi-feed-container">
@@ -540,6 +670,9 @@ class HiIslandRealFeed {
 
   // 🔧 NEW: Render specific tab content without tab navigation
   renderTabContent(tabName) {
+    console.log(`🎨 [RENDER TAB] renderTabContent called for: ${tabName}`);
+    console.log(`🎨 [RENDER TAB] this.feedData.general.length BEFORE innerHTML: ${this.feedData.general?.length || 0}`);
+    
     const contentArea = document.querySelector('.hi-feed-content');
     if (!contentArea) return;
 
@@ -560,6 +693,8 @@ class HiIslandRealFeed {
           </button>
         </div>
       `;
+      console.log(`🎨 [RENDER TAB] this.feedData.general.length AFTER innerHTML: ${this.feedData.general?.length || 0}`);
+      console.log(`🎨 [RENDER TAB] About to call getFilteredItems...`);
       this.renderFeedItems('general', this.getFilteredItems('general'));
     } else if (tabName === 'archives') {
       contentArea.innerHTML = `
@@ -691,17 +826,14 @@ class HiIslandRealFeed {
       const o = String(share.origin || '').toLowerCase();
       const t = String(share.type || '').toLowerCase();
       if (filter === 'quick') {
-        return (
-          o.includes('quick') ||
-          ['hi5', 'self_hi5', 'self-hi5', 'index', 'hi-dashboard', 'dashboard'].includes(o) ||
-          t.includes('hi5') || t.includes('self')
-        );
+        // Primary: derived pill type
+        if (t === 'hi5') return true;
+        // Secondary: origin keywords
+        return o.includes('dashboard') || o.includes('quick') || ['index','hi-dashboard','dashboard','self-hi5','self_hi5'].includes(o);
       }
       if (filter === 'muscle') {
-        return (
-          o.includes('muscle') || o.includes('gym') || ['hi-muscle', 'higym', 'muscle', 'gym', 'hi_muscle_journey'].includes(o) ||
-          t.includes('muscle') || t.includes('journey')
-        );
+        if (t === 'higym') return true;
+        return o.includes('muscle') || o.includes('gym') || ['hi-muscle','muscle','gym','hi_muscle_journey'].includes(o);
       }
       if (filter === 'island') {
         return (o.includes('island') || o === 'hi-island');
@@ -716,11 +848,12 @@ class HiIslandRealFeed {
   setOriginFilter(filter = 'all') {
     this.originFilter = filter;
     if (this.currentTab === 'general') {
-      this.renderTabContent('general');
+      this.renderFeedItems('general', this.getFilteredItems('general'));
+      this.updateTabCount('general');
     }
   }
 
-  // Handle "Wave Back" UX with anonymous-friendly behavior
+  // Handle "Wave Back" UX with server persistence
   async handleWaveAction(buttonEl) {
     if (!buttonEl || buttonEl.classList.contains('waved')) return;
     const shareId = buttonEl.dataset.shareId;
@@ -729,46 +862,78 @@ class HiIslandRealFeed {
       return;
     }
 
+    const originalText = buttonEl.textContent;
+
     try {
-      // Anonymous users: allow celebratory feedback, encourage sign-in
-      if (!this.currentUserId) {
-        buttonEl.classList.add('waved');
-        const original = buttonEl.textContent;
-        buttonEl.textContent = '👋 Waved (not saved)';
-        buttonEl.setAttribute('aria-pressed', 'true');
-        try { this.wavedShares.add(shareId); localStorage.setItem('wavedShares', JSON.stringify(Array.from(this.wavedShares))); } catch {}
-        setTimeout(() => { try { buttonEl.textContent = original; buttonEl.classList.remove('waved'); buttonEl.setAttribute('aria-pressed', 'false'); } catch{} }, 1500);
-        if (window.showAuthModal && typeof window.showAuthModal === 'function') {
-          window.showAuthModal('Sign in to keep your waves and build your profile.');
-        }
-        return;
-      }
+      const userId = this.currentUserId || null;
 
-      // Authenticated: attempt to persist reaction, then confirm visually
-      try {
-        const supabase = this.getSupabase();
-        if (supabase) {
-          const record = { user_id: this.currentUserId, share_id: shareId, type: 'wave' };
-          const { error } = await supabase
-            .from('share_reactions')
-            .upsert(record, { onConflict: 'user_id,share_id,type', ignoreDuplicates: true });
-          if (error) {
-            console.warn('Wave persistence failed (fallback to UI-only):', error.message || error);
-          }
-        }
-      } catch (e) {
-        console.warn('Wave persistence error:', e);
-      }
-
-      buttonEl.classList.add('waved');
+      // Optimistic UI update
+      buttonEl.classList.add('waved', 'loading');
       buttonEl.disabled = true;
-      buttonEl.textContent = '👋 Waved';
+      buttonEl.textContent = '👋 Waving...';
       buttonEl.setAttribute('aria-pressed', 'true');
-      try { this.wavedShares.add(shareId); localStorage.setItem('wavedShares', JSON.stringify(Array.from(this.wavedShares))); } catch {}
-      // Optional: future enhancement hook to persist reaction
-      // await this.recordWaveReaction(shareId)
-    } catch (e) {
-      console.warn('Wave action failed:', e);
+
+      const supabase = this.getSupabase();
+      if (!supabase) {
+        throw new Error('Supabase client not available');
+      }
+
+      const { data, error } = await supabase.rpc('wave_back', {
+        p_share_id: shareId,
+        p_user_id: userId
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      const waveCount = data?.wave_count || 0;
+      const alreadyWaved = data?.already_waved || false;
+
+      buttonEl.classList.remove('loading');
+      buttonEl.textContent = `👋 ${waveCount} ${waveCount === 1 ? 'Wave' : 'Waves'}`;
+      buttonEl.setAttribute('aria-pressed', 'true');
+
+      this.wavedShares.add(shareId);
+      try {
+        localStorage.setItem('wavedShares', JSON.stringify(Array.from(this.wavedShares)));
+      } catch {
+        // ignore storage failures
+      }
+
+      window.dispatchEvent(new CustomEvent('wave:incremented', {
+        detail: {
+          shareId,
+          userId,
+          waveCount,
+          alreadyWaved,
+          timestamp: Date.now()
+        }
+      }));
+
+      if (window.loadCurrentStatsFromDatabase) {
+        setTimeout(() => window.loadCurrentStatsFromDatabase(), 500);
+      }
+
+      if (!userId && window.showAuthModal && typeof window.showAuthModal === 'function') {
+        setTimeout(() => {
+          window.showAuthModal('Sign in to keep your waves and build your profile!');
+        }, 1000);
+      }
+
+    } catch (error) {
+      console.error('❌ Wave back failed:', error);
+
+      buttonEl.classList.remove('waved', 'loading');
+      buttonEl.disabled = false;
+      buttonEl.textContent = originalText || '👋 Wave Back';
+      buttonEl.setAttribute('aria-pressed', 'false');
+
+      const tempText = buttonEl.textContent;
+      buttonEl.textContent = '❌ Failed';
+      setTimeout(() => {
+        buttonEl.textContent = tempText;
+      }, 2000);
     }
   }
 
@@ -782,15 +947,22 @@ class HiIslandRealFeed {
     
     // 🎯 TESLA-GRADE: Format Hi content properly from schema
     const formattedContent = this.formatHiContent(share);
+    const originBadgeHTML = this.getOriginBadge(share);
+
+    // 🔬 DEBUG: Log what we're about to render
+    if (!window.__shareRenderLogged) {
+      console.log('🔬 Share render:', { type: share.type, origin: share.origin, badgeHTML: originBadgeHTML.substring(0, 100) });
+      window.__shareRenderLogged = true;
+    }
 
     element.innerHTML = `
       <div class="share-header">
-        <div class="share-user">
+        <div class="share-user" style="cursor: pointer;" onclick="window.location.href='/profile.html?user=${share.user_id}'" title="View ${this.escapeHtml(share.display_name || 'Hi Friend')}'s profile">
           ${share.avatar_url ? 
-            `<img src="${share.avatar_url}" alt="Avatar" class="share-avatar">` :
-            '<div class="share-avatar-placeholder">👤</div>'
+            `<img src="${share.avatar_url}" alt="Avatar" class="share-avatar" style="cursor: pointer;">` :
+            '<div class="share-avatar-placeholder" style="cursor: pointer;">👤</div>'
           }
-          <span class="share-username">${this.escapeHtml(share.display_name || 'Hi Friend')}</span>
+          <span class="share-username" style="cursor: pointer;">${this.escapeHtml(share.display_name || 'Hi Friend')}</span>
         </div>
         <div class="share-meta">
           <span class="share-visibility">${visibilityIcon}</span>
@@ -801,12 +973,12 @@ class HiIslandRealFeed {
       <div class="share-content">
         ${formattedContent}
         ${location ? `<p class="share-location">${this.escapeHtml(location)}</p>` : ''}
-        ${this.getOriginBadge(share)}
+        ${originBadgeHTML}
       </div>
       
       <div class="share-actions">
         <button class="share-action-btn" data-action="wave" data-share-id="${share.id}">
-          👋 Wave Back
+          ${typeof share.wave_count === 'number' ? `👋 ${share.wave_count} ${share.wave_count === 1 ? 'Wave' : 'Waves'}` : '👋 Wave Back'}
         </button>
         ${tabName === 'archives' ? `
           <button class="share-action-btn" data-action="share" data-share-id="${share.id}">
@@ -815,6 +987,59 @@ class HiIslandRealFeed {
         ` : ''}
       </div>
     `;
+
+    // Async: try to load live wave count + already-waved state if RPCs exist; fail silently
+    (async () => {
+      try {
+        const btn = element.querySelector('.share-action-btn[data-action="wave"]');
+        const supabase = this.getSupabase();
+        if (!btn || !supabase) return;
+        // Prefer a combined function if available; else probe two RPCs
+        let count = null;
+        let already = null;
+        try {
+          const { data } = await supabase.rpc('get_share_wave_count', { p_share_id: share.id });
+          if (typeof data === 'number') count = data;
+        } catch {}
+        try {
+          const uid = this.currentUserId || null;
+          if (uid) {
+            const { data } = await supabase.rpc('has_user_waved', { p_share_id: share.id, p_user_id: uid });
+            if (typeof data === 'boolean') already = data;
+          }
+        } catch {}
+        if (typeof count === 'number') {
+          btn.textContent = `👋 ${count} ${count === 1 ? 'Wave' : 'Waves'}`;
+        }
+        if (already === true) {
+          btn.classList.add('waved');
+          btn.disabled = true;
+          btn.setAttribute('aria-pressed', 'true');
+        }
+      } catch {}
+    })();
+
+    // 🔍 Debug: Inspect pills in rendered DOM
+    setTimeout(() => {
+      const badges = element.querySelectorAll('.origin-badge');
+      if (badges.length > 0 && !window.__domPillInspected) {
+        window.__domPillInspected = true;
+        const pill = badges[0];
+        const computed = window.getComputedStyle(pill);
+        console.log('🔍 DOM Pill Inspection:', {
+          count: badges.length,
+          text: pill.textContent,
+          display: computed.display,
+          visibility: computed.visibility,
+          opacity: computed.opacity,
+          fontSize: computed.fontSize,
+          color: computed.color,
+          background: computed.backgroundColor,
+          zIndex: computed.zIndex,
+          position: computed.position
+        });
+      }
+    }, 200);
 
     return element;
   }
@@ -844,6 +1069,10 @@ class HiIslandRealFeed {
     // Remove the emoji parts from content to get just the additional text
     let text = content;
     
+      // Ensure container exists before rendering items (race fix)
+      setTimeout(() => {
+        this.renderFeedItems('general', this.getFilteredItems('general'));
+      }, 0);
     if (metadata.currentEmoji && metadata.currentName) {
       text = text.replace(`${metadata.currentEmoji} ${metadata.currentName}`, '');
     }
@@ -858,26 +1087,31 @@ class HiIslandRealFeed {
 
   // Utility methods (same as before)
   getOriginBadge(share) {
-    const origin = String(share.origin || '').toLowerCase();
     const type = String(share.type || '').toLowerCase();
     
-    // Hi Gym / Muscle Journey
-    if (origin.includes('gym') || origin.includes('muscle') || type.includes('muscle') || type.includes('journey')) {
-      return '<span class="origin-badge origin-higym" title="Shared from Hi Gym">💪 HiGym</span>';
-    }
+    // Map type to pill display
+    let pillLabel, pillClass, pillColor, pillBorder;
     
-    // Hi Island
-    if (origin.includes('island')) {
-      return '<span class="origin-badge origin-island" title="Shared from Hi Island">🏝️ Island</span>';
+    if (type === 'higym') {
+      pillLabel = '💪 HiGym';
+      pillClass = 'origin-higym';
+      pillColor = '#9333EA';
+      pillBorder = '#7C3AED';
+    } else if (type === 'hi_island' || type === 'island') {
+      pillLabel = '🏝️ Island';
+      pillClass = 'origin-island';
+      pillColor = '#10B981';
+      pillBorder = '#059669';
+    } else {
+      pillLabel = 'Hi5';
+      pillClass = 'origin-hi5';
+      pillColor = '#FF8C00';
+      pillBorder = '#FF6B00';
     }
-    
-    // Hi5 / Quick Hi / Dashboard
-    if (['hi5', 'self_hi5', 'self-hi5', 'index', 'hi-dashboard', 'dashboard'].includes(origin) || type.includes('hi5')) {
-      return '<span class="origin-badge origin-hi5" title="Shared from Hi Dashboard">⚡ Hi5</span>';
-    }
-    
-    // No badge for unknown origins
-    return '';
+
+    const inlineStyle = `background: ${pillColor} !important; color: ${pillColor === '#FF8C00' ? '#1a1a1a' : 'white'} !important; border: 1.5px solid ${pillBorder} !important; padding: 4px 10px !important; border-radius: 8px !important; display: inline-block !important; font-weight: 600 !important; font-size: 13px !important; margin-right: 6px !important; opacity: 0.9 !important;`;
+
+    return `<span class="origin-badge ${pillClass}" style="${inlineStyle}" title="${pillLabel}">${pillLabel}</span>`;
   }
   
   getVisibilityIcon(visibility) {
@@ -1142,15 +1376,48 @@ class HiIslandRealFeed {
         display: flex;
         flex-direction: column;
         gap: 16px;
+        overflow-y: auto;
+        max-height: 60vh;
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
       }
 
       .hi-share-item {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
-        padding: 20px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        padding: 24px;
         backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.12);
         color: white;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 
+          0 4px 6px rgba(0, 0, 0, 0.1),
+          0 2px 4px rgba(0, 0, 0, 0.06),
+          inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .hi-share-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, 
+          transparent, 
+          rgba(255, 255, 255, 0.2), 
+          transparent);
+      }
+      
+      .hi-share-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 
+          0 12px 24px rgba(0, 0, 0, 0.15),
+          0 6px 12px rgba(0, 0, 0, 0.1),
+          inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.12);
       }
 
       .share-header {
@@ -1205,36 +1472,44 @@ class HiIslandRealFeed {
       }
 
       .origin-badge {
-        display: inline-block;
-        font-size: 11px;
-        padding: 4px 8px;
-        border-radius: 6px;
-        margin-top: 8px;
-        font-weight: 600;
-        opacity: 0.7;
-        transition: opacity 0.2s ease;
+        display: inline-block !important;
+        font-size: 13px !important;
+        padding: 6px 14px !important;
+        border-radius: 12px !important;
+        margin-top: 8px !important;
+        margin-right: 8px !important;
+        font-weight: 700 !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        position: relative !important;
+        z-index: 10 !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
       
       .origin-badge:hover {
-        opacity: 1;
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       }
       
       .origin-hi5 {
-        background: rgba(59, 130, 246, 0.2);
-        border: 1px solid rgba(59, 130, 246, 0.3);
-        color: #93C5FD;
+        background: #FF8C00 !important;
+        border: 2px solid #FF6B00 !important;
+        color: #1a1a1a !important;
+        text-shadow: none !important;
       }
       
       .origin-higym {
-        background: rgba(239, 68, 68, 0.2);
-        border: 1px solid rgba(239, 68, 68, 0.3);
-        color: #FCA5A5;
+        background: #9333EA !important;
+        border: 2px solid #7C3AED !important;
+        color: #FFFFFF !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
       }
       
       .origin-island {
-        background: rgba(34, 197, 94, 0.2);
-        border: 1px solid rgba(34, 197, 94, 0.3);
-        color: #86EFAC;
+        background: rgba(34, 197, 94, 0.9) !important;
+        border: 2px solid rgba(34, 197, 94, 1) !important;
+        color: #1a1a1a !important;
       }
 
       .share-actions {

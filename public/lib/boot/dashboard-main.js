@@ -13,6 +13,13 @@
 
   async function initializeDatabase() {
     try {
+      // 🏆 WOZ FIX: Initialize ProfileManager first
+      if (window.ProfileManager && !window.ProfileManager.isReady()) {
+        __dbg('🏆 Initializing ProfileManager...');
+        await window.ProfileManager.init();
+        __dbg('✅ ProfileManager ready');
+      }
+
       // Deduplicated: reuse existing client if already initialized elsewhere
       if (window.HiSupabase?.getClient) {
         window.supabase = window.HiSupabase.getClient();
@@ -182,6 +189,31 @@
       if (window.hiDB?.updateUserStats){ await window.hiDB.updateUserStats('hi5_count', newCount); }
       __dbg('[HI DEV] Hi5 counter incremented to:', newCount);
       const el = document.querySelector('.hi5-count'); if (el) el.textContent = newCount;
+      
+      // Gold Standard: Update streak (unified self-Hi tracking)
+      try {
+        // Get user ID directly from Supabase session (same as Hi Gym pattern)
+        let userId = null;
+        if (window.HiSupabase?.getClient) {
+          const { data: { user } } = await window.HiSupabase.getClient().auth.getUser();
+          userId = user?.id;
+        }
+        
+        if (userId && userId !== 'anonymous' && window.HiBase?.updateStreak) {
+          await window.HiBase.updateStreak(userId);
+          console.log('🔥 Streak updated from Hi5 click');
+          
+          // Refresh calendar/streak displays
+          if (window.hiCalendarInstance) {
+            setTimeout(() => {
+              window.hiCalendarInstance.loadHiMoments();
+              window.hiCalendarInstance.loadRemoteStreaks();
+            }, 300);
+          }
+        }
+      } catch (streakErr) {
+        console.warn('⚠️ Streak update skipped:', streakErr);
+      }
     } catch (e){ console.error('[HI DEV] Failed to increment Hi5 counter:', e); }
   }
 

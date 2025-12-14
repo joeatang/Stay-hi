@@ -145,6 +145,25 @@ class WozniakUIConnectors {
                 this.celebrateMilestone(newCount);
             }
             
+            // Gold Standard: Update streak (unified self-Hi tracking)
+            try {
+                const user = window.hiAuth?.getCurrentUser?.();
+                if (user?.id && user.id !== 'anonymous' && window.HiBase?.updateStreak) {
+                    await window.HiBase.updateStreak(user.id);
+                    console.log('🔥 Streak updated from medallion tap');
+                    
+                    // Refresh calendar/streak displays
+                    if (window.hiCalendarInstance) {
+                        setTimeout(() => {
+                            window.hiCalendarInstance.loadHiMoments();
+                            window.hiCalendarInstance.loadRemoteStreaks();
+                        }, 300);
+                    }
+                }
+            } catch (streakErr) {
+                console.warn('⚠️ Streak update skipped:', streakErr);
+            }
+            
             console.log('✅ Wozniak UI: Medallion click complete');
             
         } catch (error) {

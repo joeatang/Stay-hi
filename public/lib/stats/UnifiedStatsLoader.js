@@ -39,6 +39,18 @@ function writeCache({ waves, totalHis, totalUsers }) {
   } catch {}
 }
 
+function setGlobals({ waves, totalHis, totalUsers }) {
+  // Write globals and mark as authoritative
+  if (waves != null) window.gWaves = waves;
+  if (totalHis != null) window.gTotalHis = totalHis;
+  if (totalUsers != null) window.gUsers = totalUsers;
+  
+  // Mark as authoritative (prevents other loaders from overwriting)
+  if (typeof window.markStatsAuthoritative === 'function') {
+    window.markStatsAuthoritative();
+  }
+}
+
 export async function loadGlobalStats(options = {}) {
   const t0 = performance.now();
   const attempts = [];
@@ -57,6 +69,7 @@ export async function loadGlobalStats(options = {}) {
         if ([result.waves, result.totalHis, result.totalUsers].some(v => Number.isFinite(v))) {
           result._source = { waves: 'HiMetrics', totalHis: 'HiMetrics', totalUsers: 'HiMetrics' };
           result.overall = 'HiMetrics';
+          setGlobals(result);
           writeCache(result);
           finalizeTiming(result);
           dispatch(result);
@@ -82,6 +95,7 @@ export async function loadGlobalStats(options = {}) {
           totalHis: 'rpc:get_user_stats',
           totalUsers: 'rpc:get_user_stats'
         };
+        setGlobals(result);
         result.overall = 'rpc';
         writeCache(result);
         finalizeTiming(result);
@@ -103,6 +117,7 @@ export async function loadGlobalStats(options = {}) {
         result.totalHis = Number(data.total_his ?? null);
         result.totalUsers = Number(data.total_users ?? null);
         result._source = { waves: 'table:global_stats', totalHis: 'table:global_stats', totalUsers: 'table:global_stats' };
+        setGlobals(result);
         result.overall = 'table';
         writeCache(result);
         finalizeTiming(result);

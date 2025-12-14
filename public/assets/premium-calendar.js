@@ -154,13 +154,52 @@ class PremiumCalendar {
 
   async loadRemoteStreaks() {
     try {
+      console.log('📡 [STREAK DEBUG] Starting loadRemoteStreaks...');
+      console.log('📡 [STREAK DEBUG] HiBase available:', !!window.HiBase);
+      console.log('📡 [STREAK DEBUG] getMyStreaks available:', !!window.HiBase?.streaks?.getMyStreaks);
+      
+      // Wait for HiBase to be available (max 10 seconds)
+      if (!window.HiBase?.streaks?.getMyStreaks) {
+        console.log('⏳ [STREAK DEBUG] Waiting for HiBase to load...');
+        let attempts = 0;
+        const maxAttempts = 50; // 50 * 200ms = 10 seconds max wait
+        
+        while (!window.HiBase?.streaks?.getMyStreaks && attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+          attempts++;
+        }
+        
+        if (!window.HiBase?.streaks?.getMyStreaks) {
+          console.warn('⚠️ [STREAK DEBUG] HiBase not available after 10s, skipping streak load');
+          this.updateDashboardStreakPill(0);
+          return;
+        }
+        
+        console.log(`✅ [STREAK DEBUG] HiBase loaded after ${attempts * 200}ms`);
+      }
+      
       // Prefer auth-aware streak fetch
       if (window.HiBase?.streaks?.getMyStreaks) {
+        console.log('📡 [STREAK DEBUG] Calling getMyStreaks()...');
         const res = await window.HiBase.streaks.getMyStreaks();
+        console.log('📡 [STREAK DEBUG] getMyStreaks response:', res);
+        
+        if (res?.error) {
+          console.warn('⚠️ [STREAK DEBUG] getMyStreaks returned error:', res.error);
+        }
+        
         if (!res?.error && res?.data) {
+          console.log('✅ [STREAK DEBUG] Valid streak data received:', res.data);
           this.remoteStreak = res.data; // { current, longest, lastHiDate, ... }
           // Re-render stats/grid with real data where applicable
           this.updateCalendar();
+          // Gold Standard: Update dashboard stat pill
+          const streakValue = res.data.current;
+          console.log('📊 [STREAK DEBUG] Updating pill with value:', streakValue);
+          this.updateDashboardStreakPill(streakValue);
+        } else {
+          console.warn('⚠️ [STREAK DEBUG] No valid data in response, defaulting to 0');
+          this.updateDashboardStreakPill(0);
         }
       } else if (window.HiBase?.getUserStreak) {
         const currentUser = window.hiAuth?.getCurrentUser?.();
@@ -169,12 +208,26 @@ class PremiumCalendar {
           if (!res?.error && res?.data) {
             this.remoteStreak = res.data;
             this.updateCalendar();
+            // Gold Standard: Update dashboard stat pill
+            const streakValue = res.data?.current ?? res.data?.streak?.current;
+            if (Number.isFinite(streakValue)) {
+              this.updateDashboardStreakPill(streakValue);
+            }
             try { const cur = this.remoteStreak?.current ?? this.remoteStreak?.streak?.current; if (Number.isFinite(cur)) window.HiMilestoneToast?.maybeAnnounce?.(cur, { source: 'calendar-remote' }); } catch {}
           }
         }
       }
     } catch (e) {
       console.warn('⚠️ Calendar: failed to load remote streaks', e);
+    }
+  }
+  
+  updateDashboardStreakPill(streakValue) {
+    // Gold Standard: Update the stat pill on dashboard
+    const statEl = document.getElementById('userStreak');
+    if (statEl && Number.isFinite(streakValue)) {
+      this.animateNumber(statEl, streakValue);
+      console.log(`🔥 Dashboard streak pill updated: ${streakValue} days`);
     }
   }
 
@@ -197,6 +250,13 @@ class PremiumCalendar {
     modal.style.display = 'flex';
     modal.classList.add('show');
     this.updateCalendar();
+    
+    // Gold Standard: Update dashboard pill when calendar opens
+    const currentStreak = this.remoteStreak?.current ?? this.remoteStreak?.streak?.current ?? this.calculateStreak();
+    if (Number.isFinite(currentStreak)) {
+      this.updateDashboardStreakPill(currentStreak);
+    }
+    
     try { const cur = this.remoteStreak?.current ?? this.remoteStreak?.streak?.current; if (Number.isFinite(cur)) window.HiMilestoneToast?.maybeAnnounce?.(cur, { source: 'calendar-show' }); } catch {}
     // Prevent background scroll on mobile
     try { document.body.style.overflow = 'hidden'; } catch {}

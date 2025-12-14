@@ -326,11 +326,17 @@
     
     monitorSharingAttempts() {
       // Track when users try to share (high conversion signal)
+      let lastShareAttemptTime = 0;
       document.addEventListener('click', (e) => {
         if (e.target.closest('[class*="share"], [id*="share"]')) {
-          this.conversionData.lastShareAttempt = Date.now();
-          this.recordEngagement('share_attempt', 10); // Very high value signal
-          this.saveConversionData();
+          const now = Date.now();
+          // Debounce: only track once per 3 seconds to prevent infinite loops
+          if (now - lastShareAttemptTime > 3000) {
+            this.conversionData.lastShareAttempt = now;
+            this.recordEngagement('share_attempt', 10); // Very high value signal
+            this.saveConversionData();
+            lastShareAttemptTime = now;
+          }
         }
       });
     }

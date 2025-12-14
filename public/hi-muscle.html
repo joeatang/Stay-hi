@@ -151,6 +151,89 @@
       .pipe { width: 44px; }
     }
 
+    /* 🎯 TESLA-GRADE: Sticky Progress Bar - Mobile First */
+    .sticky-progress-bar {
+      position: sticky;
+      top: calc(60px + env(safe-area-inset-top));
+      z-index: 100;
+      background: linear-gradient(135deg, 
+        rgba(78, 205, 196, 0.15) 0%, 
+        rgba(107, 91, 149, 0.15) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(78, 205, 196, 0.3);
+      border-radius: 16px;
+      padding: 12px 16px;
+      margin: 16px 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .progress-content {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .progress-label {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: 500;
+    }
+
+    .progress-label strong {
+      color: #10b981;
+      font-weight: 700;
+    }
+
+    .progress-description {
+      font-size: 0.95rem;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .progress-dots-mini {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .mini-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .mini-dot.active {
+      background: #10b981;
+      transform: scale(1.2);
+    }
+
+    @media (min-width: 768px) {
+      .sticky-progress-bar {
+        padding: 16px 20px;
+        border-radius: 20px;
+      }
+      
+      .progress-label {
+        font-size: 0.9rem;
+      }
+      
+      .progress-description {
+        font-size: 1.05rem;
+      }
+      
+      .mini-dot {
+        width: 12px;
+        height: 12px;
+      }
+    }
+
     /* Tesla-Grade Emotion Category Tabs */
     .tabs {
       display: flex;
@@ -1671,7 +1754,7 @@
           // Pre-populate the share sheet with the Hi Muscle reflection
           if (window.openHiShareSheet) {
             console.log('✅ Opening Hi-Muscle share sheet with data:', { journalText, currentEmoji: state.current?.emoji, desiredEmoji: state.desired?.emoji });
-            window.openHiShareSheet('hi-muscle', { 
+            window.openHiShareSheet('higym', { 
               prefilledText: journalText,
               currentEmoji: state.current?.emoji,
               desiredEmoji: state.desired?.emoji 
@@ -1812,9 +1895,13 @@
         if (useHiBase) {
           // 🎯 HiBase path: unified API with structured payload
           console.log('📦 HiGYM → HiBase.insertShare...');
+          
+          // Format content with emotional journey: emoji → emoji + journal
+          const formattedContent = `${state.current.emoji} → ${state.desired.emoji} ${text}`;
+          
           const shareResult = await window.HiBase.insertShare({
             type: 'HiGYM',
-            text: text,
+            text: formattedContent, // Include emojis in content
             visibility: isAnon ? 'anonymous' : 'public',
             user_id: userId, // Already retrieved above
             emotion_from: state.current?.name,
@@ -1825,8 +1912,10 @@
               desiredEmoji: state.desired.emoji,
               journeyType: pattern?.journeyType || 'exploration',
               tags: ['emotional-journey', 'higym'],
-              origin: 'higym'
-            }
+              origin: 'higym',
+              type: 'higym'
+            },
+            origin: 'higym' // Also pass at top level for HiDB
           });
 
           if (shareResult.error) {
@@ -1910,13 +1999,16 @@
           // 🔄 Legacy path: direct hiDB calls
           console.log('📦 HiGYM → Legacy hiDB...');
           
+          // Format content with emotional journey: emoji → emoji + journal
+          const formattedContent = `${state.current.emoji} → ${state.desired.emoji} ${text}`;
+          
           // Always save to personal archive
           console.log('Saving to archive...');
           await window.hiDB.insertArchive({
             currentEmoji: state.current.emoji,
             desiredEmoji: state.desired.emoji,
             journal: text,
-            text: text, // Gold standard: include text field for archive display
+            text: formattedContent, // Include emojis in text field
             location: loc,
             journeyType: pattern?.journeyType || 'exploration',
             origin: 'higym', // Gold standard: lowercase origin tag
@@ -1930,13 +2022,17 @@
             currentName: state.current.name,
             desiredEmoji: state.desired.emoji, 
             desiredName: state.desired.name,
-            text, 
+            text: formattedContent, // Include emojis in content
             isAnonymous: isAnon, 
             location: loc || null, // Clean pipe: null for no location
             isPublic: true,
             origin: 'higym', // Gold standard: lowercase origin tag
             journeyType: pattern?.journeyType || 'exploration',
-            tags: ['emotional-journey', 'higym'] // Gold standard: lowercase tags
+            tags: ['emotional-journey', 'higym'], // Gold standard: lowercase tags
+            metadata: {
+              origin: 'higym',
+              type: 'higym'
+            }
           });
 
           // 📊 Track legacy usage
@@ -2348,6 +2444,29 @@
 
       validate();
       saveDraft();
+      
+      // 🎯 TESLA-GRADE: Update sticky progress bar
+      updateStickyProgress(state.step);
+    }
+
+    // 🎯 TESLA-GRADE: Sticky Progress Bar Update Function
+    function updateStickyProgress(step) {
+      const descriptions = [
+        'How do you feel?',
+        'Where do you want to be?',
+        'Reflect on your journey'
+      ];
+      
+      const stepNumber = document.getElementById('stepNumber');
+      const stepDescription = document.getElementById('stepDescription');
+      const miniDots = document.querySelectorAll('.mini-dot');
+      
+      if (stepNumber) stepNumber.textContent = step;
+      if (stepDescription) stepDescription.textContent = descriptions[step - 1];
+      
+      miniDots.forEach((dot, index) => {
+        dot.classList.toggle('active', index < step);
+      });
     }
 
     function findEmotionCategory(emotionName) {
@@ -2608,24 +2727,48 @@
         });
         shareSheet.init();
         
+        // 🎯 TESLA-GRADE: Backup form reset when modal closes (safety net)
+        document.addEventListener('hi-share-sheet:closed', () => {
+          if (state.step === 3 && !state.current && !state.desired) {
+            // Form was shared and cleared, ensure UI is fully reset
+            console.log('🔄 Backup reset triggered on modal close');
+            setStep(1);
+          }
+        });
+        
         // 🔧 WOZNIAK-GRADE: Override window.openHiShareSheet with auth check + tracking
         // MATCH EXACT PATTERN: Use same signature as original HiShareSheet.init()
         window.openHiShareSheet = async (origin = 'higym', options = {}) => {
           console.log('💪 [HiGYM] Opening share sheet with tracking-enabled instance:', { origin, options });
           
-          // 🔒 WOZNIAK-GRADE: Auth check for anonymous users BEFORE opening share sheet
-          // Check if user has active session
-          const hasSession = window.supabase?.auth?.getSession ? 
-            !!(await window.supabase.auth.getSession())?.data?.session : false;
+          // 🔒 WOZNIAK-GRADE: Multi-source auth check
+          // Check membership systems first (already loaded from auth-ready)
+          const hasMembership = !!(window.HiMembership?.tier || window.unifiedMembership?.membershipStatus?.tier || window.__hiMembership?.tier);
           
-          // All authenticated users can open share sheet
-          // Tier enforcement happens INSIDE HiShareSheet.js (lines 328-377)
-          const canShare = hasSession;
+          // Check session as fallback
+          let hasSession = false;
+          if (!hasMembership && window.supabase?.auth?.getSession) {
+            try {
+              const { data } = await window.supabase.auth.getSession();
+              hasSession = !!data?.session;
+            } catch (err) {
+              console.warn('⚠️ Session check failed:', err);
+            }
+          }
+          
+          // User is authenticated if EITHER membership exists OR session exists
+          const canShare = hasMembership || hasSession;
           
           console.log('🔍 [HiGYM] Share access check:', { 
+            hasMembership,
             hasSession, 
             canShare,
-            tier: window.HiMembership?.tier || window.unifiedMembership?.membershipStatus?.tier
+            tier: window.HiMembership?.tier || window.unifiedMembership?.membershipStatus?.tier || window.__hiMembership?.tier,
+            sources: {
+              HiMembership: !!window.HiMembership?.tier,
+              unifiedMembership: !!window.unifiedMembership?.membershipStatus?.tier,
+              __hiMembership: !!window.__hiMembership?.tier
+            }
           });
           
           if (!canShare) {

@@ -4,7 +4,14 @@ import { HiShareSheet } from '../../ui/HiShareSheet/HiShareSheet.js';
 import { mountHiMedallion } from '../../ui/HiMedallion/HiMedallion.js';
 
 // Tesla-grade component initialization with guards
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // 🏆 WOZ FIX: Initialize ProfileManager first
+  if (window.ProfileManager && !window.ProfileManager.isReady()) {
+    console.log('🏆 [Module] Initializing ProfileManager...');
+    await window.ProfileManager.init();
+    console.log('✅ [Module] ProfileManager ready');
+  }
+
   if (!window.__hiComponentsInitialized) window.__hiComponentsInitialized = {};
 
   if (!window.__hiComponentsInitialized.shareSheet) {
@@ -264,6 +271,33 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const personalTaps = parseInt(localStorage.getItem('user_medallion_taps') || '0', 10) + 1;
             localStorage.setItem('user_medallion_taps', personalTaps.toString());
+            
+            // Gold Standard: Update streak (unified self-Hi tracking)
+            (async () => {
+              try {
+                // Get user ID directly from Supabase session (same as Hi Gym pattern)
+                let userId = null;
+                if (window.HiSupabase?.getClient) {
+                  const { data: { user } } = await window.HiSupabase.getClient().auth.getUser();
+                  userId = user?.id;
+                }
+                
+                if (userId && userId !== 'anonymous' && window.HiBase?.updateStreak) {
+                  const result = await window.HiBase.updateStreak(userId);
+                  console.log('🔥 Streak updated from medallion tap');
+                  
+                  // Refresh calendar/streak displays
+                  if (window.hiCalendarInstance) {
+                    setTimeout(() => {
+                      window.hiCalendarInstance.loadHiMoments();
+                      window.hiCalendarInstance.loadRemoteStreaks();
+                    }, 300);
+                  }
+                }
+              } catch (streakErr) {
+                console.warn('⚠️ Streak update skipped:', streakErr);
+              }
+            })();
           }
         });
         console.log('🎯 Tesla-grade HiMedallion mounted on dashboard with tap tracking');
@@ -275,3 +309,4 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize the Try link after DOM is ready
   initializeDashTryItLink();
 });
+/* Cache bust 1765736732 */

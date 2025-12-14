@@ -18,22 +18,34 @@ import hiAuthCore from '../auth/HiAuthCore.js';
 async function _getStreaks(userId) {
     return hiBaseClient.execute(async (client) => {
         const { data, error } = await client
-            .from('hi_users')
+            .from('user_stats')
             .select(`
-                id,
-                username,
+                user_id,
                 current_streak,
                 longest_streak,
                 last_hi_date,
-                streak_freeze_count,
-                total_his,
+                total_hi_moments,
                 created_at
             `)
-            .eq('id', userId)
-            .single();
+            .eq('user_id', userId)
+            .maybeSingle();
 
         if (error) {
             return { data: null, error };
+        }
+
+        // If no data, user hasn't started their streak yet
+        if (!data) {
+            return {
+                data: {
+                    current: 0,
+                    longest: 0,
+                    lastHiDate: null,
+                    status: 'inactive',
+                    daysUntilReset: 0
+                },
+                error: null
+            };
         }
 
         const streakData = calculateStreakStatus(data);
@@ -59,6 +71,9 @@ async function _getStreaks(userId) {
  * @returns {Object} { data, error } with updated streak data
  */
 async function _updateStreak(userIdOrPayload, options = {}) {
+    // Handle flexible signature: updateStreak(userId, options) or updateStreak({ userId, ...options })
+    const userId = typeof userIdOrPayload === 'string' ? userIdOrPayload : userIdOrPayload?.userId;
+    
     const {
         hiDate = new Date().toISOString().split('T')[0], // Today's date
         freezeUsed = false,
@@ -67,15 +82,50 @@ async function _updateStreak(userIdOrPayload, options = {}) {
     } = options;
 
     return hiBaseClient.execute(async (client) => {
-        // Get current streak data
+        // Get current streak data (maybeSingle allows 0 rows for new users)
         const { data: current, error: getCurrentError } = await client
-            .from('hi_users')
-            .select('current_streak, longest_streak, last_hi_date, streak_freeze_count, total_his')
-            .eq('id', userId)
-            .single();
+            .from('user_stats')
+            .select('current_streak, longest_streak, last_hi_date, total_hi_moments')
+            .eq('user_id', userId)
+            .maybeSingle();
 
         if (getCurrentError) {
             return { data: null, error: getCurrentError };
+        }
+
+        // If no row exists, create it with initial values
+        if (!current) {
+            const today = new Date().toISOString().split('T')[0];
+            const { data: newRow, error: insertError } = await client
+                .from('user_stats')
+                .insert({
+                    user_id: userId,
+                    current_streak: 1,
+                    longest_streak: 1,
+                    last_hi_date: today,
+                    total_hi_moments: 1,
+                    created_at: new Date().toISOString()
+                })
+                .select()
+                .single();
+
+            if (insertError) {
+                return { data: null, error: insertError };
+            }
+
+            return {
+                data: {
+                    streak: {
+                        current: 1,
+                        longest: 1,
+                        lastHiDate: today
+                    },
+                    total: 1,
+                    isNewRecord: true,
+                    streakChange: 1
+                },
+                error: null
+            };
         }
 
         // Calculate new streak values or use manual overrides
@@ -93,7 +143,7 @@ async function _updateStreak(userIdOrPayload, options = {}) {
                     current.longest_streak || 0, 
                     count !== null ? count : current.current_streak
                 ),
-                freezeCount: current.streak_freeze_count,
+                freezeCount: 0,
                 isNewRecord: count > (current.longest_streak || 0),
                 streakChange: count !== null ? count - (current.current_streak || 0) : 0
             };
@@ -108,16 +158,15 @@ async function _updateStreak(userIdOrPayload, options = {}) {
 
         // Update the database
         const { data, error } = await client
-            .from('hi_users')
+            .from('user_stats')
             .update({
                 current_streak: streakUpdate.currentStreak,
                 longest_streak: streakUpdate.longestStreak,
                 last_hi_date: finalHiDate,
-                streak_freeze_count: streakUpdate.freezeCount,
-                total_his: finalCount,
+                total_hi_moments: finalCount,
                 updated_at: new Date().toISOString()
             })
-            .eq('id', userId)
+            .eq('user_id', userId)
             .select()
             .single();
 
@@ -151,77 +200,11 @@ async function _updateStreak(userIdOrPayload, options = {}) {
  * @returns {Object} { data, error } with freeze usage result
  */
 export async function useStreakFreeze() {
-    // Get authenticated user ID from HiAuthCore
-    let userId;
-    try {
-        const { data: authData } = await hiAuthCore.getActiveIdentity();
-        if (authData.isAnon || !authData.userId) {
-            return {
-                data: null,
-                error: { message: 'Authentication required to use streak freeze', code: 'AUTH_REQUIRED' }
-            };
-        }
-        userId = authData.userId;
-    } catch (error) {
-        return {
-            data: null,
-            error: { message: 'Authentication failed', code: 'AUTH_ERROR' }
-        };
-    }
-    return hiBaseClient.execute(async (client) => {
-        // Check if user has freezes available
-        const { data: current, error: getCurrentError } = await client
-            .from('hi_users')
-            .select('streak_freeze_count, current_streak, last_hi_date')
-            .eq('id', userId)
-            .single();
-
-        if (getCurrentError) {
-            return { data: null, error: getCurrentError };
-        }
-
-        if ((current.streak_freeze_count || 0) < 1) {
-            return {
-                data: null,
-                error: { message: 'No streak freezes available', code: 'NO_FREEZES' }
-            };
-        }
-
-        // Use a freeze (extend last_hi_date by 1 day)
-        const lastHiDate = new Date(current.last_hi_date);
-        lastHiDate.setDate(lastHiDate.getDate() + 1);
-        const newLastHiDate = lastHiDate.toISOString().split('T')[0];
-
-        const { data, error } = await client
-            .from('hi_users')
-            .update({
-                streak_freeze_count: current.streak_freeze_count - 1,
-                last_hi_date: newLastHiDate,
-                updated_at: new Date().toISOString()
-            })
-            .eq('id', userId)
-            .select()
-            .single();
-
-        if (error) {
-            return { data: null, error };
-        }
-
-        return {
-            data: {
-                streak: {
-                    current: data.current_streak,
-                    freezesRemaining: data.streak_freeze_count
-                },
-                freeze: {
-                    used: true,
-                    extendedUntil: newLastHiDate,
-                    message: 'Streak freeze used - your streak is safe!'
-                }
-            },
-            error: null
-        };
-    });
+    // Streak freeze feature not available (no streak_freeze_count column in user_stats)
+    return {
+        data: null,
+        error: { message: 'Streak freeze feature not available', code: 'FEATURE_DISABLED' }
+    };
 }
 
 /**
@@ -232,8 +215,8 @@ export async function useStreakFreeze() {
 export async function getStreakLeaderboard(limit = 10) {
     return hiBaseClient.execute(async (client) => {
         const { data, error } = await client
-            .from('hi_users')
-            .select('id, username, current_streak, longest_streak, total_his, avatar_url, level')
+            .from('user_stats')
+            .select('user_id, current_streak, longest_streak, total_hi_moments')
             .order('current_streak', { ascending: false })
             .limit(limit);
 
@@ -330,9 +313,9 @@ async function _insertStreak(userIdOrPayload, options = {}) {
     return hiBaseClient.execute(async (client) => {
         // Check if user already has streak data
         const { data: existing } = await client
-            .from('hi_users')
+            .from('user_stats')
             .select('current_streak, longest_streak, last_hi_date')
-            .eq('id', userId)
+            .eq('user_id', userId)
             .single();
 
         if (existing && existing.current_streak !== null) {
@@ -342,16 +325,15 @@ async function _insertStreak(userIdOrPayload, options = {}) {
 
         // Initialize streak for new user
         const { data, error } = await client
-            .from('hi_users')
+            .from('user_stats')
             .update({
                 current_streak: initialStreak,
                 longest_streak: initialStreak,
                 last_hi_date: hiDate,
-                streak_freeze_count: 3, // Default freeze count for new users
-                total_his: 1,
+                total_hi_moments: 1,
                 updated_at: new Date().toISOString()
             })
-            .eq('id', userId)
+            .eq('user_id', userId)
             .select()
             .single();
 
@@ -398,47 +380,11 @@ async function _insertStreak(userIdOrPayload, options = {}) {
  * @returns {Object} { data, error } with updated freeze count
  */
 export async function addStreakFreezes(userId, freezesToAdd, reason = 'Manual addition') {
-    return hiBaseClient.execute(async (client) => {
-        // Get current freeze count
-        const { data: current, error: getCurrentError } = await client
-            .from('hi_users')
-            .select('streak_freeze_count')
-            .eq('id', userId)
-            .single();
-
-        if (getCurrentError) {
-            return { data: null, error: getCurrentError };
-        }
-
-        const newFreezeCount = (current.streak_freeze_count || 0) + freezesToAdd;
-
-        const { data, error } = await client
-            .from('hi_users')
-            .update({
-                streak_freeze_count: newFreezeCount,
-                updated_at: new Date().toISOString()
-            })
-            .eq('id', userId)
-            .select()
-            .single();
-
-        if (error) {
-            return { data: null, error };
-        }
-
-        return {
-            data: {
-                freezes: {
-                    previous: current.streak_freeze_count || 0,
-                    added: freezesToAdd,
-                    new: newFreezeCount,
-                    reason: reason
-                },
-                message: `Added ${freezesToAdd} streak freeze${freezesToAdd > 1 ? 's' : ''}`
-            },
-            error: null
-        };
-    });
+    // Streak freeze feature disabled - no streak_freeze_count column in user_stats
+    return {
+        data: null,
+        error: new Error('Streak freeze feature not available in current schema')
+    };
 }
 
 /**
@@ -569,4 +515,4 @@ export const getUserStreak = withTelemetry('streaks.getUserStreak', _getStreaks)
 export const insertStreak = withTelemetry('streaks.insertStreak', _insertStreak);
 export const updateStreak = withTelemetry('streaks.updateStreak', _updateStreak);
 
-// Export remaining functions without telemetry (keeping them as-is for now)
+/* Calendar refresh 1765739974 */

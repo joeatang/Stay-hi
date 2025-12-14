@@ -816,13 +816,34 @@ export class HiShareSheet {
       this.showToast('🧪 Practice complete — nothing saved.');
       this.close();
     } else {
-      // � EMERGENCY FIX: Non-blocking persist (don't await - fire and forget)
-      this.persist({ toIsland: false, anon: false }).catch(err => {
+      // 🏆 WOZ FIX: AWAIT persist() and check result before closing
+      try {
+        const result = await this.persist({ toIsland: false, anon: false });
+        
+        if (result && result.success === false) {
+          this.showToast('❌ Save failed. Please try again.', 'error');
+          button.dataset.animating = 'false';
+          return; // Don't close on failure
+        }
+        
+        // ✅ Check if anonymous user - show archive nudge with celebration toast
+        const isAuthenticated = await this.checkAuthentication();
+        if (!isAuthenticated) {
+          // Anonymous user saved private share - show gold standard center toast
+          setTimeout(() => {
+            this.showCelebrationToast('✅ Saved to your archive! Sign up to view all your moments.');
+          }, 1500); // Wait for modal close animation + confetti to complete
+        }
+        
+        // Only close if successful
+        this.close();
+        
+      } catch (err) {
         console.error('❌ Private save failed:', err);
-        this.showToast('❌ Save failed. Please try again.');
-      });
-      // Close immediately for responsiveness
-      this.close();
+        this.showToast('❌ Save failed. Please try again.', 'error');
+        button.dataset.animating = 'false';
+        return; // Don't close on error
+      }
     }
 
     setTimeout(() => {
@@ -924,14 +945,25 @@ export class HiShareSheet {
       this.showToast('🧪 Practice complete — nothing shared.');
       this.close();
     } else {
-      // 🔧 TESLA-GRADE: Non-blocking persist (fire and forget)
-      this.persist({ toIsland: true, anon: true }).catch(err => {
+      // 🏆 WOZ FIX: AWAIT persist() and check result before closing
+      try {
+        const result = await this.persist({ toIsland: true, anon: true });
+        
+        if (result && result.success === false) {
+          this.showToast('❌ Share failed. Please try again.', 'error');
+          button.dataset.animating = 'false';
+          return; // Don't close on failure
+        }
+        
+        // Close immediately for responsiveness
+        this.close();
+        
+      } catch (err) {
         console.error('❌ Anonymous share failed:', err);
-        this.showToast('❌ Share failed. Please try again.');
-      });
-      
-      // Close immediately for responsiveness
-      this.close();
+        this.showToast('❌ Share failed. Please try again.', 'error');
+        button.dataset.animating = 'false';
+        return; // Don't close on error
+      }
     }
 
     setTimeout(() => {
@@ -960,14 +992,25 @@ export class HiShareSheet {
       this.showToast('🧪 Practice complete — nothing shared.');
       this.close();
     } else {
-      // � EMERGENCY FIX: Non-blocking persist (don't await - fire and forget)
-      this.persist({ toIsland: true, anon: false }).catch(err => {
+      // 🏆 WOZ FIX: AWAIT persist() and check result before closing
+      try {
+        const result = await this.persist({ toIsland: true, anon: false });
+        
+        if (result && result.success === false) {
+          this.showToast('❌ Share failed. Please try again.', 'error');
+          button.dataset.animating = 'false';
+          return; // Don't close on failure
+        }
+        
+        // Only close if successful
+        this.close();
+        
+      } catch (err) {
         console.error('❌ Public share failed:', err);
-        this.showToast('❌ Share failed. Please try again.');
-      });
-      
-      // Close immediately for responsiveness
-      this.close();
+        this.showToast('❌ Share failed. Please try again.', 'error');
+        button.dataset.animating = 'false';
+        return; // Don't close on error
+      }
     }
 
     setTimeout(() => {
@@ -1154,9 +1197,15 @@ export class HiShareSheet {
   }
 
   // 🚀 TESLA METHOD: Get authenticated user ID
+  // WOZ FIX: Use ProfileManager when available
   async getUserId() {
     try {
-      // Use existing auth system to get user ID
+      // Use ProfileManager if available (guaranteed non-null for authenticated users)
+      if (window.ProfileManager?.isReady()) {
+        return await window.ProfileManager.ensureUserId();
+      }
+      
+      // Fallback to direct auth (legacy)
       if (window.HiSupabase && window.HiSupabase.getClient) {
         const client = window.HiSupabase.getClient();
         const { data: { user } } = await client.auth.getUser();
@@ -1214,31 +1263,35 @@ export class HiShareSheet {
     }
     
     try {
-      // 🎯 SERVER-SIDE VALIDATION: Check tier limits before proceeding
-      if (toIsland && window.sb?.rpc) {
-        const shareType = anon ? 'anonymous' : 'public';
-        const { data: validation, error: validationError } = await window.sb.rpc('validate_share_creation', {
-          p_share_type: shareType,
-          p_origin: this.origin
-        });
-        
-        if (validationError || !validation?.allowed) {
-          this._persisting = false;
-          const reason = validation?.reason || 'Share validation failed';
-          this.showToast(`❌ ${reason}`, 'error');
-          
-          if (validation?.upgrade_required) {
-            this.showQuotaReached(
-              validation.quota?.used || 0,
-              validation.quota?.limit || 0,
-              validation.tier || 'free'
-            );
-          }
-          return;
-        }
-        
-        this._dbg('✅ Server validation passed:', validation);
-      }
+      // 🚧 SERVER-SIDE VALIDATION TEMPORARILY DISABLED
+      // TODO: Deploy tier_enforcement_share_validation.sql to enable
+      // Missing: validate_share_creation() RPC + user_share_tracking table
+      // See: /sql/migrations/tier_enforcement_share_validation.sql
+      
+      // if (toIsland && window.sb?.rpc) {
+      //   const shareType = anon ? 'anonymous' : 'public';
+      //   const { data: validation, error: validationError } = await window.sb.rpc('validate_share_creation', {
+      //     p_share_type: shareType,
+      //     p_origin: this.origin
+      //   });
+      //   
+      //   if (validationError || !validation?.allowed) {
+      //     this._persisting = false;
+      //     const reason = validation?.reason || 'Share validation failed';
+      //     this.showToast(`❌ ${reason}`, 'error');
+      //     
+      //     if (validation?.upgrade_required) {
+      //       this.showQuotaReached(
+      //         validation.quota?.used || 0,
+      //         validation.quota?.limit || 0,
+      //         validation.tier || 'free'
+      //       );
+      //     }
+      //     return;
+      //   }
+      //   
+      //   this._dbg('✅ Server validation passed:', validation);
+      // }
       
       const journal = document.getElementById('hi-share-journal');
       const raw = (journal.value || '').trim();
@@ -1258,16 +1311,19 @@ export class HiShareSheet {
         console.warn('Tesla location failed:', err);
       }
     
-    // 🎯 TESLA CRITICAL FIX: Get or create anonymous user ID for consistent archiving
-    let userId = null;
-    if (!anon) {
-      // Authenticated users get real user ID
-      userId = await this.getUserId();
-    } else {
-      // Anonymous users get session-consistent ID for archiving
-      userId = await this.getOrCreateAnonymousUser();
-      this._dbg('🔑 Tesla anonymous user ID:', userId);
-    }
+    // 🎯 TESLA CRITICAL FIX: Get authenticated user ID for all shares
+    // Archives ALWAYS use real user_id (even for anonymous shares - it's YOUR archive)
+    // Public shares will handle anonymous visibility separately (user_id = NULL in public_shares)
+    const authenticatedUserId = await this.getUserId();
+    
+    // For public shares: anonymous means NULL user_id, authenticated means real ID
+    const publicShareUserId = anon ? null : authenticatedUserId;
+    
+    this._dbg('🔑 Tesla user IDs:', { 
+      authenticated: authenticatedUserId, 
+      forPublicShare: publicShareUserId,
+      isAnonymous: anon 
+    });
     
     try {
       // 🌟 TESLA: Use emotional journey data if available (Hi Muscle integration)
@@ -1275,15 +1331,28 @@ export class HiShareSheet {
       const desiredEmoji = this.emotionalJourney?.desired || '✨';
       
       // 🎯 TESLA FIX #1: ALL users (including anonymous) get archives with proper user IDs
+      // 🔒 Single-writer policy: disable HiBase inserts (use hiDB only)
+      try {
+        if (window.HiFlags && typeof window.HiFlags.set === 'function') {
+          window.HiFlags.set('hibase_shares_enabled', false);
+        }
+      } catch {}
       const archivePayload = {
         currentEmoji,
         desiredEmoji,
         journal: text,
         location,
         origin: this.origin, // 'hi5', 'higym', or 'hi-island'
-        type: this.shareType || (this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : 'Hi5')),
-        user_id: userId // Tesla: Always include user_id (even for anonymous)
+        type: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : 'self_hi5'),
+        user_id: authenticatedUserId // Tesla: ALWAYS use real authenticated user_id for archives
       };
+      
+      // 🔬 DEBUG: Log archive payload to trace type issue
+      console.log('🔬 Archive Payload:', {
+        origin: this.origin,
+        computed_type: archivePayload.type,
+        full_payload: archivePayload
+      });
       
       // Tesla: ALL shares get archived (fixes anonymous archive bug)
       if (window.hiDB?.insertArchive) {
@@ -1291,8 +1360,31 @@ export class HiShareSheet {
         this._withRetry(() => Promise.race([
           window.hiDB.insertArchive(archivePayload),
           new Promise((_, reject) => setTimeout(() => reject(new Error('Archive timeout')), 5000))
-        ]), 2, 600).catch(err => {
+        ]), 2, 600).then(res => {
+          try {
+            const statusEl = document.querySelector('#hi-archive-status');
+            const stamp = new Date().toLocaleTimeString();
+            const msg = res?.ok
+              ? `Archive OK via ${res?.source || 'rpc/direct'} @ ${stamp}`
+              : `Archive FAILED (${res?.error || 'unknown'}) @ ${stamp}`;
+            window.HiArchiveStatus = msg;
+            if (statusEl) {
+              statusEl.textContent = msg;
+              statusEl.style.display = 'inline-block';
+            }
+          } catch {}
+        }).catch(err => {
           console.warn('Tesla archive save failed after retries:', err);
+          try {
+            const statusEl = document.querySelector('#hi-archive-status');
+            const stamp = new Date().toLocaleTimeString();
+            const msg = `Archive FAILED (${err?.message || 'timeout'}) @ ${stamp}`;
+            window.HiArchiveStatus = msg;
+            if (statusEl) {
+              statusEl.textContent = msg;
+              statusEl.style.display = 'inline-block';
+            }
+          } catch {}
           if (!warned){ this.showToast('Save delayed — we\'ll retry in the background', 'warning'); warned=true; }
         });
       }
@@ -1307,9 +1399,11 @@ export class HiShareSheet {
           text,
           isAnonymous: anon,
           location,
-          isPublic: true,
+          // isPublic removed - let isAnonymous determine visibility
           type: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : 'self_hi5'),
-          user_id: anon ? null : userId // Tesla: Proper user_id handling
+          origin: this.origin, // Will be 'higym', 'hi-island', or 'hi5'
+          pill: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'island' : 'hi5'),
+          user_id: publicShareUserId // Tesla: NULL for anonymous, real ID for public
         };
         
         // Tesla: Enhanced public share with retry + timeout
@@ -1331,15 +1425,17 @@ export class HiShareSheet {
         }
       }
 
-      // 🎯 TIER TRACKING: Server-side quota tracking
-      if (toIsland && window.sb?.rpc) {
-        const shareType = anon ? 'anonymous' : 'public';
-        window.sb.rpc('track_share_submission', {
-          p_share_type: shareType,
-          p_origin: this.origin,
-          p_content_preview: text
-        }).catch(err => console.warn('⚠️ Server-side tracking failed:', err));
-      }
+      // 🚧 TIER TRACKING TEMPORARILY DISABLED
+      // 🚧 TIER TRACKING TEMPORARILY DISABLED
+      // TODO: Deploy tier_enforcement_share_validation.sql to enable
+      // if (toIsland && window.sb?.rpc) {
+      //   const shareType = anon ? 'anonymous' : 'public';
+      //   window.sb.rpc('track_share_submission', {
+      //     p_share_type: shareType,
+      //     p_origin: this.origin,
+      //     p_content_preview: text
+      //   }).catch(err => console.warn('⚠️ Server-side tracking failed:', err));
+      // }
       
       // 🎯 TIER TRACKING: Increment client-side share counter (fallback)
       this.incrementShareCount();
@@ -1365,6 +1461,22 @@ export class HiShareSheet {
         ]), 1, 400).catch(err => console.warn('Stats tracking failed:', err));
       }
 
+      // 🚀 EVENT BUS: Notify listeners (Hi Island feed, stats, etc.)
+      try {
+        const visibility = anon ? 'anonymous' : (toIsland ? 'public' : 'private');
+        const detail = {
+          origin: this.origin,
+          visibility,
+          location,
+          userId: authenticatedUserId, // Fixed: use correct variable name
+          timestamp: Date.now(),
+          context: this.context,
+        };
+        window.dispatchEvent(new CustomEvent('share:created', { detail }));
+      } catch (err) {
+        console.warn('⚠️ share:created dispatch failed:', err);
+      }
+
       // Trigger success callback
       this.onSuccess({ 
         toIsland, 
@@ -1372,8 +1484,18 @@ export class HiShareSheet {
         origin: this.origin,
         visibility: anon ? 'anonymous' : (toIsland ? 'public' : 'private')
       });
+      
+      // Gold Standard: Refresh calendar and streak data after share
+      if (window.hiCalendarInstance) {
+        setTimeout(() => {
+          window.hiCalendarInstance.loadHiMoments();
+          window.hiCalendarInstance.loadRemoteStreaks();
+          console.log('🔥 Calendar and streak data refreshed after share');
+        }, 500);
+      }
 
       this._dbg('✅ Share persistence complete, closing sheet...');
+      return { success: true }; // Signal success to caller
       
     } catch (error) {
       console.error('❌ Inner share operation failed:', error);
@@ -1384,53 +1506,28 @@ export class HiShareSheet {
     } catch (error) {
       console.error('❌ Share persistence failed:', error);
       this.showToast('❌ Failed to save. Please try again.');
-      return; // Don't close on error
+      return { success: false, error }; // Return failure to caller
     } finally {
-      // 🔒 Reset submission guard
+      // 🔒 CRITICAL: Reset persisting flag so user can retry
       this._persisting = false;
     }
     
     // 🔧 EMERGENCY FIX: Don't close here - button handlers close immediately for responsiveness
     // this.close(); // Moved to button handlers for non-blocking UX
 
-    // 🔧 LONG-TERM SOLUTION: Proper feed refresh after share
-    if (document.body.dataset.page === 'hi-island' || window.location.pathname.includes('hi-island')) {
-      setTimeout(async () => {
-        try {
-          if (window.hiRealFeed) {
-            this._dbg('🔄 Refreshing Hi-Island feed after share submission...');
-            
-            // Clear cached data to force fresh load
-            if (toIsland) {
-              window.hiRealFeed.feedData.general = [];
-              window.hiRealFeed.pagination.general.page = 0;
-            }
-            
-            // Always refresh archives (user's personal data)
-            window.hiRealFeed.feedData.archives = [];
-            window.hiRealFeed.pagination.archives.page = 0;
-            
-            // Refresh current tab
-            const currentTab = window.hiRealFeed.currentTab || 'general';
-            await window.hiRealFeed.loadFeedData(currentTab);
-            
-            console.log('✅ Hi-Island feed refreshed successfully');
-          }
-          
-          // Update global stats
-          if (window.loadCurrentStatsFromDatabase) {
-            window.loadCurrentStatsFromDatabase();
-          }
-        } catch (error) {
-          console.error('❌ Feed refresh failed:', error);
-        }
-      }, 1000);
-    }
+    // 🔧 LONG-TERM SOLUTION: Feed refresh handled by share:created event listeners
+    // Pages should listen for 'share:created' and refresh the active tab accordingly.
   }
 
 
   // 🎉 TESLA-GRADE: Premium celebration toast system
   showToast(message, type = 'info') {
+    // ✅ FIX: Always show errors prominently, regardless of celebration logic
+    if (type === 'error' || message.includes('❌') || message.includes('failed')) {
+      this.showErrorToast(message);
+      return;
+    }
+    
     const toast = document.getElementById('toast');
     if (toast) {
       // Enhanced success celebration for shares
@@ -1448,6 +1545,41 @@ export class HiShareSheet {
       console.log('📢', message);
     }
   }
+  
+  // ✅ NEW: Always-visible error toast with high z-index
+  showErrorToast(message) {
+    const existing = document.querySelector('.error-toast');
+    if (existing) existing.remove();
+    
+    const toast = document.createElement('div');
+    toast.className = 'error-toast';
+    toast.textContent = message;
+    toast.style.cssText = `
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #FF6B6B;
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 15px;
+      z-index: 99999;
+      box-shadow: 0 8px 24px rgba(255, 107, 107, 0.4);
+      animation: slideDown 0.3s ease;
+      max-width: 90vw;
+      text-align: center;
+    `;
+    
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(-50%) translateY(-20px)';
+      toast.style.transition = 'all 0.3s ease';
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  }
 
   // Premium celebration toast with Tesla-grade animation
   showCelebrationToast(message) {
@@ -1464,40 +1596,41 @@ export class HiShareSheet {
     toast.setAttribute('aria-atomic', 'true');
     toast.style.cssText = `
       position: fixed;
-      bottom: 120px;
+      top: 50%;
       left: 50%;
-      transform: translateX(-50%) translateY(30px) scale(0.8);
-      background: linear-gradient(135deg, #4ECDC4 0%, #FFD93D 100%);
-      color: #111;
-      padding: 16px 28px;
-      border-radius: 20px;
-      font-weight: 700;
+      transform: translate(-50%, -50%) scale(0.9);
+      background: linear-gradient(135deg, rgba(78, 205, 196, 0.98) 0%, rgba(107, 91, 149, 0.98) 100%);
+      color: white;
+      padding: 20px 32px;
+      border-radius: 16px;
+      font-weight: 600;
       font-size: 16px;
-      z-index: 12000;
+      z-index: 100000;
       pointer-events: none;
       opacity: 0;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
-      backdrop-filter: blur(10px);
-      border: 2px solid rgba(255, 255, 255, 0.2);
-      max-width: calc(100vw - 40px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(12px);
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      max-width: calc(100vw - 60px);
       text-align: center;
-      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+      line-height: 1.5;
+      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
     `;
     
     document.body.appendChild(toast);
     
-    // Tesla-grade slide-up animation
+    // Tesla-grade scale-up + fade-in animation
     requestAnimationFrame(() => {
       toast.style.opacity = '1';
-      toast.style.transform = 'translateX(-50%) translateY(0) scale(1)';
+      toast.style.transform = 'translate(-50%, -50%) scale(1)';
     });
     
-    // Gentle exit animation
+    // Hold center stage for readability, then gentle exit
     setTimeout(() => {
       toast.style.opacity = '0';
-      toast.style.transform = 'translateX(-50%) translateY(20px) scale(0.95)';
-      setTimeout(() => toast.remove(), 400);
-    }, 2500);
+      toast.style.transform = 'translate(-50%, -50%) scale(0.95)';
+      setTimeout(() => toast.remove(), 500);
+    }, 3500); // Longer display for important message
   }
 }
 

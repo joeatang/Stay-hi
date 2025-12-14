@@ -42,8 +42,9 @@
     }
   })();
 
-  // Initialize Premium Features (Calendar + navigation helpers)
-  document.addEventListener('DOMContentLoaded', () => {
+  // Initialize Premium Features (Calendar + Streaks + navigation helpers)
+  document.addEventListener('DOMContentLoaded', async () => {
+    // Calendar initialization
     if (window.PremiumCalendar && !window.__hiCalendarInitialized) {
       window.__hiCalendarInitialized = true;
       window.hiCalendarInstance = new window.PremiumCalendar();
@@ -51,7 +52,40 @@
       if (typeof setupCalendarIntegration === 'function') setupCalendarIntegration();
       if (typeof setupHomeNavigation === 'function') setupHomeNavigation();
     }
+    
+    // HiStreaks initialization (Gold Standard: authenticated users only)
+    try {
+      const streaksContainer = document.getElementById('hiStreaksContainer');
+      if (streaksContainer && typeof HiStreaks !== 'undefined') {
+        // Check authentication status
+        const isAuthenticated = await checkAuthStatus();
+        if (isAuthenticated) {
+          console.log('🔥 Initializing HiStreaks component for authenticated user');
+          const hiStreaks = new HiStreaks('#hiStreaksContainer');
+          await hiStreaks.initialize();
+        } else {
+          console.log('🔥 Skipping HiStreaks for anonymous user (gold standard behavior)');
+          streaksContainer.style.display = 'none';
+        }
+      }
+    } catch (error) {
+      console.warn('[HI DEV] HiStreaks initialization skipped:', error);
+    }
   });
+  
+  // Helper: Check authentication status
+  async function checkAuthStatus() {
+    // Multiple auth sources (progressive enhancement)
+    if (window.hiAuth?.getCurrentUser) {
+      const user = window.hiAuth.getCurrentUser();
+      return user && user.id && user.id !== 'anonymous';
+    }
+    if (window.HiSupabase?.supabaseClient) {
+      const { data } = await window.HiSupabase.supabaseClient.auth.getSession();
+      return !!(data?.session?.user);
+    }
+    return false;
+  }
 
   // Navigation system + floating refresh
   (function(){

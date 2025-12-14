@@ -20,6 +20,7 @@ class HiIslandFeed {
   async init() {
     this.render();
     this.attachEventListeners();
+    this.setupRealTimeListeners(); // Listen for new shares
     await this.loadData();
   }
 
@@ -100,13 +101,35 @@ class HiIslandFeed {
       });
     });
 
-    // Filter clicks
+    // Filter clicks (inside feed component)
     const filters = this.root.querySelectorAll('.hi-feed-filter-btn');
     filters.forEach(filter => {
       filter.addEventListener('click', (e) => {
         e.preventDefault();
         const targetFilter = filter.dataset.filter;
         this.switchFilter(targetFilter);
+      });
+    });
+
+    // Origin filter buttons (outside feed component, in main HTML)
+    const originFilterBtns = document.querySelectorAll('.origin-filter-btn');
+    originFilterBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const filter = btn.dataset.filter;
+        this.switchFilter(filter);
+        
+        // Update button states
+        originFilterBtns.forEach(b => {
+          b.classList.remove('active');
+          b.style.background = 'rgba(255, 255, 255, 0.1)';
+          b.style.color = 'rgba(255, 255, 255, 0.8)';
+        });
+        btn.classList.add('active');
+        btn.style.background = 'rgba(255, 255, 255, 0.9)';
+        btn.style.color = '#111';
+        
+        console.log(`🔍 Origin filter button clicked: ${filter}`);
       });
     });
 
@@ -380,9 +403,11 @@ class HiIslandFeed {
     // Map filter to origin values (support both old and new)
     return data.filter(share => {
       if (filter === 'quick') {
-        return share.origin === 'hi5' || share.origin === 'quick';
-      } else if (filter === 'guided') {
+        return share.origin === 'hi5' || share.origin === 'quick' || share.origin === 'dashboard';
+      } else if (filter === 'guided' || filter === 'muscle') {
         return share.origin === 'higym' || share.origin === 'guided';
+      } else if (filter === 'island') {
+        return share.origin === 'hi-island' || share.origin === 'island';
       }
       return share.origin === filter;
     });
@@ -537,6 +562,68 @@ class HiIslandFeed {
       setTimeout(() => toast.classList.remove('show'), 3000);
     }
   }
+
+  // 🎯 Setup real-time listeners for immediate feed updates
+  setupRealTimeListeners() {
+    // Listen for share:created events from HiShareSheet
+    window.addEventListener('share:created', (e) => {
+      console.log('🌟 New share detected, refreshing feed:', e.detail);
+      
+      const { visibility } = e.detail;
+      
+      // Reload feed data from authoritative source (bypass caches)
+      // Slight delay to ensure database write completes
+      setTimeout(async () => {
+        try {
+          const fresh = await this.loadDirectFromDB();
+          this.renderList(this.currentTab);
+          console.log('✅ Feed refreshed from DB after new share', { count: fresh.general?.length || 0 });
+        } catch (err) {
+          console.error('❌ Direct DB feed refresh failed, falling back:', err);
+          try {
+            await this.loadData();
+            this.renderList(this.currentTab);
+          } catch (err2) {
+            console.error('❌ Fallback feed refresh failed:', err2);
+          }
+        }
+      }, 500);
+    });
+    
+    console.log('✅ Real-time feed listeners enabled');
+  }
+
+  // 🔒 Authoritative load directly from public_shares and hi_archives
+  async loadDirectFromDB() {
+    try {
+      if (!window.hiDB || typeof window.hiDB.fetchPublicShares !== 'function') {
+        throw new Error('hiDB.fetchPublicShares unavailable');
+      }
+      const pub = await window.hiDB.fetchPublicShares({ limit: 50 });
+      this.feedData.general = Array.isArray(pub) ? pub : (pub?.data || []);
+    } catch (e) {
+      console.warn('⚠️ Direct public shares load failed:', e);
+    }
+
+    try {
+      if (window.hiDB && typeof window.hiDB.fetchUserArchives === 'function') {
+        const arc = await window.hiDB.fetchUserArchives({ limit: 50 });
+        this.feedData.archive = Array.isArray(arc) ? arc : (arc?.data || []);
+      } else {
+        // Legacy path: query via HiBase if available
+        const currentUser = window.hiAuth?.getCurrentUser?.();
+        if (currentUser && currentUser.id && window.HiBase_shares) {
+          const { data } = await window.HiBase_shares.getUserShares(currentUser.id, 50);
+          this.feedData.archive = data || [];
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️ Direct archive load failed:', e);
+      this.feedData.archive = this.feedData.archive || [];
+    }
+
+    return { general: this.feedData.general, archive: this.feedData.archive };
+  }
 }
 
 // ===================================================================
@@ -557,3 +644,4 @@ class HiIslandFeed {
     }
   }
 })();
+/* Filter wiring 1765741424 */
