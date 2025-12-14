@@ -1598,6 +1598,18 @@
       <button id="toggleView" class="hi-btn hi-btn--ghost" style="padding:8px 12px">Compact</button>
     </div>
 
+    <!-- 🌟 INLINE SELECTION BADGES: Immediate visual feedback -->
+    <div id="inlineSelectionBadges" style="display:none;background:rgba(78,205,196,0.1);border:1px solid rgba(78,205,196,0.3);border-radius:12px;padding:12px 16px;margin:0 0 16px;text-align:center;animation:slideInFromTop 0.4s cubic-bezier(0.4,0,0.2,1);">
+      <div id="inlineCurrentBadge" style="display:none;margin-bottom:8px;">
+        <span style="color:#10b981;font-weight:600;">✅ You feel:</span>
+        <span id="inlineCurrentLabel" style="color:#e8ebff;font-weight:500;margin-left:6px;"></span>
+      </div>
+      <div id="inlineDesiredBadge" style="display:none;">
+        <span style="color:#10b981;font-weight:600;">🎯 Moving to:</span>
+        <span id="inlineDesiredLabel" style="color:#e8ebff;font-weight:500;margin-left:6px;"></span>
+      </div>
+    </div>
+
     <div id="grid" class="grid" aria-live="polite"></div>
 
     <div id="journalCard" class="hi-card" style="display:none;margin-top:14px">
@@ -2433,6 +2445,38 @@
       validate();
     }
 
+    /* 🌟 WOZ FIX: Update inline selection badges for immediate visual feedback */
+    function updateInlineSelectionBadges() {
+      const container = document.getElementById('inlineSelectionBadges');
+      const currentBadge = document.getElementById('inlineCurrentBadge');
+      const desiredBadge = document.getElementById('inlineDesiredBadge');
+      const currentLabel = document.getElementById('inlineCurrentLabel');
+      const desiredLabel = document.getElementById('inlineDesiredLabel');
+      
+      // Show container if we have any selection
+      if (state.current || state.desired) {
+        container.style.display = '';
+        
+        // Show current emotion selection
+        if (state.current) {
+          currentBadge.style.display = '';
+          currentLabel.textContent = `${state.current.emoji || ''} ${state.current.name}`;
+        } else {
+          currentBadge.style.display = 'none';
+        }
+        
+        // Show desired emotion selection
+        if (state.desired) {
+          desiredBadge.style.display = '';
+          desiredLabel.textContent = `${state.desired.emoji || ''} ${state.desired.name}`;
+        } else {
+          desiredBadge.style.display = 'none';
+        }
+      } else {
+        container.style.display = 'none';
+      }
+    }
+
     /* 🌟 TESLA-GRADE ENHANCED BADGES RENDERING */
     function renderBadges(){
       const badgesContainer = document.querySelector('.badges');
@@ -2473,6 +2517,10 @@
         @keyframes badgeSlideIn {
           0% { opacity: 0; transform: translateY(-10px) scale(0.95); }
           100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes slideInFromTop {
+          0% { opacity: 0; transform: translateY(-20px); }
+          100% { opacity: 1; transform: translateY(0); }
         }
       `;
       if (!document.head.querySelector('#badge-animations')) {
@@ -2534,7 +2582,21 @@
       journalCard.style.display = (state.step === 3) ? '' : 'none';
       if (state.step === 3 && state.desired) {
         desiredLabel.textContent = state.desired.name;
+        
+        // 🌟 WOZ FIX: Auto-scroll to journal + auto-focus for zero-confusion UX
+        setTimeout(() => {
+          journalCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => {
+            const journalTextarea = document.getElementById('journal');
+            if (journalTextarea) {
+              journalTextarea.focus();
+            }
+          }, 600); // Focus after scroll completes
+        }, 300); // Brief delay for render
       }
+
+      // 🌟 WOZ FIX: Update inline selection badges for immediate visual feedback
+      updateInlineSelectionBadges();
 
       validate();
       // saveDraft(); // Disabled - fresh check-in each visit
