@@ -126,17 +126,11 @@
     </script>
 </head>
 <body style="background: linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #ffd166 100%); min-height: 100vh; margin: 0;">
-    <!-- 🎯 SPLASH SCREEN: Covers auth check for smooth UX -->
-    <div class="hi-loading-overlay show" role="status" aria-label="Loading Stay Hi">
-        <div class="hi-loading-content">
-            <img src="assets/brand/hi-logo-dark.png" alt="Hi" class="hi-loading-logo breathing" loading="eager">
-            <p class="hi-loading-message" aria-live="polite">Stay Hi</p>
-        </div>
-    </div>
+    <!-- Beautiful glowing Hi loading appears via hi-loading-experience.js -->
     
     <!-- 🎬 Load Tesla-Grade Loading Experience Script -->
     <script src="assets/hi-loading-experience.js"></script>
     
-    <!-- Routing happens in <head>, splash screen covers the 200-500ms auth check -->
+    <!-- Routing happens in <head>, body just shows loading if needed -->
 </body>
 </html>
