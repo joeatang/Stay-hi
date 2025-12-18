@@ -85,7 +85,7 @@ class PremiumCalendar {
         <div class="calendar-stats">
           <div class="stat-pill">
             <span class="stat-number" id="monthCompleted">0</span>
-            <span class="stat-label">Days</span>
+            <span class="stat-label">This Month</span>
           </div>
           <div class="stat-pill">
             <span class="stat-number" id="currentStreak">0</span>
@@ -351,20 +351,37 @@ class PremiumCalendar {
   updateStats() {
     const monthKey = this.getMonthKey(this.currentMonth);
     const monthData = this.hiMoments[monthKey] || {};
-    const completedDays = Object.keys(monthData).length;
+    
+    // 🎯 GOLD STANDARD: Count from HiBase streak data, not localStorage
+    // If user has remoteStreak, count actual active days this month
+    let completedDays = 0;
+    if (this.remoteStreak?.current && this.remoteStreak?.lastHiDate) {
+      const lastHi = new Date(this.remoteStreak.lastHiDate);
+      const currentMonth = this.currentMonth;
+      const streakLength = this.remoteStreak.current;
+      
+      // Count how many streak days fall in the current displayed month
+      for (let i = 0; i < streakLength; i++) {
+        const streakDay = new Date(lastHi);
+        streakDay.setDate(lastHi.getDate() - i);
+        if (streakDay.getMonth() === currentMonth.getMonth() && 
+            streakDay.getFullYear() === currentMonth.getFullYear()) {
+          completedDays++;
+        }
+      }
+    } else {
+      // Fallback to localStorage count
+      completedDays = Object.keys(monthData).length;
+    }
     
     // Calculate streak (prefer remote streaks if available)
     const streak = (this.remoteStreak?.current ?? null);
     const effectiveStreak = Number.isFinite(streak) ? streak : this.calculateStreak();
     
-    // Today's count
+    // Today's status: Show checkmark if completed, 0 if not
     const today = this.getTodayKey();
-    let todayCount = monthData[today] || 0;
-    if (this.remoteStreak?.lastHiDate) {
-      // If lastHiDate is today, reflect at least one Hi for today
-      const isToday = this.remoteStreak.lastHiDate === today;
-      if (isToday) todayCount = Math.max(1, todayCount);
-    }
+    const todayCompleted = this.remoteStreak?.lastHiDate === today;
+    const todayDisplay = todayCompleted ? '✓' : '0';
 
     // Update stats with Tesla-style animations
     const monthEl = document.getElementById('monthCompleted');
@@ -382,7 +399,14 @@ class PremiumCalendar {
     }
     
     if (todayEl) {
-      this.animateNumber(todayEl, todayCount);
+      // Show checkmark or 0 based on completion
+      if (todayCompleted) {
+        todayEl.textContent = '✓';
+        todayEl.style.fontSize = '24px';
+      } else {
+        todayEl.textContent = '0';
+        todayEl.style.fontSize = '';
+      }
     }
 
     // Update milestone hint and live announce on crossing
@@ -690,21 +714,5 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = PremiumCalendar;
 }
 
-// Auto-instantiate a singleton for faster first-open and reliability
-(function(){
-  if (typeof window === 'undefined') return;
-  const init = () => {
-    try {
-      if (!window.hiCalendarInstance || !(window.hiCalendarInstance instanceof PremiumCalendar)) {
-        window.hiCalendarInstance = new PremiumCalendar();
-      }
-    } catch (e) {
-      console.warn('⚠️ Calendar auto-init failed (will lazy-init via handlers)', e);
-    }
-  };
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-})();
+// NOTE: Calendar is initialized by dashboard-init.js to prevent duplicate instances
+// Auto-init removed to fix double-sheet visual bug
