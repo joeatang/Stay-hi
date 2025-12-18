@@ -495,6 +495,7 @@
     
     // Parse last Hi date and normalize to midnight
     const lastHi = new Date(lastHiDate + 'T00:00:00');
+    lastHi.setHours(0, 0, 0, 0); // Ensure midnight normalization
     
     // 🎯 KEY FIX: Work backwards from lastHiDate (like calendar does)
     // Show the MOST RECENT days of the streak (up to 7 days max)
@@ -505,8 +506,11 @@
     for (let i = 0; i < daysToShow; i++) {
       const streakDay = new Date(lastHi);
       streakDay.setDate(lastHi.getDate() - i); // Work backwards from lastHiDate
+      streakDay.setHours(0, 0, 0, 0); // Normalize each day
       
-      const daysAgo = Math.floor((today - streakDay) / 86400000);
+      // Calculate days ago using proper date arithmetic
+      const msPerDay = 24 * 60 * 60 * 1000;
+      const daysAgo = Math.round((today.getTime() - streakDay.getTime()) / msPerDay);
       
       // Only include days within the 7-day window
       if (daysAgo >= 0 && daysAgo <= 6) {
@@ -601,10 +605,10 @@
     initializeDatabase();
     setupHiffirmationsHandler();
     setupFloatingHiffirmationsHandler();
-    await setupWeeklyProgress();
     
-    // ✅ FIX: Load user streak on dashboard initialization
+    // ✅ FIX: Load user streak BEFORE setting up weekly progress (7-day pill needs streak data)
     await loadUserStreak();
+    await setupWeeklyProgress();
     
     // 🔧 SURGICAL FIX: Use unified cache keys for shimmer only (not as source of truth)
     const savedWaves=localStorage.getItem('globalHiWaves'); const savedTotal=localStorage.getItem('globalTotalHis'); const savedUsers=localStorage.getItem('globalTotalUsers');

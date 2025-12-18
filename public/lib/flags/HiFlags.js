@@ -244,6 +244,8 @@ class HiFlags {
             premium_ux_effects: { enabled: true, description: 'Enable glassmorphism effects' },
             monitoring_analytics: { enabled: true, description: 'Enable analytics tracking' },
             hibase_shares_enabled: { enabled: false, description: 'Enable HiBase shares integration (unified API)' },
+            hibase_streaks_enabled: { enabled: true, description: 'Enable HiBase streaks operations (getUserStreak, updateStreak, getStreakLeaderboard)' },
+            metrics_separation_enabled: { enabled: true, description: 'Enable separated Hi Waves vs Total Hi5s via HiBase.stats API' },
             hifeed_enabled: { enabled: true, description: 'Enable unified feed experience layer (HiFeed + HiStreaks) - TESTING ENABLED' }
         };
     }
