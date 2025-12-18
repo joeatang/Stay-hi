@@ -680,12 +680,33 @@
     setupHiffirmationsHandler();
     setupFloatingHiffirmationsHandler();
     
-    // ✅ FIX: Wait for auth BEFORE setting up 7-day pill (needs authenticated user)
-    window.addEventListener('hi:auth-ready', async () => {
-      console.log('🎯 [7-DAY PILL] Auth ready, loading streak and setting up weekly progress...');
+    // ✅ BULLETPROOF: Setup 7-day pill with fallback protection
+    let weeklyProgressSetup = false;
+    
+    async function initializeWeeklyProgress() {
+      if (weeklyProgressSetup) {
+        console.log('🎯 [7-DAY PILL] Already initialized, skipping duplicate');
+        return;
+      }
+      weeklyProgressSetup = true;
+      console.log('🎯 [7-DAY PILL] Initializing weekly progress...');
       await loadUserStreak();
       await setupWeeklyProgress();
+    }
+    
+    // Listen for auth-ready event
+    window.addEventListener('hi:auth-ready', async () => {
+      console.log('🎯 [7-DAY PILL] Auth ready event received');
+      await initializeWeeklyProgress();
     });
+    
+    // FALLBACK: If auth already ready OR event doesn't fire within 2s, initialize anyway
+    setTimeout(async () => {
+      if (!weeklyProgressSetup) {
+        console.log('🎯 [7-DAY PILL] Fallback timeout triggered, initializing without waiting for event');
+        await initializeWeeklyProgress();
+      }
+    }, 2000);
     
     // 🔧 SURGICAL FIX: Use unified cache keys for shimmer only (not as source of truth)
     const savedWaves=localStorage.getItem('globalHiWaves'); const savedTotal=localStorage.getItem('globalTotalHis'); const savedUsers=localStorage.getItem('globalTotalUsers');
