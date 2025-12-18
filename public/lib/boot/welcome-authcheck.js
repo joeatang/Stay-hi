@@ -2,13 +2,11 @@
 // Returning users: Redirect BEFORE page shows
 // New users: Fade in welcome page
 async function checkAuthWithLoadingExperience() {
-  const splashOverlay = document.querySelector('.hi-loading-overlay');
-  
   try {
     const supa = window.supabaseClient;
     if (!supa) {
       // No Supabase = show welcome page
-      if (splashOverlay) splashOverlay.classList.add('hide');
+      document.body.classList.add('ready');
       return;
     }
     
@@ -16,27 +14,24 @@ async function checkAuthWithLoadingExperience() {
     
     if (error) {
       console.log('Welcome: Auth check error:', error);
-      if (splashOverlay) splashOverlay.classList.add('hide');
+      document.body.classList.add('ready');
       return;
     }
     
     if (session) {
-      // Returning user - redirect while splash still visible (smooth!)
+      // Returning user - redirect IMMEDIATELY (page still invisible)
       console.log('✅ Returning user - redirecting to dashboard');
       sessionStorage.setItem('from-welcome', 'true');
       window.location.replace('./hi-dashboard.html?source=welcome');
     } else {
-      // New user - fade out splash, reveal welcome page
+      // New user - fade in welcome page
       console.log('👋 New user - showing welcome page');
-      if (splashOverlay) {
-        splashOverlay.classList.add('hide');
-        setTimeout(() => splashOverlay.remove(), 300);
-      }
+      document.body.classList.add('ready');
     }
   } catch (error) {
     console.log('Welcome: Auth check failed:', error);
     // On error, show welcome page
-    if (splashOverlay) splashOverlay.classList.add('hide');
+    document.body.classList.add('ready');
   }
 }
 
