@@ -631,9 +631,12 @@
     setupHiffirmationsHandler();
     setupFloatingHiffirmationsHandler();
     
-    // ✅ FIX: Load user streak BEFORE setting up weekly progress (7-day pill needs streak data)
-    await loadUserStreak();
-    await setupWeeklyProgress();
+    // ✅ FIX: Wait for auth BEFORE setting up 7-day pill (needs authenticated user)
+    window.addEventListener('hi:auth-ready', async () => {
+      console.log('🎯 [7-DAY PILL] Auth ready, loading streak and setting up weekly progress...');
+      await loadUserStreak();
+      await setupWeeklyProgress();
+    });
     
     // 🔧 SURGICAL FIX: Use unified cache keys for shimmer only (not as source of truth)
     const savedWaves=localStorage.getItem('globalHiWaves'); const savedTotal=localStorage.getItem('globalTotalHis'); const savedUsers=localStorage.getItem('globalTotalUsers');
