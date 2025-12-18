@@ -52,6 +52,7 @@
   async function loadUserStreak() {
     try {
       const useHiBaseStreaks = await window.HiFlags?.getFlag('hibase_streaks_enabled');
+      console.log('🚩 [FLAG CHECK] hibase_streaks_enabled =', useHiBaseStreaks);
       __dbg(`🔄 Streak loading via ${useHiBaseStreaks ? 'HiBase' : 'legacy'} path`);
       if (useHiBaseStreaks) {
         __dbg('📦 Streak → HiBase.getUserStreak...');
@@ -461,7 +462,31 @@
   }
 
   async function setupWeeklyProgress(){ const weekStrip=document.getElementById('weekStrip'); if(!weekStrip) return; const today=new Date(); let html=''; const weeklyActivity=await getUserWeeklyActivity(); for(let i=6;i>=0;i--){ const date=new Date(today); date.setDate(today.getDate()-i); const label=date.toLocaleDateString(undefined,{weekday:'short'}).toUpperCase(); const dayNum=date.getDate(); const isToday=i===0; const dateKey=date.toISOString().split('T')[0]; const metClass=weeklyActivity.activeDays.includes(dateKey)?'met':''; const milestoneClass=isToday && weeklyActivity.milestone?.current ? 'milestone' : ''; html+=`<div class="weekdot ${isToday?'today':''} ${milestoneClass}"><div class="lbl">${label}</div><div class="c ${metClass}">${dayNum}</div>${isToday && weeklyActivity.milestone?.current ? `<div class="milestone-badge">${weeklyActivity.milestone.current.emoji}</div>`:''}</div>`; } weekStrip.innerHTML=html; }
-  async function getUserWeeklyActivity(){ try { const currentUser=window.hiAuth?.getCurrentUser?.(); if (currentUser && currentUser.id && currentUser.id!=='anonymous'){ const streakResult=await window.HiBase?.streaks?.getUserStreak?.(currentUser.id); if (streakResult?.data){ return generateWeeklyFromStreak(streakResult.data); } } return generateAnonymousWeeklyPreview(); } catch(e){ console.error('Weekly activity load failed:', e); return generateAnonymousWeeklyPreview(); } }
+  async function getUserWeeklyActivity(){ 
+    try { 
+      const currentUser=window.hiAuth?.getCurrentUser?.(); 
+      console.log('🔍 [getUserWeeklyActivity] Current user:', currentUser?.id);
+      
+      if (currentUser && currentUser.id && currentUser.id!=='anonymous'){ 
+        console.log('🔍 [getUserWeeklyActivity] Calling HiBase.streaks.getUserStreak...');
+        const streakResult=await window.HiBase?.streaks?.getUserStreak?.(currentUser.id); 
+        console.log('🔍 [getUserWeeklyActivity] API response:', JSON.stringify(streakResult, null, 2));
+        
+        if (streakResult?.data){ 
+          console.log('🔍 [getUserWeeklyActivity] Using HiBase path with data:', streakResult.data);
+          return generateWeeklyFromStreak(streakResult.data); 
+        } else {
+          console.warn('⚠️ [getUserWeeklyActivity] No data in streakResult, falling back to anonymous');
+        }
+      } else {
+        console.log('🔍 [getUserWeeklyActivity] No authenticated user, using anonymous preview');
+      }
+      return generateAnonymousWeeklyPreview(); 
+    } catch(e){ 
+      console.error('❌ Weekly activity load failed:', e); 
+      return generateAnonymousWeeklyPreview(); 
+    } 
+  }
 
   // Network error retry handler
   window.retryDashboardLoad = async function() {
