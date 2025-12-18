@@ -475,7 +475,58 @@
       console.error('Retry failed:', error);
     }
   };
-  function generateWeeklyFromStreak(streakData){ const activeDays=[]; const today=new Date(); const currentStreak=streakData.current||0; const lastHiDate=streakData.lastHiDate; const milestoneInfo=checkStreakMilestones(currentStreak); if (lastHiDate && currentStreak>0){ const streakStart=new Date(lastHiDate); streakStart.setDate(streakStart.getDate()-currentStreak+1); for(let i=0;i<currentStreak && i<7;i++){ const activeDate=new Date(streakStart); activeDate.setDate(streakStart.getDate()+i); const daysAgo=Math.floor((today-activeDate)/(86400000)); if (daysAgo>=0 && daysAgo<=6){ activeDays.push(activeDate.toISOString().split('T')[0]); } } } return { activeDays, source:'real_streak', milestone: milestoneInfo }; }
+  
+  // 🎯 FIXED: Generate weekly activity from streak data (works backwards from lastHiDate)
+  function generateWeeklyFromStreak(streakData) {
+    const activeDays = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize to midnight
+    
+    const currentStreak = streakData.current || 0;
+    const lastHiDate = streakData.lastHiDate;
+    const milestoneInfo = checkStreakMilestones(currentStreak);
+    
+    console.log('🔍 [7-DAY PILL] Input:', { currentStreak, lastHiDate });
+    
+    if (!lastHiDate || currentStreak === 0) {
+      console.log('⚠️ [7-DAY PILL] No streak data');
+      return { activeDays: [], source: 'real_streak', milestone: milestoneInfo };
+    }
+    
+    // Parse last Hi date and normalize to midnight
+    const lastHi = new Date(lastHiDate + 'T00:00:00');
+    
+    // 🎯 KEY FIX: Work backwards from lastHiDate (like calendar does)
+    // Show the MOST RECENT days of the streak (up to 7 days max)
+    const daysToShow = Math.min(currentStreak, 7);
+    
+    console.log('📅 [7-DAY PILL] Calculating last', daysToShow, 'days of', currentStreak, 'day streak');
+    
+    for (let i = 0; i < daysToShow; i++) {
+      const streakDay = new Date(lastHi);
+      streakDay.setDate(lastHi.getDate() - i); // Work backwards from lastHiDate
+      
+      const daysAgo = Math.floor((today - streakDay) / 86400000);
+      
+      // Only include days within the 7-day window
+      if (daysAgo >= 0 && daysAgo <= 6) {
+        const dateKey = streakDay.toISOString().split('T')[0];
+        activeDays.push(dateKey);
+        console.log(`✅ [7-DAY PILL] Day ${i+1}: ${dateKey} (${daysAgo} days ago)`);
+      } else {
+        console.log(`⏭️ [7-DAY PILL] Skipping ${streakDay.toISOString().split('T')[0]} (${daysAgo} days ago, outside 7-day window)`);
+      }
+    }
+    
+    console.log('🎯 [7-DAY PILL] Final active days:', activeDays);
+    
+    return { 
+      activeDays, 
+      source: 'real_streak', 
+      milestone: milestoneInfo 
+    };
+  }
+  
   function checkStreakMilestones(streak){ const milestones=[{threshold:3,name:'Hi Habit',emoji:'🔥'},{threshold:7,name:'Week Keeper',emoji:'🔥'},{threshold:30,name:'Monthly Hi',emoji:'🔥'},{threshold:100,name:'Steady Light',emoji:'🔥'}]; const achieved=milestones.filter(m=>streak>=m.threshold); const latest=achieved[achieved.length-1]; const upcoming=milestones.find(m=>streak < m.threshold); return { current: latest||null, next: upcoming||null, isNewMilestone:false }; }
   // Prefer centralized milestone definition if loaded
   function checkStreakMilestones(streak){
