@@ -117,6 +117,9 @@
   
   <!-- Real-time stats (disabled until duplicates are resolved) -->
   <!-- <script type="module" src="assets/real-time-stats.js"></script> -->
+  <!-- 🎬 Hi Loading Experience (Splash Screen System) -->
+  <link rel="stylesheet" href="./assets/hi-loading-experience.css">
+  
   <style>
     /* 🏎️ WOZNIAK-GRADE: Stable body container + GPU Acceleration */
     * {
@@ -132,6 +135,7 @@
       -moz-osx-font-smoothing: grayscale;
       text-rendering: optimizeLegibility;
     }
+    
     body {
       background: linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #ffd166 100%);
       min-height: 100vh;
@@ -616,6 +620,14 @@
   </style>
 </head>
 <body data-page="welcome">
+  <!-- Splash Screen During Auth Check -->
+  <div class="hi-loading-overlay show">
+    <div class="hi-loading-content">
+      <img src="assets/brand/hi-logo-dark.png" alt="Stay Hi" class="hi-loading-logo breathing" />
+      <p class="hi-loading-message">Stay Hi</p>
+    </div>
+  </div>
+  
   <main class="welcome-panel">
     <img src="assets/brand/hi-logo-light.png" alt="Stay Hi" class="welcome-logo" />
     <div class="welcome-title">Your forever companion for <br><em style="font-style: italic; color: #FF7B24;">loving yourself & the world</em></div>
