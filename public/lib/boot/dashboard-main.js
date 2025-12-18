@@ -463,7 +463,51 @@
     function getUserTierForSharing(){ const tierIndicator=document.getElementById('hi-tier-indicator'); if (tierIndicator){ const tierText=tierIndicator.querySelector('.tier-text')?.textContent; if (tierText==='Premium') return 'PREMIUM'; if (tierText==='Standard') return 'STANDARD'; } return 'ANONYMOUS'; }
   }
 
-  async function setupWeeklyProgress(){ const weekStrip=document.getElementById('weekStrip'); if(!weekStrip) return; const today=new Date(); let html=''; const weeklyActivity=await getUserWeeklyActivity(); for(let i=6;i>=0;i--){ const date=new Date(today); date.setDate(today.getDate()-i); const label=date.toLocaleDateString(undefined,{weekday:'short'}).toUpperCase(); const dayNum=date.getDate(); const isToday=i===0; const dateKey=date.toISOString().split('T')[0]; const metClass=weeklyActivity.activeDays.includes(dateKey)?'met':''; const milestoneClass=isToday && weeklyActivity.milestone?.current ? 'milestone' : ''; html+=`<div class="weekdot ${isToday?'today':''} ${milestoneClass}"><div class="lbl">${label}</div><div class="c ${metClass}">${dayNum}</div>${isToday && weeklyActivity.milestone?.current ? `<div class="milestone-badge">${weeklyActivity.milestone.current.emoji}</div>`:''}</div>`; } weekStrip.innerHTML=html; }
+  async function setupWeeklyProgress() {
+    const weekStrip = document.getElementById('weekStrip');
+    if (!weekStrip) return;
+    
+    // Show loading skeleton
+    weekStrip.innerHTML = `<div class="week-loading">${Array(7).fill('<div class="weekdot-skeleton"></div>').join('')}</div>`;
+    
+    const today = new Date();
+    let html = '';
+    const weeklyActivity = await getUserWeeklyActivity();
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      const label = date.toLocaleDateString(undefined, {weekday: 'short'}).toUpperCase();
+      const dayNum = date.getDate();
+      const isToday = i === 0;
+      const dateKey = date.toISOString().split('T')[0];
+      const metClass = weeklyActivity.activeDays.includes(dateKey) ? 'met' : '';
+      const hasMilestone = isToday && weeklyActivity.milestone?.current;
+      const milestoneClass = hasMilestone ? 'milestone' : '';
+      
+      // Accessibility: describe each day's state
+      const ariaLabel = `${label} ${dayNum}${isToday ? ', today' : ''}${metClass ? ', completed' : ', not completed'}${hasMilestone ? `, ${weeklyActivity.milestone.current.name} milestone reached` : ''}`;
+      
+      html += `<div class="weekdot ${isToday ? 'today' : ''} ${milestoneClass}" 
+                    role="img" 
+                    aria-label="${ariaLabel}"
+                    data-date="${dateKey}"
+                    style="animation-delay: ${(6-i) * 50}ms">
+                <div class="lbl">${label}</div>
+                <div class="c ${metClass}">
+                  ${dayNum}
+                  ${hasMilestone ? `<div class="milestone-badge" role="img" aria-label="${weeklyActivity.milestone.current.emoji} ${weeklyActivity.milestone.current.name}">${weeklyActivity.milestone.current.emoji}</div>` : ''}
+                </div>
+              </div>`;
+    }
+    
+    weekStrip.innerHTML = html;
+    
+    // Trigger fade-in animation
+    requestAnimationFrame(() => {
+      weekStrip.querySelectorAll('.weekdot').forEach(dot => dot.classList.add('fade-in'));
+    });
+  }
   async function getUserWeeklyActivity(){ 
     try { 
       // FIX: Use ProfileManager instead of undefined window.hiAuth
