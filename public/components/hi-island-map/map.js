@@ -213,6 +213,15 @@ class HiIslandMap {
 
       console.log(`🗺️ Received ${shares?.length || 0} shares with location data`);
       
+      // Debug: Log sample share data
+      if (shares && shares.length > 0) {
+        console.log('📍 Sample share locations:', shares.slice(0, 3).map(s => ({
+          location: s.location,
+          user: s.username,
+          content: s.content?.substring(0, 30)
+        })));
+      }
+      
       // Add markers from shares
       let markersAdded = 0;
       const bounds = [];
@@ -224,8 +233,10 @@ class HiIslandMap {
             const locationString = share.location;
             
             if (locationString) {
+              console.log('🔍 Geocoding location:', locationString);
               // Geocode the location string to get coordinates
               const coords = await this.geocodeLocation(locationString);
+              console.log('📍 Geocode result:', coords);
               
               if (coords) {
                 const { lat, lng } = coords;
