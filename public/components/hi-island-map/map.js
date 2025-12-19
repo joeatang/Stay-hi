@@ -206,59 +206,53 @@ class HiIslandMap {
 
       console.log(`🗺️ Received ${shares?.length || 0} shares with location data`);
       
-      if (!shares || shares.length === 0) {
-        console.warn('⚠️ No shares with location data found');
-        this.showEmptyMapMessage();
-        return;
-      }
-      
       // Add markers from shares
       let markersAdded = 0;
       const bounds = [];
       
-      for (const share of shares) {
-        try {
-          const locationData = share.location_data;
-          
-          // Check if we have coordinates
-          if (locationData && (locationData.lat || locationData.latitude) && (locationData.lng || locationData.longitude)) {
-            const lat = locationData.lat || locationData.latitude;
-            const lng = locationData.lng || locationData.longitude;
+      if (shares && shares.length > 0) {
+        for (const share of shares) {
+          try {
+            const locationData = share.location_data;
             
-            // Transform share to map marker format
-            const markerData = {
-              id: share.id,
-              text: share.content,
-              currentEmoji: share.metadata?.current_emoji || '👋',
-              desiredEmoji: share.metadata?.desired_emoji || '✨',
-              userName: share.is_anonymous ? 'Anonymous' : (share.metadata?.display_name || 'Hi Member'),
-              isAnonymous: share.is_anonymous,
-              location: locationData.name || locationData.location_name || `${lat.toFixed(2)}, ${lng.toFixed(2)}`,
-              origin: share.metadata?.origin || 'hi5',
-              createdAt: share.created_at
-            };
-            
-            this.addMarkerAt(lat, lng, markerData);
-            bounds.push([lat, lng]);
-            markersAdded++;
+            // Check if we have coordinates
+            if (locationData && (locationData.lat || locationData.latitude) && (locationData.lng || locationData.longitude)) {
+              const lat = locationData.lat || locationData.latitude;
+              const lng = locationData.lng || locationData.longitude;
+              
+              // Transform share to map marker format
+              const markerData = {
+                id: share.id,
+                text: share.content,
+                currentEmoji: share.metadata?.current_emoji || '👋',
+                desiredEmoji: share.metadata?.desired_emoji || '✨',
+                userName: share.is_anonymous ? 'Anonymous' : (share.metadata?.display_name || 'Hi Member'),
+                isAnonymous: share.is_anonymous,
+                location: locationData.name || locationData.location_name || `${lat.toFixed(2)}, ${lng.toFixed(2)}`,
+                origin: share.metadata?.origin || 'hi5',
+                createdAt: share.created_at
+              };
+              
+              this.addMarkerAt(lat, lng, markerData);
+              bounds.push([lat, lng]);
+              markersAdded++;
+            }
+          } catch (err) {
+            console.warn('⚠️ Failed to process share for map:', err);
           }
-        } catch (err) {
-          console.warn('⚠️ Failed to process share for map:', err);
         }
-      }
-      
-      console.log(`✅ Added ${markersAdded} markers to map`);
-      
-      // Auto-fit map to show all markers
-      if (bounds.length > 0) {
-        const leafletBounds = L.latLngBounds(bounds);
-        this.map.fitBounds(leafletBounds, {
-          padding: [50, 50],
-          maxZoom: 8 // Don't zoom in too close
-        });
-        console.log(`🗺️ Map fitted to ${bounds.length} marker positions`);
-      } else {
-        this.showEmptyMapMessage();
+        
+        console.log(`✅ Added ${markersAdded} markers from database`);
+        
+        // Auto-fit map to show all markers
+        if (bounds.length > 0) {
+          const leafletBounds = L.latLngBounds(bounds);
+          this.map.fitBounds(leafletBounds, {
+            padding: [50, 50],
+            maxZoom: 8 // Don't zoom in too close
+          });
+          console.log(`🗺️ Map fitted to ${bounds.length} marker positions`);
+        }
       }
       
     } catch (error) {
@@ -315,15 +309,12 @@ class HiIslandMap {
     console.log('✅ Map share listener active');
   }
       
-      // Only add seed data if we have NO database shares OR no successfully geocoded shares
-      const shouldInitializeSeed = shares.length === 0 || (sharesWithLocation.length > 0 && markersAdded === 0);
+      // 🌱 Initialize seed data if no real markers were added
+      const shouldInitializeSeed = markersAdded === 0;
       
       if (shouldInitializeSeed) {
-        console.log('💡 Initializing seed data because:', {
-          noDatabaseShares: shares.length === 0,
-          hasLocationDataButFailedGeocode: sharesWithLocation.length > 0 && markersAdded === 0,
-          databaseSharesTotal: shares.length,
-          sharesWithLocations: sharesWithLocation.length,
+        console.log('💡 Initializing seed data because no real database markers were added', {
+          databaseSharesTotal: shares?.length || 0,
           successfullyGeocodedMarkers: markersAdded
         });
         
@@ -336,7 +327,7 @@ class HiIslandMap {
         }
       } else {
         console.log('🎯 Skipping seed data - using real database markers', {
-          databaseShares: shares.length,
+          databaseShares: shares?.length || 0,
           geocodedMarkers: markersAdded
         });
       }
