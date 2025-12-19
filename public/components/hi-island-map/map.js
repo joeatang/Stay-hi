@@ -186,13 +186,13 @@ class HiIslandMap {
           id,
           content,
           metadata,
-          location_data,
+          location,
           created_at,
           is_public,
           is_anonymous
         `)
         .or('is_public.eq.true,is_anonymous.eq.true')
-        .not('location_data', 'is', null)
+        .not('location', 'is', null)
         .order('created_at', { ascending: false })
         .limit(200);
       
@@ -213,29 +213,35 @@ class HiIslandMap {
       if (shares && shares.length > 0) {
         for (const share of shares) {
           try {
-            const locationData = share.location_data;
+            // 🎯 FIX: Use location STRING field and geocode it
+            const locationString = share.location;
             
-            // Check if we have coordinates
-            if (locationData && (locationData.lat || locationData.latitude) && (locationData.lng || locationData.longitude)) {
-              const lat = locationData.lat || locationData.latitude;
-              const lng = locationData.lng || locationData.longitude;
+            if (locationString) {
+              // Geocode the location string to get coordinates
+              const coords = await this.geocodeLocation(locationString);
               
-              // Transform share to map marker format
-              const markerData = {
-                id: share.id,
-                text: share.content,
-                currentEmoji: share.metadata?.current_emoji || '👋',
-                desiredEmoji: share.metadata?.desired_emoji || '✨',
-                userName: share.is_anonymous ? 'Anonymous' : (share.metadata?.display_name || 'Hi Member'),
-                isAnonymous: share.is_anonymous,
-                location: locationData.name || locationData.location_name || `${lat.toFixed(2)}, ${lng.toFixed(2)}`,
-                origin: share.metadata?.origin || 'hi5',
-                createdAt: share.created_at
-              };
-              
-              this.addMarkerAt(lat, lng, markerData);
-              bounds.push([lat, lng]);
-              markersAdded++;
+              if (coords) {
+                const { lat, lng } = coords;
+                
+                // Transform share to map marker format
+                const markerData = {
+                  id: share.id,
+                  text: share.content,
+                  currentEmoji: share.metadata?.current_emoji || '👋',
+                  desiredEmoji: share.metadata?.desired_emoji || '✨',
+                  userName: share.is_anonymous ? 'Anonymous' : (share.metadata?.display_name || 'Hi Member'),
+                  isAnonymous: share.is_anonymous,
+                  location: locationString,
+                  origin: share.metadata?.origin || 'hi5',
+                  createdAt: share.created_at
+                };
+                
+                this.addMarkerAt(lat, lng, markerData);
+                bounds.push([lat, lng]);
+                markersAdded++;
+              } else {
+                console.warn('⚠️ Could not geocode location:', locationString);
+              }
             }
           } catch (err) {
             console.warn('⚠️ Failed to process share for map:', err);
