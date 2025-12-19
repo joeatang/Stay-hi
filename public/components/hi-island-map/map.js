@@ -179,7 +179,7 @@ class HiIslandMap {
       
       console.log('📡 Querying public_shares for map markers...');
       
-      // Query public + anonymous shares with location data
+      // Query public + anonymous shares with location data (with profile JOIN like feed does)
       const { data: shares, error } = await sb
         .from('public_shares')
         .select(`
@@ -192,8 +192,11 @@ class HiIslandMap {
           is_public,
           is_anonymous,
           origin,
-          display_name,
-          username
+          username,
+          profiles (
+            display_name,
+            avatar_url
+          )
         `)
         .or('is_public.eq.true,is_anonymous.eq.true')
         .not('location', 'is', null)
@@ -233,7 +236,7 @@ class HiIslandMap {
                   text: share.content,
                   currentEmoji: share.current_emoji || '👋',
                   desiredEmoji: share.desired_emoji || '✨',
-                  userName: share.is_anonymous ? 'Anonymous' : (share.display_name || share.username || 'Hi Member'),
+                  userName: share.is_anonymous ? 'Anonymous' : (share.profiles?.display_name || share.username || 'Hi Member'),
                   isAnonymous: share.is_anonymous,
                   location: locationString,
                   origin: share.origin || 'hi5',
