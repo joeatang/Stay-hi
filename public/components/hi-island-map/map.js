@@ -551,43 +551,130 @@ class HiIslandMap {
       'Tokyo, Japan': { lat: 35.6762, lng: 139.6503 },
       'Sydney, Australia': { lat: -33.8688, lng: 151.2093 },
       
-      // State/Country patterns
+      // U.S. States (full names)
+      'California': { lat: 36.78, lng: -119.42 },
+      'New York': { lat: 42.17, lng: -74.95 },
+      'Texas': { lat: 31.97, lng: -99.90 },
+      'Florida': { lat: 27.77, lng: -82.64 },
+      'Washington': { lat: 47.75, lng: -120.74 },
+      'Pennsylvania': { lat: 41.20, lng: -77.19 },
+      'Illinois': { lat: 40.63, lng: -89.40 },
+      'Ohio': { lat: 40.42, lng: -82.91 },
+      'Georgia': { lat: 32.16, lng: -82.90 },
+      'North Carolina': { lat: 35.76, lng: -79.02 },
+      'Michigan': { lat: 44.31, lng: -85.60 },
+      'New Jersey': { lat: 40.06, lng: -74.41 },
+      'Virginia': { lat: 37.43, lng: -78.66 },
+      'Massachusetts': { lat: 42.41, lng: -71.38 },
+      'Tennessee': { lat: 35.52, lng: -86.58 },
+      'Indiana': { lat: 40.27, lng: -86.13 },
+      'Arizona': { lat: 34.05, lng: -111.09 },
+      'Missouri': { lat: 37.96, lng: -91.83 },
+      'Maryland': { lat: 39.05, lng: -76.64 },
+      'Wisconsin': { lat: 43.78, lng: -88.79 },
+      'Minnesota': { lat: 46.73, lng: -94.69 },
+      'Colorado': { lat: 39.55, lng: -105.78 },
+      'Alabama': { lat: 32.32, lng: -86.90 },
+      'South Carolina': { lat: 33.84, lng: -81.16 },
+      'Louisiana': { lat: 30.98, lng: -91.96 },
+      'Kentucky': { lat: 37.84, lng: -84.27 },
+      'Oregon': { lat: 43.80, lng: -120.55 },
+      'Oklahoma': { lat: 35.47, lng: -97.52 },
+      'Connecticut': { lat: 41.60, lng: -73.09 },
+      'Iowa': { lat: 41.88, lng: -93.10 },
+      'Mississippi': { lat: 32.35, lng: -89.40 },
+      'Arkansas': { lat: 35.20, lng: -91.83 },
+      'Kansas': { lat: 39.01, lng: -98.48 },
+      'Utah': { lat: 39.32, lng: -111.09 },
+      'Nevada': { lat: 38.80, lng: -116.42 },
+      'New Mexico': { lat: 34.52, lng: -105.87 },
+      'West Virginia': { lat: 38.60, lng: -80.45 },
+      'Nebraska': { lat: 41.49, lng: -99.90 },
+      'Idaho': { lat: 44.07, lng: -114.74 },
+      'Hawaii': { lat: 19.90, lng: -155.58 },
+      'Maine': { lat: 45.25, lng: -69.45 },
+      'New Hampshire': { lat: 43.19, lng: -71.57 },
+      'Rhode Island': { lat: 41.58, lng: -71.48 },
+      'Montana': { lat: 46.88, lng: -110.36 },
+      'Delaware': { lat: 38.91, lng: -75.53 },
+      'South Dakota': { lat: 43.97, lng: -99.90 },
+      'North Dakota': { lat: 47.55, lng: -101.00 },
+      'Alaska': { lat: 64.20, lng: -149.49 },
+      'Vermont': { lat: 44.56, lng: -72.58 },
+      'Wyoming': { lat: 43.08, lng: -107.29 },
+      
+      // State Abbreviations
       'CA': { lat: 36.78, lng: -119.42 },
       'NY': { lat: 42.17, lng: -74.95 },
       'TX': { lat: 31.97, lng: -99.90 },
       'FL': { lat: 27.77, lng: -82.64 },
       'WA': { lat: 47.75, lng: -120.74 },
+      'PA': { lat: 41.20, lng: -77.19 },
+      'IL': { lat: 40.63, lng: -89.40 },
+      'OH': { lat: 40.42, lng: -82.91 },
+      'GA': { lat: 32.16, lng: -82.90 },
+      'NC': { lat: 35.76, lng: -79.02 },
+      'MI': { lat: 44.31, lng: -85.60 },
+      'NJ': { lat: 40.06, lng: -74.41 },
+      'VA': { lat: 37.43, lng: -78.66 },
+      'MA': { lat: 42.41, lng: -71.38 },
+      'TN': { lat: 35.52, lng: -86.58 },
+      'IN': { lat: 40.27, lng: -86.13 },
+      'AZ': { lat: 34.05, lng: -111.09 },
+      'MO': { lat: 37.96, lng: -91.83 },
+      'MD': { lat: 39.05, lng: -76.64 },
+      'WI': { lat: 43.78, lng: -88.79 },
+      'MN': { lat: 46.73, lng: -94.69 },
+      'CO': { lat: 39.55, lng: -105.78 },
+      
+      // Common U.S. Cities
+      'Ashburn': { lat: 39.04, lng: -77.49 },
+      'Akron': { lat: 41.08, lng: -81.52 },
+      
+      // Countries
+      'United States': { lat: 37.09, lng: -95.71 },
       'Australia': { lat: -25.27, lng: 133.78 },
       'UK': { lat: 52.37, lng: -1.46 },
       'Canada': { lat: 56.13, lng: -106.35 },
       'Japan': { lat: 36.2048, lng: 138.2529 }
     };
     
+    // Normalize location string
+    const normalized = location.trim();
+    
     // Try exact match first
-    if (locationMap[location]) {
-      console.log(`🎯 Exact match for "${location}"`);
-      return locationMap[location];
+    if (locationMap[normalized]) {
+      console.log(`🎯 Exact match for "${normalized}"`);
+      return locationMap[normalized];
     }
     
-    // Try partial matches
+    // Try to extract state from "State, Country" or "City, State" format
+    const parts = normalized.split(',').map(p => p.trim());
+    if (parts.length >= 2) {
+      // Try the first part (state/city name)
+      if (locationMap[parts[0]]) {
+        console.log(`🎯 First part match: "${normalized}" → "${parts[0]}"`);
+        return locationMap[parts[0]];
+      }
+      
+      // Try the last part (usually state or country)
+      const lastPart = parts[parts.length - 1];
+      if (locationMap[lastPart]) {
+        console.log(`🎯 Last part match: "${normalized}" → "${lastPart}"`);
+        return locationMap[lastPart];
+      }
+    }
+    
+    // Try partial matches (case insensitive)
     for (const [key, coords] of Object.entries(locationMap)) {
-      if (location.toLowerCase().includes(key.toLowerCase())) {
-        console.log(`🎯 Partial match: "${location}" → "${key}"`);
+      if (normalized.toLowerCase().includes(key.toLowerCase()) || 
+          key.toLowerCase().includes(normalized.toLowerCase())) {
+        console.log(`🎯 Partial match: "${normalized}" → "${key}"`);
         return coords;
       }
     }
     
-    // Try to extract state/country from "City, ST" format
-    const parts = location.split(',').map(p => p.trim());
-    if (parts.length >= 2) {
-      const state = parts[parts.length - 1];
-      if (locationMap[state]) {
-        console.log(`🎯 State/Country match: "${location}" → "${state}"`);
-        return locationMap[state];
-      }
-    }
-    
-    console.warn(`⚠️ No geocoding match for "${location}" - using world center`);
+    console.warn(`⚠️ No geocoding match for "${normalized}" - using world center`);
     return { lat: 20, lng: 0 };
   }
 
