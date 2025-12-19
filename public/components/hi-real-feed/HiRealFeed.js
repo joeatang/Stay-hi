@@ -1433,6 +1433,10 @@ class HiIslandRealFeed {
         overflow-y: auto;
         max-height: 60vh;
         -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        overscroll-behavior: contain; /* Prevent rubber-band bounce */
+        will-change: transform; /* GPU acceleration for smooth 60fps */
+        transform: translateZ(0); /* Force hardware acceleration */
+        scroll-behavior: smooth;
       }
 
       .hi-share-item {
@@ -1449,6 +1453,8 @@ class HiIslandRealFeed {
           inset 0 1px 0 rgba(255, 255, 255, 0.1);
         position: relative;
         overflow: hidden;
+        transform: translateZ(0); /* Isolate layer for smooth scroll */
+        backface-visibility: hidden; /* Prevent flickering */
       }
       
       .hi-share-item::before {
