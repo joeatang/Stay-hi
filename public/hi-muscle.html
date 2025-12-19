@@ -996,6 +996,13 @@
     @keyframes modalFadeIn{from{opacity:0;transform:translate(-50%, -50%) scale(0.95)}to{opacity:1;transform:translate(-50%, -50%) scale(1)}}
     @keyframes modalFadeOut{from{opacity:1;transform:translate(-50%, -50%) scale(1)}to{opacity:0;transform:translate(-50%, -50%) scale(0.95)}}
     
+    /* 🎯 WOZ-GRADE: Journal card attention pulse animation */
+    @keyframes journalCardPulse {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      50% { transform: scale(1.02); box-shadow: 0 0 20px 10px rgba(16, 185, 129, 0.3); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    
     .sheet.show + .sheet-backdrop{display:block}
     
     /* Tesla-grade mobile optimizations */
@@ -2420,10 +2427,25 @@
             state.desired = null; // Clear any previous desired selection
             console.log(`🌟 Current emotion selected: ${targetEmotion.name}`);
             
+            // 🎯 WOZ-GRADE: Celebrate selection with haptic + visual feedback
+            if (window.PremiumUX?.triggerHapticFeedback) {
+              window.PremiumUX.triggerHapticFeedback('success');
+            }
+            
             setTimeout(() => {
               div.classList.remove('loading');
-              setStep(2);
-              renderGrid(); // Re-render with new selection
+              
+              // 🚀 DRAMATIC SCROLL TO TOP: Hand-hold user to Step 2
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              
+              // Show step transition announcement
+              showStepTransitionAnnouncement('Step 2: Where Do You Want to Be?', '🎯');
+              
+              // Advance to Step 2 after scroll starts
+              setTimeout(() => {
+                setStep(2);
+                renderGrid(); // Re-render with new selection
+              }, 400); // Wait for scroll to start
             }, 200);
             
           } else if (state.step === 2) {
@@ -2450,10 +2472,25 @@
               state.desired = targetEmotion;
               console.log(`🎯 Emotional journey: ${state.current.name} → ${targetEmotion.name}`);
               
+              // 🎯 WOZ-GRADE: Celebrate journey with haptic + visual feedback
+              if (window.PremiumUX?.triggerHapticFeedback) {
+                window.PremiumUX.triggerHapticFeedback('success');
+              }
+              
               setTimeout(() => {
                 div.classList.remove('loading');
-                setStep(3);
-                renderGrid(); // Re-render with new selection
+                
+                // 🚀 DRAMATIC SCROLL TO TOP: Hand-hold user to Step 3
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                // Show step transition announcement
+                showStepTransitionAnnouncement('Step 3: Reflect on Your Journey', '✍️');
+                
+                // Advance to Step 3 after scroll starts
+                setTimeout(() => {
+                  setStep(3);
+                  renderGrid(); // Re-render with new selection
+                }, 400); // Wait for scroll to start
               }, 200);
             }
             
@@ -2580,6 +2617,58 @@
       }
     }
 
+    // 🎯 WOZ-GRADE: Dramatic step transition announcement
+    function showStepTransitionAnnouncement(message, emoji) {
+      // Create or reuse announcement overlay
+      let announcement = document.getElementById('stepTransitionAnnouncement');
+      if (!announcement) {
+        announcement = document.createElement('div');
+        announcement.id = 'stepTransitionAnnouncement';
+        announcement.style.cssText = `
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%) scale(0.8);
+          background: linear-gradient(135deg, rgba(16, 185, 129, 0.98) 0%, rgba(5, 150, 105, 0.98) 100%);
+          color: white;
+          padding: 32px 48px;
+          border-radius: 24px;
+          font-size: 24px;
+          font-weight: 800;
+          text-align: center;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+          z-index: 10000;
+          opacity: 0;
+          pointer-events: none;
+          backdrop-filter: blur(10px);
+          border: 2px solid rgba(255, 255, 255, 0.3);
+        `;
+        document.body.appendChild(announcement);
+      }
+      
+      announcement.innerHTML = `
+        <div style="font-size: 48px; margin-bottom: 16px;">${emoji}</div>
+        <div>${message}</div>
+      `;
+      
+      // Dramatic entrance animation
+      announcement.style.opacity = '0';
+      announcement.style.transform = 'translate(-50%, -50%) scale(0.8)';
+      
+      setTimeout(() => {
+        announcement.style.transition = 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        announcement.style.opacity = '1';
+        announcement.style.transform = 'translate(-50%, -50%) scale(1)';
+      }, 50);
+      
+      // Dramatic exit animation
+      setTimeout(() => {
+        announcement.style.transition = 'all 0.3s ease-out';
+        announcement.style.opacity = '0';
+        announcement.style.transform = 'translate(-50%, -50%) scale(0.9)';
+      }, 1800);
+    }
+
     function setStep(n){
       state.step = Math.max(1, Math.min(3, n));
       
@@ -2634,16 +2723,24 @@
       if (state.step === 3 && state.desired) {
         desiredLabel.textContent = state.desired.name;
         
-        // 🌟 WOZ FIX: Auto-scroll to journal + auto-focus for zero-confusion UX
+        // � WOZ-GRADE: Scroll to journal + auto-focus after step announcement
         setTimeout(() => {
-          journalCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          journalCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          
+          // Add visual pulse to journal card to draw attention
+          journalCard.style.animation = 'journalCardPulse 0.6s ease-out';
+          
           setTimeout(() => {
             const journalTextarea = document.getElementById('journal');
             if (journalTextarea) {
               journalTextarea.focus();
+              // Haptic feedback when focus lands
+              if (window.PremiumUX?.triggerHapticFeedback) {
+                window.PremiumUX.triggerHapticFeedback('light');
+              }
             }
-          }, 600); // Focus after scroll completes
-        }, 300); // Brief delay for render
+          }, 700); // Focus after scroll completes
+        }, 1000); // Wait for step announcement to finish
       }
 
       // 🌟 WOZ FIX: Update inline selection badges for immediate visual feedback
