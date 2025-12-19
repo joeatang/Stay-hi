@@ -185,11 +185,15 @@ class HiIslandMap {
         .select(`
           id,
           content,
-          metadata,
+          current_emoji,
+          desired_emoji,
           location,
           created_at,
           is_public,
-          is_anonymous
+          is_anonymous,
+          origin,
+          display_name,
+          username
         `)
         .or('is_public.eq.true,is_anonymous.eq.true')
         .not('location', 'is', null)
@@ -227,12 +231,12 @@ class HiIslandMap {
                 const markerData = {
                   id: share.id,
                   text: share.content,
-                  currentEmoji: share.metadata?.current_emoji || '👋',
-                  desiredEmoji: share.metadata?.desired_emoji || '✨',
-                  userName: share.is_anonymous ? 'Anonymous' : (share.metadata?.display_name || 'Hi Member'),
+                  currentEmoji: share.current_emoji || '👋',
+                  desiredEmoji: share.desired_emoji || '✨',
+                  userName: share.is_anonymous ? 'Anonymous' : (share.display_name || share.username || 'Hi Member'),
                   isAnonymous: share.is_anonymous,
                   location: locationString,
-                  origin: share.metadata?.origin || 'hi5',
+                  origin: share.origin || 'hi5',
                   createdAt: share.created_at
                 };
                 
