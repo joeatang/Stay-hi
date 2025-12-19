@@ -328,6 +328,35 @@
       }
     }
 
+    /* 🎯 TESLA-GRADE: Step Progress Indicator (Mobile First) */
+    .step-progress {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 0;
+      margin-bottom: 12px;
+    }
+
+    .step-progress-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .step-progress-dot.active {
+      width: 24px;
+      border-radius: 4px;
+      background: #FFD166;
+      box-shadow: 0 2px 8px rgba(255, 209, 102, 0.4);
+    }
+
+    .step-progress-dot.completed {
+      background: rgba(78, 205, 196, 0.8);
+    }
+
     /* Tesla-Grade Emotion Category Tabs */
     .tabs {
       display: flex;
@@ -560,6 +589,15 @@
         rgba(15, 16, 36, 0.9) 100%);
     }
 
+    /* 🎯 GOLD STANDARD: Haptic-like button press feedback (Mobile First) */
+    .chip:active {
+      transform: translateY(2px) scale(0.98);
+      transition: transform 0.1s ease;
+      box-shadow:
+        0 2px 8px rgba(255, 209, 102, 0.3),
+        inset 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
     /* Hi Energy hover states with golden glow */
     .chip:hover{
       transform:translateY(-2px) scale(1.02);
@@ -596,7 +634,7 @@
         0 4px 12px rgba(78, 205, 196, 0.15);
     }
 
-    .chip:active{transform:translateY(-1px) scale(1.01);transition:transform 0.15s ease}
+    /* Active state handled above for better mobile experience */
     
     /* Properly sized emoji */
     .chip .emo{
@@ -732,14 +770,27 @@
       .chip .desc { font-size: 0.85rem; }
     }
 
-    /* Touch optimizations */
+    /* 🎯 GOLD STANDARD: Touch optimizations for mobile */
     @media (hover: none) and (pointer: coarse) {
       .chip:hover {
         transform: none;
       }
       
       .chip:active {
-        transform: translateY(0) scale(0.98);
+        transform: translateY(2px) scale(0.98);
+        box-shadow:
+          0 2px 8px rgba(255, 209, 102, 0.3),
+          inset 0 1px 3px rgba(0, 0, 0, 0.2);
+      }
+      
+      /* Larger touch targets on mobile */
+      .chip {
+        min-height: 80px;
+        padding: 16px 20px;
+      }
+      
+      .chip .emo {
+        font-size: 28px;
       }
     }
 
