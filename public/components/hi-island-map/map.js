@@ -255,6 +255,47 @@ class HiIslandMap {
         }
       }
       
+      // 🌱 Initialize seed data if no real markers were added
+      const shouldInitializeSeed = markersAdded === 0;
+      
+      if (shouldInitializeSeed) {
+        console.log('💡 Initializing seed data because no real database markers were added', {
+          databaseSharesTotal: shares?.length || 0,
+          successfullyGeocodedMarkers: markersAdded
+        });
+        
+        try {
+          await this.initializeSeedData();
+          console.log('✅ Seed data initialization completed');
+          
+        } catch (error) {
+          console.error('❌ Seed data initialization failed:', error);
+        }
+      } else {
+        console.log('🎯 Skipping seed data - using real database markers', {
+          databaseShares: shares?.length || 0,
+          geocodedMarkers: markersAdded
+        });
+      }
+      
+      // Final marker count
+      const finalMarkerCount = this.markerCluster.getLayers().length;
+      console.log(`🏁 Final map state: ${finalMarkerCount} total markers displayed`);
+      
+      // Show helpful popup if still no markers
+      if (finalMarkerCount === 0) {
+        const messagePopup = L.popup()
+          .setLatLng([20, 0])
+          .setContent(`
+            <div style="text-align: center; padding: 10px;">
+              <h3>🌍 Hi Island</h3>
+              <p>Share a Hi moment to see it appear on the map!</p>
+              <small>Create location-enabled shares to populate the map</small>
+            </div>
+          `)
+          .openOn(this.map);
+      }
+      
     } catch (error) {
       console.error('❌ Error loading map markers:', error);
       console.error('Error details:', error.stack);
@@ -308,54 +349,7 @@ class HiIslandMap {
     
     console.log('✅ Map share listener active');
   }
-      
-      // 🌱 Initialize seed data if no real markers were added
-      const shouldInitializeSeed = markersAdded === 0;
-      
-      if (shouldInitializeSeed) {
-        console.log('💡 Initializing seed data because no real database markers were added', {
-          databaseSharesTotal: shares?.length || 0,
-          successfullyGeocodedMarkers: markersAdded
-        });
-        
-        try {
-          await this.initializeSeedData();
-          console.log('✅ Seed data initialization completed');
-          
-        } catch (error) {
-          console.error('❌ Seed data initialization failed:', error);
-        }
-      } else {
-        console.log('🎯 Skipping seed data - using real database markers', {
-          databaseShares: shares?.length || 0,
-          geocodedMarkers: markersAdded
-        });
-      }
-      
-      // Final marker count
-      const finalMarkerCount = this.markerCluster.getLayers().length;
-      console.log(`🏁 Final map state: ${finalMarkerCount} total markers displayed`);
-      
-      // Show helpful popup if still no markers
-      if (finalMarkerCount === 0) {
-        const messagePopup = L.popup()
-          .setLatLng([20, 0])
-          .setContent(`
-            <div style="text-align: center; padding: 10px;">
-              <h3>🌍 Hi Island</h3>
-              <p>Share a Hi moment to see it appear on the map!</p>
-              <small>Create location-enabled shares to populate the map</small>
-            </div>
-          `)
-          .openOn(this.map);
-      }
-
-    } catch (error) {
-      console.error('❌ Error loading map markers:', error);
-      console.error('Error details:', error.stack);
-    }
-  }
-
+  
   // 🌟 TESLA-GRADE: Initialize seed data for map display
   async initializeSeedData() {
     console.log('🌱 Initializing Tesla-grade seed data for Hi Island map...');
