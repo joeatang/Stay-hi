@@ -704,7 +704,11 @@ class HiIslandRealFeed {
           </div>
           
           <div id="generalFeed" class="hi-feed-container">
-            <!-- Content will be populated by renderFeedItems -->
+            <div class="feed-loading-skeleton">
+              <div class="skeleton-item"></div>
+              <div class="skeleton-item"></div>
+              <div class="skeleton-item"></div>
+            </div>
           </div>
           
           <button id="loadMoreGeneral" class="load-more-btn" style="display: none;">
@@ -724,7 +728,11 @@ class HiIslandRealFeed {
           </div>
           
           <div id="archivesFeed" class="hi-feed-container">
-            <!-- Content will be populated by renderFeedItems -->
+            <div class="feed-loading-skeleton">
+              <div class="skeleton-item"></div>
+              <div class="skeleton-item"></div>
+              <div class="skeleton-item"></div>
+            </div>
           </div>
           
           <button id="loadMoreArchives" class="load-more-btn" style="display: none;">
@@ -801,9 +809,11 @@ class HiIslandRealFeed {
       return;
     }
 
-    // Remove loading state on first render
+    // Remove loading state on first render (non-blocking)
     if (this.pagination[tabName].page === 0) {
-      container.innerHTML = '';
+      // Clear any loading skeleton
+      const loadingEl = container.querySelector('.feed-loading-skeleton');
+      if (loadingEl) loadingEl.remove();
     }
 
     shares.forEach(share => {
@@ -1409,6 +1419,30 @@ class HiIslandRealFeed {
         display: block;
       }
 
+      /* Skeleton Loading - Instant Visual Feedback */
+      .feed-loading-skeleton {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .skeleton-item {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 20px;
+        min-height: 120px;
+        animation: skeleton-pulse 1.5s ease-in-out infinite;
+      }
+
+      @keyframes skeleton-pulse {
+        0%, 100% {
+          opacity: 0.6;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
+
       .tab-header {
         text-align: center;
         margin-bottom: 24px;
@@ -1432,6 +1466,7 @@ class HiIslandRealFeed {
         gap: 16px;
         overflow-y: auto;
         max-height: 60vh;
+        min-height: 300px; /* Immediate scrollability - don't wait for content */
         -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
         overscroll-behavior: contain; /* Prevent rubber-band bounce */
         will-change: transform; /* GPU acceleration for smooth 60fps */
@@ -1442,7 +1477,7 @@ class HiIslandRealFeed {
       .hi-share-item {
         background: rgba(255, 255, 255, 0.08);
         border-radius: 20px;
-        padding: 24px;
+        padding: 20px; /* Slightly reduce to show more content on mobile */
         backdrop-filter: blur(20px);
         border: 1px solid rgba(255, 255, 255, 0.12);
         color: white;
@@ -1455,6 +1490,21 @@ class HiIslandRealFeed {
         overflow: hidden;
         transform: translateZ(0); /* Isolate layer for smooth scroll */
         backface-visibility: hidden; /* Prevent flickering */
+        content-visibility: auto; /* Lazy render off-screen items for faster initial load */
+      }
+      
+      /* Mobile-specific readability improvements */
+      @media (max-width: 768px) {
+        .hi-share-item {
+          padding: 18px 16px; /* Tighter on mobile to fit more content */
+        }
+        .share-text {
+          font-size: 17px; /* Slightly larger for mobile comfort */
+          line-height: 1.7; /* More generous line spacing on small screens */
+        }
+        .share-content {
+          margin: 14px 0; /* Better vertical rhythm */
+        }
       }
       
       .hi-share-item::before {
@@ -1521,8 +1571,10 @@ class HiIslandRealFeed {
       }
 
       .share-text {
-        margin: 0 0 8px 0;
-        line-height: 1.5;
+        margin: 0 0 12px 0;
+        line-height: 1.65; /* Better mobile readability */
+        font-size: 16px; /* Prevent iOS zoom on focus, better reading */
+        letter-spacing: 0.01em; /* Subtle breathing room */
       }
 
       .share-location {
