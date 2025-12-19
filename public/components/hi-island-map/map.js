@@ -192,8 +192,8 @@ class HiIslandMap {
           is_public,
           is_anonymous,
           origin,
-          username,
           profiles (
+            username,
             display_name,
             avatar_url
           )
@@ -247,7 +247,7 @@ class HiIslandMap {
                   text: share.content,
                   currentEmoji: share.current_emoji || '👋',
                   desiredEmoji: share.desired_emoji || '✨',
-                  userName: share.is_anonymous ? 'Anonymous' : (share.profiles?.display_name || share.username || 'Hi Member'),
+                  userName: share.is_anonymous ? 'Anonymous' : (share.profiles?.display_name || share.profiles?.username || 'Hi Member'),
                   isAnonymous: share.is_anonymous,
                   location: locationString,
                   origin: share.origin || 'hi5',
