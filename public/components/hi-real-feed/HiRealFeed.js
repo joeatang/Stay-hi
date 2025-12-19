@@ -17,6 +17,14 @@ class HiIslandRealFeed {
     this.currentTab = 'general';
     this.currentUserId = null;
     
+    // Scroll state for auto-hide header
+    this.scrollState = {
+      lastScrollTop: 0,
+      scrollDirection: 'none', // 'up' | 'down' | 'none'
+      isHeaderHidden: false,
+      scrollThreshold: 50 // pixels to scroll before triggering
+    };
+    
     // Simple internal storage
     this._feedDataInternal = {
       general: [],
@@ -79,6 +87,9 @@ class HiIslandRealFeed {
       
       // Attach event listeners
       this.attachEventListeners();
+      
+      // Initialize auto-hide header scroll behavior
+      this.initAutoHideHeader();
       
       // Load initial data from REAL tables
       await this.loadFeedData();
@@ -604,6 +615,67 @@ class HiIslandRealFeed {
     }
   }
 
+  // 🎯 NEW: Auto-hide header on scroll down, reveal on scroll up (immersive reading)
+  initAutoHideHeader() {
+    const feedContainers = document.querySelectorAll('.hi-feed-container');
+    const header = document.querySelector('.tesla-header');
+    
+    if (!header) {
+      console.warn('⚠️ Header not found for auto-hide feature');
+      return;
+    }
+    
+    // Throttled scroll handler with RAF for 60fps performance
+    let ticking = false;
+    
+    const handleScroll = (container) => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const scrollTop = container.scrollTop;
+          const scrollDelta = scrollTop - this.scrollState.lastScrollTop;
+          
+          // Determine scroll direction (with 5px debounce for smooth behavior)
+          if (Math.abs(scrollDelta) > 5) {
+            if (scrollDelta > 0 && scrollTop > this.scrollState.scrollThreshold) {
+              // Scrolling down & past threshold → hide header for immersive reading
+              if (!this.scrollState.isHeaderHidden) {
+                this.hideHeader(header);
+                this.scrollState.isHeaderHidden = true;
+              }
+            } else if (scrollDelta < 0) {
+              // Scrolling up → show header for navigation
+              if (this.scrollState.isHeaderHidden) {
+                this.showHeader(header);
+                this.scrollState.isHeaderHidden = false;
+              }
+            }
+          }
+          
+          this.scrollState.lastScrollTop = scrollTop;
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    
+    // Attach passive scroll listeners to all feed containers
+    feedContainers.forEach(container => {
+      container.addEventListener('scroll', () => handleScroll(container), { passive: true });
+    });
+    
+    console.log('✅ Auto-hide header initialized on', feedContainers.length, 'containers');
+  }
+
+  hideHeader(header) {
+    header.style.transform = 'translateY(-100%)';
+    header.style.opacity = '0';
+  }
+
+  showHeader(header) {
+    header.style.transform = 'translateY(0)';
+    header.style.opacity = '1';
+  }
+
   // 🔧 LONG-TERM SOLUTION: Async tab switching with proper error handling
   async switchTab(tabName) {
     console.log(`🏝️ HiRealFeed switching to: ${tabName}`);
@@ -773,6 +845,13 @@ class HiIslandRealFeed {
   }
 
   renderFeedItems(tabName, shares) {
+    // Batch rendering with RAF for smoother performance
+    window.requestAnimationFrame(() => {
+      this._renderFeedItemsInternal(tabName, shares);
+    });
+  }
+
+  _renderFeedItemsInternal(tabName, shares) {
     // 🔬 SURGICAL DEBUG: Log what's being rendered
     console.log(`🎨 Rendering ${shares.length} items for ${tabName} tab`);
     
