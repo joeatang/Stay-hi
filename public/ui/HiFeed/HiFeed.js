@@ -214,6 +214,12 @@ class HiFeed {
               📍 ${item.location}
             </div>
           ` : ''}
+          
+          <div class="hi-feed-item-actions">
+            <button class="hi-feed-action-btn" data-action="share-external" data-share-id="${item.id}" title="Share to other platforms">
+              📤 Share
+            </button>
+          </div>
         </div>
       `;
     } else if (item.type === 'streak') {
@@ -323,6 +329,15 @@ class HiFeed {
     feedItems.forEach(item => {
       item.addEventListener('click', (e) => this.handleItemClick(e, item));
     });
+    
+    // Share external button
+    const shareButtons = this.container.querySelectorAll('.hi-feed-action-btn[data-action="share-external"]');
+    shareButtons.forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation(); // Prevent item click
+        await this.handleShareExternal(btn);
+      });
+    });
   }
 
   /**
@@ -339,12 +354,67 @@ class HiFeed {
    * Handle feed item click
    */
   handleItemClick(event, item) {
+    // Don't trigger if clicking action buttons
+    if (event.target.closest('.hi-feed-action-btn')) return;
+    
     const itemId = item.dataset.id;
     const feedItem = this.feedItems.find(item => item.id === itemId);
     
     if (feedItem) {
       console.log('Feed item clicked:', feedItem);
       // TODO: Implement item detail view or actions
+    }
+  }
+  
+  /**
+   * 🎨 Handle external share (shareable card generation)
+   */
+  async handleShareExternal(buttonEl) {
+    if (!buttonEl) return;
+    const shareId = buttonEl.dataset.shareId;
+    if (!shareId) {
+      console.warn('Share action missing share id');
+      return;
+    }
+
+    try {
+      // Find share data in current feed items
+      const shareData = this.feedItems.find(item => item.id === shareId);
+      
+      if (!shareData) {
+        console.error('Share not found:', shareId);
+        alert('Failed to load share data');
+        return;
+      }
+
+      // Check if HiShareableCard is available
+      if (!window.HiShareableCard) {
+        console.error('❌ HiShareableCard not loaded');
+        alert('Share feature unavailable. Please refresh the page.');
+        return;
+      }
+
+      // Map Dashboard feed format to shareable card format
+      const cardData = {
+        id: shareData.id,
+        text: shareData.content,
+        hi_intensity: shareData.hi_intensity,
+        current_emoji: shareData.emotion ? this.getEmotionEmoji(shareData.emotion) : '👋',
+        desired_emoji: shareData.emotion ? this.getEmotionEmoji(shareData.emotion) : '✨',
+        username: 'You', // Dashboard shows user's own shares
+        display_name: 'You',
+        created_at: shareData.createdAt,
+        location: shareData.location
+      };
+
+      // Generate and show shareable card
+      await window.HiShareableCard.shareCard(cardData);
+      
+      console.log('✅ Shareable card opened for share:', shareId);
+      
+    } catch (error) {
+      console.error('❌ External share failed:', error);
+      alert('Failed to generate shareable card. Please try again.');
     }
   }
 

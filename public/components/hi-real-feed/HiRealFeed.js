@@ -608,7 +608,7 @@ class HiIslandRealFeed {
     // Only attach load more listeners - tabs are handled by hi-island
     this.attachLoadMoreListeners();
 
-    // Delegate share action events (e.g., Wave Back)
+    // Delegate share action events (e.g., Wave Back, Share External)
     const container = document.getElementById('hi-island-feed-root');
     if (container) {
       container.addEventListener('click', async (e) => {
@@ -618,6 +618,9 @@ class HiIslandRealFeed {
         if (action === 'wave') {
           e.preventDefault();
           await this.handleWaveAction(btn);
+        } else if (action === 'share-external') {
+          e.preventDefault();
+          await this.handleShareExternal(btn);
         }
       });
     }
@@ -1057,6 +1060,47 @@ class HiIslandRealFeed {
     }
   }
 
+  /**
+   * 🎨 Handle external share (shareable card generation)
+   */
+  async handleShareExternal(buttonEl) {
+    if (!buttonEl) return;
+    const shareId = buttonEl.dataset.shareId;
+    if (!shareId) {
+      console.warn('Share action missing share id');
+      return;
+    }
+
+    try {
+      // Find share data in current feeds
+      const activeTab = this.currentTab || 'general';
+      const shares = activeTab === 'archives' ? this.archivesShares : this.generalShares;
+      const shareData = shares.find(s => s.id === shareId);
+      
+      if (!shareData) {
+        console.error('Share not found:', shareId);
+        alert('Failed to load share data');
+        return;
+      }
+
+      // Check if HiShareableCard is available
+      if (!window.HiShareableCard) {
+        console.error('❌ HiShareableCard not loaded');
+        alert('Share feature unavailable. Please refresh the page.');
+        return;
+      }
+
+      // Generate and show shareable card
+      await window.HiShareableCard.shareCard(shareData);
+      
+      console.log('✅ Shareable card opened for share:', shareId);
+      
+    } catch (error) {
+      console.error('❌ External share failed:', error);
+      alert('Failed to generate shareable card. Please try again.');
+    }
+  }
+
   createShareElement(share, tabName) {
     const element = document.createElement('div');
     element.className = 'hi-share-item';
@@ -1102,11 +1146,9 @@ class HiIslandRealFeed {
         <button class="share-action-btn" data-action="wave" data-share-id="${share.id}">
           ${typeof share.wave_count === 'number' ? `👋 ${share.wave_count} ${share.wave_count === 1 ? 'Wave' : 'Waves'}` : '👋 Wave Back'}
         </button>
-        ${tabName === 'archives' ? `
-          <button class="share-action-btn" data-action="share" data-share-id="${share.id}">
-            📤 Share Again
-          </button>
-        ` : ''}
+        <button class="share-action-btn" data-action="share-external" data-share-id="${share.id}" title="Share to other platforms">
+          📤 Share
+        </button>
       </div>
     `;
 
