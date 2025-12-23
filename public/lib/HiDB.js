@@ -184,7 +184,8 @@
         p_location: entry.location || null,
         p_user_id: user_id || null,
         p_current_emoji: entry.currentEmoji || '👋',
-        p_desired_emoji: entry.desiredEmoji || '✨'
+        p_desired_emoji: entry.desiredEmoji || '✨',
+        p_hi_intensity: entry.hi_intensity || null // 🎯 Hi Scale: Optional intensity rating (1-5)
       };
       console.log('📤 RPC Parameters:', rpcParams);
       
@@ -235,7 +236,7 @@
     });
     
     // ✅ ACTUAL hi_archives SCHEMA (verified from runtime logs):
-    // id, user_id, current_emoji, desired_emoji, journal, location, created_at, origin, type, text, content, current_name, desired_name
+    // id, user_id, current_emoji, desired_emoji, journal, location, created_at, origin, type, text, content, current_name, desired_name, hi_intensity
     const row = {
       user_id,
       journal: journalText,
@@ -247,7 +248,8 @@
       origin: entry.metadata?.origin || entry.origin || 'unknown', // Add origin for filtering
       type: entry.type || 'general', // Add type for categorization
       text: entry.text || journalText, // Add text field
-      content: entry.text || journalText // Add content field (duplicate for compatibility)
+      content: entry.text || journalText, // Add content field (duplicate for compatibility)
+      hi_intensity: entry.hi_intensity || null // 🎯 Hi Scale: Optional intensity rating (1-5)
     };
     const minimalRow = { user_id, journal: journalText };
     
