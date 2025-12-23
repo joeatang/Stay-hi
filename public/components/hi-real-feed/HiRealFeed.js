@@ -200,6 +200,7 @@ class HiIslandRealFeed {
       let shares, error;
       
       // Try normalized view first, fall back to direct table query
+      // 🚀 PERFORMANCE: Include wave_count and peace_count in initial query
       try {
         const result = await supabase
           .from('public_shares_enriched')
@@ -211,7 +212,7 @@ class HiIslandRealFeed {
         error = result.error;
         
         if (!error && shares) {
-          console.log('🏆 Loaded shares with LIVE profile data (view exists)');
+          console.log('🏆 Loaded shares with LIVE profile data + reaction counts (view exists)');
         }
       } catch (viewError) {
         console.log('📊 View not available, using JOIN query');
@@ -348,6 +349,12 @@ class HiIslandRealFeed {
           content: share.content || share.text || 'Hi! 👋', // New content column OR text fallback
           visibility: share.visibility || (share.is_anonymous ? 'anonymous' : (share.is_public ? 'public' : 'private')),
           created_at: share.created_at,
+          // 🚀 PERFORMANCE: Include reaction counts from database (eliminates async RPC calls)
+          wave_count: share.wave_count || 0,
+          peace_count: share.peace_count || 0,
+          // 🚀 PERFORMANCE: Include reaction counts from database
+          wave_count: share.wave_count || 0,
+          peace_count: share.peace_count || 0,
           // 🏆 Add medallion/emoji data for rendering
           currentEmoji: share.current_emoji || '👋',
           currentName: share.current_name || 'Hi',
@@ -647,8 +654,10 @@ class HiIslandRealFeed {
       return;
     }
     
-    // Throttled scroll handler with RAF for 60fps performance
+    // 🚀 GOLD STANDARD: Throttled + debounced scroll handler for buttery 60fps
     let ticking = false;
+    let lastInfiniteScrollTrigger = 0;
+    const INFINITE_SCROLL_DEBOUNCE = 500; // ms between load triggers
     
     const handleScroll = (container) => {
       if (!ticking) {
@@ -675,18 +684,23 @@ class HiIslandRealFeed {
             }
           }
           
-          // 🔄 GOLD-STANDARD INFINITE SCROLL: Auto-load when within 200px of bottom
+          // 🚀 GOLD-STANDARD INFINITE SCROLL: Debounced auto-load when within 300px of bottom
           const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-          if (distanceFromBottom < 200 && !this.isLoading) {
+          const now = Date.now();
+          const canTrigger = (now - lastInfiniteScrollTrigger) > INFINITE_SCROLL_DEBOUNCE;
+          
+          if (distanceFromBottom < 300 && !this.isLoading && canTrigger) {
             // Determine which tab we're scrolling in
             const isGeneralTab = container.id === 'generalFeed';
             const isArchivesTab = container.id === 'archivesFeed';
             
             if (isGeneralTab && this.pagination.general.hasMore) {
               console.log('📜 Infinite scroll triggered: loading more community shares');
+              lastInfiniteScrollTrigger = now;
               this.loadMoreShares('general');
             } else if (isArchivesTab && this.pagination.archives.hasMore) {
               console.log('📜 Infinite scroll triggered: loading more archives');
+              lastInfiniteScrollTrigger = now;
               this.loadMoreShares('archives');
             }
           }
@@ -1250,66 +1264,27 @@ class HiIslandRealFeed {
       </div>
     `;
 
-    // Async: try to load live wave count + already-waved state if RPCs exist; fail silently
-    (async () => {
-      try {
-        const btn = element.querySelector('.share-action-btn[data-action="wave"]');
-        const supabase = this.getSupabase();
-        if (!btn || !supabase) return;
-        // Prefer a combined function if available; else probe two RPCs
-        let count = null;
-        let already = null;
-        try {
-          const { data } = await supabase.rpc('get_share_wave_count', { p_share_id: share.id });
-          if (typeof data === 'number') count = data;
-        } catch {}
-        try {
-          const uid = this.currentUserId || null;
-          if (uid) {
-            const { data } = await supabase.rpc('has_user_waved', { p_share_id: share.id, p_user_id: uid });
-            if (typeof data === 'boolean') already = data;
-          }
-        } catch {}
-        if (typeof count === 'number') {
-          btn.textContent = `👋 ${count} ${count === 1 ? 'Wave' : 'Waves'}`;
-        }
-        if (already === true) {
-          btn.classList.add('waved');
-          btn.disabled = true;
-          btn.setAttribute('aria-pressed', 'true');
-        }
-      } catch {}
-    })();
+    // 🚀 PERFORMANCE: Check already-waved state from localStorage (instant, no RPC needed)
+    if (this.wavedShares?.has?.(share.id)) {
+      const btn = element.querySelector('.share-action-btn[data-action="wave"]');
+      if (btn) {
+        btn.classList.add('waved');
+        btn.disabled = true;
+        btn.setAttribute('aria-pressed', 'true');
+        btn.textContent = '👋 Waved';
+      }
+    }
 
-    // Async: try to load live peace count + already-sent-peace state if RPCs exist; fail silently
-    (async () => {
-      try {
-        const btn = element.querySelector('.share-action-btn[data-action="send-peace"]');
-        const supabase = this.getSupabase();
-        if (!btn || !supabase) return;
-        let count = null;
-        let already = null;
-        try {
-          const { data } = await supabase.rpc('get_share_peace_count', { p_share_id: share.id });
-          if (typeof data === 'number') count = data;
-        } catch {}
-        try {
-          const uid = this.currentUserId || null;
-          if (uid) {
-            const { data } = await supabase.rpc('has_user_sent_peace', { p_share_id: share.id, p_user_id: uid });
-            if (typeof data === 'boolean') already = data;
-          }
-        } catch {}
-        if (typeof count === 'number') {
-          btn.textContent = `🕊️ ${count} Peace`;
-        }
-        if (already === true) {
-          btn.classList.add('peaced');
-          btn.disabled = true;
-          btn.setAttribute('aria-pressed', 'true');
-        }
-      } catch {}
-    })();
+    // 🚀 PERFORMANCE: Check already-peaced state from localStorage (instant, no RPC needed)
+    if (this.peacedShares?.has?.(share.id)) {
+      const btn = element.querySelector('.share-action-btn[data-action="send-peace"]');
+      if (btn) {
+        btn.classList.add('peaced');
+        btn.disabled = true;
+        btn.setAttribute('aria-pressed', 'true');
+        btn.textContent = '🕊️ Peace Sent';
+      }
+    }
 
     // 🔍 Debug: Inspect pills in rendered DOM
     setTimeout(() => {
@@ -1788,9 +1763,12 @@ class HiIslandRealFeed {
         min-height: 300px; /* Immediate scrollability - don't wait for content */
         -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
         overscroll-behavior: contain; /* Prevent rubber-band bounce */
-        will-change: transform; /* GPU acceleration for smooth 60fps */
-        transform: translateZ(0); /* Force hardware acceleration */
+        will-change: scroll-position; /* GPU acceleration for smooth 60fps */
+        transform: translate3d(0,0,0); /* Force hardware acceleration */
         scroll-behavior: smooth;
+        scroll-snap-type: y proximity; /* Buttery iOS scrolling */
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255,255,255,0.3) transparent;
       }
 
       .hi-share-item {
@@ -1807,9 +1785,11 @@ class HiIslandRealFeed {
           inset 0 1px 0 rgba(255, 255, 255, 0.1);
         position: relative;
         overflow: hidden;
-        transform: translateZ(0); /* Isolate layer for smooth scroll */
+        transform: translate3d(0,0,0); /* Isolate layer for smooth scroll */
         backface-visibility: hidden; /* Prevent flickering */
         content-visibility: auto; /* Lazy render off-screen items for faster initial load */
+        scroll-snap-align: start; /* Buttery iOS scrolling */
+        scroll-snap-stop: normal;
       }
       
       /* Mobile-specific readability improvements */
