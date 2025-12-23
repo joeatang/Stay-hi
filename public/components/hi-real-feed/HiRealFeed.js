@@ -1089,6 +1089,7 @@ class HiIslandRealFeed {
       <div class="share-content">
         ${formattedContent}
         ${location ? `<p class="share-location">${this.escapeHtml(location)}</p>` : ''}
+        ${this.createIntensityBadgeHTML(share.hi_intensity)}
         ${originBadgeHTML}
       </div>
       
@@ -1228,6 +1229,51 @@ class HiIslandRealFeed {
     const inlineStyle = `background: ${pillColor} !important; color: ${pillColor === '#FF8C00' ? '#1a1a1a' : 'white'} !important; border: 1.5px solid ${pillBorder} !important; padding: 4px 10px !important; border-radius: 8px !important; display: inline-block !important; font-weight: 600 !important; font-size: 13px !important; margin-right: 6px !important; opacity: 0.9 !important;`;
 
     return `<span class="origin-badge ${pillClass}" style="${inlineStyle}" title="${pillLabel}">${pillLabel}</span>`;
+  }
+  
+  /**
+   * 🎯 Create Hi Scale intensity badge HTML
+   * @param {number|null} intensity - Intensity value (1-5) or null
+   * @returns {string} HTML for badge or empty string
+   */
+  createIntensityBadgeHTML(intensity) {
+    // Return empty if no intensity (backwards compatible)
+    if (!intensity || intensity < 1 || intensity > 5) return '';
+    
+    // Map intensity to emoji, label, and color
+    const badges = {
+      1: { emoji: '🌱', color: '#A8DADC', label: 'Opportunity' },
+      2: { emoji: '🌱', color: '#A8DADC', label: 'Opportunity' },
+      3: { emoji: '⚖️', color: '#888888', label: 'Neutral' },
+      4: { emoji: '⚡', color: '#FFD166', label: 'Hi Energy' },
+      5: { emoji: '⚡', color: '#F4A261', label: 'Highly Inspired' }
+    };
+    
+    const badge = badges[intensity];
+    if (!badge) return '';
+    
+    // Gold standard styling - subtle, non-intrusive
+    const style = `
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      background: ${badge.color}15;
+      color: ${badge.color};
+      border: 1px solid ${badge.color}30;
+      margin-right: 8px;
+      margin-top: 8px;
+      font-weight: 500;
+    `.trim().replace(/\\s+/g, ' ');
+    
+    return `
+      <span class="hi-intensity-badge" style="${style}" title="Hi Scale: ${badge.label} (${intensity})">
+        <span style="font-size: 14px;">${badge.emoji}</span>
+        <span>${badge.label}</span>
+      </span>
+    `;
   }
   
   getVisibilityIcon(visibility) {
