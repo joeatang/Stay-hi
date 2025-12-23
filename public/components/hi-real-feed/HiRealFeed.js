@@ -1277,8 +1277,16 @@ class HiIslandRealFeed {
    * @returns {string} HTML for badge or empty string
    */
   createIntensityBadgeHTML(intensity) {
+    // 🔬 DEBUG: Log what we receive
+    console.log('🎯 createIntensityBadgeHTML called with:', intensity, typeof intensity);
+    
     // Return empty if no intensity (backwards compatible)
-    if (!intensity || intensity < 1 || intensity > 5) return '';
+    if (!intensity || intensity < 1 || intensity > 5) {
+      console.log('❌ No badge: intensity is', intensity);
+      return '';
+    }
+    
+    console.log('✅ Creating badge for intensity:', intensity);
     
     // Map intensity to emoji, label, and color (Gold Standard design)
     const badges = {
