@@ -2,8 +2,10 @@
    🎨 HI SHARE SHEET COMPONENT
    Tesla-grade unified sharing modal for Hi moments
    Used by: Index (Self Hi5), Hi Island, Hi Muscle
-   Version: 2.1.0-auth-required (No Anonymous Sharing)
+   Version: 2.2.0-hi-scale (Optional Intensity Rating)
 =================================================================== */
+
+import HiScale from '../HiScale/HiScale.js';
 
 export class HiShareSheet {
   constructor(options = {}) {
@@ -13,12 +15,13 @@ export class HiShareSheet {
     }
     // Debug logger gate (only logs when window.__HI_DEBUG__ true)
     this._dbg = (...a) => { if (window.__HI_DEBUG__) console.log(...a); };
-    this.version = '2.1.0-auth-required';
+    this.version = '2.2.0-hi-scale';
     this.origin = options.origin || 'hi5'; // 'hi5', 'higym', or 'hi-island'
     this.onSuccess = options.onSuccess || (() => {});
     this.isOpen = false;
     this._isReady = false; // A2: Readiness state tracking
     this.practiceMode = false;
+    this.hiScale = null; // 🎯 Hi Scale component instance
     
     // 🔒 WOZNIAK-GRADE: Log version for debugging
     this._dbg(`🚀 HiShareSheet ${this.version} initialized for origin: ${this.origin}`);
@@ -112,6 +115,14 @@ export class HiShareSheet {
         <div class="share-input-container">
           <textarea id="hi-share-journal" maxlength="500" class="premium-textarea" placeholder="What was the Hi moment you just noticed? (1–2 lines)"></textarea>
           <div class="character-count"><span id="hi-share-char-count">0</span>/500</div>
+        </div>
+        
+        <!-- 🎯 Hi Scale Intensity Selector (Optional) -->
+        <div class="hi-scale-container" style="margin: 16px 0; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 12px;">
+          <label class="hi-scale-label" style="display: block; font-size: 13px; color: #888; margin-bottom: 8px; text-align: center;">
+            How Hi are you? <span style="color: #aaa; font-size: 11px;">(optional)</span>
+          </label>
+          <div id="hiScaleWidget"></div>
         </div>
         
         <!-- Location Status (Gold Standard) -->
@@ -714,6 +725,21 @@ export class HiShareSheet {
       }
     }
     
+    // 🎯 Initialize Hi Scale component
+    try {
+      const hiScaleContainer = document.getElementById('hiScaleWidget');
+      if (hiScaleContainer && !this.hiScale) {
+        this.hiScale = new HiScale(hiScaleContainer, {
+          onChange: (value) => {
+            this._dbg('🎯 Hi Scale changed:', value);
+          }
+        });
+      }
+    } catch (err) {
+      console.warn('❌ Failed to initialize HiScale:', err);
+      // Continue without intensity - it's optional
+    }
+    
     // Focus textarea
     setTimeout(() => {
       textarea.focus();
@@ -790,6 +816,11 @@ export class HiShareSheet {
     // 🎯 GOLD STANDARD: Clear ALL form fields for clean reset
     journal.value = '';
     document.getElementById('hi-share-char-count').textContent = '0';
+    
+    // 🎯 Reset Hi Scale intensity selector
+    if (this.hiScale) {
+      this.hiScale.reset();
+    }
     
     // Clear location field
     const locationInput = document.getElementById('hi-share-location');
@@ -1346,6 +1377,10 @@ export class HiShareSheet {
       const currentEmoji = this.emotionalJourney?.current || '🙌';
       const desiredEmoji = this.emotionalJourney?.desired || '✨';
       
+      // 🎯 HI SCALE: Capture intensity rating (1-5 or null)
+      const hiIntensity = this.hiScale?.getValue() || null;
+      this._dbg('🎯 Hi Scale captured:', hiIntensity);
+      
       // 🎯 TESLA FIX #1: ALL users (including anonymous) get archives with proper user IDs
       // 🔒 Single-writer policy: disable HiBase inserts (use hiDB only)
       try {
@@ -1360,7 +1395,8 @@ export class HiShareSheet {
         location,
         origin: this.origin, // 'hi5', 'higym', or 'hi-island'
         type: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : 'self_hi5'),
-        user_id: authenticatedUserId // Tesla: ALWAYS use real authenticated user_id for archives
+        user_id: authenticatedUserId, // Tesla: ALWAYS use real authenticated user_id for archives
+        hi_intensity: hiIntensity // 🎯 Hi Scale: Optional intensity rating (1-5 or null)
       };
       
       // 🔬 DEBUG: Log archive payload to trace type issue
@@ -1419,7 +1455,8 @@ export class HiShareSheet {
           type: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : 'self_hi5'),
           origin: this.origin, // Will be 'higym', 'hi-island', or 'hi5'
           pill: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'island' : 'hi5'),
-          user_id: publicShareUserId // Tesla: NULL for anonymous, real ID for public
+          user_id: publicShareUserId, // Tesla: NULL for anonymous, real ID for public
+          hi_intensity: hiIntensity // 🎯 Hi Scale: Optional intensity rating (1-5 or null)
         };
         
         // Tesla: Enhanced public share with retry + timeout
