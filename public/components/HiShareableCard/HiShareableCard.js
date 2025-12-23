@@ -195,28 +195,54 @@ class HiShareableCard {
   }
   
   /**
-   * Draw Hi Scale badge and emotional journey
+   * Draw Hi Scale badge and emotional journey OR origin badge
    */
   async drawBadges(ctx, shareData) {
     const { cardWidth: width } = this;
     const badgeY = 1100;
     
-    // Hi Scale Badge
+    // Hi Scale Badge (left side)
     if (shareData.hi_intensity && shareData.hi_intensity >= 1 && shareData.hi_intensity <= 5) {
       const intensityBadge = this.getIntensityBadge(shareData.hi_intensity);
       this.drawBadge(ctx, width / 2 - 220, badgeY, intensityBadge);
     }
     
-    // 🎯 CRITICAL FIX: Use actual data (camelCase from feed processing)
-    // Feed processes: share.current_emoji → processed.currentEmoji
-    const currentEmoji = shareData.currentEmoji || shareData.current_emoji || '👋';
-    const desiredEmoji = shareData.desiredEmoji || shareData.desired_emoji || '✨';
-    const emotionalBadge = {
-      emoji: `${currentEmoji} → ${desiredEmoji}`,
-      label: 'Emotional Journey',
-      color: this.brandColors.accent
+    // Right badge: Conditional logic (Emotional Journey for Hi Gym, Origin for others)
+    const isHiGym = String(shareData.type || '').toLowerCase() === 'higym' || 
+                    String(shareData.origin || '').toLowerCase() === 'higym';
+    
+    if (isHiGym) {
+      // 🎯 Hi Gym: Show emotional journey (progression narrative)
+      const currentEmoji = shareData.currentEmoji || shareData.current_emoji || '👋';
+      const desiredEmoji = shareData.desiredEmoji || shareData.desired_emoji || '✨';
+      const emotionalBadge = {
+        emoji: `${currentEmoji} → ${desiredEmoji}`,
+        label: 'Emotional Journey',
+        color: this.brandColors.accent
+      };
+      this.drawBadge(ctx, width / 2 + 220, badgeY, emotionalBadge);
+    } else {
+      // 🏝️ Hi Island/Hi Five: Show origin badge (context for external viewers)
+      const originBadge = this.getOriginBadge(shareData.origin || shareData.type);
+      this.drawBadge(ctx, width / 2 + 220, badgeY, originBadge);
+    }
+  }
+  
+  /**
+   * Get origin badge configuration
+   */
+  getOriginBadge(origin) {
+    const badges = {
+      'hi-island': { emoji: '🏝️', label: 'Hi Island', color: this.brandColors.accent },
+      'island': { emoji: '🏝️', label: 'Hi Island', color: this.brandColors.accent },
+      'hi5': { emoji: '⚡', label: 'Hi Five', color: this.brandColors.primary },
+      'hi-five': { emoji: '⚡', label: 'Hi Five', color: this.brandColors.primary },
+      'higym': { emoji: '💪', label: 'Hi Gym', color: '#9B59B6' },
+      'hi-gym': { emoji: '💪', label: 'Hi Gym', color: '#9B59B6' }
     };
-    this.drawBadge(ctx, width / 2 + 220, badgeY, emotionalBadge);
+    
+    const normalizedOrigin = String(origin || '').toLowerCase().replace(/\s+/g, '-');
+    return badges[normalizedOrigin] || badges['hi-island'];
   }
   
   /**
