@@ -1089,6 +1089,7 @@ class HiIslandRealFeed {
       <div class="share-content">
         ${formattedContent}
         ${location ? `<p class="share-location">${this.escapeHtml(location)}</p>` : ''}
+        ${this.createEmotionalJourneyHTML(share)}
         ${this.createIntensityBadgeHTML(share.hi_intensity)}
         ${originBadgeHTML}
       </div>
@@ -1232,6 +1233,41 @@ class HiIslandRealFeed {
   }
   
   /**
+   * 🎯 GOLD STANDARD: Create emotional journey display for Hi Muscle shares
+   * Shows: current emotion → desired emotion
+   * Only displays for shares with both current and desired emojis
+   */
+  createEmotionalJourneyHTML(share) {
+    // Only show for Hi Gym shares with emotional journey data
+    const hasEmotionalJourney = share.currentEmoji && share.desiredEmoji;
+    if (!hasEmotionalJourney) return '';
+    
+    const type = String(share.type || '').toLowerCase();
+    const isHiGym = type === 'higym';
+    if (!isHiGym) return '';
+    
+    return `
+      <div class="emotional-journey-badge" style="
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        margin: 8px 0;
+        background: linear-gradient(135deg, rgba(147, 51, 234, 0.1) 0%, rgba(124, 58, 237, 0.15) 100%);
+        border: 1.5px solid rgba(147, 51, 234, 0.3);
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 500;
+      ">
+        <span style="font-size: 18px;">${share.currentEmoji}</span>
+        <span style="color: rgba(147, 51, 234, 0.8); font-size: 12px;">→</span>
+        <span style="font-size: 18px;">${share.desiredEmoji}</span>
+        <span style="color: #888; font-size: 11px; margin-left: 4px;">emotional journey</span>
+      </div>
+    `;
+  }
+  
+  /**
    * 🎯 Create Hi Scale intensity badge HTML
    * @param {number|null} intensity - Intensity value (1-5) or null
    * @returns {string} HTML for badge or empty string
@@ -1240,39 +1276,36 @@ class HiIslandRealFeed {
     // Return empty if no intensity (backwards compatible)
     if (!intensity || intensity < 1 || intensity > 5) return '';
     
-    // Map intensity to emoji, label, and color
+    // Map intensity to emoji, label, and color (Gold Standard design)
     const badges = {
-      1: { emoji: '🌱', color: '#A8DADC', label: 'Opportunity' },
-      2: { emoji: '🌱', color: '#A8DADC', label: 'Opportunity' },
-      3: { emoji: '⚖️', color: '#888888', label: 'Neutral' },
-      4: { emoji: '⚡', color: '#FFD166', label: 'Hi Energy' },
-      5: { emoji: '⚡', color: '#F4A261', label: 'Highly Inspired' }
+      1: { emoji: '🌱', color: '#A8DADC', label: 'Opportunity', bg: 'rgba(168, 218, 220, 0.15)', border: 'rgba(168, 218, 220, 0.4)' },
+      2: { emoji: '🌱', color: '#A8DADC', label: 'Opportunity', bg: 'rgba(168, 218, 220, 0.15)', border: 'rgba(168, 218, 220, 0.4)' },
+      3: { emoji: '⚖️', color: '#888888', label: 'Neutral', bg: 'rgba(136, 136, 136, 0.1)', border: 'rgba(136, 136, 136, 0.3)' },
+      4: { emoji: '⚡', color: '#FFD166', label: 'Hi Energy', bg: 'rgba(255, 209, 102, 0.15)', border: 'rgba(255, 209, 102, 0.4)' },
+      5: { emoji: '⚡', color: '#F4A261', label: 'Highly Inspired', bg: 'rgba(244, 162, 97, 0.15)', border: 'rgba(244, 162, 97, 0.4)' }
     };
     
     const badge = badges[intensity];
     if (!badge) return '';
     
-    // Gold standard styling - subtle, non-intrusive
-    const style = `
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 11px;
-      background: ${badge.color}15;
-      color: ${badge.color};
-      border: 1px solid ${badge.color}30;
-      margin-right: 8px;
-      margin-top: 8px;
-      font-weight: 500;
-    `.trim().replace(/\\s+/g, ' ');
-    
+    // Gold standard styling - subtle, non-intrusive, consistent with emotional journey
     return `
-      <span class="hi-intensity-badge" style="${style}" title="Hi Scale: ${badge.label} (${intensity})">
+      <div class="hi-intensity-badge" style="
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 12px;
+        margin: 8px 6px 8px 0;
+        background: ${badge.bg};
+        border: 1.5px solid ${badge.border};
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+        color: ${badge.color};
+      " title="Hi Scale: ${badge.label} (${intensity})">
         <span style="font-size: 14px;">${badge.emoji}</span>
         <span>${badge.label}</span>
-      </span>
+      </div>
     `;
   }
   
