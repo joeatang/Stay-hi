@@ -99,32 +99,72 @@ class HiShareableCard {
   }
   
   /**
-   * Draw main content (share text)
+   * Draw main content (share text) - GOLD STANDARD: Smart sizing + fixed zones
    */
   async drawContent(ctx, shareData) {
     const { cardWidth: width } = this;
     const text = shareData.text || shareData.content || '';
     
-    // Content area
-    const padding = 80;
-    const maxWidth = width - (padding * 2);
-    const startY = 400;
+    // 🎯 FIXED LAYOUT ZONES (prevent overlap)
+    const contentZone = {
+      startY: 400,
+      endY: 1000,  // Stop before badges at Y=1100
+      maxHeight: 600,
+      padding: 80
+    };
     
-    // Draw content with word wrap
+    const maxWidth = width - (contentZone.padding * 2);
+    
+    // 🧠 SMART FONT SIZING: Adjust based on content length
+    const { fontSize, lineHeight, maxLines } = this.calculateTextSize(text, contentZone.maxHeight);
+    
+    // Draw content with intelligent wrapping and truncation
     ctx.fillStyle = this.brandColors.text;
-    ctx.font = '600 56px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.font = `600 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
     ctx.textAlign = 'center';
     
     const lines = this.wrapText(ctx, text, maxWidth);
-    const lineHeight = 72;
-    let currentY = startY;
+    const truncatedLines = lines.slice(0, maxLines);
     
-    lines.forEach((line) => {
+    // Add ellipsis if truncated
+    if (lines.length > maxLines) {
+      const lastLine = truncatedLines[truncatedLines.length - 1];
+      truncatedLines[truncatedLines.length - 1] = lastLine.substring(0, lastLine.length - 3) + '...';
+    }
+    
+    // Center text vertically in content zone
+    const totalTextHeight = truncatedLines.length * lineHeight;
+    let currentY = contentZone.startY + (contentZone.maxHeight - totalTextHeight) / 2;
+    
+    truncatedLines.forEach((line) => {
       ctx.fillText(line, width / 2, currentY);
       currentY += lineHeight;
     });
     
-    return currentY; // Return Y position for next element
+    return currentY;
+  }
+  
+  /**
+   * 🧠 Calculate optimal font size based on text length
+   * Longer text = smaller font (but never below minimum for readability)
+   */
+  calculateTextSize(text, maxHeight) {
+    const textLength = text.length;
+    
+    // Text length ranges and corresponding font sizes
+    if (textLength <= 100) {
+      // Short text: Large, bold
+      return { fontSize: 56, lineHeight: 72, maxLines: 8 };
+    } else if (textLength <= 200) {
+      // Medium text: Balanced
+      return { fontSize: 48, lineHeight: 64, maxLines: 9 };
+    } else if (textLength <= 350) {
+      // Long text: Smaller but readable
+      return { fontSize: 42, lineHeight: 56, maxLines: 10 };
+    } else {
+      // Very long text: Minimum readable size
+      return { fontSize: 38, lineHeight: 52, maxLines: 11 };
+    }
   }
   
   /**
@@ -258,11 +298,11 @@ class HiShareableCard {
   }
   
   /**
-   * Draw Stay Hi branding
+   * Draw Stay Hi branding - GOLD STANDARD: Clear value prop for external viewers
    */
   async drawBranding(ctx) {
     const { cardWidth: width, cardHeight: height } = this;
-    const brandingY = height - 240;
+    const brandingY = height - 260;
     
     // Logo emoji (above Stay Hi text)
     ctx.font = '64px -apple-system';
@@ -274,13 +314,13 @@ class HiShareableCard {
     ctx.fillStyle = this.brandColors.primary;
     ctx.fillText('Stay Hi', width / 2, brandingY + 70);
     
-    // Tagline
-    ctx.font = '500 36px -apple-system';
+    // Clear, concise tagline (what the app does)
+    ctx.font = '500 34px -apple-system';
     ctx.fillStyle = this.brandColors.textMuted;
-    ctx.fillText('Track your emotional journey', width / 2, brandingY + 115);
+    ctx.fillText('Track how you feel & inspire others', width / 2, brandingY + 115);
     
     // Production URL
-    ctx.font = '600 42px -apple-system';
+    ctx.font = '600 40px -apple-system';
     ctx.fillStyle = this.brandColors.secondary;
     ctx.fillText('stay-hi.vercel.app', width / 2, brandingY + 165);
   }
