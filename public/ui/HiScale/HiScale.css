@@ -1,0 +1,139 @@
+/* ========================================
+   HiScale Component Styles
+   Optional intensity selector (1-5 scale)
+   ======================================== */
+
+.hi-scale-selector {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 8px;
+  padding: 4px 0;
+}
+
+.hi-scale-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 48px;
+  min-height: 56px;
+  padding: 8px;
+  border: 2px solid var(--scale-color, #ddd);
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  position: relative;
+}
+
+.hi-scale-button:hover {
+  background: var(--scale-color, #ddd)15;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.hi-scale-button:active {
+  transform: translateY(0);
+}
+
+.hi-scale-button.selected {
+  background: var(--scale-color, #ddd)25;
+  border-width: 3px;
+  box-shadow: 0 2px 8px var(--scale-color, #ddd)40;
+  transform: translateY(-2px);
+}
+
+.hi-scale-button:focus {
+  outline: 2px solid var(--scale-color, #4ecdc4);
+  outline-offset: 2px;
+}
+
+.hi-scale-button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.hi-scale-emoji {
+  font-size: 24px;
+  line-height: 1;
+  user-select: none;
+}
+
+.hi-scale-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--scale-color, #666);
+  user-select: none;
+}
+
+.hi-scale-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #888;
+  padding: 0 4px;
+  margin-bottom: 12px;
+  user-select: none;
+}
+
+.hi-scale-label-start {
+  flex: 1;
+  text-align: left;
+}
+
+.hi-scale-label-middle {
+  flex: 0 0 auto;
+  text-align: center;
+}
+
+.hi-scale-label-end {
+  flex: 1;
+  text-align: right;
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+  .hi-scale-button {
+    min-width: 44px;
+    min-height: 52px;
+    padding: 6px;
+    gap: 2px;
+  }
+  
+  .hi-scale-emoji {
+    font-size: 20px;
+  }
+  
+  .hi-scale-value {
+    font-size: 11px;
+  }
+  
+  .hi-scale-selector {
+    gap: 6px;
+  }
+}
+
+/* Dark mode support (if needed) */
+@media (prefers-color-scheme: dark) {
+  .hi-scale-button {
+    border-color: var(--scale-color, #555);
+  }
+  
+  .hi-scale-labels {
+    color: #aaa;
+  }
+}
+
+/* Accessibility: Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .hi-scale-button {
+    transition: none;
+  }
+  
+  .hi-scale-button:hover,
+  .hi-scale-button.selected {
+    transform: none;
+  }
+}
