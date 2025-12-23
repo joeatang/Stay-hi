@@ -4,8 +4,8 @@
 // Build tag for diagnostics
 const BUILD_TAG = 'v1.0.0-20251119';
 // Bump cache versions to force update on deploy
-const CACHE_NAME = 'hi-collective-v1.2.6';
-const STATIC_CACHE_NAME = 'hi-static-v1.2.6';
+const CACHE_NAME = 'hi-collective-v1.2.7';
+const STATIC_CACHE_NAME = 'hi-static-v1.2.7';
 const OFFLINE_FALLBACK = '/public/offline.html';
 
 // Core app shell files that should always be cached
@@ -268,16 +268,43 @@ async function networkFirst(request) {
 // Navigation handler: network-first, graceful offline fallback page
 async function handleNavigate(request) {
   try {
-    const resp = await fetch(request);
-    // Basic HTML integrity guard: ensure content-type is text/html
+    // 🎯 CRITICAL FIX: Force network-first for HTML to avoid stale cache bugs
+    // Issue: Cached HTML + fresh JS = module mismatch crashes
+    // Solution: Always fetch fresh HTML, bypass cache for navigation
+    const resp = await fetch(request, { 
+      cache: 'no-cache', // Force revalidation
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
+    });
+    
+    // Validate response integrity
     const ct = resp.headers.get('content-type') || '';
     if (!ct.includes('text/html')) {
       console.warn('[SW] Unexpected content-type for navigational request:', ct);
+      throw new Error('Invalid HTML content-type');
     }
+    
+    if (!resp.ok) {
+      console.warn('[SW] Navigation response not OK:', resp.status);
+      throw new Error(`HTTP ${resp.status}`);
+    }
+    
     return resp;
   } catch (err) {
+    console.warn('[SW] Navigation fetch failed, trying cache:', err.message);
+    
+    // Try cached version as fallback (better than nothing)
+    const cached = await caches.match(request);
+    if (cached) {
+      console.log('[SW] Serving cached HTML (network failed)');
+      return cached;
+    }
+    
+    // Last resort: offline page
     const offlinePage = await caches.match(OFFLINE_FALLBACK);
-    return offlinePage || new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/html' } });
+    return offlinePage || new Response(
+      '<h1>Offline</h1><p>Could not load page. Check your connection.</p>',
+      { status: 503, headers: { 'Content-Type': 'text/html' } }
+    );
   }
 }
 
