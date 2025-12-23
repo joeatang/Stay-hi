@@ -727,16 +727,21 @@ export class HiShareSheet {
     
     // 🎯 Initialize Hi Scale component
     try {
+      console.log('🎯 Hi Scale: Checking for HiScale class...', typeof HiScale);
       const hiScaleContainer = document.getElementById('hiScaleWidget');
+      console.log('🎯 Hi Scale: Container found?', !!hiScaleContainer);
       if (hiScaleContainer && !this.hiScale) {
+        console.log('🎯 Hi Scale: Creating new HiScale instance...');
         this.hiScale = new HiScale(hiScaleContainer, {
           onChange: (value) => {
             this._dbg('🎯 Hi Scale changed:', value);
           }
         });
+        console.log('✅ Hi Scale: Initialized successfully!', this.hiScale);
       }
     } catch (err) {
-      console.warn('❌ Failed to initialize HiScale:', err);
+      console.error('❌ Failed to initialize HiScale:', err);
+      console.error('❌ HiScale error stack:', err.stack);
       // Continue without intensity - it's optional
     }
     
