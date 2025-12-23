@@ -1275,6 +1275,28 @@ class HiIslandRealFeed {
       }
     }
 
+    // ⚡️ GOLD STANDARD: Async load accurate counts from database (non-blocking enhancement)
+    // Initial render shows database column counts, then updates with live counts
+    setTimeout(() => {
+      (async () => {
+        try {
+          const waveBtn = element.querySelector('.share-action-btn[data-action="wave"]');
+          const supabase = this.getSupabase();
+          if (!waveBtn || !supabase) return;
+          
+          // Only fetch if not already waved (avoid unnecessary RPC)
+          if (!this.wavedShares?.has?.(share.id)) {
+            try {
+              const { data } = await supabase.rpc('get_share_wave_count', { p_share_id: share.id });
+              if (typeof data === 'number' && data !== share.wave_count) {
+                waveBtn.textContent = `👋 ${data} ${data === 1 ? 'Wave' : 'Waves'}`;
+              }
+            } catch {}
+          }
+        } catch {}
+      })();
+    }, 0);
+
     // 🚀 PERFORMANCE: Check already-peaced state from localStorage (instant, no RPC needed)
     if (this.peacedShares?.has?.(share.id)) {
       const btn = element.querySelector('.share-action-btn[data-action="send-peace"]');
@@ -1285,6 +1307,28 @@ class HiIslandRealFeed {
         btn.textContent = '🕊️ Peace Sent';
       }
     }
+
+    // ⚡️ GOLD STANDARD: Async load accurate counts from database (non-blocking enhancement)
+    // Initial render shows database column counts, then updates with live counts
+    setTimeout(() => {
+      (async () => {
+        try {
+          const peaceBtn = element.querySelector('.share-action-btn[data-action="send-peace"]');
+          const supabase = this.getSupabase();
+          if (!peaceBtn || !supabase) return;
+          
+          // Only fetch if not already peaced (avoid unnecessary RPC)
+          if (!this.peacedShares?.has?.(share.id)) {
+            try {
+              const { data } = await supabase.rpc('get_share_peace_count', { p_share_id: share.id });
+              if (typeof data === 'number' && data !== share.peace_count) {
+                peaceBtn.textContent = `🕊️ ${data} Peace`;
+              }
+            } catch {}
+          }
+        } catch {}
+      })();
+    }, 0);
 
     // 🔍 Debug: Inspect pills in rendered DOM
     setTimeout(() => {
