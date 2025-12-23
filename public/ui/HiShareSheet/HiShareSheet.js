@@ -787,9 +787,25 @@ export class HiShareSheet {
     // Reset practice mode when closing
     this.practiceMode = false;
     
-    // Clear input
+    // 🎯 GOLD STANDARD: Clear ALL form fields for clean reset
     journal.value = '';
     document.getElementById('hi-share-char-count').textContent = '0';
+    
+    // Clear location field
+    const locationInput = document.getElementById('hi-share-location');
+    if (locationInput) {
+      locationInput.value = '';
+    }
+    
+    // Clear emotional journey display (Hi Gym)
+    const emotionalJourney = document.getElementById('hi-emotional-journey');
+    if (emotionalJourney) {
+      emotionalJourney.style.display = 'none';
+    }
+    
+    // Clear prefilled data to prevent stale content on reopen
+    this.prefilledData = null;
+    this.origin = '';
 
     // Restore focus to the invoking control, if possible
     if (this._previouslyFocused && typeof this._previouslyFocused.focus === 'function') {

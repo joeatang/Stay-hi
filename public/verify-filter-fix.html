@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Filter Fix Verification</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .status-box {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .status-good { color: #10b981; font-size: 48px; }
+    .status-bad { color: #ef4444; font-size: 48px; }
+    h1 { color: #1f2937; margin-top: 0; }
+    .info { color: #6b7280; line-height: 1.6; }
+    .code { background: #f3f4f6; padding: 10px; border-radius: 6px; font-family: monospace; margin: 10px 0; }
+    button { 
+      background: #3b82f6; 
+      color: white; 
+      border: none; 
+      padding: 12px 24px; 
+      border-radius: 6px; 
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    button:hover { background: #2563eb; }
+  </style>
+</head>
+<body>
+  <div class="status-box">
+    <h1>🔍 Filter Fix Status</h1>
+    <div id="status">Checking...</div>
+    <div class="info" id="details"></div>
+    <button onclick="location.reload(true)">🔄 Force Reload & Recheck</button>
+    <button onclick="location.href='/public/hi-island-NEW.html'">➡️ Go to Hi-Island</button>
+  </div>
+
+  <script type="module">
+    // Import the feed component to check version
+    import { HiRealFeed } from './components/hi-real-feed/HiRealFeed.js?v=' + Date.now();
+    
+    const statusEl = document.getElementById('status');
+    const detailsEl = document.getElementById('details');
+    
+    try {
+      // Create instance and check the filter method
+      const feed = new HiRealFeed();
+      const filterCode = feed.matchesOriginFilter.toString();
+      
+      // Check if the fix is present (look for v20241222 comment)
+      const hasFix = filterCode.includes('v20241222');
+      
+      if (hasFix) {
+        statusEl.innerHTML = '<div class="status-good">✅ FILTER FIX LOADED</div>';
+        detailsEl.innerHTML = `
+          <p><strong>Status:</strong> The December 22nd filter fix is active!</p>
+          <div class="code">
+            ✅ Unknown origins routing to Quick filter only<br>
+            ✅ Muscle filter excludes unknowns<br>
+            ✅ Island filter excludes unknowns
+          </div>
+          <p><strong>Expected filter counts:</strong></p>
+          <ul>
+            <li>Quick Hi5s: ~500 items (includes all unknowns)</li>
+            <li>Muscle: ~22 items (explicit gym origins only)</li>
+            <li>Island: ~44 items (explicit island origins only)</li>
+          </ul>
+          <p>You can now safely test the filters on Hi-Island page!</p>
+        `;
+      } else {
+        statusEl.innerHTML = '<div class="status-bad">❌ OLD VERSION CACHED</div>';
+        detailsEl.innerHTML = `
+          <p><strong>Problem:</strong> Your browser is still loading the old filter code.</p>
+          <div class="code">
+            ⚠️ The December 22nd fix is not detected
+          </div>
+          <p><strong>How to fix:</strong></p>
+          <ol>
+            <li>Press <strong>Cmd + Shift + R</strong> (Mac) or <strong>Ctrl + Shift + R</strong> (Windows)</li>
+            <li>Or click "Force Reload & Recheck" button above</li>
+            <li>If still not working: Open DevTools → Application tab → Clear site data</li>
+          </ol>
+        `;
+      }
+      
+      console.log('🔍 Filter method signature:', filterCode.slice(0, 500));
+      
+    } catch (error) {
+      statusEl.innerHTML = '<div class="status-bad">❌ ERROR CHECKING</div>';
+      detailsEl.innerHTML = `<p>Error: ${error.message}</p>`;
+    }
+  </script>
+</body>
+</html>

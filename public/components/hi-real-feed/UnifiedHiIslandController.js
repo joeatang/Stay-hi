@@ -36,15 +36,17 @@ class UnifiedHiIslandController {
       // Create proper DOM structure for feed system
       this.createUnifiedFeedStructure();
       
-      // 🔧 WOZ FIX: Use the EXISTING window.hiRealFeed instance if it exists
-      // This ensures filter buttons (which call window.hiRealFeed) work correctly
-      if (window.hiRealFeed) {
-        console.log('🔧 Unified Controller: Using existing window.hiRealFeed instance');
-        this.feedInstance = window.hiRealFeed;
-      } else {
-        console.log('🔧 Unified Controller: Creating NEW window.hiRealFeed instance');
+      // 🔧 WOZ FIX: ALWAYS use existing window.hiRealFeed created by HiRealFeed.js auto-init
+      // Filter buttons in island-main.mjs are already attached to window.hiRealFeed
+      // Creating a new instance would break the connection
+      if (!window.hiRealFeed) {
+        console.error('❌ Unified Controller: window.hiRealFeed not found! HiRealFeed.js should auto-initialize it.');
         this.feedInstance = new window.HiIslandRealFeed();
         window.hiRealFeed = this.feedInstance;
+        console.log('🔧 Unified Controller: Created fallback instance');
+      } else {
+        console.log('✅ Unified Controller: Using existing window.hiRealFeed instance');
+        this.feedInstance = window.hiRealFeed;
       }
       
       // Override the render method to use our container

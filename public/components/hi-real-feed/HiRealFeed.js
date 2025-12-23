@@ -551,9 +551,11 @@ class HiIslandRealFeed {
               </div>
             </div>
             
-            <button id="loadMoreGeneral" class="load-more-btn" style="display: none;">
-              Load More Community Shares
-            </button>
+            <!-- 🔄 Gold-standard infinite scroll - auto-loads on scroll proximity -->
+            <div id="loadMoreGeneral" class="infinite-scroll-indicator" style="display: none; padding: 20px; text-align: center;">
+              <div class="loading-spinner" style="width: 24px; height: 24px; margin: 0 auto;"></div>
+              <p style="margin-top: 8px; font-size: 14px; color: var(--text-secondary);">Loading more...</p>
+            </div>
           </div>
 
           <!-- My Archives Tab -->
@@ -579,9 +581,11 @@ class HiIslandRealFeed {
             </div>
             
             ${this.currentUserId ? `
-              <button id="loadMoreArchives" class="load-more-btn" style="display: none;">
-                Load More Archives
-              </button>
+              <!-- 🔄 Gold-standard infinite scroll - auto-loads on scroll proximity -->
+              <div id="loadMoreArchives" class="infinite-scroll-indicator" style="display: none; padding: 20px; text-align: center;">
+                <div class="loading-spinner" style="width: 24px; height: 24px; margin: 0 auto;"></div>
+                <p style="margin-top: 8px; font-size: 14px; color: var(--text-secondary);">Loading more...</p>
+              </div>
             ` : ''}
           </div>
         </div>
@@ -632,6 +636,8 @@ class HiIslandRealFeed {
       if (!ticking) {
         window.requestAnimationFrame(() => {
           const scrollTop = container.scrollTop;
+          const scrollHeight = container.scrollHeight;
+          const clientHeight = container.clientHeight;
           const scrollDelta = scrollTop - this.scrollState.lastScrollTop;
           
           // Determine scroll direction (with 5px debounce for smooth behavior)
@@ -651,6 +657,22 @@ class HiIslandRealFeed {
             }
           }
           
+          // 🔄 GOLD-STANDARD INFINITE SCROLL: Auto-load when within 200px of bottom
+          const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+          if (distanceFromBottom < 200 && !this.isLoading) {
+            // Determine which tab we're scrolling in
+            const isGeneralTab = container.id === 'generalFeed';
+            const isArchivesTab = container.id === 'archivesFeed';
+            
+            if (isGeneralTab && this.pagination.general.hasMore) {
+              console.log('📜 Infinite scroll triggered: loading more community shares');
+              this.loadMoreShares('general');
+            } else if (isArchivesTab && this.pagination.archives.hasMore) {
+              console.log('📜 Infinite scroll triggered: loading more archives');
+              this.loadMoreShares('archives');
+            }
+          }
+          
           this.scrollState.lastScrollTop = scrollTop;
           ticking = false;
         });
@@ -663,7 +685,7 @@ class HiIslandRealFeed {
       container.addEventListener('scroll', () => handleScroll(container), { passive: true });
     });
     
-    console.log('✅ Auto-hide header initialized on', feedContainers.length, 'containers');
+    console.log('✅ Auto-hide header + infinite scroll initialized on', feedContainers.length, 'containers');
   }
 
   hideHeader(header) {
@@ -783,9 +805,11 @@ class HiIslandRealFeed {
             </div>
           </div>
           
-          <button id="loadMoreGeneral" class="load-more-btn" style="display: none;">
-            Load More Community Shares
-          </button>
+          <!-- 🔄 Gold-standard infinite scroll - auto-loads on scroll proximity -->
+          <div id="loadMoreGeneral" class="infinite-scroll-indicator" style="display: none; padding: 20px; text-align: center;">
+            <div class="loading-spinner" style="width: 24px; height: 24px; margin: 0 auto;"></div>
+            <p style="margin-top: 8px; font-size: 14px; color: var(--text-secondary);">Loading more...</p>
+          </div>
         </div>
       `;
       console.log(`🎨 [RENDER TAB] this.feedData.general.length AFTER innerHTML: ${this.feedData.general?.length || 0}`);
@@ -807,9 +831,11 @@ class HiIslandRealFeed {
             </div>
           </div>
           
-          <button id="loadMoreArchives" class="load-more-btn" style="display: none;">
-            Load More Archives
-          </button>
+          <!-- 🔄 Gold-standard infinite scroll - auto-loads on scroll proximity -->
+          <div id="loadMoreArchives" class="infinite-scroll-indicator" style="display: none; padding: 20px; text-align: center;">
+            <div class="loading-spinner" style="width: 24px; height: 24px; margin: 0 auto;"></div>
+            <p style="margin-top: 8px; font-size: 14px; color: var(--text-secondary);">Loading more...</p>
+          </div>
         </div>
       `;
       this.renderFeedItems('archives', this.feedData.archives || []);
@@ -821,15 +847,10 @@ class HiIslandRealFeed {
 
   // 🔧 NEW: Separate method for load more listeners
   attachLoadMoreListeners() {
-    const loadMoreGeneral = document.getElementById('loadMoreGeneral');
-    if (loadMoreGeneral) {
-      loadMoreGeneral.addEventListener('click', () => this.loadMoreShares('general'));
-    }
-
-    const loadMoreArchives = document.getElementById('loadMoreArchives');  
-    if (loadMoreArchives) {
-      loadMoreArchives.addEventListener('click', () => this.loadMoreShares('archives'));
-    }
+    // 🔄 GOLD-STANDARD: Infinite scroll auto-triggers via scroll detection
+    // No manual click listeners needed - scroll proximity detection handles loading
+    // Load indicators show/hide automatically via updateLoadMoreButton()
+    console.log('📜 Infinite scroll active - auto-loads on proximity detection');
   }
 
   async loadMoreShares(tabName) {
@@ -852,20 +873,7 @@ class HiIslandRealFeed {
   }
 
   _renderFeedItemsInternal(tabName, shares) {
-    // 🔬 SURGICAL DEBUG: Log what's being rendered
-    console.log(`🎨 Rendering ${shares.length} items for ${tabName} tab`);
-    
-    if (shares.length > 0) {
-      console.log('📋 Sample share data:', {
-        id: shares[0].id,
-        content: shares[0].content,
-        visibility: shares[0].visibility,
-        display_name: shares[0].display_name,
-        avatar_url: shares[0].avatar_url,
-        metadata: shares[0].metadata,
-        origin: shares[0].origin
-      });
-    }
+    // Render feed items (production mode)
     
     // Map tab names to container IDs
     const containerMap = {
@@ -888,12 +896,11 @@ class HiIslandRealFeed {
       return;
     }
 
-    // Remove loading state on first render (non-blocking)
-    if (this.pagination[tabName].page === 0) {
-      // Clear any loading skeleton
-      const loadingEl = container.querySelector('.feed-loading-skeleton');
-      if (loadingEl) loadingEl.remove();
-    }
+    // 🧹 CLEAR CONTAINER: Remove ALL existing content (loading states, old shares, hardcoded text)
+    // This fixes: "Loading shares..." text persisting AND filter showing wrong content
+    // CRITICAL FIX: ALWAYS clear when re-rendering (filter changes, page 0, refresh)
+    // BUG WAS: Only clearing on page===0 meant filter switches kept old content
+    container.innerHTML = '';
 
     shares.forEach(share => {
       const shareElement = this.createShareElement(share, tabName);
@@ -921,36 +928,12 @@ class HiIslandRealFeed {
 
   // Apply current origin filter to a tab's data
   getFilteredItems(tabName) {
-    console.log(`🔍 [GET FILTERED] Called for tab: ${tabName}`);
-    console.log(`🔍 [GET FILTERED] this.feedData keys:`, Object.keys(this.feedData || {}));
-    console.log(`🔍 [GET FILTERED] this.feedData.general exists:`, !!this.feedData?.general);
-    console.log(`🔍 [GET FILTERED] this.feedData.general type:`, typeof this.feedData?.general);
-    console.log(`🔍 [GET FILTERED] this.feedData.general isArray:`, Array.isArray(this.feedData?.general));
-    
     if (tabName !== 'general') return this.feedData[tabName] || [];
     if (this.originFilter === 'all') return this.feedData.general || [];
 
     const filter = this.originFilter;
     const items = this.feedData.general || [];
-    
-    console.log(`🔍 [GET FILTERED] items retrieved:`, items.length);
-    
     const filtered = items.filter((share) => this.matchesOriginFilter(share, filter));
-    
-    // 🔧 DEBUG: Log filtering details (first time only)
-    if (!window.__filterDebugLogged) {
-      console.log('🔍 Filter Debug:', {
-        filter,
-        totalItems: items.length,
-        filteredItems: filtered.length,
-        sampleTypes: items.slice(0, 3).map(s => ({
-          origin: s.origin,
-          type: s.type,
-          matches: this.matchesOriginFilter(s, filter)
-        }))
-      });
-      window.__filterDebugLogged = true;
-    }
     
     return filtered;
   }
@@ -958,24 +941,19 @@ class HiIslandRealFeed {
   matchesOriginFilter(share, filter) {
     try {
       const o = String(share.origin || '').toLowerCase();
-      const t = String(share.type || '').toLowerCase();
-      if (filter === 'quick') {
-        // Primary: derived pill type
-        if (t === 'hi5') return true;
-        // Secondary: origin keywords
-        return o.includes('dashboard') || o.includes('quick') || ['index','hi-dashboard','dashboard','self-hi5','self_hi5'].includes(o);
-      }
-      if (filter === 'muscle') {
-        if (t === 'higym') return true;
-        return o.includes('muscle') || o.includes('gym') || ['hi-muscle','muscle','gym','hi_muscle_journey'].includes(o);
-      }
-      if (filter === 'island') {
-        // Primary: derived pill type
-        if (t === 'island' || t === 'hi_island') return true;
-        // Secondary: origin keywords
-        return (o.includes('island') || o === 'hi-island');
-      }
-      return true;
+      
+      // 🎯 STEP 1: Check explicit MUSCLE origins first (highest priority)
+      const isExplicitGym = o.includes('gym') || o.includes('muscle') || 
+                            ['hi-muscle','muscle','gym','higym','hi_muscle_journey'].includes(o);
+      if (isExplicitGym) return filter === 'muscle';
+      
+      // 🎯 STEP 2: Check explicit ISLAND origins (second priority)
+      const isExplicitIsland = o.includes('island') || o === 'hi-island';
+      if (isExplicitIsland) return filter === 'island';
+      
+      // 🎯 STEP 3: Everything else goes to QUICK (catch-all)
+      return filter === 'quick';
+      
     } catch {
       return filter === 'all';
     }
@@ -983,14 +961,9 @@ class HiIslandRealFeed {
 
   // Public API to set origin filter and re-render general tab
   setOriginFilter(filter = 'all') {
-    console.log(`🔧 [FILTER] setOriginFilter called with: ${filter}`);
-    console.log(`🔧 [FILTER] this.feedData.general has ${this.feedData?.general?.length || 0} items`);
-    console.log(`🔧 [FILTER] this._feedDataInternal.general has ${this._feedDataInternal?.general?.length || 0} items`);
-    
     this.originFilter = filter;
     if (this.currentTab === 'general') {
       const filtered = this.getFilteredItems('general');
-      console.log(`🔧 [FILTER] getFilteredItems returned ${filtered.length} items`);
       this.renderFeedItems('general', filtered);
       this.updateTabCount('general');
     }
@@ -1289,9 +1262,15 @@ class HiIslandRealFeed {
   }
 
   updateLoadMoreButton(tabName) {
-    const button = document.getElementById(`loadMore${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
-    if (button) {
-      button.style.display = this.pagination[tabName].hasMore ? 'block' : 'none';
+    // 🔄 GOLD-STANDARD: Show loading indicator while fetching, hide when no more items
+    const indicator = document.getElementById(`loadMore${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
+    if (indicator) {
+      // Show during active loading OR hide if no more content
+      if (this.isLoading && this.pagination[tabName].hasMore) {
+        indicator.style.display = 'block';
+      } else {
+        indicator.style.display = 'none';
+      }
     }
   }
 

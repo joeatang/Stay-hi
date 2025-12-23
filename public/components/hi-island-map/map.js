@@ -27,55 +27,21 @@ class HiIslandMap {
     window.HiIslandMapInstance = this;
   }
 
-  // Render HTML structure
+  // Render HTML structure (Hero removed - using page-level hero instead)
   render() {
     this.root.innerHTML = `
       <div class="hi-map">
-        <!-- Hero Header -->
-        <div class="hi-map-hero">
-          <div class="hi-map-hero-text">
-            <h1 class="hi-map-title">Hi Island</h1>
-            <p class="hi-map-subtitle">A gentle stream of Hi Shares from around the world</p>
-          </div>
-          <button class="hi-map-drop-btn" id="hi-map-drop-btn">Drop a Hi</button>
-        </div>
-        
-        <!-- Map Canvas -->
+        <!-- Map Canvas Only - Hero section now lives in hi-island-NEW.html -->
         <div class="hi-map-canvas" id="hi-map-canvas"></div>
       </div>
     `;
   }
 
-  // Attach event listeners
+  // Attach event listeners (Button now handled in main HTML)
   attachEventListeners() {
-    const dropBtn = this.root.querySelector('#hi-map-drop-btn');
-    console.log('🔍 [Hi-Island Map] Drop button search result:', {
-      found: !!dropBtn,
-      buttonElement: dropBtn,
-      rootHTML: this.root.innerHTML.substring(0, 200) + '...'
-    });
-    
-    if (dropBtn) {
-      console.log('✅ [Hi-Island Map] Drop button found, attaching click listener');
-      dropBtn.addEventListener('click', () => {
-        console.log('🏝️ [Hi-Island] Drop a Hi button clicked!');
-        // Open share sheet with hi-island origin
-        if (window.openHiShareSheet) {
-          console.log('✅ Opening Hi-Island share sheet...');
-          window.openHiShareSheet('hi-island');
-        } else {
-          console.error('❌ Share sheet not initialized - window.openHiShareSheet not found');
-          console.log('🔍 Available globals:', Object.keys(window).filter(k => k.includes('Hi')));
-        }
-      });
-    } else {
-      console.error('❌ [Hi-Island Map] Drop button #hi-map-drop-btn NOT FOUND in DOM');
-      console.log('🔍 Available elements in root:', {
-        allButtons: this.root.querySelectorAll('button'),
-        allElements: this.root.children,
-        rootOuterHTML: this.root.outerHTML.substring(0, 300) + '...'
-      });
-    }
+    // Map component no longer renders its own Drop button
+    // Button event handling is in hi-island-NEW.html via handleDropHiClick()
+    console.log('🗺️ Map component initialized (hero handled externally)');
   }
 
   // Wait for Leaflet to be available

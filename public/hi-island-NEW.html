@@ -9,6 +9,7 @@
   <!-- 📱 PWA Configuration -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#FFD166">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Hi Island">
@@ -672,9 +673,89 @@
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 20px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-      /* ✅ GOLD STANDARD: No height constraint, no overflow=scroll
-         Everything flows in ONE unified page scroll stream */
+      /* ✅ GOLD STANDARD: No height constraint on container itself
+         Inner feed content (created by UnifiedController) handles scrolling */
       overflow: visible;
+    }
+    
+    /* 🚀 GOLD STANDARD: Filter Button States */
+    .origin-filter-btn {
+      padding: 6px 12px !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      border-radius: 20px !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      pointer-events: auto !important;
+      position: relative !important;
+      z-index: 10 !important;
+      /* Inactive state */
+      background: rgba(255, 255, 255, 0.1) !important;
+      color: rgba(255, 255, 255, 0.8) !important;
+    }
+    
+    .origin-filter-btn:hover {
+      background: rgba(255, 255, 255, 0.15) !important;
+      color: rgba(255, 255, 255, 0.95) !important;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .origin-filter-btn.active {
+      background: rgba(255, 255, 255, 0.95) !important;
+      color: #111 !important;
+      font-weight: 700 !important;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+      transform: scale(1.02);
+    }
+    
+    .origin-filter-btn.active:hover {
+      background: rgba(255, 255, 255, 1) !important;
+      transform: scale(1.02) translateY(-1px);
+    }
+    
+    /* 🚀 SCROLLABLE FEED CONTENT: Gold Standard Mobile-First Scroll */
+    .hi-feed-container {
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      max-height: calc(100vh - 400px) !important;
+      /* Mobile-first smooth scrolling */
+      -webkit-overflow-scrolling: touch !important;
+      overscroll-behavior-y: contain !important;
+      scroll-behavior: smooth !important;
+      /* Reduce jank */
+      will-change: transform;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      /* Padding */
+      padding: 16px;
+      padding-bottom: 32px;
+    }
+    
+    /* Mobile optimization: more vertical space + momentum */
+    @media (max-width: 768px) {
+      .hi-feed-container {
+        max-height: calc(100vh - 320px) !important;
+        padding: 12px;
+        padding-bottom: 40px;
+        /* Enhanced momentum scrolling */
+        -webkit-overflow-scrolling: touch !important;
+        scroll-snap-type: y proximity;
+      }
+      
+      /* Smooth scroll on individual share cards */
+      .hi-feed-container > .share-card {
+        scroll-snap-align: start;
+      }
+    }
+    
+    /* Tablet breakpoint */
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .hi-feed-container {
+        max-height: calc(100vh - 360px) !important;
+      }
     }
     
     /* 🎨 PREMIUM TABS - Integrated into feed container */
@@ -831,91 +912,7 @@
       }
     }
 
-    /* 🎯 Tesla-Grade Drop Hi Button Styling */
-    #dropHiButton {
-      background: linear-gradient(135deg, #4ECDC4 0%, #44B3AA 100%);
-      color: white;
-      border: none;
-      padding: 16px 32px; /* Tesla minimum 44px height */
-      min-height: 44px; /* Explicit Tesla touch target */
-      border-radius: 25px;
-      font-weight: 600;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
-      text-transform: none;
-      letter-spacing: 0.5px;
-      position: relative;
-      overflow: hidden;
-      outline: none; /* Custom focus styling below */
-    }
-    
-    /* Tesla-Grade Focus State */
-    #dropHiButton:focus-visible {
-      outline: 3px solid rgba(78, 205, 196, 0.6);
-      outline-offset: 2px;
-    }
-    
-    /* Loading State */
-    #dropHiButton.loading {
-      opacity: 0.7;
-      cursor: not-allowed;
-      pointer-events: none;
-    }
-    
-    #dropHiButton.loading::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 20px;
-      height: 20px;
-      margin: -10px 0 0 -10px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: dropHiButtonSpinner 0.8s linear infinite;
-    }
-    
-    #dropHiButton.loading .button-text {
-      opacity: 0;
-    }
-    
-    @keyframes dropHiButtonSpinner {
-      to { transform: rotate(360deg); }
-    }
-    
-    /* Disabled State */
-    #dropHiButton:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      pointer-events: none;
-    }
-    
-    #dropHiButton:hover {
-      background: linear-gradient(135deg, #5EDDD4 0%, #4ECDC4 100%);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
-    }
-    
-    #dropHiButton:active {
-      transform: translateY(0px);
-      box-shadow: 0 2px 10px rgba(78, 205, 196, 0.3);
-    }
-    
-    #dropHiButton::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      transition: width 0.6s, height 0.6s;
-    }
+    /* 🎯 REMOVED: Conflicting #dropHiButton teal styles - using .drop-hi-button-gold-standard orange only */
     
     #dropHiButton:active::after {
       width: 300px;
@@ -1430,7 +1427,6 @@
     <section class="mapwrap" aria-label="Hi Island – world map">
       <div class="hero">
         <div>
-          <div class="title">Hi Island</div>
           <div class="sub">A gentle stream of Hi Shares from around the world</div>
         </div>
         <button 
@@ -1611,8 +1607,8 @@
   <!-- TEMPORARILY DISABLED: HiIslandIntegration.js - conflicts with main feed -->
   <!-- TEMPORARILY DISABLED: HiGoldStandardIntegration.js - DOM structure mismatch -->
   <!-- ✅ UNIFIED FEED SYSTEM: Single controller for all feed operations -->
-  <script src="components/hi-real-feed/HiRealFeed.js?v=20241213" type="module"></script>
-  <script src="components/hi-real-feed/UnifiedHiIslandController.js?v=20241213" type="module"></script>
+  <script src="components/hi-real-feed/HiRealFeed.js?v=20241222-final" type="module"></script>
+  <script src="components/hi-real-feed/UnifiedHiIslandController.js?v=20241222-prod" type="module"></script>
   
   <!-- 🚨 EMERGENCY: Freeze diagnostic tool for Tesla-grade debugging -->
   <!-- WOZ FIX: Diagnostic script crashes on line 88 - interceptAsyncFunction doesn't exist -->
