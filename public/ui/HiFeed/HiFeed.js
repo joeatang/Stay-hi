@@ -436,7 +436,13 @@ class HiFeed {
         color: ${config.color};
         margin-left: 8px;
         white-space: nowrap;
-      ">
+        cursor: default;
+        transition: all 0.2s ease;
+        animation: fadeInBadge 0.3s ease-out;
+      "
+      title="Hi Scale: ${config.label} (${intensity})"
+      onmouseover="this.style.transform='scale(1.05)'; this.style.filter='brightness(1.15)'; this.style.borderColor='${config.color}';"
+      onmouseout="this.style.transform='scale(1)'; this.style.filter='brightness(1)'; this.style.borderColor='${config.color}';">
         <span style="font-size: 14px;">${config.emoji}</span>
         <span>${config.label}</span>
       </div>

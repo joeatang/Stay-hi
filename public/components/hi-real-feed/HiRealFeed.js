@@ -1308,7 +1308,13 @@ class HiIslandRealFeed {
         font-size: 12px;
         font-weight: 500;
         color: ${badge.color};
-      " title="Hi Scale: ${badge.label} (${intensity})">
+        cursor: default;
+        transition: all 0.2s ease;
+        animation: fadeInBadge 0.3s ease-out;
+      " 
+      title="Hi Scale: ${badge.label} (${intensity})"
+      onmouseover="this.style.transform='scale(1.05)'; this.style.filter='brightness(1.15)'; this.style.borderColor='${badge.color}';"
+      onmouseout="this.style.transform='scale(1)'; this.style.filter='brightness(1)'; this.style.borderColor='${badge.border}';">
         <span style="font-size: 14px;">${badge.emoji}</span>
         <span>${badge.label}</span>
       </div>
