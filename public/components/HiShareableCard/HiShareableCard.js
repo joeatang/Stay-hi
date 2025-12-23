@@ -207,9 +207,10 @@ class HiShareableCard {
       this.drawBadge(ctx, width / 2 - 220, badgeY, intensityBadge);
     }
     
-    // Emotional Journey (with clear labels for external users)
-    const currentEmoji = shareData.current_emoji || '👋';
-    const desiredEmoji = shareData.desired_emoji || '✨';
+    // 🎯 CRITICAL FIX: Use actual data (camelCase from feed processing)
+    // Feed processes: share.current_emoji → processed.currentEmoji
+    const currentEmoji = shareData.currentEmoji || shareData.current_emoji || '👋';
+    const desiredEmoji = shareData.desiredEmoji || shareData.desired_emoji || '✨';
     const emotionalBadge = {
       emoji: `${currentEmoji} → ${desiredEmoji}`,
       label: 'Emotional Journey',
