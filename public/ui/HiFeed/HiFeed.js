@@ -190,6 +190,9 @@ class HiFeed {
     const timeAgo = this.getTimeAgo(item.createdAt);
     
     if (item.type === 'share') {
+      // 🎯 Hi Scale: Generate intensity badge if present
+      const intensityBadge = this.createIntensityBadgeHTML(item.hi_intensity);
+      
       return `
         <div class="hi-feed-item hi-feed-share" data-id="${item.id}">
           <div class="hi-feed-item-header">
@@ -197,6 +200,7 @@ class HiFeed {
               <span class="hi-emotion-badge hi-emotion-${item.emotion}">
                 ${this.getEmotionEmoji(item.emotion)} ${item.emotion}
               </span>
+              ${intensityBadge}
             </div>
             <div class="hi-feed-item-time">${timeAgo}</div>
           </div>
@@ -389,6 +393,54 @@ class HiFeed {
       hopeful: '🌟'
     };
     return emojis[emotion] || '💫';
+  }
+
+  /**
+   * 🎯 Hi Scale: Create intensity badge HTML
+   * @param {number} intensity - Intensity level (1-5) or null
+   * @returns {string} HTML for the intensity badge
+   */
+  createIntensityBadgeHTML(intensity) {
+    // Validate intensity is a number between 1-5
+    if (intensity === null || intensity === undefined || typeof intensity !== 'number') {
+      return '';
+    }
+    
+    if (intensity < 1 || intensity > 5) {
+      return '';
+    }
+
+    // Map intensity to display properties
+    const intensityConfig = {
+      1: { emoji: '🌱', label: 'Grounded', color: '#48BB78', bg: 'rgba(72, 187, 120, 0.15)' },
+      2: { emoji: '🌱', label: 'Growing', color: '#48BB78', bg: 'rgba(72, 187, 120, 0.15)' },
+      3: { emoji: '⚖️', label: 'Balanced', color: '#A0AEC0', bg: 'rgba(160, 174, 192, 0.15)' },
+      4: { emoji: '⚡', label: 'Hi Energy', color: '#FFD166', bg: 'rgba(255, 209, 102, 0.15)' },
+      5: { emoji: '⚡', label: 'Fully Energized', color: '#FFD166', bg: 'rgba(255, 209, 102, 0.15)' }
+    };
+
+    const config = intensityConfig[intensity];
+    if (!config) return '';
+
+    return `
+      <div class="hi-intensity-badge" style="
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        background: ${config.bg};
+        border: 1px solid ${config.color};
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        color: ${config.color};
+        margin-left: 8px;
+        white-space: nowrap;
+      ">
+        <span style="font-size: 14px;">${config.emoji}</span>
+        <span>${config.label}</span>
+      </div>
+    `;
   }
 }
 
