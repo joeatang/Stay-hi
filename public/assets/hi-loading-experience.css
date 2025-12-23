@@ -1,7 +1,8 @@
 /**
- * 🎬 HI LOADING EXPERIENCE V2.0
+ * 🎬 HI LOADING EXPERIENCE V3.0 - SPLASH PAGE SYSTEM
  * Tesla-Grade CSS-First Loading Animation System
  * Built using Stay Hi's proven architecture patterns
+ * ENHANCED: Glowing gradient logo effect for premium experience
  */
 
 /* ============================================================================
@@ -14,11 +15,15 @@
   top: 0; left: 0; right: 0; bottom: 0;
   z-index: var(--z-modal, 400);
   
-  /* Tesla-grade visual design matching Stay Hi aesthetics */
+  /* Tesla-grade visual design with animated gradient */
   background: linear-gradient(135deg, 
-    rgba(45, 30, 79, 0.95) 0%, 
-    rgba(15, 16, 34, 0.98) 50%, 
-    rgba(45, 30, 79, 0.95) 100%);
+    rgba(26, 29, 58, 1) 0%,
+    rgba(37, 43, 82, 1) 25%,
+    rgba(45, 30, 79, 1) 50%,
+    rgba(55, 35, 70, 1) 75%,
+    rgba(26, 29, 58, 1) 100%);
+  background-size: 200% 200%;
+  animation: hiGradientShift 8s ease infinite;
   backdrop-filter: blur(25px) saturate(1.4);
   -webkit-backdrop-filter: blur(25px) saturate(1.4);
   
@@ -36,18 +41,19 @@
   /* Animation states */
   opacity: 0;
   visibility: hidden;
-  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 /* Active state using Stay Hi's show pattern */
 .hi-loading-overlay.show {
   opacity: 1;
   visibility: visible;
-  animation: hiLoadingFadeIn 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+  animation: hiLoadingFadeIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards,
+             hiGradientShift 8s ease infinite;
 }
 
 .hi-loading-overlay.hide {
-  animation: hiLoadingFadeOut 0.2s ease-in forwards;
+  animation: hiLoadingFadeOut 0.25s ease-in forwards;
 }
 
 /* ============================================================================
@@ -58,28 +64,53 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
-  max-width: 300px;
+  gap: 2rem;
+  max-width: 320px;
   width: 100%;
   text-align: center;
+  transform: translateY(-20px);
 }
 
 .hi-loading-logo {
-  width: 100px;
-  height: 100px;
-  border-radius: 24px;
+  width: 120px;
+  height: 120px;
+  border-radius: 28px;
   box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.4),
-    0 8px 16px rgba(255, 215, 102, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 12px 24px rgba(255, 122, 24, 0.3),
+    inset 0 2px 4px rgba(255, 255, 255, 0.15);
+  
+  /* Glowing effect */
+  position: relative;
   
   /* Tesla-grade animation foundation */
   transform: scale(1);
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
   
   /* Performance optimization */
   will-change: transform, filter;
   backface-visibility: hidden;
+  
+  /* Automatic glow animation */
+  animation: hiLogoGlow 3s ease-in-out infinite;
+}
+
+/* Glowing aura effect */
+.hi-loading-logo::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  background: radial-gradient(circle, 
+    rgba(255, 122, 24, 0.4) 0%, 
+    rgba(255, 210, 102, 0.2) 40%,
+    transparent 70%);
+  border-radius: 36px;
+  animation: hiAuraPulse 3s ease-in-out infinite;
+  z-index: -1;
+  filter: blur(15px);
 }
 
 .hi-loading-message {
@@ -154,6 +185,42 @@
       0 24px 48px rgba(0, 0, 0, 0.5),
       0 12px 24px rgba(255, 215, 102, 0.4),
       inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* NEW: Gradient background shift animation */
+@keyframes hiGradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* NEW: Logo glow animation for premium feel */
+@keyframes hiLogoGlow {
+  0%, 100% {
+    filter: 
+      drop-shadow(0 8px 20px rgba(255, 122, 24, 0.4))
+      drop-shadow(0 3px 12px rgba(255, 210, 102, 0.3));
+  }
+  50% {
+    filter: 
+      drop-shadow(0 12px 32px rgba(255, 122, 24, 0.6))
+      drop-shadow(0 6px 20px rgba(255, 210, 102, 0.5));
+  }
+}
+
+/* NEW: Aura pulse for glowing effect */
+@keyframes hiAuraPulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.1);
   }
 }
 

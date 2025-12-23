@@ -59,6 +59,14 @@ class HiIslandRealFeed {
     } catch {
       this.wavedShares = new Set();
     }
+    
+    // Track locally peaced shares (Send Peace reactions)
+    try {
+      const cachedPeace = JSON.parse(localStorage.getItem('peacedShares') || '[]');
+      this.peacedShares = new Set(Array.isArray(cachedPeace) ? cachedPeace : []);
+    } catch {
+      this.peacedShares = new Set();
+    }
   }
 
   // Initialize the feed with REAL data sources
@@ -618,6 +626,9 @@ class HiIslandRealFeed {
         if (action === 'wave') {
           e.preventDefault();
           await this.handleWaveAction(btn);
+        } else if (action === 'send-peace') {
+          e.preventDefault();
+          await this.handlePeaceAction(btn);
         } else if (action === 'share-external') {
           e.preventDefault();
           await this.handleShareExternal(btn);
@@ -921,6 +932,15 @@ class HiIslandRealFeed {
             btn.textContent = '👋 Waved';
           }
         }
+        if (tabName === 'general' && this.peacedShares?.has?.(share.id)) {
+          const btn = shareElement.querySelector('.share-action-btn[data-action="send-peace"]');
+          if (btn) {
+            btn.classList.add('peaced');
+            btn.disabled = true;
+            btn.setAttribute('aria-pressed', 'true');
+            btn.textContent = '🕊️ Peace Sent';
+          }
+        }
       } catch {}
       container.appendChild(shareElement);
     });
@@ -1038,25 +1058,83 @@ class HiIslandRealFeed {
         setTimeout(() => window.loadCurrentStatsFromDatabase(), 500);
       }
 
-      if (!userId && window.showAuthModal && typeof window.showAuthModal === 'function') {
-        setTimeout(() => {
-          window.showAuthModal('Sign in to keep your waves and build your profile!');
-        }, 1000);
+    } catch (error) {
+      console.error('Wave action failed:', error);
+      buttonEl.classList.remove('loading', 'waved');
+      buttonEl.disabled = false;
+      buttonEl.textContent = originalText;
+      buttonEl.setAttribute('aria-pressed', 'false');
+    }
+  }
+
+  // Handle "Send Peace" UX with server persistence
+  async handlePeaceAction(buttonEl) {
+    if (!buttonEl || buttonEl.classList.contains('peaced')) return;
+    const shareId = buttonEl.dataset.shareId;
+    if (!shareId) {
+      console.warn('Peace action missing share id');
+      return;
+    }
+
+    const originalText = buttonEl.textContent;
+
+    try {
+      const userId = this.currentUserId || null;
+
+      // Optimistic UI update
+      buttonEl.classList.add('peaced', 'loading');
+      buttonEl.disabled = true;
+      buttonEl.textContent = '🕊️ Sending...';
+      buttonEl.setAttribute('aria-pressed', 'true');
+
+      const supabase = this.getSupabase();
+      if (!supabase) {
+        throw new Error('Supabase client not available');
+      }
+
+      const { data, error } = await supabase.rpc('send_peace', {
+        p_share_id: shareId,
+        p_user_id: userId
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      const peaceCount = data?.peace_count || 0;
+      const alreadySentPeace = data?.already_sent_peace || false;
+
+      buttonEl.classList.remove('loading');
+      buttonEl.textContent = `🕊️ ${peaceCount} Peace`;
+      buttonEl.setAttribute('aria-pressed', 'true');
+
+      this.peacedShares.add(shareId);
+      try {
+        localStorage.setItem('peacedShares', JSON.stringify(Array.from(this.peacedShares)));
+      } catch {
+        // ignore storage failures
+      }
+
+      window.dispatchEvent(new CustomEvent('peace:sent', {
+        detail: {
+          shareId,
+          userId,
+          peaceCount,
+          alreadySentPeace,
+          timestamp: Date.now()
+        }
+      }));
+
+      if (window.loadCurrentStatsFromDatabase) {
+        setTimeout(() => window.loadCurrentStatsFromDatabase(), 500);
       }
 
     } catch (error) {
-      console.error('❌ Wave back failed:', error);
-
-      buttonEl.classList.remove('waved', 'loading');
+      console.error('Peace action failed:', error);
+      buttonEl.classList.remove('loading', 'peaced');
       buttonEl.disabled = false;
-      buttonEl.textContent = originalText || '👋 Wave Back';
+      buttonEl.textContent = originalText;
       buttonEl.setAttribute('aria-pressed', 'false');
-
-      const tempText = buttonEl.textContent;
-      buttonEl.textContent = '❌ Failed';
-      setTimeout(() => {
-        buttonEl.textContent = tempText;
-      }, 2000);
     }
   }
 
@@ -1162,6 +1240,9 @@ class HiIslandRealFeed {
           ${typeof share.wave_count === 'number' ? `👋 ${share.wave_count} ${share.wave_count === 1 ? 'Wave' : 'Waves'}` : '👋 Wave Back'}
         </button>
         ${this.shouldShowShareButton(share) ? `
+        <button class="share-action-btn" data-action="send-peace" data-share-id="${share.id}" title="Send peaceful vibes">
+          ${typeof share.peace_count === 'number' ? `🕊️ ${share.peace_count} Peace` : '🕊️ Send Peace'}
+        </button>
         <button class="share-action-btn" data-action="share-external" data-share-id="${share.id}" title="Share to other platforms">
           📤 Share
         </button>
@@ -1194,6 +1275,36 @@ class HiIslandRealFeed {
         }
         if (already === true) {
           btn.classList.add('waved');
+          btn.disabled = true;
+          btn.setAttribute('aria-pressed', 'true');
+        }
+      } catch {}
+    })();
+
+    // Async: try to load live peace count + already-sent-peace state if RPCs exist; fail silently
+    (async () => {
+      try {
+        const btn = element.querySelector('.share-action-btn[data-action="send-peace"]');
+        const supabase = this.getSupabase();
+        if (!btn || !supabase) return;
+        let count = null;
+        let already = null;
+        try {
+          const { data } = await supabase.rpc('get_share_peace_count', { p_share_id: share.id });
+          if (typeof data === 'number') count = data;
+        } catch {}
+        try {
+          const uid = this.currentUserId || null;
+          if (uid) {
+            const { data } = await supabase.rpc('has_user_sent_peace', { p_share_id: share.id, p_user_id: uid });
+            if (typeof data === 'boolean') already = data;
+          }
+        } catch {}
+        if (typeof count === 'number') {
+          btn.textContent = `🕊️ ${count} Peace`;
+        }
+        if (already === true) {
+          btn.classList.add('peaced');
           btn.disabled = true;
           btn.setAttribute('aria-pressed', 'true');
         }

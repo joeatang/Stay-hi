@@ -235,4 +235,63 @@ document.addEventListener('click', () => {
   window.hiLoadingExperience.initAudio();
 }, { once: true });
 
-console.log('🎬 Hi Loading Experience V2.0 initialized - Tesla-grade CSS-first system ready');
+// ============================================================================
+// AUTOMATIC SPLASH SCREENS FOR HEAVY NAVIGATIONS
+// ============================================================================
+
+/**
+ * 🚀 Intercept heavy navigation events and show splash screen
+ * Applies to: Dashboard, Hi Island, Welcome redirects
+ */
+(function initAutoSplash() {
+  'use strict';
+
+  // Pages that should show splash screen during navigation
+  const SPLASH_PAGES = [
+    'hi-dashboard.html',
+    'hi-island.html',
+    'hi-island-NEW.html',
+    'hi-muscle.html',
+    'welcome.html'
+  ];
+
+  // Check if current navigation should show splash
+  function shouldShowSplash(url) {
+    if (!url) return false;
+    return SPLASH_PAGES.some(page => url.includes(page));
+  }
+
+  // Intercept window.location changes
+  const originalAssign = window.location.assign;
+  const originalReplace = window.location.replace;
+
+  window.location.assign = function(url) {
+    if (shouldShowSplash(url)) {
+      window.hiLoadingExperience?.start('Loading your Hi experience...');
+    }
+    return originalAssign.call(window.location, url);
+  };
+
+  window.location.replace = function(url) {
+    if (shouldShowSplash(url)) {
+      window.hiLoadingExperience?.start('Preparing your journey...');
+    }
+    return originalReplace.call(window.location, url);
+  };
+
+  // Show splash on current page if it's a heavy page and loading
+  if (document.readyState === 'loading') {
+    const currentPage = window.location.pathname;
+    if (shouldShowSplash(currentPage)) {
+      window.hiLoadingExperience?.start('Loading...');
+      
+      // Hide when page is ready
+      window.addEventListener('DOMContentLoaded', async () => {
+        await new Promise(resolve => setTimeout(resolve, 300));
+        await window.hiLoadingExperience?.hide();
+      });
+    }
+  }
+})();
+
+console.log('🎬 Hi Loading Experience V3.0 initialized - Auto-splash system ready');
