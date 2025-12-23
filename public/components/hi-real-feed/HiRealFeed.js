@@ -1094,7 +1094,11 @@ class HiIslandRealFeed {
         ${formattedContent}
         ${location ? `<p class="share-location">${this.escapeHtml(location)}</p>` : ''}
         ${this.createEmotionalJourneyHTML(share)}
-        ${this.createIntensityBadgeHTML(share.hi_intensity)}
+        ${(() => {
+          const badgeHTML = this.createIntensityBadgeHTML(share.hi_intensity);
+          console.log('🔍 Badge HTML for share:', share.id, 'intensity:', share.hi_intensity, 'HTML length:', badgeHTML.length);
+          return badgeHTML;
+        })()}
         ${originBadgeHTML}
       </div>
       
