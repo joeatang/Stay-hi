@@ -7,7 +7,7 @@
       const existing = Array.from(document.scripts).find(s => (s.src||'').includes('assets/premium-calendar.js'));
       if (existing && global.PremiumCalendar) { resolve(global.PremiumCalendar); return; }
       const script = document.createElement('script');
-      script.src = 'assets/premium-calendar.js';
+      script.src = 'assets/premium-calendar.js?v=20241222-streak-fix';
       script.async = true;
       script.onload = () => resolve(global.PremiumCalendar || global.PremiumCalendar);
       script.onerror = () => reject(new Error('Failed to load premium-calendar.js'));

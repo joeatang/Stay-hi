@@ -55,7 +55,7 @@
         if (document.querySelector('link[href*="premium-calendar.css"]')) return;
         const link = document.createElement('link');
         link.rel = 'stylesheet';
-        link.href = 'assets/premium-calendar.css';
+        link.href = 'assets/premium-calendar.css?v=20241222-streak-fix';
         document.head.appendChild(link);
       };
       ensureCSS();
@@ -69,7 +69,7 @@
           const existing = Array.from(document.scripts).find(s => (s.getAttribute('src')||'').includes('assets/premium-calendar.js'));
           if (existing) { resolve(); return; }
           const s = document.createElement('script');
-          s.src = 'assets/premium-calendar.js';
+          s.src = 'assets/premium-calendar.js?v=20241222-streak-fix';
           s.onload = () => resolve();
           s.onerror = () => reject(new Error('calendar script load failed'));
           document.body.appendChild(s);
