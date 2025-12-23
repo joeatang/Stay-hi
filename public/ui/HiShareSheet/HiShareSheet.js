@@ -1383,8 +1383,10 @@ export class HiShareSheet {
       const desiredEmoji = this.emotionalJourney?.desired || '✨';
       
       // 🎯 HI SCALE: Capture intensity rating (1-5 or null)
+      console.log('🎯 Hi Scale: this.hiScale exists?', !!this.hiScale);
+      console.log('🎯 Hi Scale: getValue method?', typeof this.hiScale?.getValue);
       const hiIntensity = this.hiScale?.getValue() || null;
-      this._dbg('🎯 Hi Scale captured:', hiIntensity);
+      console.log('🎯 Hi Scale captured value:', hiIntensity, '(type:', typeof hiIntensity, ')');
       
       // 🎯 TESLA FIX #1: ALL users (including anonymous) get archives with proper user IDs
       // 🔒 Single-writer policy: disable HiBase inserts (use hiDB only)
