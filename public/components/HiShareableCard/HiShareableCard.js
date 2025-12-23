@@ -164,16 +164,18 @@ class HiShareableCard {
     // Hi Scale Badge
     if (shareData.hi_intensity && shareData.hi_intensity >= 1 && shareData.hi_intensity <= 5) {
       const intensityBadge = this.getIntensityBadge(shareData.hi_intensity);
-      this.drawBadge(ctx, width / 2 - 200, badgeY, intensityBadge);
+      this.drawBadge(ctx, width / 2 - 220, badgeY, intensityBadge);
     }
     
-    // Emotional Journey
+    // Emotional Journey (with clear labels for external users)
+    const currentEmoji = shareData.current_emoji || '👋';
+    const desiredEmoji = shareData.desired_emoji || '✨';
     const emotionalBadge = {
-      emoji: shareData.desired_emoji || '✨',
-      label: shareData.current_emoji || '👋',
+      emoji: `${currentEmoji} → ${desiredEmoji}`,
+      label: 'Emotional Journey',
       color: this.brandColors.accent
     };
-    this.drawBadge(ctx, width / 2 + 200, badgeY, emotionalBadge);
+    this.drawBadge(ctx, width / 2 + 220, badgeY, emotionalBadge);
   }
   
   /**
@@ -194,26 +196,26 @@ class HiShareableCard {
    * Draw individual badge
    */
   drawBadge(ctx, x, y, badge) {
-    // Badge background
+    // Badge background (bigger for better visibility)
     ctx.fillStyle = `${badge.color}33`; // 20% opacity
     ctx.beginPath();
-    ctx.roundRect(x - 120, y - 40, 240, 80, 20);
+    ctx.roundRect(x - 160, y - 50, 320, 100, 24);
     ctx.fill();
     
     // Badge border
     ctx.strokeStyle = `${badge.color}66`; // 40% opacity
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 4;
     ctx.stroke();
     
-    // Emoji
-    ctx.font = '48px -apple-system';
+    // Emoji (bigger)
+    ctx.font = '56px -apple-system';
     ctx.textAlign = 'center';
-    ctx.fillText(badge.emoji, x, y);
+    ctx.fillText(badge.emoji, x, y + 5);
     
-    // Label
-    ctx.font = '500 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    // Label (bigger)
+    ctx.font = '600 38px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.fillStyle = badge.color;
-    ctx.fillText(badge.label, x, y + 55);
+    ctx.fillText(badge.label, x, y + 65);
   }
   
   /**
@@ -230,29 +232,29 @@ class HiShareableCard {
     ctx.textAlign = 'center';
     ctx.fillText(`@${username}`, width / 2, userY);
     
-    // Timestamp (optional)
+    // Timestamp (absolute date/time for sharing)
     if (shareData.created_at) {
-      const timeAgo = this.getTimeAgo(shareData.created_at);
+      const formattedDate = this.formatDateTime(shareData.created_at);
       ctx.font = '400 32px -apple-system';
       ctx.fillStyle = this.brandColors.textMuted;
-      ctx.fillText(timeAgo, width / 2, userY + 50);
+      ctx.fillText(formattedDate, width / 2, userY + 50);
     }
   }
   
   /**
-   * Get human-readable time ago
+   * Format date/time for shareable cards
    */
-  getTimeAgo(timestamp) {
-    const now = new Date();
-    const then = new Date(timestamp);
-    const diffMs = now - then;
-    const diffMins = Math.floor(diffMs / 60000);
-    
-    if (diffMins < 60) return `${diffMins}m ago`;
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours}h ago`;
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays}d ago`;
+  formatDateTime(timestamp) {
+    const date = new Date(timestamp);
+    const options = { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    };
+    return date.toLocaleString('en-US', options);
   }
   
   /**
@@ -260,23 +262,27 @@ class HiShareableCard {
    */
   async drawBranding(ctx) {
     const { cardWidth: width, cardHeight: height } = this;
-    const brandingY = height - 200;
+    const brandingY = height - 240;
+    
+    // Logo emoji (above Stay Hi text)
+    ctx.font = '64px -apple-system';
+    ctx.textAlign = 'center';
+    ctx.fillText('✨', width / 2, brandingY);
     
     // "Stay Hi" logo text
     ctx.font = '700 72px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.fillStyle = this.brandColors.primary;
-    ctx.textAlign = 'center';
-    ctx.fillText('Stay Hi', width / 2, brandingY);
+    ctx.fillText('Stay Hi', width / 2, brandingY + 70);
     
     // Tagline
     ctx.font = '500 36px -apple-system';
     ctx.fillStyle = this.brandColors.textMuted;
-    ctx.fillText('Track your emotional journey', width / 2, brandingY + 55);
+    ctx.fillText('Track your emotional journey', width / 2, brandingY + 115);
     
-    // URL
+    // Production URL
     ctx.font = '600 42px -apple-system';
     ctx.fillStyle = this.brandColors.secondary;
-    ctx.fillText('stay-hi.app', width / 2, brandingY + 115);
+    ctx.fillText('stay-hi.vercel.app', width / 2, brandingY + 165);
   }
   
   /**
@@ -315,14 +321,17 @@ class HiShareableCard {
         </div>
         
         <div class="hi-share-card-actions">
+          ${navigator.share ? `
           <button class="hi-share-card-btn primary" data-action="share">
             <span>📤</span>
-            Share to...
+            Share (Save or Send)
           </button>
-          <button class="hi-share-card-btn secondary" data-action="download">
+          ` : `
+          <button class="hi-share-card-btn primary" data-action="download">
             <span>💾</span>
-            Download
+            Download Image
           </button>
+          `}
           <button class="hi-share-card-btn secondary" data-action="copy">
             <span>📋</span>
             Copy Text
