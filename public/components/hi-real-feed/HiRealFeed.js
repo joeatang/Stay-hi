@@ -1061,7 +1061,22 @@ class HiIslandRealFeed {
   }
 
   /**
-   * 🎨 Handle external share (shareable card generation)
+   * � VIRAL-FIRST: Determine if share button should be visible
+   * Only public content can be shared - respects privacy while enabling growth
+   */
+  shouldShowShareButton(share) {
+    // Hide share button on private/anonymous content (respects user privacy)
+    if (share.visibility === 'private' || share.visibility === 'anonymous') {
+      return false;
+    }
+    
+    // Show on all public content regardless of author
+    // Cards will show proper attribution to original author
+    return true;
+  }
+
+  /**
+   * �🎨 Handle external share (shareable card generation)
    */
   async handleShareExternal(buttonEl) {
     if (!buttonEl) return;
@@ -1072,9 +1087,9 @@ class HiIslandRealFeed {
     }
 
     try {
-      // Find share data in current feeds
+      // Find share data in current feeds (using correct feedData property)
       const activeTab = this.currentTab || 'general';
-      const shares = activeTab === 'archives' ? this.archivesShares : this.generalShares;
+      const shares = activeTab === 'archives' ? this.feedData.archives : this.feedData.general;
       const shareData = shares.find(s => s.id === shareId);
       
       if (!shareData) {
@@ -1146,9 +1161,11 @@ class HiIslandRealFeed {
         <button class="share-action-btn" data-action="wave" data-share-id="${share.id}">
           ${typeof share.wave_count === 'number' ? `👋 ${share.wave_count} ${share.wave_count === 1 ? 'Wave' : 'Waves'}` : '👋 Wave Back'}
         </button>
+        ${this.shouldShowShareButton(share) ? `
         <button class="share-action-btn" data-action="share-external" data-share-id="${share.id}" title="Share to other platforms">
           📤 Share
         </button>
+        ` : ''}
       </div>
     `;
 
