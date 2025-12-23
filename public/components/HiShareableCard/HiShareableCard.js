@@ -233,13 +233,20 @@ class HiShareableCard {
   }
   
   /**
-   * Draw individual badge
+   * Draw individual badge - LARGE PILLS to ensure content fits
    */
   drawBadge(ctx, x, y, badge) {
-    // Badge background (bigger for better visibility)
+    // DRAMATICALLY LARGER container to fit emojis and text comfortably
+    const containerWidth = 450;
+    const containerHeight = 140;
+    const borderRadius = 28;
+    
+    ctx.save();
+    
+    // Badge background (large fixed size)
     ctx.fillStyle = `${badge.color}33`; // 20% opacity
     ctx.beginPath();
-    ctx.roundRect(x - 160, y - 50, 320, 100, 24);
+    ctx.roundRect(x - containerWidth/2, y - containerHeight/2, containerWidth, containerHeight, borderRadius);
     ctx.fill();
     
     // Badge border
@@ -247,15 +254,37 @@ class HiShareableCard {
     ctx.lineWidth = 4;
     ctx.stroke();
     
-    // Emoji (bigger)
-    ctx.font = '56px -apple-system';
-    ctx.textAlign = 'center';
-    ctx.fillText(badge.emoji, x, y + 5);
+    // Clip to badge container to prevent bleeding
+    ctx.clip();
     
-    // Label (bigger)
-    ctx.font = '600 38px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    // Emoji (comfortable size, centered in container)
+    ctx.font = '52px -apple-system';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
     ctx.fillStyle = badge.color;
-    ctx.fillText(badge.label, x, y + 65);
+    ctx.fillText(badge.emoji, x, y - 22);
+    
+    // Label (readable size, centered, with plenty of room)
+    ctx.font = '600 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.fillStyle = badge.color;
+    
+    // Truncate text if needed (but larger container gives more room)
+    let labelText = badge.label;
+    const maxLabelWidth = containerWidth - 80; // Generous padding
+    let textWidth = ctx.measureText(labelText).width;
+    
+    if (textWidth > maxLabelWidth) {
+      // Truncate with ellipsis
+      while (textWidth > maxLabelWidth && labelText.length > 3) {
+        labelText = labelText.substring(0, labelText.length - 1);
+        textWidth = ctx.measureText(labelText + '...').width;
+      }
+      labelText = labelText + '...';
+    }
+    
+    ctx.fillText(labelText, x, y + 38);
+    
+    ctx.restore();
   }
   
   /**
@@ -282,10 +311,11 @@ class HiShareableCard {
   }
   
   /**
-   * Format date/time for shareable cards
+   * Format date/time for shareable cards - USES DEVICE LOCAL TIMEZONE
    */
   formatDateTime(timestamp) {
     const date = new Date(timestamp);
+    // Use device's local timezone and locale
     const options = { 
       month: 'short', 
       day: 'numeric', 
@@ -294,7 +324,8 @@ class HiShareableCard {
       minute: '2-digit',
       hour12: true
     };
-    return date.toLocaleString('en-US', options);
+    // Let browser auto-detect user's locale and timezone
+    return date.toLocaleString(undefined, options);
   }
   
   /**
@@ -302,27 +333,23 @@ class HiShareableCard {
    */
   async drawBranding(ctx) {
     const { cardWidth: width, cardHeight: height } = this;
-    const brandingY = height - 260;
+    const brandingY = height - 240;
     
-    // Logo emoji (above Stay Hi text)
-    ctx.font = '64px -apple-system';
-    ctx.textAlign = 'center';
-    ctx.fillText('✨', width / 2, brandingY);
-    
-    // "Stay Hi" logo text
+    // "Stay Hi" logo text (no logo icon - cleaner)
     ctx.font = '700 72px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.fillStyle = this.brandColors.primary;
-    ctx.fillText('Stay Hi', width / 2, brandingY + 70);
+    ctx.textAlign = 'center';
+    ctx.fillText('Stay Hi', width / 2, brandingY);
     
     // Clear, concise tagline (what the app does)
     ctx.font = '500 34px -apple-system';
     ctx.fillStyle = this.brandColors.textMuted;
-    ctx.fillText('Track how you feel & inspire others', width / 2, brandingY + 115);
+    ctx.fillText('Track how you feel & inspire others', width / 2, brandingY + 50);
     
     // Production URL
     ctx.font = '600 40px -apple-system';
     ctx.fillStyle = this.brandColors.secondary;
-    ctx.fillText('stay-hi.vercel.app', width / 2, brandingY + 165);
+    ctx.fillText('stay-hi.vercel.app', width / 2, brandingY + 100);
   }
   
   /**
@@ -332,6 +359,11 @@ class HiShareableCard {
     try {
       // Generate card
       const blob = await this.generateCard(shareData);
+      if (!blob) {
+        console.error('❌ Card generation returned empty blob');
+        return;
+      }
+      
       const url = URL.createObjectURL(blob);
       
       // Create modal
@@ -339,7 +371,7 @@ class HiShareableCard {
       
     } catch (error) {
       console.error('❌ Card generation failed:', error);
-      alert('Failed to generate share card. Please try again.');
+      // Silent fail with console log only
     }
   }
   
@@ -407,20 +439,29 @@ class HiShareableCard {
       this.closeModal(modal, imageUrl);
     });
     
-    // Share button
-    modal.querySelector('[data-action="share"]').addEventListener('click', async () => {
-      await this.handleNativeShare(blob, shareData);
-    });
+    // Share button (mobile only)
+    const shareBtn = modal.querySelector('[data-action="share"]');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', async () => {
+        await this.handleNativeShare(blob, shareData);
+      });
+    }
     
-    // Download button
-    modal.querySelector('[data-action="download"]').addEventListener('click', () => {
-      this.handleDownload(imageUrl, shareData);
-    });
+    // Download button (desktop only)
+    const downloadBtn = modal.querySelector('[data-action="download"]');
+    if (downloadBtn) {
+      downloadBtn.addEventListener('click', () => {
+        this.handleDownload(imageUrl, shareData);
+      });
+    }
     
-    // Copy text button
-    modal.querySelector('[data-action="copy"]').addEventListener('click', async () => {
-      await this.handleCopyText(shareData);
-    });
+    // Copy text button (always present)
+    const copyBtn = modal.querySelector('[data-action="copy"]');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', async () => {
+        await this.handleCopyText(shareData);
+      });
+    }
     
     // Escape key
     const escHandler = (e) => {
