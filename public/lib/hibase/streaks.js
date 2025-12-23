@@ -113,6 +113,13 @@ async function _updateStreak(userIdOrPayload, options = {}) {
                 return { data: null, error: insertError };
             }
 
+            // 🛡️ CACHE SYNC: Initialize cache for new users
+            try {
+                localStorage.setItem('user_current_streak', '1');
+                localStorage.setItem('user_longest_streak', '1');
+                console.log('✅ Initial streak cache created: 1');
+            } catch {}
+
             return {
                 data: {
                     streak: {
@@ -172,6 +179,15 @@ async function _updateStreak(userIdOrPayload, options = {}) {
 
         if (error) {
             return { data: null, error };
+        }
+
+        // 🛡️ CACHE SYNC: Immediately update localStorage to prevent race conditions
+        try {
+            localStorage.setItem('user_current_streak', data.current_streak.toString());
+            localStorage.setItem('user_longest_streak', data.longest_streak.toString());
+            console.log('✅ Streak cache synced:', data.current_streak);
+        } catch (cacheError) {
+            console.warn('⚠️ Cache sync failed (non-critical):', cacheError);
         }
 
         return {
