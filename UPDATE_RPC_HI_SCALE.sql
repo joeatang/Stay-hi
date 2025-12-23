@@ -4,6 +4,10 @@
 -- Date: 2024-12-22
 -- =============================================================
 
+-- Drop existing function (handles multiple signatures)
+DROP FUNCTION IF EXISTS create_public_share CASCADE;
+
+-- Create updated function with Hi Scale support
 CREATE OR REPLACE FUNCTION create_public_share(
   p_content TEXT,
   p_visibility TEXT DEFAULT 'public',
@@ -35,7 +39,7 @@ BEGIN
   -- Insert share (bypasses PostgREST cache)
   INSERT INTO public_shares (
     user_id,
-    content,
+    text,  -- 🎯 FIX: Use 'text' column (NOT NULL), not 'content' column
     visibility,
     origin,
     pill,
@@ -46,7 +50,7 @@ BEGIN
   )
   VALUES (
     v_user_id,
-    p_content,
+    p_content,  -- Maps to 'text' column
     p_visibility,
     p_origin,
     p_pill,
