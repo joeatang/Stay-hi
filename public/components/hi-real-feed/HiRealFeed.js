@@ -344,7 +344,9 @@ class HiIslandRealFeed {
           currentEmoji: share.current_emoji || '👋',
           currentName: share.current_name || 'Hi',
           desiredEmoji: share.desired_emoji || '👋',
-          desiredName: share.desired_name || 'Hi'
+          desiredName: share.desired_name || 'Hi',
+          // 🎯 Hi Scale intensity (1-5 or null)
+          hi_intensity: share.hi_intensity || null
         };
 
         // 🎯 SCHEMA FIX: Support both top-level columns AND metadata storage
@@ -475,7 +477,9 @@ class HiIslandRealFeed {
           currentEmoji: archive.current_emoji || '👋',
           currentName: archive.current_name || 'Hi',
           desiredEmoji: archive.desired_emoji || '👋',
-          desiredName: archive.desired_name || 'Hi'
+          desiredName: archive.desired_name || 'Hi',
+          // 🎯 Hi Scale intensity (1-5 or null)
+          hi_intensity: archive.hi_intensity || null
         };
       });
 
