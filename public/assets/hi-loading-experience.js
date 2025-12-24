@@ -247,12 +247,11 @@ document.addEventListener('click', () => {
   'use strict';
 
   // Pages that should show splash screen during navigation
+  // Only heavy pages (1200-2000ms load time)
   const SPLASH_PAGES = [
     'hi-dashboard.html',
-    'hi-island.html',
     'hi-island-NEW.html',
-    'hi-muscle.html',
-    'welcome.html'
+    'hi-muscle.html'
   ];
 
   // Check if current navigation should show splash
@@ -279,18 +278,34 @@ document.addEventListener('click', () => {
     return originalReplace.call(window.location, url);
   };
 
-  // Show splash on current page if it's a heavy page and loading
-  if (document.readyState === 'loading') {
-    const currentPage = window.location.pathname;
-    if (shouldShowSplash(currentPage)) {
-      window.hiLoadingExperience?.start('Loading...');
+  // Show splash on current page if it's a heavy page
+  const currentPage = window.location.pathname;
+  if (shouldShowSplash(currentPage)) {
+    const splashStartTime = Date.now();
+    window.hiLoadingExperience?.start('Loading...');
+    
+    // Hide when page is ready (wait for custom event or DOMContentLoaded + data)
+    const hideSplash = async () => {
+      const elapsed = Date.now() - splashStartTime;
+      const minimumDuration = 800; // Perceptible minimum
+      const remaining = Math.max(0, minimumDuration - elapsed);
       
-      // Hide when page is ready
-      window.addEventListener('DOMContentLoaded', async () => {
-        await new Promise(resolve => setTimeout(resolve, 300));
-        await window.hiLoadingExperience?.hide();
-      });
-    }
+      await new Promise(resolve => setTimeout(resolve, remaining));
+      await window.hiLoadingExperience?.hide();
+    };
+    
+    // Listen for custom ready event (if app emits it)
+    window.addEventListener('hi:ready', hideSplash, { once: true });
+    
+    // Fallback: DOMContentLoaded + minimum duration
+    window.addEventListener('DOMContentLoaded', () => {
+      // If hi:ready hasn't fired yet, hide after short delay
+      setTimeout(() => {
+        if (window.hiLoadingExperience?.isShowing) {
+          hideSplash();
+        }
+      }, 100);
+    });
   }
 })();
 
