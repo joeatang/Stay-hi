@@ -1938,6 +1938,19 @@ class HiIslandRealFeed {
         opacity: 0.8;
       }
 
+      /* 🎯 X/TWITTER PATTERN: Visual state for waved/peaced (color, not text) */
+      .share-action-btn.waved {
+        color: #FFD166;
+        background: rgba(255, 209, 102, 0.15);
+        border-color: rgba(255, 209, 102, 0.3);
+      }
+
+      .share-action-btn.peaced {
+        color: #4ECDC4;
+        background: rgba(78, 205, 196, 0.15);
+        border-color: rgba(78, 205, 196, 0.3);
+      }
+
       .origin-badge {
         display: inline-block !important;
         font-size: 13px !important;
