@@ -963,7 +963,8 @@ class HiIslandRealFeed {
             btn.classList.add('waved');
             btn.disabled = true;
             btn.setAttribute('aria-pressed', 'true');
-            btn.textContent = '👋 Waved';
+            // 🎯 X/TWITTER PATTERN: Keep count visible, don't change text
+            // Count stays (e.g., "👋 1 Wave"), only visual state changes via .waved class
           }
         }
         if (tabName === 'general' && this.peacedShares?.has?.(share.id)) {
