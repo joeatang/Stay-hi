@@ -280,9 +280,32 @@ document.addEventListener('click', () => {
 
   // Show splash on current page if it's a heavy page
   const currentPage = window.location.pathname;
+  
+  // 🔍 DEBUG: Log splash detection
+  console.log('🎬 Splash check:', {
+    currentPage,
+    shouldShow: shouldShowSplash(currentPage),
+    splashObjectExists: !!window.hiLoadingExperience,
+    splashObjectReady: typeof window.hiLoadingExperience?.start === 'function'
+  });
+  
   if (shouldShowSplash(currentPage)) {
+    // Verify splash object exists
+    if (!window.hiLoadingExperience || typeof window.hiLoadingExperience.start !== 'function') {
+      console.error('❌ Splash object not initialized properly');
+      return;
+    }
+    
     const splashStartTime = Date.now();
-    window.hiLoadingExperience?.start('Loading...');
+    console.log('🎬 Starting splash screen at', splashStartTime);
+    
+    try {
+      window.hiLoadingExperience.start('Loading...');
+      window.hiLoadingExperience.isShowing = true;
+    } catch (error) {
+      console.error('❌ Splash start failed:', error);
+      return;
+    }
     
     // Hide when page is ready (wait for custom event or DOMContentLoaded + data)
     const hideSplash = async () => {
@@ -290,8 +313,13 @@ document.addEventListener('click', () => {
       const minimumDuration = 800; // Perceptible minimum
       const remaining = Math.max(0, minimumDuration - elapsed);
       
+      console.log('🎬 Hiding splash after', elapsed + remaining, 'ms');
+      
       await new Promise(resolve => setTimeout(resolve, remaining));
-      await window.hiLoadingExperience?.hide();
+      if (window.hiLoadingExperience) {
+        await window.hiLoadingExperience.hide();
+        window.hiLoadingExperience.isShowing = false;
+      }
     };
     
     // Listen for custom ready event (if app emits it)

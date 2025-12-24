@@ -1056,6 +1056,15 @@ class HiIslandRealFeed {
       } catch {
         // ignore storage failures
       }
+      
+      // 🎯 FIX RACE CONDITION: Update feedData in memory immediately
+      // This prevents stale counts when navigating away/back before trigger completes
+      const currentFeed = this.feedData[this.currentTab] || [];
+      const shareIndex = currentFeed.findIndex(s => s.id === shareId);
+      if (shareIndex !== -1) {
+        currentFeed[shareIndex].wave_count = waveCount;
+        console.log('✅ Updated wave_count in memory:', shareId, '→', waveCount);
+      }
 
       window.dispatchEvent(new CustomEvent('wave:incremented', {
         detail: {
@@ -1126,6 +1135,14 @@ class HiIslandRealFeed {
         localStorage.setItem('peacedShares', JSON.stringify(Array.from(this.peacedShares)));
       } catch {
         // ignore storage failures
+      }
+      
+      // 🎯 FIX RACE CONDITION: Update feedData in memory immediately
+      const currentFeed = this.feedData[this.currentTab] || [];
+      const shareIndex = currentFeed.findIndex(s => s.id === shareId);
+      if (shareIndex !== -1) {
+        currentFeed[shareIndex].peace_count = peaceCount;
+        console.log('✅ Updated peace_count in memory:', shareId, '→', peaceCount);
       }
 
       window.dispatchEvent(new CustomEvent('peace:sent', {
