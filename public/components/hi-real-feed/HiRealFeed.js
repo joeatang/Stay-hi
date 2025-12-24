@@ -224,6 +224,8 @@ class HiIslandRealFeed {
           .from('public_shares')
           .select(`
             *,
+            wave_count,
+            peace_count,
             profiles (
               username,
               display_name,
@@ -349,12 +351,9 @@ class HiIslandRealFeed {
           content: share.content || share.text || 'Hi! 👋', // New content column OR text fallback
           visibility: share.visibility || (share.is_anonymous ? 'anonymous' : (share.is_public ? 'public' : 'private')),
           created_at: share.created_at,
-          // 🚀 PERFORMANCE: Include reaction counts from database (eliminates async RPC calls)
-          wave_count: share.wave_count || 0,
-          peace_count: share.peace_count || 0,
-          // 🚀 PERFORMANCE: Include reaction counts from database
-          wave_count: share.wave_count || 0,
-          peace_count: share.peace_count || 0,
+          // 🎯 GOLD STANDARD: Reaction counts from database (always show counts, never null)
+          wave_count: typeof share.wave_count === 'number' ? share.wave_count : 0,
+          peace_count: typeof share.peace_count === 'number' ? share.peace_count : 0,
           // 🏆 Add medallion/emoji data for rendering
           currentEmoji: share.current_emoji || '👋',
           currentName: share.current_name || 'Hi',
