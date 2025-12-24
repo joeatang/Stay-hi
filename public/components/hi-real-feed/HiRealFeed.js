@@ -352,8 +352,9 @@ class HiIslandRealFeed {
           visibility: share.visibility || (share.is_anonymous ? 'anonymous' : (share.is_public ? 'public' : 'private')),
           created_at: share.created_at,
           // 🎯 GOLD STANDARD: Reaction counts from database (always show counts, never null)
-          wave_count: typeof share.wave_count === 'number' ? share.wave_count : 0,
-          peace_count: typeof share.peace_count === 'number' ? share.peace_count : 0,
+          // But use localStorage cache if fresher (within 30s) to handle trigger latency
+          wave_count: this.getDisplayCount('wave', share.id, share.wave_count),
+          peace_count: this.getDisplayCount('peace', share.id, share.peace_count),
           // 🏆 Add medallion/emoji data for rendering
           currentEmoji: share.current_emoji || '👋',
           currentName: share.current_name || 'Hi',
@@ -1057,7 +1058,7 @@ class HiIslandRealFeed {
         // ignore storage failures
       }
       
-      // 🎯 FIX RACE CONDITION: Update feedData in memory immediately
+      // 🎯 FIX RACE CONDITION: Update feedData in memory AND localStorage
       // This prevents stale counts when navigating away/back before trigger completes
       const currentFeed = this.feedData[this.currentTab] || [];
       const shareIndex = currentFeed.findIndex(s => s.id === shareId);
@@ -1065,6 +1066,14 @@ class HiIslandRealFeed {
         currentFeed[shareIndex].wave_count = waveCount;
         console.log('✅ Updated wave_count in memory:', shareId, '→', waveCount);
       }
+      
+      // Also cache count in localStorage for persistence across page loads
+      try {
+        const cachedCounts = JSON.parse(localStorage.getItem('waveCounts') || '{}');
+        cachedCounts[shareId] = { count: waveCount, timestamp: Date.now() };
+        localStorage.setItem('waveCounts', JSON.stringify(cachedCounts));
+      } catch {}
+
 
       window.dispatchEvent(new CustomEvent('wave:incremented', {
         detail: {
@@ -1137,13 +1146,21 @@ class HiIslandRealFeed {
         // ignore storage failures
       }
       
-      // 🎯 FIX RACE CONDITION: Update feedData in memory immediately
+      // 🎯 FIX RACE CONDITION: Update feedData in memory AND localStorage
       const currentFeed = this.feedData[this.currentTab] || [];
       const shareIndex = currentFeed.findIndex(s => s.id === shareId);
       if (shareIndex !== -1) {
         currentFeed[shareIndex].peace_count = peaceCount;
         console.log('✅ Updated peace_count in memory:', shareId, '→', peaceCount);
       }
+      
+      // Also cache count in localStorage for persistence
+      try {
+        const cachedCounts = JSON.parse(localStorage.getItem('peaceCounts') || '{}');
+        cachedCounts[shareId] = { count: peaceCount, timestamp: Date.now() };
+        localStorage.setItem('peaceCounts', JSON.stringify(cachedCounts));
+      } catch {}
+
 
       window.dispatchEvent(new CustomEvent('peace:sent', {
         detail: {

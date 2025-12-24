@@ -248,16 +248,18 @@ document.addEventListener('click', () => {
 
   // Pages that should show splash screen during navigation
   // Only heavy pages (1200-2000ms load time)
+  // Support both production clean URLs (/dashboard) and localhost file paths (/public/hi-dashboard.html)
   const SPLASH_PAGES = [
-    'hi-dashboard.html',
-    'hi-island-NEW.html',
-    'hi-muscle.html'
+    'dashboard',      // Matches: /dashboard, /public/hi-dashboard.html
+    'hi-island',      // Matches: /hi-island, /public/hi-island-NEW.html
+    'hi-muscle'       // Matches: /hi-muscle, /public/hi-muscle.html
   ];
 
   // Check if current navigation should show splash
   function shouldShowSplash(url) {
     if (!url) return false;
-    return SPLASH_PAGES.some(page => url.includes(page));
+    const urlLower = String(url).toLowerCase();
+    return SPLASH_PAGES.some(page => urlLower.includes(page));
   }
 
   // Intercept window.location changes
