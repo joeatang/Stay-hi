@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Splash Timing Test</title>
+  <script>
+    console.log('1. HTML parsing started:', performance.now());
+    console.log('   document.readyState:', document.readyState);
+  </script>
+  
+  <link rel="stylesheet" href="assets/hi-loading-experience.css">
+  <script src="assets/hi-loading-experience.js"></script>
+  
+  <script>
+    console.log('2. After hi-loading-experience.js loaded:', performance.now());
+    console.log('   document.readyState:', document.readyState);
+  </script>
+</head>
+<body>
+  <h1>Testing Splash Timing</h1>
+  
+  <script>
+    console.log('3. Body parsing:', performance.now());
+    console.log('   document.readyState:', document.readyState);
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('4. DOMContentLoaded fired:', performance.now());
+      console.log('   document.readyState:', document.readyState);
+    });
+    
+    window.addEventListener('load', () => {
+      console.log('5. window.load fired:', performance.now());
+      console.log('   document.readyState:', document.readyState);
+    });
+    
+    // Check if splash was triggered
+    setTimeout(() => {
+      console.log('\n🔍 DIAGNOSIS:');
+      console.log('hiLoadingExperience exists?', !!window.hiLoadingExperience);
+      console.log('isActive?', window.hiLoadingExperience?.isActive);
+      console.log('overlay exists?', !!window.hiLoadingExperience?.overlay);
+    }, 100);
+  </script>
+</body>
+</html>
