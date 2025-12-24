@@ -1271,7 +1271,8 @@ class HiIslandRealFeed {
         btn.classList.add('waved');
         btn.disabled = true;
         btn.setAttribute('aria-pressed', 'true');
-        btn.textContent = '👋 Waved';
+        // 🎯 X/TWITTER PATTERN: Keep count visible, don't change text
+        // Count stays, only visual state changes (color/style via .waved class)
       }
     }
 
@@ -1304,7 +1305,8 @@ class HiIslandRealFeed {
         btn.classList.add('peaced');
         btn.disabled = true;
         btn.setAttribute('aria-pressed', 'true');
-        btn.textContent = '🕊️ Peace Sent';
+        // 🎯 X/TWITTER PATTERN: Keep count visible, don't change text
+        // Count stays, only visual state changes (color/style via .peaced class)
       }
     }
 
@@ -1876,14 +1878,17 @@ class HiIslandRealFeed {
       .share-header {
         display: flex;
         justify-content: space-between;
-        align-items: center;
+        align-items: flex-start; /* Allow wrapping */
         margin-bottom: 12px;
+        gap: 12px;
       }
 
       .share-user {
         display: flex;
         align-items: center;
         gap: 12px;
+        min-width: 0; /* Enable text truncation */
+        flex: 1; /* Take available space */
       }
 
       .share-avatar, .share-avatar-placeholder {
@@ -1899,14 +1904,21 @@ class HiIslandRealFeed {
 
       .share-username {
         font-weight: 600;
+        font-size: 15px;
+        /* 🎯 X/TWITTER PATTERN: Truncate long usernames */
+        max-width: 140px; /* ~18 chars on mobile */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .share-meta {
         display: flex;
         align-items: center;
-        gap: 12px;
-        font-size: 12px;
-        opacity: 0.7;
+        gap: 8px; /* Tighter spacing */
+        font-size: 13px;
+        opacity: 0.6;
+        flex-shrink: 0; /* Don't shrink meta */
       }
 
       .share-content {
