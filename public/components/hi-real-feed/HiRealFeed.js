@@ -1060,8 +1060,20 @@ class HiIslandRealFeed {
         p_share_id: shareId,
         p_user_id: userId
       });
+      
+      // 🔍 DEBUG: Log RPC response
+      console.log('👋 Wave RPC response:', {
+        shareId,
+        userId,
+        data,
+        error,
+        dataType: typeof data,
+        waveCount: data?.wave_count,
+        alreadyWaved: data?.already_waved
+      });
 
       if (error) {
+        console.error('❌ Wave RPC error:', error);
         throw error;
       }
 
@@ -1305,11 +1317,11 @@ class HiIslandRealFeed {
       
       <div class="share-actions">
         <button class="share-action-btn" data-action="wave" data-share-id="${share.id}">
-          ${typeof share.wave_count === 'number' ? `👋 ${share.wave_count} ${share.wave_count === 1 ? 'Wave' : 'Waves'}` : '👋 Wave Back'}
+          ${typeof share.wave_count === 'number' && share.wave_count > 0 ? `👋 ${share.wave_count} ${share.wave_count === 1 ? 'Wave' : 'Waves'}` : '👋 Wave Back'}
         </button>
         ${this.shouldShowShareButton(share) ? `
         <button class="share-action-btn" data-action="send-peace" data-share-id="${share.id}" title="Send peaceful vibes">
-          ${typeof share.peace_count === 'number' ? `🕊️ ${share.peace_count} Peace` : '🕊️ Send Peace'}
+          ${typeof share.peace_count === 'number' && share.peace_count > 0 ? `🕊️ ${share.peace_count} Peace` : '🕊️ Send Peace'}
         </button>
         <button class="share-action-btn" data-action="share-external" data-share-id="${share.id}" title="Share to other platforms">
           📤 Share
