@@ -6,9 +6,7 @@ DROP VIEW IF EXISTS public_shares_enriched CASCADE;
 
 CREATE OR REPLACE VIEW public_shares_enriched AS
 SELECT 
-  ps.*,
-  ps.wave_count,   -- Explicitly include (already in ps.* but being explicit)
-  ps.peace_count,  -- Explicitly include (already in ps.* but being explicit)
+  ps.*,  -- Includes wave_count and peace_count (added by COMPLETE_WAVE_SYSTEM.sql)
   p.username,
   p.display_name,
   p.avatar_url
