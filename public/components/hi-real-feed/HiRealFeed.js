@@ -107,6 +107,26 @@ class HiIslandRealFeed {
       console.error('❌ Hi-Island REAL Feed System initialization failed:', error);
     }
   }
+  
+  // Get display count - prefer fresh localStorage cache over stale database value
+  getDisplayCount(type, shareId, dbCount) {
+    try {
+      const storageKey = type === 'wave' ? 'waveCounts' : 'peaceCounts';
+      const cached = JSON.parse(localStorage.getItem(storageKey) || '{}');
+      const cachedData = cached[shareId];
+      
+      if (cachedData) {
+        const age = Date.now() - cachedData.timestamp;
+        // Use cache if < 30 seconds old AND higher than DB (DB trigger may not have completed yet)
+        if (age < 30000 && cachedData.count > dbCount) {
+          console.log(`📦 Using cached ${type}_count for ${shareId}:`, cachedData.count, '(DB:', dbCount, ')');
+          return cachedData.count;
+        }
+      }
+    } catch {}
+    
+    return typeof dbCount === 'number' ? dbCount : 0;
+  }
 
   // Get current authenticated user
   async getCurrentUser() {
