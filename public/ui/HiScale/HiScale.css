@@ -20,30 +20,55 @@
   min-width: 48px;
   min-height: 56px;
   padding: 8px;
-  border: 2px solid var(--scale-color, #ddd);
+  border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.05);
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: inherit;
   position: relative;
+  /* 🎯 GOLD STANDARD: Clear unselected state */
+  opacity: 0.5;
 }
 
 .hi-scale-button:hover {
-  background: var(--scale-color, #ddd)15;
+  opacity: 0.75;
   transform: translateY(-2px);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .hi-scale-button:active {
   transform: translateY(0);
 }
 
+/* 🎯 GOLD STANDARD: OBVIOUS selected state */
 .hi-scale-button.selected {
-  background: var(--scale-color, #ddd)25;
-  border-width: 3px;
-  box-shadow: 0 2px 8px var(--scale-color, #ddd)40;
-  transform: translateY(-2px);
+  background: var(--scale-color, #4ecdc4);
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 16px var(--scale-color, #4ecdc4);
+  transform: translateY(-4px) scale(1.05);
+  opacity: 1;
+  position: relative;
+}
+
+/* 🎯 Checkmark indicator for selected state */
+.hi-scale-button.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 16px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  color: var(--scale-color, #4ecdc4);
+  line-height: 1;
 }
 
 .hi-scale-button:focus {
@@ -59,13 +84,25 @@
   font-size: 24px;
   line-height: 1;
   user-select: none;
+  filter: grayscale(0.5);
+  transition: filter 0.2s ease;
+}
+
+.hi-scale-button.selected .hi-scale-emoji {
+  filter: grayscale(0) drop-shadow(0 2px 4px rgba(0,0,0,0.2));
 }
 
 .hi-scale-value {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--scale-color, #666);
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.6);
   user-select: none;
+  transition: color 0.2s ease;
+}
+
+.hi-scale-button.selected .hi-scale-value {
+  color: rgba(255, 255, 255, 1);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 .hi-scale-labels {
@@ -95,11 +132,18 @@
 
 /* Mobile optimizations */
 @media (max-width: 480px) {
-  .hi-scale-button {
-    min-width: 44px;
-    min-height: 52px;
-    padding: 6px;
-    gap: 2px;
+  .hi-scale-butt2px;
+  }
+  
+  .hi-scale-selector {
+    gap: 6px;
+  }
+  
+  /* 🎯 GOLD STANDARD: Keep checkmark visible on mobile */
+  .hi-scale-button.selected::after {
+    width: 14px;
+    height: 14px;
+    font-size: 9px;
   }
   
   .hi-scale-emoji {
@@ -111,7 +155,13 @@
   }
   
   .hi-scale-selector {
-    gap: 6px;
+    gackground: rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+  
+  .hi-scale-button.selected {
+    background: var(--scale-color, #4ecdc4);
+    border-color: rgba(255, 255, 255, 0.9
   }
 }
 
