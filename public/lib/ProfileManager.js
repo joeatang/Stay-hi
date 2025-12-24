@@ -216,7 +216,7 @@ class ProfileManager {
       const { error: archiveError } = await this._supabase
         .from('hi_archives')
         .update({
-          metadata: this._supabase.raw(`metadata || '${JSON.stringify(metadataUpdate)}'::jsonb`)
+          metadata: metadataUpdate
         })
         .eq('user_id', this._userId);
 
