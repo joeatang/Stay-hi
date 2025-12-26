@@ -234,6 +234,7 @@ class HiIslandRealFeed {
         
         if (!error && shares) {
           console.log('🏆 Loaded shares with LIVE profile data + reaction counts (view exists)');
+          console.log('🔍 REACTION DEBUG: First share wave_count =', shares[0]?.wave_count, 'peace_count =', shares[0]?.peace_count);
         }
       } catch (viewError) {
         console.log('📊 View not available, using JOIN query');
@@ -376,6 +377,9 @@ class HiIslandRealFeed {
           // But use localStorage cache if fresher (within 30s) to handle trigger latency
           wave_count: this.getDisplayCount('wave', share.id, share.wave_count),
           peace_count: this.getDisplayCount('peace', share.id, share.peace_count),
+          // 🔍 DEBUG: Log what we got from DB vs what we're displaying
+          _debug_db_wave: share.wave_count,
+          _debug_display_wave: this.getDisplayCount('wave', share.id, share.wave_count),
           // 🏆 Add medallion/emoji data for rendering
           currentEmoji: share.current_emoji || '👋',
           currentName: share.current_name || 'Hi',
@@ -1314,7 +1318,7 @@ class HiIslandRealFeed {
         ${this.createEmotionalJourneyHTML(share)}
         ${this.createIntensityBadgeHTML(share.hi_intensity)}
         ${originBadgeHTML}
-      </div>
+      </div> data-debug-count="${share.wave_count}" data-debug-db="${share._debug_db_wave}"
       
       <div class="share-actions">
         <button class="share-action-btn" data-action="wave" data-share-id="${share.id}">
