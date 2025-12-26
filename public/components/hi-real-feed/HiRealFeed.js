@@ -117,8 +117,9 @@ class HiIslandRealFeed {
       
       if (cachedData) {
         const age = Date.now() - cachedData.timestamp;
+        const normalizedDbCount = typeof dbCount === 'number' ? dbCount : 0;
         // Use cache if < 30 seconds old AND higher than DB (DB trigger may not have completed yet)
-        if (age < 30000 && cachedData.count > dbCount) {
+        if (age < 30000 && cachedData.count > normalizedDbCount) {
           console.log(`📦 Using cached ${type}_count for ${shareId}:`, cachedData.count, '(DB:', dbCount, ')');
           return cachedData.count;
         }
