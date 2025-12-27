@@ -471,7 +471,7 @@ class HiIslandRealFeed {
       // Query REAL hi_archives table for user's personal data
       const { data: archives, error } = await supabase
         .from('hi_archives')
-        .select('id, user_id, content, visibility, original_share_id, location_data, metadata, created_at, updated_at')
+        .select('id, user_id, content, original_share_id, location_data, metadata, created_at, updated_at')
         .eq('user_id', this.currentUserId)
         .order('created_at', { ascending: false })
         .range(this.pagination.archives.page * 20, (this.pagination.archives.page + 1) * 20 - 1);
