@@ -678,10 +678,12 @@ class HiIslandMap {
 
     // Create popup content
     const timeAgo = this.formatTimeAgo(share.createdAt);
+    const userIdAttr = share.user_id ? `data-user-id="${share.user_id}"` : '';
+    const usernameClick = share.user_id ? `onclick="if(window.openProfileModal) window.openProfileModal('${share.user_id}')" style="cursor: pointer; color: #FFD166; text-decoration: underline;"` : '';
     const popupContent = `
       <div style="max-width: 200px;">
         <div style="font-weight: 600; margin-bottom: 4px;">
-          ${share.userName || 'Hi Friend'}
+          <span ${userIdAttr} ${usernameClick}>${share.userName || 'Hi Friend'}</span>
         </div>
         <div style="font-size: 13px; color: #666; margin-bottom: 8px;">
           ${share.currentEmoji} → ${share.desiredEmoji}

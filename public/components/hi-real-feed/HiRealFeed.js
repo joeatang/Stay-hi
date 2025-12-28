@@ -1315,7 +1315,7 @@ class HiIslandRealFeed {
 
     element.innerHTML = `
       <div class="share-header">
-        <div class="share-user" style="cursor: pointer;" onclick="window.location.href='/profile.html?user=${share.user_id}'" title="View ${this.escapeHtml(share.display_name || 'Hi Friend')}'s profile">
+        <div class="share-user" style="cursor: pointer;" onclick="if(window.openProfileModal && '${share.user_id}') window.openProfileModal('${share.user_id}')" title="View ${this.escapeHtml(share.display_name || 'Hi Friend')}'s profile">
           ${share.avatar_url ? 
             `<img src="${share.avatar_url}" alt="Avatar" class="share-avatar" style="cursor: pointer;">` :
             '<div class="share-avatar-placeholder" style="cursor: pointer;">👤</div>'
