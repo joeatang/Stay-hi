@@ -3035,27 +3035,63 @@ FOR INSERT WITH CHECK (
         const supabase = await getSupabaseClient();
         console.log('✅ [INLINE] Supabase client obtained:', !!supabase);
         
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        // 🛡️ FIX: Double-check session using both methods to prevent false negatives
+        let session = null;
+        let sessionError = null;
+        
+        try {
+          // Method 1: getSession (from storage)
+          const { data: sessionData, error } = await supabase.auth.getSession();
+          session = sessionData?.session;
+          sessionError = error;
+          
+          // Method 2: If no session, try getUser (from JWT)
+          if (!session && !error) {
+            console.log('🔍 [INLINE] No session in storage, checking JWT...');
+            const { data: userData, error: userError } = await supabase.auth.getUser();
+            if (userData?.user && !userError) {
+              console.log('✅ [INLINE] Found valid JWT, creating session object');
+              session = { user: userData.user };
+            }
+          }
+        } catch (err) {
+          console.error('❌ [INLINE] Session check error:', err);
+          sessionError = err;
+        }
+        
         if (sessionError) {
           console.error('❌ [INLINE] Session error:', sessionError);
-          throw sessionError;
+          // Don't throw - might be temporary network issue
         }
         
         const isAuthenticated = !!(session?.user);
         
-        console.log('🔐 [INLINE] Authentication status:', isAuthenticated ? 'AUTHENTICATED' : 'ANONYMOUS');
+        console.log('🔐 [INLINE] Authentication status:', isAuthenticated ? 'AUTHENTICATED ✅' : 'ANONYMOUS ⚠️');
         console.log('🔍 [INLINE] Session user:', session?.user?.email || 'none');
         console.log('🔍 [INLINE] User ID:', session?.user?.id || 'none');
         
         if (!isAuthenticated) {
           console.log('🚨 Anonymous user detected - profile page requires authentication');
-          // 🔒 SECURITY: Redirect anonymous users to sign in
-          const isLocal = window.location.hostname === 'localhost';
-          const signinPath = isLocal ? '/public/signin.html' : '/signin.html';
-          const redirectUrl = signinPath + '?redirect=' + encodeURIComponent(window.location.pathname);
-          console.log('🔄 Redirecting to:', redirectUrl);
-          window.location.href = redirectUrl;
-          return; // Stop execution - page will redirect
+          
+          // 🛡️ FIX: Add delay to give AuthReady one more chance to load session
+          console.log('⏳ Waiting 1 second for potential session load...');
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Final check after delay
+          const { data: { session: finalSession } } = await supabase.auth.getSession();
+          if (finalSession?.user) {
+            console.log('✅ Session loaded after delay - continuing with profile load');
+            session = finalSession;
+          } else {
+            // Still no session - redirect to signin
+            console.log('🔒 No session after delay - redirecting to signin');
+            const isLocal = window.location.hostname === 'localhost';
+            const signinPath = isLocal ? '/public/signin.html' : '/signin.html';
+            const redirectUrl = signinPath + '?redirect=' + encodeURIComponent(window.location.pathname);
+            console.log('🔄 Redirecting to:', redirectUrl);
+            window.location.href = redirectUrl;
+            return; // Stop execution - page will redirect
+          }
         }
         
         // Tesla-Grade Loading Priority for authenticated users: DATABASE FIRST (source of truth)

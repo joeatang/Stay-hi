@@ -81,11 +81,11 @@ export class ProfilePreviewModal {
           <!-- Divider -->
           <div class="profile-modal-divider"></div>
 
-          <!-- Future: Stats/Membership Tier -->
+          <!-- Membership Tier -->
           <div class="profile-modal-stats">
             <div class="profile-modal-stat">
-              <div class="profile-modal-stat-value">🌟</div>
-              <div class="profile-modal-stat-label">Member</div>
+              <div class="profile-modal-stat-value" id="profile-modal-tier-icon">🌟</div>
+              <div class="profile-modal-stat-label" id="profile-modal-tier-label">Member</div>
             </div>
           </div>
         </div>
@@ -284,6 +284,41 @@ export class ProfilePreviewModal {
         locationContainer.style.display = 'none';
       }
     }
+
+    // Update tier display with branded labels
+    const tierLabelEl = this.root.querySelector('#profile-modal-tier-label');
+    const tierIconEl = this.root.querySelector('#profile-modal-tier-icon');
+    
+    if (tierLabelEl && profile.tier) {
+      // Branded tier labels with emojis
+      const tierLabels = {
+        'free': 'Free Member',
+        'bronze': 'Hi Pathfinder',
+        'silver': 'Hi Explorer',
+        'gold': 'Hi Trailblazer',
+        'platinum': 'Hi Legend',
+        'premium': 'Hi Pioneer',
+        'diamond': 'Hi Icon'
+      };
+      
+      const tierIcons = {
+        'free': '🌟',
+        'bronze': '🧭',
+        'silver': '🗺️',
+        'gold': '⭐',
+        'platinum': '💎',
+        'premium': '🔥',
+        'diamond': '👑'
+      };
+      
+      const brandedLabel = tierLabels[profile.tier] || 'Member';
+      const tierIcon = tierIcons[profile.tier] || '🌟';
+      
+      tierLabelEl.textContent = brandedLabel;
+      if (tierIconEl) {
+        tierIconEl.textContent = tierIcon;
+      }
+    }
   }
 
   // Show loading state
@@ -297,12 +332,18 @@ export class ProfilePreviewModal {
     if (error) error.style.display = 'none';
   }
 
-  // Tesla UX-Preserving: Fetch limited community profile (no bio, location, stats - just display info)
+  // Tesla UX-Preserving: Fetch community profile (username, display_name, avatar, bio - safe public data only)
   async fetchCommunityProfile(userId) {
     try {
-      // Get Supabase client
-      const supa = window.hiDB?.getSupabase?.() || window.supabase;
+      // Get Supabase client (Tesla-grade compatibility with all possible aliases)
+      const supa = window.__HI_SUPABASE_CLIENT || window.hiSupabase || window.supabaseClient || window.sb;
       if (!supa) {
+        console.error('❌ Supabase client not available:', {
+          __HI_SUPABASE_CLIENT: !!window.__HI_SUPABASE_CLIENT,
+          hiSupabase: !!window.hiSupabase,
+          supabaseClient: !!window.supabaseClient,
+          sb: !!window.sb
+        });
         throw new Error('Supabase client not available');
       }
 
@@ -329,7 +370,9 @@ export class ProfilePreviewModal {
         id: profile.id,
         username: profile.username,
         display_name: profile.display_name,
-        has_avatar: !!profile.avatar_url
+        has_avatar: !!profile.avatar_url,
+        has_bio: !!profile.bio,
+        tier: profile.tier
       });
 
       return profile;

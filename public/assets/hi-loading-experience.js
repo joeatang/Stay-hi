@@ -302,16 +302,29 @@ document.addEventListener('click', () => {
       return;
     }
     
+    // 🛡️ FIX: Prevent double-hide with execution guard
+    let splashHidden = false;
+    
     // Hide when page is ready (wait for custom event or DOMContentLoaded + data)
     const hideSplash = async () => {
+      if (splashHidden) {
+        console.log('🎬 Splash already hidden, skipping');
+        return;
+      }
+      splashHidden = true;
+      
       const elapsed = Date.now() - splashStartTime;
       const isMobile = window.innerWidth <= 768;
-      const minimumDuration = isMobile ? 1400 : 800; // Mobile: full animation, Desktop: snappy
+      const minimumDuration = isMobile ? 1400 : 1200; // Mobile: full animation, Desktop: smooth transition
       const remaining = Math.max(0, minimumDuration - elapsed);
       
-      console.log('🎬 Hiding splash after', elapsed + remaining, 'ms');
+      console.log('🎬 Hiding splash after', elapsed + remaining, 'ms (elapsed:', elapsed, 'ms, minimum:', minimumDuration, 'ms)');
       
-      await new Promise(resolve => setTimeout(resolve, remaining));
+      // Ensure minimum duration for smooth experience
+      if (remaining > 0) {
+        await new Promise(resolve => setTimeout(resolve, remaining));
+      }
+      
       if (window.hiLoadingExperience) {
         await window.hiLoadingExperience.hide();
         window.hiLoadingExperience.isShowing = false;
@@ -319,16 +332,21 @@ document.addEventListener('click', () => {
     };
     
     // Listen for custom ready event (if app emits it)
-    window.addEventListener('hi:ready', hideSplash, { once: true });
+    window.addEventListener('hi:ready', () => {
+      console.log('🎬 hi:ready event received');
+      hideSplash();
+    }, { once: true });
     
     // Fallback: DOMContentLoaded + minimum duration
     window.addEventListener('DOMContentLoaded', () => {
-      // If hi:ready hasn't fired yet, hide after short delay
+      console.log('🎬 DOMContentLoaded fired');
+      // Wait a bit longer for data to load
       setTimeout(() => {
-        if (window.hiLoadingExperience?.isShowing) {
+        if (!splashHidden && window.hiLoadingExperience?.isShowing) {
+          console.log('🎬 Fallback: hiding splash via DOMContentLoaded');
           hideSplash();
         }
-      }, 100);
+      }, 500); // Give data loading time to complete
     });
   }
 })();
