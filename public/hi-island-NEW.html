@@ -1651,6 +1651,14 @@
   
   <script src="components/profile-preview-modal/profile-modal.js" type="module"></script>
   
+  <!-- Initialize Profile Modal -->
+  <script type="module">
+    import { ProfilePreviewModal } from './components/profile-preview-modal/profile-modal.js';
+    const modal = new ProfilePreviewModal();
+    modal.init();
+    console.log('✅ Profile modal initialized - window.openProfileModal() ready');
+  </script>
+  
   <!-- Optional Components -->
   <script src="components/hi-island-map/map.js" type="module"></script>
   <!-- <script src="components/hi-island-feed/feed.js" type="module"></script> -->

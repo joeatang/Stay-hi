@@ -305,7 +305,8 @@ document.addEventListener('click', () => {
     // Hide when page is ready (wait for custom event or DOMContentLoaded + data)
     const hideSplash = async () => {
       const elapsed = Date.now() - splashStartTime;
-      const minimumDuration = 800; // Perceptible minimum
+      const isMobile = window.innerWidth <= 768;
+      const minimumDuration = isMobile ? 1400 : 800; // Mobile: full animation, Desktop: snappy
       const remaining = Math.max(0, minimumDuration - elapsed);
       
       console.log('🎬 Hiding splash after', elapsed + remaining, 'ms');
