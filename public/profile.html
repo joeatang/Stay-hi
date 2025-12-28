@@ -2609,10 +2609,15 @@ FOR INSERT WITH CHECK (
     });
     
     function populateEditForm() {
-      document.getElementById('editDisplayName').value = currentProfile.display_name || '';
-      document.getElementById('editUsername').value = currentProfile.username || '';
-      document.getElementById('editBio').value = currentProfile.bio || '';
-      document.getElementById('editLocation').value = currentProfile.location || '';
+      const displayNameEl = document.getElementById('editDisplayName');
+      const usernameEl = document.getElementById('editUsername');
+      const bioEl = document.getElementById('editBio');
+      const locationEl = document.getElementById('editLocation');
+      
+      if (displayNameEl) displayNameEl.value = currentProfile.display_name || '';
+      if (usernameEl) usernameEl.value = currentProfile.username || '';
+      if (bioEl) bioEl.value = currentProfile.bio || '';
+      if (locationEl) locationEl.value = currentProfile.location || '';
       // Tesla Security: Public profile feature removed
       
       // Update bio counter
