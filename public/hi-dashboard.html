@@ -117,11 +117,11 @@
   <script src="./components/AccessGateModal.js"></script>
   <!-- Access telemetry + upgrade handlers + SW register -->
   <script src="./lib/access/AccessGateTelemetry.js"></script>
-  <script src="./lib/access/AccessGateTelemetryExport.js"></script>
-  <script src="./lib/boot/upgrade-cta.js"></script>
-  <script src="./lib/boot/sw-register.js"></script>
+  <script src="./lib/access/AccessGateTelemetryExport.js" defer></script>
+  <script src="./lib/boot/upgrade-cta.js" defer></script>
+  <script src="./lib/boot/sw-register.js" defer></script>
   <!-- Unified Admin Access Orchestrator (events + caching) -->
-  <script src="./lib/admin/AdminAccessManager.js"></script>
+  <script src="./lib/admin/AdminAccessManager.js" defer></script>
   <!-- Post-Auth Admin Check: Force admin verification after login -->
   <script>
     window.addEventListener('hi:auth-ready', async () => {
@@ -154,7 +154,7 @@
   <script src="lib/HiGoldStandardModal.js" async></script>
   
   <!-- 🛡️ WOZ-GRADE: Stats Write Guard (prevents cross-nav counter drift) -->
-  <script src="lib/stats/StatsWriteGuard.js"></script>
+  <script src="lib/stats/StatsWriteGuard.js" defer></script>
   
   <!-- 🔥 Phase 7: Hi Experience Layer Components (Async Loading) -->
   <script type="module" src="./lib/hifeed/index.js"></script>
@@ -191,9 +191,9 @@
   <script type="module" src="./lib/HiDash.boot.js"></script>
   
   <!-- Premium Authentication & UX (Async) -->
-  <script src="assets/post-auth-path.js"></script>
+  <script src="assets/post-auth-path.js" defer></script>
   <!-- Removed progressive-auth.js (replaced by unified AccessGate + AuthShim) -->
-  <script src="lib/access/AuthShim.js"></script>
+  <script src="lib/access/AuthShim.js" defer></script>
   <!-- 🎯 TIER CONFIG - Must load BEFORE HiMembership.js -->
   <script src="./lib/config/TIER_CONFIG.js"></script>
   <script src="./lib/HiMembership.js" defer></script>

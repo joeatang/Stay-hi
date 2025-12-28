@@ -92,7 +92,15 @@ class HiLoadingExperience {
     this.overlay.appendChild(content);
     
     // Add to DOM (hidden by default via CSS)
-    document.body.appendChild(this.overlay);
+    // 🛡️ RACE CONDITION FIX: Ensure body exists before appending
+    if (document.body) {
+      document.body.appendChild(this.overlay);
+    } else {
+      // Body not ready yet - wait for it
+      document.addEventListener('DOMContentLoaded', () => {
+        document.body.appendChild(this.overlay);
+      }, { once: true });
+    }
   }
 
   /**
@@ -262,23 +270,8 @@ document.addEventListener('click', () => {
     return SPLASH_PAGES.some(page => urlLower.includes(page));
   }
 
-  // Intercept window.location changes
-  const originalAssign = window.location.assign;
-  const originalReplace = window.location.replace;
-
-  window.location.assign = function(url) {
-    if (shouldShowSplash(url)) {
-      window.hiLoadingExperience?.start('Loading your Hi experience...');
-    }
-    return originalAssign.call(window.location, url);
-  };
-
-  window.location.replace = function(url) {
-    if (shouldShowSplash(url)) {
-      window.hiLoadingExperience?.start('Preparing your journey...');
-    }
-    return originalReplace.call(window.location, url);
-  };
+  // Note: Cannot intercept window.location methods (read-only in modern browsers)
+  // Splash screens are triggered explicitly via button clicks instead
 
   // Show splash on current page if it's a heavy page
   const currentPage = window.location.pathname;

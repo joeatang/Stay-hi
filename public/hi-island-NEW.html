@@ -34,9 +34,9 @@
   <script src="components/AccessGateModal.js"></script>
   
   <!-- 🔐 Authentication System (Tesla-Grade Progressive Auth) -->
-  <script src="assets/post-auth-path.js"></script>
+  <script src="assets/post-auth-path.js" defer></script>
   <!-- Unified Auth Shim replaces progressive-auth.js -->
-  <script src="lib/access/AuthShim.js"></script>
+  <script src="lib/access/AuthShim.js" defer></script>
   <!-- Silence verbose logs in production unless debug flags are present -->
   <script src="lib/boot/prod-quiet-console.js"></script>
   
@@ -48,7 +48,7 @@
   <script src="lib/HiGoldStandardModal.js" async></script>
   
   <!-- 🛡️ WOZ-GRADE: Stats Write Guard (prevents navigation increments) -->
-  <script src="lib/stats/StatsWriteGuard.js"></script>
+  <script src="lib/stats/StatsWriteGuard.js" defer></script>
   
   <!-- 🎨 Hi Brand Tier System (Single Source of Truth) -->
   <script src="lib/HiBrandTiers.js" async></script>
@@ -97,14 +97,14 @@
   <script src="assets/smart-conversion-system.js" defer></script>
 
   <!-- Unified Admin Access Manager + auto-reveal/gating -->
-  <script src="./lib/admin/AdminAccessManager.js"></script>
+  <script src="./lib/admin/AdminAccessManager.js" defer></script>
   <!-- Admin smart auto-redirect retained -->
-  <script src="./lib/boot/admin-auto-redirect.js"></script>
+  <script src="./lib/boot/admin-auto-redirect.js" defer></script>
   <!-- Access telemetry + upgrade handlers + SW register -->
-  <script src="./lib/access/AccessGateTelemetry.js"></script>
-  <script src="./lib/access/AccessGateTelemetryExport.js"></script>
-  <script src="./lib/boot/upgrade-cta.js"></script>
-  <script src="./lib/boot/sw-register.js"></script>
+  <script src="./lib/access/AccessGateTelemetry.js" defer></script>
+  <script src="./lib/access/AccessGateTelemetryExport.js" defer></script>
+  <script src="./lib/boot/upgrade-cta.js" defer></script>
+  <script src="./lib/boot/sw-register.js" defer></script>
 
   <!-- Lightweight diagnostics (only runs with ?diag=1) -->
   <script>
@@ -1628,10 +1628,10 @@
   <script src="components/hi-real-feed/UnifiedHiIslandController.js?v=20241222-prod" type="module"></script>
   
   <!-- � Hi Scale Component (needed for intensity selection in share sheet) -->
-  <script src="ui/HiScale/HiScale.js?v=20241223-fix"></script>
+  <script src="ui/HiScale/HiScale.js?v=20241223-fix" type="module"></script>
   
   <!-- 📤 Share Sheet System (handles all sharing UI + logic) -->
-  <script src="ui/HiShareSheet/HiShareSheet.js?v=20241223-fix"></script>
+  <script src="ui/HiShareSheet/HiShareSheet.js?v=20241223-fix" type="module"></script>
   
   <!-- �🎨 HI SHAREABLE CARD: Viral growth feature -->
   <script src="components/HiShareableCard/HiShareableCard.js"></script>

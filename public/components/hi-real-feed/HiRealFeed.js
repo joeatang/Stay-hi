@@ -286,8 +286,21 @@ class HiIslandRealFeed {
           display_name: shares[0].display_name,
           avatar_url: shares[0].avatar_url,
           profiles: shares[0].profiles,
-          created_at: shares[0].created_at
+          created_at: shares[0].created_at,
+          wave_count: shares[0].wave_count,
+          peace_count: shares[0].peace_count
         });
+        
+        // Check if ANY shares in the batch have reactions
+        const sharesWithReactions = shares.filter(s => s.wave_count > 0 || s.peace_count > 0);
+        console.log(`🔍 REACTION SCAN: ${sharesWithReactions.length} out of ${shares.length} shares have reactions`);
+        if (sharesWithReactions.length > 0) {
+          console.log('📊 Sample share WITH reactions:', {
+            id: sharesWithReactions[0].id,
+            wave_count: sharesWithReactions[0].wave_count,
+            peace_count: sharesWithReactions[0].peace_count
+          });
+        }
       } else {
         console.warn('⚠️ No shares found in public_shares table');
       }
@@ -978,7 +991,10 @@ class HiIslandRealFeed {
             btn.classList.add('peaced');
             btn.disabled = true;
             btn.setAttribute('aria-pressed', 'true');
-            btn.textContent = '🕊️ Peace Sent';
+            // 🎯 FIX: Show count consistently (like "🕊️ 1 Peace") for already-reacted shares
+            // This matches the text set after clicking (line 1192)
+            const peaceCount = share.peace_count || 0;
+            btn.textContent = `🕊️ ${peaceCount} Peace`;
           }
         }
       } catch {}
@@ -1318,9 +1334,9 @@ class HiIslandRealFeed {
         ${this.createEmotionalJourneyHTML(share)}
         ${this.createIntensityBadgeHTML(share.hi_intensity)}
         ${originBadgeHTML}
-      </div> data-debug-count="${share.wave_count}" data-debug-db="${share._debug_db_wave}"
+      </div>
       
-      <div class="share-actions">
+      <div class="share-actions" data-debug-wave="${share.wave_count}" data-debug-peace="${share.peace_count}">
         <button class="share-action-btn" data-action="wave" data-share-id="${share.id}">
           ${typeof share.wave_count === 'number' && share.wave_count > 0 ? `👋 ${share.wave_count} ${share.wave_count === 1 ? 'Wave' : 'Waves'}` : '👋 Wave Back'}
         </button>
