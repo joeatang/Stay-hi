@@ -3802,15 +3802,16 @@ FOR INSERT WITH CHECK (
       }, 5000);
       
       // Initialize profile display
-      if (typeof updateProfileDisplay === 'function' && currentProfile) {
-        updateProfileDisplay(currentProfile);
-      } else {
-        console.warn('⚠️ updateProfileDisplay function or currentProfile not available');
-      }
-      
-      if (typeof updateStatsDisplay === 'function' && userStats) {
-        updateStatsDisplay(userStats);
-      }
+      setTimeout(() => {
+        if (typeof updateProfileDisplay === 'function' && currentProfile) {
+          updateProfileDisplay(currentProfile);
+        } else {
+          console.warn('⚠️ updateProfileDisplay function or currentProfile not available');
+        }
+        
+        if (typeof updateStatsDisplay === 'function' && userStats) {
+          updateStatsDisplay(userStats);
+        }
       }, 500);
       
       // Avatar file input handler
