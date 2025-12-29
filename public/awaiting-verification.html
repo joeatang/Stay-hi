@@ -336,7 +336,13 @@
         const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY;
         
         if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-          supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+              persistSession: true,
+              autoRefreshToken: true,
+              detectSessionInUrl: true
+            }
+          });
           
           // Start checking for verification every 3 seconds
           startSessionCheck();
