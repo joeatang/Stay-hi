@@ -235,14 +235,15 @@ class ProfileManager {
    * Wait for Supabase client to be available
    */
   async _waitForSupabase() {
-    const maxAttempts = 50; // 5 seconds
+    const maxAttempts = 100; // 5 seconds (50ms intervals)
     for (let i = 0; i < maxAttempts; i++) {
       const client = window.supabaseClient || window.sb || window.__HI_SUPABASE_CLIENT;
       if (client && client.auth) {
         console.log('✅ Supabase client ready');
         return client;
       }
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // 🚀 WOZ OPTIMIZATION: Faster polling for snappier auth
+      await new Promise(resolve => setTimeout(resolve, 50));
     }
     throw new Error('Supabase client not available after 5 seconds');
   }
@@ -385,14 +386,41 @@ class ProfileManager {
    */
   _setupEventListeners() {
     // Listen for auth state changes
-    this._supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔐 Auth state changed:', event);
+    this._supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔐 Auth state changed:', event, session?.user?.id);
       
-      if (event === 'SIGNED_IN' && session?.user) {
+      if (event === 'INITIAL_SESSION' && session?.user) {
+        // CRITICAL FIX: Update userId immediately on INITIAL_SESSION
+        const previousUserId = this._userId;
         this._userId = session.user.id;
-        this._loadProfileFromDatabase();
+        this._authReady = true;
+        
+        console.log('🔐 INITIAL_SESSION detected - updating userId:', {
+          previous: previousUserId,
+          new: this._userId
+        });
+        
+        // Load profile if user changed
+        if (previousUserId !== this._userId) {
+          await this._loadProfileFromDatabase();
+          
+          // Emit auth-ready event for components
+          window.dispatchEvent(new CustomEvent('hi:auth-ready', {
+            detail: { userId: this._userId, session: session }
+          }));
+        }
+      } else if (event === 'SIGNED_IN' && session?.user) {
+        this._userId = session.user.id;
+        this._authReady = true;
+        await this._loadProfileFromDatabase();
+        
+        // Emit auth-ready event
+        window.dispatchEvent(new CustomEvent('hi:auth-ready', {
+          detail: { userId: this._userId, session: session }
+        }));
       } else if (event === 'SIGNED_OUT') {
         this._userId = null;
+        this._authReady = true;
         this._profile = this._getAnonymousProfile();
         // Clear localStorage
         Object.keys(localStorage).forEach(key => {

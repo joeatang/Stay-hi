@@ -216,8 +216,13 @@ function initializeOriginFilters() {
     }
 
     const setActive = (filter) => {
+      console.log(`🎨 setActive called with filter: ${filter}`);
       btns.forEach(b => {
         const isActive = b.dataset.filter === filter;
+        const buttonLabel = b.textContent.trim();
+        
+        console.log(`  Button "${buttonLabel}": ${isActive ? '✅ ACTIVE' : '⚪ inactive'}`);
+        
         b.classList.toggle('active', isActive);
         b.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         
@@ -226,19 +231,25 @@ function initializeOriginFilters() {
           b.style.background = 'rgba(255, 255, 255, 0.9)';
           b.style.color = '#111';
           b.style.fontWeight = '700';
+          b.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.15)';
+          b.style.transform = 'scale(1.02)';
         } else {
           b.style.background = 'rgba(255, 255, 255, 0.1)';
           b.style.color = 'rgba(255, 255, 255, 0.8)';
           b.style.fontWeight = '600';
+          b.style.boxShadow = 'none';
+          b.style.transform = 'scale(1)';
         }
       });
+      console.log(`✅ Visual state updated for filter: ${filter}`);
     };
 
     // Wait for hiRealFeed to exist before attaching click handlers
     const attachHandlers = () => {
       if (!window.hiRealFeed) {
         console.log('⏳ Waiting for hiRealFeed...');
-        setTimeout(attachHandlers, 100);
+        // 🚀 WOZ OPTIMIZATION: Faster polling for snappier filter initialization
+        setTimeout(attachHandlers, 50);
         return;
       }
 

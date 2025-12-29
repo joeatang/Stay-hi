@@ -54,15 +54,21 @@
       height: 140px;
       border-radius: 32px;
       box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-      animation: logoGlow 3s ease-in-out infinite;
+      /* 🎯 USER REQUEST: Logo visible instantly, faster animation */
+      opacity: 1 !important;
+      animation: logoGlow 2s ease-in-out infinite;
+      /* 🚀 GPU acceleration for buttery smooth animation */
+      will-change: transform, filter;
+      transform: translateZ(0);
+      backface-visibility: hidden;
     }
     @keyframes logoGlow {
       0%, 100% { 
-        transform: scale(1);
+        transform: scale(1) translateZ(0);
         filter: drop-shadow(0 0 20px rgba(255, 122, 24, 0.4));
       }
       50% { 
-        transform: scale(1.05);
+        transform: scale(1.05) translateZ(0);
         filter: drop-shadow(0 0 30px rgba(255, 122, 24, 0.6));
       }
     }
@@ -79,13 +85,20 @@
       if (!splash) return;
       
       const elapsed = performance.now() - window.splashStartTime;
-      const minDuration = window.innerWidth <= 768 ? 1400 : 1200;
+      // 🎯 USER REQUEST: Longer splash to ensure all logic loads (auth, filters, feed)
+      const minDuration = window.innerWidth <= 768 ? 1800 : 1600;
       const remaining = Math.max(0, minDuration - elapsed);
       
       setTimeout(() => {
-        splash.style.transition = 'opacity 0.3s ease-out';
+        // 🚀 WOZ OPTIMIZATION: GPU-accelerated fade for buttery smooth transition
+        splash.style.transition = 'opacity 0.25s ease-out';
+        splash.style.willChange = 'opacity';
+        splash.style.transform = 'translateZ(0)';
         splash.style.opacity = '0';
-        setTimeout(() => splash.remove(), 300);
+        setTimeout(() => {
+          splash.style.willChange = 'auto'; // Clean up
+          splash.remove();
+        }, 250);
       }, remaining);
     }, { once: true });
   </script>
@@ -747,7 +760,8 @@
       }
     }
 
-    /* 📊 FEED CONTAINER - UNIFIED SCROLL STREAM */
+    /* 📊 FEED CONTAINER - Natural Page Content (No Scroll Container)
+       🚀 WOZ FIX: Container is decorative only - window scroll handles feed */
     .feed-container {
       background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(20px);
@@ -755,8 +769,7 @@
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 20px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-      /* ✅ GOLD STANDARD: No height constraint on container itself
-         Inner feed content (created by UnifiedController) handles scrolling */
+      /* ✅ GOLD STANDARD: Window scroll handles all scrolling */
       overflow: visible;
     }
     
@@ -797,15 +810,15 @@
       transform: scale(1.02) translateY(-1px);
     }
     
-    /* 🚀 SCROLLABLE FEED CONTENT: Gold Standard Mobile-First Scroll */
+    /* 🚀 WOZ FIX: Natural Page Scroll (Twitter/Instagram Pattern)
+       Feed is normal page content - no container scroll needed.
+       Window scroll handles everything - simpler, more intuitive for all ages. */
     .hi-feed-container {
-      overflow-y: auto !important;
+      overflow-y: visible !important;
       overflow-x: hidden !important;
-      max-height: calc(100vh - 400px) !important;
-      /* Mobile-first smooth scrolling */
+      /* No max-height - let content flow naturally */
+      /* Mobile-first smooth scrolling (handled by body) */
       -webkit-overflow-scrolling: touch !important;
-      overscroll-behavior-y: contain !important;
-      scroll-behavior: smooth !important;
       /* Reduce jank */
       will-change: transform;
       transform: translateZ(0);
@@ -816,15 +829,12 @@
       padding-bottom: 32px;
     }
     
-    /* Mobile optimization: more vertical space + momentum */
+    /* Mobile optimization: Natural page flow */
     @media (max-width: 768px) {
       .hi-feed-container {
-        max-height: calc(100vh - 320px) !important;
         padding: 12px;
         padding-bottom: 40px;
-        /* Enhanced momentum scrolling */
-        -webkit-overflow-scrolling: touch !important;
-        scroll-snap-type: y proximity;
+        /* Window scroll handles momentum */
       }
       
       /* Smooth scroll on individual share cards */
@@ -833,12 +843,8 @@
       }
     }
     
-    /* Tablet breakpoint */
-    @media (min-width: 769px) and (max-width: 1024px) {
-      .hi-feed-container {
-        max-height: calc(100vh - 360px) !important;
-      }
-    }
+    /* Tablet: Natural page scroll (no container constraints) */
+    /* .hi-feed-container window scrolling handled globally */
     
     /* 🎨 PREMIUM TABS - Integrated into feed container */
     .tabs {
@@ -1694,7 +1700,7 @@
   <!-- TEMPORARILY DISABLED: HiIslandIntegration.js - conflicts with main feed -->
   <!-- TEMPORARILY DISABLED: HiGoldStandardIntegration.js - DOM structure mismatch -->
   <!-- ✅ UNIFIED FEED SYSTEM: Single controller for all feed operations -->
-  <script src="components/hi-real-feed/HiRealFeed.js?v=20241222-final" type="module"></script>
+  <script src="components/hi-real-feed/HiRealFeed.js?v=20241229-window-scroll-v6" type="module"></script>
   <script src="components/hi-real-feed/UnifiedHiIslandController.js?v=20241222-prod" type="module"></script>
   
   <!-- � Hi Scale Component (needed for intensity selection in share sheet) -->

@@ -50,6 +50,11 @@ class HiIslandRealFeed {
       general: { page: 0, hasMore: true },
       archives: { page: 0, hasMore: true }
     };
+    
+    // 🔧 CRITICAL FIX: Track resources for cleanup (prevent memory leaks)
+    this._scrollHandlers = new Map(); // Store scroll handler references
+    this._abortController = null; // Cancel in-flight requests
+    
     // Origin filter state for General tab: 'all' | 'quick' | 'muscle' | 'island'
     this.originFilter = 'all';
     // Track locally waved shares to reflect UI state and reduce duplicates
@@ -67,6 +72,9 @@ class HiIslandRealFeed {
     } catch {
       this.peacedShares = new Set();
     }
+    
+    // 🔧 CRITICAL FIX: Listen for auth state changes to handle sign-in after page load
+    this.setupAuthListener();
   }
 
   // Initialize the feed with REAL data sources
@@ -145,6 +153,84 @@ class HiIslandRealFeed {
     }
   }
 
+  // 🔧 CRITICAL FIX: Listen for auth state changes (handles sign-in after init)
+  setupAuthListener() {
+    // Listen for Hi Island auth events
+    document.addEventListener('hi:auth-ready', (e) => {
+      const newUserId = e.detail?.user?.id || null;
+      if (newUserId && newUserId !== this.currentUserId) {
+        console.log('🔐 Auth state changed, updating user ID:', newUserId);
+        this.currentUserId = newUserId;
+        
+        // If Archives tab is active, reload it with new auth state
+        if (this.currentFeed === 'archives') {
+          console.log('🔄 Reloading Archives tab with new auth state');
+          this.loadFeedData();
+        }
+      }
+    });
+    
+    // Also check ProfileManager periodically for first 5 seconds (handles race condition)
+    if (window.ProfileManager) {
+      const checkAuthState = async () => {
+        const userId = window.ProfileManager.getUserId?.();
+        if (userId && userId !== this.currentUserId) {
+          console.log('🔐 ProfileManager auth detected, updating user ID:', userId);
+          this.currentUserId = userId;
+          
+          // If Archives tab is active, reload it
+          if (this.currentFeed === 'archives') {
+            console.log('🔄 Reloading Archives tab with new auth state');
+            this.loadFeedData();
+          }
+        }
+      };
+      
+      // Check periodically with exponential backoff
+      const intervals = [500, 1000, 2000, 5000];
+      intervals.forEach(delay => setTimeout(checkAuthState, delay));
+    }
+  }
+
+  // 🔧 CRITICAL FIX: Listen for auth state changes (handles sign-in after init)
+  setupAuthListener() {
+    // Listen for Hi Island auth events
+    document.addEventListener('hi:auth-ready', (e) => {
+      const newUserId = e.detail?.user?.id || null;
+      if (newUserId && newUserId !== this.currentUserId) {
+        console.log('🔐 Auth state changed, updating user ID:', newUserId);
+        this.currentUserId = newUserId;
+        
+        // If Archives tab is active, reload it with new auth state
+        if (this.currentFeed === 'archives') {
+          console.log('🔄 Reloading Archives tab with new auth state');
+          this.loadFeedData();
+        }
+      }
+    });
+    
+    // Also listen for ProfileManager updates
+    if (window.ProfileManager) {
+      const checkAuthState = async () => {
+        const userId = window.ProfileManager.getUserId?.();
+        if (userId && userId !== this.currentUserId) {
+          console.log('🔐 ProfileManager auth detected, updating user ID:', userId);
+          this.currentUserId = userId;
+          
+          // If Archives tab is active, reload it
+          if (this.currentFeed === 'archives') {
+            console.log('🔄 Reloading Archives tab with new auth state');
+            this.loadFeedData();
+          }
+        }
+      };
+      
+      // Check periodically for first 5 seconds (handles race condition)
+      const intervals = [500, 1000, 2000, 5000];
+      intervals.forEach(delay => setTimeout(checkAuthState, delay));
+    }
+  }
+
   // Get Supabase client (using unified resolution from HiDB)
   getSupabase() {
     // Use the unified resolver from HiDB if available
@@ -174,19 +260,25 @@ class HiIslandRealFeed {
   async loadFeedData(tabName = null) {
     const tabs = tabName ? [tabName] : ['general', 'archives'];
     
+    // 🔧 CRITICAL FIX: Create new AbortController for this load operation
+    this._abortController = new AbortController();
+    const signal = this._abortController.signal;
+    
     for (const tab of tabs) {
       try {
         if (tab === 'general') {
-          await this.loadGeneralSharesFromPublicShares();
+          await this.loadGeneralSharesFromPublicShares(signal);
         } else if (tab === 'archives') {
-          if (this.currentUserId) {
-            await this.loadUserArchivesFromHiArchives();
-          } else {
-            // Show authentication prompt for archives
-            this.showArchivesAuthRequired();
-          }
+          // 🔧 CRITICAL FIX: Always attempt to load archives
+          // loadUserArchivesFromHiArchives() will check LIVE auth state internally
+          await this.loadUserArchivesFromHiArchives(signal);
         }
       } catch (error) {
+        // Ignore abort errors (expected when tab switching)
+        if (error.name === 'AbortError') {
+          console.log(`🚫 ${tab} load cancelled (tab switch)`);
+          return;
+        }
         console.error(`❌ Failed to load ${tab} data:`, error);
         this.showErrorState(tab);
       }
@@ -194,7 +286,7 @@ class HiIslandRealFeed {
   }
 
   // Load general/public shares from public_shares table (REAL data source)
-  async loadGeneralSharesFromPublicShares() {
+  async loadGeneralSharesFromPublicShares(signal = null) {
     const supabase = this.getSupabase();
     if (!supabase) {
       console.error('❌ HiRealFeed: No Supabase client available for general shares');
@@ -223,11 +315,16 @@ class HiIslandRealFeed {
       // Try normalized view first, fall back to direct table query
       // 🚀 PERFORMANCE: Include wave_count and peace_count in initial query
       try {
-        const result = await supabase
+        const queryBuilder = supabase
           .from('public_shares_enriched')
           .select('*')
           .order('created_at', { ascending: false })
           .range(this.pagination.general.page * 20, (this.pagination.general.page + 1) * 20 - 1);
+        
+        // 🔧 CRITICAL FIX: Support cancellation via AbortController
+        const result = signal 
+          ? await queryBuilder.abortSignal(signal)
+          : await queryBuilder;
         
         shares = result.data;
         error = result.error;
@@ -242,7 +339,7 @@ class HiIslandRealFeed {
       
       // Fallback: Direct JOIN if view doesn't exist
       if (!shares || error) {
-        const result = await supabase
+        const queryBuilder = supabase
           .from('public_shares')
           .select(`
             *,
@@ -256,6 +353,11 @@ class HiIslandRealFeed {
           `)
           .order('created_at', { ascending: false })
           .range(this.pagination.general.page * 20, (this.pagination.general.page + 1) * 20 - 1);
+        
+        // 🔧 CRITICAL FIX: Support cancellation via AbortController
+        const result = signal 
+          ? await queryBuilder.abortSignal(signal)
+          : await queryBuilder;
         
         shares = result.data;
         error = result.error;
@@ -458,15 +560,65 @@ class HiIslandRealFeed {
   }
 
   // Load user's personal archives from hi_archives table (REAL data source)
-  async loadUserArchivesFromHiArchives() {
+  async loadUserArchivesFromHiArchives(signal = null) {
     const supabase = this.getSupabase();
-    if (!supabase || !this.currentUserId) {
-      console.warn('⚠️ No Supabase client or user not authenticated for archives');
+    if (!supabase) {
+      console.warn('⚠️ No Supabase client available for archives');
+      this.showArchivesAuthRequired();
       return;
     }
 
     try {
       this.isLoading = true;
+
+      // 🔧 CRITICAL FIX: Check LIVE auth state, not cached value from init
+      // This handles race condition where auth completes after HiRealFeed initializes
+      let liveUserId = this.currentUserId;
+      console.log('🔍 [AUTH CHECK] Starting auth check - cached user ID:', this.currentUserId);
+      
+      // Try to get live user ID from ProfileManager (most reliable)
+      if (window.ProfileManager?.getUserId) {
+        const profileUserId = window.ProfileManager.getUserId();
+        console.log('🔍 [AUTH CHECK] ProfileManager.getUserId() returned:', profileUserId);
+        if (profileUserId) {
+          liveUserId = profileUserId;
+          // Update cached value
+          if (liveUserId !== this.currentUserId) {
+            console.log('🔐 Updating cached user ID from ProfileManager:', liveUserId);
+            this.currentUserId = liveUserId;
+          }
+        }
+      } else {
+        console.log('⚠️ [AUTH CHECK] ProfileManager.getUserId not available');
+      }
+      
+      // If still no user ID, try fresh auth check
+      if (!liveUserId) {
+        console.log('🔍 [AUTH CHECK] No user ID from ProfileManager, trying fresh Supabase auth...');
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          liveUserId = user?.id || null;
+          console.log('🔍 [AUTH CHECK] supabase.auth.getUser() returned user ID:', liveUserId);
+          if (liveUserId !== this.currentUserId) {
+            console.log('🔐 Updating cached user ID from fresh auth check:', liveUserId);
+            this.currentUserId = liveUserId;
+          }
+        } catch (e) {
+          console.warn('⚠️ Fresh auth check failed:', e);
+        }
+      }
+      
+      console.log('🔍 [AUTH CHECK] Final liveUserId:', liveUserId);
+      
+      // Now check if user is authenticated
+      if (!liveUserId) {
+        console.log('🔒 No authenticated user found, showing auth required message');
+        this.isLoading = false; // 🔧 CRITICAL FIX: Reset loading state to enable scrolling
+        this.showArchivesAuthRequired();
+        return;
+      }
+      
+      console.log('✅ Loading archives for authenticated user:', liveUserId);
 
       // Ensure archives container exists before rendering
       const containerCheck = document.getElementById('archivesFeed') || document.querySelector('.hi-feed-content');
@@ -481,24 +633,78 @@ class HiIslandRealFeed {
         }
       }
 
-      // Query REAL hi_archives table for user's personal data
-      const { data: archives, error } = await supabase
+      // 🔧 GOLD STANDARD: Query using SELECT * to handle schema variations across environments
+      // This works regardless of which columns exist (content, journal, text, updated_at, etc.)
+      const queryBuilder = supabase
         .from('hi_archives')
-        .select('id, user_id, content, metadata, created_at, updated_at')
-        .eq('user_id', this.currentUserId)
+        .select('*')
+        .eq('user_id', liveUserId)
         .order('created_at', { ascending: false })
         .range(this.pagination.archives.page * 20, (this.pagination.archives.page + 1) * 20 - 1);
+      
+      // 🔧 CRITICAL FIX: Support cancellation via AbortController
+      const { data: archives, error } = signal 
+        ? await queryBuilder.abortSignal(signal)
+        : await queryBuilder;
 
       if (error) {
-        console.error('❌ Failed to load from hi_archives:', error);
+        // 🔧 GOLD STANDARD ERROR LOGGING: Log full error details for debugging
+        console.error('❌ Failed to load from hi_archives:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          statusCode: error.status || error.statusCode
+        });
+        
+        // 🔧 CRITICAL FIX: Handle 400 errors gracefully (table doesn't exist OR RLS blocking OR schema issues)
+        // Check for table not existing
+        if (error.code === '42P01' || 
+            error.message?.toLowerCase().includes('relation') || 
+            error.message?.toLowerCase().includes('does not exist') ||
+            error.message?.toLowerCase().includes('table')) {
+          console.error('🚨 hi_archives table does not exist in database. Run FIX_HI_ISLAND_STUCK_ARCHIVES_400.sql');
+          this.showArchivesTableMissing();
+          return;
+        }
+        
+        // Check for RLS policy blocking
+        if (error.code === 'PGRST116' || 
+            error.code === '42501' || 
+            error.message?.toLowerCase().includes('policy') ||
+            error.message?.toLowerCase().includes('permission') ||
+            error.message?.toLowerCase().includes('rls')) {
+          console.warn('🔐 RLS policy blocking hi_archives access - user may not be properly authenticated');
+          this.showArchivesAuthRequired();
+          return;
+        }
+        
+        // Check for authentication issues
+        if (error.code === '401' || 
+            error.status === 401 ||
+            error.message?.toLowerCase().includes('unauthorized') ||
+            error.message?.toLowerCase().includes('not authenticated')) {
+          console.warn('🔐 User not authenticated - showing auth prompt');
+          this.showArchivesAuthRequired();
+          return;
+        }
+        
+        // Generic error - show retry option
         throw error;
       }
 
-      // 🎯 TESLA-GRADE: Process archive data with ACTUAL SCHEMA
+      // 🎯 GOLD STANDARD: Process archive data schema-agnostically
       const processedArchives = (archives || []).map(archive => {
-        // 🔬 Debug: log first archive to reveal ACTUAL schema
+        // 🔬 Debug: log first archive to reveal ACTUAL schema (helps with schema drift diagnosis)
         if (!window.__archiveSchemaLogged) {
-          console.log('🔍 ACTUAL ARCHIVE SCHEMA:', Object.keys(archive));
+          console.log('🔍 ACTUAL hi_archives SCHEMA:', Object.keys(archive));
+          console.log('📊 Sample archive data:', {
+            has_content: !!archive.content,
+            has_journal: !!archive.journal,
+            has_text: !!archive.text,
+            has_updated_at: !!archive.updated_at,
+            has_metadata: !!archive.metadata
+          });
           window.__archiveSchemaLogged = true;
         }
         
@@ -507,32 +713,43 @@ class HiIslandRealFeed {
           console.log('🔍 Archive Type Debug:', {
             raw_type: archive.type,
             raw_origin: archive.origin,
-            content_preview: (archive.content || archive.text || '').substring(0, 50),
+            content_preview: (archive.content || archive.journal || archive.text || '').substring(0, 50),
             created_at: archive.created_at
           });
           window.__archiveTypeLogged = true;
         }
         
+        // 🔧 GOLD STANDARD: Handle all possible schema variations
+        // Try content (new schema), journal (old schema), text (legacy schema)
+        const textContent = archive.content || archive.journal || archive.text || 'Personal Hi 5 moment';
+        
+        // Extract location from either location field OR location_data JSONB
+        const location = archive.location || archive.location_data?.location || 'Location unavailable';
+        
+        // Get metadata (could be JSONB or regular object)
+        const meta = typeof archive.metadata === 'string' ? JSON.parse(archive.metadata) : (archive.metadata || {});
+        
         return {
           id: archive.id,
-          content: archive.content || archive.text || 'Personal Hi 5 moment', // Try all variants
-          text: archive.text || '',
+          content: textContent,
+          text: textContent, // Duplicate for backwards compatibility
           visibility: archive.visibility || (archive.is_anonymous ? 'anonymous' : 'private'),
-          metadata: archive.metadata || {},
+          metadata: meta,
           created_at: archive.created_at,
+          updated_at: archive.updated_at, // May be undefined, that's OK
           user_id: archive.user_id,
-          location: archive.location || 'Location unavailable',
-          origin: archive.origin || 'unknown',
-          type: archive.type || 'hi5',
+          location: location,
+          origin: archive.origin || meta.origin || 'unknown',
+          type: archive.type || archive.share_type || 'hi5',
           display_name: 'You', // User's own archives
           avatar_url: null, // Will be filled from user profile if needed
-          // 🏆 Add medallion/emoji data
-          currentEmoji: archive.current_emoji || '👋',
-          currentName: archive.current_name || 'Hi',
-          desiredEmoji: archive.desired_emoji || '👋',
-          desiredName: archive.desired_name || 'Hi',
+          // 🏆 Medallion/emoji data (try direct fields OR metadata)
+          currentEmoji: archive.current_emoji || meta.currentEmoji || '👋',
+          currentName: archive.current_name || meta.currentName || 'Hi',
+          desiredEmoji: archive.desired_emoji || meta.desiredEmoji || '👋',
+          desiredName: archive.desired_name || meta.desiredName || 'Hi',
           // 🎯 Hi Scale intensity (1-5 or null)
-          hi_intensity: archive.hi_intensity || null
+          hi_intensity: archive.hi_intensity || meta.hi_intensity || null
         };
       });
 
@@ -682,9 +899,9 @@ class HiIslandRealFeed {
     }
   }
 
-  // 🎯 NEW: Auto-hide header on scroll down, reveal on scroll up (immersive reading)
+  // 🎯 WOZ FIX: Auto-hide header on scroll down, reveal on scroll up (immersive reading)
+  // Now uses window scroll for Twitter/Instagram pattern
   initAutoHideHeader() {
-    const feedContainers = document.querySelectorAll('.hi-feed-container');
     const header = document.querySelector('.tesla-header');
     
     if (!header) {
@@ -697,12 +914,13 @@ class HiIslandRealFeed {
     let lastInfiniteScrollTrigger = 0;
     const INFINITE_SCROLL_DEBOUNCE = 500; // ms between load triggers
     
-    const handleScroll = (container) => {
+    const handleScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          const scrollTop = container.scrollTop;
-          const scrollHeight = container.scrollHeight;
-          const clientHeight = container.clientHeight;
+          // 🚀 WOZ FIX: Use window scroll properties (Twitter/Instagram pattern)
+          const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+          const scrollHeight = document.documentElement.scrollHeight;
+          const clientHeight = window.innerHeight;
           const scrollDelta = scrollTop - this.scrollState.lastScrollTop;
           
           // Determine scroll direction (with 5px debounce for smooth behavior)
@@ -728,9 +946,9 @@ class HiIslandRealFeed {
           const canTrigger = (now - lastInfiniteScrollTrigger) > INFINITE_SCROLL_DEBOUNCE;
           
           if (distanceFromBottom < 300 && !this.isLoading && canTrigger) {
-            // Determine which tab we're scrolling in
-            const isGeneralTab = container.id === 'generalFeed';
-            const isArchivesTab = container.id === 'archivesFeed';
+            // 🚀 WOZ FIX: Determine active tab from currentTab state
+            const isGeneralTab = this.currentTab === 'general';
+            const isArchivesTab = this.currentTab === 'archives';
             
             if (isGeneralTab && this.pagination.general.hasMore) {
               console.log('📜 Infinite scroll triggered: loading more community shares');
@@ -750,12 +968,14 @@ class HiIslandRealFeed {
       }
     };
     
-    // Attach passive scroll listeners to all feed containers
-    feedContainers.forEach(container => {
-      container.addEventListener('scroll', () => handleScroll(container), { passive: true });
-    });
+    // 🚀 WOZ FIX: Attach scroll listener to window (Twitter/Instagram pattern)
+    const handler = () => handleScroll();
+    window.addEventListener('scroll', handler, { passive: true });
     
-    console.log('✅ Auto-hide header + infinite scroll initialized on', feedContainers.length, 'containers');
+    // 🔧 CRITICAL FIX: Store handler reference for cleanup
+    this._scrollHandlers.set(window, handler);
+    
+    console.log('✅ Auto-hide header + infinite scroll initialized on window (gold standard)');
   }
 
   hideHeader(header) {
@@ -773,6 +993,15 @@ class HiIslandRealFeed {
     console.log(`🏝️ HiRealFeed switching to: ${tabName}`);
     
     try {
+      // 🔧 CRITICAL FIX: Cancel any in-flight requests when switching tabs
+      if (this._abortController) {
+        console.log('🚫 Cancelling previous request before tab switch');
+        this._abortController.abort();
+      }
+      
+      // Reset loading state to prevent stuck loading during tab switch
+      this.isLoading = false;
+      
       // Prevent concurrent switches
       if (this.switchingTab) {
         console.log('⏳ Tab switch already in progress, waiting...');
@@ -1005,6 +1234,19 @@ class HiIslandRealFeed {
     if (this.feedData[tabName].length === 0) {
       this.showEmptyState(tabName);
     }
+    
+    // 🚀 GOLD STANDARD: Remove any inline styles that override window scroll
+    const feedContainers = document.querySelectorAll('.hi-feed-container');
+    feedContainers.forEach(container => {
+      container.style.removeProperty('overflow');
+      container.style.removeProperty('overflow-y');
+      container.style.removeProperty('overflow-x');
+      container.style.removeProperty('max-height');
+      container.style.removeProperty('height');
+      container.style.removeProperty('overscroll-behavior');
+      container.style.removeProperty('-webkit-overflow-scrolling');
+      container.style.removeProperty('will-change');
+    });
     
     console.log(`✅ Rendered ${shares.length} shares to ${tabName} feed`);
   }
@@ -1693,6 +1935,9 @@ class HiIslandRealFeed {
   }
 
   showArchivesAuthRequired() {
+    // 🔧 CRITICAL FIX: Reset loading state so UI doesn't stay stuck
+    this.isLoading = false;
+    
     const container = document.getElementById('archivesFeed') || document.querySelector('.feed-content');
     if (!container) {
       console.warn('⚠️ No archive container found');
@@ -1739,6 +1984,46 @@ class HiIslandRealFeed {
     `;
   }
 
+  // 🔧 NEW: Show error when hi_archives table doesn't exist in database
+  showArchivesTableMissing() {
+    // 🔧 CRITICAL FIX: Reset loading state so UI doesn't stay stuck
+    this.isLoading = false;
+    
+    const container = document.getElementById('archivesFeed') || document.querySelector('.feed-content');
+    if (!container) {
+      console.warn('⚠️ No archive container found');
+      return;
+    }
+
+    container.innerHTML = `
+      <div style="padding: 60px 40px; text-align: center; background: linear-gradient(135deg, rgba(254,243,242,0.95) 0%, rgba(254,235,234,0.95) 100%); color: #7f1d1d; border-radius: 24px; margin: 20px; border: 2px solid rgba(220, 38, 38, 0.2); backdrop-filter: blur(20px);">
+        <div style="font-size: 64px; margin-bottom: 24px; filter: drop-shadow(0 4px 8px rgba(220, 38, 38, 0.2));">🔧</div>
+        <h2 style="margin: 0 0 16px 0; color: #7f1d1d; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">Database Setup Required</h2>
+        <p style="margin: 0 0 32px 0; font-size: 17px; line-height: 1.6; color: #991b1b; max-width: 560px; margin-left: auto; margin-right: auto;">The <code style="background: rgba(220, 38, 38, 0.1); padding: 2px 8px; border-radius: 4px; font-family: monospace;">hi_archives</code> table doesn't exist in your database yet. This is a quick fix that needs to be run by an admin.</p>
+        
+        <div style="background: rgba(254,202,202,0.5); border-radius: 16px; padding: 24px; margin: 0 auto 32px; max-width: 600px; border: 1px solid rgba(220, 38, 38, 0.3);">
+          <div style="font-size: 20px; margin-bottom: 12px;">📋 Admin Instructions</div>
+          <ol style="text-align: left; margin: 0; padding-left: 24px; color: #7f1d1d; font-size: 15px; line-height: 2;">
+            <li>Open Supabase Dashboard → SQL Editor</li>
+            <li>Run the SQL file: <code style="background: rgba(220, 38, 38, 0.1); padding: 2px 8px; border-radius: 4px; font-family: monospace; font-size: 13px;">FIX_HI_ISLAND_STUCK_ARCHIVES_400.sql</code></li>
+            <li>Refresh this page</li>
+          </ol>
+        </div>
+
+        <div style="display: flex; gap: 16px; justify-center; flex-wrap: wrap;">
+          <button onclick="window.location.reload()" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; border: none; padding: 16px 32px; border-radius: 12px; font-size: 16px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4); transition: all 0.2s ease; transform: translateY(0);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(220, 38, 38, 0.5)'" onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 4px 12px rgba(220, 38, 38, 0.4)'">
+            🔄 Refresh Page
+          </button>
+          <button onclick="window.hiRealFeed?.switchTab('general')" style="background: rgba(220, 38, 38, 0.1); color: #dc2626; border: 2px solid rgba(220, 38, 38, 0.3); padding: 14px 32px; border-radius: 12px; font-size: 16px; cursor: pointer; font-weight: 600; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(220, 38, 38, 0.15)'" onmouseout="this.style.background='rgba(220, 38, 38, 0.1)'">
+            View General Shares Instead
+          </button>
+        </div>
+        
+        <p style="margin: 24px 0 0 0; font-size: 13px; color: #991b1b;">⚡ This is a one-time setup • Takes ~30 seconds to fix</p>
+      </div>
+    `;
+  }
+
   escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
@@ -1754,6 +2039,16 @@ class HiIslandRealFeed {
       .hi-real-feed {
         max-width: 800px;
         margin: 0 auto;
+        /* ✅ No scroll - natural page flow */
+        overflow: visible !important;
+        height: auto !important;
+      }
+
+      .hi-feed-content {
+        /* ✅ CRITICAL: This wrapper must not create scroll */
+        overflow: visible !important;
+        max-height: none !important;
+        height: auto !important;
       }
 
       .hi-feed-tabs {
@@ -1802,10 +2097,18 @@ class HiIslandRealFeed {
 
       .hi-feed-tab-content {
         display: none;
+        /* ✅ No scroll - natural page flow */
+        overflow: visible !important;
+        height: auto !important;
+        max-height: none !important;
       }
 
       .hi-feed-tab-content.active {
         display: block;
+        /* ✅ No scroll - natural page flow */
+        overflow: visible !important;
+        height: auto !important;
+        max-height: none !important;
       }
 
       /* Skeleton Loading - Instant Visual Feedback */
@@ -1850,20 +2153,16 @@ class HiIslandRealFeed {
       }
 
       .hi-feed-container {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        overflow-y: auto;
-        max-height: 60vh;
-        min-height: 300px; /* Immediate scrollability - don't wait for content */
-        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-        overscroll-behavior: contain; /* Prevent rubber-band bounce */
-        will-change: scroll-position; /* GPU acceleration for smooth 60fps */
-        transform: translate3d(0,0,0); /* Force hardware acceleration */
-        scroll-behavior: smooth;
-        scroll-snap-type: y proximity; /* Buttery iOS scrolling */
-        scrollbar-width: thin;
-        scrollbar-color: rgba(255,255,255,0.3) transparent;
+        /* ✅ GOLD STANDARD: Simple block container - window handles scroll */
+        display: block !important;
+        overflow: visible !important;
+        max-height: none !important;
+        height: auto !important;
+        /* Share cards have bottom margin for spacing */
+      }
+      
+      .hi-feed-container > * {
+        margin-bottom: 16px;
       }
 
       .hi-share-item {
@@ -2173,10 +2472,42 @@ class HiIslandRealFeed {
     
     document.head.appendChild(styles);
   }
+  
+  // 🔧 CRITICAL FIX: Cleanup method to prevent memory leaks
+  destroy() {
+    console.log('🧹 Cleaning up HiRealFeed resources...');
+    
+    // Cancel any in-flight requests
+    if (this._abortController) {
+      this._abortController.abort();
+      this._abortController = null;
+    }
+    
+    // Remove all scroll event listeners
+    this._scrollHandlers.forEach((handler, container) => {
+      container.removeEventListener('scroll', handler);
+    });
+    this._scrollHandlers.clear();
+    
+    // Clear data
+    this.feedData = { general: [], archives: [] };
+    this.wavedShares.clear();
+    this.peacedShares.clear();
+    
+    console.log('✅ HiRealFeed cleanup complete');
+  }
 }
 
 // Initialize and export
 window.HiIslandRealFeed = HiIslandRealFeed;
+
+// 🔧 CRITICAL FIX: Cleanup on page navigation to prevent memory leaks
+window.addEventListener('pagehide', () => {
+  if (window.hiRealFeed?.destroy) {
+    console.log('🧹 Cleaning up HiRealFeed on page navigation');
+    window.hiRealFeed.destroy();
+  }
+});
 
 // WOZ FIX: Initialize IMMEDIATELY instead of waiting for DOMContentLoaded
 // Modules load unpredictably, so we need hiRealFeed available ASAP
