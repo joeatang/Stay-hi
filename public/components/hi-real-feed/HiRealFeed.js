@@ -2501,25 +2501,53 @@ class HiIslandRealFeed {
 // Initialize and export
 window.HiIslandRealFeed = HiIslandRealFeed;
 
-// 🔧 CRITICAL FIX: Cleanup on page navigation to prevent memory leaks
-window.addEventListener('pagehide', () => {
-  if (window.hiRealFeed?.destroy) {
-    console.log('🧹 Cleaning up HiRealFeed on page navigation');
-    window.hiRealFeed.destroy();
+// � FIX BACKGROUND SUSPENSION: Don't destroy on pagehide - just pause
+// Original bug: destroy() was called when backgrounding app, feed never recovered
+// New approach: Use visibilitychange to pause/resume instead
+let isInitialized = false;
+
+function initializeFeed() {
+  if (!isInitialized) {
+    window.hiRealFeed = new HiIslandRealFeed();
+    isInitialized = true;
+    console.log('✅ hiRealFeed initialized');
   }
-});
+}
 
 // WOZ FIX: Initialize IMMEDIATELY instead of waiting for DOMContentLoaded
 // Modules load unpredictably, so we need hiRealFeed available ASAP
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    window.hiRealFeed = new HiIslandRealFeed();
-    console.log('✅ hiRealFeed initialized (DOMContentLoaded)');
-  });
+  document.addEventListener('DOMContentLoaded', initializeFeed);
 } else {
   // DOM already loaded, initialize now
-  window.hiRealFeed = new HiIslandRealFeed();
-  console.log('✅ hiRealFeed initialized (immediate)');
+  initializeFeed();
 }
+
+// 🎯 HANDLE PAGE VISIBILITY: Pause when hidden, resume when visible
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    console.log('⏸️ Page hidden - pausing feed updates');
+    // Feed stays alive, just pauses
+  } else {
+    console.log('▶️ Page visible - resuming feed');
+    // Reinitialize if destroyed somehow
+    if (!window.hiRealFeed) {
+      console.warn('⚠️ Feed was destroyed - reinitializing');
+      initializeFeed();
+    }
+  }
+});
+
+// 🔄 HANDLE BFCACHE: Reinitialize on pageshow if coming from cache
+window.addEventListener('pageshow', (event) => {
+  if (event.persisted) {
+    // Page was restored from bfcache (back button)
+    console.log('🔄 Page restored from cache - checking feed state');
+    if (!window.hiRealFeed) {
+      console.warn('⚠️ Feed missing after bfcache restore - reinitializing');
+      initializeFeed();
+    }
+  }
+});
 
 export default HiIslandRealFeed;

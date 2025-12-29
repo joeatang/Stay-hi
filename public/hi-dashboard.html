@@ -20,7 +20,10 @@
   <script src="./assets/config.js"></script>
   <script src="./assets/config-local.js" onerror="console.log('No config-local.js found, using env vars')"></script>
 
-  <!-- 🎬 CRITICAL: Inline Blocking Splash Screen (Prevents FOUC) -->
+  <!-- � INSTANT LOGO: Preload logo image for immediate display -->
+  <link rel="preload" href="assets/brand/hi-logo-dark.png" as="image" />
+
+  <!-- �🎬 CRITICAL: Inline Blocking Splash Screen (Prevents FOUC) -->
   <style id="splash-critical-css">
     /* GOLD STANDARD: Force splash visible IMMEDIATELY */
     body { 
@@ -53,15 +56,21 @@
       height: 140px;
       border-radius: 32px;
       box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-      animation: logoGlow 3s ease-in-out infinite;
+      /* 🎯 INSTANT VISIBILITY: Logo appears immediately, no delays */
+      opacity: 1 !important;
+      animation: logoGlow 2s ease-in-out infinite;
+      /* GPU acceleration for smooth animation */
+      will-change: transform, filter;
+      transform: translateZ(0);
+      backface-visibility: hidden;
     }
     @keyframes logoGlow {
       0%, 100% { 
-        transform: scale(1);
+        transform: scale(1) translateZ(0);
         filter: drop-shadow(0 0 20px rgba(255, 122, 24, 0.4));
       }
       50% { 
-        transform: scale(1.05);
+        transform: scale(1.05) translateZ(0);
         filter: drop-shadow(0 0 30px rgba(255, 122, 24, 0.6));
       }
     }
