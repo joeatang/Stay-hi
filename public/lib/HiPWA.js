@@ -162,31 +162,176 @@
       if (ver) sessionStorage.setItem('hi-sw-prompted:' + ver, '1');
     } catch(_) {}
 
-    if (window.PremiumUX) {
-      window.PremiumUX.showNotice(`
-        <div role="dialog" aria-modal="true" aria-labelledby="hi-sw-update-title" style="text-align: center; padding: 20px;">
-          <h3 id="hi-sw-update-title" style="color: #FFD166; margin-bottom: 12px;">🚀 App Update Available</h3>
-          <p style="margin-bottom: 16px;">A new version of Hi Collective is ready!</p>
-          <button id="hi-sw-update-now" onclick="updateApp()" style="
-            background: linear-gradient(135deg, #FFD166, #FF7B24);
-            border: none; color: #111; padding: 12px 24px; border-radius: 8px;
-            font-size: 16px; cursor: pointer; font-weight: bold; margin-right: 8px;
-          ">✨ Update Now</button>
-          <button id="hi-sw-update-later" onclick="dismissUpdate()" style="
-            background: transparent; border: 1px solid #666; color: #666;
-            padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer;
-          ">Later</button>
-        </div>
-      `, { duration: 0, persistent: true });
-      // Move focus to the primary action for screen readers/keyboard users
-      setTimeout(() => {
-        try {
-          const primary = document.getElementById('hi-sw-update-now');
-          if (primary) primary.focus();
-        } catch(_) {}
-      }, 0);
-    } else {
-      // Non-blocking fallback banner when PremiumUX is not available
+    // 🎨 GOLD STANDARD: Tesla-grade update modal
+    try {
+      // Create overlay backdrop
+      const overlay = document.createElement('div');
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+      overlay.setAttribute('aria-labelledby', 'hi-update-title');
+      overlay.style.cssText = `
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        z-index: 999999;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        animation: fadeIn 0.3s ease-out;
+      `;
+
+      // Create modal card
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        background: linear-gradient(135deg, rgba(26, 29, 58, 0.98), rgba(37, 43, 82, 0.98));
+        border-radius: 24px;
+        padding: 40px 32px;
+        max-width: 420px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 209, 102, 0.2);
+        animation: slideUp 0.3s ease-out;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      `;
+
+      // Icon
+      const icon = document.createElement('div');
+      icon.style.cssText = `
+        font-size: 64px;
+        margin-bottom: 20px;
+        animation: pulse 2s ease-in-out infinite;
+      `;
+      icon.textContent = '✨';
+
+      // Title
+      const title = document.createElement('h3');
+      title.id = 'hi-update-title';
+      title.style.cssText = `
+        color: #FFD166;
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0 0 12px 0;
+        letter-spacing: -0.5px;
+      `;
+      title.textContent = 'Update Available';
+
+      // Description
+      const desc = document.createElement('p');
+      desc.style.cssText = `
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 16px;
+        line-height: 1.5;
+        margin: 0 0 32px 0;
+      `;
+      desc.textContent = 'A new version of Stay Hi is ready with improvements and fixes.';
+
+      // Button container
+      const btnContainer = document.createElement('div');
+      btnContainer.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      `;
+
+      // Update Now button
+      const btnUpdate = document.createElement('button');
+      btnUpdate.id = 'hi-sw-update-now';
+      btnUpdate.style.cssText = `
+        background: linear-gradient(135deg, #FFD166, #FF7B24);
+        border: none;
+        color: #111;
+        padding: 16px 32px;
+        border-radius: 12px;
+        font-size: 17px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(255, 209, 102, 0.3);
+      `;
+      btnUpdate.textContent = '✨ Update Now';
+      btnUpdate.onmouseover = () => {
+        btnUpdate.style.transform = 'translateY(-2px)';
+        btnUpdate.style.boxShadow = '0 6px 16px rgba(255, 209, 102, 0.4)';
+      };
+      btnUpdate.onmouseout = () => {
+        btnUpdate.style.transform = 'translateY(0)';
+        btnUpdate.style.boxShadow = '0 4px 12px rgba(255, 209, 102, 0.3)';
+      };
+      btnUpdate.onclick = () => {
+        try { registration.waiting?.postMessage({ type: 'SKIP_WAITING' }); } catch {}
+        overlay.remove();
+        setTimeout(() => window.location.reload(), 500);
+      };
+
+      // Later button
+      const btnLater = document.createElement('button');
+      btnLater.style.cssText = `
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: rgba(255, 255, 255, 0.7);
+        padding: 14px 32px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      `;
+      btnLater.textContent = 'Later';
+      btnLater.onmouseover = () => {
+        btnLater.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+        btnLater.style.color = 'rgba(255, 255, 255, 0.9)';
+      };
+      btnLater.onmouseout = () => {
+        btnLater.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+        btnLater.style.color = 'rgba(255, 255, 255, 0.7)';
+      };
+      btnLater.onclick = () => overlay.remove();
+
+      // Assemble modal
+      btnContainer.appendChild(btnUpdate);
+      btnContainer.appendChild(btnLater);
+      modal.appendChild(icon);
+      modal.appendChild(title);
+      modal.appendChild(desc);
+      modal.appendChild(btnContainer);
+      overlay.appendChild(modal);
+
+      // Add CSS animations
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUp {
+          from { 
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to { 
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.1); }
+        }
+      `;
+      document.head.appendChild(style);
+
+      // Add to DOM
+      document.body.appendChild(overlay);
+
+      // Focus primary action for accessibility
+      setTimeout(() => btnUpdate.focus(), 100);
+
+    } catch(error) {
+      console.error('Failed to show update modal:', error);
+      // Fallback: Simple banner
       try {
         const bar = document.createElement('div');
         bar.setAttribute('role','dialog');
@@ -204,25 +349,7 @@
         btnNow.addEventListener('click', () => { try { registration.waiting?.postMessage({ type: 'SKIP_WAITING' }); } catch {}; bar.remove(); });
         btnLater.addEventListener('click', () => bar.remove());
       } catch(_) {}
-      return;
     }
-
-    // Make functions available globally for button clicks (cleanup afterwards)
-    function cleanup() {
-      try { delete window.updateApp; } catch(_){ window.updateApp = undefined; }
-      try { delete window.dismissUpdate; } catch(_){ window.dismissUpdate = undefined; }
-    }
-    window.updateApp = () => {
-      try { registration.waiting?.postMessage({ type: 'SKIP_WAITING' }); } catch {}
-      cleanup();
-      window.location.reload();
-    };
-    window.dismissUpdate = () => {
-      if (window.PremiumUX) {
-        window.PremiumUX.hideNotice();
-      }
-      cleanup();
-    };
   }
   
   // Install prompt handling
@@ -241,51 +368,58 @@
     const installBtn = document.createElement('button');
     installBtn.id = 'installApp';
     installBtn.innerHTML = '📱 Install App';
-    installBtn.setAttribute('aria-label', 'Install app');
-    installBtn.setAttribute('title', 'Install app');
+    installBtn.setAttribute('aria-label', 'Install Stay Hi app to your device');
+    installBtn.setAttribute('title', 'Install Stay Hi app');
     installBtn.setAttribute('type', 'button');
     installBtn.style.cssText = `
       position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
+      bottom: 24px;
+      right: 24px;
+      background: linear-gradient(135deg, #FFD166, #FF7B24);
+      color: #111;
       border: none;
-      padding: 12px 20px;
-      border-radius: 25px;
-      font-size: 14px;
-      font-weight: bold;
+      padding: 14px 24px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
-      z-index: 1000;
-      animation: installPulse 2s infinite;
+      box-shadow: 0 6px 20px rgba(255, 209, 102, 0.4);
+      z-index: 10000;
+      transition: all 0.3s ease;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     `;
     
-    // Add pulse animation
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes installPulse {
-        0%, 100% { transform: scale(1); box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3); }
-        50% { transform: scale(1.05); box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5); }
-      }
-    `;
-    document.head.appendChild(style);
+    // Hover effect
+    installBtn.onmouseover = () => {
+      installBtn.style.transform = 'translateY(-3px) scale(1.05)';
+      installBtn.style.boxShadow = '0 8px 25px rgba(255, 209, 102, 0.5)';
+    };
+    installBtn.onmouseout = () => {
+      installBtn.style.transform = 'translateY(0) scale(1)';
+      installBtn.style.boxShadow = '0 6px 20px rgba(255, 209, 102, 0.4)';
+    };
     
     installBtn.addEventListener('click', async () => {
       if (!deferredPrompt) return;
+      
+      // Animate button click
+      installBtn.style.transform = 'scale(0.95)';
+      setTimeout(() => {
+        installBtn.style.transform = 'scale(1)';
+      }, 100);
       
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       
       if (outcome === 'accepted') {
         console.log('✅ PWA installed');
-        if (window.PremiumUX) {
-          window.PremiumUX.celebrate(installBtn, '🎉 Installed!');
-        }
+        installBtn.textContent = '✨ Installed!';
+        installBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+        installBtn.style.color = '#fff';
+        setTimeout(() => installBtn.remove(), 2000);
       }
       
       deferredPrompt = null;
-      installBtn.remove();
     });
     
     document.body.appendChild(installBtn);

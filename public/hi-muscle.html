@@ -16,6 +16,75 @@
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
+  <!-- 🎬 CRITICAL: Inline Blocking Splash Screen (Prevents FOUC) -->
+  <style id="splash-critical-css">
+    /* GOLD STANDARD: Force splash visible IMMEDIATELY */
+    body { 
+      visibility: hidden !important; 
+    }
+    body.splash-ready {
+      visibility: visible !important;
+    }
+    .hi-splash-instant {
+      position: fixed !important;
+      top: 0 !important; 
+      left: 0 !important; 
+      right: 0 !important; 
+      bottom: 0 !important;
+      z-index: 999999 !important;
+      background: linear-gradient(135deg, 
+        rgba(26, 29, 58, 1) 0%,
+        rgba(37, 43, 82, 1) 25%,
+        rgba(45, 30, 79, 1) 50%,
+        rgba(55, 35, 70, 1) 75%,
+        rgba(26, 29, 58, 1) 100%) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
+    .hi-splash-logo {
+      width: 140px;
+      height: 140px;
+      border-radius: 32px;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+      animation: logoGlow 3s ease-in-out infinite;
+    }
+    @keyframes logoGlow {
+      0%, 100% { 
+        transform: scale(1);
+        filter: drop-shadow(0 0 20px rgba(255, 122, 24, 0.4));
+      }
+      50% { 
+        transform: scale(1.05);
+        filter: drop-shadow(0 0 30px rgba(255, 122, 24, 0.6));
+      }
+    }
+  </style>
+  <script>
+    // 🚀 GOLD STANDARD: Show body immediately, hide splash after load
+    document.addEventListener('DOMContentLoaded', function() {
+      document.body.classList.add('splash-ready');
+    });
+    
+    window.splashStartTime = performance.now();
+    window.addEventListener('load', function() {
+      const splash = document.getElementById('instant-splash');
+      if (!splash) return;
+      
+      const elapsed = performance.now() - window.splashStartTime;
+      const minDuration = window.innerWidth <= 768 ? 1400 : 1200;
+      const remaining = Math.max(0, minDuration - elapsed);
+      
+      setTimeout(() => {
+        splash.style.transition = 'opacity 0.3s ease-out';
+        splash.style.opacity = '0';
+        setTimeout(() => splash.remove(), 300);
+      }, remaining);
+    }, { once: true });
+  </script>
+
   <!-- Tesla-grade auth system - health monitor first -->
   <script src="assets/url-path-fixer.js"></script>
   <script src="./lib/HiSupabase.js" type="module"></script>
@@ -1499,6 +1568,11 @@
   <link rel="stylesheet" href="./assets/tier-loading-skeleton.css">
 </head>
 <body data-tab="muscle" data-page="hi-muscle">
+  <!-- 🎬 STATIC SPLASH: First element rendered -->
+  <div class="hi-splash-instant" id="instant-splash">
+    <img src="assets/brand/hi-logo-dark.png" alt="Hi" class="hi-splash-logo" />
+  </div>
+  
   <!-- Tesla-Grade Dashboard Header -->
   <header class="tesla-header">
     <div class="header-left">

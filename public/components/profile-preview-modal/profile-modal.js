@@ -164,19 +164,16 @@ export class ProfilePreviewModal {
     this.showLoading();
 
     try {
-      // Check if hiDB is available
-      if (!window.hiDB || !window.hiDB.fetchUserProfile) {
-        console.error('❌ hiDB not available:', {
-          hiDB: !!window.hiDB,
-          fetchUserProfile: window.hiDB?.fetchUserProfile
-        });
-        throw new Error('Profile service not available');
-      }
-
       console.log('🔍 Loading profile for user:', userId);
 
-      // Tesla UX-Preserving: Fetch limited community profile data (username, display_name, avatar only)
-      const profile = await this.fetchCommunityProfile(userId);
+      // 🔐 GOLD STANDARD: Check if viewing own profile vs someone else's
+      const isOwnProfile = await this.checkIsOwnProfile(userId);
+      console.log('🔍 Is own profile:', isOwnProfile);
+
+      // Fetch appropriate profile data based on viewer
+      const profile = isOwnProfile 
+        ? await this.fetchOwnProfile()  // Full data (includes bio, location, stats)
+        : await this.fetchCommunityProfile(userId);  // Public data only
 
       console.log('📦 Profile result:', profile);
 
@@ -189,7 +186,9 @@ export class ProfilePreviewModal {
         id: profile.id,
         username: profile.username,
         display_name: profile.display_name,
-        has_avatar: !!profile.avatar_url
+        has_avatar: !!profile.avatar_url,
+        is_own: isOwnProfile,
+        has_bio: !!profile.bio
       });
 
       // Display profile data
@@ -216,16 +215,18 @@ export class ProfilePreviewModal {
     error.style.display = 'none';
     content.style.display = 'flex';
     
-    // 🌟 TESLA-GRADE: Smart profile defaults for incomplete profiles
-    const hasRealProfile = profile.display_name || profile.username || profile.bio;
+    // 🔐 WARM PRIVACY: Limited public profile data only
+    const hasRealProfile = profile.display_name || profile.username;
     const isAnonymousUser = !hasRealProfile;
     
     // Default profile data with intelligent fallbacks
     const displayName = profile.display_name || profile.username || (isAnonymousUser ? 'Hi Friend' : 'New Member');
     const handle = profile.username || (isAnonymousUser ? '@anonymous' : '@newmember');
-    const bio = profile.bio || (isAnonymousUser ? 
-      'This user shares anonymously. You can see their public interactions but not personal details.' :
-      'New to Stay Hi! This member hasn\'t added a bio yet.');
+    
+    // 🔐 PRIVACY: Bio is now private - show warm public message instead
+    const publicMessage = isAnonymousUser ? 
+      'Anonymous member sharing wellness moments' :
+      `Member since ${this.formatMemberSince(profile.member_since)}`;
 
     // Update avatar with anonymous handling
     const avatarContainer = this.root.querySelector('#profile-modal-avatar');
@@ -263,60 +264,113 @@ export class ProfilePreviewModal {
       handleEl.style.opacity = isAnonymousUser ? '0.6' : '1';
     }
 
-    // Update bio with intelligent defaults
+    // 🔐 WARM PRIVACY: Bio display logic
     const bioEl = this.root.querySelector('#profile-modal-bio');
-    if (bioEl) {
-      bioEl.textContent = bio;
-      bioEl.style.display = 'block';
-      bioEl.style.opacity = (profile.bio && profile.bio.trim()) ? '1' : '0.7';
-      bioEl.style.fontStyle = (profile.bio && profile.bio.trim()) ? 'normal' : 'italic';
-    }
-
-    // Update location
-    const locationContainer = this.root.querySelector('#profile-modal-location');
-    const locationText = this.root.querySelector('#profile-modal-location-text');
+    const bioContainer = bioEl?.closest('.modal-stat');
     
-    if (locationContainer && locationText) {
-      if (profile.location && profile.location.trim()) {
-        locationText.textContent = profile.location;
-        locationContainer.style.display = 'flex';
-      } else {
-        locationContainer.style.display = 'none';
+    if (profile.bio !== undefined) {
+      // OWN PROFILE: Show full bio (field exists in get_own_profile response)
+      if (bioEl) {
+        if (profile.bio && profile.bio.trim()) {
+          bioEl.textContent = profile.bio;
+          bioEl.style.fontStyle = 'normal';
+          bioEl.style.opacity = '1';
+        } else {
+          bioEl.textContent = 'No bio yet';
+          bioEl.style.fontStyle = 'italic';
+          bioEl.style.opacity = '0.6';
+        }
+        bioEl.style.display = 'block';
+      }
+      if (bioContainer) bioContainer.style.display = 'block';
+    } else {
+      // COMMUNITY PROFILE: Bio is private - show public message instead
+      if (bioEl) {
+        bioEl.textContent = publicMessage;
+        bioEl.style.display = 'block';
+        bioEl.style.opacity = '0.8';
+        bioEl.style.fontStyle = 'normal';
       }
     }
 
-    // Update tier display with branded labels
+    // 🔐 WARM PRIVACY: Location logic
+    const locationContainer = this.root.querySelector('#profile-modal-location');
+    
+    if (profile.location !== undefined) {
+      // OWN PROFILE: Show location (field exists in get_own_profile response)
+      const locationEl = this.root.querySelector('#profile-modal-location-text');
+      if (locationEl) {
+        locationEl.textContent = profile.location || 'No location set';
+      }
+      if (locationContainer) locationContainer.style.display = 'block';
+    } else {
+      // COMMUNITY PROFILE: Location is private - hide completely
+      if (locationContainer) locationContainer.style.display = 'none';
+    }
+
+    // 🎯 JOURNEY LEVEL: Show tier as progression badge (not financial status)
     const tierLabelEl = this.root.querySelector('#profile-modal-tier-label');
     const tierIconEl = this.root.querySelector('#profile-modal-tier-icon');
     
-    if (tierLabelEl && profile.tier) {
-      // Branded tier labels with emojis
-      const tierLabels = {
-        'free': 'Free Member',
-        'bronze': 'Hi Pathfinder',
-        'silver': 'Hi Explorer',
+    if (tierLabelEl && tierIconEl) {
+      // 🔥 GOLD STANDARD: Journey Level mapping (matches TIER_CONFIG.js branding)
+      const journeyLabels = {
+        // Free tier
+        'free': 'Hi Pathfinder',
+        // Paid tiers (legacy + current)
+        'bronze': 'Hi Pathfinder',      // Trial users
+        'silver': 'Hi Trailblazer',
         'gold': 'Hi Trailblazer',
         'platinum': 'Hi Legend',
-        'premium': 'Hi Pioneer',
-        'diamond': 'Hi Icon'
+        'premium': 'Hi Legend',          // Current premium tier
+        'diamond': 'Hi Legend'
       };
       
-      const tierIcons = {
-        'free': '🌟',
+      const journeyIcons = {
+        'free': '🧭',
         'bronze': '🧭',
-        'silver': '🗺️',
+        'silver': '⭐',
         'gold': '⭐',
         'platinum': '💎',
-        'premium': '🔥',
-        'diamond': '👑'
+        'premium': '💎',
+        'diamond': '💎'
       };
       
-      const brandedLabel = tierLabels[profile.tier] || 'Member';
-      const tierIcon = tierIcons[profile.tier] || '🌟';
+      // Use journey_level from RPC (community) or tier (own profile)
+      const level = (profile.journey_level || profile.tier || 'free').toLowerCase();
+      const journeyLabel = journeyLabels[level] || 'Hi Pathfinder';
+      const journeyIcon = journeyIcons[level] || '🧭';
       
-      tierLabelEl.textContent = brandedLabel;
-      if (tierIconEl) {
-        tierIconEl.textContent = tierIcon;
+      tierLabelEl.textContent = journeyLabel;
+      tierIconEl.textContent = journeyIcon;
+    }
+    
+    // Show public wellness stats (Warm Privacy model)
+    const statsContainer = this.root.querySelector('.profile-modal-stats');
+    if (statsContainer) {
+      // Remove any existing dynamic stats first
+      statsContainer.querySelectorAll('.waves-stat, .active-stat').forEach(el => el.remove());
+      
+      // Always show total waves (even if 0 - shows engagement level)
+      if (profile.total_waves !== undefined) {
+        const wavesStat = document.createElement('div');
+        wavesStat.className = 'profile-modal-stat waves-stat';
+        wavesStat.innerHTML = `
+          <div class="profile-modal-stat-value">👋</div>
+          <div class="profile-modal-stat-label">${profile.total_waves || 0} waves sent</div>
+        `;
+        statsContainer.appendChild(wavesStat);
+      }
+      
+      // Show "Active Today" indicator (public engagement signal)
+      if (profile.active_today) {
+        const activeStat = document.createElement('div');
+        activeStat.className = 'profile-modal-stat active-stat';
+        activeStat.innerHTML = `
+          <div class="profile-modal-stat-value">✨</div>
+          <div class="profile-modal-stat-label">Active today</div>
+        `;
+        statsContainer.appendChild(activeStat);
       }
     }
   }
@@ -332,7 +386,71 @@ export class ProfilePreviewModal {
     if (error) error.style.display = 'none';
   }
 
-  // Tesla UX-Preserving: Fetch community profile (username, display_name, avatar, bio - safe public data only)
+  // 🔐 Check if viewing own profile (uses RPC helper)
+  async checkIsOwnProfile(userId) {
+    try {
+      const supa = window.__HI_SUPABASE_CLIENT || window.hiSupabase || window.supabaseClient || window.sb;
+      if (!supa) return false;
+
+      const { data, error } = await supa.rpc('is_viewing_own_profile', {
+        target_user_id: userId
+      });
+
+      if (error) {
+        console.error('❌ is_viewing_own_profile error:', error);
+        return false;
+      }
+
+      return data || false;
+    } catch (err) {
+      console.error('❌ Failed to check own profile:', err);
+      return false;
+    }
+  }
+
+  // 🔓 Fetch OWN profile (full data - includes bio, location, stats)
+  async fetchOwnProfile() {
+    try {
+      const supa = window.__HI_SUPABASE_CLIENT || window.hiSupabase || window.supabaseClient || window.sb;
+      if (!supa) {
+        throw new Error('Supabase client not available');
+      }
+
+      console.log('🔍 Fetching OWN profile (full data)');
+
+      const { data, error } = await supa.rpc('get_own_profile');
+
+      if (error) {
+        console.error('❌ RPC error:', error);
+        throw error;
+      }
+
+      if (!data || data.length === 0) {
+        console.warn('⚠️ No profile data returned');
+        return null;
+      }
+
+      const profile = data[0];
+      
+      console.log('✅ Own profile fetched (FULL DATA):', {
+        id: profile.id,
+        username: profile.username,
+        has_bio: !!profile.bio,
+        has_location: !!profile.location,
+        tier: profile.tier,
+        active_today: profile.active_today,
+        total_waves: profile.total_waves,
+        points_balance: profile.points_balance
+      });
+
+      return profile;
+    } catch (error) {
+      console.error('❌ Failed to fetch own profile:', error);
+      throw error;
+    }
+  }
+
+  // 🔐 Fetch community profile (public data only - NO bio, NO location)
   async fetchCommunityProfile(userId) {
     try {
       // Get Supabase client (Tesla-grade compatibility with all possible aliases)
@@ -349,7 +467,7 @@ export class ProfilePreviewModal {
 
       console.log('🔍 Fetching community profile for:', userId);
 
-      // Use the secure RPC function that only returns basic info
+      // Use the secure RPC function that only returns public info
       const { data, error } = await supa.rpc('get_community_profile', {
         target_user_id: userId
       });
@@ -366,13 +484,16 @@ export class ProfilePreviewModal {
 
       const profile = data[0]; // RPC returns array
       
-      console.log('✅ Community profile fetched:', {
+      console.log('✅ Community profile fetched (PUBLIC DATA ONLY):', {
         id: profile.id,
         username: profile.username,
         display_name: profile.display_name,
         has_avatar: !!profile.avatar_url,
-        has_bio: !!profile.bio,
-        tier: profile.tier
+        journey_level: profile.journey_level,
+        active_today: profile.active_today,
+        total_waves: profile.total_waves,
+        member_since: profile.member_since,
+        has_bio: false  // Never included in community view
       });
 
       return profile;
@@ -392,6 +513,32 @@ export class ProfilePreviewModal {
     if (content) content.style.display = 'none';
     if (loading) loading.style.display = 'none';
     if (error) error.style.display = 'flex';
+  }
+  
+  // Format member since date (e.g., "November 2024", "Jan 2025")
+  formatMemberSince(dateString) {
+    if (!dateString) return 'Recently';
+    
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const monthsAgo = (now.getFullYear() - date.getFullYear()) * 12 + (now.getMonth() - date.getMonth());
+      
+      // Gold Standard: Always show month + year (no "Recently")
+      const month = date.toLocaleDateString('en-US', { month: 'short' });
+      const year = date.getFullYear();
+      
+      // Less than 2 months: "December 2025"
+      if (monthsAgo < 2) {
+        const fullMonth = date.toLocaleDateString('en-US', { month: 'long' });
+        return `${fullMonth} ${year}`;
+      }
+      
+      // 2+ months: "Oct 2024" (abbreviated)
+      return `${month} ${year}`;
+    } catch (e) {
+      return 'Recently';
+    }
   }
 }
 

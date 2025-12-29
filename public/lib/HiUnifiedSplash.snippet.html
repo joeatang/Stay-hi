@@ -1,0 +1,76 @@
+<!-- ============================================================================
+     🎬 HI UNIFIED SPLASH - Single Source of Truth
+     Place this IMMEDIATELY after <body> tag in all pages
+     
+     FEATURES:
+     - Instant visibility (prevents FOUC)
+     - "Still warming things up..." message
+     - Premium gradient background  
+     - Auto-hides when auth + data ready
+     - Graceful timeout handling (3s slow, 8s error)
+     
+     REPLACES:
+     - public/lib/HiLoading.js (old auth loading)
+     - Inline splash systems in hi-island-NEW.html, hi-dashboard.html, hi-muscle.html
+     - public/assets/hi-loading-experience.js (old splash system)
+============================================================================ -->
+
+<!-- Load CSS first (blocking, ensures no FOUC) -->
+<link rel="stylesheet" href="lib/HiUnifiedSplash.css">
+
+<!-- Splash HTML (first body element) -->
+<div id="hi-unified-splash">
+  <div class="splash-content">
+    <!-- Logo with glow -->
+    <div class="splash-logo-container">
+      <img src="assets/brand/hi-logo-dark.png" 
+           alt="Hi" 
+           class="splash-logo"
+           loading="eager">
+    </div>
+    
+    <!-- Message (updates to "Still warming things up..." after 3s) -->
+    <div class="splash-message" data-splash-message>
+      Preparing your Hi experience...
+    </div>
+    
+    <!-- Loading spinner -->
+    <div class="splash-spinner"></div>
+  </div>
+</div>
+
+<!-- Load JS (non-blocking, initializes splash logic) -->
+<script src="lib/HiUnifiedSplash.js"></script>
+
+<!-- ============================================================================
+     INTEGRATION INSTRUCTIONS:
+     
+     1. REMOVE OLD SYSTEMS:
+        - Delete inline <style id="splash-critical-css"> from <head>
+        - Delete inline <script> splash logic from <head>
+        - Delete <div class="hi-splash-instant" id="instant-splash"> from <body>
+        - Remove <script src="lib/HiLoading.js"></script>
+        - Remove <link href="assets/hi-loading-experience.css">
+        - Remove <script src="assets/hi-loading-experience.js"></script>
+     
+     2. ADD NEW SYSTEM:
+        - Place this snippet IMMEDIATELY after <body> tag
+        - Ensure paths to assets/brand/hi-logo-dark.png are correct
+     
+     3. PAGES TO UPDATE:
+        - public/hi-island-NEW.html
+        - public/hi-dashboard.html
+        - public/hi-muscle.html
+        - public/profile.html (if it has splash)
+        - Any other pages with loading screens
+     
+     4. EVENTS TO FIRE:
+        - Your auth system MUST dispatch: window.dispatchEvent(new Event('hi:auth-ready'))
+        - Flags system (if applicable): Set globalThis.hiFlagsReady = Promise
+     
+     5. TEST:
+        - Fast network: Splash shows for minimum 800ms
+        - Slow network: Shows "Still warming things up..." after 3s
+        - Error state: Shows retry button after 8s
+        - No FOUC: Page never flashes white
+============================================================================ -->

@@ -50,6 +50,54 @@
   <script src="./lib/rewards/HiPoints.js"></script>
   <script src="./lib/HiBrandTiers.js" async></script>
   
+  <!-- CRITICAL: Daily Check-in Button Init -->
+  <script>
+    console.log('🎬 Check-in init script loaded in HEAD');
+    window.initDailyCheckin = function() {
+      console.log('🎯 initDailyCheckin() called');
+      const btn = document.getElementById('dailyCheckinBtn');
+      if(!btn) { console.error('❌ Button not found'); return false; }
+      
+      const client = window.supabaseClient || window.hiSupabase;
+      if(!client) { console.warn('⏳ Client not ready, will retry on auth-ready'); return false; }
+      
+      console.log('✅ Attaching handler NOW');
+      btn.addEventListener('click', async ()=>{
+        console.log('🎯 CLICKED!');
+        const status = document.getElementById('checkinStatus');
+        btn.disabled = true; btn.textContent = 'Checking...';
+        try {
+          const { data, error } = await client.rpc('award_daily_checkin');
+          console.log('📬', data, error);
+          if(error){ status.textContent = error.message; status.style.color = '#f66'; }
+          else {
+            if(data?.awarded){ status.textContent = `+${data.delta}!`; status.style.color = '#6c6'; }
+            else { status.textContent = 'Done today'; status.style.color = '#aaa'; }
+            const el = document.getElementById('pointsBalance'); 
+            if(el && data?.balance !== undefined) el.textContent = data.balance;
+          }
+        } catch(e){ 
+          console.error('❌', e);
+          status.textContent = 'Error'; status.style.color = '#f66';
+        }
+        finally { btn.disabled = false; btn.textContent = 'Daily Check-in +5'; }
+      });
+      return true;
+    };
+    
+    // Try on DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', ()=>{
+      console.log('📄 DOM loaded, trying init...');
+      if(!window.initDailyCheckin()) {
+        console.log('⏳ Waiting for auth-ready...');
+        document.addEventListener('hi:auth-ready', ()=>{
+          console.log('🔐 Auth ready, retrying...');
+          window.initDailyCheckin();
+        }, { once: true });
+      }
+    });
+  </script>
+  
   <!-- 🚀 INTEGRATION #2: HiBase + HiFlags for Profile operations (flagged rollout) -->
   <script type="module" src="./lib/flags/HiFlags.js"></script>
   <script type="module" src="./lib/hibase/index.js"></script>
@@ -1430,6 +1478,52 @@
           <div class="stat-item">
             <button id="dailyCheckinBtn" class="menu-btn" style="width:100%">Daily Check-in +5</button>
             <div class="stat-label" id="checkinStatus"></div>
+            
+            <!-- Initialize immediately after button -->
+            <script>
+              console.log('🎬 Daily check-in button inline init...');
+              (function(){
+                const btn = document.getElementById('dailyCheckinBtn');
+                if(!btn) { console.error('❌ Button not found'); return; }
+                console.log('✅ Button found');
+                
+                const tryInit = () => {
+                  const client = window.supabaseClient || window.hiSupabase;
+                  console.log('🔌 Client check:', !!client);
+                  if(!client) return false;
+                  
+                  console.log('✅ Attaching click handler');
+                  btn.addEventListener('click', async ()=>{
+                    console.log('🎯 CLICKED!');
+                    const status = document.getElementById('checkinStatus');
+                    btn.disabled = true; btn.textContent = 'Checking...';
+                    try {
+                      const { data, error } = await client.rpc('award_daily_checkin');
+                      console.log('📬 Response:', data, error);
+                      if(error){ status.textContent = error.message; status.style.color = '#f66'; }
+                      else {
+                        if(data?.awarded){ status.textContent = `+${data.delta}!`; status.style.color = '#6c6'; }
+                        else { status.textContent = 'Already done today'; status.style.color = '#aaa'; }
+                        const el = document.getElementById('pointsBalance'); 
+                        if(el && data?.balance) el.textContent = data.balance;
+                      }
+                    } catch(e){ 
+                      console.error('❌', e);
+                      status.textContent = 'Error'; status.style.color = '#f66';
+                    }
+                    finally { btn.disabled = false; btn.textContent = 'Daily Check-in +5'; }
+                  });
+                  return true;
+                };
+                
+                if(tryInit()) return;
+                console.log('⏳ Waiting for auth-ready...');
+                document.addEventListener('hi:auth-ready', ()=>{
+                  console.log('🔐 Auth ready!');
+                  tryInit();
+                }, { once: true });
+              })();
+            </script>
           </div>
         </div>
         <div style="margin-top:14px">
@@ -2687,22 +2781,34 @@ FOR INSERT WITH CHECK (
       }
       
       try {
-        // Get authenticated user ID FIRST
-        const { data: { user } } = await window.supabaseClient.auth.getUser();
-        const userId = user?.id;
-        
-        // Update current profile with form data
-        // ✅ CRITICAL: Preserve id, email, created_at (don't let form overwrite these)
-        Object.assign(currentProfile, formData);
-        if (userId && !currentProfile.id) {
-          currentProfile.id = userId; // Ensure id is set
+        // 🏆 GOLD STANDARD: Use ProfileManager for updates
+        if (window.ProfileManager && window.ProfileManager._initialized) {
+          console.log('✅ Saving profile via ProfileManager');
+          
+          const result = await window.ProfileManager.updateProfile(formData);
+          
+          if (!result.success) {
+            throw new Error(result.error?.message || 'Profile update failed');
+          }
+          
+          // Update current profile from ProfileManager
+          const updatedProfile = window.ProfileManager.getProfile();
+          Object.assign(currentProfile, updatedProfile);
+          
+          console.log('✅ Profile saved via ProfileManager');
+        } else {
+          // Fallback to legacy method
+          console.warn('⚠️ ProfileManager not available, using fallback');
+          
+          const { data: { user } } = await window.supabaseClient.auth.getUser();
+          const userId = user?.id;
+          
+          Object.assign(currentProfile, formData);
+          if (userId && !currentProfile.id) currentProfile.id = userId;
+          if (user?.email && !currentProfile.email) currentProfile.email = user.email;
+          
+          await saveProfileToStorage(currentProfile, userId);
         }
-        if (user?.email && !currentProfile.email) {
-          currentProfile.email = user.email;
-        }
-        
-        // Tesla-Grade Persistence: Multi-layer storage strategy
-        await saveProfileToStorage(currentProfile, userId);
         
         // Update UI immediately for instant feedback
         updateProfileDisplay(currentProfile);
@@ -3029,123 +3135,48 @@ FOR INSERT WITH CHECK (
         console.log('[ProfileRace] loadProfileData skipped (already loaded)');
         return;
       }
+      
       try {
-        // 🛑 WOZ FIX: Wait for Supabase client to be ready (prevents undefined crash)
-        console.log('🔐 [INLINE] Checking authentication status...');
-        const supabase = await getSupabaseClient();
-        console.log('✅ [INLINE] Supabase client obtained:', !!supabase);
-        
-        // 🛡️ FIX: Double-check session using both methods to prevent false negatives
-        let session = null;
-        let sessionError = null;
-        
-        try {
-          // Method 1: getSession (from storage)
-          const { data: sessionData, error } = await supabase.auth.getSession();
-          session = sessionData?.session;
-          sessionError = error;
-          
-          // Method 2: If no session, try getUser (from JWT)
-          if (!session && !error) {
-            console.log('🔍 [INLINE] No session in storage, checking JWT...');
-            const { data: userData, error: userError } = await supabase.auth.getUser();
-            if (userData?.user && !userError) {
-              console.log('✅ [INLINE] Found valid JWT, creating session object');
-              session = { user: userData.user };
-            }
-          }
-        } catch (err) {
-          console.error('❌ [INLINE] Session check error:', err);
-          sessionError = err;
+        // 🏆 GOLD STANDARD: Use ProfileManager as single source of truth
+        if (!window.ProfileManager) {
+          console.warn('⚠️ ProfileManager not available, using fallback');
+          await loadProfileFallback();
+          return;
         }
         
-        if (sessionError) {
-          console.error('❌ [INLINE] Session error:', sessionError);
-          // Don't throw - might be temporary network issue
+        console.log('✅ Using ProfileManager as single source of truth');
+        
+        // Ensure ProfileManager is initialized
+        if (!window.ProfileManager._initialized) {
+          console.log('🚀 Initializing ProfileManager...');
+          await window.ProfileManager.init();
         }
         
-        const isAuthenticated = !!(session?.user);
+        // Check if user is authenticated
+        const isAuth = window.ProfileManager.isAuthenticated();
+        console.log('🔐 Authentication status:', isAuth ? 'AUTHENTICATED ✅' : 'ANONYMOUS ⚠️');
         
-        console.log('🔐 [INLINE] Authentication status:', isAuthenticated ? 'AUTHENTICATED ✅' : 'ANONYMOUS ⚠️');
-        console.log('🔍 [INLINE] Session user:', session?.user?.email || 'none');
-        console.log('🔍 [INLINE] User ID:', session?.user?.id || 'none');
-        
-        if (!isAuthenticated) {
+        if (!isAuth) {
           console.log('🚨 Anonymous user detected - profile page requires authentication');
           
-          // 🛡️ FIX: Add delay to give AuthReady one more chance to load session
-          console.log('⏳ Waiting 1 second for potential session load...');
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          // Final check after delay
-          const { data: { session: finalSession } } = await supabase.auth.getSession();
-          if (finalSession?.user) {
-            console.log('✅ Session loaded after delay - continuing with profile load');
-            session = finalSession;
-          } else {
-            // Still no session - redirect to signin
-            console.log('🔒 No session after delay - redirecting to signin');
-            const isLocal = window.location.hostname === 'localhost';
-            const signinPath = isLocal ? '/public/signin.html' : '/signin.html';
-            const redirectUrl = signinPath + '?redirect=' + encodeURIComponent(window.location.pathname);
-            console.log('🔄 Redirecting to:', redirectUrl);
-            window.location.href = redirectUrl;
-            return; // Stop execution - page will redirect
-          }
+          // Redirect to signin
+          const isLocal = window.location.hostname === 'localhost';
+          const signinPath = isLocal ? '/public/signin.html' : '/signin.html';
+          const redirectUrl = signinPath + '?redirect=' + encodeURIComponent(window.location.pathname);
+          console.log('🔄 Redirecting to:', redirectUrl);
+          window.location.href = redirectUrl;
+          return;
         }
         
-        // Tesla-Grade Loading Priority for authenticated users: DATABASE FIRST (source of truth)
-        let profile = null;
-        const userId = session.user.id;
+        // Get profile from ProfileManager (always current)
+        const profile = window.ProfileManager.getProfile();
+        const userId = window.ProfileManager.getUserId();
         
-        // Layer 1: ALWAYS load from database first (source of truth)
-        console.log('📥 [INLINE] LOADING FROM DATABASE (source of truth) for user:', userId);
-        profile = await loadAuthenticatedProfileFromSupabase(userId);
-        console.log('📥 [INLINE] Database query returned:', !!profile, profile ? `(${profile.username})` : '(null)');
-        
-        if (profile) {
-          console.log('📥 [INLINE] GOT FROM DATABASE:', {
-            id: profile.id,
-            username: profile.username,
-            display_name: profile.display_name,
-            avatar_url: profile.avatar_url
-          });
-          
-          // ✅ Update localStorage cache with fresh database data
-          const storageKey = `stayhi_profile_${userId}`;
-          localStorage.setItem(storageKey, JSON.stringify(profile));
-          console.log('✅ localStorage cache updated from database');
-        } else {
-          console.warn('⚠️ NO PROFILE FOUND IN DATABASE');
-        }
-        
-        // Layer 2: Fallback to localStorage only if database fails
-        if (!profile) {
-          const savedProfile = localStorage.getItem(`stayhi_profile_${userId}`);
-          console.log('💾 Database empty, checking localStorage fallback...');
-          if (savedProfile) {
-            try {
-              profile = JSON.parse(savedProfile);
-              console.log('💾 Using localStorage fallback:', {
-                username: profile.username,
-                display_name: profile.display_name,
-                avatar_url: profile.avatar_url
-              });
-            } catch (e) {
-              console.warn('⚠️ Invalid localStorage profile data');
-            }
-          }
-        }
-        
-        // Layer 3: Create new authenticated profile
-        if (!profile) {
-          console.log('📊 Creating new authenticated profile...');
-          profile = { ...currentProfile };
-          profile.id = userId;
-          profile.email = authReady.session.user.email || '';
-          profile.username = profile.username || authReady.session.user.email?.split('@')[0] || `user_${userId.slice(-6)}`;
-          await saveProfileToStorage(profile, userId);
-        }
+        console.log('✅ Profile loaded from ProfileManager:', {
+          id: userId,
+          username: profile?.username,
+          display_name: profile?.display_name
+        });
         
         // Update current profile and UI
         Object.assign(currentProfile, profile);
@@ -3155,18 +3186,83 @@ FOR INSERT WITH CHECK (
         // 🎯 TESLA-GRADE: Load real user stats
         await loadUserStats(userId);
         
-        console.log('✅ Authenticated profile loaded successfully:', currentProfile.username);
+        console.log('✅ Profile loaded successfully from ProfileManager');
         try { window.HiAudit?.log('profile_load_authenticated', { resource:'profile' }); } catch {}
+        
       } catch (error) {
-        console.error('❌ [INLINE] Profile loading error:', error);
-        console.error('❌ [INLINE] Error stack:', error.stack);
-        console.error('❌ [INLINE] This caused fallback to demo profile!');
-        // Fallback to anonymous demo profile
-        await loadAnonymousDemoProfile();
-        window.__PROFILE_DATA_LOADED = true;
+        console.error('❌ Profile loading error:', error);
+        console.error('❌ Error stack:', error.stack);
+        
+        // Fallback to legacy method
+        console.warn('⚠️ Falling back to legacy profile loading');
+        await loadProfileFallback();
+        
         try { window.HiAudit?.log('profile_load_error', { resource:'profile' }, { success:false, failureReason: error.message }); } catch {}
       }
+      
       window.__PROFILE_DATA_LOADED = true;
+    }
+    
+    // Fallback method (legacy)
+    async function loadProfileFallback() {
+      try {
+        // 🛑 WOZ FIX: Wait for Supabase client to be ready
+        console.log('🔐 [FALLBACK] Checking authentication status...');
+        const supabase = await getSupabaseClient();
+        console.log('✅ [FALLBACK] Supabase client obtained');
+        
+        // Check session
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        const session = sessionData?.session;
+        
+        if (!session?.user) {
+          console.log('🚨 No session - redirecting to signin');
+          const isLocal = window.location.hostname === 'localhost';
+          const signinPath = isLocal ? '/public/signin.html' : '/signin.html';
+          window.location.href = signinPath + '?redirect=' + encodeURIComponent(window.location.pathname);
+          return;
+        }
+        
+        const userId = session.user.id;
+        
+        // Load from database
+        console.log('📥 [FALLBACK] Loading from database for user:', userId);
+        let profile = await loadAuthenticatedProfileFromSupabase(userId);
+        
+        if (!profile) {
+          // Try localStorage
+          const savedProfile = localStorage.getItem(`stayhi_profile_${userId}`);
+          if (savedProfile) {
+            try {
+              profile = JSON.parse(savedProfile);
+              console.log('💾 Using localStorage fallback');
+            } catch (e) {
+              console.warn('⚠️ Invalid localStorage profile data');
+            }
+          }
+        }
+        
+        if (!profile) {
+          // Create new profile
+          console.log('📊 Creating new authenticated profile...');
+          profile = { ...currentProfile };
+          profile.id = userId;
+          profile.email = session.user.email || '';
+          profile.username = profile.username || session.user.email?.split('@')[0] || `user_${userId.slice(-6)}`;
+        }
+        
+        // Update current profile and UI
+        Object.assign(currentProfile, profile);
+        updateProfileDisplay(currentProfile);
+        populateEditForm(currentProfile);
+        
+        // Load user stats
+        await loadUserStats(userId);
+        
+        console.log('✅ Profile loaded via fallback method');
+      } catch (error) {
+        console.error('❌ Fallback profile loading error:', error);
+      }
     }
 
     // Tesla-Grade Authenticated Supabase Loading
@@ -3385,19 +3481,35 @@ FOR INSERT WITH CHECK (
   <script>
     // Initialize points balance and daily check-in
     document.addEventListener('hi:points-ready', async ()=>{
+      console.log('🌟 hi:points-ready event fired!');
       try {
         const { balance } = await HiPoints.getBalance();
+        console.log('💰 Points balance loaded:', balance);
         const el = document.getElementById('pointsBalance'); if(el) el.textContent = balance;
-      } catch(_){ /* ignore */ }
+      } catch(e){ console.error('❌ Error loading points balance:', e); }
     });
-    (function(){
+    
+    // Wait for auth-ready to ensure Supabase client is loaded
+    document.addEventListener('hi:auth-ready', ()=>{
+      console.log('🔐 Auth ready - initializing daily check-in button');
       const btn = document.getElementById('dailyCheckinBtn');
-      if(!btn || !window.supabaseClient) return;
+      const client = window.supabaseClient || window.hiSupabase;
+      
+      console.log('🔘 Daily check-in button found:', !!btn);
+      console.log('🔌 Supabase client ready:', !!client);
+      
+      if(!btn) { console.error('❌ dailyCheckinBtn not found!'); return; }
+      if(!client) { console.error('❌ Supabase client not ready!'); return; }
+      
+      console.log('✅ Attaching click handler to daily check-in button');
       btn.addEventListener('click', async ()=>{
+        console.log('🎯 Daily check-in button clicked!');
         const status = document.getElementById('checkinStatus');
         btn.disabled = true; btn.textContent = 'Checking...';
         try {
-          const { data, error } = await supabaseClient.rpc('award_daily_checkin');
+          console.log('📡 Calling award_daily_checkin RPC...');
+          const { data, error } = await client.rpc('award_daily_checkin');
+          console.log('📬 RPC response:', { data, error });
           if(error){ status.textContent = error.message; status.style.color = '#f66'; }
           else {
             if(data?.awarded){ status.textContent = `+${data.delta} today`; status.style.color = '#6c6'; }
@@ -3405,10 +3517,14 @@ FOR INSERT WITH CHECK (
             const el = document.getElementById('pointsBalance'); if(el && typeof data?.balance !== 'undefined') el.textContent = data.balance;
             try { await refreshLedger(); } catch(_){ }
           }
-        } catch(e){ const status = document.getElementById('checkinStatus'); if(status){ status.textContent = 'Error'; status.style.color = '#f66'; } }
+        } catch(e){ 
+          console.error('❌ Check-in error:', e);
+          const status = document.getElementById('checkinStatus'); 
+          if(status){ status.textContent = 'Error: ' + e.message; status.style.color = '#f66'; } 
+        }
         finally { btn.disabled = false; btn.textContent = 'Daily Check-in +5'; }
       });
-    })();
+    });
 
     async function refreshLedger(){
       if(!window.HiPoints) return;

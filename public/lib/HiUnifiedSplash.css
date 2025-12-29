@@ -1,0 +1,269 @@
+/**
+ * 🎬 HI UNIFIED SPLASH - CSS Styling
+ * Single source of truth for splash page appearance
+ * Combines premium gradient background + "warming things up" messaging
+ */
+
+/* ============================================================================
+   BASE SPLASH OVERLAY
+============================================================================ */
+
+#hi-unified-splash {
+  /* Full-screen fixed overlay */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  
+  /* Premium gradient background (from logo splash) */
+  background: linear-gradient(135deg, 
+    rgba(26, 29, 58, 1) 0%,
+    rgba(37, 43, 82, 1) 25%,
+    rgba(45, 30, 79, 1) 50%,
+    rgba(55, 35, 70, 1) 75%,
+    rgba(26, 29, 58, 1) 100%);
+  background-size: 200% 200%;
+  animation: splashGradientShift 8s ease infinite;
+  
+  /* Glass morphism effect */
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 20px;
+  
+  /* Performance */
+  will-change: opacity;
+  opacity: 1;
+  transition: opacity 0.3s ease-out;
+}
+
+/* ============================================================================
+   SPLASH CONTENT
+============================================================================ */
+
+.splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 400px;
+  text-align: center;
+}
+
+/* Logo container */
+.splash-logo-container {
+  position: relative;
+  width: 140px;
+  height: 140px;
+}
+
+.splash-logo {
+  width: 100%;
+  height: 100%;
+  border-radius: 32px;
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 12px 24px rgba(255, 122, 24, 0.3),
+    inset 0 2px 4px rgba(255, 255, 255, 0.15);
+  
+  /* Subtle pulse animation */
+  animation: splashLogoPulse 2s ease-in-out infinite;
+}
+
+/* Glow effect behind logo */
+.splash-logo-container::before {
+  content: '';
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 122, 24, 0.4) 0%,
+    rgba(255, 122, 24, 0.1) 40%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  animation: splashGlow 3s ease-in-out infinite;
+  z-index: -1;
+}
+
+/* Loading message */
+.splash-message {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Loading spinner */
+.splash-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: rgba(255, 122, 24, 0.9);
+  border-radius: 50%;
+  animation: splashSpin 0.8s linear infinite;
+}
+
+/* ============================================================================
+   STATE: SLOW (after 3 seconds)
+============================================================================ */
+
+#hi-unified-splash[data-state="slow"] .splash-message {
+  animation: splashMessagePulse 2s ease-in-out infinite;
+}
+
+/* ============================================================================
+   STATE: ERROR (after 8 seconds)
+============================================================================ */
+
+#hi-unified-splash[data-state="error"] {
+  background: linear-gradient(135deg, 
+    rgba(58, 26, 26, 1) 0%,
+    rgba(82, 37, 37, 1) 50%,
+    rgba(58, 26, 26, 1) 100%);
+}
+
+.splash-error-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.splash-error-icon {
+  font-size: 48px;
+  animation: splashErrorShake 0.5s ease-in-out;
+}
+
+.splash-error-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 16px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.splash-retry-btn {
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #FF7A18 0%, #FF6B00 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(255, 122, 24, 0.3);
+}
+
+.splash-retry-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 122, 24, 0.4);
+}
+
+.splash-retry-btn:active {
+  transform: translateY(0);
+}
+
+/* ============================================================================
+   ANIMATIONS
+============================================================================ */
+
+@keyframes splashGradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes splashLogoPulse {
+  0%, 100% { 
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% { 
+    transform: scale(1.05);
+    filter: brightness(1.1);
+  }
+}
+
+@keyframes splashGlow {
+  0%, 100% { 
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes splashSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes splashMessagePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes splashErrorShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+============================================================================ */
+
+@media (max-width: 480px) {
+  .splash-logo-container {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .splash-message {
+    font-size: 14px;
+  }
+  
+  .splash-spinner {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* ============================================================================
+   ACCESSIBILITY
+============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  #hi-unified-splash {
+    animation: none;
+  }
+  
+  .splash-logo {
+    animation: none;
+  }
+  
+  .splash-spinner {
+    animation: splashSpin 1.5s linear infinite; /* Slower for reduced motion */
+  }
+  
+  .splash-logo-container::before {
+    animation: none;
+    opacity: 0.6;
+  }
+}
