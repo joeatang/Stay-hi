@@ -1701,6 +1701,9 @@
       try {
         console.log('📊 Loading stats for user:', userId);
         
+        // 🧹 Clear any stale localStorage cache
+        localStorage.removeItem('user_current_streak');
+        
         // 🎯 FIX: Load points balance FIRST (critical for check-in display)
         if (window.HiPoints?.getBalance) {
           try {
@@ -1715,26 +1718,8 @@
           }
         }
         
-        // Try HiBase first (preferred)
-        if (window.HiBase?.stats?.getUserStats) {
-          const stats = await window.HiBase.stats.getUserStats(userId);
-          if (stats) {
-            userStats = {
-              hi_moments: stats.total_hi_moments || 0,
-              current_streak: stats.current_streak || 0,
-              longest_streak: stats.longest_streak || 0,
-              total_waves: stats.total_waves || 0,
-              total_starts: stats.total_starts || 0,
-              days_active: stats.days_active || 0,
-              loading: false
-            };
-            console.log('✅ Stats loaded from HiBase:', userStats);
-            updateStatsDisplay();
-            return;
-          }
-        }
-
-        // Fallback: Direct Supabase query
+        // 🎯 ALWAYS use direct Supabase query (single source of truth)
+        // Skip HiBase to avoid stale data
         const supabase = window.hiSupabase || window.supabase;
         if (supabase) {
           const { data, error } = await supabase

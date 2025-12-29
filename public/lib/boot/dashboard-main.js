@@ -68,6 +68,10 @@
       }
 
       __dbg('🔄 Loading streak for user:', userId);
+      
+      // 🧹 Clear stale cache to force fresh database read
+      localStorage.removeItem('user_current_streak');
+      
       let streakValue = null;
       let source = 'none';
 
