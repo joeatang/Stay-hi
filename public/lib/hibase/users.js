@@ -236,19 +236,19 @@ export async function profileExists(userId) {
 export async function getUserStats(userId) {
     return hiBaseClient.execute(async (client) => {
         const { data, error } = await client
-            .from('hi_users')
+            .from('user_stats')
             .select(`
-                id,
-                username,
-                total_his,
+                user_id,
+                total_hi_moments,
                 current_streak,
                 longest_streak,
-                level,
-                points,
-                total_shares,
+                total_waves,
+                total_starts,
+                days_active,
+                hi_points,
                 created_at
             `)
-            .eq('id', userId)
+            .eq('user_id', userId)
             .single();
 
         if (error) {
@@ -256,10 +256,16 @@ export async function getUserStats(userId) {
         }
 
         return {
-            data: {
-                stats: data,
+            data: data ? {
+                total_hi_moments: data.total_hi_moments || 0,
+                current_streak: data.current_streak || 0,
+                longest_streak: data.longest_streak || 0,
+                total_waves: data.total_waves || 0,
+                total_starts: data.total_starts || 0,
+                days_active: data.days_active || 0,
+                hi_points: data.hi_points || 0,
                 daysSinceJoined: Math.floor((new Date() - new Date(data.created_at)) / (1000 * 60 * 60 * 24))
-            },
+            } : null,
             error: null
         };
     });

@@ -1720,7 +1720,7 @@
           const stats = await window.HiBase.stats.getUserStats(userId);
           if (stats) {
             userStats = {
-              hi_moments: stats.total_shares || stats.hi_moments || 0,
+              hi_moments: stats.total_hi_moments || 0,
               current_streak: stats.current_streak || 0,
               longest_streak: stats.longest_streak || 0,
               total_waves: stats.total_waves || 0,
@@ -1749,7 +1749,7 @@
 
           if (data) {
             userStats = {
-              hi_moments: data.total_shares || data.hi_moments || 0,
+              hi_moments: data.total_hi_moments || 0,
               current_streak: data.current_streak || 0,
               longest_streak: data.longest_streak || 0,
               total_waves: data.total_waves || 0,
