@@ -1701,6 +1701,20 @@
       try {
         console.log('📊 Loading stats for user:', userId);
         
+        // 🎯 FIX: Load points balance FIRST (critical for check-in display)
+        if (window.HiPoints?.getBalance) {
+          try {
+            const { balance } = await window.HiPoints.getBalance();
+            const el = document.getElementById('pointsBalance');
+            if (el) {
+              el.textContent = balance || 0;
+              console.log('💰 Points balance loaded:', balance);
+            }
+          } catch (e) {
+            console.warn('⚠️ Could not load points balance:', e);
+          }
+        }
+        
         // Try HiBase first (preferred)
         if (window.HiBase?.stats?.getUserStats) {
           const stats = await window.HiBase.stats.getUserStats(userId);
