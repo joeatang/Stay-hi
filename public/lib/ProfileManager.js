@@ -68,6 +68,17 @@ class ProfileManager {
         authenticated: !!this._userId
       });
 
+      // 🎯 FIX TIMEOUT: Always fire auth-ready event after init completes
+      // This ensures HiUnifiedSplash knows auth is ready (anonymous or authenticated)
+      window.dispatchEvent(new CustomEvent('hi:auth-ready', {
+        detail: { 
+          userId: this._userId, 
+          authenticated: !!this._userId,
+          profile: this._profile
+        }
+      }));
+      console.log('📢 Dispatched hi:auth-ready event');
+
       // Expose globally for legacy compatibility
       window.__ProfileManager = this;
       
