@@ -35,11 +35,18 @@
         const { createClient } = supabase;
         const supabaseClient = createClient(
           'https://gfcubvroxgfvjhacinic.supabase.co',
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g'
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g',
+          {
+            auth: {
+              persistSession: true,  // 🎯 FIX: Persist sessions across browser restarts
+              autoRefreshToken: true,
+              detectSessionInUrl: true
+            }
+          }
         );
         window.db = supabaseClient;
         window.supabase = supabaseClient;
-        __dbg('✅ Supabase client initialized (dashboard)');
+        __dbg('✅ Supabase client initialized (dashboard) with persistent sessions');
       } else {
         console.warn('⚠️ Supabase library unavailable for initialization');
       }
