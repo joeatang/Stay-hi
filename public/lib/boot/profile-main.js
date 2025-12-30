@@ -225,10 +225,7 @@ function animateCounter(element,start,end,duration){ const range=end-start; cons
 function validateTeslaAvatarSystem(){ const validations={ 'TeslaAvatarCropper':!!window.TeslaAvatarCropper, 'TeslaAvatarUploader':!!window.TeslaAvatarUploader, 'Avatar Modal':!!document.getElementById('avatarCropModal'), 'File Input':!!document.getElementById('avatarFileInput'), 'Preview Container':!!document.getElementById('cropPreviewContainer'), 'Toast System':typeof showToast==='function' }; let allValid=true; Object.entries(validations).forEach(([name,isValid])=>{ if(!isValid) allValid=false; }); return allValid; }
 function initializeTeslaAvatarSystem(){ let attempts=0; const maxAttempts=50; const checkInterval=setInterval(()=>{ attempts++; if(window.TeslaAvatarCropper && window.TeslaAvatarUploader){ clearInterval(checkInterval); console.log('\u2705 Tesla Avatar System initialized'); validateTeslaAvatarSystem(); return; } if(attempts>=maxAttempts){ clearInterval(checkInterval); console.warn('\u26a0\ufe0f Avatar system initialization timeout - continuing without avatar features'); return; } },100); }
 async function getSupabaseClient(maxRetries=10,delayMs=100){ for(let i=0;i<maxRetries;i++){ const client=window.supabaseClient||window.hiSupabase||window.sb||window.__HI_SUPABASE_CLIENT; if(client&&client.auth){ if(i>0)console.log(`✅ [profile-main.js] Supabase client ready after ${i} retries`); return client; } if(i===0)console.log('⏳ [profile-main.js] Waiting for Supabase client...'); await new Promise(r=>setTimeout(r,delayMs)); } throw new Error('Supabase client not available'); }
-async function loadProfileData(){ console.log('🔄 [profile-main.js] Loading profile data...'); if(window.__PROFILE_DATA_LOADED){ console.log('⏸️ [profile-main.js] Profile already loaded, skipping'); return; } 
-// 🔥 CRITICAL: Mark as loaded IMMEDIATELY to prevent race conditions
-window.__PROFILE_DATA_LOADED=true; 
-try{ 
+async function loadProfileData(){ console.log('🔄 [profile-main.js] Loading profile data...'); if(window.__PROFILE_DATA_LOADED){ console.log('⏸️ [profile-main.js] Profile already loaded, skipping'); return; } try{ 
 // 🏆 WOZ FIX: Use ProfileManager if available
 if(window.ProfileManager?.isReady()){
   console.log('🏆 [profile-main.js] Using ProfileManager (gold standard)');
