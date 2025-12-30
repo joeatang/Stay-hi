@@ -237,12 +237,12 @@ if(window.ProfileManager?.isReady()){
     updateProfileDisplay(currentProfile);
     populateEditForm(currentProfile);
     
-    // 🎯 CRITICAL: Load stats from database (profile.html defines loadUserStats)
-    if(typeof loadUserStats === 'function'){
+    // 🎯 CRITICAL: Load stats from database (profile.html defines window.loadUserStats)
+    if(typeof window.loadUserStats === 'function'){
       console.log('📊 [profile-main.js] Loading stats from database...');
-      await loadUserStats(profile.id);
+      await window.loadUserStats(profile.id);
     } else {
-      console.warn('⚠️ [profile-main.js] loadUserStats not available yet');
+      console.warn('⚠️ [profile-main.js] window.loadUserStats not available yet');
     }
     
     window.__PROFILE_DATA_LOADED=true;
