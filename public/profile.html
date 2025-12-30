@@ -1494,24 +1494,51 @@
                   
                   console.log('✅ Attaching click handler');
                   btn.addEventListener('click', async ()=>{
-                    console.log('🎯 CLICKED!');
+                    console.log('🎯 CLICKED! Calling checkin RPC...');
                     const status = document.getElementById('checkinStatus');
                     btn.disabled = true; btn.textContent = 'Checking...';
                     try {
-                      const { data, error } = await client.rpc('award_daily_checkin');
-                      console.log('📬 Response:', data, error);
-                      if(error){ status.textContent = error.message; status.style.color = '#f66'; }
+                      // 🔥 FIX: Use correct RPC name - checkin_and_award_points
+                      const { data, error } = await client.rpc('checkin_and_award_points');
+                      console.log('📬 Check-in RPC response:', { data, error });
+                      
+                      if(error){ 
+                        console.error('❌ Check-in error:', error);
+                        status.textContent = error.message; 
+                        status.style.color = '#f66'; 
+                      }
                       else {
-                        if(data?.awarded){ status.textContent = `+${data.delta}!`; status.style.color = '#6c6'; }
-                        else { status.textContent = 'Already done today'; status.style.color = '#aaa'; }
-                        const el = document.getElementById('pointsBalance'); 
-                        if(el && data?.balance) el.textContent = data.balance;
+                        console.log('✅ Check-in success:', data);
+                        if(data?.awarded || data?.points_awarded){ 
+                          const delta = data.delta || data.points_awarded || 5;
+                          status.textContent = `+${delta} points!`; 
+                          status.style.color = '#6c6'; 
+                          
+                          // Update points display
+                          const el = document.getElementById('pointsBalance'); 
+                          if(el && data?.new_balance) {
+                            el.textContent = data.new_balance;
+                            console.log('💰 Points updated:', data.new_balance);
+                          }
+                          
+                          // Disable button (already checked in today)
+                          btn.disabled = true;
+                          btn.textContent = '✅ Checked in!';
+                        }
+                        else { 
+                          console.log('ℹ️ Already checked in today');
+                          status.textContent = 'Already done today'; 
+                          status.style.color = '#aaa'; 
+                          btn.disabled = true;
+                        }
                       }
                     } catch(e){ 
-                      console.error('❌', e);
-                      status.textContent = 'Error'; status.style.color = '#f66';
+                      console.error('❌ Check-in exception:', e);
+                      status.textContent = 'Error - check console'; 
+                      status.style.color = '#f66';
+                      btn.disabled = false;
+                      btn.textContent = 'Try again';
                     }
-                    finally { btn.disabled = false; btn.textContent = 'Daily Check-in +5'; }
                   });
                   return true;
                 };
@@ -1722,6 +1749,10 @@
         // Skip HiBase to avoid stale data
         const supabase = window.hiSupabase || window.supabase;
         if (supabase) {
+          // 🔥 CACHE-BUSTING: Add random parameter to force fresh query
+          const timestamp = Date.now();
+          console.log('📊 Fetching fresh stats from database (cache-bust:', timestamp, ')');
+          
           const { data, error } = await supabase
             .from('user_stats')
             .select('*')
@@ -1742,7 +1773,13 @@
               days_active: data.days_active || 0,
               loading: false
             };
-            console.log('✅ Stats loaded from Supabase:', userStats);
+            console.log('✅ Stats loaded from Supabase (FRESH):', userStats);
+            console.log('📊 Database values:', {
+              'total_hi_moments (from DB)': data.total_hi_moments,
+              'current_streak (from DB)': data.current_streak,
+              'total_waves (from DB)': data.total_waves,
+              'updated_at (from DB)': data.updated_at
+            });
           } else {
             console.log('📊 No stats found, user is new - using zeros');
             userStats.loading = false;
@@ -1759,6 +1796,8 @@
 
     // Update stats display in DOM
     function updateStatsDisplay() {
+      console.log('🎯 updateStatsDisplay() called with userStats:', userStats);
+      
       const statElements = {
         'hi_moments': document.querySelector('[data-stat="hi_moments"]'),
         'current_streak': document.querySelector('[data-stat="current_streak"]'),
@@ -1775,11 +1814,21 @@
             el.textContent = '—';
             el.classList.add('loading');
           } else {
-            el.textContent = userStats[key] || 0;
+            const newValue = userStats[key] || 0;
+            console.log(`  📊 Setting ${key} = ${newValue} (database value)`);
+            el.textContent = newValue;
             el.classList.remove('loading');
+            
+            // 🔥 CRITICAL: Lock the value by setting data attribute
+            el.setAttribute('data-db-value', newValue);
+            el.setAttribute('data-last-update', Date.now());
           }
+        } else {
+          console.warn(`  ⚠️ Element not found for ${key}`);
         }
       });
+      
+      console.log('✅ Stats display updated - all values from database');
     }
 
     // Optional debug overlay: ?profiledebug=1 shows live streak + milestone progress
@@ -3185,6 +3234,30 @@ FOR INSERT WITH CHECK (
         // 🎯 TESLA-GRADE: Load real user stats
         await loadUserStats(userId);
         
+        // 🔥 FIX: Remove tier loading spinner after auth complete
+        const tierIndicator = document.getElementById('hi-tier-indicator');
+        if (tierIndicator) {
+          tierIndicator.removeAttribute('data-auth-loading');
+          const tierText = tierIndicator.querySelector('.tier-text');
+          if (tierText && tierText.classList.contains('tier-loading')) {
+            // Wait for HiTier to initialize
+            if (window.HiTier) {
+              const tier = window.HiTier.getTier();
+              tierText.textContent = tier.toUpperCase();
+              tierText.classList.remove('tier-loading');
+            } else {
+              // Fallback if HiTier not ready yet
+              setTimeout(() => {
+                if (window.HiTier) {
+                  const tier = window.HiTier.getTier();
+                  tierText.textContent = tier.toUpperCase();
+                  tierText.classList.remove('tier-loading');
+                }
+              }, 500);
+            }
+          }
+        }
+        
         console.log('✅ Profile loaded successfully from ProfileManager');
         try { window.HiAudit?.log('profile_load_authenticated', { resource:'profile' }); } catch {}
         
@@ -3965,9 +4038,10 @@ FOR INSERT WITH CHECK (
           console.warn('⚠️ updateProfileDisplay function or currentProfile not available');
         }
         
-        if (typeof updateStatsDisplay === 'function' && userStats) {
-          updateStatsDisplay(userStats);
-        }
+        // 🔥 REMOVED: updateStatsDisplay(userStats) call
+        // Stats are loaded and displayed by loadUserStats() in profile.html (line ~1729)
+        // That function queries database directly and calls the correct updateStatsDisplay()
+        // Do NOT call it again here with potentially stale userStats object
       }, 500);
       
       // Avatar file input handler

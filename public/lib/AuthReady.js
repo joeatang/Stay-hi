@@ -79,6 +79,10 @@ export async function waitAuthReady(){
 
 export function getAuthState(){ return _result; }
 
+// 🔥 CRITICAL: Expose to window for ProfileManager to use
+window.waitAuthReady = waitAuthReady;
+window.getAuthState = getAuthState;
+
 // If the Supabase client upgrades from stub->real, refresh state and notify listeners
 try {
   window.addEventListener('supabase-upgraded', async ()=>{

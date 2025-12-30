@@ -261,48 +261,94 @@ class ProfileManager {
 
   /**
    * Wait for auth to be ready (user_id available or confirmed anonymous)
+   * 🔥 FIX: Check if AuthReady already finished, otherwise wait for event
    */
   async _waitForAuth() {
     if (this._authReady) {
       return;
     }
 
-    // Create promise if not exists
-    if (!this._authReadyPromise) {
-      this._authReadyPromise = new Promise(resolve => {
-        this._authReadyResolve = resolve;
-      });
+    // 🚀 CRITICAL: Check if AuthReady.js already finished (event already fired)
+    // Import waitAuthReady from AuthReady.js if available
+    if (window.waitAuthReady) {
+      console.log('🔍 Checking if AuthReady already completed...');
+      try {
+        const authState = await window.waitAuthReady();
+        const { session, membership } = authState || {};
+        
+        if (session?.user) {
+          this._userId = session.user.id;
+          this._authReady = true;
+          console.log('✅ Auth ready (from AuthReady cache) - authenticated user:', this._userId);
+          return;
+        } else {
+          this._userId = null;
+          this._authReady = true;
+          console.log('ℹ️ Auth ready (from AuthReady cache) - anonymous user');
+          return;
+        }
+      } catch (error) {
+        console.warn('⚠️ waitAuthReady failed, falling back to event listener:', error);
+      }
     }
 
-    try {
-      // Check auth session
-      const { data: { session }, error } = await this._supabase.auth.getSession();
+    // Fallback: Listen for event (if AuthReady hasn't fired yet)
+    if (!this._authReadyPromise) {
+      this._authReadyPromise = new Promise((resolve) => {
+        this._authReadyResolve = resolve;
 
-      if (error) {
-        console.warn('⚠️ Auth session error:', error);
-      }
+        const handleAuthReady = (event) => {
+          const { session, membership } = event.detail || {};
+          
+          if (session?.user) {
+            this._userId = session.user.id;
+            this._authReady = true;
+            console.log('✅ Auth ready (from event) - authenticated user:', this._userId);
+          } else {
+            this._userId = null;
+            this._authReady = true;
+            console.log('ℹ️ Auth ready (from event) - anonymous user');
+          }
 
-      if (session?.user) {
-        this._userId = session.user.id;
-        this._authReady = true;
-        console.log('✅ Auth ready - authenticated user:', this._userId);
-      } else {
-        // Anonymous user
-        this._userId = null;
-        this._authReady = true;
-        console.log('ℹ️ Auth ready - anonymous user');
-      }
+          if (this._authReadyResolve) {
+            this._authReadyResolve();
+          }
+          
+          window.removeEventListener('hi:auth-ready', handleAuthReady);
+        };
 
-      if (this._authReadyResolve) {
-        this._authReadyResolve();
-      }
+        window.addEventListener('hi:auth-ready', handleAuthReady);
+        
+        // Emergency fallback: Check session directly after 500ms
+        setTimeout(async () => {
+          if (!this._authReady) {
+            console.warn('⚠️ AuthReady event timeout, checking session directly...');
+            try {
+              const { data: { session } } = await this._supabase.auth.getSession();
+              
+              if (session?.user) {
+                this._userId = session.user.id;
+                this._authReady = true;
+                console.log('✅ Auth ready (emergency fallback) - authenticated:', this._userId);
+              } else {
+                this._userId = null;
+                this._authReady = true;
+                console.log('ℹ️ Auth ready (emergency fallback) - anonymous');
+              }
 
-    } catch (error) {
-      console.error('❌ Auth check failed:', error);
-      this._authReady = true; // Mark ready anyway to unblock
-      if (this._authReadyResolve) {
-        this._authReadyResolve();
-      }
+              if (this._authReadyResolve) {
+                this._authReadyResolve();
+              }
+            } catch (error) {
+              console.error('❌ Emergency auth check failed:', error);
+              this._authReady = true;
+              if (this._authReadyResolve) {
+                this._authReadyResolve();
+              }
+            }
+          }
+        }, 500); // Reduced from 2000ms to 500ms
+      });
     }
 
     return this._authReadyPromise;
