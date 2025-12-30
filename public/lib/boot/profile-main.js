@@ -10,13 +10,15 @@ let currentProfile = {
   created_at: new Date().toISOString().split('T')[0],
   id: null
 };
+// 🚨 DO NOT initialize with random data - stats are loaded from database in profile.html
 const userStats = {
-  hi_moments: Math.floor(Math.random() * 200) + 50,
-  current_streak: Math.floor(Math.random() * 30) + 1,
-  longest_streak: Math.floor(Math.random() * 60) + 20,
-  total_waves: Math.floor(Math.random() * 150) + 30,
-  total_starts: Math.floor(Math.random() * 40) + 5,
-  days_active: Math.floor(Math.random() * 100) + 10
+  hi_moments: 0,
+  current_streak: 0,
+  longest_streak: 0,
+  total_waves: 0,
+  total_starts: 0,
+  days_active: 0,
+  loading: true
 };
 let socialAvatarUploader = null;
 function openAvatarCrop() {
@@ -234,8 +236,9 @@ if(window.ProfileManager?.isReady()){
     Object.assign(currentProfile, profile);
     updateProfileDisplay(currentProfile);
     populateEditForm(currentProfile);
-    window.__PROFILE_DATA_LOADED=true;
-    return;
+    // ⚠️ DO NOT set __PROFILE_DATA_LOADED - let profile.html handle it after stats load!
+    console.log('✅ [profile-main.js] Profile loaded, returning to let profile.html load stats');
+    return; // Return WITHOUT setting flag
   }
 }
 
