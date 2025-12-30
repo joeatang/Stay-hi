@@ -4011,13 +4011,9 @@ FOR INSERT WITH CHECK (
           console.log('✅ Authenticated user - bypassing access gate, loading profile...');
         }
         
-        // 🎯 GOLD STANDARD: Call profile-main.js version (single source of truth)
-        if (window.TeslaProfile?.loadProfileData) {
-          await window.TeslaProfile.loadProfileData();
-        } else {
-          console.warn('⚠️ TeslaProfile.loadProfileData not ready, using inline fallback');
-          await loadProfileData();
-        }
+        // 🎯 ALWAYS use inline version that loads stats properly
+        console.log('🔄 Using inline loadProfileData (loads stats)');
+        await loadProfileData();
       }, { once: true });
       
       // Fallback: If auth-ready doesn't fire in 5 seconds, load anyway
