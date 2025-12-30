@@ -101,7 +101,19 @@
   }
 
   function navigateToHome(){
-    window.location.href = 'hi-dashboard.html';
+    // 🔥 WOZ FIX: Bulletproof navigation (multiple fallbacks)
+    try {
+      // Try normal navigation
+      window.location.href = 'hi-dashboard.html';
+    } catch(e) {
+      // Fallback 1: Use assign
+      try {
+        window.location.assign('hi-dashboard.html');
+      } catch(e2) {
+        // Fallback 2: Use replace (nuclear option)
+        window.location.replace('hi-dashboard.html');
+      }
+    }
   }
 
   function openHiffirmations(){

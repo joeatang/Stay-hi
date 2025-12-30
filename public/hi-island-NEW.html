@@ -105,6 +105,8 @@
 
   <!-- Unified Access Gate (replaces legacy anonymous modal) -->
   <script src="assets/hi-paths.js"></script>
+  <!-- 🔥 WOZ EMERGENCY RECOVERY: Auto-detects freeze and recovers -->
+  <script src="lib/emergency/EmergencyRecovery.js"></script>
   <!-- 🎯 TIER CONFIG - Must load BEFORE HiMembership (GLOBAL SCRIPT, not module) -->
   <script src="lib/config/TIER_CONFIG.js"></script>
   <script src="lib/membership/HiMembershipBridge.js"></script>
@@ -436,7 +438,7 @@
       letter-spacing: -0.5px;
     }
 
-    .calendar-btn, .menu-btn, .home-nav-btn {
+    .calendar-btn, .menu-btn, .home-nav-btn, .home-nav-link {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -448,9 +450,10 @@
       color: #FFD166;
       cursor: pointer;
       transition: all 0.3s ease;
+      text-decoration: none; /* For <a> elements */
     }
 
-    .calendar-btn:hover, .menu-btn:hover, .home-nav-btn:hover {
+    .calendar-btn:hover, .menu-btn:hover, .home-nav-btn:hover, .home-nav-link:hover {
       background: rgba(255, 209, 102, 0.2);
       transform: translateY(-1px);
     }
@@ -1459,12 +1462,13 @@
         📅
       </button>
       
-      <button class="home-nav-btn" onclick="navigateToHome()" aria-label="Go to Hi Today" title="Navigate to Hi Today">
+      <!-- 🔥 WOZ FIX: href works EVEN when JavaScript frozen -->
+      <a href="hi-dashboard.html" class="home-nav-btn home-nav-link" aria-label="Go to Hi Today" title="Navigate to Hi Today (Always Works)">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
           <polyline points="9,22 9,12 15,12 15,22"/>
         </svg>
-      </button>
+      </a>
     </div>
     
     <div class="header-center">
