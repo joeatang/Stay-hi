@@ -236,9 +236,17 @@ if(window.ProfileManager?.isReady()){
     Object.assign(currentProfile, profile);
     updateProfileDisplay(currentProfile);
     populateEditForm(currentProfile);
-    // ⚠️ DO NOT set __PROFILE_DATA_LOADED - let profile.html handle it after stats load!
-    console.log('✅ [profile-main.js] Profile loaded, returning to let profile.html load stats');
-    return; // Return WITHOUT setting flag
+    
+    // 🎯 CRITICAL: Load stats from database (profile.html defines loadUserStats)
+    if(typeof loadUserStats === 'function'){
+      console.log('📊 [profile-main.js] Loading stats from database...');
+      await loadUserStats(profile.id);
+    } else {
+      console.warn('⚠️ [profile-main.js] loadUserStats not available yet');
+    }
+    
+    window.__PROFILE_DATA_LOADED=true;
+    return;
   }
 }
 
