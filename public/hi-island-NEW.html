@@ -184,6 +184,50 @@
   <script src="./lib/boot/upgrade-cta.js" defer></script>
   <script src="./lib/boot/sw-register.js" defer></script>
 
+  <!-- 🔥 CRITICAL: Session restore on page load (matches profile.html fix) -->
+  <script>
+    (async function checkSessionOnLoad() {
+      try {
+        await new Promise(resolve => {
+          if (window.hiSupabase || window.supabase) resolve();
+          else document.addEventListener('hi:supabase-ready', resolve, { once: true });
+        });
+        
+        const sb = window.hiSupabase || window.supabase;
+        const { data: { session } } = await sb.auth.getSession();
+        
+        if (!session) {
+          console.warn('[Hi Island] ⚠️ NO SESSION on page load - checking localStorage...');
+          const token = localStorage.getItem('sb-gfcubvroxgfvjhacinic-auth-token');
+          
+          if (token) {
+            console.log('[Hi Island] Token exists but session lost - restoring...');
+            try {
+              const parsed = JSON.parse(token);
+              if (parsed?.access_token) {
+                const { data, error } = await sb.auth.setSession({
+                  access_token: parsed.access_token,
+                  refresh_token: parsed.refresh_token
+                });
+                if (data?.session) {
+                  console.log('[Hi Island] ✅ Session restored on page load');
+                } else {
+                  console.error('[Hi Island] Session restore failed:', error);
+                }
+              }
+            } catch (e) {
+              console.error('[Hi Island] Session parse error:', e);
+            }
+          }
+        } else {
+          console.log('[Hi Island] ✅ Session active on page load');
+        }
+      } catch (e) {
+        console.error('[Hi Island] Session check error:', e);
+      }
+    })();
+  </script>
+
   <!-- Lightweight diagnostics (only runs with ?diag=1) -->
   <script>
     (function(){
