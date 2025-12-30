@@ -49,14 +49,25 @@ if (window.__HI_SUPABASE_CLIENT) {
 } else {
   // If a global UMD build is already available, use it immediately
   if (window.supabase?.createClient) {
-    const real = window.supabase.createClient(REAL_SUPABASE_URL, REAL_SUPABASE_KEY);
+    // 🚀 WOZ FIX: Add auth persistence options to prevent session loss on background
+    const authOptions = {
+      auth: {
+        persistSession: true, // CRITICAL: Persist session across app backgrounds
+        autoRefreshToken: true, // Auto-refresh tokens before expiry
+        detectSessionInUrl: false, // Prevent URL-based auth conflicts
+        storage: window.localStorage, // Explicitly use localStorage (survives backgrounds)
+        storageKey: 'sb-gfcubvroxgfvjhacinic-auth-token' // Stable storage key
+      }
+    };
+    
+    const real = window.supabase.createClient(REAL_SUPABASE_URL, REAL_SUPABASE_KEY, authOptions);
     createdClient = real;
     window.__HI_SUPABASE_CLIENT = real;
     window.hiSupabase = real;
     // Back-compat aliases
     try { window.supabaseClient = real; } catch(_){ }
     try { window.sb = real; } catch(_){ }
-    console.log('✅ HiSupabase v3 client created from global UMD');
+    console.log('✅ HiSupabase v3 client created from global UMD with persistent sessions');
   } else {
     // Immediate stub exposure for early consumers
     createdClient = createStubClient();
@@ -74,14 +85,25 @@ if (window.__HI_SUPABASE_CLIENT) {
         s.onload = () => {
           try {
             if (window.supabase?.createClient) {
-              const realClient = window.supabase.createClient(REAL_SUPABASE_URL, REAL_SUPABASE_KEY);
+              // 🚀 WOZ FIX: Add auth persistence options to prevent session loss
+              const authOptions = {
+                auth: {
+                  persistSession: true,
+                  autoRefreshToken: true,
+                  detectSessionInUrl: false,
+                  storage: window.localStorage,
+                  storageKey: 'sb-gfcubvroxgfvjhacinic-auth-token'
+                }
+              };
+              
+              const realClient = window.supabase.createClient(REAL_SUPABASE_URL, REAL_SUPABASE_KEY, authOptions);
               window.__HI_SUPABASE_CLIENT = realClient;
               window.hiSupabase = realClient;
               try { window.supabaseClient = realClient; } catch(_){ }
               try { window.sb = realClient; } catch(_){ }
               createdClient = realClient;
               const wasStub = __hiSupabaseIsStub; __hiSupabaseIsStub = false;
-              console.log('✅ HiSupabase v3 client upgraded from injected UMD');
+              console.log('✅ HiSupabase v3 client upgraded from injected UMD with persistent sessions');
               try {
                 window.dispatchEvent(new CustomEvent('supabase-upgraded', { detail: { client: realClient, wasStub } }));
               } catch(_){ }

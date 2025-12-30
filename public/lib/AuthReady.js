@@ -83,6 +83,45 @@ export function getAuthState(){ return _result; }
 window.waitAuthReady = waitAuthReady;
 window.getAuthState = getAuthState;
 
+// 🚀 WOZ FIX: Restore session when app returns from background
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState === 'visible') {
+    console.log('[AuthReady] App returned from background - checking session...');
+    try {
+      const sb = getHiSupabase();
+      let { data: { session } } = await sb.auth.getSession();
+      
+      // If no session, try to restore from localStorage
+      if (!session) {
+        console.warn('[AuthReady] No session found - attempting restore...');
+        await salvageTokens(sb);
+        ({ data: { session } } = await sb.auth.getSession());
+        
+        if (session) {
+          console.log('[AuthReady] Session restored successfully');
+          // Refresh membership
+          const membership = await fetchMembership(sb);
+          _result = { session, membership };
+          if (membership) {
+            window.__hiMembership = membership;
+          }
+          // Notify listeners
+          window.dispatchEvent(new CustomEvent('hi:auth-updated', { detail: _result }));
+          if (membership) {
+            window.dispatchEvent(new CustomEvent('hi:membership-changed', { detail: membership }));
+          }
+        } else {
+          console.error('[AuthReady] Failed to restore session - user may need to re-login');
+        }
+      } else {
+        console.log('[AuthReady] Session still valid');
+      }
+    } catch (e) {
+      console.error('[AuthReady] Session check failed:', e);
+    }
+  }
+});
+
 // If the Supabase client upgrades from stub->real, refresh state and notify listeners
 try {
   window.addEventListener('supabase-upgraded', async ()=>{
