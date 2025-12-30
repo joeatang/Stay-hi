@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Profile — Stay Hi</title>
   
+  <!-- 🔥 CRITICAL: Force service worker update on mobile Chrome -->
+  <script>
+    (function() {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(regs => {
+          regs.forEach(reg => reg.update());
+        });
+      }
+    })();
+  </script>
+  
   <!-- Optional High-Contrast Accessibility Mode (non-destructive) -->
   <script type="module" src="./lib/boot/contrast-mode.js"></script>
   
@@ -3253,8 +3264,8 @@ FOR INSERT WITH CHECK (
         updateProfileDisplay(currentProfile);
         populateEditForm(currentProfile);
         
-        // 🎯 TESLA-GRADE: Load real user stats
-        await loadUserStats(userId);
+        // 🎯 TESLA-GRADE: Load real user stats (non-blocking for instant page render)
+        loadUserStats(userId);
         
         // 🔥 FIX: Remove tier loading spinner after auth complete
         const tierIndicator = document.getElementById('hi-tier-indicator');
@@ -3350,8 +3361,8 @@ FOR INSERT WITH CHECK (
         updateProfileDisplay(currentProfile);
         populateEditForm(currentProfile);
         
-        // Load user stats
-        await loadUserStats(userId);
+        // Load user stats (non-blocking for instant page render)
+        loadUserStats(userId);
         
         console.log('✅ Profile loaded via fallback method');
       } catch (error) {
@@ -4010,6 +4021,48 @@ FOR INSERT WITH CHECK (
 
       // Initialize Tesla-Grade Smart Navigation
       const smartNav = new SmartNavigation();
+      
+      // 🔥 CRITICAL: Check session on page load (not just visibilitychange)
+      (async function checkSessionOnLoad() {
+        try {
+          const sb = window.hiSupabase || window.supabase;
+          if (!sb) {
+            console.warn('[Profile] Supabase not ready yet - waiting for init...');
+            return;
+          }
+          
+          const { data: { session } } = await sb.auth.getSession();
+          if (!session) {
+            console.warn('[Profile] ⚠️ NO SESSION on page load - checking localStorage...');
+            const token = localStorage.getItem('sb-gfcubvroxgfvjhacinic-auth-token');
+            console.log('[Profile] localStorage token exists:', !!token);
+            
+            if (token) {
+              console.log('[Profile] Token exists but session lost - restoring...');
+              try {
+                const parsed = JSON.parse(token);
+                if (parsed?.access_token) {
+                  const { data, error } = await sb.auth.setSession({
+                    access_token: parsed.access_token,
+                    refresh_token: parsed.refresh_token
+                  });
+                  if (data?.session) {
+                    console.log('[Profile] ✅ Session restored on page load');
+                  } else {
+                    console.error('[Profile] Session restore failed:', error);
+                  }
+                }
+              } catch (e) {
+                console.error('[Profile] Session parse error:', e);
+              }
+            }
+          } else {
+            console.log('[Profile] ✅ Session active on page load');
+          }
+        } catch (e) {
+          console.error('[Profile] Session check error:', e);
+        }
+      })();
       
       // Tesla-Grade Security: Load data with authentication check FIRST
       // then apply access gating only for anonymous users
