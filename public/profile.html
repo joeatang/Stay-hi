@@ -1793,6 +1793,9 @@
         updateStatsDisplay();
       }
     }
+    
+    // 🔥 CRITICAL: Expose loadUserStats globally so profile-main.js can call it
+    window.loadUserStats = loadUserStats;
 
     // Update stats display in DOM
     function updateStatsDisplay() {
