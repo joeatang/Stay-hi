@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Stats Loading Test</title>
+</head>
+<body>
+  <h1>Testing Stats Loading Flow</h1>
+  <div id="output"></div>
+  
+  <script>
+    const log = (msg) => {
+      console.log(msg);
+      document.getElementById('output').innerHTML += `<div>${msg}</div>`;
+    };
+    
+    log('1. Page loaded');
+    log('2. Checking if loadUserStats exists: ' + (typeof loadUserStats));
+    log('3. Checking if window.loadUserStats exists: ' + (typeof window.loadUserStats));
+    
+    setTimeout(() => {
+      log('4. After 1s - loadUserStats: ' + (typeof loadUserStats));
+      log('5. After 1s - window.loadUserStats: ' + (typeof window.loadUserStats));
+    }, 1000);
+  </script>
+</body>
+</html>

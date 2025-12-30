@@ -583,9 +583,29 @@ window.loadCurrentStatsFromDatabase = async () => {
 
 async function loadRealStats() {
   try {
+    // 🚀 WOZ FIX: Add timeout to prevent infinite loading dots
+    console.log('📊 Loading Hi Island global stats with timeout...');
+    
     // Use unified loader for consistency
     const { loadGlobalStats } = await import('../stats/UnifiedStatsLoader.js');
-    const stats = await loadGlobalStats();
+    
+    // Wrap with timeout if available, otherwise use directly
+    let stats;
+    if (window.withQueryTimeout) {
+      const statsPromise = loadGlobalStats();
+      const { data: statsData, timedOut } = await window.withQueryTimeout(statsPromise, 5000, 3);
+      
+      if (timedOut) {
+        console.warn('⏱️ Stats query timed out - showing fallback');
+        setFallbackStats();
+        return;
+      }
+      stats = statsData || {};
+    } else {
+      // Fallback if timeout wrapper not loaded yet
+      stats = await loadGlobalStats();
+    }
+    
     const waves = stats.waves;
     const his = stats.totalHis;
     const users = stats.totalUsers;
@@ -593,10 +613,13 @@ async function loadRealStats() {
     const wavesEl = document.getElementById('globalHiWaves');
     const hisEl = document.getElementById('globalTotalHis');
     const usersEl = document.getElementById('globalTotalUsers');
-    if (wavesEl) wavesEl.textContent = Number.isFinite(waves) ? Number(waves).toLocaleString() : '...';
-    if (hisEl) hisEl.textContent = Number.isFinite(his) ? Number(his).toLocaleString() : '...';
-    if (usersEl) usersEl.textContent = Number.isFinite(users) ? Number(users).toLocaleString() : '...';
-    console.log('✅ Hi Island stats loaded (Unified):', { waves, his, users, source: stats._source, overall: stats.overall });
+    
+    // Show 0 instead of ... if no data
+    if (wavesEl) wavesEl.textContent = Number.isFinite(waves) ? Number(waves).toLocaleString() : '0';
+    if (hisEl) hisEl.textContent = Number.isFinite(his) ? Number(his).toLocaleString() : '0';
+    if (usersEl) usersEl.textContent = Number.isFinite(users) ? Number(users).toLocaleString() : '0';
+    
+    console.log('✅ Hi Island stats loaded:', { waves, his, users, source: stats._source });
   } catch (err) {
     console.error('❌ Stats loading error:', err);
     setFallbackStats();
@@ -612,15 +635,19 @@ function setFallbackStats() {
   const cachedWaves = localStorage.getItem('globalHiWaves');
   const cachedHis = localStorage.getItem('globalTotalHis');  
   const cachedUsers = localStorage.getItem('globalTotalUsers');
-  if (elements.globalHiWaves && (elements.globalHiWaves.textContent === '...' || !elements.globalHiWaves.textContent)) {
-    elements.globalHiWaves.textContent = cachedWaves ? Number(cachedWaves).toLocaleString() : '...';
+  
+  // 🚀 WOZ FIX: Show 0 instead of stuck loading dots
+  if (elements.globalHiWaves) {
+    elements.globalHiWaves.textContent = cachedWaves ? Number(cachedWaves).toLocaleString() : '0';
   }
-  if (elements.globalTotalHis && (elements.globalTotalHis.textContent === '...' || !elements.globalTotalHis.textContent)) {
-    elements.globalTotalHis.textContent = cachedHis ? Number(cachedHis).toLocaleString() : '...';
+  if (elements.globalTotalHis) {
+    elements.globalTotalHis.textContent = cachedHis ? Number(cachedHis).toLocaleString() : '0';
   }
-  if (elements.globalTotalUsers && (elements.globalTotalUsers.textContent === '...' || !elements.globalTotalUsers.textContent)) {
-    elements.globalTotalUsers.textContent = cachedUsers ? Number(cachedUsers).toLocaleString() : '...';
+  if (elements.globalTotalUsers) {
+    elements.globalTotalUsers.textContent = cachedUsers ? Number(cachedUsers).toLocaleString() : '0';
   }
+  
+  console.log('📊 Showing fallback stats:', { waves: cachedWaves || '0', his: cachedHis || '0', users: cachedUsers || '0' });
 }
 
 // If stats debug requested, load overlay

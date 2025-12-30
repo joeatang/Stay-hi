@@ -35,6 +35,8 @@
   <!-- Supabase Integration -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1" integrity="sha384-XLEuzmdNfK1V09d59bu+Uv3EFtEp5kFP8BmseBq85CUpeFZXhUfqjk4ZeR/biZmS" crossorigin="anonymous"></script>
   <script src="./lib/HiSupabase.simple.js" type="module"></script>
+  <!-- 🚀 WOZ FIX: Query timeout + retry logic -->
+  <script src="./lib/query-timeout.js"></script>
   <!-- ✅ CRITICAL: AuthReady orchestrates session + membership and fires hi:auth-ready event -->
   <script type="module" src="./lib/AuthReady.js"></script>
   
@@ -1753,14 +1755,29 @@
           const timestamp = Date.now();
           console.log('📊 Fetching fresh stats from database (cache-bust:', timestamp, ')');
           
-          const { data, error } = await supabase
+          // 🚀 WOZ FIX: Wrap query with 5-second timeout + 3 retries
+          const queryPromise = supabase
             .from('user_stats')
             .select('*')
-            .eq('user_id', userId)  // ✅ CORRECT: user_stats HAS user_id column
+            .eq('user_id', userId)
             .single();
+          
+          const { data, error, timedOut } = window.withQueryTimeout 
+            ? await window.withQueryTimeout(queryPromise, 5000, 3)
+            : await queryPromise;
+
+          if (timedOut) {
+            console.error('❌ Stats query timed out after retries - showing fallback');
+            userStats.loading = false;
+            updateStatsDisplay(); // Will show 0s
+            return;
+          }
 
           if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
             console.warn('⚠️ Stats query error:', error.message);
+            userStats.loading = false;
+            updateStatsDisplay(); // Show 0s on error
+            return;
           }
 
           if (data) {
@@ -1813,10 +1830,12 @@
       Object.keys(statElements).forEach(key => {
         const el = statElements[key];
         if (el) {
+          // 🚀 WOZ FIX: Only show loading dashes if actively loading (NOT timed out/failed)
           if (userStats.loading) {
             el.textContent = '—';
             el.classList.add('loading');
           } else {
+            // Show actual value or 0 (never stuck on dashes)
             const newValue = userStats[key] || 0;
             console.log(`  📊 Setting ${key} = ${newValue} (database value)`);
             el.textContent = newValue;

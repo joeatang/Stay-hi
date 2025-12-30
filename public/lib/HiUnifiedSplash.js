@@ -19,6 +19,9 @@ class HiUnifiedSplash {
     this.slowThreshold = 3000; // Show "still warming..." after 3s
     this.errorThreshold = 8000; // Show error after 8s
     
+    // 🚀 WOZ FIX: Track if this is first page load or returning from background
+    this.isFirstLoad = !sessionStorage.getItem('hi-app-initialized');
+    
     this.splash = null;
     this.messageEl = null;
   }
@@ -27,6 +30,26 @@ class HiUnifiedSplash {
    * Initialize splash - called immediately in <head>
    */
   init() {
+    // 🚀 WOZ FIX: Skip splash entirely if returning from background
+    if (!this.isFirstLoad) {
+      console.log('🎬 Skipping splash - not first load');
+      // Mark as initialized for future loads
+      sessionStorage.setItem('hi-app-initialized', '1');
+      // Fire auth-ready immediately if auth is already cached
+      if (window.getAuthState) {
+        setTimeout(() => {
+          const state = window.getAuthState();
+          if (state.ready) {
+            window.dispatchEvent(new CustomEvent('hi:auth-ready', { detail: state }));
+          }
+        }, 0);
+      }
+      return;
+    }
+    
+    // First load - mark as initialized and show splash
+    sessionStorage.setItem('hi-app-initialized', '1');
+    
     // Splash should already exist in HTML as first body element
     this.splash = document.getElementById('hi-unified-splash');
     this.messageEl = this.splash?.querySelector('[data-splash-message]');
@@ -36,7 +59,7 @@ class HiUnifiedSplash {
       return;
     }
 
-    console.log('🎬 Unified Splash initialized');
+    console.log('🎬 Unified Splash initialized (first load)');
     
     // Set up event listeners
     this.setupListeners();

@@ -1,11 +1,11 @@
 // 🚀 TESLA-GRADE SERVICE WORKER
 // Hi Collective PWA - Offline-first architecture
 
-// Build tag for diagnostics
-const BUILD_TAG = 'v1.0.0-20251119';
+// 🚀 WOZ FIX: Bump version to force cache clear (fix loading issues)
+const BUILD_TAG = 'v1.0.1-20251230-woz-fix';
 // Bump cache versions to force update on deploy
-const CACHE_NAME = 'hi-collective-v1.2.7';
-const STATIC_CACHE_NAME = 'hi-static-v1.2.7';
+const CACHE_NAME = 'hi-collective-v1.3.0-woz';
+const STATIC_CACHE_NAME = 'hi-static-v1.3.0-woz';
 const OFFLINE_FALLBACK = '/public/offline.html';
 
 // Core app shell files that should always be cached
