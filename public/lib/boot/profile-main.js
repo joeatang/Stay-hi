@@ -228,27 +228,8 @@ function validateTeslaAvatarSystem(){ const validations={ 'TeslaAvatarCropper':!
 function initializeTeslaAvatarSystem(){ let attempts=0; const maxAttempts=50; const checkInterval=setInterval(()=>{ attempts++; if(window.TeslaAvatarCropper && window.TeslaAvatarUploader){ clearInterval(checkInterval); console.log('\u2705 Tesla Avatar System initialized'); validateTeslaAvatarSystem(); return; } if(attempts>=maxAttempts){ clearInterval(checkInterval); console.warn('\u26a0\ufe0f Avatar system initialization timeout - continuing without avatar features'); return; } },100); }
 async function getSupabaseClient(maxRetries=10,delayMs=100){ for(let i=0;i<maxRetries;i++){ const client=window.supabaseClient||window.hiSupabase||window.sb||window.__HI_SUPABASE_CLIENT; if(client&&client.auth){ if(i>0)console.log(`✅ [profile-main.js] Supabase client ready after ${i} retries`); return client; } if(i===0)console.log('⏳ [profile-main.js] Waiting for Supabase client...'); await new Promise(r=>setTimeout(r,delayMs)); } throw new Error('Supabase client not available'); }
 async function loadProfileData(){ console.log('🔄 [profile-main.js] Loading profile data...'); if(window.__PROFILE_DATA_LOADED){ console.log('⏸️ [profile-main.js] Profile already loaded, skipping'); return; } try{ 
-// 🏆 WOZ FIX: Use ProfileManager if available
-if(window.ProfileManager?.isReady()){
-  console.log('🏆 [profile-main.js] Using ProfileManager (gold standard)');
-  const profile=window.ProfileManager.getProfile();
-  if(profile && profile.id){
-    Object.assign(currentProfile, profile);
-    updateProfileDisplay(currentProfile);
-    populateEditForm(currentProfile);
-    
-    // 🎯 CRITICAL: Load stats from database (profile.html defines window.loadUserStats)
-    if(typeof window.loadUserStats === 'function'){
-      console.log('📊 [profile-main.js] Loading stats from database...');
-      await window.loadUserStats(profile.id);
-    } else {
-      console.warn('⚠️ [profile-main.js] window.loadUserStats not available yet');
-    }
-    
-    window.__PROFILE_DATA_LOADED=true;
-    return;
-  }
-}
+// 🚨 DEPRECATED: ProfileManager early return was blocking stats loading
+// Now profile.html handles everything including stats
 
 const supabase=await getSupabaseClient(); const { data:{ session } }=await supabase.auth.getSession(); const isAuthenticated=!!session?.user; console.log('🔐 [profile-main.js] Auth status:', isAuthenticated ? 'AUTHENTICATED' : 'ANONYMOUS'); if(!isAuthenticated){ console.log('🚨 [profile-main.js] Anonymous user - profile requires authentication'); const isLocal = window.location.hostname === 'localhost'; const signinPath = isLocal ? '/public/signin.html' : '/signin.html'; const redirectUrl = signinPath + '?redirect=' + encodeURIComponent(window.location.pathname); console.log('🔄 [profile-main.js] Redirecting to:', redirectUrl); window.location.href = redirectUrl; return; } let profile=null; const userId=session.user.id; console.log('📥 [profile-main.js] Loading from DATABASE FIRST for user:', userId); profile=await loadAuthenticatedProfileFromSupabase(userId); if(profile){ console.log('📥 [profile-main.js] GOT FROM DATABASE:', { username: profile.username, display_name: profile.display_name }); const storageKey=`stayhi_profile_${userId}`; localStorage.setItem(storageKey, JSON.stringify(profile)); console.log('✅ [profile-main.js] localStorage cache updated from database'); } else { console.warn('⚠️ [profile-main.js] NO PROFILE IN DATABASE'); } if(!profile){ const savedProfile=localStorage.getItem(`stayhi_profile_${userId}`); if(savedProfile){ try{ profile=JSON.parse(savedProfile); console.log('📦 [profile-main.js] Fallback to localStorage cache'); }catch(e){} } } if(!profile){ profile={ ...currentProfile }; profile.id=userId; profile.username=profile.username || `user_${userId.slice(-6)}`; await saveProfileToStorage(profile, userId); } Object.assign(currentProfile, profile); updateProfileDisplay(currentProfile); populateEditForm(currentProfile); try{ const membership=window.__hiMembership||{}; const tier=membership.tier||'free'; if(window.HiBrandTiers?.updateTierPill && tier){ const tierIndicator=document.getElementById('hi-tier-indicator'); if(tierIndicator){ console.log('🎯 [profile-main.js] Updating tier pill:', tier); window.HiBrandTiers.updateTierPill(tierIndicator, tier, { showEmoji: true }); } } }catch(tierError){ console.warn('⚠️ [profile-main.js] Tier pill update failed:', tierError); } window.__PROFILE_DATA_LOADED=true; } catch(error){ console.error('❌ [profile-main.js] loadProfileData error:', error); await loadAnonymousDemoProfile(); window.__PROFILE_DATA_LOADED=true; } }
 async function loadAuthenticatedProfileFromSupabase(userId){ try{ const useHiBase=await window.HiFlags?.getFlag('hibase_profile_enabled'); let data, error; if(useHiBase){ const profileResult=await window.HiBase.getProfile(userId); if(profileResult.error) return null; data=profileResult.data?.profile ? [profileResult.data.profile] : []; import('./lib/monitoring/HiMonitor.js').then(m=>m.trackEvent('profile_load',{ source:'profile', path:'hibase' })).catch(()=>{}); } else { const result=await window.supabaseClient.from('profiles').select('*').eq('id', userId).order('updated_at',{ ascending:false }).limit(1); data=result.data; error=result.error; if(error){ console.warn('⚠️ [profile-main.js] Supabase query error:', error.message); return null; } import('./lib/monitoring/HiMonitor.js').then(m=>m.trackEvent('profile_load',{ source:'profile', path:'legacy' })).catch(()=>{}); } if(data && data.length>0){ return data[0]; } return null; } catch(error){ console.error('❌ [profile-main.js] loadAuthenticatedProfileFromSupabase error:', error); return null; } }
