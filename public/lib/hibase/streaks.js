@@ -346,7 +346,8 @@ async function _insertStreak(userIdOrPayload, options = {}) {
                 current_streak: initialStreak,
                 longest_streak: initialStreak,
                 last_hi_date: hiDate,
-                total_hi_moments: 1,
+                // 🔥 REMOVED: total_hi_moments: 1 - This was resetting count!
+                // The sync_moment_count trigger handles this correctly from public_shares
                 updated_at: new Date().toISOString()
             })
             .eq('user_id', userId)

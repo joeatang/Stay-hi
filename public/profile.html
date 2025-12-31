@@ -1762,21 +1762,14 @@
         // Skip HiBase to avoid stale data
         const supabase = window.hiSupabase || window.supabase;
         if (supabase) {
-          // 🔥 CACHE-BUSTING: Force fresh query (bypass browser HTTP cache)
-          const timestamp = Date.now();
-          console.log('📊 Fetching fresh stats from database (cache-bust:', timestamp, ')');
+          console.log('📊 Fetching stats from database');
           
           // 🚀 WOZ FIX: Wrap query with 5-second timeout + 3 retries
-          // Force fresh by adding timestamp to URL (not as filter)
           const queryPromise = supabase
             .from('user_stats')
             .select('*')
             .eq('user_id', userId)
-            .single()
-            .then(result => {
-              // Bypass browser cache by adding timestamp to request
-              return result;
-            });
+            .single();
           
           const { data, error, timedOut } = window.withQueryTimeout 
             ? await window.withQueryTimeout(queryPromise, 5000, 3)
