@@ -22,7 +22,15 @@ async function salvageTokens(sb){
 
 async function fetchMembership(sb){
   try {
-    const { data, error } = await sb.rpc('get_unified_membership');
+    // 🔥 FIX: Add 3-second timeout to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Membership timeout')), 3000)
+    );
+    
+    const membershipPromise = sb.rpc('get_unified_membership');
+    
+    const { data, error } = await Promise.race([membershipPromise, timeoutPromise]);
+    
     if (error) { console.warn('[AuthReady] membership error', error); return null; }
     if (data) {
       try {
@@ -31,23 +39,42 @@ async function fetchMembership(sb){
       } catch(_){}
     }
     return data;
-  } catch(e){ console.warn('[AuthReady] membership exception', e); return null; }
+  } catch(e){ 
+    console.warn('[AuthReady] membership exception (timeout or error)', e); 
+    return null; 
+  }
 }
 
 async function initialize(){
   if (_ready) return _result;
   const sb = getHiSupabase();
 
-  let { data: { session } } = await sb.auth.getSession();
-  if (!session) {
-    await salvageTokens(sb);
-    ({ data: { session } } = await sb.auth.getSession());
+  // 🔥 FIX: Add 5-second timeout to entire auth check
+  try {
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Auth initialization timeout')), 5000)
+    );
+    
+    const authPromise = (async () => {
+      let { data: { session } } = await sb.auth.getSession();
+      if (!session) {
+        await salvageTokens(sb);
+        ({ data: { session } } = await sb.auth.getSession());
+      }
+
+      // If still no session, we continue but membership will be null
+      const membership = session ? await fetchMembership(sb) : null;
+      
+      return { session, membership };
+    })();
+    
+    _result = await Promise.race([authPromise, timeoutPromise]);
+  } catch (error) {
+    console.warn('[AuthReady] Timeout or error - continuing as anonymous', error);
+    // Timeout or error - continue as anonymous user
+    _result = { session: null, membership: null };
   }
 
-  // If still no session, we continue but membership will be null
-  const membership = session ? await fetchMembership(sb) : null;
-
-  _result = { session, membership };
   _ready = true;
   
   // CRITICAL FIX: Set window.__hiMembership for HiTier.js to read
