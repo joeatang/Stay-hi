@@ -1416,7 +1416,7 @@ export class HiShareSheet {
       // Tesla: ALL shares get archived (fixes anonymous archive bug)
       if (window.hiDB?.insertArchive) {
         let warned=false;
-        this._withRetry(() => Promise.race([
+        await this._withRetry(() => Promise.race([
           window.hiDB.insertArchive(archivePayload),
           new Promise((_, reject) => setTimeout(() => reject(new Error('Archive timeout')), 5000))
         ]), 2, 600).then(res => {
@@ -1433,7 +1433,7 @@ export class HiShareSheet {
             }
           } catch {}
         }).catch(err => {
-          console.warn('Tesla archive save failed after retries:', err);
+          console.error('❌ CRITICAL: Archive save failed after retries:', err);
           try {
             const statusEl = document.querySelector('#hi-archive-status');
             const stamp = new Date().toLocaleTimeString();
@@ -1444,7 +1444,7 @@ export class HiShareSheet {
               statusEl.style.display = 'inline-block';
             }
           } catch {}
-          if (!warned){ this.showToast('Save delayed — we\'ll retry in the background', 'warning'); warned=true; }
+          throw new Error(`Archive failed: ${err?.message || 'unknown'}`); // 🔥 FIX: Throw to fail persist()
         });
       }
 
@@ -1468,12 +1468,12 @@ export class HiShareSheet {
         
         // Tesla: Enhanced public share with retry + timeout
         let warned=false;
-        this._withRetry(() => Promise.race([
+        await this._withRetry(() => Promise.race([
           window.hiDB.insertPublicShare(publicPayload),
           new Promise((_, reject) => setTimeout(() => reject(new Error('Public share timeout')), 5000))
         ]), 2, 600).catch(err => {
-          console.warn('Tesla public share failed after retries:', err);
-          if (!warned){ this.showToast('Network hiccup — will retry sharing in background', 'warning'); warned=true; }
+          console.error('❌ CRITICAL: Public share failed after retries:', err);
+          throw new Error(`Public share failed: ${err?.message || 'unknown'}`); // 🔥 FIX: Throw to fail persist()
         });
 
         // Update map (retry quietly)
