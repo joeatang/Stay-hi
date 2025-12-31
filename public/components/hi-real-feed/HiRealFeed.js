@@ -110,9 +110,14 @@ class HiIslandRealFeed {
       // Load initial data from REAL tables
       await this.loadFeedData();
       
+      // 🎯 Mark as initialized for splash screen
+      this.isInitialized = true;
+      
       console.log('✅ Hi-Island REAL Feed System ready');
     } catch (error) {
       console.error('❌ Hi-Island REAL Feed System initialization failed:', error);
+      // Still mark as initialized to prevent stuck splash
+      this.isInitialized = true;
     }
   }
   

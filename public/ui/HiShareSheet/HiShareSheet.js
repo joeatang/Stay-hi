@@ -814,17 +814,27 @@ export class HiShareSheet {
 
   // Close share sheet
   close() {
-    if (!this._isReady) return;
+    console.time('🔍 SHARESHEET_CLOSE');
+    console.log('🔍 CLOSE: Starting close sequence');
+    
+    if (!this._isReady) {
+      console.log('🔍 CLOSE: Not ready, aborting');
+      console.timeEnd('🔍 SHARESHEET_CLOSE');
+      return;
+    }
 
+    console.log('🔍 CLOSE: Getting DOM elements');
     const backdrop = document.getElementById('hi-share-backdrop');
     const sheet = document.getElementById('hi-share-sheet');
     const journal = document.getElementById('hi-share-journal');
     
+    console.log('🔍 CLOSE: Disabling pointer events');
     // 🔧 TESLA-GRADE FIX: Disable container pointer events when closing
     if (this.root) {
       this.root.style.pointerEvents = 'none';
     }
     
+    console.log('🔍 CLOSE: Removing active classes');
     backdrop.classList.remove('active');
     sheet.classList.remove('active');
     this.isOpen = false;
@@ -832,37 +842,46 @@ export class HiShareSheet {
     // Reset practice mode when closing
     this.practiceMode = false;
     
+    console.log('🔍 CLOSE: Clearing form fields');
     // 🎯 GOLD STANDARD: Clear ALL form fields for clean reset
     journal.value = '';
     document.getElementById('hi-share-char-count').textContent = '0';
     
+    console.log('🔍 CLOSE: Resetting Hi Scale');
     // 🎯 Reset Hi Scale intensity selector
     if (this.hiScale) {
       this.hiScale.reset();
     }
     
+    console.log('🔍 CLOSE: Clearing location');
     // Clear location field
     const locationInput = document.getElementById('hi-share-location');
     if (locationInput) {
       locationInput.value = '';
     }
     
+    console.log('🔍 CLOSE: Clearing emotional journey');
     // Clear emotional journey display (Hi Gym)
     const emotionalJourney = document.getElementById('hi-emotional-journey');
     if (emotionalJourney) {
       emotionalJourney.style.display = 'none';
     }
     
+    console.log('🔍 CLOSE: Clearing prefilled data');
     // Clear prefilled data to prevent stale content on reopen
     this.prefilledData = null;
     this.origin = '';
 
+    console.log('🔍 CLOSE: Restoring focus');
     // Restore focus to the invoking control, if possible
     if (this._previouslyFocused && typeof this._previouslyFocused.focus === 'function') {
       setTimeout(() => {
         try { this._previouslyFocused.focus(); } catch (_) {}
       }, 0);
     }
+    
+    console.log('🔍 CLOSE: Complete');
+    console.timeEnd('🔍 SHARESHEET_CLOSE');
   }
 
   // Handle Save Privately
