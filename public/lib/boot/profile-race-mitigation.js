@@ -1,7 +1,21 @@
 // profile-race-mitigation.js
-// Purpose: Eliminate profile initialization race conditions by coordinating auth-ready
-// and ensuring a single secure data load.
+// 🚫 PERMANENTLY DISABLED - profile.html inline handles auth-ready directly
+// This script was causing DUPLICATE loadProfileData() calls on same auth-ready event
+// Result: First call too early (ProfileManager not ready) → empty data → BLOCKED
+//         Second call from profile.html works but causes flicker
+
+// CRITICAL: profile.html line ~4205 already has auth-ready listener that:
+// 1. Waits for ProfileManager to initialize
+// 2. Loads from database
+// 3. Calls loadProfileData with correct data
+// This duplicate listener fires BEFORE ProfileManager fetches from DB
+
 (function(){
+  console.log('ℹ️ [ProfileRace] DISABLED - profile.html inline system handles auth-ready');
+  // All code disabled to prevent duplicate listeners
+  return;
+
+  // 🚫 DEAD CODE BELOW - NEVER RUNS
   const MAX_WAIT_MS = 3000;
   let authReady = false;
   let fallbackTimer = null;
