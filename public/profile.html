@@ -7,6 +7,8 @@
   
   <!-- 🔥 CRITICAL: Force service worker update on mobile Chrome -->
   <script>
+    console.time('⏱️ TOTAL_PAGE_LOAD');
+    console.time('⏱️ HEAD_SCRIPTS');
     (function() {
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(regs => {
@@ -44,10 +46,11 @@
   <script src="./lib/qa/auth-flow-qa.js"></script>
   
   <!-- Supabase Integration -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1" integrity="sha384-XLEuzmdNfK1V09d59bu+Uv3EFtEp5kFP8BmseBq85CUpeFZXhUfqjk4ZeR/biZmS" crossorigin="anonymous"></script>
+  <!-- 🔥 WOZ FIX: Add async to CDN script to prevent blocking -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1" integrity="sha384-XLEuzmdNfK1V09d59bu+Uv3EFtEp5kFP8BmseBq85CUpeFZXhUfqjk4ZeR/biZmS" crossorigin="anonymous" async></script>
   <script src="./lib/HiSupabase.simple.js" type="module"></script>
   <!-- 🚀 WOZ FIX: Query timeout + retry logic -->
-  <script src="./lib/query-timeout.js"></script>
+  <script src="./lib/query-timeout.js" defer></script>
   <!-- ✅ CRITICAL: AuthReady orchestrates session + membership and fires hi:auth-ready event -->
   <script type="module" src="./lib/AuthReady.js"></script>
   
@@ -1260,8 +1263,16 @@
   
   <!-- Tier Loading Skeleton CSS -->
   <link rel="stylesheet" href="./assets/tier-loading-skeleton.css">
+  
+  <!-- 🔬 WOZ DIAGNOSTIC: Log HEAD load time -->
+  <script>
+    console.timeEnd('⏱️ HEAD_SCRIPTS');
+    console.log('⏱️ HEAD complete, BODY starting...');
+    console.time('⏱️ BODY_RENDER');
+  </script>
 </head>
 <body>
+  <script>console.log('⏱️ BODY tag parsed');</script>
   <!-- Tesla-Grade Header (matches Dashboard pattern) -->
   <header class="tesla-header">
     <!-- Smart Calendar & Home Access -->
