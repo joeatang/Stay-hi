@@ -105,10 +105,12 @@ export async function waitAuthReady(){
 }
 
 export function getAuthState(){ return _result; }
+export function isAuthReady(){ return _ready; } // 🔥 NEW: Check if auth initialization complete
 
 // 🔥 CRITICAL: Expose to window for ProfileManager to use
 window.waitAuthReady = waitAuthReady;
 window.getAuthState = getAuthState;
+window.isAuthReady = isAuthReady; // Expose ready check
 
 // 🚀 WOZ FIX: Restore session when app returns from background
 document.addEventListener('visibilitychange', async () => {

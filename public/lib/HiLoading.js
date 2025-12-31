@@ -27,7 +27,7 @@ if (el) {
 
   // Auth gate
   // 🔥 CRITICAL FIX: Check if auth already ready (for page navigation after backgrounding)
-  if (window.getAuthState && window.getAuthState()) {
+  if (window.isAuthReady && window.isAuthReady()) {
     console.log('[HiLoading] Auth already ready (from cache)');
     authReady = true;
     updateState();
