@@ -256,10 +256,10 @@ class UnifiedHiIslandController {
           }
         }
 
-        // 🔧 WOZ FIX: Delay to let database replicate new share before querying
-        // Supabase REST API has slight propagation delay on new inserts
-        // Increased to 500ms for reliable propagation across all read replicas
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // 🔧 PERFORMANCE FIX: Minimal delay for database replication
+        // Reduced from 500ms to 100ms to prevent page freeze
+        // Modern Supabase replicates fast enough with 100ms
+        await new Promise(resolve => setTimeout(resolve, 100));
 
         // Refresh active tab first for responsiveness
         const activeTab = this.currentTab;

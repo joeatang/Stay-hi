@@ -14,6 +14,7 @@ DROP POLICY IF EXISTS "Own archives insertable" ON hi_archives;
 DROP POLICY IF EXISTS "Users can insert own archives" ON hi_archives;
 DROP POLICY IF EXISTS "Users can insert their own archives" ON hi_archives;
 DROP POLICY IF EXISTS "insert own archive" ON hi_archives;
+DROP POLICY IF EXISTS "authenticated_insert_own_archives" ON hi_archives;
 
 
 -- ============================================================================
@@ -36,6 +37,7 @@ DROP POLICY IF EXISTS "Users can read own archives" ON hi_archives;
 DROP POLICY IF EXISTS "Users can read their own archives" ON hi_archives;
 DROP POLICY IF EXISTS "Users can view their own archives" ON hi_archives;
 DROP POLICY IF EXISTS "read own archive" ON hi_archives;
+DROP POLICY IF EXISTS "authenticated_select_own_archives" ON hi_archives;
 
 CREATE POLICY "authenticated_select_own_archives"
 ON hi_archives
@@ -49,6 +51,7 @@ USING (auth.uid() = user_id);
 -- ============================================================================
 
 DROP POLICY IF EXISTS "Users can update own archives" ON hi_archives;
+DROP POLICY IF EXISTS "authenticated_update_own_archives" ON hi_archives;
 DROP POLICY IF EXISTS "Users can update their own archives" ON hi_archives;
 
 CREATE POLICY "authenticated_update_own_archives"
@@ -64,6 +67,7 @@ WITH CHECK (auth.uid() = user_id);
 -- ============================================================================
 
 DROP POLICY IF EXISTS "Users can delete own archives" ON hi_archives;
+DROP POLICY IF EXISTS "authenticated_delete_own_archives" ON hi_archives;
 DROP POLICY IF EXISTS "Users can delete their own archives" ON hi_archives;
 
 CREATE POLICY "authenticated_delete_own_archives"

@@ -351,6 +351,7 @@ class HiIslandRealFeed {
             *,
             wave_count,
             peace_count,
+            hi_intensity,
             profiles (
               username,
               display_name,
