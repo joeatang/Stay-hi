@@ -1,11 +1,11 @@
 // 🚀 TESLA-GRADE SERVICE WORKER
 // Hi Collective PWA - Offline-first architecture
 
-// 🚀 WOZ FIX: Bump version to force cache clear + instant profile load
-const BUILD_TAG = 'v1.0.2-20251230-instant-profile';
+// 🚀 WOZ FIX: Bump version to force cache clear on mobile profile fix
+const BUILD_TAG = 'v1.0.3-20251231-mobile-profile-fix';
 // Bump cache versions to force update on deploy
-const CACHE_NAME = 'hi-collective-v1.3.1-instant';
-const STATIC_CACHE_NAME = 'hi-static-v1.3.1-instant';
+const CACHE_NAME = 'hi-collective-v1.4.0-mobile-fix';
+const STATIC_CACHE_NAME = 'hi-static-v1.4.0-mobile-fix';
 const OFFLINE_FALLBACK = '/public/offline.html';
 
 // 🔥 CRITICAL: Force immediate activation on mobile Chrome
