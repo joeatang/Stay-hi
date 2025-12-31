@@ -188,7 +188,7 @@ class HiIslandMap {
       console.log('📡 Querying public_shares for map markers...');
       console.time('🗺️ MAP_DATABASE_QUERY');
       
-      // 🚀 CRITICAL FIX: Only show Hi Island shares on map (not medallions/hi5s)
+      // 🌍 ALL SHARE SHEETS: Island + Muscle + Dashboard (human shares only, no medallions)
       let query = sb
         .from('public_shares')
         .select(`
@@ -207,11 +207,11 @@ class HiIslandMap {
             avatar_url
           )
         `)
-        .eq('origin', 'hiisland') // 🎯 ONLY Hi Island shares (not medallions/hi5s/dashboard)
+        .in('origin', ['hiisland', 'hi-island', 'higym', 'hi-muscle', 'hi5']) // 🎯 All 3 share sheets
         .or('is_public.eq.true,is_anonymous.eq.true')
         .not('location', 'is', null)
         .order('created_at', { ascending: false })
-        .limit(limit); // 🚀 Start with 50, load more as user explores
+        .limit(limit); // 🚀 Progressive: 50 initial, load more as user explores
       
       const { data: shares, error } = await query;
       
