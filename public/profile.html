@@ -3220,8 +3220,11 @@ FOR INSERT WITH CHECK (
       throw new Error('Supabase client not available after retries');
     }
 
-    async function loadProfileData() {
+    async function loadProfileData(sessionParam = null) {
       console.log('🔄 Loading profile data with Tesla-grade security...');
+      
+      // Get session from parameter or ProfileManager
+      const session = sessionParam || (await window.ProfileManager?.getSession?.());
       
       // Race mitigation: prevent duplicate secure loads triggered by timers + events
       if (window.__PROFILE_DATA_LOADED) {
@@ -4120,7 +4123,7 @@ FOR INSERT WITH CHECK (
         
         // 🎯 CRITICAL FIX: Don't await - let profile load in background for instant render
         console.log('🔄 Starting profile load (non-blocking)');
-        loadProfileData(); // Fire-and-forget - page already rendered
+        loadProfileData(session); // Fire-and-forget - page already rendered
       }, { once: true });
       
       // Fallback: If auth-ready doesn't fire in 5 seconds, load anyway
