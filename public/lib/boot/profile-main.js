@@ -235,17 +235,14 @@ function validateTeslaAvatarSystem(){ const validations={ 'TeslaAvatarCropper':!
 function initializeTeslaAvatarSystem(){ let attempts=0; const maxAttempts=50; const checkInterval=setInterval(()=>{ attempts++; if(window.TeslaAvatarCropper && window.TeslaAvatarUploader){ clearInterval(checkInterval); console.log('\u2705 Tesla Avatar System initialized'); validateTeslaAvatarSystem(); return; } if(attempts>=maxAttempts){ clearInterval(checkInterval); console.warn('\u26a0\ufe0f Avatar system initialization timeout - continuing without avatar features'); return; } },100); }
 async function getSupabaseClient(maxRetries=10,delayMs=100){ for(let i=0;i<maxRetries;i++){ const client=window.supabaseClient||window.hiSupabase||window.sb||window.__HI_SUPABASE_CLIENT; if(client&&client.auth){ if(i>0)console.log(`✅ [profile-main.js] Supabase client ready after ${i} retries`); return client; } if(i===0)console.log('⏳ [profile-main.js] Waiting for Supabase client...'); await new Promise(r=>setTimeout(r,delayMs)); } throw new Error('Supabase client not available'); }
 async function loadProfileData(){ 
-  console.log('🔄 [profile-main.js] DEPRECATED - redirecting to inline version');
   // 🚫 PERMANENTLY DISABLED: This function conflicts with profile.html inline version
   // profile.html now handles all profile loading with proper auth/security
-  console.warn('❌ BLOCKED: profile-main.js loadProfileData() is deprecated and disabled');
-  console.warn('➡️ Profile loading handled by profile.html inline loadProfileData()');
+  console.log('🔄 [profile-main.js] DEPRECATED - disabled');
+  console.warn('❌ BLOCKED: profile-main.js loadProfileData() is deprecated');
+  console.warn('➡️ Profile loading handled by profile.html inline version');
   return; // Exit immediately - don't do anything
 }
-  // 🚨 DO NOT DO ANYTHING - profile.html handles everything now
-  // Just return and let the inline version in profile.html run
-  return;
-}
+
 async function loadAuthenticatedProfileFromSupabase(userId){ try{ const useHiBase=await window.HiFlags?.getFlag('hibase_profile_enabled'); let data, error; if(useHiBase){ const profileResult=await window.HiBase.getProfile(userId); if(profileResult.error) return null; data=profileResult.data?.profile ? [profileResult.data.profile] : []; import('./lib/monitoring/HiMonitor.js').then(m=>m.trackEvent('profile_load',{ source:'profile', path:'hibase' })).catch(()=>{}); } else { const result=await window.supabaseClient.from('profiles').select('*').eq('id', userId).order('updated_at',{ ascending:false }).limit(1); data=result.data; error=result.error; if(error){ console.warn('⚠️ [profile-main.js] Supabase query error:', error.message); return null; } import('./lib/monitoring/HiMonitor.js').then(m=>m.trackEvent('profile_load',{ source:'profile', path:'legacy' })).catch(()=>{}); } if(data && data.length>0){ return data[0]; } return null; } catch(error){ console.error('❌ [profile-main.js] loadAuthenticatedProfileFromSupabase error:', error); return null; } }
 async function loadAnonymousDemoProfile(){ const demoProfile={ id:'demo_'+Date.now(), username:'Anonymous User', email:'', bio:'This is a demo profile. Sign up to create your real profile!', location:'', avatar_url:'', created_at:new Date().toISOString(), is_demo:true }; Object.assign(currentProfile, demoProfile); updateProfileDisplay(currentProfile); populateEditForm(currentProfile); }
 async function loadProfileFromSupabase(){ console.warn('🚨 DEPRECATED: loadProfileFromSupabase() bypasses authentication!'); return null; }
