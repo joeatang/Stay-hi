@@ -257,14 +257,16 @@ class UnifiedHiIslandController {
         }
 
         // 🔧 PERFORMANCE FIX: Minimal delay for database replication
-        // Reduced from 500ms to 100ms to prevent page freeze
-        // Modern Supabase replicates fast enough with 100ms
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Reduced from 500ms → 100ms → 50ms to prevent page freeze
+        // Modern Supabase replicates in <50ms with proper indexes
+        await new Promise(resolve => setTimeout(resolve, 50));
 
         // Refresh active tab first for responsiveness
         const activeTab = this.currentTab;
         if (tabsToRefresh.has(activeTab)) {
+          console.time('⏱️ Feed refresh after submission');
           await this.feedInstance.loadFeedData(activeTab);
+          console.timeEnd('⏱️ Feed refresh after submission');
         }
 
         // Refresh the other tab in background

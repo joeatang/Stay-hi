@@ -361,6 +361,8 @@ class HiIslandRealFeed {
           .order('created_at', { ascending: false })
           .range(this.pagination.general.page * 20, (this.pagination.general.page + 1) * 20 - 1);
         
+        console.log('📡 Database query includes hi_intensity:', true);
+        
         // 🔧 CRITICAL FIX: Support cancellation via AbortController
         const result = signal 
           ? await queryBuilder.abortSignal(signal)
@@ -1764,10 +1766,16 @@ class HiIslandRealFeed {
    * @returns {string} HTML for badge or empty string
    */
   createIntensityBadgeHTML(intensity) {
+    // 🐛 DEBUG: Log intensity values
+    console.log('🎯 createIntensityBadgeHTML called with:', intensity, typeof intensity);
+    
     // Return empty if no intensity (backwards compatible)
     if (!intensity || intensity < 1 || intensity > 5) {
+      console.log('⚠️ No intensity badge - value:', intensity);
       return '';
     }
+    
+    console.log('✅ Creating intensity badge for level:', intensity);
     
     // Map intensity to emoji, label, and color (Gold Standard design)
     const badges = {
