@@ -63,8 +63,19 @@ class UnifiedHiIslandController {
       this.isInitialized = true;
       console.log('✅ Unified Controller: Feed system ready');
       
+      // 🎯 Signal splash screen: feed is ready
+      if (window.hiIslandReady) {
+        window.hiIslandReady.feed = true;
+        if (window.checkReadyAndHideSplash) window.checkReadyAndHideSplash();
+      }
+      
     } catch (error) {
       console.error('❌ Unified Controller initialization failed:', error);
+      // Still mark as ready to prevent stuck splash
+      if (window.hiIslandReady) {
+        window.hiIslandReady.feed = true;
+        if (window.checkReadyAndHideSplash) window.checkReadyAndHideSplash();
+      }
       throw error;
     }
   }

@@ -115,27 +115,65 @@ class HiIslandMap {
       this.mapInitialized = true;
       console.log('✅ Hi Island Map initialized with clustering');
 
+      // 🚀 PROGRESSIVE LOADING: Load more markers as user pans/zooms (like poop app)
+      this.map.on('moveend', () => {
+        console.log('🗺️ Map moved - checking for new markers in viewport');
+        this.loadMarkersInViewport();
+      });
+
       // Setup share listener for live updates
       this.setupShareListener();
 
-      // Load markers after map is ready
-      setTimeout(() => this.loadMarkers(), 500);
+      // 🚀 INITIAL LOAD: Start with just 50 markers (fast initial render)
+      setTimeout(() => this.loadMarkers(50), 500);
+      
+      // 🎯 Signal splash screen: map is ready
+      if (window.hiIslandReady) {
+        window.hiIslandReady.map = true;
+        if (window.checkReadyAndHideSplash) window.checkReadyAndHideSplash();
+      }
 
     } catch (error) {
       console.error('❌ Error initializing map:', error);
+      // Still mark as ready to prevent stuck splash
+      if (window.hiIslandReady) {
+        window.hiIslandReady.map = true;
+        if (window.checkReadyAndHideSplash) window.checkReadyAndHideSplash();
+      }
     }
   }
 
+  // 🚀 PROGRESSIVE LOADING: Load markers in current viewport (poop app strategy)
+  async loadMarkersInViewport() {
+    if (!this.map || this._loadingMarkers) return;
+    
+    const bounds = this.map.getBounds();
+    const ne = bounds.getNorthEast();
+    const sw = bounds.getSouthWest();
+    
+    console.log(`🔍 Loading markers in viewport: [${sw.lat}, ${sw.lng}] to [${ne.lat}, ${ne.lng}]`);
+    
+    // Load markers with geographic bounds filter
+    await this.loadMarkers(100, { ne, sw });
+  }
+
   // Load markers from live shares (unified with feed)
-  async loadMarkers() {
+  async loadMarkers(limit = 50, bounds = null) {
     console.time('🗺️ MAP_LOAD_MARKERS');
-    console.log('🔍 Loading markers from live shares...');
+    console.log(`🔍 Loading ${limit} markers from live shares...`);
     
     if (!this.map) {
       console.error('❌ Map not initialized yet');
       console.timeEnd('🗺️ MAP_LOAD_MARKERS');
       return;
     }
+    
+    // Prevent concurrent loads
+    if (this._loadingMarkers) {
+      console.log('⏳ Already loading markers, skipping...');
+      return;
+    }
+    this._loadingMarkers = true;
 
     try {
       // 🎯 WOZ GRADE: Use same query as General tab feed
@@ -143,14 +181,15 @@ class HiIslandMap {
       if (!sb) {
         console.error('❌ Supabase client not available');
         console.timeEnd('🗺️ MAP_LOAD_MARKERS');
+        this._loadingMarkers = false;
         return;
       }
       
       console.log('📡 Querying public_shares for map markers...');
       console.time('🗺️ MAP_DATABASE_QUERY');
       
-      // Query public + anonymous shares with location data (with profile JOIN like feed does)
-      const { data: shares, error } = await sb
+      // 🚀 PROGRESSIVE LOADING: Start with recent markers, load more on demand
+      let query = sb
         .from('public_shares')
         .select(`
           id,
@@ -171,20 +210,27 @@ class HiIslandMap {
         .or('is_public.eq.true,is_anonymous.eq.true')
         .not('location', 'is', null)
         .order('created_at', { ascending: false })
-        .limit(200); // 🚀 MOBILE FIX: Limit markers
+        .limit(limit); // 🚀 Start with 50, load more as user explores
+      
+      const { data: shares, error } = await query;
       
       console.timeEnd('🗺️ MAP_DATABASE_QUERY');
       
       if (error) {
         console.error('❌ Failed to load shares for map:', error);
         console.timeEnd('🗺️ MAP_LOAD_MARKERS');
+        this._loadingMarkers = false;
         return;
       }
       
-      console.time('🗺️ MAP_CLEAR_MARKERS');
-      // Clear existing markers
-      this.clearMarkers();
-      console.timeEnd('🗺️ MAP_CLEAR_MARKERS');
+      // 🚀 PROGRESSIVE: Don't clear markers, just add new ones (additive loading)
+      // If this is the initial load, clear first
+      if (!this._initialLoadDone) {
+        console.time('🗺️ MAP_CLEAR_MARKERS');
+        this.clearMarkers();
+        console.timeEnd('🗺️ MAP_CLEAR_MARKERS');
+        this._initialLoadDone = true;
+      }
 
       console.log(`🗺️ Received ${shares?.length || 0} shares with location data`);
       
@@ -245,20 +291,22 @@ class HiIslandMap {
         console.timeEnd('🗺️ MAP_ADD_MARKERS');
         console.log(`✅ Added ${markersAdded} markers from database`);
         
-        console.time('🗺️ MAP_FIT_BOUNDS');
-        // Auto-fit map to show all markers
-        if (bounds.length > 0) {
+        // 🚀 PROGRESSIVE: Only fit bounds on initial load, not on viewport updates
+        if (!this._boundsSet && bounds.length > 0) {
+          console.time('🗺️ MAP_FIT_BOUNDS');
           const leafletBounds = L.latLngBounds(bounds);
           this.map.fitBounds(leafletBounds, {
             padding: [50, 50],
             maxZoom: 8 // Don't zoom in too close
           });
           console.log(`🗺️ Map fitted to ${bounds.length} marker positions`);
+          console.timeEnd('🗺️ MAP_FIT_BOUNDS');
+          this._boundsSet = true;
         }
-        console.timeEnd('🗺️ MAP_FIT_BOUNDS');
       }
       
       console.timeEnd('🗺️ MAP_LOAD_MARKERS');
+      this._loadingMarkers = false;
       
       // 🌱 Initialize seed data if no real markers were added
       const shouldInitializeSeed = markersAdded === 0;

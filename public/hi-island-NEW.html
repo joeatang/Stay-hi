@@ -80,13 +80,26 @@
     });
     
     window.splashStartTime = performance.now();
-    window.addEventListener('load', function() {
+    window.hiIslandReady = {
+      auth: false,
+      map: false,
+      feed: false
+    };
+    
+    // Track readiness and hide splash when everything's loaded
+    function checkReadyAndHideSplash() {
       const splash = document.getElementById('instant-splash');
       if (!splash) return;
       
+      const allReady = window.hiIslandReady.auth && 
+                       window.hiIslandReady.map && 
+                       window.hiIslandReady.feed;
+      
+      if (!allReady) return;
+      
       const elapsed = performance.now() - window.splashStartTime;
-      // 🎯 USER REQUEST: Longer splash to ensure all logic loads (auth, filters, feed)
-      const minDuration = window.innerWidth <= 768 ? 1800 : 1600;
+      // 🎯 USER REQUEST: Prevent "jumping the gun" - ensure minimum splash time
+      const minDuration = window.innerWidth <= 768 ? 1500 : 1200;
       const remaining = Math.max(0, minDuration - elapsed);
       
       setTimeout(() => {
@@ -98,8 +111,24 @@
         setTimeout(() => {
           splash.style.willChange = 'auto'; // Clean up
           splash.remove();
+          console.log('✅ Hi Island fully loaded and interactive');
         }, 250);
       }, remaining);
+    }
+    
+    // Fallback: hide splash after 5 seconds no matter what (prevent stuck splash)
+    setTimeout(() => {
+      console.warn('⚠️ Splash timeout - hiding anyway');
+      window.hiIslandReady.auth = true;
+      window.hiIslandReady.map = true;
+      window.hiIslandReady.feed = true;
+      checkReadyAndHideSplash();
+    }, 5000);
+    
+    window.addEventListener('load', function() {
+      // Mark auth as ready (basic page load)
+      window.hiIslandReady.auth = true;
+      checkReadyAndHideSplash();
     }, { once: true });
   </script>
 
