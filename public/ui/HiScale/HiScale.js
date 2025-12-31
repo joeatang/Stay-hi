@@ -143,3 +143,7 @@ export default class HiScale {
     }
   }
 }
+
+// 🔧 CRITICAL FIX: Export to window for HiShareSheet compatibility
+// HiShareSheet expects HiScale as a global, but it's loaded as a module
+window.HiScale = HiScale;
