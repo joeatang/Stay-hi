@@ -223,11 +223,19 @@ class PremiumCalendar {
   }
   
   updateDashboardStreakPill(streakValue) {
-    // Gold Standard: Update the stat pill on dashboard
-    const statEl = document.getElementById('userStreak');
-    if (statEl && Number.isFinite(streakValue)) {
-      this.animateNumber(statEl, streakValue);
-      console.log(`🔥 Dashboard streak pill updated: ${streakValue} days`);
+    // 🎯 CONSOLIDATED UPDATE: Trigger unified weekly progress setup
+    // This ensures stat box number AND visual pill grid stay in sync
+    if (window.setupWeeklyProgress && typeof window.setupWeeklyProgress === 'function') {
+      console.log(`🔥 [STREAK SYNC] Triggering consolidated update with value: ${streakValue}`);
+      // setupWeeklyProgress will handle both stat box + visual grid
+      window.setupWeeklyProgress();
+    } else {
+      // Fallback: Direct update if consolidated function not available
+      const statEl = document.getElementById('userStreak');
+      if (statEl && Number.isFinite(streakValue)) {
+        this.animateNumber(statEl, streakValue);
+        console.log(`🔥 Dashboard streak pill updated (fallback): ${streakValue} days`);
+      }
     }
   }
 

@@ -120,6 +120,7 @@ const HiBase = {
     // Statistics and analytics operations
     stats: {
         getGlobalStats: stats.getGlobalStats,
+        insertMedallionTap: stats.insertMedallionTap,
         getPointsLeaderboard: stats.getPointsLeaderboard,
         getActivityLeaderboard: stats.getActivityLeaderboard,
         getRecentActivity: stats.getRecentActivity,
@@ -192,6 +193,15 @@ const HiBase = {
                 if (typeof window !== 'undefined') {
                     window.HiBase = HiBase;
                     console.log('🧪 HiBase available globally for console testing: window.HiBase');
+                    
+                    // Dispatch event for components waiting for HiBase
+                    try {
+                        window.dispatchEvent(new CustomEvent('hibase:ready', { 
+                            detail: { HiBase } 
+                        }));
+                    } catch (e) {
+                        console.warn('⚠️ Failed to dispatch hibase:ready event:', e);
+                    }
                 }
             }
             

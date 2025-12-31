@@ -1588,14 +1588,12 @@ class HiIslandRealFeed {
         <button class="share-action-btn" data-action="wave" data-share-id="${share.id}">
           ${typeof share.wave_count === 'number' && share.wave_count > 0 ? `👋 ${share.wave_count} ${share.wave_count === 1 ? 'Wave' : 'Waves'}` : '👋 Wave Back'}
         </button>
-        ${this.shouldShowShareButton(share) ? `
         <button class="share-action-btn" data-action="send-peace" data-share-id="${share.id}" title="Send peaceful vibes">
           ${typeof share.peace_count === 'number' && share.peace_count > 0 ? `🕊️ ${share.peace_count} Peace` : '🕊️ Send Peace'}
         </button>
         <button class="share-action-btn" data-action="share-external" data-share-id="${share.id}" title="Share to other platforms">
           📤 Share
         </button>
-        ` : ''}
       </div>
     `;
 
@@ -1708,12 +1706,12 @@ class HiIslandRealFeed {
       pillColor = '#9333EA';
       pillBorder = '#7C3AED';
     } else if (type === 'hi_island' || type === 'island') {
-      pillLabel = '🏝️ Island';
+      pillLabel = '🏝️ Hi Island'; // 🎯 FIX: Add space for consistency
       pillClass = 'origin-island';
       pillColor = '#10B981';
       pillBorder = '#059669';
     } else {
-      pillLabel = 'Hi5';
+      pillLabel = 'Hi 5'; // 🎯 FIX: Add space to match branding (was 'Hi5')
       pillClass = 'origin-hi5';
       pillColor = '#FF8C00';
       pillBorder = '#FF6B00';

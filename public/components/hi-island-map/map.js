@@ -323,21 +323,26 @@ class HiIslandMap {
 
   // Listen for new shares and refresh map
   setupShareListener() {
+    // 🎯 PERFORMANCE FIX: Don't auto-reload map on every submission
+    // This was causing 200+ country geocoding searches on EVERY share
+    // Users can refresh page to see new markers instead
+    
     window.addEventListener('share:created', async (event) => {
       const detail = event.detail || {};
       
-      // Only refresh if share has location
+      // Only show notification, don't reload map
       if (detail.location || detail.locationData) {
-        console.log('🗺️ New share with location detected, refreshing map...');
+        console.log('🗺️ New share with location detected. Refresh page to see it on map.');
         
-        // Small delay to allow database to update
-        setTimeout(() => {
-          this.loadMarkers();
-        }, 1000);
+        // Optional: Show user-friendly notification
+        if (window.HiToast || window.showToast) {
+          const toast = window.HiToast || window.showToast;
+          toast('📍 Share added! Refresh page to see it on the map.');
+        }
       }
     });
     
-    console.log('✅ Map share listener active');
+    console.log('✅ Map share listener active (manual refresh mode)');
   }
   
   // 🌟 TESLA-GRADE: Initialize seed data for map display

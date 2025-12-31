@@ -232,7 +232,8 @@
       journal: journalText.substring(0, 50),
       origin: entry.origin,
       type: entry.type,
-      computed_type: entry.type || 'general'
+      computed_type: entry.type || 'general',
+      metadata_origin: entry.metadata?.origin // 🔬 DEBUG: Show both entry.origin and metadata.origin
     });
     
     // ✅ ACTUAL hi_archives SCHEMA (verified from runtime logs):

@@ -254,23 +254,54 @@ document.addEventListener('DOMContentLoaded', async () => {
               }
             });
             if (window.updateGlobalStats) window.updateGlobalStats();
-            if (window.supabase) {
-              window.supabase.rpc('increment_hi_wave').then(({ data, error }) => {
-                if (error) { console.error('❌ Database wave increment failed:', error); }
-                else {
-                  if (data && typeof data === 'number') {
-                    window.gWaves = data;
+            
+            // 🎯 Gold Standard: Track both global + personal medallion taps
+            (async () => {
+              try {
+                // Get authenticated user ID
+                let userId = null;
+                if (window.HiSupabase?.getClient) {
+                  const { data: { user } } = await window.HiSupabase.getClient().auth.getUser();
+                  userId = user?.id;
+                }
+                
+                // Use HiBase.stats.insertMedallionTap for unified tracking
+                if (window.HiBase?.stats?.insertMedallionTap) {
+                  const result = await window.HiBase.stats.insertMedallionTap(userId);
+                  if (result.error) {
+                    console.error('❌ Medallion tap tracking failed:', result.error);
+                  } else {
+                    const { globalWaves, personalTaps } = result.data;
+                    console.log('✅ Medallion tap tracked:', { globalWaves, personalTaps });
+                    
+                    // Update global counter UI
+                    window.gWaves = globalWaves;
                     localStorage.setItem('dashboard_waves_cache', String(window.gWaves));
                     localStorage.setItem('dashboard_waves_cache_time', String(Date.now()));
                     if (window.hiWavesRealtime) window.hiWavesRealtime.updateWavesUI(window.gWaves);
                     const el = document.getElementById('globalHiWaves');
                     if (el) el.textContent = window.gWaves.toLocaleString();
                   }
+                } else {
+                  console.warn('⚠️ HiBase.stats not available, using legacy increment_hi_wave');
+                  // Fallback to old method if HiBase not loaded
+                  const supabaseClient = window.hiSupabase || window.supabaseClient || window.__HI_SUPABASE_CLIENT;
+                  if (supabaseClient) {
+                    const { data, error } = await supabaseClient.rpc('increment_hi_wave');
+                    if (!error && typeof data === 'number') {
+                      window.gWaves = data;
+                      localStorage.setItem('dashboard_waves_cache', String(window.gWaves));
+                      localStorage.setItem('dashboard_waves_cache_time', String(Date.now()));
+                      if (window.hiWavesRealtime) window.hiWavesRealtime.updateWavesUI(window.gWaves);
+                      const el = document.getElementById('globalHiWaves');
+                      if (el) el.textContent = window.gWaves.toLocaleString();
+                    }
+                  }
                 }
-              });
-            }
-            const personalTaps = parseInt(localStorage.getItem('user_medallion_taps') || '0', 10) + 1;
-            localStorage.setItem('user_medallion_taps', personalTaps.toString());
+              } catch (error) {
+                console.error('❌ Medallion tap error:', error);
+              }
+            })();
             
             // Gold Standard: Update streak (unified self-Hi tracking)
             (async () => {

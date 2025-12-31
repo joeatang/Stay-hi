@@ -76,9 +76,10 @@
       let source = 'none';
 
       // 🎯 PRIMARY: Direct database query (most reliable, bypasses flags)
-      if (window.supabase) {
+      const supabaseClient = window.hiSupabase || window.supabaseClient || window.__HI_SUPABASE_CLIENT;
+      if (supabaseClient) {
         try {
-          const { data: statsData, error } = await window.supabase
+          const { data: statsData, error } = await supabaseClient
             .from('user_stats')
             .select('current_streak')
             .eq('user_id', userId)
@@ -518,15 +519,16 @@
   }
 
   async function setupWeeklyProgress() {
-    const weekStrip = document.getElementById('weekStrip');
-    if (!weekStrip) return;
-    
-    // Show loading skeleton
-    weekStrip.innerHTML = `<div class="week-loading">${Array(7).fill('<div class="weekdot-skeleton"></div>').join('')}</div>`;
-    
-    const today = new Date();
-    let html = '';
-    const weeklyActivity = await getUserWeeklyActivity();
+    try {
+      const weekStrip = document.getElementById('weekStrip');
+      if (!weekStrip) return;
+      
+      // Show loading skeleton
+      weekStrip.innerHTML = `<div class="week-loading">${Array(7).fill('<div class="weekdot-skeleton"></div>').join('')}</div>`;
+      
+      const today = new Date();
+      let html = '';
+      const weeklyActivity = await getUserWeeklyActivity();
     
     for (let i = 6; i >= 0; i--) {
       const date = new Date(today);
@@ -557,11 +559,30 @@
     
     weekStrip.innerHTML = html;
     
+    // 🎯 CONSOLIDATED UPDATE: Also update the stat box number to match visual
+    const streakValue = weeklyActivity.streakData?.current || 0;
+    const statEl = document.getElementById('userStreak');
+    if (statEl && Number.isFinite(streakValue)) {
+      statEl.textContent = streakValue;
+      console.log(`✅ [STREAK SYNC] Stat box + visual grid both updated: ${streakValue} days`);
+    }
+    
     // Trigger fade-in animation
     requestAnimationFrame(() => {
       weekStrip.querySelectorAll('.weekdot').forEach(dot => dot.classList.add('fade-in'));
     });
+    
+    } catch (error) {
+      console.error('❌ [STREAK SYNC] setupWeeklyProgress failed:', error);
+      // Graceful degradation - show 0 if anything fails
+      const statEl = document.getElementById('userStreak');
+      if (statEl) statEl.textContent = '0';
+    }
   }
+  
+  // 🎯 EXPOSE GLOBALLY: Allow premium-calendar to trigger consolidated updates
+  window.setupWeeklyProgress = setupWeeklyProgress;
+  
   async function getUserWeeklyActivity(){ 
     try { 
       // FIX: Use ProfileManager instead of undefined window.hiAuth
@@ -618,7 +639,7 @@
     
     if (!lastHiDate || currentStreak === 0) {
       console.log('⚠️ [7-DAY PILL] No streak data');
-      return { activeDays: [], source: 'real_streak', milestone: milestoneInfo };
+      return { activeDays: [], source: 'real_streak', milestone: milestoneInfo, streakData: { current: 0 } };
     }
     
     // Parse last Hi date and normalize to midnight
@@ -655,7 +676,8 @@
     return { 
       activeDays, 
       source: 'real_streak', 
-      milestone: milestoneInfo 
+      milestone: milestoneInfo,
+      streakData: { current: currentStreak } // 🎯 INCLUDE STREAK DATA
     };
   }
   
@@ -669,7 +691,19 @@
     const milestones=[{threshold:3,name:'Hi Habit',emoji:'🔥'},{threshold:7,name:'Week Keeper',emoji:'🔥'},{threshold:30,name:'Monthly Hi',emoji:'🔥'},{threshold:100,name:'Steady Light',emoji:'🔥'}];
     const achieved=milestones.filter(m=>streak>=m.threshold); const latest=achieved[achieved.length-1]; const upcoming=milestones.find(m=>streak < m.threshold); return { current: latest||null, next: upcoming||null, remaining: upcoming? (upcoming.threshold - streak):0, isNewMilestone:false };
   }
-  function generateAnonymousWeeklyPreview(){ const activeDays=[]; const today=new Date(); const recentDays=Math.floor(Math.random()*2)+2; for(let i=0;i<recentDays;i++){ const d=new Date(today); d.setDate(today.getDate()-i); activeDays.push(d.toISOString().split('T')[0]); } return { activeDays, source:'preview' }; }
+  
+  function generateAnonymousWeeklyPreview(){ 
+    const activeDays=[]; 
+    const today=new Date(); 
+    const recentDays=Math.floor(Math.random()*2)+2; 
+    for(let i=0;i<recentDays;i++){ 
+      const d=new Date(today); 
+      d.setDate(today.getDate()-i); 
+      activeDays.push(d.toISOString().split('T')[0]); 
+    } 
+    // 🎯 REGRESSION FIX: Include streakData for anonymous users too
+    return { activeDays, source:'preview', streakData: { current: 0 } }; 
+  }
 
   function showCelebrationMessage(message){ const celebration=document.createElement('div'); celebration.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,#FFD166,#FF7B24);color:#000;padding:20px 30px;border-radius:20px;font-size:18px;font-weight:600;box-shadow:0 10px 30px rgba(255,123,24,.4);z-index:10000;animation:celebrationPop 2s ease-out forwards;'; celebration.textContent=message; if(!document.getElementById('celebrationStyles')){ const style=document.createElement('style'); style.id='celebrationStyles'; style.textContent='@keyframes celebrationPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.5);}20%{opacity:1;transform:translate(-50%,-50%) scale(1.1);}100%{opacity:0;transform:translate(-50%,-50%) scale(1);} }'; document.head.appendChild(style);} document.body.appendChild(celebration); setTimeout(()=>celebration.remove(),2000); }
 

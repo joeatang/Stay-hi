@@ -36,8 +36,13 @@
     // Initialize CTA handler
     await initHeroCTAHandler();
 
-    // Replay any queued taps from offline sessions
-    await replayQueuedTaps();
+    // 🎯 QUEUE REPLAY DISABLED - dashboard-main.mjs handles all persistence
+    // await replayQueuedTaps();
+
+    // Listen for HiBase (no longer needed for database sync, kept for future use)
+    if (window.HiBase?.stats?.insertMedallionTap) {
+      console.log('[S-DASH] HiBase available (visual feedback mode)');
+    }
 
   } catch (error) {
     console.error('[S-DASH] Hero CTA initialization failed:', error);
@@ -101,19 +106,19 @@ async function handleHeroTap(event) {
   // Increment local counter immediately
   incrementLocalCounter();
 
-  // Try server sync
-  const success = await attemptServerSync();
+  // 🎯 DATABASE SYNC DISABLED - dashboard-main.mjs handles all database writes
+  // This prevents double-incrementing while keeping visual feedback responsive
+  const success = false; // Skip server sync (handled by dashboard-main.mjs)
   
-  if (!success) {
-    // Queue for offline replay
-    queueTapForReplay(now);
-  }
+  // Don't queue for replay either (dashboard-main.mjs handles persistence)
+  // queueTapForReplay(now);
 
   // Emit telemetry
   console.log('hibase.hi5.tap', {
-    queued: !success,
+    queued: false,
     ts: now,
-    sessionCount: CTAState.sessionTapCount
+    sessionCount: CTAState.sessionTapCount,
+    note: 'Visual feedback only - sync handled by dashboard-main.mjs'
   });
 }
 

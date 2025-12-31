@@ -367,8 +367,12 @@ export class HiShareSheet {
       console.log('🔥 [enforceTierLimits] window.HiTierConfig:', window.HiTierConfig);
       console.log('🔥 [enforceTierLimits] getTierFeatures function:', window.HiTierConfig?.getTierFeatures);
       
-      // Get tier features from TIER_CONFIG
-      const features = window.HiTierConfig?.getTierFeatures?.(tier) || {};
+      // 🎯 DEFENSIVE FIX: Fail-open if TIER_CONFIG not loaded yet
+      // Get tier features from TIER_CONFIG with safe fallback
+      const features = window.HiTierConfig?.getTierFeatures?.(tier) || {
+        shareTypes: ['private', 'anonymous', 'public'], // Show all buttons by default
+        shareCreation: true // Allow sharing by default
+      };
       console.log('🎯 [TIER CHECK] Tier:', tier, '| Features:', features);
       
       // Check if user can create shares at all
@@ -425,15 +429,25 @@ export class HiShareSheet {
   // 🎯 Check monthly share quota
   async checkShareQuota(tier, limit) {
     try {
-      // Try server-side count first
+      // Try server-side count first (with 2s timeout to prevent lockups)
       if (window.sb?.rpc) {
-        const { data, error } = await window.sb.rpc('get_user_share_count', { period: 'month' });
-        if (!error && data) {
-          return {
-            used: data.count || 0,
-            limit: limit,
-            exceeded: (data.count || 0) >= limit
-          };
+        try {
+          const rpcPromise = window.sb.rpc('get_user_share_count', { period: 'month' });
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('RPC timeout')), 2000)
+          );
+          
+          const { data, error } = await Promise.race([rpcPromise, timeoutPromise]);
+          if (!error && data) {
+            return {
+              used: data.count || 0,
+              limit: limit,
+              exceeded: (data.count || 0) >= limit
+            };
+          }
+        } catch (rpcErr) {
+          console.warn('⚠️ get_user_share_count RPC failed (using fallback):', rpcErr.message);
+          // Fall through to client-side tracking
         }
       }
       
@@ -1461,7 +1475,7 @@ export class HiShareSheet {
           // isPublic removed - let isAnonymous determine visibility
           type: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : 'self_hi5'),
           origin: this.origin, // Will be 'higym', 'hi-island', or 'hi5'
-          pill: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'island' : 'hi5'),
+          pill: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hiisland' : 'hi5'), // 🎯 FIX: Changed 'island' to 'hiisland'
           user_id: publicShareUserId, // Tesla: NULL for anonymous, real ID for public
           hi_intensity: hiIntensity // 🎯 Hi Scale: Optional intensity rating (1-5 or null)
         };
