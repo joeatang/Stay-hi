@@ -72,9 +72,19 @@ class HiUnifiedSplash {
    * Listen for readiness events
    */
   setupListeners() {
+    // 🔥 CRITICAL FIX: Check if auth already ready (for returning from background)
+    if (window.getAuthState) {
+      const authState = window.getAuthState();
+      if (authState) {
+        console.log('✅ Auth already ready (from cache)');
+        this.authReady = true;
+        this.checkIfReady();
+      }
+    }
+    
     // Auth ready event
     window.addEventListener('hi:auth-ready', () => {
-      console.log('✅ Auth ready');
+      console.log('✅ Auth ready (from event)');
       this.authReady = true;
       this.checkIfReady();
     });

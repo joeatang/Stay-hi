@@ -26,7 +26,15 @@ if (el) {
   }
 
   // Auth gate
+  // 🔥 CRITICAL FIX: Check if auth already ready (for page navigation after backgrounding)
+  if (window.getAuthState && window.getAuthState()) {
+    console.log('[HiLoading] Auth already ready (from cache)');
+    authReady = true;
+    updateState();
+  }
+  
   window.addEventListener('hi:auth-ready', () => {
+    console.log('[HiLoading] Auth ready (from event)');
     authReady = true;
     updateState();
   });

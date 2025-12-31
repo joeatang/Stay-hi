@@ -132,7 +132,9 @@ document.addEventListener('visibilitychange', async () => {
           if (membership) {
             window.__hiMembership = membership;
           }
-          // Notify listeners
+          // 🔥 CRITICAL FIX: Re-fire hi:auth-ready so pages know auth is restored
+          console.log('[AuthReady] Re-firing hi:auth-ready for page navigation after background');
+          window.dispatchEvent(new CustomEvent('hi:auth-ready', { detail: _result }));
           window.dispatchEvent(new CustomEvent('hi:auth-updated', { detail: _result }));
           if (membership) {
             window.dispatchEvent(new CustomEvent('hi:membership-changed', { detail: membership }));
