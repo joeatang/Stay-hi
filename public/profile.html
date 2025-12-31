@@ -3057,6 +3057,13 @@ FOR INSERT WITH CHECK (
     // Tesla Profile Display Update System
     function updateProfileDisplay(profileData) {
       console.log('🔄 Updating profile display...', profileData);
+      console.log('🔍 DEBUG: profileData fields:', {
+        username: profileData?.username,
+        display_name: profileData?.display_name,
+        bio: profileData?.bio,
+        location: profileData?.location,
+        avatar_url: profileData?.avatar_url
+      });
       
       // Update username
       const usernameEl = document.getElementById('profileUsername');
