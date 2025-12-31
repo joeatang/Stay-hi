@@ -128,10 +128,12 @@ class HiIslandMap {
 
   // Load markers from live shares (unified with feed)
   async loadMarkers() {
+    console.time('🗺️ MAP_LOAD_MARKERS');
     console.log('🔍 Loading markers from live shares...');
     
     if (!this.map) {
       console.error('❌ Map not initialized yet');
+      console.timeEnd('🗺️ MAP_LOAD_MARKERS');
       return;
     }
 
@@ -140,10 +142,12 @@ class HiIslandMap {
       const sb = await this.getSupabaseClient();
       if (!sb) {
         console.error('❌ Supabase client not available');
+        console.timeEnd('🗺️ MAP_LOAD_MARKERS');
         return;
       }
       
       console.log('📡 Querying public_shares for map markers...');
+      console.time('🗺️ MAP_DATABASE_QUERY');
       
       // Query public + anonymous shares with location data (with profile JOIN like feed does)
       const { data: shares, error } = await sb
@@ -167,15 +171,20 @@ class HiIslandMap {
         .or('is_public.eq.true,is_anonymous.eq.true')
         .not('location', 'is', null)
         .order('created_at', { ascending: false })
-        .limit(200);
+        .limit(200); // 🚀 MOBILE FIX: Limit markers
+      
+      console.timeEnd('🗺️ MAP_DATABASE_QUERY');
       
       if (error) {
         console.error('❌ Failed to load shares for map:', error);
+        console.timeEnd('🗺️ MAP_LOAD_MARKERS');
         return;
       }
       
+      console.time('🗺️ MAP_CLEAR_MARKERS');
       // Clear existing markers
       this.clearMarkers();
+      console.timeEnd('🗺️ MAP_CLEAR_MARKERS');
 
       console.log(`🗺️ Received ${shares?.length || 0} shares with location data`);
       
@@ -188,6 +197,7 @@ class HiIslandMap {
         })));
       }
       
+      console.time('🗺️ MAP_ADD_MARKERS');
       // Add markers from shares
       let markersAdded = 0;
       const bounds = [];
@@ -232,8 +242,10 @@ class HiIslandMap {
           }
         }
         
+        console.timeEnd('🗺️ MAP_ADD_MARKERS');
         console.log(`✅ Added ${markersAdded} markers from database`);
         
+        console.time('🗺️ MAP_FIT_BOUNDS');
         // Auto-fit map to show all markers
         if (bounds.length > 0) {
           const leafletBounds = L.latLngBounds(bounds);
@@ -243,7 +255,10 @@ class HiIslandMap {
           });
           console.log(`🗺️ Map fitted to ${bounds.length} marker positions`);
         }
+        console.timeEnd('🗺️ MAP_FIT_BOUNDS');
       }
+      
+      console.timeEnd('🗺️ MAP_LOAD_MARKERS');
       
       // 🌱 Initialize seed data if no real markers were added
       const shouldInitializeSeed = markersAdded === 0;
@@ -653,19 +668,20 @@ class HiIslandMap {
   addMarkerAt(lat, lng, share) {
     if (!this.map) return;
     
+    // 🚀 MOBILE FIX: Skip expensive duplicate check on mobile
     // Check for duplicate location (within 0.01 degree tolerance)
-    const existingMarkers = this.markerCluster.getLayers();
-    const isDuplicate = existingMarkers.some(existing => {
-      const existingPos = existing.getLatLng();
-      const latDiff = Math.abs(existingPos.lat - lat);
-      const lngDiff = Math.abs(existingPos.lng - lng);
-      return latDiff < 0.01 && lngDiff < 0.01;
-    });
+    // const existingMarkers = this.markerCluster.getLayers();
+    // const isDuplicate = existingMarkers.some(existing => {
+    //   const existingPos = existing.getLatLng();
+    //   const latDiff = Math.abs(existingPos.lat - lat);
+    //   const lngDiff = Math.abs(existingPos.lng - lng);
+    //   return latDiff < 0.01 && lngDiff < 0.01;
+    // });
     
-    if (isDuplicate) {
-      console.warn(`⚠️ Skipping duplicate marker at [${lat}, ${lng}] for share: ${share.id || 'unknown'}`);
-      return;
-    }
+    // if (isDuplicate) {
+    //   console.warn(`⚠️ Skipping duplicate marker at [${lat}, ${lng}] for share: ${share.id || 'unknown'}`);
+    //   return;
+    // }
 
     // Create custom hand emoji icon
     const handIcon = L.divIcon({

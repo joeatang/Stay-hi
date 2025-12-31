@@ -1739,8 +1739,33 @@
     console.log('✅ Profile modal initialized - window.openProfileModal() ready');
   </script>
   
+  <!-- 🚀 MOBILE FIX: Defer map loading until page is interactive -->
+  <script>
+    // Load map AFTER page is interactive to prevent mobile freeze
+    if ('requestIdleCallback' in window) {
+      // Use requestIdleCallback on supported browsers (Chrome, Edge)
+      requestIdleCallback(() => {
+        console.log('🗺️ Loading map (idle callback)');
+        const script = document.createElement('script');
+        script.src = 'components/hi-island-map/map.js';
+        script.type = 'module';
+        document.body.appendChild(script);
+      }, { timeout: 2000 }); // Fallback after 2s
+    } else {
+      // Fallback for Safari: wait 1 second
+      setTimeout(() => {
+        console.log('🗺️ Loading map (setTimeout fallback)');
+        const script = document.createElement('script');
+        script.src = 'components/hi-island-map/map.js';
+        script.type = 'module';
+        document.body.appendChild(script);
+      }, 1000);
+    }
+  </script>
+  
   <!-- Optional Components -->
-  <script src="components/hi-island-map/map.js" type="module"></script>
+  <!-- Map now loaded dynamically above -->
+  <!-- <script src="components/hi-island-map/map.js" type="module"></script> -->
   <!-- <script src="components/hi-island-feed/feed.js" type="module"></script> -->
   
   <!-- 🎯 TESLA-GRADE: Total His Tracking System (Hi-Island Support) -->
