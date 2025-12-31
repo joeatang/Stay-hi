@@ -282,11 +282,14 @@ class UnifiedHiIslandController {
   // 🚀 SHARE EVENT WIRING: Refresh tabs when new shares are created
   setupShareCreatedListener() {
     window.addEventListener('share:created', async (event) => {
+      console.time('🔍 SHARE_CREATED_EVENT');
+      console.log('🔍 SHARE_CREATED: Event fired');
       try {
         const detail = event.detail || {};
         const shareData = detail.shareData || {};
         const visibility = detail.visibility;
         
+        console.log('🔍 SHARE_CREATED: Processing event data');
         // Decide which tab to refresh based on visibility
         const tabsToRefresh = new Set();
         if (visibility === 'public' || visibility === 'anonymous') {
@@ -295,11 +298,13 @@ class UnifiedHiIslandController {
         // Always refresh archives for the owner
         tabsToRefresh.add('archives');
 
+        console.log('🔍 SHARE_CREATED: Checking feed instance');
         // Ensure feed instance exists
         if (!this.feedInstance) {
           await this.init();
         }
 
+        console.log('🔍 SHARE_CREATED: Creating optimistic share');
         // 🚀 INSTAGRAM/X-GRADE OPTIMISTIC UI: Show share IMMEDIATELY
         // Don't wait for database - add optimistic item to feed NOW
         const activeTab = this.currentTab;
@@ -322,6 +327,7 @@ class UnifiedHiIslandController {
             _isOptimistic: true // Mark for special handling
           };
 
+          console.log('🔍 SHARE_CREATED: Prepending to feed data');
           // Prepend to current feed data
           if (this.feedInstance.feedData[activeTab]) {
             this.feedInstance.feedData[activeTab].unshift(optimisticShare);
@@ -329,11 +335,15 @@ class UnifiedHiIslandController {
             this.feedInstance.feedData[activeTab] = [optimisticShare];
           }
 
+          console.time('🔍 RENDER_FEED_SYNC');
+          console.log('🔍 SHARE_CREATED: Calling renderFeed() - THIS MAY FREEZE');
           // Re-render immediately (no database wait)
           this.feedInstance.renderFeed();
+          console.timeEnd('🔍 RENDER_FEED_SYNC');
           console.log('⚡ INSTANT: Optimistic share added to feed (0ms)');
         }
 
+        console.log('🔍 SHARE_CREATED: Setting up background sync');
         // Background database sync (non-blocking)
         // Replace optimistic item with real one when database responds
         setTimeout(async () => {
@@ -375,8 +385,11 @@ class UnifiedHiIslandController {
         } catch (e) {
           console.warn('⚠️ Stats refresh failed after share:created:', e);
         }
+        
+        console.timeEnd('🔍 SHARE_CREATED_EVENT');
       } catch (err) {
         console.error('❌ Failed to handle share:created event:', err);
+        console.timeEnd('🔍 SHARE_CREATED_EVENT');
       }
     });
   }
