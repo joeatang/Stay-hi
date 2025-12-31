@@ -3254,7 +3254,7 @@ FOR INSERT WITH CHECK (
             const sb = window.hiSupabase || window.supabase;
             if (sb) {
               const { data: dbProfile } = await sb
-                .from('user_profiles')
+                .from('profiles')
                 .select('*')
                 .eq('id', session.user.id)
                 .single();
