@@ -66,6 +66,13 @@
   <script src="./lib/rewards/HiPoints.js"></script>
   <script src="./lib/HiBrandTiers.js" async></script>
   
+  <!-- 🔥 CRITICAL: Expose loadProfileData EARLY before boot scripts -->
+  <script>
+    // Prevent race condition: auth-ready fires before function exists
+    window.__loadProfileData = null; // Placeholder, will be replaced by actual function
+    console.log('✅ __loadProfileData placeholder exposed early (prevents race condition)');
+  </script>
+  
   <!-- CRITICAL: Daily Check-in Button Init -->
   <script>
     console.log('🎬 Check-in init script loaded in HEAD');
@@ -3667,7 +3674,9 @@ FOR INSERT WITH CHECK (
     };
     
     // 🔥 CRITICAL: Expose loadProfileData to window for cross-script access
+    // This REPLACES the placeholder set in HEAD
     window.__loadProfileData = loadProfileData;
+    console.log('✅ __loadProfileData function exposed (replaced placeholder)');
     
     console.log('✅ Tesla Profile System Ready - WITH SECURITY BARRIERS');
     

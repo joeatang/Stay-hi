@@ -10,7 +10,7 @@ const OFFLINE_FALLBACK = '/public/offline.html';
 
 // 🔥 CRITICAL: Force immediate activation on mobile Chrome
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing new service worker v1.3.1 - INSTANT PROFILE');
+  console.log(`[SW] Installing new service worker ${BUILD_TAG} ${CACHE_NAME}`);
   event.waitUntil(self.skipWaiting()); // Don't wait for old SW to finish
 });
 
