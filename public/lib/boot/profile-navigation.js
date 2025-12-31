@@ -33,9 +33,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const smartNav=new SmartNavigation();
   // ✅ REMOVED: No longer show modal automatically - wait for auth-ready event instead
   // Modal will auto-show via anonymous-access-modal.js if truly anonymous after auth check
-  if(typeof updateProfileDisplay==='function' && window.currentProfile){ updateProfileDisplay(window.currentProfile); }
-  if(typeof updateStatsDisplay==='function' && window.userStats){ updateStatsDisplay(window.userStats); }
-  setTimeout(()=>{ console.log('🔒 Initializing secure profile loading...'); if(typeof loadProfileData==='function') loadProfileData(); },500);
+  
+  // 🚫 REMOVED: These call deprecated functions from profile-main.js
+  // if(typeof updateProfileDisplay==='function' && window.currentProfile){ updateProfileDisplay(window.currentProfile); }
+  // if(typeof updateStatsDisplay==='function' && window.userStats){ updateStatsDisplay(window.userStats); }
+  // setTimeout(()=>{ console.log('🔒 Initializing secure profile loading...'); if(typeof loadProfileData==='function') loadProfileData(); },500);
+  
+  console.log('ℹ️ Profile loading delegated to profile.html inline system (no duplicate calls)');
+  
   const avatarInput=document.getElementById('avatarFileInput'); if(avatarInput){ avatarInput.addEventListener('change', e=>{ if(e.target.files && e.target.files.length>0){ if(typeof handleImageUpload==='function') handleImageUpload(e); } }); }
   setTimeout(()=>{ if(typeof initializeTeslaAvatarSystem==='function') initializeTeslaAvatarSystem(); },100);
   if(typeof showToast==='function') showToast('Profile loaded successfully! 🎉');

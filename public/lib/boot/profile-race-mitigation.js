@@ -7,10 +7,18 @@
   let fallbackTimer = null;
 
   function attemptLoad(reason){
-    if (typeof loadProfileData !== 'function') return;
+    // 🔥 CRITICAL: Call the CORRECT function exposed by profile.html
+    if (typeof window.__loadProfileData !== 'function') {
+      console.warn('[ProfileRace] window.__loadProfileData not available');
+      return;
+    }
     if (window.__PROFILE_DATA_LOADED) return;
     console.log('[ProfileRace] Triggering loadProfileData ('+reason+')');
-    try { loadProfileData(); } catch(e){ console.warn('[ProfileRace] loadProfileData error', e?.message); }
+    try { 
+      window.__loadProfileData(); // ← Use window namespace to avoid calling wrong function
+    } catch(e){ 
+      console.warn('[ProfileRace] loadProfileData error', e?.message); 
+    }
   }
 
   // Prefer explicit auth-ready event for minimal latency
