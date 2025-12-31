@@ -78,18 +78,18 @@ async function initialize(){
   _ready = true;
   
   // CRITICAL FIX: Set window.__hiMembership for HiTier.js to read
-  if (membership) {
-    window.__hiMembership = membership;
+  if (_result.membership) {
+    window.__hiMembership = _result.membership;
   }
   
   if (!_emitted) {
     window.dispatchEvent(new CustomEvent('hi:auth-ready', { detail: _result }));
-    console.log('[AuthReady] ready', { user: session?.user?.id, tier: membership?.tier, admin: membership?.is_admin });
+    console.log('[AuthReady] ready', { user: _result.session?.user?.id, tier: _result.membership?.tier, admin: _result.membership?.is_admin });
     _emitted = true;
     
     // CRITICAL FIX: Trigger membership-changed event for HiTier.js to refresh
-    if (membership) {
-      window.dispatchEvent(new CustomEvent('hi:membership-changed', { detail: membership }));
+    if (_result.membership) {
+      window.dispatchEvent(new CustomEvent('hi:membership-changed', { detail: _result.membership }));
     }
   }
   return _result;
