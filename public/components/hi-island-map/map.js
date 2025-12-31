@@ -188,7 +188,7 @@ class HiIslandMap {
       console.log('📡 Querying public_shares for map markers...');
       console.time('🗺️ MAP_DATABASE_QUERY');
       
-      // 🚀 PROGRESSIVE LOADING: Start with recent markers, load more on demand
+      // 🚀 CRITICAL FIX: Only show Hi Island shares on map (not medallions/hi5s)
       let query = sb
         .from('public_shares')
         .select(`
@@ -207,6 +207,7 @@ class HiIslandMap {
             avatar_url
           )
         `)
+        .eq('origin', 'hiisland') // 🎯 ONLY Hi Island shares (not medallions/hi5s/dashboard)
         .or('is_public.eq.true,is_anonymous.eq.true')
         .not('location', 'is', null)
         .order('created_at', { ascending: false })
