@@ -83,6 +83,9 @@ async function initialize(){
   }
   
   if (!_emitted) {
+    // 🔥 CRITICAL: Store auth data for late listeners (prevents race condition)
+    window.__hiAuthReady = _result;
+    
     window.dispatchEvent(new CustomEvent('hi:auth-ready', { detail: _result }));
     console.log('[AuthReady] ready', { user: _result.session?.user?.id, tier: _result.membership?.tier, admin: _result.membership?.is_admin });
     _emitted = true;

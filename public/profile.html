@@ -4185,9 +4185,11 @@ FOR INSERT WITH CHECK (
       // ✅ CRITICAL FIX: Wait for hi:auth-ready before gating (prevents race condition)
       let authCheckComplete = false;
       
-      window.addEventListener('hi:auth-ready', async (e) => {
+      // 🔥 CRITICAL: Check if auth-ready already fired before we attached listener
+      function handleAuthReady(e) {
+        if (authCheckComplete) return; // Already processed
         authCheckComplete = true;
-        const { session } = e.detail || {};
+        const { session } = e?.detail || {};
         
         console.log('🔒 Profile access check (auth-ready):', { 
           hasSession: !!session?.user, 
@@ -4206,7 +4208,16 @@ FOR INSERT WITH CHECK (
         } else {
           console.error('❌ loadProfileData not found on window');
         }
-      }, { once: true });
+      }
+      
+      // Add listener for future auth-ready events
+      window.addEventListener('hi:auth-ready', handleAuthReady, { once: true });
+      
+      // 🔥 CRITICAL: Check if auth-ready ALREADY fired (race condition prevention)
+      if (window.__hiAuthReady) {
+        console.log('⚡ Auth-ready already fired - calling handler immediately');
+        handleAuthReady({ detail: window.__hiAuthReady });
+      }
       
       // Fallback: If auth-ready doesn't fire in 5 seconds, load anyway
       setTimeout(async () => {
