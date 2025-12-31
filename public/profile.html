@@ -1780,11 +1780,12 @@
         // Skip HiBase to avoid stale data
         const supabase = window.hiSupabase || window.supabase;
         if (supabase) {
-          console.log('📊 Fetching stats from database');
+          console.log('📊 Fetching stats from SOURCE OF TRUTH (VIEW)');
           
-          // 🚀 WOZ FIX: Wrap query with 5-second timeout + 3 retries
+          // 🎯 WOZ ARCHITECTURAL FIX: Query VIEW that counts from public_shares
+          // This ensures stats ALWAYS show correct count, never stale cache
           const queryPromise = supabase
-            .from('user_stats')
+            .from('v_user_profile_stats')
             .select('*')
             .eq('user_id', userId)
             .single();
@@ -1812,16 +1813,18 @@
               hi_moments: data.total_hi_moments || 0,
               current_streak: data.current_streak || 0,
               longest_streak: data.longest_streak || 0,
-              total_waves: data.total_waves || 0,
+              total_waves: data.wave_reactions_received || 0,  // Wave reactions from VIEW
+              personal_medallion_taps: data.personal_medallion_taps || 0,  // NEW: Personal taps
               total_starts: data.total_starts || 0,
               days_active: data.days_active || 0,
               loading: false
             };
-            console.log('✅ Stats loaded from Supabase (FRESH):', userStats);
-            console.log('📊 Database values:', {
-              'total_hi_moments (from DB)': data.total_hi_moments,
-              'current_streak (from DB)': data.current_streak,
-              'total_waves (from DB)': data.total_waves,
+            console.log('✅ Stats loaded from VIEW (SOURCE OF TRUTH):', userStats);
+            console.log('📊 Real-time calculated values:', {
+              'total_hi_moments': data.total_hi_moments,
+              'wave_reactions_received': data.wave_reactions_received,
+              'personal_medallion_taps': data.personal_medallion_taps,
+              'current_streak': data.current_streak,
               'updated_at (from DB)': data.updated_at
             });
           } else {
