@@ -233,23 +233,39 @@ class UnifiedHiIslandController {
   // 🚀 OPTIMISTIC UI: Cache user profile for instant share display
   async cacheCurrentUserProfile() {
     try {
-      const profile = await window.hiSupabase.getCurrentUserProfile();
-      if (profile) {
+      // Use ProfileManager instead of hiSupabase
+      if (window.ProfileManager && typeof window.ProfileManager.getProfile === 'function') {
+        const profile = await window.ProfileManager.getProfile();
+        if (profile) {
+          window.__currentUsername = profile.username || 'You';
+          window.__currentDisplayName = profile.display_name || profile.username || 'You';
+          window.__currentAvatar = profile.avatar_url || null;
+          console.log('✅ Cached user profile for optimistic UI:', {
+            username: window.__currentUsername,
+            display_name: window.__currentDisplayName
+          });
+          return;
+        }
+      }
+      
+      // Fallback: Try to get from localStorage
+      const cachedProfile = localStorage.getItem('stayhi_profile_cache');
+      if (cachedProfile) {
+        const profile = JSON.parse(cachedProfile);
         window.__currentUsername = profile.username || 'You';
         window.__currentDisplayName = profile.display_name || profile.username || 'You';
         window.__currentAvatar = profile.avatar_url || null;
-        console.log('✅ Cached user profile for optimistic UI:', {
-          username: window.__currentUsername,
-          display_name: window.__currentDisplayName
-        });
+        console.log('✅ Cached user profile from localStorage');
+        return;
       }
     } catch (error) {
       console.warn('⚠️ Failed to cache user profile:', error);
-      // Fallback
-      window.__currentUsername = 'You';
-      window.__currentDisplayName = 'You';
-      window.__currentAvatar = null;
     }
+    
+    // Final fallback
+    window.__currentUsername = 'You';
+    window.__currentDisplayName = 'You';
+    window.__currentAvatar = null;
   }
 
   // 🚀 SHARE EVENT WIRING: Refresh tabs when new shares are created

@@ -190,10 +190,33 @@
   <script>
     (async function checkSessionOnLoad() {
       try {
-        await new Promise(resolve => {
-          if (window.hiSupabase || window.supabase) resolve();
-          else document.addEventListener('hi:supabase-ready', resolve, { once: true });
+        // 🔧 WOZ FIX: Non-blocking wait for Supabase (max 3s)
+        const supabaseReady = new Promise((resolve) => {
+          if (window.hiSupabase || window.supabase) {
+            resolve(true);
+            return;
+          }
+          
+          let attempts = 0;
+          const checkInterval = setInterval(() => {
+            if (window.hiSupabase || window.supabase) {
+              clearInterval(checkInterval);
+              resolve(true);
+            }
+            attempts++;
+            if (attempts > 30) { // 3 seconds max (30 * 100ms)
+              clearInterval(checkInterval);
+              console.warn('[Hi Island] Supabase initialization timeout - continuing anyway');
+              resolve(false);
+            }
+          }, 100);
         });
+        
+        const isReady = await supabaseReady;
+        if (!isReady) {
+          console.warn('[Hi Island] Supabase not available, skipping session check');
+          return;
+        }
         
         const sb = window.hiSupabase || window.supabase;
         const { data: { session } } = await sb.auth.getSession();
@@ -1749,7 +1772,7 @@
   <!-- TEMPORARILY DISABLED: HiGoldStandardIntegration.js - DOM structure mismatch -->
   <!-- ✅ UNIFIED FEED SYSTEM: Single controller for all feed operations -->
   <script src="components/hi-real-feed/HiRealFeed.js?v=20241231-debug-v2" type="module"></script>
-  <script src="components/hi-real-feed/UnifiedHiIslandController.js?v=20241231-optimistic-ui" type="module"></script>
+  <script src="components/hi-real-feed/UnifiedHiIslandController.js?v=20241231-profile-fix" type="module"></script>
   
   <!-- � Hi Scale Component (needed for intensity selection in share sheet) -->
   <script src="ui/HiScale/HiScale.js?v=20241231-global-export" type="module"></script>
