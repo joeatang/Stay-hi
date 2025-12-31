@@ -3228,10 +3228,33 @@ FOR INSERT WITH CHECK (
         
         console.log('✅ Using ProfileManager as single source of truth');
         
-        // Ensure ProfileManager is initialized
-        if (!window.ProfileManager._initialized) {
-          console.log('🚀 Initializing ProfileManager...');
-          await window.ProfileManager.init();
+        // 🔥 CRITICAL: ProfileManager._waitForAuth() hangs if called INSIDE auth-ready handler!
+        // Manually set auth state to avoid circular wait
+        if (session?.user && !window.ProfileManager._initialized) {
+          console.log('🚀 Manually initializing ProfileManager from auth-ready...');
+          window.ProfileManager._userId = session.user.id;
+          window.ProfileManager._authReady = true;
+          
+          // Load profile from database directly
+          try {
+            const sb = window.hiSupabase || window.supabase;
+            if (sb) {
+              const { data: dbProfile } = await sb
+                .from('user_profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+              
+              if (dbProfile) {
+                window.ProfileManager._profile = dbProfile;
+                console.log('✅ Profile loaded from database:', dbProfile.username);
+              }
+            }
+          } catch (error) {
+            console.warn('⚠️ Could not load profile from DB:', error);
+          }
+          
+          window.ProfileManager._initialized = true;
         }
         
         // Check if user is authenticated
@@ -4084,9 +4107,9 @@ FOR INSERT WITH CHECK (
           console.log('✅ Authenticated user - bypassing access gate, loading profile...');
         }
         
-        // 🎯 ALWAYS use inline version that loads stats properly
-        console.log('🔄 Using inline loadProfileData (loads stats)');
-        await loadProfileData();
+        // 🎯 CRITICAL FIX: Don't await - let profile load in background for instant render
+        console.log('🔄 Starting profile load (non-blocking)');
+        loadProfileData(); // Fire-and-forget - page already rendered
       }, { once: true });
       
       // Fallback: If auth-ready doesn't fire in 5 seconds, load anyway
@@ -4094,11 +4117,11 @@ FOR INSERT WITH CHECK (
         if (authCheckComplete) return; // Auth already checked
         
         console.log('🔒 Auth timeout - loading profile with fallback check...');
-        // 🎯 GOLD STANDARD: Call profile-main.js version (single source of truth)
+        // 🎯 Don't await - let it load in background
         if (window.TeslaProfile?.loadProfileData) {
-          await window.TeslaProfile.loadProfileData();
+          window.TeslaProfile.loadProfileData();
         } else {
-          await loadProfileData();
+          loadProfileData();
         }
       }, 5000);
       
