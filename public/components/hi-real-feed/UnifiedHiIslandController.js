@@ -203,8 +203,12 @@ class UnifiedHiIslandController {
 
   // 🎯 PROFILE UPDATE WIRING: Listen for profile changes and refresh feed
   setupProfileListener() {
+    // Cache current user profile for optimistic UI
+    this.cacheCurrentUserProfile();
+    
     window.addEventListener('profile:updated', (event) => {
       console.log('🔔 Profile updated, refreshing Hi-Island feed:', event.detail);
+      this.cacheCurrentUserProfile(); // Update cache
       if (this.feedInstance && this.currentTab === 'general') {
         this.feedInstance.pagination.general.page = 0;
         this.feedInstance.loadGeneralSharesFromPublicShares();
@@ -215,6 +219,7 @@ class UnifiedHiIslandController {
     window.addEventListener('storage', (event) => {
       if (event.key && event.key.startsWith('stayhi_profile_')) {
         console.log('🔔 Profile updated in another tab, refreshing feed');
+        this.cacheCurrentUserProfile(); // Update cache
         if (this.feedInstance && this.currentTab === 'general') {
           this.feedInstance.pagination.general.page = 0;
           this.feedInstance.loadGeneralSharesFromPublicShares();
@@ -225,12 +230,36 @@ class UnifiedHiIslandController {
     console.log('✅ Profile update listeners active');
   }
 
+  // 🚀 OPTIMISTIC UI: Cache user profile for instant share display
+  async cacheCurrentUserProfile() {
+    try {
+      const profile = await window.hiSupabase.getCurrentUserProfile();
+      if (profile) {
+        window.__currentUsername = profile.username || 'You';
+        window.__currentDisplayName = profile.display_name || profile.username || 'You';
+        window.__currentAvatar = profile.avatar_url || null;
+        console.log('✅ Cached user profile for optimistic UI:', {
+          username: window.__currentUsername,
+          display_name: window.__currentDisplayName
+        });
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to cache user profile:', error);
+      // Fallback
+      window.__currentUsername = 'You';
+      window.__currentDisplayName = 'You';
+      window.__currentAvatar = null;
+    }
+  }
+
   // 🚀 SHARE EVENT WIRING: Refresh tabs when new shares are created
   setupShareCreatedListener() {
     window.addEventListener('share:created', async (event) => {
       try {
         const detail = event.detail || {};
+        const shareData = detail.shareData || {};
         const visibility = detail.visibility;
+        
         // Decide which tab to refresh based on visibility
         const tabsToRefresh = new Set();
         if (visibility === 'public' || visibility === 'anonymous') {
@@ -244,37 +273,68 @@ class UnifiedHiIslandController {
           await this.init();
         }
 
-        // Reset pagination for fresh load
-        for (const tab of tabsToRefresh) {
-          if (tab === 'general' && this.feedInstance.pagination?.general) {
-            this.feedInstance.pagination.general.page = 0;
-            this.feedInstance.feedData.general = [];
-          }
-          if (tab === 'archives' && this.feedInstance.pagination?.archives) {
-            this.feedInstance.pagination.archives.page = 0;
-            this.feedInstance.feedData.archives = [];
-          }
-        }
-
-        // 🔧 PERFORMANCE FIX: Minimal delay for database replication
-        // Reduced from 500ms → 100ms → 50ms to prevent page freeze
-        // Modern Supabase replicates in <50ms with proper indexes
-        await new Promise(resolve => setTimeout(resolve, 50));
-
-        // Refresh active tab first for responsiveness
+        // 🚀 INSTAGRAM/X-GRADE OPTIMISTIC UI: Show share IMMEDIATELY
+        // Don't wait for database - add optimistic item to feed NOW
         const activeTab = this.currentTab;
         if (tabsToRefresh.has(activeTab)) {
-          console.time('⏱️ Feed refresh after submission');
-          await this.feedInstance.loadFeedData(activeTab);
-          console.timeEnd('⏱️ Feed refresh after submission');
+          const optimisticShare = {
+            id: `optimistic_${Date.now()}`,
+            content: shareData.journal || shareData.content || '',
+            hi_intensity: shareData.hi_intensity || null,
+            location: shareData.location || null,
+            created_at: new Date().toISOString(),
+            wave_count: 0,
+            peace_count: 0,
+            origin: 'hiisland',
+            visibility: visibility,
+            profiles: {
+              username: window.__currentUsername || 'You',
+              display_name: window.__currentDisplayName || 'You',
+              avatar_url: window.__currentAvatar || null
+            },
+            _isOptimistic: true // Mark for special handling
+          };
+
+          // Prepend to current feed data
+          if (this.feedInstance.feedData[activeTab]) {
+            this.feedInstance.feedData[activeTab].unshift(optimisticShare);
+          } else {
+            this.feedInstance.feedData[activeTab] = [optimisticShare];
+          }
+
+          // Re-render immediately (no database wait)
+          this.feedInstance.renderFeed();
+          console.log('⚡ INSTANT: Optimistic share added to feed (0ms)');
         }
 
-        // Refresh the other tab in background
-        for (const tab of tabsToRefresh) {
-          if (tab !== activeTab) {
-            this.feedInstance.loadFeedData(tab).catch(() => {});
+        // Background database sync (non-blocking)
+        // Replace optimistic item with real one when database responds
+        setTimeout(async () => {
+          // Reset pagination for fresh load
+          for (const tab of tabsToRefresh) {
+            if (tab === 'general' && this.feedInstance.pagination?.general) {
+              this.feedInstance.pagination.general.page = 0;
+              this.feedInstance.feedData.general = [];
+            }
+            if (tab === 'archives' && this.feedInstance.pagination?.archives) {
+              this.feedInstance.pagination.archives.page = 0;
+              this.feedInstance.feedData.archives = [];
+            }
           }
-        }
+
+          // Load real data from database
+          if (tabsToRefresh.has(activeTab)) {
+            await this.feedInstance.loadFeedData(activeTab);
+            console.log('✅ Database sync complete - optimistic item replaced');
+          }
+
+          // Refresh the other tab in background
+          for (const tab of tabsToRefresh) {
+            if (tab !== activeTab) {
+              this.feedInstance.loadFeedData(tab).catch(() => {});
+            }
+          }
+        }, 100); // Wait 100ms for database, but user already sees result
 
         console.log('✅ Hi-Island feed refreshed after share:created', detail);
 

@@ -1545,6 +1545,13 @@ export class HiShareSheet {
           userId: authenticatedUserId, // Fixed: use correct variable name
           timestamp: Date.now(),
           context: this.context,
+          shareData: {
+            journal: text,
+            content: text,
+            hi_intensity: hiIntensity,
+            location: location,
+            origin: this.origin
+          }
         };
         window.dispatchEvent(new CustomEvent('share:created', { detail }));
       } catch (err) {
