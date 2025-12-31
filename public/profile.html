@@ -3600,6 +3600,9 @@ FOR INSERT WITH CHECK (
       return false;
     };
     
+    // 🔥 CRITICAL: Expose loadProfileData to window for cross-script access
+    window.__loadProfileData = loadProfileData;
+    
     console.log('✅ Tesla Profile System Ready - WITH SECURITY BARRIERS');
     
     // 🧑‍🔧 DEV TOOLS: Manual profile persistence testing
@@ -4123,7 +4126,11 @@ FOR INSERT WITH CHECK (
         
         // 🎯 CRITICAL FIX: Don't await - let profile load in background for instant render
         console.log('🔄 Starting profile load (non-blocking)');
-        loadProfileData(session); // Fire-and-forget - page already rendered
+        if (window.__loadProfileData) {
+          window.__loadProfileData(session); // Fire-and-forget - page already rendered
+        } else {
+          console.error('❌ loadProfileData not found on window');
+        }
       }, { once: true });
       
       // Fallback: If auth-ready doesn't fire in 5 seconds, load anyway
