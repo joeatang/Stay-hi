@@ -96,6 +96,13 @@ async function _updateStreak(userIdOrPayload, options = {}) {
         // If no row exists, create it with initial values
         if (!current) {
             const today = new Date().toISOString().split('T')[0];
+            
+            // 🔥 FIX: Get actual share count instead of hardcoding 1
+            const { count: actualCount } = await client
+                .from('public_shares')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', userId);
+            
             const { data: newRow, error: insertError } = await client
                 .from('user_stats')
                 .insert({
@@ -103,7 +110,7 @@ async function _updateStreak(userIdOrPayload, options = {}) {
                     current_streak: 1,
                     longest_streak: 1,
                     last_hi_date: today,
-                    total_hi_moments: 1,
+                    total_hi_moments: actualCount || 0, // Use real count, not hardcoded 1
                     created_at: new Date().toISOString()
                 })
                 .select()
