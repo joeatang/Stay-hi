@@ -190,23 +190,23 @@
   <script>
     (async function checkSessionOnLoad() {
       try {
-        // 🔧 WOZ FIX: Non-blocking wait for Supabase (max 3s)
+        // 🔧 FIX: Only check for window.hiSupabase (client instance), NOT window.supabase (library)
         const supabaseReady = new Promise((resolve) => {
-          if (window.hiSupabase || window.supabase) {
+          if (window.hiSupabase && window.hiSupabase.auth) {
             resolve(true);
             return;
           }
           
           let attempts = 0;
           const checkInterval = setInterval(() => {
-            if (window.hiSupabase || window.supabase) {
+            if (window.hiSupabase && window.hiSupabase.auth) {
               clearInterval(checkInterval);
               resolve(true);
             }
             attempts++;
             if (attempts > 30) { // 3 seconds max (30 * 100ms)
               clearInterval(checkInterval);
-              console.warn('[Hi Island] Supabase initialization timeout - continuing anyway');
+              console.warn('[Hi Island] Supabase client initialization timeout - skipping session check');
               resolve(false);
             }
           }, 100);
@@ -214,11 +214,16 @@
         
         const isReady = await supabaseReady;
         if (!isReady) {
-          console.warn('[Hi Island] Supabase not available, skipping session check');
+          console.warn('[Hi Island] Supabase client not available, skipping session check');
           return;
         }
         
-        const sb = window.hiSupabase || window.supabase;
+        const sb = window.hiSupabase;
+        if (!sb || !sb.auth || typeof sb.auth.getSession !== 'function') {
+          console.warn('[Hi Island] Supabase client not fully initialized, skipping session check');
+          return;
+        }
+        
         const { data: { session } } = await sb.auth.getSession();
         
         if (!session) {
@@ -1772,7 +1777,7 @@
   <!-- TEMPORARILY DISABLED: HiGoldStandardIntegration.js - DOM structure mismatch -->
   <!-- ✅ UNIFIED FEED SYSTEM: Single controller for all feed operations -->
   <script src="components/hi-real-feed/HiRealFeed.js?v=20241231-debug-v2" type="module"></script>
-  <script src="components/hi-real-feed/UnifiedHiIslandController.js?v=20241231-profile-fix" type="module"></script>
+  <script src="components/hi-real-feed/UnifiedHiIslandController.js?v=20241231-client-check" type="module"></script>
   
   <!-- � Hi Scale Component (needed for intensity selection in share sheet) -->
   <script src="ui/HiScale/HiScale.js?v=20241231-global-export" type="module"></script>
