@@ -3056,7 +3056,9 @@ FOR INSERT WITH CHECK (
     
     // Tesla Profile Display Update System
     function updateProfileDisplay(profileData) {
+      // 🔥 CRITICAL DEBUG: Log stack trace to see WHO is calling this
       console.log('🔄 Updating profile display...', profileData);
+      console.trace('📍 updateProfileDisplay call stack');
       console.log('🔍 DEBUG: profileData fields:', {
         username: profileData?.username,
         display_name: profileData?.display_name,
@@ -3064,6 +3066,12 @@ FOR INSERT WITH CHECK (
         location: profileData?.location,
         avatar_url: profileData?.avatar_url
       });
+      
+      // 🛑 CRITICAL: Don't update if profileData is empty/invalid
+      if (!profileData || (!profileData.username && !profileData.display_name)) {
+        console.error('❌ BLOCKED: updateProfileDisplay called with empty profileData!', profileData);
+        return;
+      }
       
       // Update username
       const usernameEl = document.getElementById('profileUsername');
