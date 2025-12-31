@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     window.HiBrandTiers.updateTierPill(tierIndicator, tierKey, {
-      showEmoji: false,
+      showEmoji: true,  // ✅ FIXED: Show emoji + branded name ("🧭 Hi Pathfinder")
       useGradient: false
     });
     
