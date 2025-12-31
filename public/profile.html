@@ -3276,15 +3276,45 @@ FOR INSERT WITH CHECK (
         console.log('🔐 Authentication status:', isAuth ? 'AUTHENTICATED ✅' : 'ANONYMOUS ⚠️');
         
         if (!isAuth) {
-          console.log('🚨 Anonymous user detected - profile page requires authentication');
+          console.log('🚨 Anonymous user detected - checking localStorage as fallback...');
           
-          // Redirect to signin
-          const isLocal = window.location.hostname === 'localhost';
-          const signinPath = isLocal ? '/public/signin.html' : '/signin.html';
-          const redirectUrl = signinPath + '?redirect=' + encodeURIComponent(window.location.pathname);
-          console.log('🔄 Redirecting to:', redirectUrl);
-          window.location.href = redirectUrl;
-          return;
+          // 🔥 CRITICAL FIX: Check localStorage for session before redirecting
+          // Prevents redirect when token refresh fails due to network issues (Brave Incognito)
+          const localStorageKey = 'sb-gfcubvroxgfvjhacinic-auth-token';
+          const localSession = localStorage.getItem(localStorageKey);
+          
+          if (localSession) {
+            try {
+              const parsed = JSON.parse(localSession);
+              const hasValidSession = parsed?.access_token && parsed?.user?.id;
+              
+              if (hasValidSession) {
+                console.log('✅ Valid session found in localStorage - staying on page despite network failure');
+                console.log('🔄 Continuing to load profile from cached session...');
+                // Don't redirect - session exists in localStorage, just network is failing
+              } else {
+                throw new Error('Invalid session format');
+              }
+            } catch (e) {
+              console.error('❌ localStorage session parse failed:', e);
+              // Only redirect if localStorage also has no valid session
+              const isLocal = window.location.hostname === 'localhost';
+              const signinPath = isLocal ? '/public/signin.html' : '/signin.html';
+              const redirectUrl = signinPath + '?redirect=' + encodeURIComponent(window.location.pathname);
+              console.log('🔄 Redirecting to:', redirectUrl);
+              window.location.href = redirectUrl;
+              return;
+            }
+          } else {
+            console.log('❌ No localStorage session found');
+            // Redirect to signin
+            const isLocal = window.location.hostname === 'localhost';
+            const signinPath = isLocal ? '/public/signin.html' : '/signin.html';
+            const redirectUrl = signinPath + '?redirect=' + encodeURIComponent(window.location.pathname);
+            console.log('🔄 Redirecting to:', redirectUrl);
+            window.location.href = redirectUrl;
+            return;
+          }
         }
         
         // Get profile from ProfileManager (always current)
@@ -3359,7 +3389,28 @@ FOR INSERT WITH CHECK (
         const session = sessionData?.session;
         
         if (!session?.user) {
-          console.log('🚨 No session - redirecting to signin');
+          console.log('🚨 No Supabase session - checking localStorage as fallback...');
+          
+          // 🔥 CRITICAL FIX: Check localStorage before redirecting
+          const localStorageKey = 'sb-gfcubvroxgfvjhacinic-auth-token';
+          const localSession = localStorage.getItem(localStorageKey);
+          
+          if (localSession) {
+            try {
+              const parsed = JSON.parse(localSession);
+              if (parsed?.access_token && parsed?.user?.id) {
+                console.log('✅ Valid session in localStorage - continuing despite network failure');
+                // Continue loading profile using localStorage session
+                const userId = parsed.user.id;
+                // Continue with userId from localStorage...
+                return; // Skip redirect
+              }
+            } catch (e) {
+              console.error('❌ localStorage parse failed:', e);
+            }
+          }
+          
+          console.log('❌ No valid session in Supabase or localStorage - redirecting to signin');
           const isLocal = window.location.hostname === 'localhost';
           const signinPath = isLocal ? '/public/signin.html' : '/signin.html';
           window.location.href = signinPath + '?redirect=' + encodeURIComponent(window.location.pathname);

@@ -53,7 +53,7 @@ if (window.__HI_SUPABASE_CLIENT) {
     const authOptions = {
       auth: {
         persistSession: true, // CRITICAL: Persist session across app backgrounds
-        autoRefreshToken: true, // Auto-refresh tokens before expiry
+        autoRefreshToken: false, // 🔥 DISABLE: Prevents session invalidation on network failures in Brave Incognito
         detectSessionInUrl: false, // Prevent URL-based auth conflicts
         storage: window.localStorage, // Explicitly use localStorage (survives backgrounds)
         storageKey: 'sb-gfcubvroxgfvjhacinic-auth-token' // Stable storage key
@@ -89,7 +89,7 @@ if (window.__HI_SUPABASE_CLIENT) {
               const authOptions = {
                 auth: {
                   persistSession: true,
-                  autoRefreshToken: true,
+                  autoRefreshToken: false, // 🔥 DISABLE: Prevents session invalidation on network failures
                   detectSessionInUrl: false,
                   storage: window.localStorage,
                   storageKey: 'sb-gfcubvroxgfvjhacinic-auth-token'
