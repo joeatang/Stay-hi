@@ -336,9 +336,9 @@ class UnifiedHiIslandController {
           }
 
           console.time('🔍 RENDER_FEED_SYNC');
-          console.log('🔍 SHARE_CREATED: Calling renderFeed() - THIS MAY FREEZE');
+          console.log('🔍 SHARE_CREATED: Calling render() - correct method');
           // Re-render immediately (no database wait)
-          this.feedInstance.renderFeed();
+          this.feedInstance.render(); // ✅ FIXED: Was renderFeed(), should be render()
           console.timeEnd('🔍 RENDER_FEED_SYNC');
           console.log('⚡ INSTANT: Optimistic share added to feed (0ms)');
         }
