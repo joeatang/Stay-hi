@@ -681,15 +681,17 @@ window.handleShareSuccess = function(shareData) {
 };
 
 window.handleDropHiClick = async function() {
+  console.time('🔍 DROP_HI_CLICK_TOTAL');
   const button = document.getElementById('dropHiButton');
   if (!button) return;
   if (button.classList.contains('loading') || button.disabled) {
     return;
   }
-  console.log('🎯 [DROP HI] Starting comprehensive user type audit...');
+  console.log('🔍 DROP_HI: Button clicked, starting...');
   button.classList.add('loading');
   button.disabled = true;
   try {
+    console.log('🔍 DROP_HI: Getting user type...');
     const userType = await getUserTypeWithFallbacks();
     console.log('🔍 [DROP HI] User type detected:', userType);
     if (userType === 'anonymous') {
@@ -712,18 +714,31 @@ window.handleDropHiClick = async function() {
     }
     // 🎯 AUTHENTICATED: All tiers can access share sheet
     // Tier enforcement happens INSIDE HiShareSheet.js (lines 328-377)
+    console.log('🔍 DROP_HI: Getting membership...');
     const membership = window.HiMembership?.get?.();
     console.log('✅ [DROP HI] Authenticated user - opening share sheet for tier:', membership?.tier || 'unknown');
+    
+    console.log('🔍 DROP_HI: Checking hiIslandShareSheet...');
     if (window.hiIslandShareSheet && typeof window.hiIslandShareSheet.open === 'function') {
+      console.time('🔍 SHARESHEET_OPEN_CALL');
       await window.hiIslandShareSheet.open();
+      console.timeEnd('🔍 SHARESHEET_OPEN_CALL');
       console.log('✅ Opened Hi-Island share sheet (initialized)');
+      console.timeEnd('🔍 DROP_HI_CLICK_TOTAL');
       return;
     }
+    
+    console.log('🔍 DROP_HI: Checking openHiShareSheet...');
     if (window.openHiShareSheet && typeof window.openHiShareSheet === 'function') {
+      console.time('🔍 SHARESHEET_OPEN_CALL');
       await window.openHiShareSheet('hi-island');
+      console.timeEnd('🔍 SHARESHEET_OPEN_CALL');
       console.log('✅ Opened via global HiShareSheet trigger');
+      console.timeEnd('🔍 DROP_HI_CLICK_TOTAL');
       return;
     }
+    
+    console.log('🔍 DROP_HI: Creating new HiShareSheet...');
     if (window.HiShareSheet) {
       const shareSheet = new window.HiShareSheet({ 
         origin: 'hi-island',
