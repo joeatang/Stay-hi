@@ -84,7 +84,7 @@
       hiDB: !!window.HiDB,
       hiBase: !!window.HiBase,
       profileManager: !!window.ProfileManager,
-      authResilience: typeof window.__authResilience !== 'undefined',
+      authResilience: typeof window.__hiAuthResilience !== 'undefined',
       feedController: !!window.UnifiedHiIslandController
     };
     
@@ -97,10 +97,10 @@
     });
     
     // If session is invalid, try to recover
-    if (!sessionState.valid && window.__authResilience?.checkAndRefreshSession) {
+    if (!sessionState.valid && window.__hiAuthResilience?.checkSession) {
       console.warn('⚠️ [TAB SWITCH] Session invalid, attempting recovery...');
       try {
-        await window.__authResilience.checkAndRefreshSession();
+        await window.__hiAuthResilience.checkSession();
         console.log('✅ [TAB SWITCH] Session recovered!');
       } catch (err) {
         console.error('❌ [TAB SWITCH] Session recovery failed:', err);
