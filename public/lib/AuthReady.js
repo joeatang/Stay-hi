@@ -47,12 +47,30 @@ async function fetchMembership(sb){
 
 async function initialize(){
   if (_ready) return _result;
+  
+  // 🔥 CRITICAL: Wait for auth-resilience restoration to complete first
+  if (window.__AUTH_RESTORATION_IN_PROGRESS) {
+    console.log('[AuthReady] Waiting for auth-resilience restoration...');
+    const maxWait = 10000; // 10 seconds max
+    const startTime = Date.now();
+    
+    while (window.__AUTH_RESTORATION_IN_PROGRESS && (Date.now() - startTime) < maxWait) {
+      await wait(100);
+    }
+    
+    if (window.__AUTH_RESTORATION_COMPLETE) {
+      console.log('[AuthReady] Auth-resilience restoration completed, proceeding...');
+    } else {
+      console.warn('[AuthReady] Auth-resilience timeout, proceeding anyway');
+    }
+  }
+  
   const sb = getHiSupabase();
 
-  // 🔥 FIX: Add 5-second timeout to entire auth check
+  // 🔥 FIX: Add 10-second timeout (increased for mobile)
   try {
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Auth initialization timeout')), 5000)
+      setTimeout(() => reject(new Error('Auth initialization timeout')), 10000)
     );
     
     const authPromise = (async () => {

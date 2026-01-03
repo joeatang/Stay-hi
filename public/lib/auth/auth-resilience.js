@@ -17,13 +17,18 @@
       
       console.log('[AuthResilience] Initializing...');
     
-    // 🔥 CRITICAL: Restore session immediately before anything else
+    // 🔥 CRITICAL: Restore session SYNCHRONOUSLY before anything else
+    // Signal to other systems that restoration is in progress
+    window.__AUTH_RESTORATION_IN_PROGRESS = true;
+    
     this.restoreSessionIfNeeded().then(() => {
+      window.__AUTH_RESTORATION_COMPLETE = true;
+      window.__AUTH_RESTORATION_IN_PROGRESS = false;
       this.init();
-    });
-  }
-  
-  async restoreSessionIfNeeded() {
+    }).catch((err) => {
+      console.error('[AuthResilience] Restoration failed:', err);
+      window.__AUTH_RESTORATION_COMPLETE = true;
+      window.__AUTH_RESTORATION_IN_PROGRESS = false;
     try {
       console.log('[AuthResilience] Checking if session needs restoration...');
       const { data: { session }, error } = await this.client.auth.getSession();
