@@ -16,6 +16,11 @@
       this.refreshTimer = null;
       
       console.log('[AuthResilience] Initializing...');
+      
+      // 🔥 MOBILE FIX: Check session immediately on page load
+      // This handles the case where user returns to app after backgrounding
+      this.checkSession();
+      
       this.init();
     }
     
@@ -75,7 +80,41 @@
         }
         
         if (!session) {
-          console.warn('[AuthResilience] No active session');
+          console.log('[AuthResilience] No session in memory - checking localStorage...');
+          
+          // 🔥 MOBILE FIX: Restore session from localStorage
+          // When mobile browsers background the app, Supabase loses in-memory state
+          // but localStorage still has the tokens
+          const storageKey = `sb-${this.client.supabaseUrl.split('//')[1].split('.')[0]}-auth-token`;
+          const stored = localStorage.getItem(storageKey);
+          
+          if (stored) {
+            try {
+              const parsed = JSON.parse(stored);
+              if (parsed.access_token && parsed.refresh_token) {
+                console.log('[AuthResilience] 🔄 Restoring session from localStorage...');
+                
+                const { data, error } = await this.client.auth.setSession({
+                  access_token: parsed.access_token,
+                  refresh_token: parsed.refresh_token
+                });
+                
+                if (error) {
+                  console.error('[AuthResilience] ❌ Restore failed:', error.message);
+                  // Token might be expired - let user sign in again
+                  return;
+                }
+                
+                console.log('[AuthResilience] ✅ Session restored successfully!');
+                this.scheduleProactiveRefresh(data.session);
+                return;
+              }
+            } catch (err) {
+              console.error('[AuthResilience] Failed to parse stored session:', err);
+            }
+          }
+          
+          console.warn('[AuthResilience] No session available - user needs to sign in');
           return;
         }
         
