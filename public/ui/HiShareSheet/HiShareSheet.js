@@ -375,18 +375,9 @@ export class HiShareSheet {
       };
       console.log('🎯 [TIER CHECK] Tier:', tier, '| Features:', features);
       
-      // Check if user can create shares at all
-      if (features.shareCreation === false || features.shareCreation === 0) {
-        // Free tier: Block all sharing
-        this._dbg('🚫 Free tier: Share creation blocked');
-        this.showTierUpgradePrompt('sharing', 'bronze');
-        if (buttons.shareAnonBtn) buttons.shareAnonBtn.style.display = 'none';
-        if (buttons.sharePublicBtn) buttons.sharePublicBtn.style.display = 'none';
-        if (buttons.sharePrivateBtn) buttons.sharePrivateBtn.style.display = 'none';
-        return;
-      }
+      // ✅ REMOVED FREE TIER HARD BLOCK: Now uses quota system below
       
-      // Check monthly quota for bronze/silver tiers
+      // Check monthly quota for free/bronze/silver tiers
       if (typeof features.shareCreation === 'number') {
         const quota = await this.checkShareQuota(tier, features.shareCreation);
         if (quota.exceeded) {

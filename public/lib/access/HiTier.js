@@ -28,8 +28,14 @@
         if(metaTier) return normalizeTier(metaTier);
         if(user?.id){
           // FIXED: Changed from 'user_membership' to 'user_memberships' (plural)
-          const { data: mrow, error } = await client.from('user_memberships').select('tier').eq('user_id', user.id).maybeSingle();
-          if(!error && mrow?.tier) return normalizeTier(mrow.tier);
+          const { data: mrow, error } = await client.from('user_memberships').select('tier, trial_start, trial_end').eq('user_id', user.id).maybeSingle();
+          if(!error && mrow?.tier) {
+            // ✨ NEW: Check if trial active and map to effective tier
+            if (window.TrialManager && typeof window.TrialManager.getEffectiveTier === 'function') {
+              return normalizeTier(window.TrialManager.getEffectiveTier(mrow));
+            }
+            return normalizeTier(mrow.tier);
+          }
         }
       }
     } catch(_){}

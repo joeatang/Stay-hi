@@ -33,7 +33,7 @@ const TIER_CONFIG = {
     gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     trialDays: 90, // 90-day beta testing period
     price: 0,
-    description: 'Test Hi with limited sharing (invite required)',
+    description: 'Start your journey with 5 private shares per month',
     
     features: {
       // Medallion Interactions
