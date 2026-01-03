@@ -16,56 +16,11 @@
       this.refreshTimer = null;
       
       console.log('[AuthResilience] Initializing...');
-    
-    // 🔥 CRITICAL: Restore session SYNCHRONOUSLY before anything else
-    // Signal to other systems that restoration is in progress
-    window.__AUTH_RESTORATION_IN_PROGRESS = true;
-    
-    this.restoreSessionIfNeeded().then(() => {
-      window.__AUTH_RESTORATION_COMPLETE = true;
-      window.__AUTH_RESTORATION_IN_PROGRESS = false;
       this.init();
-    }).catch((err) => {
-      console.error('[AuthResilience] Restoration failed:', err);
-      window.__AUTH_RESTORATION_COMPLETE = true;
-      window.__AUTH_RESTORATION_IN_PROGRESS = false;
-    try {
-      console.log('[AuthResilience] Checking if session needs restoration...');
-      const { data: { session }, error } = await this.client.auth.getSession();
-      
-      if (!session || error) {
-        console.warn('[AuthResilience] No active session found - attempting restore from localStorage');
-        
-        // Try to restore from localStorage
-        const token = localStorage.getItem('sb-gfcubvroxgfvjhacinic-auth-token');
-        if (token) {
-          try {
-            const parsed = JSON.parse(token);
-            if (parsed?.access_token && parsed?.refresh_token) {
-              console.log('[AuthResilience] Found tokens in localStorage - restoring session');
-              const { data, error: setError } = await this.client.auth.setSession({
-                access_token: parsed.access_token,
-                refresh_token: parsed.refresh_token
-              });
-              
-              if (setError) {
-                console.error('[AuthResilience] Session restore failed:', setError);
-              } else if (data?.session) {
-                console.log('[AuthResilience] ✅ Session restored successfully!');
-              }
-            }
-          } catch (parseError) {
-            console.error('[AuthResilience] Failed to parse stored token:', parseError);
-          }
-        } else {
-          console.log('[AuthResilience] No stored tokens found');
-        }
-      } else {
-        console.log('[AuthResilience] Active session found, no restoration needed');
-      }
-    } catch (err) {
-      console.error('[AuthResilience] Session restoration check failed:', err);
     }
+    
+    init() {
+      // Listen for auth state changes
       this.client.auth.onAuthStateChange((event, session) => {
         if (window.__HI_DEBUG__) {
           console.log(`[AuthResilience] Auth event: ${event}`);
@@ -106,18 +61,6 @@
           this.checkSession();
         }
       });
-      
-      // 🔥 CRITICAL FIX: Check session on page load (handles browser close/reopen)
-      // This catches the case when user closes browser and reopens after >60 min
-      if (document.readyState === 'complete') {
-        console.log('[AuthResilience] Page already loaded - checking session immediately');
-        setTimeout(() => this.checkSession(), 500);
-      } else {
-        window.addEventListener('load', () => {
-          console.log('[AuthResilience] Page loaded - checking session');
-          setTimeout(() => this.checkSession(), 500);
-        });
-      }
     }
     
     async checkSession() {
