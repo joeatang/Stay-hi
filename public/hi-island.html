@@ -1671,6 +1671,10 @@
   <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js" integrity="sha384-RLIyj5q1b5XJTn0tqUhucRZe40nFTocRP91R/NkRJHwAe4XxnTV77FXy/vGLiec2" crossorigin="anonymous"></script>
   <!-- Unified Monitoring Init (errors + tracking) -->
   <script src="./lib/boot/monitoring-init.js"></script>
+  
+  <!-- 🚀 CRITICAL: Auth resilience layer (prevents session expiry on tab switch) -->
+  <script src="./lib/auth/auth-resilience.js"></script>
+  
   <!-- 🚀 TESLA FIX: Initialize HiSupabase before HiDB -->
   <script type="module" src="./lib/boot/island-supabase-prime.mjs"></script>
   <!-- 🚀 WOZ FIX: Query timeout + retry logic -->
