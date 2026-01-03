@@ -1708,7 +1708,10 @@
   <!-- 🚀 CRITICAL: Auth resilience layer -->
   <script src="./lib/auth/auth-resilience.js"></script>
   
-  <!-- 🚀 TESLA FIX: Initialize HiSupabase.v3 before HiDB -->
+  <!-- � DIAGNOSTIC: Track tab switch behavior -->
+  <script src="./lib/diagnostic/tab-switch-diagnostic.js"></script>
+  
+  <!-- �🚀 TESLA FIX: Initialize HiSupabase.v3 before HiDB -->
   <script type="module" src="./lib/boot/island-supabase-prime.mjs"></script>
   
   <!-- 🏆 WOZ FIX: ProfileManager - Single Source of Truth -->
