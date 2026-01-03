@@ -2,8 +2,8 @@
 try {
   console.log('🔧 Tesla: Initializing Supabase client...');
   
-  // Import and initialize HiSupabase
-  await import('../HiSupabase.js');
+  // Import and initialize HiSupabase.v3.js (with autoRefreshToken fix)
+  await import('../HiSupabase.v3.js');
   
   // Verify client is available
   if (window.HiSupabase && window.HiSupabase.getClient) {

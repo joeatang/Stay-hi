@@ -1704,7 +1704,13 @@
   <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js" integrity="sha384-RLIyj5q1b5XJTn0tqUhucRZe40nFTocRP91R/NkRJHwAe4XxnTV77FXy/vGLiec2" crossorigin="anonymous"></script>
   <!-- Unified Monitoring Init (errors + tracking) -->
   <script src="./lib/boot/monitoring-init.js"></script>
-  <!-- 🚀 TESLA FIX: Initialize HiSupabase before HiDB -->
+  
+  <!-- 🚀 CRITICAL: Auth resilience layer (mobile coordination fix) -->
+  <script src="./lib/auth/auth-resilience.js"></script>
+  <script src="./lib/AuthReady.js"></script>
+  <script src="./lib/trial/TrialManager.js"></script>
+  
+  <!-- 🚀 TESLA FIX: Initialize HiSupabase.v3 before HiDB -->
   <script type="module" src="./lib/boot/island-supabase-prime.mjs"></script>
   
   <!-- 🏆 WOZ FIX: ProfileManager - Single Source of Truth -->
