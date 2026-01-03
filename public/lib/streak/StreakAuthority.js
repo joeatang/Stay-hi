@@ -87,8 +87,12 @@ class StreakAuthority {
    * Invalidate cache (force refresh on next get())
    */
   static invalidate() {
+    localStorage.removeItem(this.CACHE_KEY);
     localStorage.removeItem(this.CACHE_TIMESTAMP_KEY);
-    console.log('🧹 [StreakAuthority] Cache invalidated');
+    localStorage.removeItem('user_longest_streak');
+    localStorage.removeItem('user_last_hi_date');
+    localStorage.removeItem(this.CACHE_USER_KEY);
+    console.log('🧹 [StreakAuthority] Cache fully invalidated');
   }
 
   /**

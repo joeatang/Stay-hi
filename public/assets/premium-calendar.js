@@ -158,47 +158,40 @@ class PremiumCalendar {
       console.log('📡 [STREAK DEBUG] HiBase available:', !!window.HiBase);
       console.log('📡 [STREAK DEBUG] getMyStreaks available:', !!window.HiBase?.streaks?.getMyStreaks);
       
-      // Wait for HiBase to be available (max 10 seconds)
-      if (!window.HiBase?.streaks?.getMyStreaks) {
-        console.log('⏳ [STREAK DEBUG] Waiting for HiBase to load...');
-        let attempts = 0;
-        const maxAttempts = 50; // 50 * 200ms = 10 seconds max wait
-        
-        while (!window.HiBase?.streaks?.getMyStreaks && attempts < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 200));
-          attempts++;
-        }
-        
-        if (!window.HiBase?.streaks?.getMyStreaks) {
-          console.warn('⚠️ [STREAK DEBUG] HiBase not available after 10s, skipping streak load');
-          this.updateDashboardStreakPill(0);
-          return;
-        }
-        
-        console.log(`✅ [STREAK DEBUG] HiBase loaded after ${attempts * 200}ms`);
-      }
+      // 🎯 AUTHORITY: Use StreakAuthority for single source of truth
+      const userId = window.ProfileManager?.getUserId?.() || window.hiAuth?.getCurrentUser?.()?.id;
       
-      // Prefer auth-aware streak fetch
-      if (window.HiBase?.streaks?.getMyStreaks) {
-        console.log('📡 [STREAK DEBUG] Calling getMyStreaks()...');
-        const res = await window.HiBase.streaks.getMyStreaks();
-        console.log('📡 [STREAK DEBUG] getMyStreaks response:', res);
-        
-        if (res?.error) {
-          console.warn('⚠️ [STREAK DEBUG] getMyStreaks returned error:', res.error);
+      if (userId && userId !== 'anonymous' && window.StreakAuthority) {
+        console.log('📡 [STREAK DEBUG] Fetching from StreakAuthority...');
+        try {
+          const streak = await window.StreakAuthority.get(userId);
+          console.log('✅ [STREAK DEBUG] StreakAuthority returned:', streak);
+          
+          this.remoteStreak = {
+            current: streak.current,
+            longest: streak.longest,
+            lastHiDate: streak.lastHiDate
+          };
+          
+          // Re-render calendar with authoritative data
+          this.updateCalendar();
+          
+          // Broadcast authoritative value (updateDashboardStreakPill fetches again for safety)
+          this.updateDashboardStreakPill(streak.current);
+        } catch (err) {
+          console.error('❌ [STREAK DEBUG] StreakAuthority failed:', err);
+          this.updateDashboardStreakPill(0);
         }
+      } else if (window.HiBase?.streaks?.getMyStreaks) {
+        // FALLBACK: Old API if StreakAuthority not available
+        console.log('⚠️ [STREAK DEBUG] StreakAuthority not available, using HiBase fallback...');
+        const res = await window.HiBase.streaks.getMyStreaks();
         
         if (!res?.error && res?.data) {
-          console.log('✅ [STREAK DEBUG] Valid streak data received:', res.data);
-          this.remoteStreak = res.data; // { current, longest, lastHiDate, ... }
-          // Re-render stats/grid with real data where applicable
+          this.remoteStreak = res.data;
           this.updateCalendar();
-          // Gold Standard: Update dashboard stat pill
-          const streakValue = res.data.current;
-          console.log('📊 [STREAK DEBUG] Updating pill with value:', streakValue);
-          this.updateDashboardStreakPill(streakValue);
+          this.updateDashboardStreakPill(res.data.current);
         } else {
-          console.warn('⚠️ [STREAK DEBUG] No valid data in response, defaulting to 0');
           this.updateDashboardStreakPill(0);
         }
       } else if (window.HiBase?.getUserStreak) {
@@ -223,9 +216,23 @@ class PremiumCalendar {
   }
   
   updateDashboardStreakPill(streakValue) {
-    // 🎯 NEW: Use StreakEvents for synchronized atomic updates
-    if (window.StreakEvents) {
-      console.log(`🔥 [STREAK SYNC] Broadcasting via StreakEvents: ${streakValue}`);
+    // 🎯 AUTHORITY: Always fetch from StreakAuthority before broadcasting
+    // This ensures we broadcast the correct value, not stale data
+    const userId = window.ProfileManager?.getUserId?.() || window.hiAuth?.getCurrentUser?.()?.id;
+    
+    if (userId && userId !== 'anonymous' && window.StreakAuthority && window.StreakEvents) {
+      // Fetch authoritative value, then broadcast
+      window.StreakAuthority.get(userId).then(streak => {
+        console.log(`🔥 [STREAK SYNC] Broadcasting authoritative value: ${streak.current}`);
+        window.StreakEvents.broadcast(streak.current);
+      }).catch(err => {
+        console.error('❌ Failed to fetch authoritative streak:', err);
+        // Fallback to passed value if fetch fails
+        window.StreakEvents.broadcast(streakValue);
+      });
+    } else if (window.StreakEvents) {
+      // No StreakAuthority, use passed value
+      console.log(`🔥 [STREAK SYNC] Broadcasting via StreakEvents (fallback): ${streakValue}`);
       window.StreakEvents.broadcast(streakValue);
     } else {
       // Fallback: Direct update if StreakEvents not loaded yet
