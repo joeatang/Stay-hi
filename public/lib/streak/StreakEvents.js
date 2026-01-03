@@ -33,7 +33,8 @@ class StreakEvents {
       console.log('📢 [StreakEvents] Broadcasting streak update:', newValue);
       
       // 🎯 ATOMIC: Update all displays simultaneously
-      await Promise.all([
+      // 🛡️ Use allSettled so one failure doesn't break others
+      await Promise.allSettled([
         this.#updateDashboardPill(newValue),
         this.#updateWeeklyGrid(),
         this.#updateCalendarDisplay(newValue)

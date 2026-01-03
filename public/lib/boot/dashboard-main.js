@@ -70,7 +70,10 @@
       __dbg('🔄 Loading streak for user:', userId);
       
       // 🎯 AUTHORITY: Always trust StreakAuthority (database → cache → stale)
-      const streak = await window.StreakAuthority.get(userId);
+      // 🛡️ SAFETY: Fallback if StreakAuthority not loaded yet
+      const streak = window.StreakAuthority 
+        ? await window.StreakAuthority.get(userId)
+        : { current: 0, longest: 0, lastHiDate: null, source: 'fallback' };
       updateStreakDisplay(streak.current);
       
       __dbg(`🔥 Streak loaded: ${streak.current} (source: ${streak.source || 'authority'})`);
@@ -521,13 +524,10 @@
     
     weekStrip.innerHTML = html;
     
-    // 🎯 CONSOLIDATED UPDATE: Also update the stat box number to match visual
-    const streakValue = weeklyActivity.streakData?.current || 0;
-    const statEl = document.getElementById('userStreak');
-    if (statEl && Number.isFinite(streakValue)) {
-      statEl.textContent = streakValue;
-      console.log(`✅ [STREAK SYNC] Stat box + visual grid both updated: ${streakValue} days`);
-    }
+    // 🎯 NOTE: Stat box updated by StreakEvents.broadcast() or loadUserStreak()
+    // Don't update here to avoid race conditions
+    console.log(`✅ [STREAK SYNC] Visual grid updated (${weeklyActivity.streakData?.current || 0} day streak)`);
+    
     
     // Trigger fade-in animation
     requestAnimationFrame(() => {
@@ -566,9 +566,13 @@
       console.log('🔍 [getUserWeeklyActivity] HiBase.streaks exists:', !!window.HiBase?.streaks);
       
       if (userId && userId !== 'anonymous'){ 
-        console.log('🔍 [getUserWeeklyActivity] Calling HiBase.streaks.getUserStreak with userId:', userId);
-        const streakResult = await window.HiBase?.streaks?.getUserStreak?.(userId); 
-        console.log('🔍 [getUserWeeklyActivity] API response:', JSON.stringify(streakResult, null, 2));
+        console.log('🔍 [getUserWeeklyActivity] Calling StreakAuthority.get with userId:', userId);
+        // 🎯 FIX: Use StreakAuthority (single source of truth)
+        const streak = window.StreakAuthority 
+          ? await window.StreakAuthority.get(userId)
+          : null;
+        const streakResult = streak ? { data: streak } : null;
+        console.log('🔍 [getUserWeeklyActivity] StreakAuthority response:', JSON.stringify(streakResult, null, 2));
         
         if (streakResult?.data){ 
           console.log('🔍 [getUserWeeklyActivity] Using HiBase path with data:', streakResult.data);

@@ -76,8 +76,8 @@ class StreakAuthority {
     }
     
     return {
-      current: parseInt(value, 10),
-      longest: parseInt(localStorage.getItem('user_longest_streak') || '0', 10),
+      current: Math.max(0, parseInt(value, 10) || 0),
+      longest: Math.max(0, parseInt(localStorage.getItem('user_longest_streak') || '0', 10) || 0),
       lastHiDate: localStorage.getItem('user_last_hi_date'),
       source: 'cache'
     };
@@ -155,8 +155,8 @@ class StreakAuthority {
     if (!value) return null;
 
     return {
-      current: parseInt(value, 10),
-      longest: parseInt(localStorage.getItem('user_longest_streak') || '0', 10),
+      current: Math.max(0, parseInt(value, 10) || 0),
+      longest: Math.max(0, parseInt(localStorage.getItem('user_longest_streak') || '0', 10) || 0),
       lastHiDate: localStorage.getItem('user_last_hi_date'),
       source: 'stale-cache'
     };
