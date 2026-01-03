@@ -518,10 +518,29 @@
     function getUserTierForSharing(){ const tierIndicator=document.getElementById('hi-tier-indicator'); if (tierIndicator){ const tierText=tierIndicator.querySelector('.tier-text')?.textContent; if (tierText==='Premium') return 'PREMIUM'; if (tierText==='Standard') return 'STANDARD'; } return 'ANONYMOUS'; }
   }
 
+  // 🎯 BULLETPROOF: Prevent race conditions with execution guard + queue
+  let setupWeeklyProgressRunning = false;
+  let setupWeeklyProgressQueued = false;
+
   async function setupWeeklyProgress() {
     try {
+      // 🔒 GUARD: If already running, queue ONE retry
+      if (setupWeeklyProgressRunning) {
+        if (!setupWeeklyProgressQueued) {
+          setupWeeklyProgressQueued = true;
+          console.log('🔄 [7-DAY PILL] Already running, queuing retry...');
+        }
+        return;
+      }
+
+      setupWeeklyProgressRunning = true;
+      console.log('🎯 [7-DAY PILL] Starting setupWeeklyProgress...');
+
       const weekStrip = document.getElementById('weekStrip');
-      if (!weekStrip) return;
+      if (!weekStrip) {
+        console.warn('⚠️ [7-DAY PILL] weekStrip element not found');
+        return;
+      }
       
       // Show loading skeleton
       weekStrip.innerHTML = `<div class="week-loading">${Array(7).fill('<div class="weekdot-skeleton"></div>').join('')}</div>`;
@@ -529,6 +548,10 @@
       const today = new Date();
       let html = '';
       const weeklyActivity = await getUserWeeklyActivity();
+    
+    // 🎯 SCALE FIX: Handle large streaks gracefully (2000+ days)
+    const currentStreak = weeklyActivity.streakData?.current || 0;
+    console.log(`🔥 [7-DAY PILL] Current streak: ${currentStreak} days`);
     
     for (let i = 6; i >= 0; i--) {
       const date = new Date(today);
@@ -571,12 +594,24 @@
     requestAnimationFrame(() => {
       weekStrip.querySelectorAll('.weekdot').forEach(dot => dot.classList.add('fade-in'));
     });
+
+    console.log('✅ [7-DAY PILL] setupWeeklyProgress completed');
     
     } catch (error) {
       console.error('❌ [STREAK SYNC] setupWeeklyProgress failed:', error);
       // Graceful degradation - show 0 if anything fails
       const statEl = document.getElementById('userStreak');
       if (statEl) statEl.textContent = '0';
+    } finally {
+      // 🔓 UNLOCK: Release guard
+      setupWeeklyProgressRunning = false;
+
+      // 🔄 PROCESS QUEUE: If call was queued during execution, run once more
+      if (setupWeeklyProgressQueued) {
+        setupWeeklyProgressQueued = false;
+        console.log('🔄 [7-DAY PILL] Processing queued retry...');
+        setTimeout(() => setupWeeklyProgress(), 100); // Small delay to batch rapid calls
+      }
     }
   }
   
