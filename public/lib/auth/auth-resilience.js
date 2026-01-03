@@ -85,18 +85,25 @@
           // 🔥 MOBILE FIX: Restore session from localStorage
           // When mobile browsers background the app, Supabase loses in-memory state
           // but localStorage still has the tokens
-          const storageKey = `sb-${this.client.supabaseUrl.split('//')[1].split('.')[0]}-auth-token`;
+          
+          // Use the same storage key as HiSupabase.v3.js (hardcoded for stability)
+          const storageKey = 'sb-gfcubvroxgfvjhacinic-auth-token';
           const stored = localStorage.getItem(storageKey);
           
           if (stored) {
             try {
               const parsed = JSON.parse(stored);
-              if (parsed.access_token && parsed.refresh_token) {
+              
+              // Supabase v2 stores: { access_token, refresh_token, expires_at, ... }
+              const accessToken = parsed.access_token;
+              const refreshToken = parsed.refresh_token;
+              
+              if (accessToken && refreshToken) {
                 console.log('[AuthResilience] 🔄 Restoring session from localStorage...');
                 
                 const { data, error } = await this.client.auth.setSession({
-                  access_token: parsed.access_token,
-                  refresh_token: parsed.refresh_token
+                  access_token: accessToken,
+                  refresh_token: refreshToken
                 });
                 
                 if (error) {
