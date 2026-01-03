@@ -58,7 +58,7 @@
 
   async function loadUserStreak() {
     try {
-      // 🛡️ UNIVERSAL FIX: Multi-source fallback chain with race condition protection
+      // 🎯 NEW: Use StreakAuthority (single source of truth)
       const userId = window.ProfileManager?.getUserId?.() || window.hiAuth?.getCurrentUser?.()?.id || 'anonymous';
       
       if (!userId || userId === 'anonymous') {
@@ -69,81 +69,20 @@
 
       __dbg('🔄 Loading streak for user:', userId);
       
-      // 🧹 Clear stale cache to force fresh database read
-      localStorage.removeItem('user_current_streak');
+      // 🎯 AUTHORITY: Always trust StreakAuthority (database → cache → stale)
+      const streak = await window.StreakAuthority.get(userId);
+      updateStreakDisplay(streak.current);
       
-      let streakValue = null;
-      let source = 'none';
-
-      // 🎯 PRIMARY: Direct database query (most reliable, bypasses flags)
-      const supabaseClient = window.hiSupabase || window.supabaseClient || window.__HI_SUPABASE_CLIENT;
-      if (supabaseClient) {
-        try {
-          const { data: statsData, error } = await supabaseClient
-            .from('user_stats')
-            .select('current_streak')
-            .eq('user_id', userId)
-            .single();
-          
-          if (!error && statsData) {
-            streakValue = statsData.current_streak || 0;
-            source = 'database';
-            __dbg('✅ Streak from DATABASE:', streakValue);
-          }
-        } catch (dbError) {
-          console.warn('⚠️ Database streak query failed:', dbError);
-        }
-      }
-
-      // 🎯 FALLBACK 1: HiBase system (if primary failed)
-      if (streakValue === null && window.HiBase?.getUserStreak) {
-        try {
-          const streakResult = await Promise.race([
-            window.HiBase.getUserStreak(userId),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('HiBase timeout')), 3000))
-          ]);
-          
-          if (!streakResult.error) {
-            streakValue = streakResult.data?.streak?.current || streakResult.data?.current || 0;
-            source = 'hibase';
-            __dbg('✅ Streak from HIBASE:', streakValue);
-          }
-        } catch (hibaseError) {
-          console.warn('⚠️ HiBase streak failed:', hibaseError.message);
-        }
-      }
-
-      // 🎯 FALLBACK 2: localStorage cache (last resort)
-      if (streakValue === null) {
-        const cached = localStorage.getItem('user_current_streak');
-        if (cached) {
-          streakValue = parseInt(cached, 10);
-          source = 'cache';
-          __dbg('📦 Streak from CACHE:', streakValue);
-        }
-      }
-
-      // 🎯 FINAL: Update display with best available value
-      const finalStreak = streakValue !== null ? streakValue : 0;
-      updateStreakDisplay(finalStreak);
-      
-      // 💾 Cache successful database reads
-      if (source === 'database' && finalStreak > 0) {
-        localStorage.setItem('user_current_streak', finalStreak.toString());
-      }
-
-      __dbg(`🔥 Streak loaded: ${finalStreak} (source: ${source})`);
+      __dbg(`🔥 Streak loaded: ${streak.current} (source: ${streak.source || 'authority'})`);
       import('../monitoring/HiMonitor.js').then(m => m.trackEvent('streak_load', { 
         source: 'dashboard', 
-        path: source,
-        value: finalStreak 
+        path: streak.source,
+        value: streak.current 
       })).catch(()=>{});
 
     } catch (error) {
       console.error('💥 Critical streak loading error:', error);
-      // Still try to show cached value on total failure
-      const fallback = parseInt(localStorage.getItem('user_current_streak') || '0', 10);
-      updateStreakDisplay(fallback);
+      updateStreakDisplay(0); // Graceful degradation
     }
   }
 
