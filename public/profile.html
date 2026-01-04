@@ -2908,7 +2908,12 @@ FOR INSERT WITH CHECK (
           // Fallback to legacy method
           console.warn('⚠️ ProfileManager not available, using fallback');
           
-          const { data: { user } } = await window.supabaseClient.auth.getUser();
+          const client = window.supabaseClient || window.hiSupabase || window.sb || window.__HI_SUPABASE_CLIENT;
+          if (!client) {
+            throw new Error('No Supabase client available');
+          }
+          
+          const { data: { user } } = await client.auth.getUser();
           const userId = user?.id;
           
           Object.assign(currentProfile, formData);
@@ -2950,7 +2955,8 @@ FOR INSERT WITH CHECK (
         console.log(`💾 Profile saved to localStorage: ${storageKey}`);
 
         // Layer 2: Supabase Database (cloud persistence) - ONLY for authenticated users
-        if (window.supabaseClient && userId) {
+        const client = window.supabaseClient || window.hiSupabase || window.sb || window.__HI_SUPABASE_CLIENT;
+        if (client && userId) {
           await saveProfileToSupabase(profileData);
         } else if (!userId) {
           console.log('🎭 Demo profile - skipping Supabase sync');
@@ -2966,9 +2972,15 @@ FOR INSERT WITH CHECK (
     }
 
     async function saveProfileToSupabase(profile) {
-      try {
+      try {Supabase client with fallback
+        const client = window.supabaseClient || window.hiSupabase || window.sb || window.__HI_SUPABASE_CLIENT;
+        if (!client) {
+          console.warn('⚠️ No Supabase client available');
+          return;
+        }
+        
         // Get authenticated user's UUID
-        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        const { data: { user } } = await client.auth.getUser();
         if (!user) {
           console.warn('⚠️ No authenticated user - cannot save to Supabase');
           return;
@@ -2981,6 +2993,7 @@ FOR INSERT WITH CHECK (
           avatar_url: profile.avatar_url
         });
 
+        const { data, error } = await c
         const { data, error } = await window.supabaseClient
           .from('profiles')
           .upsert({
