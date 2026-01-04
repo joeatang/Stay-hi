@@ -17,7 +17,6 @@
     <script type="module" src="./lib/HiSupabase.v3.js"></script>
     <script type="module" src="./lib/HiMonitor.js"></script>
     <script type="module" src="./lib/AuthReady.js"></script>
-    <script type="module" src="./lib/HiLoading.js"></script>
     <!-- PWA Session Sync (browser ↔ PWA auth state) -->
     <script src="./lib/PWASessionSync.js"></script>
     <!-- Unified Admin Access Orchestrator -->
@@ -386,12 +385,6 @@
             .skip-link{position:absolute;left:-999px;top:auto;width:1px;height:1px;overflow:hidden}
             .skip-link:focus{left:16px;top:12px;width:auto;height:auto;background:#111827;color:#fff;padding:8px 12px;border-radius:8px;z-index:100001}
         </style>
-        <!-- 🚀 Unified Loading Skeleton (shared system) -->
-        <div id="hiLoading" class="hi-loading-skeleton" role="status" aria-live="polite" data-loading-state="pending" style="display:none;">
-            <div class="loading-line"></div>
-            <div class="loading-block"></div>
-            <div class="loading-text" data-loading-msg>Establishing secure mission channel…</div>
-        </div>
     <!-- 🔒 Security Loading Screen -->
     <div class="security-loading" id="securityLoading">
         <div class="security-logo">🛡️</div>
