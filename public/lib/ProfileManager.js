@@ -248,7 +248,7 @@ class ProfileManager {
   async _waitForSupabase() {
     const maxAttempts = 100; // 5 seconds (50ms intervals)
     for (let i = 0; i < maxAttempts; i++) {
-      const client = window.supabaseClient || window.sb || window.__HI_SUPABASE_CLIENT;
+      const client = window.supabaseClient || window.hiSupabase || window.sb || window.__HI_SUPABASE_CLIENT;
       if (client && client.auth) {
         console.log('✅ Supabase client ready');
         return client;
