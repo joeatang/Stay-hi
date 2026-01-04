@@ -79,6 +79,18 @@
   // Check if user is authenticated with Tesla-grade session validation + membership expiration
   async function isAuthenticated() {
     try {
+      // 🔥 MOBILE FIX: Wait for auth-resilience to complete initial session restoration
+      // This prevents redirect before session recovery on mobile
+      if (window.__hiAuthResilience && !window.__hiAuthResilience.isReady) {
+        console.log('[auth-guard] ⏳ Waiting for auth-resilience to complete session check...');
+        await new Promise((resolve) => {
+          window.addEventListener('auth-resilience-ready', resolve, { once: true });
+          // Timeout after 3 seconds
+          setTimeout(resolve, 3000);
+        });
+        console.log('[auth-guard] ✅ Auth-resilience ready');
+      }
+      
       const sb = await waitForSupabase();
       if (!sb) {
         console.error('[auth-guard] No Supabase client available');

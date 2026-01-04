@@ -14,12 +14,17 @@
       this.maxRetries = 3;
       this.isOnline = navigator.onLine;
       this.refreshTimer = null;
+      this.isReady = false; // Track if initial session check is complete
       
       console.log('[AuthResilience] Initializing...');
       
       // 🔥 MOBILE FIX: Check session immediately on page load
       // This handles the case where user returns to app after backgrounding
-      this.checkSession();
+      this.checkSession().then(() => {
+        this.isReady = true;
+        window.dispatchEvent(new CustomEvent('auth-resilience-ready'));
+        console.log('[AuthResilience] ✅ Initial session check complete');
+      });
       
       this.init();
     }
@@ -65,6 +70,28 @@
           }
           this.checkSession();
         }
+      });
+      
+      // 🔥 MOBILE FIX: Handle mobile-specific backgrounding events
+      // iOS Safari uses pageshow/pagehide instead of visibilitychange
+      window.addEventListener('pageshow', (event) => {
+        // event.persisted = true means page was restored from bfcache (mobile backgrounding)
+        if (event.persisted) {
+          console.log('[AuthResilience] 📱 Mobile: Page restored from bfcache - checking session');
+          this.checkSession();
+        }
+      });
+      
+      window.addEventListener('pagehide', () => {
+        if (window.__HI_DEBUG__) {
+          console.log('[AuthResilience] 📱 Mobile: Page about to be hidden/cached');
+        }
+      });
+      
+      // 🔥 MOBILE FIX: Handle app resume (Android/iOS)
+      window.addEventListener('focus', () => {
+        console.log('[AuthResilience] 📱 Mobile: Window focused - checking session');
+        this.checkSession();
       });
     }
     
