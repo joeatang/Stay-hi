@@ -48,20 +48,20 @@ async function fetchMembership(sb){
 async function initialize(){
   if (_ready) return _result;
   
-  // 🔥 CRITICAL: Wait for auth-resilience restoration to complete first
-  if (window.__AUTH_RESTORATION_IN_PROGRESS) {
-    console.log('[AuthReady] Waiting for auth-resilience restoration...');
-    const maxWait = 10000; // 10 seconds max
-    const startTime = Date.now();
+  // 🔥 MOBILE FIX: Wait for auth-resilience restoration to complete first
+  // This prevents race condition where dashboard tries to load stats before session is restored
+  if (window.__hiAuthResilience && !window.__hiAuthResilience.isReady) {
+    console.log('[AuthReady] 📱 Waiting for auth-resilience mobile session restoration...');
     
-    while (window.__AUTH_RESTORATION_IN_PROGRESS && (Date.now() - startTime) < maxWait) {
-      await wait(100);
-    }
-    
-    if (window.__AUTH_RESTORATION_COMPLETE) {
-      console.log('[AuthReady] Auth-resilience restoration completed, proceeding...');
-    } else {
-      console.warn('[AuthReady] Auth-resilience timeout, proceeding anyway');
+    try {
+      await new Promise((resolve) => {
+        window.addEventListener('auth-resilience-ready', resolve, { once: true });
+        // Timeout after 5 seconds
+        setTimeout(resolve, 5000);
+      });
+      console.log('[AuthReady] ✅ Auth-resilience restoration completed');
+    } catch (e) {
+      console.warn('[AuthReady] ⚠️ Auth-resilience wait failed, proceeding anyway:', e);
     }
   }
   
@@ -133,46 +133,68 @@ window.waitAuthReady = waitAuthReady;
 window.getAuthState = getAuthState;
 window.isAuthReady = isAuthReady; // Expose ready check
 
-// 🚀 WOZ FIX: Restore session when app returns from background
+// 🚀 MOBILE FIX: Restore session when app returns from background
+// Desktop uses visibilitychange, mobile uses pageshow/pagehide
 document.addEventListener('visibilitychange', async () => {
   if (document.visibilityState === 'visible') {
-    console.log('[AuthReady] App returned from background - checking session...');
-    try {
-      const sb = getHiSupabase();
-      let { data: { session } } = await sb.auth.getSession();
-      
-      // If no session, try to restore from localStorage
-      if (!session) {
-        console.warn('[AuthReady] No session found - attempting restore...');
-        await salvageTokens(sb);
-        ({ data: { session } } = await sb.auth.getSession());
-        
-        if (session) {
-          console.log('[AuthReady] Session restored successfully');
-          // Refresh membership
-          const membership = await fetchMembership(sb);
-          _result = { session, membership };
-          if (membership) {
-            window.__hiMembership = membership;
-          }
-          // 🔥 CRITICAL FIX: Re-fire hi:auth-ready so pages know auth is restored
-          console.log('[AuthReady] Re-firing hi:auth-ready for page navigation after background');
-          window.dispatchEvent(new CustomEvent('hi:auth-ready', { detail: _result }));
-          window.dispatchEvent(new CustomEvent('hi:auth-updated', { detail: _result }));
-          if (membership) {
-            window.dispatchEvent(new CustomEvent('hi:membership-changed', { detail: membership }));
-          }
-        } else {
-          console.error('[AuthReady] Failed to restore session - user may need to re-login');
-        }
-      } else {
-        console.log('[AuthReady] Session still valid');
-      }
-    } catch (e) {
-      console.error('[AuthReady] Session check failed:', e);
-    }
+    await recheckAuth('visibilitychange');
   }
 });
+
+// 🔥 MOBILE FIX: iOS Safari uses pageshow/pagehide instead of visibilitychange
+window.addEventListener('pageshow', async (event) => {
+  if (event.persisted) {
+    // Page restored from bfcache (mobile backgrounding)
+    console.log('[AuthReady] 📱 Mobile: Page restored from bfcache');
+    await recheckAuth('pageshow');
+  }
+});
+
+// 🔥 MOBILE FIX: Handle app resume (Android/iOS)
+window.addEventListener('focus', async () => {
+  if (document.visibilityState === 'visible') {
+    await recheckAuth('focus');
+  }
+});
+
+// Reusable recheck logic
+async function recheckAuth(source) {
+  console.log(`[AuthReady] App returned from background (${source}) - checking session...`);
+  try {
+    const sb = getHiSupabase();
+    let { data: { session } } = await sb.auth.getSession();
+    
+    // If no session, try to restore from localStorage
+    if (!session) {
+      console.warn('[AuthReady] No session found - attempting restore...');
+      await salvageTokens(sb);
+      ({ data: { session } } = await sb.auth.getSession());
+      
+      if (session) {
+        console.log('[AuthReady] ✅ Session restored successfully');
+        // Refresh membership
+        const membership = await fetchMembership(sb);
+        _result = { session, membership };
+        if (membership) {
+          window.__hiMembership = membership;
+        }
+        // 🔥 CRITICAL FIX: Re-fire hi:auth-ready so pages know auth is restored
+        console.log('[AuthReady] Re-firing hi:auth-ready for page navigation after background');
+        window.dispatchEvent(new CustomEvent('hi:auth-ready', { detail: _result }));
+        window.dispatchEvent(new CustomEvent('hi:auth-updated', { detail: _result }));
+        if (membership) {
+          window.dispatchEvent(new CustomEvent('hi:membership-changed', { detail: membership }));
+        }
+      } else {
+        console.error('[AuthReady] ❌ Failed to restore session - user may need to re-login');
+      }
+    } else {
+      console.log('[AuthReady] ✅ Session still valid');
+    }
+  } catch (e) {
+    console.error('[AuthReady] ❌ Session check failed:', e);
+  }
+}
 
 // If the Supabase client upgrades from stub->real, refresh state and notify listeners
 try {
