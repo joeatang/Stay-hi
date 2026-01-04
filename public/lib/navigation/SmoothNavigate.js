@@ -119,32 +119,61 @@
     const parser = new DOMParser();
     const newDoc = parser.parseFromString(html, 'text/html');
     
-    // Preserve auth state and critical globals
+    // Preserve critical auth state and globals
     const preservedGlobals = {
       __HI_SUPABASE_CLIENT: window.__HI_SUPABASE_CLIENT,
       hiSupabase: window.hiSupabase,
       __hiAuthResilience: window.__hiAuthResilience,
-      HiSupabase: window.HiSupabase
+      HiSupabase: window.HiSupabase,
+      supabaseClient: window.supabaseClient,
+      sb: window.sb
     };
 
-    // Get new body HTML (excluding scripts that are already loaded)
+    // Get new body HTML
     const newBody = newDoc.body;
     
-    // Replace body innerHTML but skip splash screen
+    // Remove elements we DON'T want from new page (keep existing ones)
+    const elementsToPreserve = ['#instant-splash']; // Never re-add splash
+    
+    elementsToPreserve.forEach(selector => {
+      const el = newBody.querySelector(selector);
+      if (el) el.remove();
+    });
+    
+    // Get the current main content area (everything after header)
     const currentBody = document.body;
     
-    // Remove splash if it exists in new content
-    const newSplash = newBody.querySelector('#instant-splash');
-    if (newSplash) {
-      newSplash.remove();
+    // Find where main content starts (after header + splash)
+    const header = currentBody.querySelector('.tesla-header');
+    const mainStart = header ? header.nextElementSibling : currentBody.firstElementChild;
+    
+    // Remove everything after header
+    let el = mainStart;
+    while (el) {
+      const next = el.nextElementSibling;
+      if (!el.matches('.hi-splash-instant, .tesla-header')) {
+        el.remove();
+      }
+      el = next;
     }
     
-    // Copy body content
-    currentBody.innerHTML = newBody.innerHTML;
+    // Append new content (skip splash and header from new page)
+    const newHeader = newBody.querySelector('.tesla-header');
+    let newContent = newHeader ? newHeader.nextElementSibling : newBody.firstElementChild;
+    
+    while (newContent) {
+      const next = newContent.nextElementSibling;
+      if (!newContent.matches('.hi-splash-instant')) {
+        currentBody.appendChild(newContent.cloneNode(true));
+      }
+      newContent = next;
+    }
     
     // Copy body attributes
     Array.from(newBody.attributes).forEach(attr => {
-      currentBody.setAttribute(attr.name, attr.value);
+      if (attr.name !== 'class') { // Preserve existing body classes
+        currentBody.setAttribute(attr.name, attr.value);
+      }
     });
     
     // Update page title

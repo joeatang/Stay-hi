@@ -183,8 +183,6 @@
   <script src="./lib/auth/auth-resilience.js"></script>
   <!-- Trial Manager: 14-day trial system (Jobs/Gary Vee/Woz-approved) -->
   <script src="./lib/trial/TrialManager.js"></script>
-  <!-- Unified loading manager -->
-  <script type="module" src="./lib/HiLoading.js"></script>
   <!-- AuthReady orchestrator: unified session + membership (externalized) -->
   <script type="module" src="./lib/boot/authready-listener.js"></script>
   <!-- Membership bridge: unify events and simple API -->
@@ -1540,27 +1538,7 @@
   </style>
   <!-- A11y live region for micro-feedback announcements -->
   <div id="hiLive" aria-live="polite" aria-atomic="true" class="sr-only"></div>
-  <!-- 🚀 Unified Loading Skeleton -->
-  <div id="hiLoading" class="hi-loading-skeleton" role="status" aria-live="polite" data-loading-state="pending">
-    <div class="loading-line"></div>
-    <div class="loading-block"></div>
-    <div class="loading-text" data-loading-msg>Loading your Hi space…</div>
-  </div>
-  <style id="hiLoadingStyles">
-    .hi-loading-skeleton {position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,0.08),rgba(0,0,0,0.6)),linear-gradient(135deg,#2d1e4f,#ff7a18 70%);z-index:100000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;animation:fadeInLoad .4s ease}
-    @keyframes fadeInLoad{from{opacity:0}to{opacity:1}}
-    .hi-loading-skeleton .loading-line{width:160px;height:6px;border-radius:4px;background:linear-gradient(90deg,#ffd166,#ff9a3c,#ff7a18);background-size:300% 100%;animation:linePulse 2s ease-in-out infinite}
-    @keyframes linePulse{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
-    .hi-loading-skeleton .loading-block{width:220px;height:120px;border-radius:20px;background:rgba(255,255,255,0.08);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.15);position:relative;overflow:hidden}
-    .hi-loading-skeleton .loading-block:before{content:'';position:absolute;inset:0;background:linear-gradient(110deg,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.25) 40%,rgba(255,255,255,0.05) 70%);animation:shimmerBlock 2.4s linear infinite;background-size:200% 100%}
-    @keyframes shimmerBlock{0%{background-position:-100% 0}100%{background-position:100% 0}}
-    .hi-loading-skeleton .loading-text{font-size:15px;font-weight:600;letter-spacing:.5px;text-shadow:0 2px 4px rgba(0,0,0,.4)}
-    .hi-loading-skeleton[data-loading-state='slow'] .loading-text{color:#ffe8b0}
-    .hi-loading-skeleton.loading-error{background:linear-gradient(140deg,#4b1e1e,#7a0000)}
-    .hi-loading-skeleton .loading-error-msg{background:#fff;color:#7a0000;padding:16px 20px;border-radius:14px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.4)}
-    .hi-loading-skeleton .loading-error-msg button{background:#ff9a3c;border:none;color:#111;font-weight:600;padding:8px 14px;border-radius:8px;cursor:pointer;margin-left:12px}
-    html.hi-loaded .hi-loading-skeleton{display:none!important}
-  </style>
+  
   <!-- Tesla-Grade Header - Centered Brand Prominence -->
   <header class="tesla-header">
     <!-- Smart Calendar & Home Access -->
