@@ -60,12 +60,22 @@
     const footer = createHiFooter();
     document.body.appendChild(footer);
 
-    // Add haptic feedback on tab press (if available)
+    // Add haptic feedback + smooth navigation
     footer.addEventListener('click', (e) => {
-      if (e.target.closest('.hi-footer-tab')) {
+      const tab = e.target.closest('.hi-footer-tab');
+      if (tab) {
+        // Haptic feedback
         if (window.PremiumUX?.triggerHapticFeedback) {
           window.PremiumUX.triggerHapticFeedback('light');
         }
+        
+        // Smooth navigation (if supported)
+        const targetURL = tab.getAttribute('href');
+        if (window.SmoothNavigate?.isSupported(targetURL)) {
+          e.preventDefault();
+          window.SmoothNavigate.navigate(targetURL);
+        }
+        // Otherwise let browser handle normal navigation
       }
     });
 
@@ -104,6 +114,7 @@
   // Global HiFooter interface
   window.HiFooter = {
     init: initHiFooter,
+    refresh: initHiFooter, // Alias for smooth nav re-init
     createFooter: createHiFooter,
     getCurrentPage: getCurrentPage,
     appendAdminTab
