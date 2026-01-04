@@ -1705,9 +1705,6 @@
   <!-- Unified Monitoring Init (errors + tracking) -->
   <script src="./lib/boot/monitoring-init.js"></script>
   
-  <!-- 🚀 CRITICAL: Auth resilience layer -->
-  <script src="./lib/auth/auth-resilience.js"></script>
-  
   <!-- � DIAGNOSTIC: Track tab switch behavior -->
   <script src="./lib/diagnostic/tab-switch-diagnostic.js"></script>
   
@@ -1716,6 +1713,9 @@
   
   <!-- �🚀 TESLA FIX: Initialize HiSupabase.v3 before HiDB -->
   <script type="module" src="./lib/boot/island-supabase-prime.mjs"></script>
+  
+  <!-- 🚀 CRITICAL: Auth resilience layer (must load AFTER HiSupabase exists) -->
+  <script src="./lib/auth/auth-resilience.js"></script>
   
   <!-- 🏆 WOZ FIX: ProfileManager - Single Source of Truth -->
   <script src="./lib/ProfileManager.js"></script>

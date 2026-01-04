@@ -1673,7 +1673,6 @@
   <script src="./lib/boot/monitoring-init.js"></script>
   
   <!-- 🚀 CRITICAL: Auth resilience layer (prevents session expiry on tab switch) -->
-  <script src="./lib/auth/auth-resilience.js"></script>
   
   <!-- � DIAGNOSTIC: Track tab switch behavior -->
   <script src="./lib/diagnostic/tab-switch-diagnostic.js"></script>
@@ -1683,6 +1682,9 @@
   
   <!-- �🚀 TESLA FIX: Initialize HiSupabase before HiDB -->
   <script type="module" src="./lib/boot/island-supabase-prime.mjs"></script>
+  
+  <!-- 🚀 CRITICAL: Auth resilience layer (must load AFTER HiSupabase exists) -->
+  <script src="./lib/auth/auth-resilience.js"></script>
   <!-- 🚀 WOZ FIX: Query timeout + retry logic -->
   <script src="./lib/query-timeout.js"></script>
   
