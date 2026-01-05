@@ -121,8 +121,8 @@ if (window.__HI_SUPABASE_CLIENT) {
   }
 }
 
-// UMD Global Pattern: No ES6 exports (breaks mobile Safari when loaded dynamically)
-// All access via window.hiSupabase, window.HiSupabase.getClient(), etc.
+// HYBRID PATTERN: Provide BOTH globals (for dynamic loads) AND exports (for ES modules)
+// This satisfies: (1) Mobile Safari dynamic script injection (2) ES module imports
 
 // Helper to guarantee alias presence for late consumers.
 function getHiSupabase() {
@@ -164,3 +164,8 @@ try {
     }));
   }
 } catch(_) { /* swallow */ }
+
+// ES6 EXPORTS: For modules that import (HiFlags.js, AuthReady.js, etc.)
+// These work when loaded as type="module" only
+export const supabase = createdClient;
+export { getHiSupabase, getClient };
