@@ -32,8 +32,16 @@ async function initHiIsland() {
       }, 100);
     }
   });
-  // WOZ SIMPLIFICATION: Let HiRealFeed auto-initialize
-  console.log('✅ Waiting for HiRealFeed auto-initialization...');
+  
+  // ✅ FIX: Initialize UnifiedHiIslandController to render feed
+  console.log('🎯 Initializing feed system...');
+  if (window.UnifiedHiIslandController) {
+    window.unifiedHiIslandController = new window.UnifiedHiIslandController();
+    await window.unifiedHiIslandController.init();
+    console.log('✅ Feed system initialized');
+  } else {
+    console.error('❌ UnifiedHiIslandController not loaded!');
+  }
   
   initializeTabSystem();
   initializeOriginFilters();
