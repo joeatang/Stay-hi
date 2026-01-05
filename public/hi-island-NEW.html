@@ -276,7 +276,8 @@
     body {
       background: var(--gradient-island);
       background-attachment: fixed;
-      min-height: 100vh;
+      min-height: 100vh; /* iOS 14 fallback */
+      min-height: 100dvh; /* iOS 15.4+: Dynamic viewport */
     }
 
     /* ============================================================================
@@ -1836,7 +1837,26 @@
   <script src="./lib/navigation/SmoothNavigate.js"></script>
   <script src="./ui/HiFooter/HiFooter.js" defer></script>
   
-  <!-- 🎉 Premium UX System (Celebrations + Confetti + Haptics) -->
+  <!-- � Pull-to-Refresh Gesture (Instagram-style) -->
+  <script src="./lib/gestures/PullToRefresh.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const feedContainer = document.querySelector('.feed-container');
+      if (feedContainer && window.PullToRefresh) {
+        new PullToRefresh(feedContainer, async () => {
+          console.log('[Island] Pull-to-refresh triggered');
+          if (window.UnifiedHiIslandController?.reloadCurrentTab) {
+            await window.UnifiedHiIslandController.reloadCurrentTab();
+          }
+          if (window.PremiumUX?.triggerHapticFeedback) {
+            window.PremiumUX.triggerHapticFeedback('success');
+          }
+        });
+      }
+    });
+  </script>
+  
+  <!-- �🎉 Premium UX System (Celebrations + Confetti + Haptics) -->
   <script src="assets/premium-ux.js" defer></script>
   
   <!-- Integrity + quick access merged into mc-access-core.js -->

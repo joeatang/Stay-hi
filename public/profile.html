@@ -607,7 +607,8 @@
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui;
       background: var(--tesla-bg);
       color: white;
-      min-height: 100vh;
+      min-height: 100vh; /* iOS 14 fallback */
+      min-height: 100dvh; /* iOS 15.4+: Dynamic viewport */
       overflow-x: hidden;
       padding-top: 60px; /* Account for fixed header */
     }

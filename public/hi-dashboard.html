@@ -333,7 +333,8 @@
     
     body {
       background: linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #ffd166 100%);
-      min-height: 100vh;
+      min-height: 100vh; /* iOS 14 fallback */
+      min-height: 100dvh; /* iOS 15.4+: Dynamic viewport (accounts for address bar) */
       margin: 0;
       padding: 0;
       width: 100%;
@@ -1842,6 +1843,25 @@
   <!-- 🚀 SPA-Style Smooth Navigation (loads before footer) -->
   <script src="./lib/navigation/SmoothNavigate.js"></script>
   <script src="./ui/HiFooter/HiFooter.js" defer></script>
+  
+  <!-- 🎯 Pull-to-Refresh Gesture (Instagram-style) -->
+  <script src="./lib/gestures/PullToRefresh.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const dashContainer = document.querySelector('.dashboard-container');
+      if (dashContainer && window.PullToRefresh) {
+        new PullToRefresh(dashContainer, async () => {
+          console.log('[Dashboard] Pull-to-refresh triggered');
+          if (window.HiFeed?.refresh) await window.HiFeed.refresh();
+          if (window.loadDashboardData) await window.loadDashboardData();
+          if (window.PremiumUX?.triggerHapticFeedback) {
+            window.PremiumUX.triggerHapticFeedback('success');
+          }
+        });
+      }
+    });
+  </script>
+  
   <!-- Integrity watchdog merged into mc-access-core.js -->
   
   <!-- Hi Components: HiShareSheet + HiMedallion (Externalized) -->
