@@ -1829,8 +1829,8 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite">Saved</div>
 
-  <!-- order matters -->
-  <script src="./lib/HiSupabase.js" type="module"></script>
+  <!-- ✅ FIX: Remove duplicate HiSupabase load - already loaded in <head> at line 90 -->
+  <!-- HiSupabase.js loaded earlier ensures client exists before page renders -->
   <script src="assets/auth.js"></script>
   <script src="./lib/HiDB.js"></script>
   
