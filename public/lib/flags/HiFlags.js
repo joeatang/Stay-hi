@@ -354,6 +354,11 @@ export async function isEnabledCohort(flagKey) {
 
 // HI-OS P1/STEP1: normalize flags to booleans (object {enabled:true} -> true)
 export function hiFlagEnabled(key) {
+  // Use the getFlag method which accesses the flags Map correctly
+  if (globalThis.hiFlags && typeof globalThis.hiFlags.getFlag === 'function') {
+    return globalThis.hiFlags.getFlag(key, false);
+  }
+  // Fallback: check if it's directly on the object (legacy pattern)
   const f = (globalThis.hiFlags && globalThis.hiFlags[key]);
   if (typeof f === 'object' && f !== null) return !!f.enabled;
   return !!f;

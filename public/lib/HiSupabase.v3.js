@@ -121,17 +121,17 @@ if (window.__HI_SUPABASE_CLIENT) {
   }
 }
 
-export const supabase = createdClient;
+// UMD Global Pattern: No ES6 exports (breaks mobile Safari when loaded dynamically)
+// All access via window.hiSupabase, window.HiSupabase.getClient(), etc.
 
 // Helper to guarantee alias presence for late consumers.
-export function getHiSupabase() {
-  if (!window.hiSupabase) window.hiSupabase = supabase;
+function getHiSupabase() {
+  if (!window.hiSupabase) window.hiSupabase = createdClient;
   return window.hiSupabase;
 }
 
-// Legacy compatibility: provide getClient named export + global shims.
-// Older modules expect: import { getClient } from '/lib/HiSupabase.js' OR window.HiSupabase.getClient().
-export function getClient() {
+// Legacy compatibility: provide getClient function for modules expecting it
+function getClient() {
   return getHiSupabase();
 }
 
