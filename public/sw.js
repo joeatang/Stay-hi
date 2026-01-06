@@ -1,11 +1,11 @@
 // 🚀 TESLA-GRADE SERVICE WORKER
 // Hi Collective PWA - Offline-first architecture
 
-// 🚀 WOZ FIX: Bump version to force cache clear on mobile profile fix
-const BUILD_TAG = 'v1.0.3-20251231-mobile-profile-fix';
+// 🚀 WOZ FIX: Bump version to force cache clear on navigation regression
+const BUILD_TAG = 'v1.0.4-20260106-cache-fix';
 // Bump cache versions to force update on deploy
-const CACHE_NAME = 'hi-collective-v1.4.0-mobile-fix';
-const STATIC_CACHE_NAME = 'hi-static-v1.4.0-mobile-fix';
+const CACHE_NAME = 'hi-collective-v1.4.1-cache-fix';
+const STATIC_CACHE_NAME = 'hi-static-v1.4.1-cache-fix';
 const OFFLINE_FALLBACK = '/public/offline.html';
 
 // 🔥 CRITICAL: Force immediate activation on mobile Chrome
@@ -61,9 +61,9 @@ const APP_SHELL_FILES = [
   // Critical styles
   '/styles/hi-dashboard.css',
 
-  // Critical modules for offline shell readiness
-  '/lib/HiSupabase.v3.js',
-  '/lib/flags/HiFlags.js',
+  // WOZ FIX: DO NOT cache HiSupabase.v3.js or HiFlags.js
+  // These files change frequently and cause navigation breakage when stale
+  // Let browser handle them with normal HTTP caching
   
   // External dependencies (UMD Supabase removed: using ESM; avoid caching remote executable code)
 ];

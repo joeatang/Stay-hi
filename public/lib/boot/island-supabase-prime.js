@@ -7,7 +7,8 @@ console.log('[island-supabase-prime] Starting HiSupabase load...');
   const script = document.createElement('script');
   // ✅ FIX: Absolute path from public root (relative paths resolve from HTML, not script location)
   script.src = './lib/HiSupabase.v3.js';
-  // NO type='module' - must execute synchronously to prevent race conditions
+  // ✅ CRITICAL FIX: Must use type="module" because HiSupabase.v3.js has export statements
+  script.type = 'module';
   script.onload = function() {
     console.log('✅ Tesla: HiSupabase.v3 initialized before HiDB');
   };
