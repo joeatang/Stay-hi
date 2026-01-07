@@ -22,9 +22,9 @@ async function salvageTokens(sb){
 
 async function fetchMembership(sb){
   try {
-    // 🔥 FIX: Add 3-second timeout to prevent hanging
+    // 🔥 FIX: Add 8-second timeout (increased for slow networks/database)
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Membership timeout')), 3000)
+      setTimeout(() => reject(new Error('Membership timeout')), 8000)
     );
     
     const membershipPromise = sb.rpc('get_unified_membership');

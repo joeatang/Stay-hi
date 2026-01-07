@@ -85,6 +85,9 @@
     }, { once: true });
   </script>
 
+  
+  <!-- 🚀 DEPENDENCY MANAGER: Prevents race conditions on first load -->
+  <script src="./lib/boot/dependency-manager.js"></script>
   <!-- Tesla-grade auth system - health monitor first -->
   <script src="assets/url-path-fixer.js"></script>
   <script src="./lib/HiSupabase.js" type="module"></script>
@@ -1845,6 +1848,38 @@
   <script>
   (async function(){
     console.log('💪 Hi-Muscle loading...');
+    
+    // 🚀 SURGICAL FIX: Wait for critical dependencies before rendering
+    if (window.DependencyManager) {
+      console.log('⏳ Waiting for Hi Muscle dependencies...');
+      const result = await window.DependencyManager.waitForDependencies([
+        'auth',
+        'hiDB',
+        'HiSupabase',
+        'HiBrandTiers'
+      ], 8000); // 8 second timeout
+      
+      if (!result.success) {
+        console.error('❌ Dependencies failed:', result.missing);
+        const wrap = document.querySelector('.wrap');
+        if (wrap) {
+          wrap.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; max-width: 400px; margin: 0 auto;">
+              <div style="font-size: 3rem; margin-bottom: 20px;">🔄</div>
+              <div style="font-weight: 700; font-size: 1.2rem; margin-bottom: 12px; color: #FFD166;">Loading Issue</div>
+              <div style="font-size: 0.95rem; margin-bottom: 24px; color: #cfd2ea; line-height: 1.5;">
+                Some components didn't load properly. This usually fixes itself on refresh.
+              </div>
+              <button onclick="location.reload()" style="padding: 14px 28px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 1rem; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: transform 0.2s;">
+                Reload Page
+              </button>
+            </div>
+          `;
+        }
+        return; // Stop initialization
+      }
+      console.log('✅ All dependencies ready in ' + result.loaded.length + ' checks');
+    }
     
     try { await hiAuth.ensureSessionMaybe?.(); } catch {}
 

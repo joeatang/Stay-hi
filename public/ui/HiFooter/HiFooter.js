@@ -60,7 +60,7 @@
     const footer = createHiFooter();
     document.body.appendChild(footer);
 
-    // Add haptic feedback + smooth navigation
+    // Add haptic feedback
     footer.addEventListener('click', (e) => {
       const tab = e.target.closest('.hi-footer-tab');
       if (tab) {
@@ -69,13 +69,9 @@
           window.PremiumUX.triggerHapticFeedback('light');
         }
         
-        // Smooth navigation (if supported)
-        const targetURL = tab.getAttribute('href');
-        if (window.SmoothNavigate?.isSupported(targetURL)) {
-          e.preventDefault();
-          window.SmoothNavigate.navigate(targetURL);
-        }
-        // Otherwise let browser handle normal navigation
+        // 🔥 EMERGENCY FIX: Disabled SmoothNavigate - it was blocking navigation
+        // Let browser handle normal navigation for now
+        // TODO: Fix SmoothNavigate error handling and re-enable
       }
     });
 

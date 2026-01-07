@@ -95,6 +95,9 @@
   <script src="./lib/qa/auth-flow-qa.js"></script>
   
   <!-- Supabase Integration -->
+  <!-- 🚀 DEPENDENCY MANAGER: Prevents race conditions on first load -->
+  <script src="./lib/boot/dependency-manager.js"></script>
+
   <!-- � CRITICAL: Remove async - HiSupabase.v3.js needs window.supabase BEFORE it loads -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1" integrity="sha384-XLEuzmdNfK1V09d59bu+Uv3EFtEp5kFP8BmseBq85CUpeFZXhUfqjk4ZeR/biZmS" crossorigin="anonymous"></script>
   <script src="./lib/HiSupabase.simple.js" type="module"></script>
@@ -4135,8 +4138,35 @@ FOR INSERT WITH CHECK (
     }
 
     // Tesla-Grade Unified Initialization - All Systems
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', async function() {
       console.log('🚀 Tesla Profile System Initializing...');
+
+      // 🔥 WOZ FIX: Wait for critical dependencies before proceeding
+      if (window.DependencyManager) {
+        try {
+          console.log('⏳ Waiting for dependencies: auth, hiDB, HiSupabase, ProfileManager...');
+          await window.DependencyManager.waitForDependencies(
+            ['auth', 'hiDB', 'HiSupabase', 'ProfileManager'],
+            10000 // 10 second timeout
+          );
+          console.log('✅ All dependencies ready');
+        } catch (error) {
+          console.error('⚠️ Dependency timeout:', error);
+          // Show user-friendly error UI
+          document.body.innerHTML = `
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:system-ui;text-align:center;padding:20px;">
+              <div style="font-size:48px;margin-bottom:20px;">⚠️</div>
+              <h2 style="color:#333;margin-bottom:10px;">Loading timeout</h2>
+              <p style="color:#666;margin-bottom:30px;">Profile couldn't load all dependencies in time</p>
+              <button onclick="location.reload()" style="background:#ffd166;border:none;padding:12px 24px;border-radius:8px;font-size:16px;cursor:pointer;font-weight:600;">
+                Reload Page
+              </button>
+            </div>
+          `;
+          return;
+        }
+      }
+
       // Debug instrumentation: when ?profiledebug=1 present, bypass anonymous gating and log auth/membership
       try {
         if (/profiledebug=1/i.test(location.search)) {

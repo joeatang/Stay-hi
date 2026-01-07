@@ -77,8 +77,8 @@ async function checkFlagStatus() {
 async function waitForComponents() {
   console.log('⏳ Waiting for components to initialize...');
   
-  // Wait up to 5 seconds for components
-  const maxWait = 5000;
+  // Wait up to 10 seconds for components (matches dependency manager timeout)
+  const maxWait = 10000;
   const startTime = Date.now();
   
   while (Date.now() - startTime < maxWait) {

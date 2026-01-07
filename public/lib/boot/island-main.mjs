@@ -4,6 +4,38 @@
 async function initHiIsland() {
   console.log('🏝️ Hi Island initializing...');
   
+  // 🚀 FIX: Wait for critical dependencies before rendering
+  // This prevents race conditions on first navigation
+  if (window.DependencyManager) {
+    console.log('⏳ Waiting for Hi Island dependencies...');
+    const result = await window.DependencyManager.waitForDependencies([
+      'auth',
+      'hiDB',
+      'HiSupabase',
+      'HiBrandTiers'
+    ]);
+    
+    if (!result.success) {
+      console.error('❌ Some dependencies failed to load:', result.missing);
+      // Show user-friendly error
+      const feedContainer = document.querySelector('.feed-container');
+      if (feedContainer) {
+        feedContainer.innerHTML = `
+          <div style="text-align: center; padding: 40px 20px; color: #cfd2ea;">
+            <div style="font-size: 2rem; margin-bottom: 16px;">🔄</div>
+            <div style="font-weight: 600; margin-bottom: 8px;">Loading issue detected</div>
+            <div style="font-size: 0.9rem; margin-bottom: 20px;">Some components didn't load properly</div>
+            <button onclick="location.reload()" style="padding: 12px 24px; background: #4ECDC4; color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer;">
+              Reload Page
+            </button>
+          </div>
+        `;
+      }
+      return; // Stop initialization
+    }
+    console.log('✅ All dependencies ready');
+  }
+  
   // 🏆 WOZ FIX: Initialize ProfileManager first
   if (window.ProfileManager && !window.ProfileManager.isReady()) {
     console.log('🏆 Initializing ProfileManager...');
@@ -20,18 +52,6 @@ async function initHiIsland() {
   
   // Unified stats only: remove legacy multi-path cache bootstrap
   loadRealStats().catch(err => console.warn('Stats loading failed:', err));
-  await new Promise(resolve => {
-    if (window.hiDB) {
-      resolve();
-    } else {
-      const check = setInterval(() => {
-        if (window.hiDB) {
-          clearInterval(check);
-          resolve();
-        }
-      }, 100);
-    }
-  });
   
   // ✅ FIX: Initialize UnifiedHiIslandController to render feed
   console.log('🎯 Initializing feed system...');
