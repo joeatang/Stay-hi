@@ -101,7 +101,7 @@
       // Special checks for complex dependencies
       switch(dep) {
         case 'hiDB':
-          return !!(window.hiDB && typeof window.hiDB.getUserProfile === 'function');
+          return !!(window.hiDB && typeof window.hiDB.fetchUserProfile === 'function');
         
         case 'HiSupabase':
           return !!(window.HiSupabase && typeof window.HiSupabase.getClient === 'function');
