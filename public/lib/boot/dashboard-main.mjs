@@ -11,6 +11,46 @@ document.addEventListener('DOMContentLoaded', async () => {
     await window.ProfileManager.init();
     console.log('✅ [Module] ProfileManager ready');
   }
+  
+  // 🎯 Update tier display after auth is ready
+  function updateBrandTierDisplay(eventOrTier) {
+    const tierIndicator = document.getElementById('hi-tier-indicator');
+    if (!tierIndicator) return;
+    if (!window.HiBrandTiers) return;
+    
+    let tierKey = 'anonymous';
+    
+    // Check hi:auth-ready event detail FIRST (authoritative source from database)
+    if (eventOrTier?.detail?.membership?.tier) {
+      tierKey = eventOrTier.detail.membership.tier;
+    } else if (typeof eventOrTier === 'string') {
+      tierKey = eventOrTier;
+    } else if (window.__hiMembership?.tier) {
+      // Check AuthReady cached membership
+      tierKey = window.__hiMembership.tier;
+    } else if (window.unifiedMembership?.membershipStatus?.tier) {
+      tierKey = window.unifiedMembership.membershipStatus.tier;
+    } else if (window.HiMembership?.currentUser?.tierInfo?.name) {
+      tierKey = window.HiMembership.currentUser.tierInfo.name.toLowerCase();
+    } else if (window.ProfileManager?.getProfile?.()?.tier) {
+      tierKey = window.ProfileManager.getProfile().tier;
+    }
+    
+    window.HiBrandTiers.updateTierPill(tierIndicator, tierKey, {
+      showEmoji: false,
+      useGradient: false
+    });
+    console.log('🎫 [Dashboard] Tier updated:', tierKey);
+  }
+  
+  // Listen for auth-ready event to update tier
+  window.addEventListener('hi:auth-ready', updateBrandTierDisplay);
+  window.addEventListener('hi:membership-changed', updateBrandTierDisplay);
+  
+  // Check if auth-ready already fired (race condition prevention)
+  if (window.__hiAuthReady) {
+    updateBrandTierDisplay({ detail: window.__hiAuthReady });
+  }
 
   if (!window.__hiComponentsInitialized) window.__hiComponentsInitialized = {};
 
