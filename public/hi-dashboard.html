@@ -163,6 +163,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="assets/config.js"></script>
   
+  <!-- CRITICAL: Load HiSupabase.v3.js FIRST - sets window.hiSupabase before anything else needs it -->
+  <script src="./lib/HiSupabase.v3.js"></script>
+  
   <!-- 🏆 WOZ FIX: ProfileManager - Single Source of Truth -->
   <script src="./lib/ProfileManager.js"></script>
   
@@ -177,8 +180,7 @@
   <script src="./assets/hi-paths.js"></script>
   <!-- Unified Monitoring Init (errors + tracking) -->
   <script src="./lib/boot/monitoring-init.js"></script>
-  <!-- Database & Hi Island Integration (IMMEDIATE LOAD - not module, no defer) -->
-  <script src="./lib/HiSupabase.v3.js"></script>
+  <!-- HiSupabase.v3.js already loaded above (line 167) to avoid race conditions -->
   <!-- Auth Resilience: Production-grade error handling (X/Instagram pattern) -->
   <script src="./lib/auth/auth-resilience.js"></script>
   <!-- Trial Manager: 14-day trial system (Jobs/Gary Vee/Woz-approved) -->
