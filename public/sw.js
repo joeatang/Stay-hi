@@ -2,10 +2,10 @@
 // Hi Collective PWA - Offline-first architecture
 
 // 🚀 WOZ FIX: Bump version to force cache clear on navigation regression
-const BUILD_TAG = 'v1.0.5-20260107-html-sync';
+const BUILD_TAG = 'v1.0.6-20260107-no-html-cache';
 // Bump cache versions to force update on deploy
-const CACHE_NAME = 'hi-collective-v1.4.2-html-sync';
-const STATIC_CACHE_NAME = 'hi-static-v1.4.2-html-sync';
+const CACHE_NAME = 'hi-collective-v1.4.3-no-html-cache';
+const STATIC_CACHE_NAME = 'hi-static-v1.4.3-no-html-cache';
 const OFFLINE_FALLBACK = '/public/offline.html';
 
 // 🔥 CRITICAL: Force immediate activation on mobile Chrome
