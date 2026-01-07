@@ -34,6 +34,15 @@ async function initHiIsland() {
       return; // Stop initialization
     }
     console.log('✅ All dependencies ready');
+    
+    // 🎯 GOLD STANDARD: Hide splash immediately when dependencies ready
+    // Mark all flags as ready so splash can hide without waiting for timeout
+    if (window.hiIslandReady) {
+      window.hiIslandReady.auth = true;
+      window.hiIslandReady.map = true;
+      window.hiIslandReady.feed = true;
+      console.log('✅ Splash ready flags set - triggering hide');
+    }
   }
   
   // 🏆 WOZ FIX: Initialize ProfileManager first
