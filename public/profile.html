@@ -98,9 +98,9 @@
   <!-- 🚀 DEPENDENCY MANAGER: Prevents race conditions on first load -->
   <script src="./lib/boot/dependency-manager.js"></script>
 
-  <!-- � CRITICAL: Remove async - HiSupabase.v3.js needs window.supabase BEFORE it loads -->
+  <!-- 🚀 CRITICAL: Remove async - HiSupabase.v3.js needs window.supabase BEFORE it loads -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1" integrity="sha384-XLEuzmdNfK1V09d59bu+Uv3EFtEp5kFP8BmseBq85CUpeFZXhUfqjk4ZeR/biZmS" crossorigin="anonymous"></script>
-  <script src="./lib/HiSupabase.simple.js" type="module"></script>
+  <script src="./lib/HiSupabase.v3.js"></script>
   <!-- 🚀 WOZ FIX: Query timeout + retry logic -->
   <script src="./lib/query-timeout.js" defer></script>
   <!-- ✅ CRITICAL: AuthReady orchestrates session + membership and fires hi:auth-ready event -->
