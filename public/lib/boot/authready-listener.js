@@ -3,8 +3,20 @@ window.addEventListener('hi:auth-ready', async (e) => {
   const { session, membership } = e.detail || {};
   console.log('[Dashboard][AuthReady] received', { user: session?.user?.id, tier: membership?.tier, adminFlag: membership?.is_admin });
   try {
-    const pill = document.querySelector('[data-tier-pill]');
-    if (pill && membership?.tier) pill.textContent = membership.tier.toUpperCase();
+    // 🎯 CRITICAL FIX: Use HiBrandTiers to display tier name (not raw database value)
+    const tierIndicator = document.getElementById('hi-tier-indicator');
+    if (tierIndicator && membership?.tier && window.HiBrandTiers) {
+      window.HiBrandTiers.updateTierPill(tierIndicator, membership.tier, {
+        showEmoji: false,
+        useGradient: false
+      });
+      console.log('[Dashboard][AuthReady] Tier updated via HiBrandTiers:', membership.tier);
+    } else if (tierIndicator && membership?.tier) {
+      // Fallback if HiBrandTiers not loaded yet
+      tierIndicator.textContent = membership.tier.toUpperCase();
+      console.warn('[Dashboard][AuthReady] HiBrandTiers not available, using fallback');
+    }
+    
     const adminLinks = document.querySelectorAll('.admin-item');
     const isMembershipAdmin = !!membership?.is_admin;
     let hasDbAdminAccess = false;
