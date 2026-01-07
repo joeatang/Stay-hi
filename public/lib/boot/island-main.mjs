@@ -126,25 +126,33 @@ function setupMembershipTierListener() {
   console.log('✅ Tier pill listener active on Hi Island');
 }
 
-function updateTierPill(tier) {
+function updateTierPill(tierFromEvent) {
   const tierPill = document.querySelector('[data-tier-pill]');
   if (!tierPill) return;
   
   // Remove loading state
   tierPill.classList.remove('loading');
   
-  // Update text
-  const displayTier = tier.toUpperCase();
-  tierPill.textContent = displayTier;
+  // ✅ GOLD STANDARD: Use HiBrandTiers for consistent display across all pages
+  if (window.HiBrandTiers) {
+    window.HiBrandTiers.updateTierPill(tierPill, tierFromEvent, {
+      showEmoji: false,
+      useGradient: false
+    });
+    console.log('🎯 Tier pill updated via HiBrandTiers:', tierFromEvent);
+  } else {
+    // Fallback if HiBrandTiers not loaded
+    const displayTier = tierFromEvent.toUpperCase();
+    tierPill.textContent = displayTier;
+    console.log('🎯 Tier pill updated (fallback):', displayTier);
+  }
   
   // Cache for next load
   try {
-    localStorage.setItem('hi_membership_tier', tier);
+    localStorage.setItem('hi_membership_tier', tierFromEvent);
   } catch (e) {
     // Silent fail
   }
-  
-  console.log('🎯 Tier pill updated:', displayTier);
 }
 
 function initializeTabSystem() {

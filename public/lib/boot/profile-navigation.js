@@ -200,22 +200,35 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let tierKey = 'anonymous';
     
-    // ✅ CRITICAL: Check hi:auth-ready event detail FIRST (authoritative source from database)
+    // ✅ GOLD STANDARD: Priority order for tier sources
+    // 1. Event detail from hi:auth-ready (authoritative from database RPC)
     if (eventOrTier?.detail?.membership?.tier) {
       tierKey = eventOrTier.detail.membership.tier;
-    } else if (typeof eventOrTier === 'string') {
+    } 
+    // 2. Direct string parameter
+    else if (typeof eventOrTier === 'string') {
       tierKey = eventOrTier;
-    } else if (window.__hiMembership?.tier) {
-      // Check AuthReady cached membership
+    } 
+    // 3. AuthReady cached membership (window.__hiMembership set by AuthReady.js)
+    else if (window.__hiMembership?.tier) {
       tierKey = window.__hiMembership.tier;
-    } else if (window.unifiedMembership?.membershipStatus?.tier) {
+    } 
+    // 4. Legacy unifiedMembership (older system)
+    else if (window.unifiedMembership?.membershipStatus?.tier) {
       tierKey = window.unifiedMembership.membershipStatus.tier;
-    } else if (window.HiMembership?.currentUser?.tierInfo?.name) {
+    } 
+    // 5. HiMembership legacy
+    else if (window.HiMembership?.currentUser?.tierInfo?.name) {
       tierKey = window.HiMembership.currentUser.tierInfo.name.toLowerCase();
+    }
+    // 6. LocalStorage fallback
+    else {
+      const cached = localStorage.getItem('hi_membership_tier');
+      if (cached) tierKey = cached;
     }
     
     window.HiBrandTiers.updateTierPill(tierIndicator, tierKey, {
-      showEmoji: true,  // ✅ FIXED: Show emoji + branded name ("🧭 Hi Pathfinder")
+      showEmoji: true,  // ✅ Profile shows emoji + branded name ("🧭 Hi Pathfinder")
       useGradient: false
     });
     
