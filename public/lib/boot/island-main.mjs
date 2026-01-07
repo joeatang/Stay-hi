@@ -143,10 +143,15 @@ function updateTierPill(tierFromEvent) {
     });
     console.log('🎯 Tier pill updated via HiBrandTiers:', tierFromEvent);
   } else {
-    // Fallback if HiBrandTiers not loaded
-    const displayTier = tierFromEvent.toUpperCase();
-    tierPill.textContent = displayTier;
-    console.log('🎯 Tier pill updated (fallback):', displayTier);
+    // Fallback if HiBrandTiers not loaded yet - use branded name or capitalize tier
+    const fallbackName = window.HiBrandTiers?.getName?.(tierFromEvent) || tierFromEvent.charAt(0).toUpperCase() + tierFromEvent.slice(1);
+    const tierText = tierPill.querySelector('.tier-text');
+    if (tierText) {
+      tierText.textContent = fallbackName;
+    } else {
+      tierPill.textContent = fallbackName;
+    }
+    console.warn('🎯 Tier pill updated (fallback - HiBrandTiers not loaded):', fallbackName);
   }
   
   // Cache for next load
