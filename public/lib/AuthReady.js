@@ -1,6 +1,6 @@
 // AuthReady - Unified session + membership orchestrator
 // HI-OS: Emits 'hi:auth-ready' once with { session, membership }
-import { getHiSupabase } from './HiSupabase.v3.js';
+import { getHiSupabase } from './HiSupabase.js';
 
 let _ready = false;
 let _emitted = false;

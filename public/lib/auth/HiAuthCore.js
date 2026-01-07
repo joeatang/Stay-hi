@@ -1,7 +1,7 @@
 // HiAuthCore - Unified Auth wrapper around Supabase v3 client
 // Provides a minimal, consistent API for pages and dev tools.
 // Uses resilient client from HiSupabase.v3 and relies on AuthReady to broadcast hi:auth-ready once.
-import { getHiSupabase } from '../HiSupabase.v3.js';
+import { getHiSupabase } from '../HiSupabase.js';
 import '../AuthReady.js';
 
 class HiAuthCore {

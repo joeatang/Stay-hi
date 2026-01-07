@@ -1,4 +1,4 @@
-import { supabase } from "./HiSupabase.v3.js";
+import { supabase } from "./HiSupabase.js";
 
 // HI-OS S10: v3-only stats fetch, behind flag
 export async function getGlobalStats() {

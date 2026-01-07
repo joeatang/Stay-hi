@@ -7,7 +7,7 @@
 
 // HI-OS S9a: legacy HiSupabase.js disabled to stop 404
 // import { getClient } from '/lib/HiSupabase.js';
-import { supabase as getClient } from '../HiSupabase.v3.js';
+import { supabase as getClient } from '../HiSupabase.js';
 // import { isEnabledFor, getIdentity, getRollout } from '../rollout/HiRollout.js'; // Disabled - HiRollout not available in public
 
 // Fallback rollout functions (simplified)
