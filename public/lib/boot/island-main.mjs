@@ -128,7 +128,8 @@ function setupMembershipTierListener() {
 }
 
 function updateTierPill(tierFromEvent) {
-  const tierPill = document.querySelector('[data-tier-pill]');
+  // 🔥 FIX: Use same selector as setupMembershipTierListener (consistency)
+  const tierPill = document.getElementById('hi-tier-indicator') || document.querySelector('[data-tier-pill]');
   if (!tierPill) return;
   
   // Remove loading state
