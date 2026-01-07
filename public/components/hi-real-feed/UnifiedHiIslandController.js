@@ -405,6 +405,9 @@ class UnifiedHiIslandController {
   }
 }
 
+// Export class to window for island-main.mjs (needs the class, not instance)
+window.UnifiedHiIslandController = UnifiedHiIslandController;
+
 // Create global instance with correct name for island-main.mjs
 const controller = new UnifiedHiIslandController();
 window.unifiedHiIslandController = controller;
