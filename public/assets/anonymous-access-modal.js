@@ -33,13 +33,14 @@ class AnonymousAccessModal {
       }
     }, { once: true });
     
-    // Fallback: If AuthReady doesn't fire in 3s, check anyway
+    // 🔥 CRITICAL FIX: Increase fallback timeout from 3s to 12s (longer than DependencyManager 10s timeout)
+    // This prevents modal from showing while auth systems are still loading
     setTimeout(() => {
       if (!this.authReadyFired && !this.isShown && !this.checkInProgress) {
-        console.log('⚠️ AuthReady timeout, checking auth status as fallback...');
+        console.log('⚠️ AuthReady timeout (12s), checking auth status as fallback...');
         this.checkAccessOnLoad();
       }
-    }, 3000);
+    }, 12000);
     
     // Listen for access check requests
     window.addEventListener('checkAnonymousAccess', (e) => {
