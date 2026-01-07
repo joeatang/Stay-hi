@@ -11,20 +11,6 @@ const OFFLINE_FALLBACK = '/public/offline.html';
 // 🔥 CRITICAL: Force immediate activation on mobile Chrome
 self.addEventListener('install', (event) => {
   console.log(`[SW] Installing new service worker ${BUILD_TAG} ${CACHE_NAME}`);
-  event.waitUntil(self.skipWaiting()); // Don't wait for old SW to finish
-});
-
-// Core app shell files that should always be cached
-const APP_SHELL_FILES = [
-  '/',
-  '/welcome.html',
-  '/hi-dashboard.html',
-  '/hi-mission-control.html',
-  '/admin-self-check.html',
-  OFFLINE_FALLBACK,
-  '/signin.html', 
-  '/signup.html',
-  '/index.html',
   '/hi-island-NEW.html',
   '/hi-muscle.html',
   '/profile.html',
