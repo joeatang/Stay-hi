@@ -4150,6 +4150,17 @@ FOR INSERT WITH CHECK (
             10000 // 10 second timeout
           );
           console.log('✅ All dependencies ready');
+          
+          // 🏆 WOZ FIX: Initialize ProfileManager to load user data
+          if (window.ProfileManager && !window.ProfileManager.isReady()) {
+            console.log('🏆 Initializing ProfileManager...');
+            try {
+              await window.ProfileManager.init();
+              console.log('✅ ProfileManager ready');
+            } catch (error) {
+              console.warn('⚠️ ProfileManager init failed (non-critical):', error);
+            }
+          }
         } catch (error) {
           console.error('⚠️ Dependency timeout:', error);
           // Show user-friendly error UI
