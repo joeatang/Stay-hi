@@ -165,7 +165,7 @@ try {
   }
 } catch(_) { /* swallow */ }
 
-// ES6 EXPORTS: For modules that import (HiFlags.js, AuthReady.js, etc.)
-// These work when loaded as type="module" only
-export const supabase = createdClient;
-export { getHiSupabase, getClient };
+// ES6 EXPORTS: Commented out to prevent "Unexpected token 'export'" errors
+// When needed by modules, they can import from wrapper file HiSupabase.js
+// export const supabase = createdClient;
+// export { getHiSupabase, getClient };
