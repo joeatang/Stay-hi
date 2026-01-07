@@ -81,10 +81,11 @@ async function initHiIsland() {
 
 // 🎯 Membership Tier Listener (Hi Island Parity with Dashboard)
 function setupMembershipTierListener() {
-  const tierPill = document.querySelector('[data-tier-pill]');
+  // 🔥 FIX: Hi Island uses #hi-tier-indicator, not [data-tier-pill]
+  const tierPill = document.getElementById('hi-tier-indicator') || document.querySelector('[data-tier-pill]');
   
   if (!tierPill) {
-    console.warn('⚠️ Tier pill not found on Hi Island');
+    console.warn('⚠️ Tier pill not found on Hi Island (tried #hi-tier-indicator and [data-tier-pill])');
     return;
   }
   

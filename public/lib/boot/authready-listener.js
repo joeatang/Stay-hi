@@ -12,9 +12,15 @@ window.addEventListener('hi:auth-ready', async (e) => {
       });
       console.log('[Dashboard][AuthReady] Tier updated via HiBrandTiers:', membership.tier);
     } else if (tierIndicator && membership?.tier) {
-      // Fallback if HiBrandTiers not loaded yet
-      tierIndicator.textContent = membership.tier.toUpperCase();
-      console.warn('[Dashboard][AuthReady] HiBrandTiers not available, using fallback');
+      // Fallback if HiBrandTiers not loaded yet - use branded name or capitalize tier
+      const fallbackName = window.HiBrandTiers?.getName?.(membership.tier) || membership.tier.charAt(0).toUpperCase() + membership.tier.slice(1);
+      const tierText = tierIndicator.querySelector('.tier-text');
+      if (tierText) {
+        tierText.textContent = fallbackName;
+      } else {
+        tierIndicator.textContent = fallbackName;
+      }
+      console.warn('[Dashboard][AuthReady] HiBrandTiers updateTierPill not available, using fallback name:', fallbackName);
     }
     
     const adminLinks = document.querySelectorAll('.admin-item');

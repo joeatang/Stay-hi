@@ -90,7 +90,9 @@
   <script src="./lib/boot/dependency-manager.js"></script>
   <!-- Tesla-grade auth system - health monitor first -->
   <script src="assets/url-path-fixer.js"></script>
-  <script src="./lib/HiSupabase.js" type="module"></script>
+  <!-- 🔥 FIX: Load HiSupabase.v3.js (actual client) + AuthReady.js for tier data -->
+  <script src="./lib/HiSupabase.v3.js"></script>
+  <script src="./lib/AuthReady.js" type="module"></script>
   <!-- Auth resilience for mobile session persistence -->
   <script src="./lib/auth/auth-resilience.js"></script>
   <!-- Unified Access Gate (replaces legacy anonymous modal) -->
