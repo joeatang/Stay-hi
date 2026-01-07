@@ -1726,7 +1726,8 @@
   <!-- 🏆 WOZ FIX: ProfileManager - Single Source of Truth -->
   <script src="./lib/ProfileManager.js"></script>
   
-  <script src="./lib/HiDB.js" defer></script>
+  <!-- 🔥 CRITICAL: No defer - must be ready before island-main.mjs checks for it -->
+  <script src="./lib/HiDB.js"></script>
   <script src="assets/avatar-utils.js"></script>
   <script src="assets/geocoding-service.js"></script>
   
