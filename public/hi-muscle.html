@@ -93,9 +93,9 @@
   <script src="assets/url-path-fixer.js"></script>
   <!-- 🔥 FIX: Load HiSupabase.v3.js (actual client) + AuthReady.js for tier data -->
   <script src="./lib/HiSupabase.v3.js"></script>
-  <script type="module">import('./lib/AuthReady.js?v='+window.CACHE_VERSION);</script>
+  <script type="module" src="./lib/AuthReady.js?v=20260108-v2"></script>
   <!-- 🎯 UNIVERSAL TIER LISTENER: Single source of truth for tier display across all pages -->
-  <script type="module">import('./lib/boot/universal-tier-listener.js?v='+window.CACHE_VERSION);</script>
+  <script type="module" src="./lib/boot/universal-tier-listener.js?v=20260108-v2"></script>
   <!-- Auth resilience for mobile session persistence -->
   <script src="./lib/auth/auth-resilience.js"></script>
   <!-- Unified Access Gate (replaces legacy anonymous modal) -->
