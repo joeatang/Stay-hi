@@ -3343,33 +3343,13 @@ FOR INSERT WITH CHECK (
         
         console.log('✅ Using ProfileManager as single source of truth');
         
-        // 🔥 CRITICAL: ProfileManager._waitForAuth() hangs if called INSIDE auth-ready handler!
-        // Manually set auth state to avoid circular wait
-        if (session?.user && !window.ProfileManager._initialized) {
-          console.log('🚀 Manually initializing ProfileManager from auth-ready...');
-          window.ProfileManager._userId = session.user.id;
-          window.ProfileManager._authReady = true;
-          
-          // Load profile from database directly
-          try {
-            const sb = window.hiSupabase || window.supabase;
-            if (sb) {
-              const { data: dbProfile } = await sb
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
-              
-              if (dbProfile) {
-                window.ProfileManager._profile = dbProfile;
-                console.log('✅ Profile loaded from database:', dbProfile.username);
-              }
-            }
-          } catch (error) {
-            console.warn('⚠️ Could not load profile from DB:', error);
-          }
-          
-          window.ProfileManager._initialized = true;
+        // 🏆 GOLD STANDARD: Let ProfileManager init itself (removes race condition)
+        // ProfileManager.init() already loads from database properly
+        // Manual initialization was causing state desync and profile data loss
+        if (!window.ProfileManager._initialized) {
+          console.log('🚀 Waiting for ProfileManager to initialize...');
+          await window.ProfileManager.init();
+          console.log('✅ ProfileManager initialized');
         }
         
         // Check if user is authenticated
