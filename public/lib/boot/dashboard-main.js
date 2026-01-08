@@ -1139,18 +1139,9 @@
       if (e.persisted) {
         console.log('🔄 Page restored from BFCache - reinitializing auth and UI');
         
-        // 🔥 MOBILE FIX: Reinitialize auth state (tier pill, membership)
-        if (window.getAuthState && window.HiBrandTiers && window.__hiMembership) {
-          try {
-            const authState = window.getAuthState();
-            if (authState?.session && window.__hiMembership) {
-              console.log('[BFCache] Reinitializing tier display:', window.__hiMembership.tier);
-              window.HiBrandTiers.updateTierPill(window.__hiMembership);
-            }
-          } catch (err) {
-            console.error('[BFCache] Failed to reinit tier display:', err);
-          }
-        }
+        // ✅ ARCHITECTURAL FIX: Let universal-tier-listener.js handle tier display
+        // It listens to AuthReady's hi:auth-ready event and updates pill correctly
+        // No need for duplicate tier update logic here
         
         // Refresh stats
         safeRefresh();
