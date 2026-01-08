@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <!-- 🎯 CACHE BUSTER: Increment on each deployment to force fresh JS/CSS load -->
+  <script>window.CACHE_VERSION='20260108-v1';</script>
+  
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   
@@ -1724,10 +1727,10 @@
   <script src="./lib/auth/auth-resilience.js?v=20260104-auth-fix"></script>
   
   <!-- 🔥 MOBILE FIX: AuthReady orchestrator - handles bfcache restoration -->
-  <script type="module" src="./lib/AuthReady.js"></script>
+  <script type="module">import('./lib/AuthReady.js?v='+window.CACHE_VERSION);</script>
   
   <!-- � UNIVERSAL TIER LISTENER: Single source of truth for tier display across all pages -->
-  <script src="./lib/boot/universal-tier-listener.js"></script>
+  <script type="module">import('./lib/boot/universal-tier-listener.js?v='+window.CACHE_VERSION);</script>
   
   <!-- �🏆 WOZ FIX: ProfileManager - Single Source of Truth -->
   <script src="./lib/ProfileManager.js"></script>
