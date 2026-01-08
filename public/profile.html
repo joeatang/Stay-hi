@@ -3030,7 +3030,8 @@ FOR INSERT WITH CHECK (
     }
 
     async function saveProfileToSupabase(profile) {
-      try {Supabase client with fallback
+      try {
+        // Supabase client with fallback
         const client = window.supabaseClient || window.hiSupabase || window.sb || window.__HI_SUPABASE_CLIENT;
         if (!client) {
           console.warn('⚠️ No Supabase client available');
@@ -3051,8 +3052,7 @@ FOR INSERT WITH CHECK (
           avatar_url: profile.avatar_url
         });
 
-        const { data, error } = await c
-        const { data, error } = await window.supabaseClient
+        const { data, error } = await client
           .from('profiles')
           .upsert({
             id: user.id, // Use auth user UUID, not username

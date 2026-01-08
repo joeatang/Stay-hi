@@ -8,52 +8,6 @@ const CACHE_NAME = 'hi-collective-v1.4.3-no-html-cache';
 const STATIC_CACHE_NAME = 'hi-static-v1.4.3-no-html-cache';
 const OFFLINE_FALLBACK = '/public/offline.html';
 
-// 🔥 CRITICAL: Force immediate activation on mobile Chrome
-self.addEventListener('install', (event) => {
-  console.log(`[SW] Installing new service worker ${BUILD_TAG} ${CACHE_NAME}`);
-  '/hi-island-NEW.html',
-  '/hi-muscle.html',
-  '/profile.html',
-  '/calendar.html',
-  
-  // Core assets
-  '/assets/theme.css',
-  '/assets/create-parity.css',
-  '/assets/premium-ux.css',
-  '/assets/tesla-mobile-fixes.css',
-  
-  // Core scripts
-  '/assets/supabase-init.js',
-  '/assets/auth-guard.js',
-  // '/assets/tesla-smooth-redirect.js', // File removed
-  '/assets/tesla-instant-auth.js',
-  '/assets/db.js',
-  '/assets/header.js',
-  
-  // Brand assets
-  '/assets/brand/hi-logo-light.png',
-  '/assets/brand/hi-logo-dark.png',
-  '/assets/brand/hi-logo-192.png',
-  '/assets/brand/hi-logo-512.png',
-  '/assets/brand/hi-logo-light.webp',
-  '/assets/brand/hi-logo-dark.webp',
-  '/assets/brand/hi-logo-192.webp',
-  '/assets/brand/hi-logo-512.webp',
-  '/assets/brand/hi-logo-light.avif',
-  '/assets/brand/hi-logo-dark.avif',
-  '/assets/brand/hi-logo-192.avif',
-  '/assets/brand/hi-logo-512.avif',
-
-  // Critical styles
-  '/styles/hi-dashboard.css',
-
-  // WOZ FIX: DO NOT cache HiSupabase.v3.js or HiFlags.js
-  // These files change frequently and cause navigation breakage when stale
-  // Let browser handle them with normal HTTP caching
-  
-  // External dependencies (UMD Supabase removed: using ESM; avoid caching remote executable code)
-];
-
 // Adjust paths when scope is /public/ so we request existing files from python server
 function withScopePath(files) {
   try {
@@ -88,6 +42,30 @@ async function enforceDynamicCacheBudget() {
 // Dynamic content that should be cached but can be stale
 const DYNAMIC_CACHE_FILES = [
   // User profiles and data will be cached dynamically
+];
+
+// App shell files to precache
+const APP_SHELL_FILES = [
+  // HTML pages (network-first, but cache for offline)
+  '/',
+  '/hi-dashboard.html',
+  '/hi-island-NEW.html',
+  '/hi-muscle.html',
+  '/profile.html',
+  
+  // Core styles
+  '/assets/theme.css',
+  '/assets/premium-ux.css',
+  '/assets/tesla-mobile-fixes.css',
+  '/styles/hi-dashboard.css',
+  
+  // Brand assets
+  '/assets/brand/hi-logo-dark.png',
+  '/assets/brand/hi-logo-192.png',
+  '/assets/brand/hi-logo-512.png'
+  
+  // NOTE: Do NOT cache HiSupabase.v3.js or HiFlags.js - they change frequently
+  // NOTE: Supabase UMD CDN handled by browser caching
 ];
 
 // Install event - cache app shell

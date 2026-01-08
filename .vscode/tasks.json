@@ -167,6 +167,36 @@
 			"isBackground": false,
 			"problemMatcher": [],
 			"group": "test"
+		},
+		{
+			"label": "Git commit and push dashboard fix",
+			"type": "shell",
+			"command": "git add public/lib/boot/dashboard-main.js && git commit -m 'Fix tier regression by removing duplicate tier update in dashboard-main.js\n\nRoot cause: dashboard-main.js (line 1822) and dashboard-main.mjs (line 1870) both loading.\ndashboard-main.js had duplicate updateBrandTierDisplay() that defaulted to anonymous.\nThis overwrote correct tier from authready-listener.js causing flash then regression.\n\nRemoved lines 841-846: duplicate tier update system with anonymous default.\nTier display now handled exclusively by authready-listener.js (single source).\n\nFixes tier showing Bronze then Hi Friend regression for degenmentality@gmail.com' && git push origin main",
+			"group": "build"
+		},
+		{
+			"label": "Check git status",
+			"type": "shell",
+			"command": "git status && echo '---' && git log --oneline -3",
+			"group": "test"
+		},
+		{
+			"label": "Commit tier and service worker fixes",
+			"type": "shell",
+			"command": "git add public/sw.js public/hi-dashboard.html public/lib/boot/dashboard-main.js && git commit -m 'Fix dashboard tier display and service worker\n\n1. sw.js: Remove broken duplicate install event (lines 12-57)\n   - Syntax error: incomplete event handler with orphaned array\n   - Caused Uncaught SyntaxError preventing page load\n\n2. hi-dashboard.html: Load HiBrandTiers.js BEFORE authready-listener.js\n   - Moved from line 278 (defer) to line 188 (immediate)\n   - Prevents race condition where authready-listener fires before HiBrandTiers loads\n   - Same pattern as Hi Island/Hi Gym fixes\n\n3. dashboard-main.js: Remove duplicate updateBrandTierDisplay (lines 841-846)\n   - Competed with authready-listener causing tier regression\n   - Defaulted to anonymous overwriting correct tier\n\nFixes: tier showing Hi Friend instead of Hi Pathfinder for bronze users' && git push origin main",
+			"group": "build"
+		},
+		{
+			"label": "Push all fixes",
+			"type": "shell",
+			"command": "git add public/sw.js public/hi-dashboard.html public/lib/boot/dashboard-main.js public/profile.html && git commit -m 'Fix dashboard: sw.js APP_SHELL_FILES, tier display, profile syntax' && git push origin main",
+			"isBackground": false
+		},
+		{
+			"label": "Deploy fixes",
+			"type": "shell",
+			"command": "git add public/sw.js public/hi-dashboard.html public/lib/boot/dashboard-main.js public/profile.html && git commit -m 'Fix 7-day pill race condition + tier display + service worker\n\n1. dashboard-main.js:\n   - await initializeDatabase() to ensure ProfileManager ready before 7-day pill\n   - Deterministic anonymous preview (removed Math.random causing jitter)\n   - Removed duplicate tier updater (authready-listener.js is single source)\n\n2. sw.js: Added missing APP_SHELL_FILES constant\n\n3. hi-dashboard.html: Load HiBrandTiers.js before authready-listener.js\n\n4. profile.html: Fixed corrupted saveProfileToSupabase syntax' && git push origin main",
+			"isBackground": false
 		}
 	]
 }

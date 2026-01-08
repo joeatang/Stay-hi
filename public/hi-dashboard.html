@@ -185,6 +185,8 @@
   <script src="./lib/auth/auth-resilience.js"></script>
   <!-- Trial Manager: 14-day trial system (Jobs/Gary Vee/Woz-approved) -->
   <script src="./lib/trial/TrialManager.js"></script>
+  <!-- 🎯 HiBrandTiers: Must load BEFORE authready-listener.js (tier display dependency) -->
+  <script src="./lib/HiBrandTiers.js"></script>
   <!-- AuthReady orchestrator: unified session + membership (externalized) -->
   <script type="module" src="./lib/boot/authready-listener.js"></script>
   <!-- Membership bridge: unify events and simple API -->
@@ -275,7 +277,6 @@
   <!-- 🎯 TIER CONFIG - Must load BEFORE HiMembership.js -->
   <script src="./lib/config/TIER_CONFIG.js"></script>
   <script src="./lib/HiMembership.js" defer></script>
-  <script src="./lib/HiBrandTiers.js" defer></script>
   <script src="./lib/RealUserCount.js" defer></script>
   <script src="./lib/HiWavesRealtime.js" defer></script>
   <script type="module" src="./lib/HiPerformance.js"></script>

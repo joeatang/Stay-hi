@@ -672,13 +672,10 @@
   
   function generateAnonymousWeeklyPreview(){ 
     const activeDays=[]; 
-    const today=new Date(); 
-    const recentDays=Math.floor(Math.random()*2)+2; 
-    for(let i=0;i<recentDays;i++){ 
-      const d=new Date(today); 
-      d.setDate(today.getDate()-i); 
-      activeDays.push(d.toISOString().split('T')[0]); 
-    } 
+    const today=new Date();
+    // 🎯 FIX: Use deterministic preview (not random) to prevent visual jitter on refresh
+    // Show today only - consistent with "logged out, no streak" state
+    activeDays.push(today.toISOString().split('T')[0]);
     // 🎯 REGRESSION FIX: Include streakData for anonymous users too
     return { activeDays, source:'preview', streakData: { current: 0 } }; 
   }
@@ -742,7 +739,12 @@
 
     try { const currentPage={ url:location.href, name:'Dashboard', timestamp:Date.now() }; const navHistory=JSON.parse(sessionStorage.getItem('hiNavHistory')||'[]'); const filtered=navHistory.filter(p=>p.url!==currentPage.url); filtered.unshift(currentPage); filtered.splice(10); sessionStorage.setItem('hiNavHistory', JSON.stringify(filtered)); } catch{}
     setupNavigationHandler();
-    initializeDatabase();
+    
+    // 🎯 CRITICAL: Await initializeDatabase to ensure ProfileManager is ready
+    // Before: initializeDatabase() called without await → ProfileManager race condition
+    // After: await ensures ProfileManager.init() completes before 7-day pill setup
+    await initializeDatabase();
+    
     setupHiffirmationsHandler();
     setupFloatingHiffirmationsHandler();
     
@@ -838,12 +840,11 @@
       }
     })();
     
-    setTimeout(()=> updateBrandTierDisplay(),1000);
-    window.addEventListener('membershipStatusChanged', ()=> updateBrandTierDisplay());
-    window.addEventListener('hi:auth-ready', ()=> updateBrandTierDisplay()); // ✅ FIX: Update on auth ready
-    setTimeout(()=>{ if(window.unifiedMembership?.membershipStatus?.tier) updateBrandTierDisplay(); },2500);
-    setTimeout(()=>{ if(window.unifiedMembership?.membershipStatus?.tier) updateBrandTierDisplay(); },5000);
-    function updateBrandTierDisplay(){ const tierIndicator=document.getElementById('hi-tier-indicator'); if(!tierIndicator) return; if(!window.HiBrandTiers) return; let tierKey='anonymous'; if (window.unifiedMembership?.membershipStatus?.tier){ tierKey=window.unifiedMembership.membershipStatus.tier; } else if (window.HiMembership?.currentUser?.tierInfo?.name){ tierKey=window.HiMembership.currentUser.tierInfo.name.toLowerCase(); } window.HiBrandTiers.updateTierPill(tierIndicator, tierKey,{ showEmoji:false, useGradient:false }); }
+    // 🔥 TIER UPDATE SYSTEM REMOVED - Handled by authready-listener.js ONLY
+    // Previously had duplicate updateBrandTierDisplay() here competing with authready-listener.js
+    // This caused tier to show correct value then regress to 'anonymous' default
+    // See dashboard-main.mjs for detailed architectural explanation
+    
     initializeHiExperienceLayer();
     setTimeout(()=> updateStatsUI(),50);
     setTimeout(()=> updateStatsUI(),500);
