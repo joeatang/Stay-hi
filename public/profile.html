@@ -1591,8 +1591,9 @@
                     const status = document.getElementById('checkinStatus');
                     btn.disabled = true; btn.textContent = 'Checking...';
                     try {
-                      // 🔥 FIX: Use correct RPC name - checkin_and_award_points
-                      const { data, error } = await client.rpc('checkin_and_award_points');
+                      // 🏆 GOLD STANDARD FIX: Correct function name is hi_award_points (not checkin_and_award_points)
+                      // Database schema was updated but code wasn't - this is the root cause of the error
+                      const { data, error } = await client.rpc('hi_award_points', { action: 'daily_checkin' });
                       console.log('📬 Check-in RPC response:', { data, error });
                       
                       if(error){ 
