@@ -3348,8 +3348,32 @@ FOR INSERT WITH CHECK (
         // Manual initialization was causing state desync and profile data loss
         if (!window.ProfileManager._initialized) {
           console.log('🚀 Waiting for ProfileManager to initialize...');
+          console.log('🔍 [Profile Debug] ProfileManager state before init:', {
+            initialized: window.ProfileManager._initialized,
+            authReady: window.ProfileManager._authReady,
+            userId: window.ProfileManager._userId,
+            hasProfile: !!window.ProfileManager._profile
+          });
+          
           await window.ProfileManager.init();
+          
           console.log('✅ ProfileManager initialized');
+          console.log('🔍 [Profile Debug] ProfileManager state after init:', {
+            initialized: window.ProfileManager._initialized,
+            authReady: window.ProfileManager._authReady,
+            userId: window.ProfileManager._userId,
+            hasProfile: !!window.ProfileManager._profile,
+            profile: window.ProfileManager._profile
+          });
+        } else {
+          console.log('⚡ ProfileManager already initialized');
+          console.log('🔍 [Profile Debug] Current state:', {
+            initialized: window.ProfileManager._initialized,
+            authReady: window.ProfileManager._authReady,
+            userId: window.ProfileManager._userId,
+            hasProfile: !!window.ProfileManager._profile,
+            profile: window.ProfileManager._profile
+          });
         }
         
         // Check if user is authenticated
