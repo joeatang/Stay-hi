@@ -368,21 +368,26 @@ async function generateInviteCode() {
       if (!sb) throw new Error('Supabase client unavailable');
       
       console.log('🎫 Generating invitation code (fallback)...');
+      // 🔥 FIX: Use MASTER TIER SYSTEM parameters (p_tier required)
       const { data, error } = await sb.rpc('admin_generate_invite_code', {
+        p_tier: 'bronze',            // Default to bronze tier (7-day trial)
+        p_trial_days: null,          // Use tier default
         p_max_uses: 1,
-        p_expires_in_hours: 168 // 7 days
+        p_expires_in_hours: 168      // 7 days
       });
       
       if (error) throw error;
       if (!data?.success) throw new Error(data?.message || 'Generation failed');
       
-      console.log('✅ Invite code generated:', data.code);
-      showSuccess(`Code generated: ${data.code} (expires in 7 days)`);
+      console.log('✅ Invite code generated:', data.code, 'Tier:', data.tier, 'Trial:', data.trial_days, 'days');
+      showSuccess(`Code generated: ${data.code} (${data.tier.toUpperCase()} tier, ${data.trial_days} day trial, expires in 7 days)`);
       
       // Show code in results
       const expiry = new Date(data.expires_at).toLocaleString();
       showResults('New Invitation Code', 
         `Code: ${data.code}\n` +
+        `Tier: ${data.tier.toUpperCase()}\n` +
+        `Trial Duration: ${data.trial_days} days\n` +
         `Expires: ${expiry}\n` +
         `Max Uses: ${data.max_uses}\n` +
         `ID: ${data.id}`

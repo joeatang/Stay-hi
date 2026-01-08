@@ -173,7 +173,24 @@ async function recheckAuth(source) {
       if (session) {
         console.log('[AuthReady] ✅ Session restored successfully');
         // Refresh membership
-        const membership = await fetchMembership(sb);
+        let membership = await fetchMembership(sb);
+        
+        // 🔥 MOBILE FIX: If membership fetch fails/times out, use cached data as fallback
+        if (!membership) {
+          const cachedTier = localStorage.getItem('hi_membership_tier');
+          const cachedAdmin = localStorage.getItem('hi_membership_is_admin');
+          if (cachedTier) {
+            console.log('[AuthReady] 📱 RPC timeout - using cached membership:', cachedTier);
+            membership = {
+              tier: cachedTier,
+              is_admin: cachedAdmin === '1',
+              cached: true // Flag so UI knows this is stale data
+            };
+          } else {
+            console.error('[AuthReady] ❌ No membership from RPC and no cache - tier will be missing!');
+          }
+        }
+        
         _result = { session, membership };
         if (membership) {
           window.__hiMembership = membership;

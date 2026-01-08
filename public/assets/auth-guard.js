@@ -79,16 +79,27 @@
   // Check if user is authenticated with Tesla-grade session validation + membership expiration
   async function isAuthenticated() {
     try {
-      // 🔥 MOBILE FIX: Wait for auth-resilience to complete initial session restoration
-      // This prevents redirect before session recovery on mobile
-      if (window.__hiAuthResilience && !window.__hiAuthResilience.isReady) {
-        console.log('[auth-guard] ⏳ Waiting for auth-resilience to complete session check...');
-        await new Promise((resolve) => {
-          window.addEventListener('auth-resilience-ready', resolve, { once: true });
-          // Timeout after 3 seconds
-          setTimeout(resolve, 3000);
-        });
-        console.log('[auth-guard] ✅ Auth-resilience ready');
+      // 🔥 WOZ FIX: Wait for auth-resilience using direct promise (not event)
+      // Events can be missed if fired before listener attached (mobile race condition)
+      if (window.__hiAuthResilience) {
+        if (!window.__hiAuthResilience.isReady) {
+          console.log('[auth-guard] ⏳ Waiting for auth-resilience initial check...');
+          
+          // Try direct promise wait first (most reliable)
+          if (typeof window.__hiAuthResilience.waitForInitialCheck === 'function') {
+            await window.__hiAuthResilience.waitForInitialCheck();
+            console.log('[auth-guard] ✅ Auth-resilience ready (via promise)');
+          } else {
+            // Fallback to event listener with timeout
+            await new Promise((resolve) => {
+              window.addEventListener('auth-resilience-ready', resolve, { once: true });
+              setTimeout(resolve, 3000); // Timeout safety
+            });
+            console.log('[auth-guard] ✅ Auth-resilience ready (via event)');
+          }
+        } else {
+          console.log('[auth-guard] ✅ Auth-resilience already ready');
+        }
       }
       
       const sb = await waitForSupabase();

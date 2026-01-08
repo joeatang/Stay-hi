@@ -76,6 +76,11 @@
         : { current: 0, longest: 0, lastHiDate: null, source: 'fallback' };
       updateStreakDisplay(streak.current);
       
+      // 🚀 CACHE: Save streak for next navigation
+      if (window.NavCache) {
+        window.NavCache.setStreak(streak);
+      }
+      
       __dbg(`🔥 Streak loaded: ${streak.current} (source: ${streak.source || 'authority'})`);
       import('../monitoring/HiMonitor.js').then(m => m.trackEvent('streak_load', { 
         source: 'dashboard', 
@@ -477,6 +482,59 @@
 
       setupWeeklyProgressRunning = true;
       console.log('🎯 [7-DAY PILL] Starting setupWeeklyProgress...');
+      
+      // 🚀 FAST PATH: Check cache first for instant display
+      if (window.NavCache) {
+        const cachedStreak = window.NavCache.getStreak();
+        if (cachedStreak && !cachedStreak.needsRefresh) {
+          console.log('⚡ [7-DAY PILL] Using cached streak for instant display:', cachedStreak);
+          const weekStrip = document.getElementById('weekStrip');
+          if (!weekStrip) {
+            console.warn('⚠️ [7-DAY PILL] weekStrip element not found');
+            setupWeeklyProgressRunning = false;
+            return;
+          }
+          
+          // Generate weekly display from cached streak
+          const weeklyData = generateWeeklyFromStreak(cachedStreak);
+          
+          // Render immediately
+          const today = new Date();
+          let html = '';
+          for (let i = 6; i >= 0; i--) {
+            const date = new Date(today);
+            date.setDate(today.getDate() - i);
+            const label = date.toLocaleDateString(undefined, {weekday: 'short'}).toUpperCase();
+            const dayNum = date.getDate();
+            const isToday = i === 0;
+            const dateKey = date.toISOString().split('T')[0];
+            const metClass = weeklyData.activeDays.includes(dateKey) ? 'met' : '';
+            const hasMilestone = isToday && weeklyData.milestone?.current;
+            const milestoneClass = hasMilestone ? 'milestone' : '';
+            const ariaLabel = `${label} ${dayNum}${isToday ? ', today' : ''}${metClass ? ', completed' : ', not completed'}${hasMilestone ? `, ${weeklyData.milestone.current.name} milestone reached` : ''}`;
+            
+            html += `<div class="weekdot ${isToday ? 'today' : ''} ${milestoneClass}" 
+                          role="img" 
+                          aria-label="${ariaLabel}"
+                          data-date="${dateKey}"
+                          style="animation-delay: ${(6-i) * 50}ms">
+                      <div class="lbl">${label}</div>
+                      <div class="c ${metClass}">
+                        ${dayNum}
+                        ${hasMilestone ? `<div class="milestone-badge" role="img" aria-label="${weeklyData.milestone.current.emoji} ${weeklyData.milestone.current.name}">${weeklyData.milestone.current.emoji}</div>` : ''}
+                      </div>
+                    </div>`;
+          }
+          weekStrip.innerHTML = html;
+          requestAnimationFrame(() => {
+            weekStrip.querySelectorAll('.weekdot').forEach(dot => dot.classList.add('fade-in'));
+          });
+          
+          console.log('✅ [7-DAY PILL] Used cached streak, skipping database query');
+          setupWeeklyProgressRunning = false;
+          return;
+        }
+      }
 
       const weekStrip = document.getElementById('weekStrip');
       if (!weekStrip) {
@@ -900,6 +958,39 @@
   async function loadCurrentStatsFromDatabase(){ 
     console.log('🔄 Background loading real stats from database...');
     
+    // 🚀 FAST PATH: Check cache first for instant display
+    if (window.NavCache) {
+      const cachedStats = window.NavCache.getStats();
+      if (cachedStats && !window._statsDisplayedFromCache) {
+        console.log('🚀 [INSTANT LOAD] Using cached stats for instant display:', cachedStats);
+        
+        // Display cached values immediately
+        if (cachedStats.hi_waves != null) {
+          window.gWaves = cachedStats.hi_waves;
+          window.__wavesConfirmed = true;
+        }
+        if (cachedStats.total_his != null) {
+          window.gTotalHis = cachedStats.total_his;
+          window._gTotalHisIsTemporary = false;
+        }
+        if (cachedStats.total_users != null) {
+          window.gUsers = cachedStats.total_users;
+          window.__usersConfirmed = true;
+        }
+        
+        updateStatsUI();
+        window._statsDisplayedFromCache = true;
+        
+        // Continue to background refresh if cache needs refresh
+        if (cachedStats.needsRefresh) {
+          console.log('🔄 Cache expired, refreshing in background...');
+        } else {
+          console.log('✅ Cache fresh, no refresh needed');
+          return; // Skip database query if cache is fresh
+        }
+      }
+    }
+    
     // 🎯 SURGICAL FIX: Dedupe guard to prevent concurrent refreshes
     if (window.__statsRefreshInProgress) {
       console.log('⏭️ Stats refresh already in progress, skipping');
@@ -948,6 +1039,17 @@
                 window.gUsers = data.total_users;
                 window.__usersConfirmed = true;
               }
+              
+              // 🚀 CACHE: Update NavigationStateCache with fresh database values
+              if (window.NavCache) {
+                window.NavCache.setStats({
+                  hi_waves: window.gWaves,
+                  total_his: window.gTotalHis,
+                  total_users: window.gUsers
+                });
+                console.log('✅ Stats cached for next navigation');
+              }
+              
               // 🔧 FIX: Use unified cache keys (matching UnifiedStatsLoader.js)
               localStorage.setItem('globalHiWaves', String(window.gWaves));
               localStorage.setItem('globalTotalHis', String(window.gTotalHis));
@@ -1033,11 +1135,26 @@
       }
     });
     
-    window.addEventListener('pageshow', (e) => { 
+    window.addEventListener('pageshow', async (e) => { 
       if (e.persisted) {
-        console.log('🔄 Page restored from BFCache');
-      }
-      if (e.persisted || document.visibilityState === 'visible') {
+        console.log('🔄 Page restored from BFCache - reinitializing auth and UI');
+        
+        // 🔥 MOBILE FIX: Reinitialize auth state (tier pill, membership)
+        if (window.getAuthState && window.HiBrandTiers && window.__hiMembership) {
+          try {
+            const authState = window.getAuthState();
+            if (authState?.session && window.__hiMembership) {
+              console.log('[BFCache] Reinitializing tier display:', window.__hiMembership.tier);
+              window.HiBrandTiers.updateTierPill(window.__hiMembership);
+            }
+          } catch (err) {
+            console.error('[BFCache] Failed to reinit tier display:', err);
+          }
+        }
+        
+        // Refresh stats
+        safeRefresh();
+      } else if (document.visibilityState === 'visible') {
         safeRefresh(); 
       }
     });

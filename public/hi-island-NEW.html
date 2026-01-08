@@ -1723,6 +1723,9 @@
   <!-- 🚀 CRITICAL: Auth resilience layer (must load AFTER HiSupabase exists) -->
   <script src="./lib/auth/auth-resilience.js?v=20260104-auth-fix"></script>
   
+  <!-- 🔥 MOBILE FIX: AuthReady orchestrator - handles bfcache restoration -->
+  <script type="module" src="./lib/AuthReady.js"></script>
+  
   <!-- 🏆 WOZ FIX: ProfileManager - Single Source of Truth -->
   <script src="./lib/ProfileManager.js"></script>
   

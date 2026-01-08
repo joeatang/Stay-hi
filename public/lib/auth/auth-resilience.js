@@ -15,18 +15,32 @@
       this.isOnline = navigator.onLine;
       this.refreshTimer = null;
       this.isReady = false; // Track if initial session check is complete
+      this._sessionCheckPromise = null; // 🔥 WOZ FIX: Store promise for synchronous waiting
       
       console.log('[AuthResilience] Initializing...');
       
       // 🔥 MOBILE FIX: Check session immediately on page load
       // This handles the case where user returns to app after backgrounding
-      this.checkSession().then(() => {
+      // Store the promise so auth-guard can await it synchronously
+      this._sessionCheckPromise = this.checkSession().then(() => {
         this.isReady = true;
         window.dispatchEvent(new CustomEvent('auth-resilience-ready'));
         console.log('[AuthResilience] ✅ Initial session check complete');
+      }).catch((err) => {
+        console.error('[AuthResilience] ❌ Initial session check failed:', err);
+        this.isReady = true; // Set ready even on failure to unblock auth-guard
+        window.dispatchEvent(new CustomEvent('auth-resilience-ready'));
       });
       
       this.init();
+    }
+    
+    // 🔥 WOZ FIX: Allow synchronous waiting for initial check
+    async waitForInitialCheck() {
+      if (this.isReady) return;
+      if (this._sessionCheckPromise) {
+        await this._sessionCheckPromise;
+      }
     }
     
     init() {
@@ -78,7 +92,12 @@
         // event.persisted = true means page was restored from bfcache (mobile backgrounding)
         if (event.persisted) {
           console.log('[AuthResilience] 📱 Mobile: Page restored from bfcache - checking session');
-          this.checkSession();
+          // 🔥 WOZ FIX: Mark as not ready during session restore
+          this.isReady = false;
+          this.checkSession().finally(() => {
+            this.isReady = true;
+            window.dispatchEvent(new CustomEvent('auth-resilience-ready'));
+          });
         }
       });
       
@@ -91,7 +110,10 @@
       // 🔥 MOBILE FIX: Handle app resume (Android/iOS)
       window.addEventListener('focus', () => {
         console.log('[AuthResilience] 📱 Mobile: Window focused - checking session');
-        this.checkSession();
+        // 🔥 WOZ FIX: Only re-check if not already checking
+        if (this.isReady) {
+          this.checkSession();
+        }
       });
     }
     

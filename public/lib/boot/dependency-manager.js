@@ -113,9 +113,18 @@
           return !!(window.HiBrandTiers && typeof window.HiBrandTiers.updateTierPill === 'function');
         
         case 'auth':
-          // Auth is ready if either AuthReady is initialized OR we have a cached session
-          return !!(window.isAuthReady && window.isAuthReady()) || 
-                 !!(window.getAuthState && window.getAuthState()?.ready);
+          // 🔥 FIX: Auth is ready if AuthReady is initialized (session + membership loaded)
+          // Check window.isAuthReady() function exists and returns true
+          if (window.isAuthReady && typeof window.isAuthReady === 'function' && window.isAuthReady()) {
+            return true;
+          }
+          // Fallback: Check if auth state exists with session (even if membership null)
+          if (window.getAuthState && typeof window.getAuthState === 'function') {
+            const state = window.getAuthState();
+            // Auth is "ready" if we have session OR explicitly checked (even if session is null)
+            return !!(state && (state.session !== undefined));
+          }
+          return false;
         
         default:
           // Generic check - just see if property exists and is truthy

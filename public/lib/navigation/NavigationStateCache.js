@@ -18,6 +18,7 @@ class NavigationStateCache {
       tier: null,
       profile: null,
       stats: null,
+      streak: null,
       lastUpdate: {}
     };
     
@@ -25,7 +26,8 @@ class NavigationStateCache {
       auth: 5 * 60 * 1000,      // 5 minutes
       tier: 10 * 60 * 1000,     // 10 minutes
       profile: 5 * 60 * 1000,   // 5 minutes
-      stats: 2 * 60 * 1000      // 2 minutes
+      stats: 2 * 60 * 1000,     // 2 minutes
+      streak: 5 * 60 * 1000     // 5 minutes
     };
     
     this.setupVisibilityListener();
@@ -148,6 +150,34 @@ class NavigationStateCache {
   }
   
   /**
+   * Cache streak data
+   */
+  setStreak(streakData) {
+    this.cache.streak = {
+      ...streakData,
+      timestamp: Date.now()
+    };
+    this.cache.lastUpdate.streak = Date.now();
+    console.log('💾 [NavCache] Streak cached:', streakData.current);
+  }
+  
+  /**
+   * Get cached streak (instant)
+   */
+  getStreak() {
+    if (!this.cache.streak) return null;
+    
+    const age = Date.now() - this.cache.lastUpdate.streak;
+    if (age > this.TTL.streak) {
+      console.log('⏰ [NavCache] Streak cache expired, needs refresh');
+      return { ...this.cache.streak, needsRefresh: true };
+    }
+    
+    console.log('⚡ [NavCache] Streak from cache (instant)');
+    return { ...this.cache.streak, needsRefresh: false };
+  }
+  
+  /**
    * Clear specific cache or all
    */
   clear(type = null) {
@@ -161,6 +191,7 @@ class NavigationStateCache {
         tier: null,
         profile: null,
         stats: null,
+        streak: null,
         lastUpdate: {}
       };
       console.log('🗑️ [NavCache] Cleared all');

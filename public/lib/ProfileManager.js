@@ -39,6 +39,7 @@ class ProfileManager {
   /**
    * Initialize ProfileManager - call once on app load
    * WOZ: Blocks until auth is ready, then loads profile from database
+   * 🚀 GOLD STANDARD: Checks cache first for instant loads on navigation
    */
   async init() {
     if (this._initialized) {
@@ -49,6 +50,39 @@ class ProfileManager {
     console.log('🚀 ProfileManager initializing...');
 
     try {
+      // 🚀 STEP 0: Check NavigationStateCache for instant load
+      if (window.NavCache) {
+        const cachedAuth = window.NavCache.getAuth();
+        const cachedProfile = window.NavCache.getProfile();
+        
+        if (cachedAuth && cachedProfile && !cachedAuth.needsRefresh) {
+          console.log('⚡ ProfileManager using cached data (instant load)');
+          this._userId = cachedAuth.userId;
+          this._authReady = true;
+          this._profile = cachedProfile;
+          this._initialized = true;
+          
+          // Fire auth-ready immediately with cached data
+          window.dispatchEvent(new CustomEvent('hi:auth-ready', {
+            detail: { 
+              userId: this._userId, 
+              authenticated: cachedAuth.isAuthenticated,
+              profile: this._profile,
+              fromCache: true
+            }
+          }));
+          console.log('⚡ Fast path: ProfileManager ready from cache');
+          
+          // Refresh in background if needed
+          if (cachedProfile.needsRefresh) {
+            console.log('🔄 Refreshing profile in background...');
+            this._refreshProfileInBackground();
+          }
+          
+          return; // Skip slow database path
+        }
+      }
+      
       // Step 1: Wait for Supabase client
       this._supabase = await this._waitForSupabase();
       
@@ -57,6 +91,14 @@ class ProfileManager {
       
       // Step 3: Load profile from database (no hardcoded defaults)
       await this._loadProfileFromDatabase();
+      
+      // 🚀 Cache the loaded data for next navigation
+      if (window.NavCache) {
+        window.NavCache.setAuth(this._userId);
+        if (this._profile) {
+          window.NavCache.setProfile(this._profile);
+        }
+      }
       
       // Step 4: Set up event listeners
       this._setupEventListeners();
@@ -74,7 +116,8 @@ class ProfileManager {
         detail: { 
           userId: this._userId, 
           authenticated: !!this._userId,
-          profile: this._profile
+          profile: this._profile,
+          fromCache: false
         }
       }));
       console.log('📢 Dispatched hi:auth-ready event');
@@ -436,6 +479,54 @@ class ProfileManager {
       avatar_url: null,
       created_at: new Date().toISOString()
     };
+  }
+  
+  /**
+   * 🚀 GOLD STANDARD: Refresh profile in background (after instant load from cache)
+   */
+  async _refreshProfileInBackground() {
+    try {
+      console.log('🔄 Background refresh: Loading fresh profile from database...');
+      
+      if (!this._supabase) {
+        this._supabase = await this._waitForSupabase();
+      }
+      
+      const { data, error } = await this._supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', this._userId)
+        .single();
+      
+      if (error) {
+        console.warn('⚠️ Background refresh failed:', error);
+        return;
+      }
+      
+      if (data) {
+        // Check if data actually changed
+        const changed = JSON.stringify(this._profile) !== JSON.stringify(data);
+        
+        if (changed) {
+          console.log('🔄 Profile data changed, updating...');
+          this._profile = data;
+          
+          // Update cache
+          if (window.NavCache) {
+            window.NavCache.setProfile(data);
+          }
+          
+          // Fire update event
+          window.dispatchEvent(new CustomEvent('profile:updated', {
+            detail: { userId: this._userId, ...data }
+          }));
+        } else {
+          console.log('✅ Background refresh: Profile unchanged');
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ Background refresh error:', error);
+    }
   }
 
   /**

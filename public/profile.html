@@ -109,6 +109,9 @@
   <!-- 🏆 WOZ FIX: ProfileManager - Single Source of Truth -->
   <script src="./lib/ProfileManager.js"></script>
   
+  <!-- 🚀 GOLD STANDARD: Navigation State Cache for instant page loads -->
+  <script src="./lib/navigation/NavigationStateCache.js"></script>
+  
   <!-- 🎯 TIER CONFIG - Must load BEFORE HiTier.js and MembershipSystem -->
   <script src="./lib/config/TIER_CONFIG.js" type="module"></script>
   <!-- ✅ Unified Membership Bridge for tier detection -->
@@ -3447,17 +3450,35 @@ FOR INSERT WITH CHECK (
           tierIndicator.removeAttribute('data-auth-loading');
           const tierText = tierIndicator.querySelector('.tier-text');
           if (tierText && tierText.classList.contains('tier-loading')) {
-            // Wait for HiTier to initialize
-            if (window.HiTier) {
-              const tier = window.HiTier.getTier();
-              tierText.textContent = tier.toUpperCase();
+            // 🚀 FAST PATH: Check cache first for instant tier display
+            let displayTier = null;
+            
+            if (window.NavCache) {
+              const cachedTier = window.NavCache.getTier();
+              if (cachedTier && cachedTier.tier) {
+                displayTier = cachedTier.tier;
+                console.log('⚡ [Profile] Using cached tier:', displayTier);
+              }
+            }
+            
+            // Fallback to HiTier if no cache
+            if (!displayTier && window.HiTier) {
+              displayTier = window.HiTier.getTier();
+            }
+            
+            if (displayTier) {
+              // Use HiBrandTiers for proper display name
+              const displayName = window.HiBrandTiers?.getName?.(displayTier) || displayTier.toUpperCase();
+              tierText.textContent = displayName;
               tierText.classList.remove('tier-loading');
+              console.log('✅ [Profile] Tier displayed:', displayName);
             } else {
-              // Fallback if HiTier not ready yet
+              // Last resort: wait for HiTier
               setTimeout(() => {
                 if (window.HiTier) {
                   const tier = window.HiTier.getTier();
-                  tierText.textContent = tier.toUpperCase();
+                  const displayName = window.HiBrandTiers?.getName?.(tier) || tier.toUpperCase();
+                  tierText.textContent = displayName;
                   tierText.classList.remove('tier-loading');
                 }
               }, 500);
