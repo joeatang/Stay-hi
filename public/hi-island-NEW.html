@@ -1726,7 +1726,10 @@
   <!-- 🔥 MOBILE FIX: AuthReady orchestrator - handles bfcache restoration -->
   <script type="module" src="./lib/AuthReady.js"></script>
   
-  <!-- 🏆 WOZ FIX: ProfileManager - Single Source of Truth -->
+  <!-- � UNIVERSAL TIER LISTENER: Single source of truth for tier display across all pages -->
+  <script src="./lib/boot/universal-tier-listener.js"></script>
+  
+  <!-- �🏆 WOZ FIX: ProfileManager - Single Source of Truth -->
   <script src="./lib/ProfileManager.js"></script>
   
   <!-- 🔥 CRITICAL: No defer - must be ready before island-main.mjs checks for it -->
@@ -1885,112 +1888,9 @@
   
   <!-- 🎯 TIER STATUS UPDATE: Listen for auth ready and update tier display -->
   <script>
-    (function() {
-      console.log('🎯 Tier update script loaded');
-      
-      // Store the latest tier data in case HiBrandTiers loads late
-      let pendingTierUpdate = null;
-      
-      function updateBrandTierDisplay(data) {
-        const indicator = document.getElementById('hi-tier-indicator');
-        if (!indicator) {
-          console.warn('⚠️ Tier indicator element not found');
-          return;
-        }
-        
-        // Extract membership from event detail (could be {session, membership} or just membership)
-        const membership = data?.membership || data;
-        // tier might be a function (HiMembership.tier()) or a string
-        const tierValue = typeof membership?.tier === 'function' ? membership.tier() : membership?.tier;
-        const tier = tierValue || 'explorer';
-        const tierText = indicator.querySelector('.tier-text');
-        
-        if (!tierText) {
-          console.warn('⚠️ Tier text element not found');
-          return;
-        }
-        
-        // Check if HiBrandTiers is loaded
-        if (!window.HiBrandTiers) {
-          console.log('⏳ HiBrandTiers not loaded yet, storing pending update for tier:', tier);
-          pendingTierUpdate = { tier, membership, indicator, tierText };
-          return;
-        }
-        
-        console.log('🎯 Updating tier display:', { tier, membership, tierText: tierText.textContent });
-        
-        // Remove loading state
-        indicator.removeAttribute('data-auth-loading');
-        tierText.classList.remove('tier-loading');
-        
-        // Get tier config from HiBrandTiers
-        const tierConfig = window.HiBrandTiers.getDisplayInfo(tier);
-        
-        if (tierConfig) {
-          tierText.textContent = tierConfig.emoji;
-          tierText.className = `tier-text tier-${tier.toLowerCase()}`;
-          indicator.title = tierConfig.name;
-          indicator.style.setProperty('--tier-color', tierConfig.color);
-          console.log('✅ Tier display updated to:', tierConfig.name, tierConfig.emoji);
-          pendingTierUpdate = null; // Clear pending update
-        } else {
-          console.warn('⚠️ No tier config found for:', tier, 'HiBrandTiers:', !!window.HiBrandTiers);
-        }
-      }
-      
-      // Listen for HiBrandTiers to load and process pending updates
-      function checkForPendingUpdate() {
-        if (window.HiBrandTiers && pendingTierUpdate) {
-          console.log('✅ HiBrandTiers loaded, processing pending tier update');
-          updateBrandTierDisplay(pendingTierUpdate);
-        }
-      }
-      
-      // Check periodically for HiBrandTiers
-      const brandTiersCheck = setInterval(() => {
-        if (window.HiBrandTiers) {
-          clearInterval(brandTiersCheck);
-          checkForPendingUpdate();
-        }
-      }, 100);
-      
-      // Listen for auth ready event (detail: {session, membership})
-      window.addEventListener('hi:auth-ready', (e) => {
-        console.log('🎯 Received hi:auth-ready event:', e.detail);
-        updateBrandTierDisplay(e.detail);
-      });
-      
-      // Also listen for membership status changes
-      window.addEventListener('membershipStatusChanged', (e) => {
-        console.log('🎯 Received membershipStatusChanged event:', e.detail);
-        updateBrandTierDisplay(e.detail);
-      });
-      
-      // Also listen for hi:membership-changed (from AuthReady.js)
-      window.addEventListener('hi:membership-changed', (e) => {
-        console.log('🎯 Received hi:membership-changed event:', e.detail);
-        updateBrandTierDisplay({ membership: e.detail });
-      });
-      
-      // Check if already initialized (with retry)
-      let attempts = 0;
-      const checkInterval = setInterval(() => {
-        attempts++;
-        if (window.HiBrandTiers && (window.HiMembership?.tier || window.__hiMembership?.tier)) {
-          clearInterval(checkInterval);
-          const membership = window.HiMembership || window.__hiMembership;
-          console.log('🎯 Found existing membership on attempt', attempts, ':', membership);
-          updateBrandTierDisplay({ membership });
-        } else if (attempts >= 20) {
-          clearInterval(checkInterval);
-          console.warn('⚠️ Tier membership not found after 20 attempts (10 seconds)', {
-            HiBrandTiers: !!window.HiBrandTiers,
-            HiMembership: !!window.HiMembership,
-            __hiMembership: !!window.__hiMembership
-          });
-        }
-      }, 500);
-    })();
+    // 🎯 Tier Display: Handled by universal-tier-listener.js (loaded in <head>)
+    // No custom tier logic needed - universal listener handles hi:auth-ready event
+    console.log('✅ Island tier display delegated to universal-tier-listener.js');
   </script>
 </body>
 </html>

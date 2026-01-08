@@ -188,10 +188,12 @@
   <script src="./lib/auth/auth-resilience.js"></script>
   <!-- Trial Manager: 14-day trial system (Jobs/Gary Vee/Woz-approved) -->
   <script src="./lib/trial/TrialManager.js"></script>
-  <!-- 🎯 HiBrandTiers: Must load BEFORE authready-listener.js (tier display dependency) -->
+  <!-- 🎯 HiBrandTiers: Must load BEFORE tier listener (tier display dependency) -->
   <script src="./lib/HiBrandTiers.js"></script>
-  <!-- AuthReady orchestrator: unified session + membership (externalized) -->
-  <script type="module" src="./lib/boot/authready-listener.js"></script>
+  <!-- 🔥 MOBILE FIX: AuthReady orchestrator - handles session + membership initialization -->
+  <script type="module" src="./lib/AuthReady.js"></script>
+  <!-- 🎯 UNIVERSAL TIER LISTENER: Single source of truth for tier display across all pages -->
+  <script type="module" src="./lib/boot/universal-tier-listener.js"></script>
   <!-- Membership bridge: unify events and simple API -->
   <script src="./lib/membership/HiMembershipBridge.js"></script>
   <!-- AccessGate (scaffold) -->

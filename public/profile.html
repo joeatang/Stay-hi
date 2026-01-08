@@ -105,6 +105,8 @@
   <script src="./lib/query-timeout.js" defer></script>
   <!-- ✅ CRITICAL: AuthReady orchestrates session + membership and fires hi:auth-ready event -->
   <script type="module" src="./lib/AuthReady.js"></script>
+  <!-- 🎯 UNIVERSAL TIER LISTENER: Single source of truth for tier display across all pages -->
+  <script src="./lib/boot/universal-tier-listener.js"></script>
   
   <!-- 🏆 WOZ FIX: ProfileManager - Single Source of Truth -->
   <script src="./lib/ProfileManager.js"></script>
@@ -3444,47 +3446,8 @@ FOR INSERT WITH CHECK (
         // 🎯 TESLA-GRADE: Load real user stats (non-blocking for instant page render)
         loadUserStats(userId);
         
-        // 🔥 FIX: Remove tier loading spinner after auth complete
-        const tierIndicator = document.getElementById('hi-tier-indicator');
-        if (tierIndicator) {
-          tierIndicator.removeAttribute('data-auth-loading');
-          const tierText = tierIndicator.querySelector('.tier-text');
-          if (tierText && tierText.classList.contains('tier-loading')) {
-            // 🚀 FAST PATH: Check cache first for instant tier display
-            let displayTier = null;
-            
-            if (window.NavCache) {
-              const cachedTier = window.NavCache.getTier();
-              if (cachedTier && cachedTier.tier) {
-                displayTier = cachedTier.tier;
-                console.log('⚡ [Profile] Using cached tier:', displayTier);
-              }
-            }
-            
-            // Fallback to HiTier if no cache
-            if (!displayTier && window.HiTier) {
-              displayTier = window.HiTier.getTier();
-            }
-            
-            if (displayTier) {
-              // Use HiBrandTiers for proper display name
-              const displayName = window.HiBrandTiers?.getName?.(displayTier) || displayTier.toUpperCase();
-              tierText.textContent = displayName;
-              tierText.classList.remove('tier-loading');
-              console.log('✅ [Profile] Tier displayed:', displayName);
-            } else {
-              // Last resort: wait for HiTier
-              setTimeout(() => {
-                if (window.HiTier) {
-                  const tier = window.HiTier.getTier();
-                  const displayName = window.HiBrandTiers?.getName?.(tier) || tier.toUpperCase();
-                  tierText.textContent = displayName;
-                  tierText.classList.remove('tier-loading');
-                }
-              }, 500);
-            }
-          }
-        }
+        // 🎯 Tier Display: Handled by universal-tier-listener.js (loaded in <head>)
+        // No custom tier logic needed - universal listener handles hi:auth-ready event
         
         console.log('✅ Profile loaded successfully from ProfileManager');
         try { window.HiAudit?.log('profile_load_authenticated', { resource:'profile' }); } catch {}

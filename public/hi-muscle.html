@@ -93,6 +93,8 @@
   <!-- 🔥 FIX: Load HiSupabase.v3.js (actual client) + AuthReady.js for tier data -->
   <script src="./lib/HiSupabase.v3.js"></script>
   <script src="./lib/AuthReady.js" type="module"></script>
+  <!-- 🎯 UNIVERSAL TIER LISTENER: Single source of truth for tier display across all pages -->
+  <script src="./lib/boot/universal-tier-listener.js"></script>
   <!-- Auth resilience for mobile session persistence -->
   <script src="./lib/auth/auth-resilience.js"></script>
   <!-- Unified Access Gate (replaces legacy anonymous modal) -->
@@ -3330,49 +3332,9 @@
       window.location.href = 'hi-dashboard.html';
     }
 
-    // ✨ Tier Display Update System (synced with dashboard/profile logic)
-    function updateBrandTierDisplay(eventOrTier) {
-      const tierIndicator = document.getElementById('hi-tier-indicator');
-      if (!tierIndicator) return;
-      if (!window.HiBrandTiers) return;
-      
-      let tierKey = 'anonymous';
-      
-      // ✅ CRITICAL: Check hi:auth-ready event detail FIRST (authoritative source from database)
-      if (eventOrTier?.detail?.membership?.tier) {
-        tierKey = eventOrTier.detail.membership.tier;
-      } else if (typeof eventOrTier === 'string') {
-        tierKey = eventOrTier;
-      } else if (window.__hiMembership?.tier) {
-        tierKey = window.__hiMembership.tier;
-      } else if (window.unifiedMembership?.membershipStatus?.tier) {
-        tierKey = window.unifiedMembership.membershipStatus.tier;
-      } else if (window.HiMembership?.currentUser?.tierInfo?.name) {
-        tierKey = window.HiMembership.currentUser.tierInfo.name.toLowerCase();
-      }
-      
-      window.HiBrandTiers.updateTierPill(tierIndicator, tierKey, {
-        showEmoji: false,
-        useGradient: false
-      });
-      
-      console.log('🎫 [Hi Muscle] Tier updated:', tierKey, eventOrTier?.detail?.membership ? `(from auth-ready event, DB tier: ${eventOrTier.detail.membership.tier})` : '(from fallback)');
-    }
+    // ✨ Tier Display: Handled by universal-tier-listener.js (loaded in <head>)
+    // No custom tier logic needed - universal listener handles hi:auth-ready event
     
-    // Initialize tier display - WAIT for auth-ready event
-    window.addEventListener('membershipStatusChanged', () => updateBrandTierDisplay());
-    window.addEventListener('hi:auth-ready', (e) => {
-      console.log('🔔 [Hi Muscle] hi:auth-ready received, tier:', e.detail?.membership?.tier);
-      updateBrandTierDisplay(e);
-    });
-    
-    // Fallback updates
-    setTimeout(() => { 
-      if (window.__hiMembership?.tier || window.unifiedMembership?.membershipStatus?.tier) {
-        updateBrandTierDisplay(); 
-      }
-    }, 3000);
-
     // Initialize header on DOM load
     document.addEventListener('DOMContentLoaded', () => {
       // Track current page visit for smart navigation
