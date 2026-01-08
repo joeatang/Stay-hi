@@ -157,37 +157,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('🏗️ Long-press system initialized for medallion');
   }
 
-  function triggerHi5Flow(){
-    // 🛑 WOZ FIX: Check tier first, then feature quotas
-    // Issue: bronze tier has shareCreation: 10 quota, but should still see sheet interface
-    let canShare = false;
+  async function triggerHi5Flow(){
+    // 🏆 GOLD STANDARD: Check authentication FIRST, not tier
+    // Root cause: Tier data might not be loaded yet (race condition)
+    // Fix: If user is authenticated (has session), allow share sheet
+    // Tier quotas are checked INSIDE the share sheet itself
+    
+    let isAuthenticated = false;
+    let userId = null;
+    
     try {
-      // Check if user has any paid tier (bronze+)
-      const userTier = window.HiTier?.getTier?.() || 
-        window.unifiedMembership?.membershipStatus?.tier ||
-        window.__hiMembership?.tier || 'anonymous';
-      
-      console.log('🔍 [Share Access] Current tier:', userTier);
-      
-      // Bronze+ users always have share sheet access (even if quota hit)
-      const hasPaidTier = ['bronze', 'silver', 'gold', 'premium', 'collective'].includes(userTier);
-      
-      if (hasPaidTier) {
-        console.log('✅ [Share Access] Paid tier detected, allowing share sheet');
-        canShare = true;
-      } else {
-        // For anonymous/free, check if they have any share creation capability
-        canShare = window.hiAccessManager?.canAccess?.('shareCreation') || 
-          window.HiTierSystem?.hasCapability?.('drop_hi') ||
-          window.unifiedMembership?.hasAccess?.('shareCreation');
-        console.log('🔍 [Share Access] Anonymous/free tier, canShare:', canShare);
+      // Method 1: Check ProfileManager (fastest, most reliable)
+      if (window.ProfileManager?.isAuthenticated?.()) {
+        isAuthenticated = true;
+        userId = window.ProfileManager.getUserId();
+        console.log('✅ [Share Access] Authenticated via ProfileManager:', userId);
+      } 
+      // Method 2: Check Supabase session directly
+      else {
+        const client = window.hiSupabase || window.supabaseClient || window.sb;
+        if (client?.auth?.getSession) {
+          const { data: { session } } = await client.auth.getSession();
+          if (session?.user) {
+            isAuthenticated = true;
+            userId = session.user.id;
+            console.log('✅ [Share Access] Authenticated via Supabase session:', userId);
+          }
+        }
       }
     } catch (err) {
-      console.warn('⚠️ Error checking share access:', err);
-      canShare = false;
+      console.warn('⚠️ Error checking auth status:', err);
+      isAuthenticated = false;
     }
     
-    if (!canShare) {
+    console.log('🔍 [Share Access] Final auth check:', { isAuthenticated, userId });
+    
+    if (!isAuthenticated) {
       console.log('🔒 Anonymous user long-press - showing auth modal');
       if (window.showShareAuthModal) {
         window.showShareAuthModal('hi-dashboard', {
@@ -207,7 +212,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = '/welcome.html';
       }
     } else {
-      console.log('✅ Authenticated user - proceeding with Hi 5 creation');
+      console.log('✅ Authenticated user - opening share sheet');
       
       // 🛑 WOZ FIX: Wait for share sheet to be ready if not initialized yet
       const openShareSheet = () => {
