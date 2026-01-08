@@ -1161,11 +1161,34 @@
       window.openHiShareSheet = (origin = 'higym', options = {}) => {
         console.log('💪 [HiGYM] Opening share sheet with tracking-enabled instance:', { origin, options });
         
-        // 🔒 WOZNIAK-GRADE: Auth check for anonymous users BEFORE opening share sheet
-        const canShare = window.hiAccessManager?.canAccess?.('shareCreation') || 
-                        window.HiTierSystem?.hasCapability?.('drop_hi') ||
-                        window.unifiedMembership?.hasAccess?.('shareCreation') ||
-                        window.supabase?.auth?.getUser?.()?.data?.user; // Additional auth check
+        // 🔒 GOLD STANDARD: Check tier first, then feature quotas
+        // Issue: bronze tier has shareCreation: 10 quota, but should still see sheet interface
+        let canShare = false;
+        try {
+          // Check if user has any paid tier (bronze+)
+          const userTier = window.HiTier?.getTier?.() || 
+            window.unifiedMembership?.membershipStatus?.tier ||
+            window.__hiMembership?.tier || 'anonymous';
+          
+          console.log('🔍 [HiGYM Share Access] Current tier:', userTier);
+          
+          // Bronze+ users always have share sheet access (even if quota hit)
+          const hasPaidTier = ['bronze', 'silver', 'gold', 'premium', 'collective'].includes(userTier);
+          
+          if (hasPaidTier) {
+            console.log('✅ [HiGYM Share Access] Paid tier detected, allowing share sheet');
+            canShare = true;
+          } else {
+            // For anonymous/free, check if they have any share creation capability
+            canShare = window.hiAccessManager?.canAccess?.('shareCreation') || 
+              window.HiTierSystem?.hasCapability?.('drop_hi') ||
+              window.unifiedMembership?.hasAccess?.('shareCreation');
+            console.log('🔍 [HiGYM Share Access] Anonymous/free tier, canShare:', canShare);
+          }
+        } catch (err) {
+          console.warn('⚠️ Error checking share access:', err);
+          canShare = false;
+        }
         
         if (!canShare) {
           console.log('🔒 Anonymous user trying to share journey - showing Hi Muscle auth modal');
