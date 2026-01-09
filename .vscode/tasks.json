@@ -197,6 +197,13 @@
 			"type": "shell",
 			"command": "git add public/sw.js public/hi-dashboard.html public/lib/boot/dashboard-main.js public/profile.html && git commit -m 'Fix 7-day pill race condition + tier display + service worker\n\n1. dashboard-main.js:\n   - await initializeDatabase() to ensure ProfileManager ready before 7-day pill\n   - Deterministic anonymous preview (removed Math.random causing jitter)\n   - Removed duplicate tier updater (authready-listener.js is single source)\n\n2. sw.js: Added missing APP_SHELL_FILES constant\n\n3. hi-dashboard.html: Load HiBrandTiers.js before authready-listener.js\n\n4. profile.html: Fixed corrupted saveProfileToSupabase syntax' && git push origin main",
 			"isBackground": false
+		},
+		{
+			"label": "Deploy Tier Fix",
+			"type": "shell",
+			"command": "git add public/hi-dashboard.html public/hi-island-NEW.html public/hi-muscle.html public/profile.html public/lib/AuthReady.js public/lib/boot/dashboard-main.js && git commit -m 'Fix: ES6 imports + cached fallback + remove competing tier code' && git push origin main && echo '✅ DEPLOYED! Wait 1-2 min, then hard refresh dashboard (Cmd+Shift+R)'",
+			"problemMatcher": [],
+			"group": "build"
 		}
 	]
 }

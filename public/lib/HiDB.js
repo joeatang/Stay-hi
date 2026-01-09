@@ -8,6 +8,8 @@
 
 (function() {
   'use strict';
+  
+  console.log('🗄️ HiDB.js loading...');
 
   // === CONSTANTS ===
   const LS_GENERAL = "hi_general_shares";
@@ -439,23 +441,41 @@
  
     let success = 0;
     let remain = [];
+    let retries = {}; // Track retry attempts per job
 
     for (const job of q) {
+      const jobId = JSON.stringify(job.payload || {}).substring(0, 50);
+      retries[jobId] = (retries[jobId] || 0) + 1;
+      
+      // 🛡️ SAFETY: Drop jobs that have failed 3+ times (corrupted data)
+      if (retries[jobId] > 3) {
+        console.warn('⚠️ Dropping corrupted pending job after 3 failures:', job);
+        continue; // Skip this job, don't re-queue
+      }
+      
       try {
         if (job.type === "public") {
           const { error } = await supa.from("public_shares").insert(job.payload);
-          if (error) throw error;
+          if (error) {
+            console.warn('❌ syncPending public_shares error:', error);
+            throw error;
+          }
         } else if (job.type === "archive") {
           const { error } = await supa.from("hi_archives").insert(job.payload);
-          if (error) throw error;
+          if (error) {
+            console.warn('❌ syncPending hi_archives error:', error);
+            throw error;
+          }
         }
         success++;
-      } catch {
+      } catch (err) {
+        console.warn('⚠️ Sync failed, will retry:', {type: job.type, error: err.message});
         remain.push(job);
       }
     }
 
     writeLS(LS_PENDING, remain);
+    console.log(`🔄 syncPending: ${success} synced, ${remain.length} pending`);
     return { ok: true, synced: success, pending: remain.length };
   }
 
@@ -735,9 +755,47 @@
     trackShareStats, // Tesla enhancement
     teslaEnhanced: true // Tesla marker
   };
+  
+  console.log('✅ HiDB.js loaded and window.hiDB initialized');
+
+  // 🛡️ SAFETY CHECK: Clear corrupted pending queue on page load
+  function validatePendingQueue() {
+    try {
+      const queue = readLS(LS_PENDING);
+      if (!queue || queue.length === 0) return;
+      
+      // Check if queue has old format entries that will fail with 400 errors
+      const valid = queue.filter(job => {
+        // Valid jobs must have type and payload
+        if (!job.type || !job.payload) return false;
+        
+        // For archive jobs, payload must have required fields
+        if (job.type === "archive") {
+          return job.payload.content !== undefined;
+        }
+        
+        // For public share jobs, payload must have required fields
+        if (job.type === "public") {
+          return job.payload.content !== undefined;
+        }
+        
+        return true;
+      });
+      
+      if (valid.length !== queue.length) {
+        console.warn(`⚠️ Found ${queue.length - valid.length} corrupted queue items - clearing them`);
+        console.log('Corrupted items:', queue.filter(j => !valid.includes(j)));
+        writeLS(LS_PENDING, valid);
+      }
+    } catch (error) {
+      console.error('❌ Error validating pending queue - clearing all:', error);
+      writeLS(LS_PENDING, []); // Clear entire queue on error
+    }
+  }
 
   // Auto-sync after auth
   document.addEventListener("DOMContentLoaded", () => {
+    validatePendingQueue(); // 🛡️ Clear corrupted items first
     setTimeout(() => { syncPending(); }, 1000);
     window.addEventListener("online", () => { syncPending(); });
   });
