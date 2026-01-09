@@ -626,9 +626,11 @@
       if (location.search.includes('perf=1')) {
         console.log('[PerfVitals]', data);
       }
-      // Beacon endpoint placeholder; only send on prod host
+      // 🔧 FIX: Disable perf beaconing by default to prevent request storms
+      // Enable via ?perf-beacon=1 for debugging only
       const endpoint = '/perf-beacon';
-      if (navigator.sendBeacon && (location.hostname === 'stay-hi.vercel.app')) {
+      const perfBeaconEnabled = location.search.includes('perf-beacon=1');
+      if (navigator.sendBeacon && perfBeaconEnabled && (location.hostname === 'stay-hi.vercel.app')) {
         try { navigator.sendBeacon(endpoint, JSON.stringify(data)); } catch(_) {}
       }
     }

@@ -15,6 +15,13 @@
           console.debug('[hiBeacon:dev]', path, payload);
           return;
         }
+        // 🔧 FIX: Disable all beaconing by default (no endpoints exist in production)
+        // Enable via ?enable-beacons=1 for debugging only
+        const beaconsEnabled = location.search.includes('enable-beacons=1');
+        if (!beaconsEnabled) {
+          console.debug('[hiBeacon:disabled]', path);
+          return;
+        }
         const data = JSON.stringify(payload);
         if (navigator.sendBeacon) {
           navigator.sendBeacon(path, new Blob([data], { type:'application/json' }));
