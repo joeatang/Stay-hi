@@ -13,6 +13,9 @@
   // Store references to critical globals
   const criticalGlobals = {};
   
+  // Track the current page to detect navigation
+  const currentPage = window.location.pathname;
+  
   function captureGlobals() {
     if (window.hiDB) {
       criticalGlobals.hiDB = window.hiDB;
@@ -85,6 +88,14 @@
   // iOS Safari: Restore on pageshow if page came from bfcache
   window.addEventListener('pageshow', (event) => {
     if (event.persisted) {
+      // Check if we're on the same page (bfcache restore) or navigated to different page
+      const isNavigated = window.location.pathname !== currentPage;
+      
+      if (isNavigated) {
+        console.log('🚫 Navigation detected - skipping restore (different page)');
+        return;
+      }
+      
       console.log('🔄 Page restored from bfcache - checking globals...');
       const didRestore = restoreGlobals();
       
@@ -98,7 +109,11 @@
   // Capture before page is hidden (ONLY if going to bfcache, not navigating away)
   window.addEventListener('pagehide', (event) => {
     // Only capture if page is being cached (backgrounding), not destroyed (navigation)
-    if (event.persisted) {
+    if// Only restore if we're still on the same page
+      const isNavigated = window.location.pathname !== currentPage;
+      if (!isNavigated) {
+        restoreGlobals();
+      }) {
       captureGlobals();
     }
   });
@@ -106,9 +121,12 @@
   // Also restore on visibilitychange (desktop browsers)
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
+      restoreGlobals(); - only on same page
+  setInterval(() => {
+    const isNavigated = window.location.pathname !== currentPage;
+    if (!isNavigated) {
       restoreGlobals();
     }
-  });
   
   // Periodically check for wiped globals (aggressive mobile cleanup)
   setInterval(() => {
