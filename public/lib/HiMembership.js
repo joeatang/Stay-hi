@@ -184,15 +184,7 @@ class UnifiedMembershipSystem {
       this.saveMembershipCache();
       this.notifyMembershipChange();
       
-      // Proactively update tier pill if helper exists
-      try {
-        if (window.HiBrandTiers?.updateTierPill && membership?.tier) {
-          const tierIndicator = document.getElementById('hi-tier-indicator');
-          if (tierIndicator) {
-            window.HiBrandTiers.updateTierPill(tierIndicator, membership.tier, { showEmoji: true });
-          }
-        }
-      } catch {}
+      // Tier pill update now handled by universal-tier-listener.js (single source of truth)
       
       console.log('✅ Membership loaded:', membership);
       

@@ -21,7 +21,7 @@ window.addEventListener('hi:auth-ready', async (e) => {
       const cachedTier = window.NavCache.getTier();
       if (cachedTier) {
         console.log('[Universal Tier] Using cached tier for instant display:', cachedTier);
-        tierToDisplay = cachedTier;
+        tierToDisplay = cachedTier.tier || cachedTier;
       }
     }
     

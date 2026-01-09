@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Listen for auth-ready event
       window.addEventListener('hi:auth-ready', (e) => {
         console.log('🔔 [Profile Nav] hi:auth-ready received, tier:', e.detail?.membership?.tier);
-        updateBrandTierDisplay(e);
+        // Tier display now handled by universal-tier-listener.js (single source of truth)
       });
       
       // Fallback: Check every 500ms for up to 5 seconds
