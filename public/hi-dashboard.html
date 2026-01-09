@@ -264,7 +264,10 @@ console.log('✅ [Universal Tier Listener] Loaded and listening');
   <script src="./lib/boot/admin-auto-redirect.js"></script>
   <script src="./lib/HiDB.js" defer></script>
   
-  <!-- 🚀 INTEGRATION #5: HiBase + HiFlags for Streaks system (flagged rollout) -->
+  <!-- �️ MOBILE FIX: Protect against iOS backgrounding memory wipes -->
+  <script src="./lib/mobile-lifecycle-protector.js"></script>
+  
+  <!-- �🚀 INTEGRATION #5: HiBase + HiFlags for Streaks system (flagged rollout) -->
   <script type="module" src="./lib/flags/HiFlags.js"></script>
   <script type="module" src="./lib/hibase/index.js"></script>
 

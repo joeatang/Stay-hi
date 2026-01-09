@@ -1737,6 +1737,10 @@
   
   <!-- 🔥 CRITICAL: No defer - must be ready before island-main.mjs checks for it -->
   <script src="./lib/HiDB.js"></script>
+  
+  <!-- 🛡️ MOBILE FIX: Protect against iOS backgrounding memory wipes -->
+  <script src="./lib/mobile-lifecycle-protector.js"></script>
+  
   <script src="assets/avatar-utils.js"></script>
   <script src="assets/geocoding-service.js"></script>
   
