@@ -107,15 +107,24 @@ async function initialize(){
           const parsed = JSON.parse(storedAuth);
           // Supabase stores full session object with user, access_token, refresh_token, etc.
           if (parsed.user && parsed.access_token) {
-            console.log('[AuthReady] 🚀 Using cached session - skipping slow getSession()');
-            return {
-              session: parsed, // Return FULL session object, not just user
-              membership: {
-                tier: cachedTier,
-                is_admin: cachedAdmin === '1',
-                cached: true
-              }
-            };
+            // 🔒 CRITICAL: Check if token expired (expires_at is Unix timestamp in seconds)
+            const expiresAt = parsed.expires_at || 0;
+            const nowSeconds = Math.floor(Date.now() / 1000);
+            const isExpired = expiresAt < nowSeconds;
+            
+            if (!isExpired) {
+              console.log('[AuthReady] 🚀 Using cached session - skipping slow getSession()');
+              return {
+                session: parsed, // Return FULL session object, not just user
+                membership: {
+                  tier: cachedTier,
+                  is_admin: cachedAdmin === '1',
+                  cached: true
+                }
+              };
+            } else {
+              console.warn('[AuthReady] ⏰ Cached session expired, fallback to getSession()');
+            }
           }
         } catch (e) {
           console.warn('[AuthReady] Failed to parse cached auth:', e);
