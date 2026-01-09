@@ -95,9 +95,12 @@
     }
   });
   
-  // Capture before page is hidden
-  window.addEventListener('pagehide', () => {
-    captureGlobals();
+  // Capture before page is hidden (ONLY if going to bfcache, not navigating away)
+  window.addEventListener('pagehide', (event) => {
+    // Only capture if page is being cached (backgrounding), not destroyed (navigation)
+    if (event.persisted) {
+      captureGlobals();
+    }
   });
   
   // Also restore on visibilitychange (desktop browsers)
