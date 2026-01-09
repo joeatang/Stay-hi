@@ -22,15 +22,18 @@
       // 🔥 MOBILE FIX: Check session immediately on page load
       // This handles the case where user returns to app after backgrounding
       // Store the promise so auth-guard can await it synchronously
-      this._sessionCheckPromise = this.checkSession().then(() => {
-        this.isReady = true;
-        window.dispatchEvent(new CustomEvent('auth-resilience-ready'));
-        console.log('[AuthResilience] ✅ Initial session check complete');
-      }).catch((err) => {
-        console.error('[AuthResilience] ❌ Initial session check failed:', err);
-        this.isReady = true; // Set ready even on failure to unblock auth-guard
-        window.dispatchEvent(new CustomEvent('auth-resilience-ready'));
-      });
+      // 🔥 WOZ FIX: Don't let failed check block initialization - set ready regardless
+      this._sessionCheckPromise = this.checkSession()
+        .then(() => {
+          this.isReady = true;
+          window.dispatchEvent(new CustomEvent('auth-resilience-ready'));
+          console.log('[AuthResilience] ✅ Initial session check complete');
+        })
+        .catch((err) => {
+          console.warn('[AuthResilience] Initial session check failed (non-blocking):', err);
+          this.isReady = true; // Set ready even on failure to unblock auth-guard
+          window.dispatchEvent(new CustomEvent('auth-resilience-ready'));
+        });
       
       this.init();
     }
@@ -120,7 +123,13 @@
       if (!this.isOnline) return;
       
       try {
-        const { data: { session }, error } = await this.client.auth.getSession();
+        // 🔥 WOZ FIX: Add timeout to prevent hanging on AbortError
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session check timeout')), 3000)
+        );
+        
+        const sessionPromise = this.client.auth.getSession();
+        const { data: { session }, error } = await Promise.race([sessionPromise, timeoutPromise]);
         
         if (error) {
           console.error('[AuthResilience] Session check failed:', error);
