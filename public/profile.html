@@ -2258,12 +2258,18 @@
         // 🔄 Legacy path: direct Supabase calls
         console.log('📦 Profile → Legacy Supabase...');
         
-        // In a real app, you'd have a user ID from auth
-        // For demo, we'll use the current profile username
+        // 🏆 GOLD STANDARD FIX: Use id (UUID) not username
+        // profiles table primary key is id, username can be null for new users
+        const userId = currentProfile.id || (await window.HiSupabase.getClient().auth.getUser()).data?.user?.id;
+        
+        if (!userId) {
+          throw new Error('Cannot update profile: no user ID available');
+        }
+        
         const { error } = await window.supabaseClient
           .from('profiles')
           .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
-          .eq('username', currentProfile.username);
+          .eq('id', userId);
         
         if (error) {
           console.error('Database update error:', error);
