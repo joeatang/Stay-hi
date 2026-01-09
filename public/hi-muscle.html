@@ -1960,6 +1960,12 @@
     }
 
     const CATALOG = getEmotionCatalog();
+    console.log('📚 [Hi-Muscle] CATALOG initialized:', {
+      categories: CATALOG?.categories?.length || 0,
+      hiCount: CATALOG?.categories?.find(c => c.id === 'hi')?.items?.length || 0,
+      neutralCount: CATALOG?.categories?.find(c => c.id === 'neutral')?.items?.length || 0,
+      opportunityCount: CATALOG?.categories?.find(c => c.id === 'opportunity')?.items?.length || 0
+    });
 
     const state = { step:1, current:null, desired:null, cat:'hi', q:'' };
 
@@ -2476,7 +2482,9 @@
 
     /* 🌟 HI ENERGY EMOTIONAL BUTTON RENDERING: Enhanced UX with Smart Interactions */
     function renderGrid(){
+      console.log('🎨 [Hi-Muscle] renderGrid() called', {step: state.step, gridElement: !!grid, catalogLoaded: !!CATALOG});
       const list = currentList();
+      console.log('🎨 [Hi-Muscle] Emotion list to render:', list.length, 'items');
       grid.innerHTML = '';
       
       if (!list.length){
@@ -2851,6 +2859,7 @@
       }
 
       renderBadges();
+      console.log('🎯 [Hi-Muscle] Calling renderGrid() from setStep:', state.step);
       renderGrid();
       
       // Show/hide journal card
