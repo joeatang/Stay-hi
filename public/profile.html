@@ -1604,9 +1604,9 @@
                     const status = document.getElementById('checkinStatus');
                     btn.disabled = true; btn.textContent = 'Checking...';
                     try {
-                      // 🏆 GOLD STANDARD FIX: Correct function name is hi_award_points (not checkin_and_award_points)
-                      // Database schema was updated but code wasn't - this is the root cause of the error
-                      const { data, error } = await client.rpc('hi_award_points', { action: 'daily_checkin' });
+                      // 🏆 PRODUCTION FIX: Use award_daily_checkin() - the actual database function
+                      // OLD CODE: called hi_award_points with wrong params → function not found error
+                      const { data, error } = await client.rpc('award_daily_checkin');
                       console.log('📬 Check-in RPC response:', { data, error });
                       
                       if(error){ 
