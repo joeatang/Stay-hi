@@ -68,6 +68,10 @@ if (window.__HI_SUPABASE_CLIENT) {
     try { window.supabaseClient = real; } catch(_){ }
     try { window.sb = real; } catch(_){ }
     console.log('✅ HiSupabase v3 client created from global UMD with persistent sessions');
+    
+    // 🔥 NAVIGATION FIX: Notify singleton components that a new client exists
+    // This lets ProfileManager, auth-resilience, etc. update their references
+    window.dispatchEvent(new CustomEvent('hi:supabase-client-ready', { detail: { client: real } }));
   } else {
     // Immediate stub exposure for early consumers
     createdClient = createStubClient();

@@ -19,6 +19,18 @@
       
       console.log('[AuthResilience] Initializing...');
       
+      // 🔥 NAVIGATION FIX: Update client reference when new client created
+      window.addEventListener('hi:supabase-client-ready', (e) => {
+        if (e.detail?.client && this.client !== e.detail.client) {
+          console.log('[AuthResilience] 🔄 Updating to new Supabase client');
+          this.client = e.detail.client;
+          // Check session with new client
+          this.checkSession().catch(err => {
+            console.warn('[AuthResilience] Session check with new client failed:', err.message);
+          });
+        }
+      });
+      
       // Wait for actual client to be ready before allowing queries
       this.init();
     }

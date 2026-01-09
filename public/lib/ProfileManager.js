@@ -33,6 +33,15 @@ class ProfileManager {
     this._authReadyPromise = null;
     this._authReadyResolve = null;
     
+    // 🔥 NAVIGATION FIX: Listen for new Supabase client creation
+    // Update our client reference when navigating between pages
+    window.addEventListener('hi:supabase-client-ready', (e) => {
+      if (e.detail?.client && this._supabase !== e.detail.client) {
+        console.log('🔄 ProfileManager: Updating to new Supabase client');
+        this._supabase = e.detail.client;
+      }
+    });
+    
     ProfileManager.instance = this;
   }
 

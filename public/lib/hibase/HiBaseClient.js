@@ -14,6 +14,16 @@ class HiBaseClient {
         this.isConnected = false;
         this.lastError = null;
         this.initialize();
+        
+        // 🔥 NAVIGATION FIX: Update client reference when new client created
+        window.addEventListener('hi:supabase-client-ready', (e) => {
+            if (e.detail?.client) {
+                console.log('🔄 HiBaseClient: Updating to new Supabase client');
+                this.client = e.detail.client;
+                this.isConnected = true;
+                this.lastError = null;
+            }
+        });
     }
 
     /**
