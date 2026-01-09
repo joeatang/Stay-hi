@@ -1899,5 +1899,34 @@
     // No custom tier logic needed - universal listener handles hi:auth-ready event
     console.log('✅ Island tier display delegated to universal-tier-listener.js');
   </script>
+
+  <!-- 🧹 NAVIGATION CLEANUP: Remove Hi Island globals when navigating away -->
+  <script>
+    (function() {
+      'use strict';
+      
+      // Clean up Hi Island globals on navigation away (not backgrounding)
+      window.addEventListener('pagehide', (event) => {
+        // Only clean up on actual navigation (not bfcache)
+        if (!event.persisted) {
+          console.log('🧹 Hi Island: Cleaning up globals on navigation away');
+          
+          // Remove Hi Island-specific globals
+          delete window.hiRealFeed;
+          delete window.hiIslandReady;
+          delete window.checkReadyAndHideSplash;
+          delete window.__currentUsername;
+          delete window.__currentDisplayName;
+          delete window.__currentAvatar;
+          delete window.HiIslandRealFeed;
+          delete window.UnifiedHiIslandController;
+          
+          console.log('✅ Hi Island globals cleaned');
+        }
+      });
+      
+      console.log('✅ Hi Island navigation cleanup armed');
+    })();
+  </script>
 </body>
 </html>
