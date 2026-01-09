@@ -124,8 +124,9 @@
       
       try {
         // 🔥 WOZ FIX: Add timeout to prevent hanging on AbortError
+        // MUST be shorter than AuthReady's 2-second wait (1 second timeout)
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session check timeout')), 3000)
+          setTimeout(() => reject(new Error('Session check timeout')), 1000)
         );
         
         const sessionPromise = this.client.auth.getSession();
