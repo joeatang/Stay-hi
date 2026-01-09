@@ -19,13 +19,11 @@ export async function getSupabaseClient() {
 function readCache() {
   return {
     waves: Number(localStorage.getItem('globalHiWaves')) || null,
-    // 🎯 CRITICAL FIX: Never read totalHis from cache - always fetch fresh to avoid flash
-    // (Cache had stale 451, DB has correct 471, causing visible flash)
-    totalHis: null,
+    totalHis: Number(localStorage.getItem('globalTotalHis')) || null,
     totalUsers: Number(localStorage.getItem('globalTotalUsers')) || null,
     _source: {
       waves: localStorage.getItem('globalHiWaves') ? 'cache' : 'none',
-      totalHis: 'none', // Never use cache for totalHis
+      totalHis: localStorage.getItem('globalTotalHis') ? 'cache' : 'none',
       totalUsers: localStorage.getItem('globalTotalUsers') ? 'cache' : 'none'
     }
   };
@@ -54,6 +52,31 @@ function setGlobals({ waves, totalHis, totalUsers }) {
 export async function loadGlobalStats(options = {}) {
   const t0 = performance.now();
   const attempts = [];
+  const result = { waves: null, totalHis: null, totalUsers: null, _source: { waves: 'none', totalHis: 'none', totalUsers: 'none' }, overall: 'none', _timing: { start: t0, end: null, totalMs: null, attempts } };
+
+  // 🚀 CACHE-FIRST: Return cached values immediately for instant page loads
+  const cache = readCache();
+  if (cache.totalHis != null || cache.waves != null || cache.totalUsers != null) {
+    console.log('[UnifiedStats] ⚡ Using cache-first for instant load');
+    result.waves = cache.waves;
+    result.totalHis = cache.totalHis;
+    result.totalUsers = cache.totalUsers;
+    result._source = cache._source;
+    result.overall = 'cache-first';
+    finalizeTiming(result);
+    dispatch(result);
+    
+    // Refresh in background (don't await)
+    setTimeout(() => refreshStatsInBackground(t0, attempts), 0);
+    
+    return result;
+  }
+
+  // Fallback: No cache, do full load
+  return await refreshStatsInBackground(t0, attempts);
+}
+
+async function refreshStatsInBackground(t0, attempts) {
   const result = { waves: null, totalHis: null, totalUsers: null, _source: { waves: 'none', totalHis: 'none', totalUsers: 'none' }, overall: 'none', _timing: { start: t0, end: null, totalMs: null, attempts } };
 
   // 1) HiMetrics adapter
