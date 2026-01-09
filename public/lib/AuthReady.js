@@ -51,18 +51,35 @@ async function initialize(){
   // 🔥 MOBILE FIX: Wait for auth-resilience restoration to complete first
   // This prevents race condition where dashboard tries to load stats before session is restored
   if (window.__hiAuthResilience && !window.__hiAuthResilience.isReady) {
-    console.log('[AuthReady] 📱 Waiting for auth-resilience mobile session restoration...');
+    console.log('[AuthReady] 📱 Waiting for auth-resilience initial session restoration...');
     
     try {
       await new Promise((resolve) => {
-        window.addEventListener('auth-resilience-ready', resolve, { once: true });
-        // Timeout after 5 seconds
-        setTimeout(resolve, 5000);
+        // If isReady becomes true before event fires, resolve immediately
+        const checkInterval = setInterval(() => {
+          if (window.__hiAuthResilience.isReady) {
+            clearInterval(checkInterval);
+            resolve();
+          }
+        }, 50);
+        
+        window.addEventListener('auth-resilience-ready', () => {
+          clearInterval(checkInterval);
+          resolve();
+        }, { once: true });
+        
+        // Timeout after 3 seconds (not 5 - fail fast)
+        setTimeout(() => {
+          clearInterval(checkInterval);
+          resolve();
+        }, 3000);
       });
       console.log('[AuthReady] ✅ Auth-resilience restoration completed');
     } catch (e) {
       console.warn('[AuthReady] ⚠️ Auth-resilience wait failed, proceeding anyway:', e);
     }
+  } else if (window.__hiAuthResilience && window.__hiAuthResilience.isReady) {
+    console.log('[AuthReady] ✅ Auth-resilience already ready - skipping wait');
   }
   
   const sb = getHiSupabase();
