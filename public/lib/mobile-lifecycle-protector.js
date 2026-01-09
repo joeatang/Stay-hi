@@ -109,11 +109,7 @@
   // Capture before page is hidden (ONLY if going to bfcache, not navigating away)
   window.addEventListener('pagehide', (event) => {
     // Only capture if page is being cached (backgrounding), not destroyed (navigation)
-    if// Only restore if we're still on the same page
-      const isNavigated = window.location.pathname !== currentPage;
-      if (!isNavigated) {
-        restoreGlobals();
-      }) {
+    if (event.persisted) {
       captureGlobals();
     }
   });
@@ -121,16 +117,20 @@
   // Also restore on visibilitychange (desktop browsers)
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
-      restoreGlobals(); - only on same page
+      // Only restore if we're still on the same page
+      const isNavigated = window.location.pathname !== currentPage;
+      if (!isNavigated) {
+        restoreGlobals();
+      }
+    }
+  });
+  
+  // Periodically check for wiped globals (aggressive mobile cleanup) - only on same page
   setInterval(() => {
     const isNavigated = window.location.pathname !== currentPage;
     if (!isNavigated) {
       restoreGlobals();
     }
-  
-  // Periodically check for wiped globals (aggressive mobile cleanup)
-  setInterval(() => {
-    restoreGlobals();
   }, 5000);
   
   console.log('✅ Mobile Lifecycle Protector active');
