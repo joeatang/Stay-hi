@@ -95,6 +95,33 @@ async function initialize(){
     );
     
     const authPromise = (async () => {
+      // 🔥 WOZ FIX: Check localStorage FIRST during navigation to avoid AbortErrors
+      // If we have cached credentials, use them immediately instead of waiting for getSession()
+      const cachedTier = localStorage.getItem('hi_membership_tier');
+      const cachedAdmin = localStorage.getItem('hi_membership_is_admin');
+      const storageKey = 'sb-gfcubvroxgfvjhacinic-auth-token';
+      const storedAuth = localStorage.getItem(storageKey);
+      
+      if (storedAuth && cachedTier) {
+        try {
+          const parsed = JSON.parse(storedAuth);
+          if (parsed.user) {
+            console.log('[AuthReady] 🚀 Using cached session - skipping slow getSession()');
+            return {
+              session: { user: parsed.user },
+              membership: {
+                tier: cachedTier,
+                is_admin: cachedAdmin === '1',
+                cached: true
+              }
+            };
+          }
+        } catch (e) {
+          console.warn('[AuthReady] Failed to parse cached auth:', e);
+        }
+      }
+      
+      // Fallback: try getSession() if no cache or cache failed
       let { data: { session } } = await sb.auth.getSession();
       if (!session) {
         await salvageTokens(sb);
@@ -106,8 +133,6 @@ async function initialize(){
       
       // 🔥 SURGICAL FIX: If membership fetch fails/times out, use cached data as fallback
       if (session && !membership) {
-        const cachedTier = localStorage.getItem('hi_membership_tier');
-        const cachedAdmin = localStorage.getItem('hi_membership_is_admin');
         if (cachedTier) {
           console.log('[AuthReady] 📱 Initial load: RPC timeout - using cached membership:', cachedTier);
           membership = {
