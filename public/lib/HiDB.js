@@ -757,6 +757,14 @@
   };
   
   console.log('✅ HiDB.js loaded and window.hiDB initialized');
+  
+  // 🛡️ PROTECTION: Prevent window.hiDB from being overwritten
+  Object.defineProperty(window, 'hiDB', {
+    value: window.hiDB,
+    writable: false,
+    configurable: false
+  });
+  console.log('🔒 window.hiDB locked to prevent overwrites');
 
   // 🛡️ SAFETY CHECK: Clear corrupted pending queue on page load
   function validatePendingQueue() {
