@@ -92,11 +92,10 @@
         // event.persisted = true means page was restored from bfcache (mobile backgrounding)
         if (event.persisted) {
           console.log('[AuthResilience] 📱 Mobile: Page restored from bfcache - checking session');
-          // 🔥 WOZ FIX: Mark as not ready during session restore
-          this.isReady = false;
-          this.checkSession().finally(() => {
-            this.isReady = true;
-            window.dispatchEvent(new CustomEvent('auth-resilience-ready'));
+          // �️ WOZ SURGICAL FIX: DON'T block the UI by setting isReady = false
+          // Check session in background without breaking the app
+          this.checkSession().catch(err => {
+            console.warn('[AuthResilience] Background session check failed:', err);
           });
         }
       });
@@ -110,10 +109,10 @@
       // 🔥 MOBILE FIX: Handle app resume (Android/iOS)
       window.addEventListener('focus', () => {
         console.log('[AuthResilience] 📱 Mobile: Window focused - checking session');
-        // 🔥 WOZ FIX: Only re-check if not already checking
-        if (this.isReady) {
-          this.checkSession();
-        }
+        // �️ WOZ SURGICAL FIX: Always check session in background without blocking
+        this.checkSession().catch(err => {
+          console.warn('[AuthResilience] Background session check failed:', err);
+        });
       });
     }
     
