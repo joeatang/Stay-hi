@@ -19,20 +19,18 @@
       
       console.log('[AuthResilience] Initializing...');
       
-      // 🔥 MOBILE FIX: Check session immediately on page load
-      // This handles the case where user returns to app after backgrounding
-      // Store the promise so auth-guard can await it synchronously
-      // 🔥 WOZ FIX: Don't let failed check block initialization - set ready regardless
-      this._sessionCheckPromise = this.checkSession()
+      // 🔥 WOZ FIX: Set ready immediately to unblock AuthReady
+      // Check session in background without blocking page load
+      this.isReady = true;
+      window.dispatchEvent(new CustomEvent('auth-resilience-ready'));
+      
+      // Check session in background (non-blocking)
+      this.checkSession()
         .then(() => {
-          this.isReady = true;
-          window.dispatchEvent(new CustomEvent('auth-resilience-ready'));
-          console.log('[AuthResilience] ✅ Initial session check complete');
+          console.log('[AuthResilience] ✅ Background session check complete');
         })
         .catch((err) => {
-          console.warn('[AuthResilience] Initial session check failed (non-blocking):', err);
-          this.isReady = true; // Set ready even on failure to unblock auth-guard
-          window.dispatchEvent(new CustomEvent('auth-resilience-ready'));
+          console.warn('[AuthResilience] Background session check failed (non-critical):', err.message);
         });
       
       this.init();
