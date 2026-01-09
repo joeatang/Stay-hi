@@ -417,6 +417,16 @@ class ProfileManager {
         .single();
 
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
+        // 🚀 NAVIGATION FIX: If AbortError during navigation, use cached profile
+        if (error.message?.includes('AbortError') || error.message?.includes('aborted')) {
+          console.warn('⚠️ Query aborted during navigation - using cached profile');
+          const cached = this._getCachedProfile();
+          if (cached) {
+            this._profile = cached;
+            return;
+          }
+        }
+        
         console.error('❌ Database query failed:', error);
         throw error;
       }
@@ -428,6 +438,8 @@ class ProfileManager {
           bio: data.bio
         });
         this._profile = data;
+        // Cache for next navigation
+        this._cacheProfile(data);
 
         // Update localStorage cache
         const storageKey = `stayhi_profile_${this._userId}`;
@@ -572,12 +584,49 @@ class ProfileManager {
         this._profile = this._getAnonymousProfile();
         // Clear localStorage
         Object.keys(localStorage).forEach(key => {
-          if (key.startsWith('stayhi_profile_')) {
+          if (key.startsWith('stayhi_profile_') || key.startsWith('hi_profile_cache_')) {
             localStorage.removeItem(key);
           }
         });
       }
     });
+  }
+
+  /**
+   * Cache profile for navigation recovery
+   */
+  _cacheProfile(profile) {
+    try {
+      if (profile && this._userId) {
+        localStorage.setItem('hi_profile_cache_' + this._userId, JSON.stringify({
+          profile,
+          timestamp: Date.now()
+        }));
+      }
+    } catch (e) {
+      console.warn('Failed to cache profile:', e);
+    }
+  }
+
+  /**
+   * Get cached profile (for AbortError recovery)
+   */
+  _getCachedProfile() {
+    try {
+      if (!this._userId) return null;
+      const cached = localStorage.getItem('hi_profile_cache_' + this._userId);
+      if (cached) {
+        const { profile, timestamp } = JSON.parse(cached);
+        // Use cache if less than 1 hour old
+        if (Date.now() - timestamp < 3600000) {
+          console.log('✅ Using cached profile from', new Date(timestamp).toLocaleTimeString());
+          return profile;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to read cached profile:', e);
+    }
+    return null;
   }
 
   /**

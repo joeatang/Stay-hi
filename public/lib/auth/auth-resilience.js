@@ -314,18 +314,16 @@
       const resilience = new AuthResilience(client);
       window.__hiAuthResilience = resilience;
       
-      // Do initial session check, then fire ready event
+      // 🚀 CRITICAL: Fire ready IMMEDIATELY to unblock AuthReady
+      // During navigation, getSession() may abort - don't wait for it
+      resilience.isReady = true;
+      window.dispatchEvent(new CustomEvent('auth-resilience-ready'));
+      console.log('✅ Auth resilience ready - checking session in background');
+      
+      // Check session in background (non-blocking)
       resilience.checkSession()
-        .then(() => {
-          resilience.isReady = true;
-          window.dispatchEvent(new CustomEvent('auth-resilience-ready'));
-          console.log('✅ Auth resilience initialized and ready');
-        })
-        .catch((err) => {
-          console.warn('[AuthResilience] Initial check failed, but marking ready:', err.message);
-          resilience.isReady = true;
-          window.dispatchEvent(new CustomEvent('auth-resilience-ready'));
-        });
+        .then(() => console.log('[AuthResilience] Background session check complete'))
+        .catch((err) => console.warn('[AuthResilience] Background check failed (non-critical):', err.message));
       
       return true;
     }
