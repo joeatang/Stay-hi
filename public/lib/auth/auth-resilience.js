@@ -348,8 +348,18 @@
       }
     }, 100);
     
-    // Timeout after 10 seconds
-    setTimeout(() => clearInterval(checkInterval), 10000);
+    // Timeout after 3 seconds (not 10 - fail fast)
+    setTimeout(() => {
+      clearInterval(checkInterval);
+      
+      // 🔥 CRITICAL FIX: Even if client never loads, fire ready event
+      // This prevents AuthReady from waiting forever and treating user as anonymous
+      if (!window.__hiAuthResilience) {
+        console.warn('[AuthResilience] ⚠️ Client never loaded - creating stub to unblock AuthReady');
+        window.__hiAuthResilience = { isReady: true };
+        window.dispatchEvent(new CustomEvent('auth-resilience-ready'));
+      }
+    }, 3000);
   }
   
 })();
