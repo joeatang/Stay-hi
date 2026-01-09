@@ -105,10 +105,11 @@ async function initialize(){
       if (storedAuth && cachedTier) {
         try {
           const parsed = JSON.parse(storedAuth);
-          if (parsed.user) {
+          // Supabase stores full session object with user, access_token, refresh_token, etc.
+          if (parsed.user && parsed.access_token) {
             console.log('[AuthReady] 🚀 Using cached session - skipping slow getSession()');
             return {
-              session: { user: parsed.user },
+              session: parsed, // Return FULL session object, not just user
               membership: {
                 tier: cachedTier,
                 is_admin: cachedAdmin === '1',
