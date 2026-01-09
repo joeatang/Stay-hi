@@ -55,9 +55,9 @@ async function initialize(){
     
     try {
       await new Promise((resolve) => {
-        // If isReady becomes true before event fires, resolve immediately
+        // Poll isReady flag with safety checks
         const checkInterval = setInterval(() => {
-          if (window.__hiAuthResilience.isReady) {
+          if (window.__hiAuthResilience && window.__hiAuthResilience.isReady) {
             clearInterval(checkInterval);
             resolve();
           }
@@ -71,6 +71,7 @@ async function initialize(){
         // Timeout after 3 seconds (not 5 - fail fast)
         setTimeout(() => {
           clearInterval(checkInterval);
+          console.warn('[AuthReady] Timeout waiting for auth-resilience, proceeding anyway');
           resolve();
         }, 3000);
       });
@@ -80,6 +81,8 @@ async function initialize(){
     }
   } else if (window.__hiAuthResilience && window.__hiAuthResilience.isReady) {
     console.log('[AuthReady] ✅ Auth-resilience already ready - skipping wait');
+  } else {
+    console.log('[AuthReady] ⚠️ No auth-resilience found - proceeding without wait');
   }
   
   const sb = getHiSupabase();
