@@ -648,8 +648,13 @@
     const isProdHost = host === 'stay-hi.vercel.app';
     const searchParams = new URLSearchParams(location.search);
     const showBanner = !!hiBuildTag && (searchParams.get('show-build') === '1' || !isProdHost);
+    // 🔧 FIX: Disable integrity beaconing by default to prevent request storms
+    // Enable via ?integrity-beacon=1 for debugging only
+    const integrityBeaconEnabled = searchParams.get('integrity-beacon') === '1';
+    window.__HI_BEACON_DISABLED = !integrityBeaconEnabled;
+    
     // Detect beacon endpoint availability (public-root deployments lack /api functions)
-    if (isProdHost) {
+    if (isProdHost && integrityBeaconEnabled) {
       try {
         fetch('/integrity-beacon', { method:'HEAD' }).then(r => {
           if (!r.ok) { window.__HI_BEACON_DISABLED = true; }
