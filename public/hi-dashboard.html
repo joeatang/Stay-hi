@@ -205,7 +205,7 @@ window.addEventListener('hi:auth-ready', async (e) => {
     let tierToDisplay = membership?.tier;
     if (!tierToDisplay && window.NavCache) {
       const cachedTier = window.NavCache.getTier();
-      if (cachedTier) { console.log('[Universal Tier] Using cached tier:', cachedTier); tierToDisplay = cachedTier; }
+      if (cachedTier) { console.log('[Universal Tier] Using cached tier:', cachedTier); tierToDisplay = cachedTier.tierKey || cachedTier; }
     }
     const tierIndicator = document.getElementById('hi-tier-indicator');
     if (!tierIndicator) { console.warn('[Universal Tier] No #hi-tier-indicator found'); return; }
