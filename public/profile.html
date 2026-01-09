@@ -105,9 +105,13 @@
   <!-- 🚀 WOZ FIX: Query timeout + retry logic -->
   <script src="./lib/query-timeout.js" defer></script>
   <!-- ✅ CRITICAL: AuthReady orchestrates session + membership and fires hi:auth-ready event -->
-  <script type="module" src="./lib/AuthReady.js?v=20260108-v2"></script>
+  <script type="module">
+    import('./lib/AuthReady.js?t=' + Date.now());
+  </script>
   <!-- 🎯 UNIVERSAL TIER LISTENER: Single source of truth for tier display across all pages -->
-  <script type="module" src="./lib/boot/universal-tier-listener.js?v=20260108-v2"></script>
+  <script type="module">
+    import('./lib/boot/universal-tier-listener.js?t=' + Date.now());
+  </script>
   
   <!-- 🏆 WOZ FIX: ProfileManager - Single Source of Truth -->
   <script src="./lib/ProfileManager.js"></script>

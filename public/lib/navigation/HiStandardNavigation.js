@@ -183,8 +183,9 @@ export class HiStandardNavigation {
     // Insert header at beginning of body
     document.body.insertAdjacentHTML('afterbegin', headerHTML);
     
-    // Update tier indicator
-    this.updateTierIndicator();
+    // ✅ ARCHITECTURAL FIX: Tier indicator now updated by universal-tier-listener.js
+    // Removed this.updateTierIndicator() - was competing with universal listener
+    // universal-tier-listener.js listens to hi:auth-ready and updates tier correctly
   }
 
   /**

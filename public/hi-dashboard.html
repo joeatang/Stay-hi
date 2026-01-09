@@ -192,9 +192,41 @@
   <!-- 🎯 HiBrandTiers: Must load BEFORE tier listener (tier display dependency) -->
   <script src="./lib/HiBrandTiers.js"></script>
   <!-- 🔥 MOBILE FIX: AuthReady orchestrator - handles session + membership initialization -->
-  <script type="module" src="./lib/AuthReady.js?v=20260108-v2"></script>
-  <!-- 🎯 UNIVERSAL TIER LISTENER: Single source of truth for tier display across all pages -->
-  <script type="module" src="./lib/boot/universal-tier-listener.js?v=20260108-v2"></script>
+  <script type="module">
+    import('./lib/AuthReady.js?t=' + Date.now());
+  </script>
+  <!-- 🎯 UNIVERSAL TIER LISTENER: Inlined to avoid import caching issues -->
+  <script>
+console.log('🎯 [Universal Tier Listener] Loading...');
+window.addEventListener('hi:auth-ready', async (e) => {
+  const { session, membership, fromCache } = e.detail || {};
+  console.log('[Universal Tier] hi:auth-ready received', { user: session?.user?.id, tier: membership?.tier, adminFlag: membership?.is_admin, fromCache });
+  try {
+    let tierToDisplay = membership?.tier;
+    if (!tierToDisplay && window.NavCache) {
+      const cachedTier = window.NavCache.getTier();
+      if (cachedTier) { console.log('[Universal Tier] Using cached tier:', cachedTier); tierToDisplay = cachedTier; }
+    }
+    const tierIndicator = document.getElementById('hi-tier-indicator');
+    if (!tierIndicator) { console.warn('[Universal Tier] No #hi-tier-indicator found'); return; }
+    if (tierToDisplay && window.HiBrandTiers) {
+      window.HiBrandTiers.updateTierPill(tierIndicator, tierToDisplay, { showEmoji: false, useGradient: false });
+      console.log('[Universal Tier] ✅ Tier updated via HiBrandTiers:', tierToDisplay);
+      if (window.NavCache && membership?.tier) { window.NavCache.setTier(membership.tier); }
+    } else if (tierToDisplay) {
+      const fallbackName = window.HiBrandTiers?.getName?.(tierToDisplay) || tierToDisplay.charAt(0).toUpperCase() + tierToDisplay.slice(1);
+      const tierText = tierIndicator.querySelector('.tier-text');
+      if (tierText) { tierText.textContent = fallbackName; } else { tierIndicator.textContent = fallbackName; }
+      console.warn('[Universal Tier] HiBrandTiers not available, using fallback:', fallbackName);
+      if (window.NavCache && membership?.tier) { window.NavCache.setTier(membership.tier); }
+    }
+    tierIndicator.removeAttribute('data-auth-loading');
+    const tierText = tierIndicator.querySelector('.tier-text');
+    if (tierText && tierText.classList.contains('tier-loading')) { tierText.classList.remove('tier-loading'); }
+  } catch(err) { console.warn('[Universal Tier] UI update error', err); }
+});
+console.log('✅ [Universal Tier Listener] Loaded and listening');
+  </script>
   <!-- Membership bridge: unify events and simple API -->
   <script src="./lib/membership/HiMembershipBridge.js"></script>
   <!-- AccessGate (scaffold) -->
