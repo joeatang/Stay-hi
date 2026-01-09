@@ -156,7 +156,16 @@ async function updateProfileInDatabase(avatarUrl) {
     import('./lib/monitoring/HiMonitor.js').then(m => m.trackEvent('profile_save', { source: 'profile', path: 'hibase' })).catch(()=>{});
   } else {
     console.log('📦 Profile → Legacy Supabase...');
-    const { error } = await window.supabaseClient.from('profiles').update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() }).eq('username', currentProfile.username);
+    
+    // 🏆 GOLD STANDARD FIX: Use id (UUID) not username
+    // profiles table primary key is id, username can be null for new users
+    const userId = currentProfile.id || (await window.HiSupabase.getClient().auth.getUser()).data?.user?.id;
+    
+    if (!userId) {
+      throw new Error('Cannot update profile: no user ID available');
+    }
+    
+    const { error } = await window.supabaseClient.from('profiles').update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() }).eq('id', userId);
     if (error) {
       console.error('Database update error:', error);
       console.log('Avatar uploaded but profile update failed - will retry');
