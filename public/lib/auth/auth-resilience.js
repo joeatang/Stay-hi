@@ -15,24 +15,11 @@
       this.isOnline = navigator.onLine;
       this.refreshTimer = null;
       this.isReady = false; // Track if initial session check is complete
-      this._sessionCheckPromise = null; // 🔥 WOZ FIX: Store promise for synchronous waiting
+      this._sessionCheckPromise = null;
       
       console.log('[AuthResilience] Initializing...');
       
-      // 🔥 WOZ FIX: Set ready immediately to unblock AuthReady
-      // Check session in background without blocking page load
-      this.isReady = true;
-      window.dispatchEvent(new CustomEvent('auth-resilience-ready'));
-      
-      // Check session in background (non-blocking)
-      this.checkSession()
-        .then(() => {
-          console.log('[AuthResilience] ✅ Background session check complete');
-        })
-        .catch((err) => {
-          console.warn('[AuthResilience] Background session check failed (non-critical):', err.message);
-        });
-      
+      // Wait for actual client to be ready before allowing queries
       this.init();
     }
     
@@ -331,8 +318,22 @@
     const client = window.hiSupabase || window.__HI_SUPABASE_CLIENT || window.supabaseClient;
     
     if (client?.auth) {
-      window.__hiAuthResilience = new AuthResilience(client);
-      console.log('✅ Auth resilience initialized');
+      const resilience = new AuthResilience(client);
+      window.__hiAuthResilience = resilience;
+      
+      // Do initial session check, then fire ready event
+      resilience.checkSession()
+        .then(() => {
+          resilience.isReady = true;
+          window.dispatchEvent(new CustomEvent('auth-resilience-ready'));
+          console.log('✅ Auth resilience initialized and ready');
+        })
+        .catch((err) => {
+          console.warn('[AuthResilience] Initial check failed, but marking ready:', err.message);
+          resilience.isReady = true;
+          window.dispatchEvent(new CustomEvent('auth-resilience-ready'));
+        });
+      
       return true;
     }
     
