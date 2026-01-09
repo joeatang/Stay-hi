@@ -26,9 +26,8 @@
     if (window.HiSupabase) {
       criticalGlobals.HiSupabase = window.HiSupabase;
     }
-    if (window.supabaseClient) {
-      criticalGlobals.supabaseClient = window.supabaseClient;
-    }
+    // ❌ DO NOT capture supabaseClient - it contains session state that should NOT be restored
+    // Each page must create its own fresh client to avoid stale session bugs
     if (window.HiBrandTiers) {
       criticalGlobals.HiBrandTiers = window.HiBrandTiers;
     }
@@ -56,11 +55,8 @@
       restored = true;
     }
     
-    if (!window.supabaseClient && criticalGlobals.supabaseClient) {
-      console.warn('🚨 window.supabaseClient was wiped - restoring...');
-      window.supabaseClient = criticalGlobals.supabaseClient;
-      restored = true;
-    }
+    // ❌ DO NOT restore supabaseClient - let each page create fresh client
+    // Restoring stale client causes session corruption and auth failures
     
     if (!window.HiBrandTiers && criticalGlobals.HiBrandTiers) {
       console.warn('🚨 window.HiBrandTiers was wiped - restoring...');
