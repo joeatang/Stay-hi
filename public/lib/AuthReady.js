@@ -22,9 +22,9 @@ async function salvageTokens(sb){
 
 async function fetchMembership(sb){
   try {
-    // 🔥 FIX: Add 8-second timeout (increased for slow networks/database)
+    // 🔥 FIX: Add 5-second timeout (reduced from 8 - fail fast with cache fallback)
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Membership timeout')), 8000)
+      setTimeout(() => reject(new Error('Membership timeout')), 5000)
     );
     
     const membershipPromise = sb.rpc('get_unified_membership');
@@ -48,9 +48,10 @@ async function fetchMembership(sb){
 async function initialize(){
   if (_ready) return _result;
   
-  // 🔥 MOBILE FIX: Wait for auth-resilience restoration to complete first
-  // This prevents race condition where dashboard tries to load stats before session is restored
-  if (window.__hiAuthResilience && !window.__hiAuthResilience.isReady) {
+  // 🔥 WOZ FIX: Check auth-resilience SYNCHRONOUSLY first - don't wait if already ready
+  const authResilienceReady = window.__hiAuthResilience?.isReady === true;
+  
+  if (!authResilienceReady && window.__hiAuthResilience) {
     console.log('[AuthReady] 📱 Waiting for auth-resilience initial session restoration...');
     
     try {
@@ -68,18 +69,18 @@ async function initialize(){
           resolve();
         }, { once: true });
         
-        // Timeout after 3 seconds (not 5 - fail fast)
+        // Timeout after 2 seconds (fail fast)
         setTimeout(() => {
           clearInterval(checkInterval);
           console.warn('[AuthReady] Timeout waiting for auth-resilience, proceeding anyway');
           resolve();
-        }, 3000);
+        }, 2000);
       });
       console.log('[AuthReady] ✅ Auth-resilience restoration completed');
     } catch (e) {
       console.warn('[AuthReady] ⚠️ Auth-resilience wait failed, proceeding anyway:', e);
     }
-  } else if (window.__hiAuthResilience && window.__hiAuthResilience.isReady) {
+  } else if (authResilienceReady) {
     console.log('[AuthReady] ✅ Auth-resilience already ready - skipping wait');
   } else {
     console.log('[AuthReady] ⚠️ No auth-resilience found - proceeding without wait');
@@ -87,10 +88,10 @@ async function initialize(){
   
   const sb = getHiSupabase();
 
-  // 🔥 FIX: Add 10-second timeout (increased for mobile)
+  // 🔥 FIX: Add 5-second timeout (reduced from 10 - fail fast)
   try {
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Auth initialization timeout')), 10000)
+      setTimeout(() => reject(new Error('Auth initialization timeout')), 5000)
     );
     
     const authPromise = (async () => {
