@@ -95,6 +95,15 @@
   <script src="./lib/HiSupabase.v3.js"></script>
   <!-- 🏆 ProfileManager - Single Source of Truth for Profile Data -->
   <script src="./lib/ProfileManager.js"></script>
+  <script>
+    // 🏆 CRITICAL: Initialize ProfileManager before any share submissions
+    (async () => {
+      if (window.ProfileManager) {
+        await window.ProfileManager.init();
+        console.log('✅ [Hi Gym] ProfileManager initialized');
+      }
+    })();
+  </script>
   <script type="module">
     import('./lib/AuthReady.js?t=' + Date.now());
   </script>
