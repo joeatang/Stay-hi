@@ -57,9 +57,19 @@ function clearSupabaseClient() {
 // 🚀 WOZ FIX: ALWAYS nuke client on BFCache restoration
 // BFCache preserves dead AbortControllers → ProfileManager hangs → Island never loads
 window.addEventListener('pageshow', (event) => {
+  console.warn('[HiSupabase] 📱 pageshow event fired:', {
+    persisted: event.persisted,
+    url: window.location.pathname,
+    hadClient: !!window.__HI_SUPABASE_CLIENT,
+    timestamp: Date.now()
+  });
+  
   if (event.persisted) {
     console.warn('[HiSupabase] 🔥 BFCache detected - NUKING stale client');
     clearSupabaseClient();
+    console.warn('[HiSupabase] ✅ Client cleared, next getClient() will create fresh');
+  } else {
+    console.log('[HiSupabase] Fresh page load (not BFCache restore)');
   }
 });
 
@@ -153,9 +163,16 @@ if (!createdClient) {
 
 // Helper to guarantee alias presence for late consumers.
 function getHiSupabase() {
+  console.log('[HiSupabase] getClient() called:', {
+    hasCreatedClient: !!createdClient,
+    hasWindowClient: !!window.__HI_SUPABASE_CLIENT,
+    currentURL: window.location.pathname,
+    stack: new Error().stack.split('\n')[2]?.trim()
+  });
+  
   // 🚀 WOZ FIX: Recreate client if needed (handles pageshow clearing)
   if (!createdClient && window.supabase?.createClient) {
-    console.log('🔄 Recreating Supabase client after staleness detection');
+    console.warn('🔄 [HiSupabase] Creating NEW Supabase client for:', window.location.pathname);
     const authOptions = {
       auth: {
         persistSession: true,
@@ -181,6 +198,14 @@ function getHiSupabase() {
   }
   
   if (!window.hiSupabase) window.hiSupabase = createdClient;
+  
+  console.log('[HiSupabase] getClient() returning:', {
+    exists: !!window.hiSupabase,
+    hasAuth: !!window.hiSupabase?.auth,
+    hasFrom: !!window.hiSupabase?.from,
+    clientTimestamp: window.__HI_SUPABASE_CLIENT_TIMESTAMP
+  });
+  
   return window.hiSupabase;
 }
 
