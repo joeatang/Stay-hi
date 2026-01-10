@@ -1457,6 +1457,7 @@
   <noscript><link rel="stylesheet" href="./ui/HiFooter/HiFooter.css"></noscript>
 </head>
 <body data-page="hi-island">
+  <script>console.log('✅ BODY parsing started');</script>
   <!-- 🎬 STATIC SPLASH: First element rendered -->
   <div class="hi-splash-instant" id="instant-splash">
     <img src="assets/brand/hi-logo-dark.png" alt="Hi" class="hi-splash-logo" />
@@ -1732,6 +1733,7 @@
   
   <!-- 🗺️ CRITICAL: Geocoding service (prevents map loading loop) -->
   <script src="./assets/island.js"></script>
+  <script>console.log('✅ BODY scripts section reached');</script>
   
   <!-- 🚀 DEPENDENCY MANAGER: Prevents race conditions on first load -->
   <script src="./lib/boot/dependency-manager.js"></script>
