@@ -90,8 +90,6 @@ async function initHiIsland() {
   initializeTryItLink();
   initializeHiMap();
   
-  // Mark as initialized to prevent duplicate event listeners on BFCache restore
-  islandInitialized = true;
   console.log('✅ Hi Island ready with Gold Standard UI');
 }
 
