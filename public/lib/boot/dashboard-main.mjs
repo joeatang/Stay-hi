@@ -3,8 +3,18 @@
 import { HiShareSheet } from '../../ui/HiShareSheet/HiShareSheet.js';
 import { mountHiMedallion } from '../../ui/HiMedallion/HiMedallion.js';
 
+// 🎯 WOZ FIX: Prevent duplicate initialization (event listener stacking)
+let dashboardInitialized = false;
+
 // Tesla-grade component initialization with guards
 async function initializeDashboard() {
+  // 🚀 IDEMPOTENCY: Skip full init if already done, just refresh state
+  if (dashboardInitialized) {
+    console.log('♻️ Dashboard already initialized - refreshing state only...');
+    await refreshDashboardState();
+    return;
+  }
+  
   // 🏆 WOZ FIX: Initialize ProfileManager first
   if (window.ProfileManager && !window.ProfileManager.isReady()) {
     console.log('🏆 [Module] Initializing ProfileManager...');
@@ -372,6 +382,24 @@ async function initializeDashboard() {
 
   // Initialize the Try link after DOM is ready
   initializeDashTryItLink();
+  
+  // Mark as initialized to prevent duplicate event listeners on BFCache restore
+  dashboardInitialized = true;
+}
+
+// 🎯 STATE REFRESH: Reload dynamic content without re-initializing components
+async function refreshDashboardState() {
+  // ProfileManager.init() has built-in guard (_initialized check)
+  if (window.ProfileManager) {
+    try {
+      await window.ProfileManager.init();
+      console.log('✅ Profile state refreshed on BFCache restore');
+    } catch (err) {
+      console.warn('⚠️ Profile refresh failed:', err);
+    }
+  }
+  
+  console.log('♻️ Dashboard state refreshed');
 }
 
 // Run on initial load

@@ -1,8 +1,18 @@
 // HI ISLAND ORCHESTRATOR (extracted from hi-island-NEW.html)
 // Load order preserved; this file is included near the end of body
 
+// 🎯 WOZ FIX: Prevent duplicate initialization (event listener stacking)
+let islandInitialized = false;
+
 async function initHiIsland() {
   console.log('🏝️ Hi Island initializing...');
+  
+  // 🚀 IDEMPOTENCY: Skip full init if already done, just refresh state
+  if (islandInitialized) {
+    console.log('♻️ Hi Island already initialized - refreshing state only...');
+    await refreshIslandState();
+    return;
+  }
   
   // 🚀 FIX: Wait for critical dependencies before rendering
   // This prevents race conditions on first navigation
@@ -62,12 +72,14 @@ async function initHiIsland() {
   // Unified stats only: remove legacy multi-path cache bootstrap
   loadRealStats().catch(err => console.warn('Stats loading failed:', err));
   
-  // ✅ FIX: Initialize UnifiedHiIslandController to render feed
+  // ✅ FIX: Initialize UnifiedHiIslandController to render feed (singleton pattern)
   console.log('🎯 Initializing feed system...');
-  if (window.UnifiedHiIslandController) {
+  if (window.UnifiedHiIslandController && !window.unifiedHiIslandController) {
     window.unifiedHiIslandController = new window.UnifiedHiIslandController();
     await window.unifiedHiIslandController.init();
     console.log('✅ Feed system initialized');
+  } else if (window.unifiedHiIslandController) {
+    console.log('✅ Feed controller already exists (reusing instance)');
   } else {
     console.error('❌ UnifiedHiIslandController not loaded!');
   }
@@ -76,7 +88,38 @@ async function initHiIsland() {
   initializeOriginFilters();
   initializeTryItLink();
   initializeHiMap();
+  
+  // Mark as initialized to prevent duplicate event listeners on BFCache restore
+  islandInitialized = true;
   console.log('✅ Hi Island ready with Gold Standard UI');
+}
+
+// 🎯 STATE REFRESH: Reload dynamic content without re-initializing event listeners
+async function refreshIslandState() {
+  // Refresh stats (already has throttle guard)
+  loadRealStats().catch(err => console.warn('Stats refresh failed:', err));
+  
+  // Refresh feed data (re-init controller - should be idempotent)
+  if (window.unifiedHiIslandController) {
+    try {
+      await window.unifiedHiIslandController.init();
+      console.log('✅ Feed refreshed on BFCache restore');
+    } catch (err) {
+      console.warn('⚠️ Feed refresh failed:', err);
+    }
+  }
+  
+  // Refresh map display (if map exists)
+  if (window.hiMap && window.hiMap.invalidateSize) {
+    try {
+      window.hiMap.invalidateSize(); // Ensure map displays correctly after restore
+      console.log('✅ Map refreshed on BFCache restore');
+    } catch (err) {
+      console.warn('⚠️ Map refresh failed:', err);
+    }
+  }
+  
+  console.log('♻️ Island state refreshed');
 }
 
 // 🎯 Membership Tier Listener (Hi Island Parity with Dashboard)
