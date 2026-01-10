@@ -317,6 +317,7 @@ class ProfileManager {
 
   /**
    * Wait for Supabase client to be available
+   * 🚀 CRITICAL: Always return fresh client from window, never cache stale references
    */
   async _waitForSupabase() {
     const maxAttempts = 100; // 5 seconds (50ms intervals)
@@ -330,6 +331,22 @@ class ProfileManager {
       await new Promise(resolve => setTimeout(resolve, 50));
     }
     throw new Error('Supabase client not available after 5 seconds');
+  }
+
+  /**
+   * Get current Supabase client, refreshing if stale
+   * 🚀 CRITICAL: Detect if window.__HI_SUPABASE_CLIENT changed (cross-page navigation)
+   */
+  _getSupabase() {
+    const currentClient = window.supabaseClient || window.hiSupabase || window.sb || window.__HI_SUPABASE_CLIENT;
+    
+    // If cached client doesn't match current window client, update it
+    if (this._supabase !== currentClient && currentClient) {
+      console.warn('🔄 ProfileManager: Detected new Supabase client, updating reference');
+      this._supabase = currentClient;
+    }
+    
+    return this._supabase;
   }
 
   /**
@@ -397,7 +414,7 @@ class ProfileManager {
           if (!this._authReady) {
             console.warn('⚠️ AuthReady event timeout, checking session directly...');
             try {
-              const { data: { session } } = await this._supabase.auth.getSession();
+              const { data: { session } } = await this._getSupabase().auth.getSession();
               if (session?.user) {
                 this._userId = session.user.id;
                 this._authReady = true;
@@ -443,7 +460,10 @@ class ProfileManager {
     try {
       console.log('📥 Loading profile from database for user:', this._userId);
 
-      const { data, error } = await this._supabase
+      // 🚀 CRITICAL: Get fresh Supabase client (detects if window client changed)
+      const supabase = this._getSupabase();
+      
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', this._userId)
@@ -569,7 +589,7 @@ class ProfileManager {
    */
   _setupEventListeners() {
     // Listen for auth state changes
-    this._supabase.auth.onAuthStateChange(async (event, session) => {
+    this._getSupabase().auth.onAuthStateChange(async (event, session) => {
       console.log('🔐 Auth state changed:', event, session?.user?.id);
       
       if (event === 'INITIAL_SESSION' && session?.user) {
