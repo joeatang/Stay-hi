@@ -153,11 +153,11 @@ if (!createdClient) {
 
 // Helper to guarantee alias presence for late consumers.
 function getHiSupabase() {
-  // 🚀 CRITICAL: Validate client freshness on EVERY access
-  // This handles BFCache restoration even if pageshow doesn't fire
-  validateClientFreshness();
-  
   // 🚀 WOZ FIX: Recreate client if needed (handles pageshow clearing)
+  if (!createdClient && window.supabase?.createClient) {
+    console.log('🔄 Recreating Supabase client after staleness detection');
+    const authOptions = {
+      auth: {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: false,
@@ -171,15 +171,15 @@ function getHiSupabase() {
     createdClient = window.supabase.createClient(REAL_SUPABASE_URL, REAL_SUPABASE_KEY, authOptions);
     window.__HI_SUPABASE_CLIENT = createdClient;
     window.__HI_SUPABASE_CLIENT_URL = window.location.pathname;
-    window.hiSupabase = createdClient;
-    window.supabaseClient = createdClient;
-    window.sb = createdClient;
-    
     window.__HI_SUPABASE_CLIENT_TIMESTAMP = Date.now();
     window.hiSupabase = createdClient;
     window.supabaseClient = createdClient;
     window.sb = createdClient;
-    console.log('✅ Fresh Supabase client created for:', window.location.pathname)
+    console.log('✅ Fresh Supabase client created for:', window.location.pathname);
+    
+    window.dispatchEvent(new CustomEvent('hi:supabase-client-ready', { detail: { client: createdClient } }));
+  }
+  
   if (!window.hiSupabase) window.hiSupabase = createdClient;
   return window.hiSupabase;
 }
