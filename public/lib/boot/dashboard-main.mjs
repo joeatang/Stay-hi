@@ -296,9 +296,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 // Use HiBase.stats.insertMedallionTap for unified tracking
                 if (window.HiBase?.stats?.insertMedallionTap) {
-                  const result = await window.HiAbortUtils.ignoreAbort(window.HiBase.stats.insertMedallionTap(userId));
-                  if (result === null) return; // Aborted during navigation
-                  
+                  const result = await window.HiBase.stats.insertMedallionTap(userId);
                   if (result.error) {
                     console.error('❌ Medallion tap tracking failed:', result.error);
                   } else {
@@ -330,6 +328,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                   }
                 }
               } catch (error) {
+                // AbortError is EXPECTED in MPA - silently ignore
+                if (error.name === 'AbortError' || error.message?.includes('aborted')) return;
                 console.error('❌ Medallion tap error:', error);
               }
             })();
@@ -340,15 +340,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Get user ID directly from Supabase session (same as Hi Gym pattern)
                 let userId = null;
                 if (window.HiSupabase?.getClient) {
-                  const userData = await window.HiAbortUtils.ignoreAbort(window.HiSupabase.getClient().auth.getUser());
-                  if (userData === null) return; // Aborted
-                  userId = userData.data?.user?.id;
+                  const { data: { user } } = await window.HiSupabase.getClient().auth.getUser();
+                  userId = user?.id;
                 }
                 
                 if (userId && userId !== 'anonymous' && window.HiBase?.updateStreak) {
-                  const result = await window.HiAbortUtils.ignoreAbort(window.HiBase.updateStreak(userId));
-                  if (result === null) return; // Aborted during navigation
-                  
+                  await window.HiBase.updateStreak(userId);
                   console.log('🔥 Streak updated from medallion tap');
                   
                   // Refresh calendar/streak displays
@@ -360,6 +357,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                   }
                 }
               } catch (streakErr) {
+                // AbortError is EXPECTED in MPA - silently ignore
+                if (streakErr.name === 'AbortError' || streakErr.message?.includes('aborted')) return;
                 console.warn('⚠️ Streak update skipped:', streakErr);
               }
             })();

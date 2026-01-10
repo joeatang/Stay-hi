@@ -120,15 +120,7 @@
       if (!this.isOnline) return;
       
       try {
-        const sessionData = await window.HiAbortUtils.ignoreAbort(this.client.auth.getSession());
-        
-        // Aborted during navigation - no-op
-        if (sessionData === null) {
-          console.debug('[AuthResilience] Session check aborted during navigation');
-          return;
-        }
-        
-        const { data: { session }, error } = sessionData;
+        const { data: { session }, error } = await this.client.auth.getSession();
         
         if (error) {
           console.error('[AuthResilience] Session check failed:', error);
@@ -157,18 +149,10 @@
               if (accessToken && refreshToken) {
                 console.log('[AuthResilience] 🔄 Restoring session from localStorage...');
                 
-                const restoreData = await window.HiAbortUtils.ignoreAbort(this.client.auth.setSession({
+                const { data, error } = await this.client.auth.setSession({
                   access_token: accessToken,
                   refresh_token: refreshToken
-                }));
-                
-                // Aborted during navigation - no-op
-                if (restoreData === null) {
-                  console.debug('[AuthResilience] Session restore aborted during navigation');
-                  return;
-                }
-                
-                const { data, error } = restoreData;
+                });
                 
                 if (error) {
                   console.error('[AuthResilience] ❌ Restore failed:', error.message);
@@ -201,10 +185,9 @@
           console.log(`[AuthResilience] ✅ Session valid for ${minutesLeft} min`);
         }
       } catch (err) {
-        // Check if it's an expected abort error
-        if (window.HiAbortUtils.isAbortError(err)) {
-          console.debug('[AuthResilience] Check aborted during navigation');
-          return;
+        // AbortError is EXPECTED in MPA - treat as no-op
+        if (err.name === 'AbortError' || err.message?.includes('aborted')) {
+          return; // Navigation abort - no-op
         }
         console.error('[AuthResilience] Check failed:', err);
       }

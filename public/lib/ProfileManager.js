@@ -376,13 +376,7 @@ class ProfileManager {
           if (!this._authReady) {
             console.warn('⚠️ AuthReady event timeout, checking session directly...');
             try {
-              const sessionData = await window.HiAbortUtils.ignoreAbort(this._supabase.auth.getSession());
-              if (sessionData === null) {
-                // Aborted during navigation - skip
-                return;
-              }
-              
-              const session = sessionData.data?.session;
+              const { data: { session } } = await this._supabase.auth.getSession();
               if (session?.user) {
                 this._userId = session.user.id;
                 this._authReady = true;
@@ -397,10 +391,9 @@ class ProfileManager {
                 this._authReadyResolve();
               }
             } catch (error) {
-              // Check if it's an abort error
-              if (window.HiAbortUtils.isAbortError(error)) {
-                console.debug('[ProfileManager] Auth check aborted during navigation');
-                return;
+              // AbortError is EXPECTED in MPA - treat as no-op
+              if (error.name === 'AbortError' || error.message?.includes('aborted')) {
+                return; // Navigation abort - no-op
               }
               console.error('❌ Emergency auth check failed:', error);
               this._authReady = true;
@@ -429,23 +422,12 @@ class ProfileManager {
     try {
       console.log('📥 Loading profile from database for user:', this._userId);
 
-      const profileData = await window.HiAbortUtils.ignoreAbort(this._supabase
+      const { data, error } = await this._supabase
         .from('profiles')
         .select('*')
         .eq('id', this._userId)
-        .single());
-      
-      // Aborted during navigation - use cached profile and no-op
-      if (profileData === null) {
-        console.debug('[ProfileManager] Profile query aborted - keeping last-known-good state');
-        const cached = this._getCachedProfile();
-        if (cached) {
-          this._profile = cached;
-        }
-        return;
-      }
+        .single();
 
-      const { data, error } = profileData;
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
         console.error('❌ Database query failed:', error);
         throw error;

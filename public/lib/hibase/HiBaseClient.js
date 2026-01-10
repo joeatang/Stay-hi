@@ -112,24 +112,10 @@ class HiBaseClient {
         return this.execute(async (client) => {
             // Connectivity probe against a known existing table
             try {
-                const result = await window.HiAbortUtils.ignoreAbort(client
+                const { data, error } = await client
                   .from('public_shares')
                   .select('id')
-                  .limit(1));
-                
-                // Aborted during navigation - return no-op success (don't degrade state)
-                if (result === null) {
-                    return {
-                        data: {
-                            connected: true,
-                            aborted: true,
-                            message: 'Connection test aborted (navigation)'
-                        },
-                        error: null
-                    };
-                }
-                
-                const { data, error } = result;
+                  .limit(1);
                 if (error) {
                     return { data: null, error };
                 }
@@ -142,6 +128,13 @@ class HiBaseClient {
                     error: null
                 };
             } catch (err) {
+                // AbortError is EXPECTED in MPA - return success (don't degrade state)
+                if (err.name === 'AbortError' || err.message?.includes('aborted')) {
+                    return {
+                        data: { connected: true, aborted: true },
+                        error: null
+                    };
+                }
                 return { data: null, error: { message: err.message || String(err), code: 'TEST_FAILED' } };
             }
         });

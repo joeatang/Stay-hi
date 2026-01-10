@@ -40,6 +40,12 @@ class StreakAuthority {
       console.log('✅ [StreakAuthority] Database fetch:', data.current);
       return data;
     } catch (error) {
+      // AbortError is EXPECTED in MPA - use cached streak
+      if (error.name === 'AbortError' || error.message?.includes('aborted')) {
+        const cached = this.#getStaleCache(userId);
+        if (cached) return cached;
+        return { current: 0, longest: 0, lastHiDate: null };
+      }
       console.error('❌ [StreakAuthority] Database fetch failed:', error);
       
       // Last resort: return stale cache if exists
@@ -105,24 +111,12 @@ class StreakAuthority {
       throw new Error('Supabase client not available');
     }
 
-    const result = await window.HiAbortUtils.ignoreAbort(client
+    const { data, error } = await client
       .from('user_stats')
       .select('current_streak, longest_streak, last_hi_date')
       .eq('user_id', userId)
-      .maybeSingle());
+      .maybeSingle();
     
-    // Aborted during navigation - keep last-known-good state (don't fallback to stale)
-    if (result === null) {
-      const cached = this.#getStaleCache(userId);
-      if (cached) {
-        console.debug('[StreakAuthority] Query aborted - keeping last-known-good cache');
-        return cached;
-      }
-      // No cache available - return zero state
-      return { current: 0, longest: 0, lastHiDate: null };
-    }
-    
-    const { data, error } = result;
     if (error) throw error;
     
     if (!data) {
