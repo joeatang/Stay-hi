@@ -123,7 +123,14 @@ async function refreshIslandState() {
 }
 
 // 🎯 Membership Tier Listener (Hi Island Parity with Dashboard)
+let tierListenerSetup = false; // Prevent duplicate event listeners
+
 function setupMembershipTierListener() {
+  if (tierListenerSetup) {
+    console.log('✅ Tier pill listener already active (skipping duplicate setup)');
+    return;
+  }
+  
   // 🔥 FIX: Hi Island uses #hi-tier-indicator, not [data-tier-pill]
   const tierPill = document.getElementById('hi-tier-indicator') || document.querySelector('[data-tier-pill]');
   
@@ -167,6 +174,7 @@ function setupMembershipTierListener() {
     }, 5000); // 5s timeout
   }
   
+  tierListenerSetup = true; // Mark as setup to prevent duplicates
   console.log('✅ Tier pill listener active on Hi Island');
 }
 
@@ -205,7 +213,15 @@ function updateTierPill(tierFromEvent) {
   }
 }
 
+let tabSystemInitialized = false;
+
 function initializeTabSystem() {
+  if (tabSystemInitialized) {
+    console.log('✅ Tab system already initialized (skipping duplicate setup)');
+    return;
+  }
+  tabSystemInitialized = true; // Set BEFORE adding listeners
+  
   const tabs = document.querySelectorAll('.tab');
   const feedRoot = document.getElementById('hi-island-feed-root');
   let currentTabIndex = 0;
@@ -302,7 +318,15 @@ function initializeTabSystem() {
 
 // Wire origin filter buttons to unified feed
 // WOZ FIX: Wait for hiRealFeed to be ready before attaching listeners
+let originFiltersInitialized = false;
+
 function initializeOriginFilters() {
+  if (originFiltersInitialized) {
+    console.log('✅ Origin filters already initialized (skipping duplicate setup)');
+    return;
+  }
+  originFiltersInitialized = true; // Set BEFORE adding listeners
+  
   try {
     const btns = Array.from(document.querySelectorAll('.origin-filter-btn'));
     if (!btns.length) {
@@ -383,7 +407,15 @@ function initializeOriginFilters() {
 }
 
 // Jobs-style: simple "Try it" link near the primary CTA
+let tryItLinkInitialized = false;
+
 function initializeTryItLink() {
+  if (tryItLinkInitialized) {
+    console.log('✅ Try It link already initialized (skipping duplicate setup)');
+    return;
+  }
+  tryItLinkInitialized = true; // Set BEFORE adding listener
+  
   try {
     const link = document.getElementById('tryHiLink');
     if (!link) return;
@@ -478,7 +510,15 @@ async function handleTabSwitch(tabName) {
   }
 }
 
+let hiMapInitialized = false;
+
 function initializeHiMap() {
+  if (hiMapInitialized) {
+    console.log('✅ Hi Map already initialized (skipping duplicate setup)');
+    return;
+  }
+  hiMapInitialized = true; // Set BEFORE creating map
+  
   try {
     if (typeof L === 'undefined') {
       console.warn('⚠️ Leaflet not loaded, map will be hidden');
@@ -677,7 +717,8 @@ window.loadCurrentStatsFromDatabase = async () => {
   // 🎯 BFCache: Re-initialize on navigation back
   window.addEventListener('pageshow', (e)=>{ 
     if (e.persisted) {
-      console.log('🔄 BFCache restore - refreshing Hi Island...');
+      console.log('🔄 BFCache restore - resetting init flag and re-initializing...');
+      islandInitialized = false; // Reset flag to allow full re-init
       initHiIsland();
     } else if (document.visibilityState==='visible') {
       safeRefresh();
