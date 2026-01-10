@@ -725,6 +725,8 @@ window.loadCurrentStatsFromDatabase = async () => {
   
   // 🎯 BFCache: Reset aborted controller and refresh state
   window.addEventListener('pageshow', async (e)=>{ 
+    console.log('📍 PAGESHOW EVENT:', { persisted: e.persisted, visibility: document.visibilityState });
+    
     if (e.persisted) {
       console.log('🔄 BFCache restore detected');
       
