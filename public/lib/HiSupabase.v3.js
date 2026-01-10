@@ -86,6 +86,7 @@ window.__HI_SUPABASE_CLIENT_TIMESTAMP = null;
 window.hiSupabase = null;
 window.supabaseClient = null;
 window.sb = null;
+window.HiSupabase = null; // 🚀 CRITICAL: Clear the namespace object too!
 
 console.log('[HiSupabase] 🧹 Module variable initialized (createdClient = null)');
 
