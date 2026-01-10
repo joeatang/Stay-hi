@@ -1870,6 +1870,16 @@ console.log('✅ [Universal Tier Listener] Loaded and listening');
     // Global abort controller for page-level async operations
     window.__HI_PAGE_ABORT = new AbortController();
     
+    // 🔥 CRITICAL: Catch unhandled AbortErrors from Supabase
+    window.addEventListener("unhandledrejection", (event) => {
+      const error = event.reason;
+      if (error?.name === "AbortError" || error?.message?.includes("aborted")) {
+        event.preventDefault();
+        return;
+      }
+    });
+
+    
     // iOS Safari reliable cleanup events
     window.addEventListener('pagehide', () => {
       if (!window.__HI_PAGE_ABORT.signal.aborted) {

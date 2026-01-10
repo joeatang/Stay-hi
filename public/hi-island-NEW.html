@@ -1911,6 +1911,16 @@
     (function() {
       'use strict';
       
+      // 🔥 CRITICAL: Catch unhandled AbortErrors from Supabase
+      window.addEventListener('unhandledrejection', (event) => {
+        const error = event.reason;
+        // AbortError is EXPECTED in MPA - prevent console flood
+        if (error?.name === 'AbortError' || error?.message?.includes('aborted')) {
+          event.preventDefault(); // Silently ignore
+          return;
+        }
+      });
+      
       // Clean up Hi Island globals on navigation away (not backgrounding)
       window.addEventListener('pagehide', (event) => {
         // Only clean up on actual navigation (not bfcache)
