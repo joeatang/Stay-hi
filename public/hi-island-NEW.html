@@ -257,7 +257,7 @@
         update();
         document.body.appendChild(box);
         const iv = setInterval(update, 1000);
-        window.addEventListener('beforeunload', ()=>clearInterval(iv));
+        window.addEventListener('pagehide', ()=>clearInterval(iv)); // Use pagehide for BFCache compatibility
       } catch(e) { console.warn('diag init failed', e); }
     })();
   </script>
