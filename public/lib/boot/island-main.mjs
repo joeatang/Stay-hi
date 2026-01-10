@@ -76,8 +76,17 @@ async function initHiIsland() {
   console.log('🎯 Initializing feed system...');
   if (window.UnifiedHiIslandController && !window.unifiedHiIslandController) {
     window.unifiedHiIslandController = new window.UnifiedHiIslandController();
-    await window.unifiedHiIslandController.init();
-    console.log('✅ Feed system initialized');
+    try {
+      await window.unifiedHiIslandController.init();
+      console.log('✅ Feed system initialized');
+    } catch (error) {
+      // AbortError expected during navigation - don't block other init steps
+      if (error.name === 'AbortError' || error.message?.includes('aborted')) {
+        console.log('ℹ️ Feed init aborted (navigation in progress) - will complete on next visit');
+      } else {
+        console.error('❌ Feed init failed:', error);
+      }
+    }
   } else if (window.unifiedHiIslandController) {
     console.log('✅ Feed controller already exists (reusing instance)');
   } else {
@@ -714,13 +723,9 @@ window.loadCurrentStatsFromDatabase = async () => {
   }
   window.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') safeRefresh(); });
   
-  // 🎯 BFCache: Re-initialize on navigation back
+  // 🎯 BFCache: Just refresh stats on restore (controllers already initialized)
   window.addEventListener('pageshow', (e)=>{ 
-    if (e.persisted) {
-      console.log('🔄 BFCache restore - resetting init flag and re-initializing...');
-      islandInitialized = false; // Reset flag to allow full re-init
-      initHiIsland();
-    } else if (document.visibilityState==='visible') {
+    if (e.persisted || document.visibilityState==='visible') {
       safeRefresh();
     }
   });

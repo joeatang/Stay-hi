@@ -405,13 +405,4 @@ async function refreshDashboardState() {
 // Run on initial load
 document.addEventListener('DOMContentLoaded', initializeDashboard);
 
-// 🎯 BFCache: Re-initialize on navigation back
-window.addEventListener('pageshow', (e) => {
-  if (e.persisted) {
-    console.log('🔄 BFCache restore - resetting init flag and re-initializing...');
-    dashboardInitialized = false; // Reset flag to allow full re-init
-    initializeDashboard();
-  }
-});
-
 /* Cache bust 1765736732 */
