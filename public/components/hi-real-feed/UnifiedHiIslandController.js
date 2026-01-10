@@ -21,12 +21,12 @@ class UnifiedHiIslandController {
 
   async init() {
     // Allow re-initialization (e.g., after BFCache restore)
-    // but avoid concurrent init calls
     if (this.initPromise && this.isInitialized) {
-      console.log('✅ Controller already initialized, forcing refresh...');
-      // Just refresh the feed instead of full re-init
-      if (this.feedInstance?.loadShares) {
-        await this.feedInstance.loadShares(this.currentTab);
+      console.log('✅ Controller already initialized, forcing feed refresh...');
+      // Force full feed reload
+      if (this.feedInstance?.loadFeedData) {
+        console.log('🔄 Reloading feed data...');
+        await this.feedInstance.loadFeedData();
       }
       return this.initPromise;
     }

@@ -5,7 +5,16 @@
   <script>
     window.CACHE_VERSION='20260108-v2';
     window.__BUILD_HASH__='79cd660';
-    console.log('🏗️ BUILD:', window.__BUILD_HASH__, '| Page: Island');
+    window.__ISLAND_LOAD_COUNT = (window.__ISLAND_LOAD_COUNT || 0) + 1;
+    console.log('🏗️ BUILD:', window.__BUILD_HASH__, '| Island Load:', window.__ISLAND_LOAD_COUNT);
+    
+    // Diagnostic: Track if this is actually a fresh load
+    console.log('📊 Island Init State:', {
+      profileManagerExists: !!window.ProfileManager?.instance,
+      controllerExists: !!window.unifiedHiIslandController,
+      feedExists: !!window.hiRealFeed,
+      mapExists: !!window.hiMap
+    });
   </script>
   
   <meta charset="utf-8"/>
