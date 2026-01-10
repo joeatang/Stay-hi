@@ -43,6 +43,8 @@ function createStubClient() {
 // 🚀 CRITICAL: Validate client is not stale from previous page
 // This runs on EVERY getClient() call to handle BFCache restoration
 function validateClientFreshness() {
+  console.log('[HiSupabase VALIDATION] Running... currentURL:', window.location.pathname, 'clientURL:', window.__HI_SUPABASE_CLIENT_URL || 'none');
+  
   if (window.__HI_SUPABASE_CLIENT) {
     const currentURL = window.location.pathname;
     const clientURL = window.__HI_SUPABASE_CLIENT_URL || '';
