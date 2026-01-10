@@ -244,6 +244,12 @@ class HiIslandRealFeed {
       if (client) return client;
     }
     
+    // 🚀 CRITICAL: Use HiSupabase.getClient() to trigger validation on every access
+    // This ensures we never get stale client from BFCache navigation
+    if (window.HiSupabase?.getClient) {
+      return window.HiSupabase.getClient();
+    }
+    
     // Priority fallback chain (same as HiDB.js)
     if (window.__HI_SUPABASE_CLIENT) return window.__HI_SUPABASE_CLIENT;
     if (window.supabaseClient) return window.supabaseClient;

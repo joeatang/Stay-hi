@@ -2,10 +2,10 @@
 // Hi Collective PWA - Offline-first architecture
 
 // 🚀 WOZ FIX: Bump version to force cache clear on navigation regression
-const BUILD_TAG = 'v1.0.7-20260110-island-uncached';
+const BUILD_TAG = 'v1.0.8-20260110-client-validation';
 // Bump cache versions to force update on deploy
-const CACHE_NAME = 'hi-collective-v1.4.4-island-uncached';
-const STATIC_CACHE_NAME = 'hi-static-v1.4.4-island-uncached';
+const CACHE_NAME = 'hi-collective-v1.4.5-client-validation';
+const STATIC_CACHE_NAME = 'hi-static-v1.4.5-client-validation';
 const OFFLINE_FALLBACK = '/public/offline.html';
 
 // Adjust paths when scope is /public/ so we request existing files from python server
