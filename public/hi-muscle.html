@@ -98,9 +98,17 @@
   <script>
     // 🏆 CRITICAL: Initialize ProfileManager before any share submissions
     (async () => {
+      const isDiag = new URLSearchParams(location.search).get('diag') === '1';
+      if (isDiag) {
+        console.warn('🩺 [DIAG] Gym: ProfileManager.init() starting BEFORE AuthReady');
+        console.warn('🩺 [DIAG] Gym: NavCache available?', typeof window.NavCache, window.NavCache ? 'YES ✅' : 'NO ❌');
+      }
       if (window.ProfileManager) {
         await window.ProfileManager.init();
         console.log('✅ [Hi Gym] ProfileManager initialized');
+        if (isDiag) {
+          console.warn('🩺 [DIAG] Gym: ProfileManager.init() COMPLETE');
+        }
       }
     })();
   </script>

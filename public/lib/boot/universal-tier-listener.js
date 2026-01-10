@@ -5,7 +5,11 @@
 console.log('🔥🔥🔥 UNIVERSAL-TIER-LISTENER.JS LOADING - CODE VERSION 2026-01-10-A 🔥🔥🔥');
 console.log('🎯 [Universal Tier Listener] Loading...');
 console.log('🔍 HiBrandTiers available at load time?', typeof window.HiBrandTiers);
-
+// 🩺 DIAGNOSTIC: Check if NavCache is available (critical for tier persistence)
+if (new URLSearchParams(location.search).get('diag') === '1') {
+  console.warn('🩺 [DIAG] NavCache available?', typeof window.NavCache, window.NavCache ? 'YES ✅' : 'NO ❌');
+  console.warn('🩺 [DIAG] Current page:', location.pathname);
+}
 window.addEventListener('hi:auth-ready', async (e) => {
   const { session, membership, fromCache } = e.detail || {};
   console.log('🔥 [Universal Tier] hi:auth-ready received', { 
@@ -19,13 +23,22 @@ window.addEventListener('hi:auth-ready', async (e) => {
   try {
     // 🚀 FAST PATH: Check cache first for instant tier display
     let tierToDisplay = membership?.tier;
+    let tierSource = 'membership';
     
     if (!tierToDisplay && window.NavCache) {
       const cachedTier = window.NavCache.getTier();
       if (cachedTier) {
         console.log('[Universal Tier] Using cached tier for instant display:', cachedTier);
         tierToDisplay = cachedTier.tier || cachedTier;
+        tierSource = 'NavCache';
       }
+    }
+    
+    // 🩺 DIAGNOSTIC: Show tier source
+    if (new URLSearchParams(location.search).get('diag') === '1') {
+      console.warn('🩺 [DIAG] Tier source:', tierSource);
+      console.warn('🩺 [DIAG] Tier value:', tierToDisplay);
+      console.warn('🩺 [DIAG] NavCache exists?', !!window.NavCache);
     }
     
     // 🎯 CRITICAL: Use HiBrandTiers to display tier name (not raw database value)
