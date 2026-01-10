@@ -3,8 +3,8 @@
 <head>
   <!-- 🎯 CACHE BUSTER: Increment on each deployment to force fresh JS/CSS load -->
   <script>
-    window.CACHE_VERSION='20260110-module-fix';
-    window.__BUILD_HASH__='c879b60';
+    window.CACHE_VERSION='20260110-surgical';
+    window.__BUILD_HASH__='surgical-fix';
     window.__ISLAND_LOAD_COUNT = (window.__ISLAND_LOAD_COUNT || 0) + 1;
     console.log('🏗️ BUILD:', window.__BUILD_HASH__, '| Island Load:', window.__ISLAND_LOAD_COUNT);
     
@@ -168,6 +168,7 @@
   <script src="lib/access/AuthShim.js" defer></script>
   <!-- Silence verbose logs in production unless debug flags are present -->
   <script src="lib/boot/prod-quiet-console.js"></script>
+  <script>console.log('✅ prod-quiet-console.js executed');</script>
   
   <!-- 🚀 Hi Upgrade Modal System -->
   <link rel="stylesheet" href="ui/HiUpgradeModal/HiUpgradeModal.css">
@@ -1455,6 +1456,7 @@
   <!-- HiFooter CSS - Dashboard Parity -->
   <link rel="preload" href="./ui/HiFooter/HiFooter.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="./ui/HiFooter/HiFooter.css"></noscript>
+  <script>console.log('✅ HEAD complete, about to parse BODY');</script>
 </head>
 <body data-page="hi-island">
   <script>console.log('✅ BODY parsing started');</script>
