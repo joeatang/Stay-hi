@@ -61,15 +61,13 @@ async function initHiIsland() {
   
   console.warn('🔍 TRACE: Starting ProfileManager initialization...');
   
-  // 🏆 WOZ FIX: Initialize ProfileManager first
+  // 🏆 WOZ FIX: Initialize ProfileManager first (with timeout protection)
   if (window.ProfileManager && !window.ProfileManager.isReady()) {
-    console.log('🏆 Initializing ProfileManager...');
-    try {
-      await window.ProfileManager.init();
-      console.log('✅ ProfileManager ready');
-    } catch (error) {
-      console.warn('⚠️ ProfileManager init failed (non-critical):', error);
-    }
+    console.warn('🔍 ProfileManager not ready, skipping blocking init (will init in background)');
+    // Don't await - let it init in background to avoid hanging on load #2
+    window.ProfileManager.init().catch(err => console.warn('⚠️ Background ProfileManager init failed:', err));
+  } else if (window.ProfileManager) {
+    console.warn('🔍 ProfileManager already ready, skipping init');
   }
   
   // 🎯 Setup membership tier listener for pill display
