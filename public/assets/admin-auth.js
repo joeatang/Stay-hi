@@ -68,7 +68,7 @@
     
     if (!authResult.authenticated) {
       console.log('[admin-auth] Not authenticated, redirecting to signin');
-      window.location.href = '/signin.html?next=' + encodeURIComponent(window.location.pathname);
+      window.location.href = (window.hiPaths?.page ? window.hiPaths.page('signin', {next: window.location.pathname}) : '/signin.html?next=' + encodeURIComponent(window.location.pathname));
       return null;
     }
 

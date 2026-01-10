@@ -5,11 +5,18 @@
 
   // Hi Footer navigation configuration
   const hiFooterTabsBase = [
-    { id: 'today', label: 'Hi Today', icon: '⭘', href: 'hi-dashboard.html', pages: ['hi-dashboard.html', 'index.html', ''] },
-    { id: 'explore', label: 'Hi-island', icon: '🧭', href: 'hi-island-NEW.html', pages: ['hi-island-NEW.html'] },
-    { id: 'plus', label: 'Hi Gym', icon: '✨', href: 'hi-muscle.html', pages: ['hi-muscle.html', 'calendar.html'] },
-    { id: 'me', label: 'Me', href: 'profile.html', icon: '👤', pages: ['profile.html'] }
+    { id: 'today', label: 'Hi Today', icon: '⭘', page: 'dashboard', pages: ['hi-dashboard.html', 'index.html', ''] },
+    { id: 'explore', label: 'Hi-island', icon: '🧭', page: 'island', pages: ['hi-island-NEW.html'] },
+    { id: 'plus', label: 'Hi Gym', icon: '✨', page: 'muscle', pages: ['hi-muscle.html', 'calendar.html'] },
+    { id: 'me', label: 'Me', page: 'profile', icon: '👤', pages: ['profile.html'] }
   ];
+  
+  // Resolve paths for current environment (dev vs prod)
+  if (window.hiPaths && window.hiPaths.resolve) {
+    hiFooterTabsBase.forEach(tab => {
+      tab.href = window.hiPaths.resolve(tab.href);
+    });
+  }
   // Admin tab appended dynamically (always available as gate – Woz style deterministic access)
   let hiFooterTabs = hiFooterTabsBase.slice();
 
@@ -30,11 +37,17 @@
   function createHiFooter() {
     const activeTab = getActiveTab();
     
+    // Resolve hrefs using hiPaths.page()
+    const resolvedTabs = hiFooterTabs.map(tab => ({
+      ...tab,
+      href: window.hiPaths?.page ? window.hiPaths.page(tab.page || tab.id) : (tab.href || '#')
+    }));
+    
     const footer = document.createElement('footer');
     footer.className = 'hi-footer';
     footer.innerHTML = `
       <nav class="hi-footer-nav" role="tablist" aria-label="Main navigation">
-        ${hiFooterTabs.map(tab => `
+        ${resolvedTabs.map(tab => `
           <a href="${tab.href}" 
              class="hi-footer-tab ${tab.id === activeTab ? 'active' : ''}" 
              role="tab" 

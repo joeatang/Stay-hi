@@ -264,12 +264,12 @@
         localStorage.clear();
         
         // Redirect to signin
-        window.location.href = '/signin.html';
+        window.location.href = (window.hiPaths?.page ? window.hiPaths.page('signin') : '/signin.html');
       } catch (error) {
         console.error('Sign out error:', error);
         // Fallback: just clear storage and redirect
         localStorage.clear();
-        window.location.href = '/signin.html';
+        window.location.href = (window.hiPaths?.page ? window.hiPaths.page('signin') : '/signin.html');
       }
     });
   }

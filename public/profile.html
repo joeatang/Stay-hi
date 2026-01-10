@@ -3423,9 +3423,7 @@ FOR INSERT WITH CHECK (
             } catch (e) {
               console.error('❌ localStorage session parse failed:', e);
               // Only redirect if localStorage also has no valid session
-              const isLocal = window.location.hostname === 'localhost';
-              const signinPath = isLocal ? '/public/signin.html' : '/signin.html';
-              const redirectUrl = signinPath + '?redirect=' + encodeURIComponent(window.location.pathname);
+              const redirectUrl = (window.hiPaths?.page ? window.hiPaths.page('signin', {redirect: window.location.pathname}) : '/signin.html?redirect=' + encodeURIComponent(window.location.pathname));
               console.log('🔄 Redirecting to:', redirectUrl);
               window.location.href = redirectUrl;
               return;
@@ -3433,9 +3431,7 @@ FOR INSERT WITH CHECK (
           } else {
             console.log('❌ No localStorage session found');
             // Redirect to signin
-            const isLocal = window.location.hostname === 'localhost';
-            const signinPath = isLocal ? '/public/signin.html' : '/signin.html';
-            const redirectUrl = signinPath + '?redirect=' + encodeURIComponent(window.location.pathname);
+            const redirectUrl = (window.hiPaths?.page ? window.hiPaths.page('signin', {redirect: window.location.pathname}) : '/signin.html?redirect=' + encodeURIComponent(window.location.pathname));
             console.log('🔄 Redirecting to:', redirectUrl);
             window.location.href = redirectUrl;
             return;
@@ -3515,9 +3511,8 @@ FOR INSERT WITH CHECK (
           }
           
           console.log('❌ No valid session in Supabase or localStorage - redirecting to signin');
-          const isLocal = window.location.hostname === 'localhost';
-          const signinPath = isLocal ? '/public/signin.html' : '/signin.html';
-          window.location.href = signinPath + '?redirect=' + encodeURIComponent(window.location.pathname);
+          const redirectUrl = (window.hiPaths?.page ? window.hiPaths.page('signin', {redirect: window.location.pathname}) : '/signin.html?redirect=' + encodeURIComponent(window.location.pathname));
+          window.location.href = redirectUrl;
           return;
         }
         
@@ -3715,7 +3710,7 @@ FOR INSERT WITH CHECK (
     // Tesla-Grade Simple Navigation System - Bulletproof Architecture
     function navigateToHiDashboard() {
       console.log('🚀 Tesla-grade navigation: Returning to hi-dashboard');
-      window.location.href = 'hi-dashboard.html';
+      window.location.href = (window.hiPaths?.page ? window.hiPaths.page('dashboard') : 'hi-dashboard.html');
     }
     
     // Expose globally for onclick handler

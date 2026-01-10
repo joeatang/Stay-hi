@@ -223,7 +223,7 @@
         modal.style.opacity = '0';
         modal.style.transition = 'opacity 0.3s';
         setTimeout(() => {
-          window.location.href = 'hi-dashboard.html?first_visit=true';
+          window.location.href = (window.hiPaths?.page ? window.hiPaths.page('dashboard', {first_visit: 'true'}) : 'hi-dashboard.html?first_visit=true');
         }, 300);
       }, 2500);
     }

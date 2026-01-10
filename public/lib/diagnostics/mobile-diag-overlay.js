@@ -21,6 +21,9 @@
   let stormWindowActive = false;
   let stormStartTime = 0;
   let lastBfcacheRestore = false;
+  let lastNavTarget = 'none';
+  let lastHeartbeatTime = ts();
+  let heartbeatGap = 0;
   
   function ts() {
     return Date.now();
@@ -36,7 +39,16 @@
   
   // Heartbeat (detect freezes)
   setInterval(() => {
-    addEvent('heartbeat', {});
+    const now = ts();
+    heartbeatGap = now - lastHeartbeatTime;
+    lastHeartbeatTime = now;
+    addEvent('heartbeat', { gap: heartbeatGap });
+    
+    // Auto-capture on freeze (gap > 3 seconds)
+    if (heartbeatGap > 3000) {
+      console.error('[HI-DIAG] FREEZE DETECTED: ' + heartbeatGap + 'ms gap');
+      autoCapture('freeze_' + heartbeatGap + 'ms');
+    }
   }, 1000);
   
   // Lifecycle events
@@ -89,6 +101,7 @@
     if (href.includes('.html') || target.closest('footer') || target.closest('nav')) {
       const from = window.location.pathname.split('/').pop();
       const to = href.split('/').pop().split('?')[0];
+      lastNavTarget = to;
       addEvent('nav', { from, to });
     }
   }, true);
@@ -140,6 +153,7 @@
       src: e.filename?.split('/').pop(),
       line: e.lineno
     });
+    autoCapture('error_' + e.message.substring(0, 30));
   });
   
   window.addEventListener('unhandledrejection', (e) => {
@@ -150,7 +164,30 @@
       msg,
       type: 'unhandledrejection'
     });
+    autoCapture('unhandled_rejection');
   });
+  
+  // Auto-capture on failure conditions
+  function autoCapture(reason) {
+    console.error('[HI-DIAG] AUTO-CAPTURE:', reason);
+    const report = generateReport();
+    const key = 'HI_LAST_DIAG_REPORT_' + reason.replace(/\s/g, '_');
+    localStorage.setItem(key, JSON.stringify(report, null, 2));
+    
+    // Flash overlay to indicate capture
+    const overlay = document.getElementById('hi-diag-overlay');
+    if (overlay) {
+      overlay.style.borderColor = '#f00';
+      overlay.style.borderWidth = '2px';
+      overlay.style.borderStyle = 'solid';
+      setTimeout(() => {
+        overlay.style.borderColor = 'transparent';
+      }, 2000);
+    }
+    
+    // Update live display to show capture
+    updateLiveStats();
+  }
   
   // Generate failure report
   function generateReport() {
@@ -196,11 +233,15 @@
     `;
     
     const status = document.createElement('div');
+    status.id = 'diag-live-stats';
     status.style.marginBottom = '6px';
     status.innerHTML = `
-      <div>🔍 DIAG MODE</div>
-      <div style="font-size:9px;opacity:0.7;">Events: <span id="diag-count">0</span></div>
-      <div style="font-size:9px;opacity:0.7;">Errors: <span id="diag-errors">0</span></div>
+      <div style="font-weight:bold;margin-bottom:4px;">🔍 DIAG MODE</div>
+      <div style="font-size:9px;opacity:0.8;">Last Nav: <span id="diag-nav">none</span></div>
+      <div style="font-size:9px;opacity:0.8;">Requests/5s: <span id="diag-requests">0</span></div>
+      <div style="font-size:9px;opacity:0.8;">Errors: <span id="diag-errors">0</span></div>
+      <div style="font-size:9px;opacity:0.8;">Heartbeat: <span id="diag-heartbeat">0</span>ms</div>
+      <div style="font-size:9px;opacity:0.8;">Events: <span id="diag-count">0</span></div>
     `;
     
     const copyBtn = document.createElement('button');
@@ -278,12 +319,27 @@
     overlay.appendChild(copyBtn);
     overlay.appendChild(retrieveBtn);
     document.body.appendChild(overlay);
+  }
+  
+  // Update live stats display
+  function updateLiveStats() {
+    const navEl = document.getElementById('diag-nav');
+    const requestsEl = document.getElementById('diag-requests');
+    const errorsEl = document.getElementById('diag-errors');
+    const heartbeatEl = document.getElementById('diag-heartbeat');
+    const countEl = document.getElementById('diag-count');
     
-    // Update counters
-    setInterval(() => {
-      document.getElementById('diag-count').textContent = window.__HI_DIAG_BUFFER.length;
-      document.getElementById('diag-errors').textContent = errorCount;
-    }, 1000);
+    if (navEl) navEl.textContent = lastNavTarget;
+    if (requestsEl) requestsEl.textContent = requestCount5s;
+    if (errorsEl) {
+      errorsEl.textContent = errorCount;
+      if (errorCount > 0) errorsEl.style.color = '#f00';
+    }
+    if (heartbeatEl) {
+      heartbeatEl.textContent = heartbeatGap;
+      if (heartbeatGap > 2000) heartbeatEl.style.color = '#f00';
+    }
+    if (countEl) countEl.textContent = window.__HI_DIAG_BUFFER.length;
   }
   
   // Initialize overlay when DOM ready
@@ -292,6 +348,9 @@
   } else {
     createOverlay();
   }
+  
+  // Update live stats every 500ms
+  setInterval(updateLiveStats, 500);
   
   // Auto-save report on page unload
   window.addEventListener('beforeunload', () => {

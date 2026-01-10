@@ -341,7 +341,7 @@
           // Redirect to signin
           console.log('[Dashboard] Redirecting to signin');
           setTimeout(() => {
-            window.location.href = 'signin.html';
+            window.location.href = (window.hiPaths?.page ? window.hiPaths.page('signin') : 'signin.html');
           }, 300);
           
         } catch (error) {
@@ -349,7 +349,7 @@
           // Fallback: clear and redirect anyway
           localStorage.clear();
           sessionStorage.clear();
-          window.location.href = 'signin.html';
+          window.location.href = (window.hiPaths?.page ? window.hiPaths.page('signin') : 'signin.html');
         }
       });
     }

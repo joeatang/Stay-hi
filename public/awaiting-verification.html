@@ -380,7 +380,7 @@
           
           // Redirect to profile page after 1.5 seconds
           setTimeout(() => {
-            window.location.href = 'profile.html?onboarding=true';
+            window.location.href = (window.hiPaths?.page ? window.hiPaths.page('profile', {onboarding: 'true'}) : 'profile.html?onboarding=true');
           }, 1500);
         }
       } catch (error) {

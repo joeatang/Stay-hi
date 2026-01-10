@@ -230,7 +230,7 @@
     }, 1000);
 
     function redirectToProfile() {
-      window.location.href = 'profile.html?onboarding=true';
+      window.location.href = (window.hiPaths?.page ? window.hiPaths.page('profile', {onboarding: 'true'}) : 'profile.html?onboarding=true');
     }
 
     // Handle back button - prevent going back to verification link

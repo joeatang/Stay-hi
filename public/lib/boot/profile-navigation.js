@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   const homeBtn=document.getElementById('btnHome'); 
   if(homeBtn){ 
-    homeBtn.addEventListener('click', ()=>{ window.location.href='hi-dashboard.html'; }); 
+    homeBtn.addEventListener('click', ()=>{ window.location.href=(window.hiPaths?.page?window.hiPaths.page('dashboard'):'hi-dashboard.html'); }); 
   }
   
   const calBtn=document.getElementById('btnCal'); 

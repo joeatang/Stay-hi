@@ -61,7 +61,7 @@
     
     // Redirect after 3 seconds
     setTimeout(() => {
-      window.location.href = '/hi-dashboard.html';
+      window.location.href = (window.hiPaths?.page ? window.hiPaths.page('dashboard') : '/hi-dashboard.html');
     }, 3000);
     
     return; // Stop execution
@@ -300,7 +300,7 @@
       const shouldUpgrade = confirm(`🌟 Your emotional journey looks amazing!\n\nJoin Hi to:\n• Save your journey forever\n• Share with the community\n• Track your emotional growth\n• Get personalized insights\n\nWould you like to sign up or log in?`);
       
       if (shouldUpgrade) {
-        window.location.href = '/signin.html?redirect=' + encodeURIComponent(window.location.pathname + '?journey=completed');
+        window.location.href = (window.hiPaths?.page ? window.hiPaths.page('signin', {redirect: window.location.pathname + '?journey=completed'}) : '/signin.html?redirect=' + encodeURIComponent(window.location.pathname + '?journey=completed'));
       }
       return;
     }
@@ -574,7 +574,7 @@
       localStorage.removeItem('hi-gym-draft');
       
       // Navigate to Hi Island to see the result
-      setTimeout(() => window.location.href='hi-island-NEW.html', 2500);
+      setTimeout(() => window.location.href=(window.hiPaths?.page?window.hiPaths.page('island'):'hi-island-NEW.html'), 2500);
       
     } catch (error) {
       console.error('Hi Gym submission error:', error);
@@ -1216,7 +1216,7 @@
                 '🌟 Connect with others on similar journeys'
               ],
               onPrimary: () => {
-                window.location.href = '/signin.html?redirect=' + encodeURIComponent(window.location.pathname) + '&action=journey';
+                window.location.href = (window.hiPaths?.page ? window.hiPaths.page('signin', {redirect: window.location.pathname, action: 'journey'}) : '/signin.html?redirect=' + encodeURIComponent(window.location.pathname) + '&action=journey');
               },
               onSecondary: () => {
                 window.location.href = '/signup.html?redirect=' + encodeURIComponent(window.location.pathname) + '&action=journey';
@@ -1228,7 +1228,7 @@
           } else {
             // Last resort
             console.warn('⚠️ No auth modals available, redirecting to auth');
-            window.location.href = '/signin.html?action=journey';
+            window.location.href = (window.hiPaths?.page ? window.hiPaths.page('signin', {action: 'journey'}) : '/signin.html?action=journey');
           }
           return; // Stop here for anonymous users
         }

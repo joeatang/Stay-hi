@@ -229,7 +229,7 @@
             console.error('[AuthResilience] Invalid token - signing out');
             this.showConnectionBanner('Session expired. Redirecting...');
             setTimeout(() => {
-              window.location.href = '/signin.html?reason=session_expired';
+              window.location.href = (window.hiPaths?.page ? window.hiPaths.page('signin', {reason: 'session_expired'}) : '/signin.html?reason=session_expired');
             }, 2000);
             return;
           }

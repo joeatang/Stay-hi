@@ -144,7 +144,7 @@
           closeOnboarding(overlay);
           // Tesla-grade navigation to hi-dashboard after onboarding
           setTimeout(() => {
-            window.location.href = 'hi-dashboard.html';
+            window.location.href = (window.hiPaths?.page ? window.hiPaths.page('dashboard') : 'hi-dashboard.html');
           }, 400);
           break;
 
@@ -153,7 +153,7 @@
           closeOnboarding(overlay);
           // Tesla-grade navigation to hi-dashboard after skip
           setTimeout(() => {
-            window.location.href = 'hi-dashboard.html';
+            window.location.href = (window.hiPaths?.page ? window.hiPaths.page('dashboard') : 'hi-dashboard.html');
           }, 400);
           break;
       }

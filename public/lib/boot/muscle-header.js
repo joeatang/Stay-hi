@@ -40,7 +40,7 @@ function showCalendar() {
 
 // Home navigation functionality
 function navigateToHome() {
-  window.location.href = 'hi-dashboard.html';
+  window.location.href = (window.hiPaths?.page ? window.hiPaths.page('dashboard') : 'hi-dashboard.html');
 }
 
 // Membership tier management

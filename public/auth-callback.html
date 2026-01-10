@@ -201,7 +201,7 @@
                     localStorage.setItem('auth_success', 'true');
                     
                     setTimeout(() => {
-                        window.location.href = 'hi-dashboard.html';
+                        window.location.href = (window.hiPaths?.page ? window.hiPaths.page('dashboard') : 'hi-dashboard.html');
                     }, 2000);
                     
                 } else {

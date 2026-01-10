@@ -37,5 +37,48 @@
       return u.href;
     } catch { return `${location.origin}/post-auth.html?next=${encodeURIComponent(next||'hi-dashboard.html')}`; }
   }
-  window.hiPaths = { resolve, getPostAuthURL };
+  
+  // Page key to filename mapping (single source of truth)
+  const PAGE_MAP = {
+    'dashboard': 'hi-dashboard.html',
+    'today': 'hi-dashboard.html',
+    'island': 'hi-island-NEW.html',
+    'explore': 'hi-island-NEW.html',
+    'muscle': 'hi-muscle.html',
+    'gym': 'hi-muscle.html',
+    'profile': 'profile.html',
+    'me': 'profile.html',
+    'admin': 'hi-mission-control.html',
+    'signin': 'signin.html',
+    'signup': 'signup.html'
+  };
+  
+  function page(key, params){
+    try {
+      const filename = PAGE_MAP[String(key).toLowerCase()] || key;
+      return resolve(filename, params);
+    } catch { return resolve(key, params); }
+  }
+  
+  // Diagnostics: log resolved URLs when ?diag=1
+  function diagnose(){
+    if (!/[?&]diag=1/.test(location.search)) return;
+    console.group('🔍 [hiPaths] Diagnostics');
+    console.log('Environment:', isLocalhost() ? 'LOCAL' : 'PRODUCTION');
+    console.log('Base prefix:', basePrefix());
+    console.log('\n📄 Page resolver tests:');
+    Object.keys(PAGE_MAP).forEach(key => {
+      console.log(`  ${key.padEnd(12)} → ${page(key)}`);
+    });
+    console.groupEnd();
+  }
+  
+  // Run diagnostics if requested
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', diagnose);
+  } else {
+    diagnose();
+  }
+  
+  window.hiPaths = { resolve, getPostAuthURL, page, PAGE_MAP };
 })();

@@ -57,7 +57,7 @@
     btnHome.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      try { window.location.href = 'hi-dashboard.html'; } catch(_) { /* no-op */ }
+      try { window.location.href = (window.hiPaths?.page ? window.hiPaths.page('dashboard') : 'hi-dashboard.html'); } catch(_) { /* no-op */ }
     }, { passive: false });
   }
 
