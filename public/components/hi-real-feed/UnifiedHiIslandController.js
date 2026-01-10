@@ -20,7 +20,16 @@ class UnifiedHiIslandController {
   }
 
   async init() {
-    if (this.initPromise) return this.initPromise;
+    // Allow re-initialization (e.g., after BFCache restore)
+    // but avoid concurrent init calls
+    if (this.initPromise && this.isInitialized) {
+      console.log('✅ Controller already initialized, forcing refresh...');
+      // Just refresh the feed instead of full re-init
+      if (this.feedInstance?.loadShares) {
+        await this.feedInstance.loadShares(this.currentTab);
+      }
+      return this.initPromise;
+    }
     
     this.initPromise = this._doInit();
     return this.initPromise;
@@ -52,10 +61,9 @@ class UnifiedHiIslandController {
       // Override the render method to use our container
       this.patchFeedForHiIsland();
       
-      // Initialize the feed (only if not already initialized)
-      if (!this.feedInstance.isInitialized) {
-        await this.feedInstance.init();
-      }
+      // Initialize the feed - allow re-init for BFCache
+      console.log('🔄 Initializing feed instance...');
+      await this.feedInstance.init();
       
       // Set up profile update listeners
       this.setupProfileListener();
