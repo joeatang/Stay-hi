@@ -170,6 +170,9 @@
   <!-- CRITICAL: Load HiSupabase.v3.js FIRST - sets window.hiSupabase before anything else needs it -->
   <script src="./lib/HiSupabase.v3.js"></script>
   
+  <!-- 🛡️ ABORT-SAFE: Must load BEFORE ProfileManager, auth-resilience, StreakAuthority -->
+  <script src="./lib/utils/abort-utils.js"></script>
+  
   <!-- 🏆 WOZ FIX: ProfileManager - Single Source of Truth -->
   <script src="./lib/ProfileManager.js"></script>
   
@@ -1858,7 +1861,6 @@ console.log('✅ [Universal Tier Listener] Loaded and listening');
   <!-- Auth QA harness (runs only when ?runAuthQA=1) -->
   <script src="./lib/qa/auth-flow-qa.js" defer></script>
   <!-- 🔧 Cache migration (old dashboard_total_cache → new globalTotalHis) -->
-  <script src="./lib/boot/cache-migration.js"></script>
   
   <!-- 🛡️ ABORT-SAFE: Utilities for MPA navigation (must load before consumers) -->
   <script src="./lib/utils/abort-utils.js"></script>
