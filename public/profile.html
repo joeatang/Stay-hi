@@ -83,8 +83,8 @@
   <script src="assets/avatar-utils.js"></script>
   <script src="assets/location-picker.js"></script>
   
-  <!-- 🛡️ MOBILE FIX: Protect against iOS backgrounding memory wipes -->
-  <script src="./lib/mobile-lifecycle-protector.js"></script>
+  <!-- ❌ REMOVED: mobile-lifecycle-protector - restored stale ProfileManager -->
+  <!-- <script src="./lib/mobile-lifecycle-protector.js"></script> -->
   <script type="module" src="./lib/HiPerformance.js"></script>
   <script src="assets/image-optimizer.js"></script>
   <script src="assets/social-avatar-uploader.js"></script>
@@ -119,8 +119,8 @@
   <!-- 🏆 WOZ FIX: ProfileManager - Single Source of Truth -->
   <script src="./lib/ProfileManager.js"></script>
   
-  <!-- 🚀 GOLD STANDARD: Navigation State Cache for instant page loads -->
-  <script src="./lib/navigation/NavigationStateCache.js"></script>
+  <!-- ❌ REMOVED: NavigationStateCache - caused singleton corruption -->
+  <!-- <script src="./lib/navigation/NavigationStateCache.js"></script> -->
   
   <!-- 🎯 TIER CONFIG - Must load BEFORE HiTier.js and MembershipSystem -->
   <script src="./lib/config/TIER_CONFIG.js" type="module"></script>

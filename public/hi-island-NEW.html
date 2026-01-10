@@ -4,7 +4,7 @@
   <!-- 🎯 CACHE BUSTER: Increment on each deployment to force fresh JS/CSS load -->
   <script>
     window.CACHE_VERSION='20260110-SOLVED';
-    window.__BUILD_HASH__='no-smooth-nav';
+    window.__BUILD_HASH__='pure-mpa';
     window.__ISLAND_LOAD_COUNT = (window.__ISLAND_LOAD_COUNT || 0) + 1;
     console.log('🏗️ BUILD:', window.__BUILD_HASH__, '| Island Load:', window.__ISLAND_LOAD_COUNT);
     
@@ -1766,7 +1766,8 @@
   <script>console.log('✅ ProfileManager.js loaded');</script>
   
   <!-- Navigation State Cache for cross-page consistency -->
-  <script src="./lib/navigation/NavigationStateCache.js"></script>
+  <!-- ❌ REMOVED: NavigationStateCache - caused singleton corruption -->
+  <!-- <script src="./lib/navigation/NavigationStateCache.js"></script> -->
   <script>console.log('✅ NavigationStateCache loaded');</script>
   
   <!-- 🔥 CRITICAL: No defer - must be ready before island-main.mjs checks for it -->
@@ -1774,7 +1775,8 @@
   <script>console.log('✅ HiDB loaded');</script>
   
   <!-- 🛡️ MOBILE FIX: Protect against iOS backgrounding memory wipes -->
-  <script src="./lib/mobile-lifecycle-protector.js"></script>
+  <!-- ❌ REMOVED: mobile-lifecycle-protector - restored stale ProfileManager -->
+  <!-- <script src="./lib/mobile-lifecycle-protector.js"></script> -->
   <script>console.log('✅ mobile-lifecycle-protector loaded, about to load body scripts...');</script>
   
   <script src="assets/avatar-utils.js"></script>
