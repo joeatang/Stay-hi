@@ -2,10 +2,10 @@
 // Hi Collective PWA - Offline-first architecture
 
 // 🚀 WOZ FIX: Bump version to force cache clear on navigation regression
-const BUILD_TAG = 'v1.0.6-20260107-no-html-cache';
+const BUILD_TAG = 'v1.0.7-20260110-island-uncached';
 // Bump cache versions to force update on deploy
-const CACHE_NAME = 'hi-collective-v1.4.3-no-html-cache';
-const STATIC_CACHE_NAME = 'hi-static-v1.4.3-no-html-cache';
+const CACHE_NAME = 'hi-collective-v1.4.4-island-uncached';
+const STATIC_CACHE_NAME = 'hi-static-v1.4.4-island-uncached';
 const OFFLINE_FALLBACK = '/public/offline.html';
 
 // Adjust paths when scope is /public/ so we request existing files from python server
@@ -47,9 +47,9 @@ const DYNAMIC_CACHE_FILES = [
 // App shell files to precache
 const APP_SHELL_FILES = [
   // HTML pages (network-first, but cache for offline)
+  // NOTE: hi-island-NEW.html excluded - disabled from SmoothNav, needs fresh load
   '/',
   '/hi-dashboard.html',
-  '/hi-island-NEW.html',
   '/hi-muscle.html',
   '/profile.html',
   
