@@ -4,11 +4,11 @@
 console.log('🏝️ Island main.mjs loading...');
 
 async function initHiIsland() {
-  if (window.__islandInitCalled) {
+  if (window.__islandInitRunning) {
     console.warn('⚠️ initHiIsland() already running, skipping duplicate call');
     return;
   }
-  window.__islandInitCalled = true;
+  window.__islandInitRunning = true;
   console.warn('🏝️ Hi Island initializing... (START OF FUNCTION)');
   
   // 🚀 FIX: Wait for critical dependencies before rendering
@@ -133,6 +133,9 @@ async function initHiIsland() {
   initializeTryItLink();
   console.warn('🔍 TRACE: Calling initializeHiMap...');
   initializeHiMap();
+  
+  // 🚀 CRITICAL: Clear re-entry guard so page can init again on next visit
+  window.__islandInitRunning = false;
   
   console.log('✅ Hi Island ready with Gold Standard UI');
 }
