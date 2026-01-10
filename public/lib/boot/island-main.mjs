@@ -1,6 +1,8 @@
 // HI ISLAND ORCHESTRATOR (extracted from hi-island-NEW.html)
 // Load order preserved; this file is included near the end of body
 
+console.log('🔥🔥🔥 ISLAND-MAIN.MJS LOADED - CODE VERSION 2026-01-10-A 🔥🔥🔥');
+
 // 🎯 WOZ FIX: Prevent duplicate initialization (event listener stacking)
 let islandInitialized = false;
 

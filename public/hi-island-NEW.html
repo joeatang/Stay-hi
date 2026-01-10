@@ -257,6 +257,7 @@
         update();
         document.body.appendChild(box);
         const iv = setInterval(update, 1000);
+        console.log('🔥🔥🔥 DIAGNOSTIC OVERLAY LOADED - CODE VERSION 2026-01-10-A 🔥🔥🔥');
         window.addEventListener('pagehide', ()=>clearInterval(iv)); // Use pagehide for BFCache compatibility
       } catch(e) { console.warn('diag init failed', e); }
     })();
