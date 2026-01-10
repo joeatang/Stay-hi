@@ -4,7 +4,8 @@
 console.log('🏝️ Island main.mjs loading...');
 
 async function initHiIsland() {
-  console.log('🏝️ Hi Island initializing...');
+  window.__islandInitCalled = true;
+  console.log('🏝️ Hi Island initializing... (START OF FUNCTION)');
   
   // 🚀 FIX: Wait for critical dependencies before rendering
   // This prevents race conditions on first navigation
@@ -1105,6 +1106,13 @@ console.log('🔍 island-main.mjs: document.readyState =', document.readyState);
 if (document.readyState === 'loading') {
   console.log('🔍 Adding DOMContentLoaded listener');
   document.addEventListener('DOMContentLoaded', initHiIsland);
+  // Safety: also trigger after timeout if DOMContentLoaded never fires
+  setTimeout(() => {
+    if (!window.__islandInitCalled) {
+      console.warn('⚠️ DOMContentLoaded never fired, forcing init');
+      initHiIsland();
+    }
+  }, 500);
 } else {
   console.log('🔍 Calling initHiIsland() immediately');
   initHiIsland();
