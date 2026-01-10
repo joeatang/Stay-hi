@@ -19,7 +19,19 @@
 class ProfileManager {
   constructor() {
     if (ProfileManager.instance) {
-      return ProfileManager.instance;
+      // 🚀 CRITICAL: Detect if this is a stale instance from previous page
+      const now = Date.now();
+      const instanceAge = ProfileManager.instance._createdAt ? now - ProfileManager.instance._createdAt : 0;
+      
+      // If instance is older than 5 seconds, it's from a previous page load - clear it
+      if (instanceAge > 5000) {
+        console.warn('🧹 Clearing stale ProfileManager instance (age: ' + Math.round(instanceAge/1000) + 's)');
+        ProfileManager.instance = null;
+        window.ProfileManager = null;
+      } else {
+        console.log('✅ Reusing recent ProfileManager instance');
+        return ProfileManager.instance;
+      }
     }
     
     // Singleton state
@@ -28,6 +40,7 @@ class ProfileManager {
     this._profile = null;
     this._userId = null;
     this._supabase = null;
+    this._createdAt = Date.now(); // Track creation time
     
     // Promise resolvers for blocking waits
     this._authReadyPromise = null;
