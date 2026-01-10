@@ -73,6 +73,11 @@ async function initHiIsland() {
       console.warn('✅ ProfileManager ready');
     } catch (error) {
       console.warn('⚠️ ProfileManager init failed or timed out (non-critical):', error.message);
+      // CRITICAL: Reset ProfileManager's internal state so next page can init cleanly
+      if (window.ProfileManager._initialized !== undefined) {
+        window.ProfileManager._initialized = false;
+        console.warn('🔄 Reset ProfileManager._initialized flag for next page');
+      }
     }
   } else if (window.ProfileManager) {
     console.warn('🔍 ProfileManager already ready');
