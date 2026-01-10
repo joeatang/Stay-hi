@@ -4,7 +4,7 @@ import { HiShareSheet } from '../../ui/HiShareSheet/HiShareSheet.js';
 import { mountHiMedallion } from '../../ui/HiMedallion/HiMedallion.js';
 
 // Tesla-grade component initialization with guards
-document.addEventListener('DOMContentLoaded', async () => {
+async function initializeDashboard() {
   // 🏆 WOZ FIX: Initialize ProfileManager first
   if (window.ProfileManager && !window.ProfileManager.isReady()) {
     console.log('🏆 [Module] Initializing ProfileManager...');
@@ -372,5 +372,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Initialize the Try link after DOM is ready
   initializeDashTryItLink();
+}
+
+// Run on initial load
+document.addEventListener('DOMContentLoaded', initializeDashboard);
+
+// 🎯 BFCache FIX: Re-initialize on navigation back (fixes iOS Safari tier/stats not loading)
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted) {
+    console.log('🔄 BFCache restore detected - re-initializing Dashboard...');
+    initializeDashboard(); // Re-run full initialization on back navigation
+  }
 });
+
 /* Cache bust 1765736732 */

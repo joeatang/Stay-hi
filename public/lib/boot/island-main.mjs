@@ -630,7 +630,16 @@ window.loadCurrentStatsFromDatabase = async () => {
     try { loadCurrentStatsFromDatabase(); } catch(e){ console.warn('Island stats refresh failed:', e); }
   }
   window.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') safeRefresh(); });
-  window.addEventListener('pageshow', (e)=>{ if(e.persisted || document.visibilityState==='visible') safeRefresh(); });
+  
+  // 🎯 BFCache FIX: Re-initialize on navigation back (fixes iOS Safari map/feed not loading)
+  window.addEventListener('pageshow', (e)=>{ 
+    if (e.persisted) {
+      console.log('🔄 BFCache restore detected - re-initializing Hi Island...');
+      initHiIsland(); // Re-run full initialization on back navigation
+    } else if (document.visibilityState==='visible') {
+      safeRefresh(); // Just refresh stats on normal visibility change
+    }
+  });
 })();
 
 async function loadRealStats() {
