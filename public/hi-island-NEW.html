@@ -1927,27 +1927,7 @@
         }
       });
       
-      // Clean up Hi Island globals on navigation away (not backgrounding)
-      window.addEventListener('pagehide', (event) => {
-        // Only clean up on actual navigation (not bfcache)
-        if (!event.persisted) {
-          console.log('🧹 Hi Island: Cleaning up globals on navigation away');
-          
-          // Remove Hi Island-specific globals
-          delete window.hiRealFeed;
-          delete window.hiIslandReady;
-          delete window.checkReadyAndHideSplash;
-          delete window.__currentUsername;
-          delete window.__currentDisplayName;
-          delete window.__currentAvatar;
-          delete window.HiIslandRealFeed;
-          delete window.UnifiedHiIslandController;
-          
-          console.log('✅ Hi Island globals cleaned');
-        }
-      });
-      
-      console.log('✅ Hi Island navigation cleanup armed');
+      console.log('✅ Hi Island unhandled rejection handler armed');
     })();
   </script>
 </body>
