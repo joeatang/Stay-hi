@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
   <!-- 🎯 CACHE BUSTER: Increment on each deployment to force fresh JS/CSS load -->
-  <script>window.CACHE_VERSION='20260108-v2';</script>
+  <script>
+    window.CACHE_VERSION='20260108-v2';
+    window.__BUILD_HASH__='491a2ab';
+    console.log('🏗️ BUILD:', window.__BUILD_HASH__, '| Page: Island');
+  </script>
   
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
@@ -19,6 +23,7 @@
 
   <!-- 🔍 DIAGNOSTIC: Mobile diagnostics (gated by ?diag=1 or localStorage.HI_DIAG=1) -->
   <script src="./lib/diagnostics/enable-mobile-diag.js"></script>
+  <script src="./lib/diagnostics/invariant-monitor.js"></script>
 
   <!-- Resource Hints for Cross-Navigation Performance -->
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
