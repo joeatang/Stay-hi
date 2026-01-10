@@ -154,9 +154,13 @@
   <script src="lib/emergency/EmergencyRecovery.js"></script>
   <!-- 🎯 TIER CONFIG - Must load BEFORE HiMembership (GLOBAL SCRIPT, not module) -->
   <script src="lib/config/TIER_CONFIG.js"></script>
+  <script>console.log('✅ HiMembershipBridge about to load');</script>
   <script src="lib/membership/HiMembershipBridge.js"></script>
+  <script>console.log('✅ AccessGate about to load');</script>
   <script src="lib/access/AccessGate.js"></script>
+  <script>console.log('✅ AccessGateModal about to load');</script>
   <script src="components/AccessGateModal.js"></script>
+  <script>console.log('✅ All access components loaded');</script>
   
   <!-- 🔐 Authentication System (Tesla-Grade Progressive Auth) -->
   <script src="assets/post-auth-path.js" defer></script>
@@ -1745,18 +1749,23 @@
   
   <!-- 🔥 MOBILE FIX: AuthReady orchestrator - handles bfcache restoration -->
   <script type="module" src="./lib/AuthReady.js?v=20260108-v2"></script>
+  <script>console.log('✅ AuthReady.js loaded');</script>
   
   <!-- � UNIVERSAL TIER LISTENER: Single source of truth for tier display across all pages -->
   <script type="module" src="./lib/boot/universal-tier-listener.js?v=20260108-v2"></script>
+  <script>console.log('✅ universal-tier-listener.js loaded');</script>
   
   <!-- �🏆 WOZ FIX: ProfileManager - Single Source of Truth -->
   <script src="./lib/ProfileManager.js"></script>
+  <script>console.log('✅ ProfileManager.js loaded');</script>
   
   <!-- 🔥 CRITICAL: No defer - must be ready before island-main.mjs checks for it -->
   <script src="./lib/HiDB.js"></script>
+  <script>console.log('✅ HiDB loaded');</script>
   
   <!-- 🛡️ MOBILE FIX: Protect against iOS backgrounding memory wipes -->
   <script src="./lib/mobile-lifecycle-protector.js"></script>
+  <script>console.log('✅ mobile-lifecycle-protector loaded, about to load body scripts...');</script>
   
   <script src="assets/avatar-utils.js"></script>
   <script src="assets/geocoding-service.js"></script>
