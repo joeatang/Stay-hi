@@ -10,8 +10,8 @@ async function initHiIsland() {
   // 🚀 FIX: Wait for critical dependencies before rendering
   // This prevents race conditions on first navigation
   if (window.DependencyManager) {
-    console.log('⏳ Waiting for Hi Island dependencies...');
-    console.log('DEBUG: Checking auth readiness...', {
+    console.warn('⏳ Waiting for Hi Island dependencies...');
+    console.warn('DEBUG: Checking auth readiness...', {
       isAuthReady: window.isAuthReady?.(),
       getAuthState: window.getAuthState?.(),
       hasIsAuthReady: typeof window.isAuthReady,
@@ -23,6 +23,7 @@ async function initHiIsland() {
       'HiSupabase',
       'HiBrandTiers'
     ]);
+    console.warn('✅ DependencyManager result:', result);
     
     if (!result.success) {
       console.error('❌ Some dependencies failed to load:', result.missing);
