@@ -30,7 +30,7 @@ async function initHiIsland() {
     console.warn('✅ DependencyManager result:', result);
     
     if (!result.success) {
-      console.error('❌ Some dependencies failed to load:', result.missing);
+      console.warn('❌ Some dependencies failed to load:', result.missing);
       // Show user-friendly error
       const feedContainer = document.querySelector('.feed-container');
       if (feedContainer) {
@@ -59,6 +59,8 @@ async function initHiIsland() {
     }
   }
   
+  console.warn('🔍 TRACE: Starting ProfileManager initialization...');
+  
   // 🏆 WOZ FIX: Initialize ProfileManager first
   if (window.ProfileManager && !window.ProfileManager.isReady()) {
     console.log('🏆 Initializing ProfileManager...');
@@ -71,12 +73,15 @@ async function initHiIsland() {
   }
   
   // 🎯 Setup membership tier listener for pill display
+  console.warn('🔍 TRACE: Calling setupMembershipTierListener...');
   setupMembershipTierListener();
+  console.warn('🔍 TRACE: setupMembershipTierListener complete');
   
   // Unified stats only: remove legacy multi-path cache bootstrap
   loadRealStats().catch(err => console.warn('Stats loading failed:', err));
   
   // ✅ FIX: Initialize UnifiedHiIslandController to render feed (singleton pattern)
+  console.warn('🔍 TRACE: Starting feed system initialization...');
   console.log('🎯 Initializing feed system...');
   if (window.UnifiedHiIslandController && !window.unifiedHiIslandController) {
     window.unifiedHiIslandController = new window.UnifiedHiIslandController();
@@ -97,9 +102,13 @@ async function initHiIsland() {
     console.error('❌ UnifiedHiIslandController not loaded!');
   }
   
+  console.warn('🔍 TRACE: Calling initializeTabSystem...');
   initializeTabSystem();
+  console.warn('🔍 TRACE: Calling initializeOriginFilters...');
   initializeOriginFilters();
+  console.warn('🔍 TRACE: Calling initializeTryItLink...');
   initializeTryItLink();
+  console.warn('🔍 TRACE: Calling initializeHiMap...');
   initializeHiMap();
   
   console.log('✅ Hi Island ready with Gold Standard UI');
