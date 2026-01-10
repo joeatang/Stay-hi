@@ -42,11 +42,28 @@ function createStubClient() {
 
 let createdClient = null;
 
+// 🚀 CRITICAL: Check if existing client is from a different page (BFCache restoration)
+// ISSUE: iOS Safari BFCache preserves Supabase client with aborted internal fetch state
+// FIX: Always create fresh client when navigating between different pages
 if (window.__HI_SUPABASE_CLIENT) {
-  createdClient = window.__HI_SUPABASE_CLIENT;
-  window.hiSupabase = createdClient;
-  console.log('♻️ Reusing existing HiSupabase v3 client');
-} else {
+  const currentURL = window.location.pathname;
+  const clientURL = window.__HI_SUPABASE_CLIENT_URL || '';
+  
+  if (currentURL !== clientURL) {
+    console.warn('🧹 Clearing Supabase client from different page:', clientURL, '→', currentURL);
+    window.__HI_SUPABASE_CLIENT = null;
+    window.__HI_SUPABASE_CLIENT_URL = null;
+    window.hiSupabase = null;
+    window.supabaseClient = null;
+    window.sb = null;
+  } else {
+    createdClient = window.__HI_SUPABASE_CLIENT;
+    window.hiSupabase = createdClient;
+    console.log('♻️ Reusing Supabase client from same page:', currentURL);
+  }
+}
+
+if (!createdClient) {
   // If a global UMD build is already available, use it immediately
   if (window.supabase?.createClient) {
     // 🚀 WOZ FIX: Add auth persistence options to prevent session loss on background
@@ -63,6 +80,7 @@ if (window.__HI_SUPABASE_CLIENT) {
     const real = window.supabase.createClient(REAL_SUPABASE_URL, REAL_SUPABASE_KEY, authOptions);
     createdClient = real;
     window.__HI_SUPABASE_CLIENT = real;
+    window.__HI_SUPABASE_CLIENT_URL = window.location.pathname; // Track creation time
     window.hiSupabase = real;
     // Back-compat aliases
     try { window.supabaseClient = real; } catch(_){ }
