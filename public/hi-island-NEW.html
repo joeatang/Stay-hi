@@ -4,7 +4,7 @@
   <!-- 🎯 CACHE BUSTER: Increment on each deployment to force fresh JS/CSS load -->
   <script>
     window.CACHE_VERSION='20260110-SOLVED';
-    window.__BUILD_HASH__='no-pm-restore';
+    window.__BUILD_HASH__='no-smooth-nav';
     window.__ISLAND_LOAD_COUNT = (window.__ISLAND_LOAD_COUNT || 0) + 1;
     console.log('🏗️ BUILD:', window.__BUILD_HASH__, '| Island Load:', window.__ISLAND_LOAD_COUNT);
     
@@ -1888,8 +1888,8 @@
   <!-- Header: Using Tesla-Grade Dashboard Header (no HiHeader.js needed) -->
   
   <!-- Footer - Dashboard Parity -->
-  <!-- 🚀 SPA-Style Smooth Navigation (loads before footer) -->
-  <script src="./lib/navigation/SmoothNavigate.js"></script>
+  <!-- ❌ SmoothNavigate DISABLED on Island - causes singleton corruption -->
+  <!-- <script src="./lib/navigation/SmoothNavigate.js"></script> -->
   <script src="./ui/HiFooter/HiFooter.js" defer></script>
   
   <!-- � Pull-to-Refresh Gesture (Instagram-style) -->
