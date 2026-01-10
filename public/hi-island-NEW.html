@@ -3,8 +3,8 @@
 <head>
   <!-- 🎯 CACHE BUSTER: Increment on each deployment to force fresh JS/CSS load -->
   <script>
-    window.CACHE_VERSION='20260110-surgical';
-    window.__BUILD_HASH__='surgical-fix';
+    window.CACHE_VERSION='20260110-FIXED';
+    window.__BUILD_HASH__='FIXED';
     window.__ISLAND_LOAD_COUNT = (window.__ISLAND_LOAD_COUNT || 0) + 1;
     console.log('🏗️ BUILD:', window.__BUILD_HASH__, '| Island Load:', window.__ISLAND_LOAD_COUNT);
     
@@ -167,7 +167,7 @@
   <!-- Unified Auth Shim replaces progressive-auth.js -->
   <script src="lib/access/AuthShim.js" defer></script>
   <!-- Silence verbose logs in production unless debug flags are present -->
-  <script src="lib/boot/prod-quiet-console.js"></script>
+  <script src="lib/boot/prod-quiet-console.js" defer></script>
   <script>console.log('✅ prod-quiet-console.js executed');</script>
   
   <!-- 🚀 Hi Upgrade Modal System -->
