@@ -10,6 +10,12 @@ async function initHiIsland() {
   // This prevents race conditions on first navigation
   if (window.DependencyManager) {
     console.log('⏳ Waiting for Hi Island dependencies...');
+    console.log('DEBUG: Checking auth readiness...', {
+      isAuthReady: window.isAuthReady?.(),
+      getAuthState: window.getAuthState?.(),
+      hasIsAuthReady: typeof window.isAuthReady,
+      hasGetAuthState: typeof window.getAuthState
+    });
     const result = await window.DependencyManager.waitForDependencies([
       'auth',
       'hiDB',
