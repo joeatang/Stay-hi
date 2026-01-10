@@ -172,13 +172,13 @@
   <script src="assets/config.js"></script>
   
   <!-- CRITICAL: Load HiSupabase.v3.js FIRST - sets window.hiSupabase before anything else needs it -->
-  <script src="./lib/HiSupabase.v3.js"></script>
+  <script src="./lib/HiSupabase.v3.js?v=20260110-url-based"></script>
   
   <!-- 🛡️ ABORT-SAFE: Must load BEFORE ProfileManager, auth-resilience, StreakAuthority -->
   <script src="./lib/utils/abort-utils.js"></script>
   
   <!-- 🏆 WOZ FIX: ProfileManager - Single Source of Truth -->
-  <script src="./lib/ProfileManager.js"></script>
+  <script src="./lib/ProfileManager.js?v=20260110-getSupabase"></script>
   
   <!-- ❌ REMOVED: NavigationStateCache - caused singleton corruption -->
   <!-- <script src="./lib/navigation/NavigationStateCache.js"></script> -->
