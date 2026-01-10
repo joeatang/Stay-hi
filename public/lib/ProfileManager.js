@@ -51,9 +51,17 @@ class ProfileManager {
    * 🚀 GOLD STANDARD: Checks cache first for instant loads on navigation
    */
   async init() {
-    if (this._initialized) {
-      console.log('✅ ProfileManager already initialized');
+    // 🚀 CRITICAL: Allow re-init if previous init failed (for navigation recovery)
+    // Check if we're already initialized AND initialization succeeded
+    if (this._initialized && this._profile && this._userId) {
+      console.log('✅ ProfileManager already initialized with valid data');
       return;
+    }
+
+    // If we were marked initialized but have no data, we failed - retry
+    if (this._initialized && (!this._profile || !this._userId)) {
+      console.warn('⚠️ ProfileManager marked initialized but has no data - resetting for retry');
+      this._initialized = false;
     }
 
     console.log('🚀 ProfileManager initializing...');
