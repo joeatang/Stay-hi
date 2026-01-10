@@ -723,9 +723,37 @@ window.loadCurrentStatsFromDatabase = async () => {
   }
   window.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') safeRefresh(); });
   
-  // 🎯 BFCache: Just refresh stats on restore (controllers already initialized)
-  window.addEventListener('pageshow', (e)=>{ 
-    if (e.persisted || document.visibilityState==='visible') {
+  // 🎯 BFCache: Retry aborted operations on restore
+  window.addEventListener('pageshow', async (e)=>{ 
+    if (e.persisted) {
+      console.log('🔄 BFCache restore detected');
+      
+      // If feed controller exists but init was aborted, reset and retry
+      if (window.unifiedHiIslandController) {
+        const controller = window.unifiedHiIslandController;
+        
+        // Check if init promise was rejected (aborted)
+        if (controller.initPromise) {
+          try {
+            await controller.initPromise; // Will throw if rejected
+          } catch (error) {
+            // Init was rejected (likely AbortError) - reset and retry
+            console.log('🔄 Feed init was aborted, resetting and retrying...');
+            controller.initPromise = null; // Clear rejected promise
+            controller.isInitialized = false; // Reset flag
+            try {
+              await controller.init();
+              console.log('✅ Feed initialization completed on BFCache restore');
+            } catch (retryError) {
+              console.warn('⚠️ Feed retry failed:', retryError);
+            }
+          }
+        }
+      }
+      
+      // Refresh stats regardless
+      safeRefresh();
+    } else if (document.visibilityState==='visible') {
       safeRefresh();
     }
   });
