@@ -339,10 +339,12 @@ class ProfileManager {
    * 🚀 WOZ FIX: ALWAYS get fresh client from HiSupabase.getClient(), never read window directly
    */
   async _waitForSupabase() {
+    console.warn('🔍 [ProfileManager] _waitForSupabase() starting...');
     const maxAttempts = 100; // 5 seconds (50ms intervals)
     for (let i = 0; i < maxAttempts; i++) {
       // 🚀 CRITICAL: Get client through HiSupabase.getClient() for freshness validation
       const client = window.HiSupabase?.getClient?.() || window.getSupabase?.();
+      console.log(`🔍 [ProfileManager] Poll ${i}: HiSupabase exists:`, !!window.HiSupabase, 'getClient exists:', !!window.HiSupabase?.getClient, 'client:', !!client);
       if (client && client.auth) {
         console.log('✅ Supabase client ready from HiSupabase.getClient()');
         return client;
