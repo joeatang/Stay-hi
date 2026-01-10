@@ -97,7 +97,17 @@ async function initHiIsland() {
       }
     }
   } else if (window.unifiedHiIslandController) {
-    console.warn('✅ Feed controller already exists (reusing instance)');
+    console.warn('✅ Feed controller already exists - RE-INITIALIZING to refresh data...');
+    try {
+      await window.unifiedHiIslandController.init();
+      console.warn('✅ Feed system re-initialized');
+    } catch (error) {
+      if (error.name === 'AbortError' || error.message?.includes('aborted')) {
+        console.warn('ℹ️ Feed re-init aborted (navigation in progress)');
+      } else {
+        console.error('❌ Feed re-init failed:', error);
+      }
+    }
   } else {
     console.error('❌ UnifiedHiIslandController not loaded!');
   }
@@ -509,19 +519,28 @@ function initializeHiMap() {
     }
     const mapElement = document.getElementById('globe');
     if (!mapElement) {
-      console.warn('⚠️ Map element not found, retrying in next frame...');
-      // Map element might still be rendering - retry once after DOM settles
-      requestAnimationFrame(() => {
+      console.warn('⚠️ Map element not found, retrying after DOM settles...');
+      // Map element might still be rendering - retry after a short delay
+      let retryCount = 0;
+      const retryInit = () => {
+        retryCount++;
         const retryElement = document.getElementById('globe');
-        if (!retryElement) {
-          console.warn('⚠️ Map element still not found after retry, giving up');
+        if (!retryElement && retryCount < 3) {
+          console.warn(`⚠️ Map element not found (retry ${retryCount}/3), trying again...`);
+          setTimeout(retryInit, 100 * retryCount); // 100ms, 200ms, 300ms
           return;
         }
-        console.warn('✅ Map element found on retry, initializing...');
+        if (!retryElement) {
+          console.warn('⚠️ Map element not found after 3 retries, giving up');
+          return;
+        }
+        console.warn(`✅ Map element found on retry ${retryCount}, initializing...`);
         initializeHiMapCore();
-      });
+      };
+      setTimeout(retryInit, 100);
       return;
     }
+    console.warn('✅ Map element found immediately, initializing...');
     initializeHiMapCore();
   } catch (err) {
     console.error('❌ Map initialization failed:', err);
