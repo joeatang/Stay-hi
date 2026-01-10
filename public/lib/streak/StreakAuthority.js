@@ -10,6 +10,8 @@
  *   console.log(streak.current); // Always accurate
  */
 
+import { ignoreAbort } from '../utils/abort-utils.js';
+
 class StreakAuthority {
   static CACHE_TTL_MS = 60000; // 1 minute
   static CACHE_KEY = 'user_current_streak';
@@ -105,12 +107,24 @@ class StreakAuthority {
       throw new Error('Supabase client not available');
     }
 
-    const { data, error } = await client
+    const result = await ignoreAbort(client
       .from('user_stats')
       .select('current_streak, longest_streak, last_hi_date')
       .eq('user_id', userId)
-      .maybeSingle();
+      .maybeSingle());
     
+    // Aborted during navigation - keep last-known-good state (don't fallback to stale)
+    if (result === null) {
+      const cached = this.#getStaleCache(userId);
+      if (cached) {
+        console.debug('[StreakAuthority] Query aborted - keeping last-known-good cache');
+        return cached;
+      }
+      // No cache available - return zero state
+      return { current: 0, longest: 0, lastHiDate: null };
+    }
+    
+    const { data, error } = result;
     if (error) throw error;
     
     if (!data) {

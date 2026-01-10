@@ -7,6 +7,7 @@
  */
 
 import { getClient } from '../HiSupabase.js';
+import { ignoreAbort } from '../utils/abort-utils.js';
 
 class HiBaseClient {
     constructor() {
@@ -112,10 +113,24 @@ class HiBaseClient {
         return this.execute(async (client) => {
             // Connectivity probe against a known existing table
             try {
-                const { data, error } = await client
+                const result = await ignoreAbort(client
                   .from('public_shares')
                   .select('id')
-                  .limit(1);
+                  .limit(1));
+                
+                // Aborted during navigation - return no-op success (don't degrade state)
+                if (result === null) {
+                    return {
+                        data: {
+                            connected: true,
+                            aborted: true,
+                            message: 'Connection test aborted (navigation)'
+                        },
+                        error: null
+                    };
+                }
+                
+                const { data, error } = result;
                 if (error) {
                     return { data: null, error };
                 }

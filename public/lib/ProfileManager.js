@@ -16,6 +16,9 @@
  *   const profile = ProfileManager.getProfile(); // Always current
  */
 
+// Import abort-safe utilities for navigation handling
+import { ignoreAbort, isAbortError } from './utils/abort-utils.js';
+
 class ProfileManager {
   constructor() {
     if (ProfileManager.instance) {
@@ -376,8 +379,13 @@ class ProfileManager {
           if (!this._authReady) {
             console.warn('⚠️ AuthReady event timeout, checking session directly...');
             try {
-              const { data: { session } } = await this._supabase.auth.getSession();
+              const sessionData = await ignoreAbort(this._supabase.auth.getSession());
+              if (sessionData === null) {
+                // Aborted during navigation - skip
+                return;
+              }
               
+              const session = sessionData.data?.session;
               if (session?.user) {
                 this._userId = session.user.id;
                 this._authReady = true;
@@ -392,6 +400,11 @@ class ProfileManager {
                 this._authReadyResolve();
               }
             } catch (error) {
+              // Check if it's an abort error
+              if (isAbortError(error)) {
+                console.debug('[ProfileManager] Auth check aborted during navigation');
+                return;
+              }
               console.error('❌ Emergency auth check failed:', error);
               this._authReady = true;
               if (this._authReadyResolve) {
@@ -419,23 +432,24 @@ class ProfileManager {
     try {
       console.log('📥 Loading profile from database for user:', this._userId);
 
-      const { data, error } = await this._supabase
+      const profileData = await ignoreAbort(this._supabase
         .from('profiles')
         .select('*')
         .eq('id', this._userId)
-        .single();
-
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
-        // 🚀 NAVIGATION FIX: If AbortError during navigation, use cached profile
-        if (error.message?.includes('AbortError') || error.message?.includes('aborted')) {
-          console.warn('⚠️ Query aborted during navigation - using cached profile');
-          const cached = this._getCachedProfile();
-          if (cached) {
-            this._profile = cached;
-            return;
-          }
+        .single());
+      
+      // Aborted during navigation - use cached profile and no-op
+      if (profileData === null) {
+        console.debug('[ProfileManager] Profile query aborted - keeping last-known-good state');
+        const cached = this._getCachedProfile();
+        if (cached) {
+          this._profile = cached;
         }
-        
+        return;
+      }
+
+      const { data, error } = profileData;
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
         console.error('❌ Database query failed:', error);
         throw error;
       }

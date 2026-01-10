@@ -4,6 +4,8 @@
  * Handles network failures, retries, and graceful degradation
  */
 
+import { ignoreAbort, isAbortError } from '../utils/abort-utils.js';
+
 (function() {
   'use strict';
   
@@ -120,7 +122,15 @@
       if (!this.isOnline) return;
       
       try {
-        const { data: { session }, error } = await this.client.auth.getSession();
+        const sessionData = await ignoreAbort(this.client.auth.getSession());
+        
+        // Aborted during navigation - no-op
+        if (sessionData === null) {
+          console.debug('[AuthResilience] Session check aborted during navigation');
+          return;
+        }
+        
+        const { data: { session }, error } = sessionData;
         
         if (error) {
           console.error('[AuthResilience] Session check failed:', error);
@@ -149,10 +159,18 @@
               if (accessToken && refreshToken) {
                 console.log('[AuthResilience] 🔄 Restoring session from localStorage...');
                 
-                const { data, error } = await this.client.auth.setSession({
+                const restoreData = await ignoreAbort(this.client.auth.setSession({
                   access_token: accessToken,
                   refresh_token: refreshToken
-                });
+                }));
+                
+                // Aborted during navigation - no-op
+                if (restoreData === null) {
+                  console.debug('[AuthResilience] Session restore aborted during navigation');
+                  return;
+                }
+                
+                const { data, error } = restoreData;
                 
                 if (error) {
                   console.error('[AuthResilience] ❌ Restore failed:', error.message);
@@ -185,6 +203,11 @@
           console.log(`[AuthResilience] ✅ Session valid for ${minutesLeft} min`);
         }
       } catch (err) {
+        // Check if it's an expected abort error
+        if (isAbortError(err)) {
+          console.debug('[AuthResilience] Check aborted during navigation');
+          return;
+        }
         console.error('[AuthResilience] Check failed:', err);
       }
     }

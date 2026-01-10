@@ -1860,7 +1860,28 @@ console.log('✅ [Universal Tier Listener] Loaded and listening');
   <!-- 🔧 Cache migration (old dashboard_total_cache → new globalTotalHis) -->
   <script src="./lib/boot/cache-migration.js"></script>
   
-  <!-- 🔥 STREAK SYSTEM: Single source of truth -->
+  <!-- �️ ABORT-SAFE: Page lifecycle cleanup for MPA navigation -->
+  <script type="module">
+    // Global abort controller for page-level async operations
+    window.__HI_PAGE_ABORT = new AbortController();
+    
+    // iOS Safari reliable cleanup events
+    window.addEventListener('pagehide', () => {
+      if (!window.__HI_PAGE_ABORT.signal.aborted) {
+        console.debug('[HI-OS] Page unload - aborting in-flight requests');
+        window.__HI_PAGE_ABORT.abort();
+      }
+    });
+    
+    window.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden' && !window.__HI_PAGE_ABORT.signal.aborted) {
+        console.debug('[HI-OS] Page hidden - aborting in-flight requests');
+        window.__HI_PAGE_ABORT.abort();
+      }
+    });
+  </script>
+  
+  <!-- �🔥 STREAK SYSTEM: Single source of truth -->
   <script src="./lib/streak/StreakAuthority.js"></script>
   <script src="./lib/streak/StreakEvents.js"></script>
   
