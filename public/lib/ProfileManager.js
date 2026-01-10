@@ -340,8 +340,11 @@ class ProfileManager {
    */
   async _waitForSupabase() {
     console.warn('🔍 [ProfileManager] _waitForSupabase() starting...');
+    console.warn('🔍 [ProfileManager] About to enter polling loop, maxAttempts=100');
     const maxAttempts = 100; // 5 seconds (50ms intervals)
+    console.warn('🔍 [ProfileManager] Entering for loop now...');
     for (let i = 0; i < maxAttempts; i++) {
+      console.warn(`🔍 [ProfileManager] INSIDE LOOP - Poll attempt ${i}`);
       // 🚀 CRITICAL: Get client through HiSupabase.getClient() for freshness validation
       const client = window.HiSupabase?.getClient?.() || window.getSupabase?.();
       console.log(`🔍 [ProfileManager] Poll ${i}: HiSupabase exists:`, !!window.HiSupabase, 'getClient exists:', !!window.HiSupabase?.getClient, 'client:', !!client);
@@ -352,6 +355,7 @@ class ProfileManager {
       // 🚀 WOZ OPTIMIZATION: Faster polling for snappier auth
       await new Promise(resolve => setTimeout(resolve, 50));
     }
+    console.error('🔍 [ProfileManager] EXITED LOOP - about to throw error');
     throw new Error('Supabase client not available after 5 seconds');
   }
 
