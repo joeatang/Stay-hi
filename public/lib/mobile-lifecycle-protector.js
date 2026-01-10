@@ -20,9 +20,11 @@
     if (window.hiDB) {
       criticalGlobals.hiDB = window.hiDB;
     }
-    if (window.ProfileManager) {
-      criticalGlobals.ProfileManager = window.ProfileManager;
-    }
+    // ❌ DISABLED: ProfileManager restoration causes singleton corruption across navigation
+    // Each page must initialize ProfileManager fresh to avoid stale state
+    // if (window.ProfileManager) {
+    //   criticalGlobals.ProfileManager = window.ProfileManager;
+    // }
     if (window.HiSupabase) {
       criticalGlobals.HiSupabase = window.HiSupabase;
     }
@@ -43,11 +45,12 @@
       restored = true;
     }
     
-    if (!window.ProfileManager && criticalGlobals.ProfileManager) {
-      console.warn('🚨 window.ProfileManager was wiped - restoring...');
-      window.ProfileManager = criticalGlobals.ProfileManager;
-      restored = true;
-    }
+    // ❌ DISABLED: ProfileManager restoration causes singleton corruption
+    // if (!window.ProfileManager && criticalGlobals.ProfileManager) {
+    //   console.warn('🚨 window.ProfileManager was wiped - restoring...');
+    //   window.ProfileManager = criticalGlobals.ProfileManager;
+    //   restored = true;
+    // }
     
     if (!window.HiSupabase && criticalGlobals.HiSupabase) {
       console.warn('🚨 window.HiSupabase was wiped - restoring...');
