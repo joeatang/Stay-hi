@@ -699,7 +699,10 @@
           const actual = hasIntegrity ? s.getAttribute('integrity') : '';
           const matches = expected ? expected === actual : null;
           results.push({ src, hasIntegrity, hasCrossOrigin, expected, actual, matches });
-          if (isProdHost) {
+          // 🔧 FIX: Gate console warnings behind ?show-integrity=1 to prevent console spam
+          // 120+ warnings per page load block main thread on mobile Safari
+          const showIntegrityWarnings = location.search.includes('show-integrity=1');
+          if (isProdHost && showIntegrityWarnings) {
             if (!hasIntegrity) {
               console.warn('[HiIntegrity] Missing integrity attribute for external script:', src);
               sendIntegrityBeacon({ type:'missing', src, build: hiBuildTag, ts: Date.now() });
