@@ -730,7 +730,14 @@ window.loadCurrentStatsFromDatabase = async () => {
     console.log('📍 PAGESHOW EVENT:', { persisted: e.persisted, visibility: document.visibilityState });
     
     if (e.persisted) {
-      console.log('🔄 BFCache restore detected');
+      console.log('🔄 BFCache restore detected - forcing full refresh');
+      
+      // CRITICAL: Reset initialization flags to allow re-init
+      // Without this, idempotency guards block re-initialization
+      if (typeof hiMapInitialized !== 'undefined') {
+        window.hiMapInitialized = false;
+        console.log('🔄 Reset hiMapInitialized flag');
+      }
       
       // Re-dispatch hi:auth-ready to refresh tier and all dependent systems
       if (window.ProfileManager && window.ProfileManager.getProfile()) {
@@ -745,6 +752,38 @@ window.loadCurrentStatsFromDatabase = async () => {
             fromBFCache: true
           }
         }));
+      }
+      
+      // Force map refresh if it exists
+      if (window.hiMap) {
+        console.log('🔄 Forcing map invalidateSize and refresh');
+        try {
+          window.hiMap.invalidateSize();
+          // Reload markers
+          if (window.loadHiMapMarkers) {
+            await window.loadHiMapMarkers();
+          }
+        } catch (err) {
+          console.warn('⚠️ Map refresh failed:', err);
+        }
+      }
+      
+      // Force feed refresh by resetting controller
+      if (window.unifiedHiIslandController) {
+        console.log('🔄 Forcing feed controller refresh');
+        try {
+          // Reset controller state
+          const controller = window.unifiedHiIslandController;
+          if (controller.initPromise) {
+            controller.initPromise = null;
+            controller.isInitialized = false;
+          }
+          // Re-initialize to refresh feed
+          await controller.init();
+          console.log('✅ Feed controller re-initialized');
+        } catch (err) {
+          console.warn('⚠️ Feed refresh failed:', err);
+        }
       }
       
       // Refresh stats
