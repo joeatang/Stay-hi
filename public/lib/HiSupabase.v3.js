@@ -40,6 +40,28 @@ function createStubClient() {
   };
 }
 
+// 🚀 CRITICAL: Handle BFCache restoration (scripts don't re-run on BFCache!)
+// When page is restored from BFCache, window state is intact but we're on a different URL
+window.addEventListener('pageshow', (event) => {
+  if (event.persisted) {
+    // Page restored from BFCache - validate client URL
+    const currentURL = window.location.pathname;
+    const clientURL = window.__HI_SUPABASE_CLIENT_URL || '';
+    
+    if (window.__HI_SUPABASE_CLIENT && currentURL !== clientURL) {
+      console.warn('🧹 [BFCache] Clearing stale Supabase client:', clientURL, '→', currentURL);
+      window.__HI_SUPABASE_CLIENT = null;
+      window.__HI_SUPABASE_CLIENT_URL = null;
+      window.hiSupabase = null;
+      window.supabaseClient = null;
+      window.sb = null;
+      
+      // Force components to re-fetch client
+      window.dispatchEvent(new CustomEvent('hi:supabase-client-invalidated'));
+    }
+  }
+});
+
 let createdClient = null;
 
 // 🚀 CRITICAL: Check if existing client is from a different page (BFCache restoration)
