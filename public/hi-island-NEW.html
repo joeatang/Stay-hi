@@ -4,7 +4,7 @@
   <!-- 🎯 CACHE BUSTER: Increment on each deployment to force fresh JS/CSS load -->
   <script>
     window.CACHE_VERSION='20260110-SOLVED';
-    window.__BUILD_HASH__='diag-proof';
+    window.__BUILD_HASH__='navcache-fix';
     window.__ISLAND_LOAD_COUNT = (window.__ISLAND_LOAD_COUNT || 0) + 1;
     console.log('🏗️ BUILD:', window.__BUILD_HASH__, '| Island Load:', window.__ISLAND_LOAD_COUNT);
     
@@ -1755,13 +1755,21 @@
   <script type="module" src="./lib/AuthReady.js?v=20260108-v2"></script>
   <script>console.log('✅ AuthReady.js loaded');</script>
   
-  <!-- � UNIVERSAL TIER LISTENER: Single source of truth for tier display across all pages -->
+  <!-- 🎯 TIER BRANDING: Must load BEFORE universal-tier-listener -->
+  <script src="lib/HiBrandTiers.js"></script>
+  <script>console.log('✅ HiBrandTiers loaded');</script>
+  
+  <!-- 🎯 UNIVERSAL TIER LISTENER: Single source of truth for tier display across all pages -->
   <script type="module" src="./lib/boot/universal-tier-listener.js?v=20260108-v2"></script>
   <script>console.log('✅ universal-tier-listener.js loaded');</script>
   
-  <!-- �🏆 WOZ FIX: ProfileManager - Single Source of Truth -->
+  <!-- 🏆 WOZ FIX: ProfileManager - Single Source of Truth -->
   <script src="./lib/ProfileManager.js"></script>
   <script>console.log('✅ ProfileManager.js loaded');</script>
+  
+  <!-- Navigation State Cache for cross-page consistency -->
+  <script src="./lib/navigation/NavigationStateCache.js"></script>
+  <script>console.log('✅ NavigationStateCache loaded');</script>
   
   <!-- 🔥 CRITICAL: No defer - must be ready before island-main.mjs checks for it -->
   <script src="./lib/HiDB.js"></script>

@@ -95,6 +95,8 @@
   <script src="./lib/HiSupabase.v3.js"></script>
   <!-- 🏆 ProfileManager - Single Source of Truth for Profile Data -->
   <script src="./lib/ProfileManager.js"></script>
+  <!-- Navigation State Cache for cross-page consistency -->
+  <script src="./lib/navigation/NavigationStateCache.js"></script>
   <script>
     // 🏆 CRITICAL: Initialize ProfileManager before any share submissions
     (async () => {
@@ -115,6 +117,8 @@
   <script type="module">
     import('./lib/AuthReady.js?t=' + Date.now());
   </script>
+  <!-- 🎯 TIER BRANDING: Must load BEFORE universal-tier-listener -->
+  <script src="lib/HiBrandTiers.js"></script>
   <!-- 🎯 UNIVERSAL TIER LISTENER: Single source of truth for tier display across all pages -->
   <script type="module">
     import('./lib/boot/universal-tier-listener.js?t=' + Date.now());
