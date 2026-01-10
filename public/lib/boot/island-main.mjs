@@ -674,13 +674,23 @@ window.loadCurrentStatsFromDatabase = async () => {
   }
   window.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') safeRefresh(); });
   
-  // 🎯 BFCache FIX: Re-initialize on navigation back (fixes iOS Safari map/feed not loading)
+  // 🎯 BFCache FIX: Check dependencies on restore, reload if broken
   window.addEventListener('pageshow', (e)=>{ 
     if (e.persisted) {
+      // Instagram-style: Check if critical dependencies still exist
+      const criticalDeps = ['HiBrandTiers', 'HiSupabase', 'ProfileManager', 'UnifiedHiIslandController'];
+      const missing = criticalDeps.filter(dep => !window[dep]);
+      
+      if (missing.length > 0) {
+        console.log('🔄 BFCache broken - critical dependencies missing:', missing, '- forcing reload');
+        location.reload();
+        return;
+      }
+      
       console.log('🔄 BFCache restore detected - re-initializing Hi Island...');
-      initHiIsland(); // Re-run full initialization on back navigation
+      initHiIsland();
     } else if (document.visibilityState==='visible') {
-      safeRefresh(); // Just refresh stats on normal visibility change
+      safeRefresh();
     }
   });
 })();

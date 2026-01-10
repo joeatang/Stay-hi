@@ -405,11 +405,21 @@ async function refreshDashboardState() {
 // Run on initial load
 document.addEventListener('DOMContentLoaded', initializeDashboard);
 
-// 🎯 BFCache FIX: Re-initialize on navigation back (fixes iOS Safari tier/stats not loading)
+// 🎯 BFCache FIX: Check dependencies on restore, reload if broken
 window.addEventListener('pageshow', (e) => {
   if (e.persisted) {
+    // Instagram-style: Check if critical dependencies still exist
+    const criticalDeps = ['HiBrandTiers', 'HiSupabase', 'ProfileManager', 'StreakAuthority'];
+    const missing = criticalDeps.filter(dep => !window[dep]);
+    
+    if (missing.length > 0) {
+      console.log('🔄 BFCache broken - critical dependencies missing:', missing, '- forcing reload');
+      location.reload();
+      return;
+    }
+    
     console.log('🔄 BFCache restore detected - re-initializing Dashboard...');
-    initializeDashboard(); // Re-run full initialization on back navigation
+    initializeDashboard();
   }
 });
 
