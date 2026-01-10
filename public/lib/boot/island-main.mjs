@@ -5,7 +5,7 @@ console.log('🏝️ Island main.mjs loading...');
 
 async function initHiIsland() {
   window.__islandInitCalled = true;
-  console.log('🏝️ Hi Island initializing... (START OF FUNCTION)');
+  console.warn('🏝️ Hi Island initializing... (START OF FUNCTION)');
   
   // 🚀 FIX: Wait for critical dependencies before rendering
   // This prevents race conditions on first navigation
@@ -1104,16 +1104,19 @@ window.openHiComposer.showFallbackAlert = function() {
 console.log('🔍 island-main.mjs: document.readyState =', document.readyState);
 
 if (document.readyState === 'loading') {
-  console.log('🔍 Adding DOMContentLoaded listener');
+  console.warn('🔍 Adding DOMContentLoaded listener');
   document.addEventListener('DOMContentLoaded', initHiIsland);
   // Safety: also trigger after timeout if DOMContentLoaded never fires
   setTimeout(() => {
+    console.warn('🕐 Timeout fired, checking if init was called');
     if (!window.__islandInitCalled) {
-      console.warn('⚠️ DOMContentLoaded never fired, forcing init');
+      console.warn('⚠️ DOMContentLoaded never fired, forcing init NOW');
       initHiIsland();
+    } else {
+      console.warn('✅ Init was already called by DOMContentLoaded');
     }
-  }, 500);
+  }, 300);
 } else {
-  console.log('🔍 Calling initHiIsland() immediately');
+  console.warn('🔍 Calling initHiIsland() immediately (readyState=' + document.readyState + ')');
   initHiIsland();
 }
