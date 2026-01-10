@@ -674,20 +674,10 @@ window.loadCurrentStatsFromDatabase = async () => {
   }
   window.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') safeRefresh(); });
   
-  // 🎯 BFCache FIX: Check dependencies on restore, reload if broken
+  // 🎯 BFCache: Re-initialize on navigation back
   window.addEventListener('pageshow', (e)=>{ 
     if (e.persisted) {
-      // Instagram-style: Check if critical dependencies still exist
-      const criticalDeps = ['HiBrandTiers', 'HiSupabase', 'ProfileManager', 'UnifiedHiIslandController'];
-      const missing = criticalDeps.filter(dep => !window[dep]);
-      
-      if (missing.length > 0) {
-        console.log('🔄 BFCache broken - critical dependencies missing:', missing, '- forcing reload');
-        location.reload();
-        return;
-      }
-      
-      console.log('🔄 BFCache restore detected - re-initializing Hi Island...');
+      console.log('🔄 BFCache restore - refreshing Hi Island...');
       initHiIsland();
     } else if (document.visibilityState==='visible') {
       safeRefresh();
