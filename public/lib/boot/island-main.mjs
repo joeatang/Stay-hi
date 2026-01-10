@@ -4,6 +4,10 @@
 console.log('🏝️ Island main.mjs loading...');
 
 async function initHiIsland() {
+  if (window.__islandInitCalled) {
+    console.warn('⚠️ initHiIsland() already running, skipping duplicate call');
+    return;
+  }
   window.__islandInitCalled = true;
   console.warn('🏝️ Hi Island initializing... (START OF FUNCTION)');
   
