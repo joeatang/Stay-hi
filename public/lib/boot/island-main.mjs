@@ -723,36 +723,22 @@ window.loadCurrentStatsFromDatabase = async () => {
   }
   window.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') safeRefresh(); });
   
-  // 🎯 BFCache: Retry aborted operations on restore
+  // 🎯 BFCache: Reset aborted controller and refresh state
   window.addEventListener('pageshow', async (e)=>{ 
     if (e.persisted) {
       console.log('🔄 BFCache restore detected');
       
-      // If feed controller exists but init was aborted, reset and retry
-      if (window.unifiedHiIslandController) {
+      // Reset aborted controller if exists
+      if (window.unifiedHiIslandController?.initPromise) {
         const controller = window.unifiedHiIslandController;
-        
-        // Check if init promise was rejected (aborted)
-        if (controller.initPromise) {
-          try {
-            await controller.initPromise; // Will throw if rejected
-          } catch (error) {
-            // Init was rejected (likely AbortError) - reset and retry
-            console.log('🔄 Feed init was aborted, resetting and retrying...');
-            controller.initPromise = null; // Clear rejected promise
-            controller.isInitialized = false; // Reset flag
-            try {
-              await controller.init();
-              console.log('✅ Feed initialization completed on BFCache restore');
-            } catch (retryError) {
-              console.warn('⚠️ Feed retry failed:', retryError);
-            }
-          }
-        }
+        // Clear rejected promise to allow retry
+        controller.initPromise = null;
+        controller.isInitialized = false;
+        console.log('🔄 Reset feed controller for BFCache restore');
       }
       
-      // Refresh stats regardless
-      safeRefresh();
+      // Call init which will use idempotency flag and call refreshIslandState()
+      await initHiIsland();
     } else if (document.visibilityState==='visible') {
       safeRefresh();
     }
