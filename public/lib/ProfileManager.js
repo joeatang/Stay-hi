@@ -658,4 +658,11 @@ if (typeof module !== 'undefined' && module.exports) {
 // Expose globally
 window.ProfileManager = profileManager;
 
+// 🚀 CRITICAL: Clear singleton on page unload to prevent corruption across navigation
+window.addEventListener('pagehide', () => {
+  console.log('🧹 Clearing ProfileManager singleton for next page');
+  ProfileManager.instance = null;
+  window.ProfileManager = null;
+});
+
 console.log('📦 ProfileManager class loaded (singleton pattern)');
