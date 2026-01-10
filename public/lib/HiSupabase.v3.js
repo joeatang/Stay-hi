@@ -40,29 +40,40 @@ function createStubClient() {
   };
 }
 
-// 🚀 CRITICAL: Handle BFCache restoration (scripts don't re-run on BFCache!)
-// When page is restored from BFCache, window state is intact but we're on a different URL
-window.addEventListener('pageshow', (event) => {
-  if (event.persisted) {
-    // Page restored from BFCache - validate client URL
+// 🚀 CRITICAL: Validate client is not stale from previous page
+// This runs on EVERY getClient() call to handle BFCache restoration
+function validateClientFreshness() {
+  if (window.__HI_SUPABASE_CLIENT) {
     const currentURL = window.location.pathname;
     const clientURL = window.__HI_SUPABASE_CLIENT_URL || '';
     
-    if (window.__HI_SUPABASE_CLIENT && currentURL !== clientURL) {
-      console.warn('🧹 [BFCache] Clearing stale Supabase client:', clientURL, '→', currentURL);
+    if (currentURL !== clientURL) {
+      console.warn('🧹 Clearing stale Supabase client (URL mismatch):', clientURL, '→', currentURL);
       window.__HI_SUPABASE_CLIENT = null;
       window.__HI_SUPABASE_CLIENT_URL = null;
       window.hiSupabase = null;
       window.supabaseClient = null;
       window.sb = null;
-      
-      // Force components to re-fetch client
-      window.dispatchEvent(new CustomEvent('hi:supabase-client-invalidated'));
+      return false; // Client was stale
     }
+  }
+  return true; // Client is fresh or doesn't exist
+}
+
+// 🚀 CRITICAL: Handle BFCache restoration (scripts don't re-run on BFCache!)
+// When page is restored from BFCache, window state is intact but we're on a different URL
+window.addEventListener('pageshow', (event) => {
+  console.log('[HiSupabase] pageshow event fired, persisted:', event.persisted);
+  if (event.persisted) {
+    console.log('[HiSupabase] Page restored from BFCache, validating client...');
+    validateClientFreshness();
   }
 });
 
 let createdClient = null;
+
+// Validate client on script execution (handles both fresh load and BFCache)
+validateClientFreshness();
 
 // 🚀 CRITICAL: Check if existing client is from a different page (BFCache restoration)
 // ISSUE: iOS Safari BFCache preserves Supabase client with aborted internal fetch state
@@ -170,6 +181,10 @@ if (!createdClient) {
 
 // Helper to guarantee alias presence for late consumers.
 function getHiSupabase() {
+  // 🚀 CRITICAL: Validate client freshness on EVERY access
+  // This handles BFCache restoration even if pageshow doesn't fire
+  validateClientFreshness();
+  
   if (!window.hiSupabase) window.hiSupabase = createdClient;
   return window.hiSupabase;
 }
