@@ -77,6 +77,16 @@ window.addEventListener('pageshow', (event) => {
 // Each page navigation re-runs this script, but if we had a cached value from
 // a previous page, it would have dead AbortControllers
 let createdClient = null;
+
+// 🚀 CRITICAL: Also clear ALL window properties that might have stale clients
+console.log('[HiSupabase] 🧹 Clearing stale window clients from previous page');
+window.__HI_SUPABASE_CLIENT = null;
+window.__HI_SUPABASE_CLIENT_URL = null;
+window.__HI_SUPABASE_CLIENT_TIMESTAMP = null;
+window.hiSupabase = null;
+window.supabaseClient = null;
+window.sb = null;
+
 console.log('[HiSupabase] 🧹 Module variable initialized (createdClient = null)');
 
 // 🚀 WOZ FIX: NEVER reuse BFCache-preserved clients - they have dead AbortControllers
@@ -201,16 +211,21 @@ function getHiSupabase() {
     window.dispatchEvent(new CustomEvent('hi:supabase-client-ready', { detail: { client: createdClient } }));
   }
   
-  if (!window.hiSupabase) window.hiSupabase = createdClient;
+  // 🚀 CRITICAL: ALWAYS return createdClient, not window.hiSupabase
+  // window.hiSupabase could be stale from previous page!
+  if (!createdClient) {
+    console.error('[HiSupabase] ❌ No client created! This should never happen.');
+    return null;
+  }
   
-  console.log('[HiSupabase] getClient() returning:', {
-    exists: !!window.hiSupabase,
-    hasAuth: !!window.hiSupabase?.auth,
-    hasFrom: !!window.hiSupabase?.from,
+  console.log('[HiSupabase] getClient() returning createdClient:', {
+    exists: !!createdClient,
+    hasAuth: !!createdClient?.auth,
+    hasFrom: !!createdClient?.from,
     clientTimestamp: window.__HI_SUPABASE_CLIENT_TIMESTAMP
   });
   
-  return window.hiSupabase;
+  return createdClient;
 }
 
 // Legacy compatibility: provide getClient function for modules expecting it
