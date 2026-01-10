@@ -7,7 +7,6 @@
  */
 
 import { getClient } from '../HiSupabase.js';
-import { ignoreAbort } from '../utils/abort-utils.js';
 
 class HiBaseClient {
     constructor() {

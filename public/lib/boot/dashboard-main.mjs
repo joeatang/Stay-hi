@@ -2,7 +2,6 @@
 // Hi Components: HiShareSheet + HiMedallion (Tesla-grade initialization)
 import { HiShareSheet } from '../../ui/HiShareSheet/HiShareSheet.js';
 import { mountHiMedallion } from '../../ui/HiMedallion/HiMedallion.js';
-import { ignoreAbort } from '../utils/abort-utils.js';
 
 // Tesla-grade component initialization with guards
 document.addEventListener('DOMContentLoaded', async () => {
@@ -290,14 +289,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Get authenticated user ID
                 let userId = null;
                 if (window.HiSupabase?.getClient) {
-                  const userData = await ignoreAbort(window.HiSupabase.getClient().auth.getUser());
+                  const userData = await window.HiAbortUtils.ignoreAbort(window.HiSupabase.getClient().auth.getUser());
                   if (userData === null) return; // Aborted
                   userId = userData.data?.user?.id;
                 }
                 
                 // Use HiBase.stats.insertMedallionTap for unified tracking
                 if (window.HiBase?.stats?.insertMedallionTap) {
-                  const result = await ignoreAbort(window.HiBase.stats.insertMedallionTap(userId));
+                  const result = await window.HiAbortUtils.ignoreAbort(window.HiBase.stats.insertMedallionTap(userId));
                   if (result === null) return; // Aborted during navigation
                   
                   if (result.error) {
@@ -341,13 +340,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Get user ID directly from Supabase session (same as Hi Gym pattern)
                 let userId = null;
                 if (window.HiSupabase?.getClient) {
-                  const userData = await ignoreAbort(window.HiSupabase.getClient().auth.getUser());
+                  const userData = await window.HiAbortUtils.ignoreAbort(window.HiSupabase.getClient().auth.getUser());
                   if (userData === null) return; // Aborted
                   userId = userData.data?.user?.id;
                 }
                 
                 if (userId && userId !== 'anonymous' && window.HiBase?.updateStreak) {
-                  const result = await ignoreAbort(window.HiBase.updateStreak(userId));
+                  const result = await window.HiAbortUtils.ignoreAbort(window.HiBase.updateStreak(userId));
                   if (result === null) return; // Aborted during navigation
                   
                   console.log('🔥 Streak updated from medallion tap');

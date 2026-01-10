@@ -1860,6 +1860,9 @@ console.log('✅ [Universal Tier Listener] Loaded and listening');
   <!-- 🔧 Cache migration (old dashboard_total_cache → new globalTotalHis) -->
   <script src="./lib/boot/cache-migration.js"></script>
   
+  <!-- 🛡️ ABORT-SAFE: Utilities for MPA navigation (must load before consumers) -->
+  <script src="./lib/utils/abort-utils.js"></script>
+
   <!-- �️ ABORT-SAFE: Page lifecycle cleanup for MPA navigation -->
   <script type="module">
     // Global abort controller for page-level async operations

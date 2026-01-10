@@ -4,8 +4,6 @@
  * Handles network failures, retries, and graceful degradation
  */
 
-import { ignoreAbort, isAbortError } from '../utils/abort-utils.js';
-
 (function() {
   'use strict';
   
@@ -122,7 +120,7 @@ import { ignoreAbort, isAbortError } from '../utils/abort-utils.js';
       if (!this.isOnline) return;
       
       try {
-        const sessionData = await ignoreAbort(this.client.auth.getSession());
+        const sessionData = await window.HiAbortUtils.ignoreAbort(this.client.auth.getSession());
         
         // Aborted during navigation - no-op
         if (sessionData === null) {
@@ -159,7 +157,7 @@ import { ignoreAbort, isAbortError } from '../utils/abort-utils.js';
               if (accessToken && refreshToken) {
                 console.log('[AuthResilience] 🔄 Restoring session from localStorage...');
                 
-                const restoreData = await ignoreAbort(this.client.auth.setSession({
+                const restoreData = await window.HiAbortUtils.ignoreAbort(this.client.auth.setSession({
                   access_token: accessToken,
                   refresh_token: refreshToken
                 }));
@@ -204,7 +202,7 @@ import { ignoreAbort, isAbortError } from '../utils/abort-utils.js';
         }
       } catch (err) {
         // Check if it's an expected abort error
-        if (isAbortError(err)) {
+        if (window.HiAbortUtils.isAbortError(err)) {
           console.debug('[AuthResilience] Check aborted during navigation');
           return;
         }

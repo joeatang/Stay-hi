@@ -16,9 +16,6 @@
  *   const profile = ProfileManager.getProfile(); // Always current
  */
 
-// Import abort-safe utilities for navigation handling
-import { ignoreAbort, isAbortError } from './utils/abort-utils.js';
-
 class ProfileManager {
   constructor() {
     if (ProfileManager.instance) {
@@ -379,7 +376,7 @@ class ProfileManager {
           if (!this._authReady) {
             console.warn('⚠️ AuthReady event timeout, checking session directly...');
             try {
-              const sessionData = await ignoreAbort(this._supabase.auth.getSession());
+              const sessionData = await window.HiAbortUtils.ignoreAbort(this._supabase.auth.getSession());
               if (sessionData === null) {
                 // Aborted during navigation - skip
                 return;
@@ -401,7 +398,7 @@ class ProfileManager {
               }
             } catch (error) {
               // Check if it's an abort error
-              if (isAbortError(error)) {
+              if (window.HiAbortUtils.isAbortError(error)) {
                 console.debug('[ProfileManager] Auth check aborted during navigation');
                 return;
               }
@@ -432,7 +429,7 @@ class ProfileManager {
     try {
       console.log('📥 Loading profile from database for user:', this._userId);
 
-      const profileData = await ignoreAbort(this._supabase
+      const profileData = await window.HiAbortUtils.ignoreAbort(this._supabase
         .from('profiles')
         .select('*')
         .eq('id', this._userId)

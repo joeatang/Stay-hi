@@ -10,8 +10,6 @@
  *   console.log(streak.current); // Always accurate
  */
 
-import { ignoreAbort } from '../utils/abort-utils.js';
-
 class StreakAuthority {
   static CACHE_TTL_MS = 60000; // 1 minute
   static CACHE_KEY = 'user_current_streak';
@@ -107,7 +105,7 @@ class StreakAuthority {
       throw new Error('Supabase client not available');
     }
 
-    const result = await ignoreAbort(client
+    const result = await window.HiAbortUtils.ignoreAbort(client
       .from('user_stats')
       .select('current_streak, longest_streak, last_hi_date')
       .eq('user_id', userId)
