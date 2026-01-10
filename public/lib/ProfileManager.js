@@ -336,14 +336,15 @@ class ProfileManager {
 
   /**
    * Wait for Supabase client to be available
-   * 🚀 CRITICAL: Always return fresh client from window, never cache stale references
+   * 🚀 WOZ FIX: ALWAYS get fresh client from HiSupabase.getClient(), never read window directly
    */
   async _waitForSupabase() {
     const maxAttempts = 100; // 5 seconds (50ms intervals)
     for (let i = 0; i < maxAttempts; i++) {
-      const client = window.supabaseClient || window.hiSupabase || window.sb || window.__HI_SUPABASE_CLIENT;
+      // 🚀 CRITICAL: Get client through HiSupabase.getClient() for freshness validation
+      const client = window.HiSupabase?.getClient?.() || window.getSupabase?.();
       if (client && client.auth) {
-        console.log('✅ Supabase client ready');
+        console.log('✅ Supabase client ready from HiSupabase.getClient()');
         return client;
       }
       // 🚀 WOZ OPTIMIZATION: Faster polling for snappier auth
