@@ -40,65 +40,33 @@ function createStubClient() {
   };
 }
 
-// 🚀 CRITICAL: Validate client is not stale from previous page
-// This runs on EVERY getClient() call to handle BFCache restoration
-function validateClientFreshness() {
-  console.log('[HiSupabase VALIDATION] Running... currentURL:', window.location.pathname, 'clientURL:', window.__HI_SUPABASE_CLIENT_URL || 'none');
-  
-  if (window.__HI_SUPABASE_CLIENT) {
-    const currentURL = window.location.pathname;
-    const clientURL = window.__HI_SUPABASE_CLIENT_URL || '';
-    
-    if (currentURL !== clientURL) {
-      console.warn('🧹 Clearing stale Supabase client (URL mismatch):', clientURL, '→', currentURL);
-      window.__HI_SUPABASE_CLIENT = null;
-      window.__HI_SUPABASE_CLIENT_URL = null;
-      window.hiSupabase = null;
-      window.supabaseClient = null;
-      window.sb = null;
-      createdClient = null; // 🚀 CRITICAL: Also clear module-scoped variable!
-      return false; // Client was stale
-    }
-  }
-  return true; // Client is fresh or doesn't exist
+// 🚀 WOZ FIX: ALWAYS clear client on BFCache restoration
+// BFCache preserves aborted fetch controllers → queries hang forever
+// Solution: Nuke everything and start fresh
+function clearSupabaseClient() {
+  console.log('[HiSupabase] 🧹 Clearing Supabase client (BFCache safety)');
+  window.__HI_SUPABASE_CLIENT = null;
+  window.__HI_SUPABASE_CLIENT_URL = null;
+  window.__HI_SUPABASE_CLIENT_TIMESTAMP = null;
+  window.hiSupabase = null;
+  window.supabaseClient = null;
+  window.sb = null;
+  createdClient = null;
 }
 
-// 🚀 CRITICAL: Handle BFCache restoration (scripts don't re-run on BFCache!)
-// When page is restored from BFCache, window state is intact but we're on a different URL
+// 🚀 WOZ FIX: ALWAYS nuke client on BFCache restoration
+// BFCache preserves dead AbortControllers → ProfileManager hangs → Island never loads
 window.addEventListener('pageshow', (event) => {
-  console.log('[HiSupabase] pageshow event fired, persisted:', event.persisted);
   if (event.persisted) {
-    console.log('[HiSupabase] Page restored from BFCache, validating client...');
-    validateClientFreshness();
+    console.warn('[HiSupabase] 🔥 BFCache detected - NUKING stale client');
+    clearSupabaseClient();
   }
 });
 
 let createdClient = null;
 
-// Validate client on script execution (handles both fresh load and BFCache)
-validateClientFreshness();
-
-// 🚀 CRITICAL: Check if existing client is from a different page (BFCache restoration)
-// ISSUE: iOS Safari BFCache preserves Supabase client with aborted internal fetch state
-// FIX: Always create fresh client when navigating between different pages
-if (window.__HI_SUPABASE_CLIENT) {
-  const currentURL = window.location.pathname;
-  const clientURL = window.__HI_SUPABASE_CLIENT_URL || '';
-  
-  if (currentURL !== clientURL) {
-    console.warn('🧹 Clearing Supabase client from different page:', clientURL, '→', currentURL);
-    window.__HI_SUPABASE_CLIENT = null;
-    window.__HI_SUPABASE_CLIENT_URL = null;
-    window.hiSupabase = null;
-    window.supabaseClient = null;
-    window.sb = null;
-  } else {
-    createdClient = window.__HI_SUPABASE_CLIENT;
-    window.hiSupabase = createdClient;
-    console.log('♻️ Reusing Supabase client from same page:', currentURL);
-  }
-}
-
+// 🚀 WOZ FIX: NEVER reuse BFCache-preserved clients - they have dead AbortControllers
+// Always create fresh client on script execution
 if (!createdClient) {
   // If a global UMD build is already available, use it immediately
   if (window.supabase?.createClient) {
@@ -116,12 +84,13 @@ if (!createdClient) {
     const real = window.supabase.createClient(REAL_SUPABASE_URL, REAL_SUPABASE_KEY, authOptions);
     createdClient = real;
     window.__HI_SUPABASE_CLIENT = real;
-    window.__HI_SUPABASE_CLIENT_URL = window.location.pathname; // Track creation time
+    window.__HI_SUPABASE_CLIENT_URL = window.location.pathname;
+    window.__HI_SUPABASE_CLIENT_TIMESTAMP = Date.now();
     window.hiSupabase = real;
     // Back-compat aliases
     try { window.supabaseClient = real; } catch(_){ }
     try { window.sb = real; } catch(_){ }
-    console.log('✅ HiSupabase v3 client created from global UMD with persistent sessions');
+    console.log('✅ Fresh Supabase client created for:', window.location.pathname);
     
     // 🔥 NAVIGATION FIX: Notify singleton components that a new client exists
     // This lets ProfileManager, auth-resilience, etc. update their references
@@ -188,11 +157,7 @@ function getHiSupabase() {
   // This handles BFCache restoration even if pageshow doesn't fire
   validateClientFreshness();
   
-  // 🚀 CRITICAL: If client was cleared by validation, recreate it
-  if (!createdClient && window.supabase?.createClient) {
-    console.log('🔄 Recreating Supabase client after staleness detection');
-    const authOptions = {
-      auth: {
+  // 🚀 WOZ FIX: Recreate client if needed (handles pageshow clearing)
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: false,
@@ -210,9 +175,11 @@ function getHiSupabase() {
     window.supabaseClient = createdClient;
     window.sb = createdClient;
     
-    window.dispatchEvent(new CustomEvent('hi:supabase-client-ready', { detail: { client: createdClient } }));
-  }
-  
+    window.__HI_SUPABASE_CLIENT_TIMESTAMP = Date.now();
+    window.hiSupabase = createdClient;
+    window.supabaseClient = createdClient;
+    window.sb = createdClient;
+    console.log('✅ Fresh Supabase client created for:', window.location.pathname)
   if (!window.hiSupabase) window.hiSupabase = createdClient;
   return window.hiSupabase;
 }
