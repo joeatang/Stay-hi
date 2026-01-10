@@ -340,22 +340,40 @@ class ProfileManager {
    */
   async _waitForSupabase() {
     console.warn('🔍 [ProfileManager] _waitForSupabase() starting...');
-    console.warn('🔍 [ProfileManager] About to enter polling loop, maxAttempts=100');
     const maxAttempts = 100; // 5 seconds (50ms intervals)
-    console.warn('🔍 [ProfileManager] Entering for loop now...');
+    
     for (let i = 0; i < maxAttempts; i++) {
-      console.warn(`🔍 [ProfileManager] INSIDE LOOP - Poll attempt ${i}`);
-      // 🚀 CRITICAL: Get client through HiSupabase.getClient() for freshness validation
-      const client = window.HiSupabase?.getClient?.() || window.getSupabase?.();
-      console.log(`🔍 [ProfileManager] Poll ${i}: HiSupabase exists:`, !!window.HiSupabase, 'getClient exists:', !!window.HiSupabase?.getClient, 'client:', !!client);
-      if (client && client.auth) {
-        console.log('✅ Supabase client ready from HiSupabase.getClient()');
-        return client;
+      let client = null;
+      
+      try {
+        // 🚀 WOZ FIX: Wrap in try-catch to handle any synchronous errors
+        if (window.HiSupabase?.getClient) {
+          client = window.HiSupabase.getClient();
+        } else if (window.getSupabase) {
+          client = window.getSupabase();
+        } else {
+          // HiSupabase not loaded yet, wait and retry
+          console.log(`⏳ Poll ${i}: HiSupabase not loaded yet`);
+          await new Promise(resolve => setTimeout(resolve, 50));
+          continue;
+        }
+      } catch (error) {
+        console.error(`❌ Poll ${i}: Error getting client:`, error);
+        await new Promise(resolve => setTimeout(resolve, 50));
+        continue;
       }
-      // 🚀 WOZ OPTIMIZATION: Faster polling for snappier auth
+      
+      // Check if we got a valid client
+      if (client && client.auth) {
+        console.log(`✅ Poll ${i}: Supabase client ready!`);
+        return client;
+      } else {
+        console.log(`⏳ Poll ${i}: Client not ready yet (client=${!!client}, auth=${!!client?.auth})`);
+      }
+      
       await new Promise(resolve => setTimeout(resolve, 50));
     }
-    console.error('🔍 [ProfileManager] EXITED LOOP - about to throw error');
+    
     throw new Error('Supabase client not available after 5 seconds');
   }
 
