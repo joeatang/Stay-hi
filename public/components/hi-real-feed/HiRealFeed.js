@@ -305,6 +305,12 @@ class HiIslandRealFeed {
   // Load general/public shares from public_shares table (REAL data source)
   async loadGeneralSharesFromPublicShares(signal = null) {
     const supabase = this.getSupabase();
+    
+    console.log('🔍 [FEED DEBUG] loadGeneralSharesFromPublicShares called');
+    console.log('🔍 [FEED DEBUG] supabase client exists:', !!supabase);
+    console.log('🔍 [FEED DEBUG] window.__HI_SUPABASE_CLIENT_URL:', window.__HI_SUPABASE_CLIENT_URL);
+    console.log('🔍 [FEED DEBUG] current URL:', window.location.pathname);
+    
     if (!supabase) {
       console.error('❌ HiRealFeed: No Supabase client available for general shares');
       console.error('❌ Available clients:', {
@@ -338,10 +344,14 @@ class HiIslandRealFeed {
           .order('created_at', { ascending: false })
           .range(this.pagination.general.page * 20, (this.pagination.general.page + 1) * 20 - 1);
         
+        console.log('🔍 [FEED DEBUG] About to execute query...');
+        
         // 🔧 CRITICAL FIX: Support cancellation via AbortController
         const result = signal 
           ? await queryBuilder.abortSignal(signal)
           : await queryBuilder;
+        
+        console.log('🔍 [FEED DEBUG] Query complete. Error:', result.error, 'Data count:', result.data?.length);
         
         shares = result.data;
         error = result.error;
