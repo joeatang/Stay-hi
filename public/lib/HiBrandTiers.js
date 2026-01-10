@@ -13,6 +13,8 @@
  *   // Returns: { name: 'Hi Friend', color: '#6B7280', emoji: '👋', ... }
  */
 
+console.log('🔥🔥🔥 HIBRANDTIERS.JS LOADING - CODE VERSION 2026-01-10-A 🔥🔥🔥');
+
 class HiBrandTierSystem {
   constructor() {
     // 🎯 SINGLE SOURCE OF TRUTH: Brand Tier Display Names
@@ -357,7 +359,9 @@ class HiBrandTierSystem {
 }
 
 // ===== GLOBAL INSTANCE =====
+console.log('🔥🔥🔥 CREATING window.HiBrandTiers INSTANCE - CODE VERSION 2026-01-10-A 🔥🔥🔥');
 window.HiBrandTiers = new HiBrandTierSystem();
+console.log('✅ window.HiBrandTiers initialized:', typeof window.HiBrandTiers);
 
 // ===== BACKWARD COMPATIBILITY =====
 // Helper function for legacy code that expects tier names directly

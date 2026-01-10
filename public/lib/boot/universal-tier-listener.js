@@ -2,15 +2,18 @@
 // Used by: Dashboard, Island, Muscle, Profile, and all future pages
 // Listens for hi:auth-ready and updates tier pill using HiBrandTiers
 
+console.log('🔥🔥🔥 UNIVERSAL-TIER-LISTENER.JS LOADING - CODE VERSION 2026-01-10-A 🔥🔥🔥');
 console.log('🎯 [Universal Tier Listener] Loading...');
+console.log('🔍 HiBrandTiers available at load time?', typeof window.HiBrandTiers);
 
 window.addEventListener('hi:auth-ready', async (e) => {
   const { session, membership, fromCache } = e.detail || {};
-  console.log('[Universal Tier] hi:auth-ready received', { 
+  console.log('🔥 [Universal Tier] hi:auth-ready received', { 
     user: session?.user?.id, 
     tier: membership?.tier, 
     adminFlag: membership?.is_admin, 
-    fromCache 
+    fromCache,
+    HiBrandTiersAvailable: typeof window.HiBrandTiers
   });
   
   try {
