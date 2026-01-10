@@ -80,22 +80,24 @@ async function initHiIsland() {
   
   // ✅ FIX: Initialize UnifiedHiIslandController to render feed (singleton pattern)
   console.warn('🔍 TRACE: Starting feed system initialization...');
-  console.log('🎯 Initializing feed system...');
+  console.warn('🎯 Initializing feed system...');
   if (window.UnifiedHiIslandController && !window.unifiedHiIslandController) {
+    console.warn('🔍 Creating new UnifiedHiIslandController instance...');
     window.unifiedHiIslandController = new window.UnifiedHiIslandController();
     try {
+      console.warn('🔍 Calling unifiedHiIslandController.init()...');
       await window.unifiedHiIslandController.init();
-      console.log('✅ Feed system initialized');
+      console.warn('✅ Feed system initialized');
     } catch (error) {
       // AbortError expected during navigation - don't block other init steps
       if (error.name === 'AbortError' || error.message?.includes('aborted')) {
-        console.log('ℹ️ Feed init aborted (navigation in progress) - will complete on next visit');
+        console.warn('ℹ️ Feed init aborted (navigation in progress) - will complete on next visit');
       } else {
         console.error('❌ Feed init failed:', error);
       }
     }
   } else if (window.unifiedHiIslandController) {
-    console.log('✅ Feed controller already exists (reusing instance)');
+    console.warn('✅ Feed controller already exists (reusing instance)');
   } else {
     console.error('❌ UnifiedHiIslandController not loaded!');
   }
@@ -507,7 +509,30 @@ function initializeHiMap() {
     }
     const mapElement = document.getElementById('globe');
     if (!mapElement) {
-      console.warn('⚠️ Map element not found');
+      console.warn('⚠️ Map element not found, retrying in next frame...');
+      // Map element might still be rendering - retry once after DOM settles
+      requestAnimationFrame(() => {
+        const retryElement = document.getElementById('globe');
+        if (!retryElement) {
+          console.warn('⚠️ Map element still not found after retry, giving up');
+          return;
+        }
+        console.warn('✅ Map element found on retry, initializing...');
+        initializeHiMapCore();
+      });
+      return;
+    }
+    initializeHiMapCore();
+  } catch (err) {
+    console.error('❌ Map initialization failed:', err);
+  }
+}
+
+function initializeHiMapCore() {
+  try {
+    const mapElement = document.getElementById('globe');
+    if (!mapElement) {
+      console.warn('⚠️ Map element disappeared');
       return;
     }
     const map = L.map('globe', {
