@@ -54,11 +54,6 @@ function clearSupabaseClient() {
   createdClient = null;
 }
 
-// 🚀 WOZ FIX: Clear module-scoped variable on EVERY script execution
-// This ensures fresh client creation on every page load, regardless of BFCache
-console.log('[HiSupabase] 🧹 Script executing - clearing module-scoped createdClient');
-createdClient = null;
-
 // 🚀 WOZ FIX: ALWAYS nuke client on BFCache restoration
 // BFCache preserves dead AbortControllers → ProfileManager hangs → Island never loads
 window.addEventListener('pageshow', (event) => {
@@ -78,7 +73,11 @@ window.addEventListener('pageshow', (event) => {
   }
 });
 
+// 🚀 CRITICAL FIX: Module variable must be cleared on EVERY script load
+// Each page navigation re-runs this script, but if we had a cached value from
+// a previous page, it would have dead AbortControllers
 let createdClient = null;
+console.log('[HiSupabase] 🧹 Module variable initialized (createdClient = null)');
 
 // 🚀 WOZ FIX: NEVER reuse BFCache-preserved clients - they have dead AbortControllers
 // Always create fresh client on script execution
