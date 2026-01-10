@@ -112,7 +112,7 @@ class HiBaseClient {
         return this.execute(async (client) => {
             // Connectivity probe against a known existing table
             try {
-                const result = await ignoreAbort(client
+                const result = await window.HiAbortUtils.ignoreAbort(client
                   .from('public_shares')
                   .select('id')
                   .limit(1));

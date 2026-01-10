@@ -1726,6 +1726,9 @@
   <!-- �🚀 TESLA FIX: Initialize HiSupabase.v3 before HiDB -->
   <script src="./lib/HiSupabase.v3.js"></script>
   
+  
+  <!-- 🛡️ ABORT-SAFE: Utilities for MPA navigation (must load before consumers) -->
+  <script src="./lib/utils/abort-utils.js"></script>
   <!-- 🚀 CRITICAL: Auth resilience layer (must load AFTER HiSupabase exists) -->
   <script src="./lib/auth/auth-resilience.js?v=20260104-auth-fix"></script>
   
