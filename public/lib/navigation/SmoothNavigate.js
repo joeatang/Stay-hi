@@ -4,9 +4,10 @@
   'use strict';
 
   // Pages that support smooth navigation
+  // NOTE: Hi Island temporarily removed due to state management conflicts
   const SUPPORTED_PAGES = [
     'hi-dashboard.html',
-    'hi-island-NEW.html',
+    // 'hi-island-NEW.html',  // DISABLED: Island's complex initialization causes state conflicts
     'profile.html',
     'hi-muscle.html'
   ];
