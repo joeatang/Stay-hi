@@ -64,6 +64,10 @@ class ProfileManager {
    * 🚀 GOLD STANDARD: Checks cache first for instant loads on navigation
    */
   async init() {
+    // 🚀 CRITICAL: Always validate Supabase client reference, even if already initialized
+    // BFCache restoration means window.supabaseClient might be stale but ProfileManager persists
+    await this._refreshSupabaseReference();
+    
     // 🚀 CRITICAL: Allow re-init if previous init failed (for navigation recovery)
     // Check if we're already initialized AND initialization succeeded
     if (this._initialized && this._profile && this._userId) {
@@ -312,6 +316,21 @@ class ProfileManager {
 
     } catch (error) {
       console.warn('⚠️ Metadata update failed (non-critical):', error);
+    }
+  }
+
+  /**
+   * Refresh Supabase client reference (handles BFCache staleness)
+   * 🚀 CRITICAL: Must be called on every init() to detect stale client from previous page
+   */
+  async _refreshSupabaseReference() {
+    // Force HiSupabase validation by calling getClient (triggers validateClientFreshness)
+    if (window.HiSupabase?.getClient) {
+      const freshClient = window.HiSupabase.getClient();
+      if (freshClient && this._supabase !== freshClient) {
+        console.warn('🔄 ProfileManager: Refreshing stale Supabase client reference');
+        this._supabase = freshClient;
+      }
     }
   }
 
