@@ -1,20 +1,10 @@
 // HI ISLAND ORCHESTRATOR (extracted from hi-island-NEW.html)
 // Load order preserved; this file is included near the end of body
 
-console.log('🔥🔥🔥 ISLAND-MAIN.MJS LOADED - CODE VERSION 2026-01-10-A 🔥🔥🔥');
-
-// 🎯 WOZ FIX: Prevent duplicate initialization (event listener stacking)
-let islandInitialized = false;
+console.log('🏝️ Island main.mjs loading...');
 
 async function initHiIsland() {
   console.log('🏝️ Hi Island initializing...');
-  
-  // 🚀 IDEMPOTENCY: Skip full init if already done, just refresh state
-  if (islandInitialized) {
-    console.log('♻️ Hi Island already initialized - refreshing state only...');
-    await refreshIslandState();
-    return;
-  }
   
   // 🚀 FIX: Wait for critical dependencies before rendering
   // This prevents race conditions on first navigation
@@ -134,14 +124,8 @@ async function refreshIslandState() {
 }
 
 // 🎯 Membership Tier Listener (Hi Island Parity with Dashboard)
-let tierListenerSetup = false; // Prevent duplicate event listeners
 
 function setupMembershipTierListener() {
-  if (tierListenerSetup) {
-    console.log('✅ Tier pill listener already active (skipping duplicate setup)');
-    return;
-  }
-  
   // 🔥 FIX: Hi Island uses #hi-tier-indicator, not [data-tier-pill]
   const tierPill = document.getElementById('hi-tier-indicator') || document.querySelector('[data-tier-pill]');
   
@@ -185,7 +169,6 @@ function setupMembershipTierListener() {
     }, 5000); // 5s timeout
   }
   
-  tierListenerSetup = true; // Mark as setup to prevent duplicates
   console.log('✅ Tier pill listener active on Hi Island');
 }
 
@@ -224,15 +207,7 @@ function updateTierPill(tierFromEvent) {
   }
 }
 
-let tabSystemInitialized = false;
-
 function initializeTabSystem() {
-  if (tabSystemInitialized) {
-    console.log('✅ Tab system already initialized (skipping duplicate setup)');
-    return;
-  }
-  tabSystemInitialized = true; // Set BEFORE adding listeners
-  
   const tabs = document.querySelectorAll('.tab');
   const feedRoot = document.getElementById('hi-island-feed-root');
   let currentTabIndex = 0;
@@ -329,15 +304,8 @@ function initializeTabSystem() {
 
 // Wire origin filter buttons to unified feed
 // WOZ FIX: Wait for hiRealFeed to be ready before attaching listeners
-let originFiltersInitialized = false;
 
 function initializeOriginFilters() {
-  if (originFiltersInitialized) {
-    console.log('✅ Origin filters already initialized (skipping duplicate setup)');
-    return;
-  }
-  originFiltersInitialized = true; // Set BEFORE adding listeners
-  
   try {
     const btns = Array.from(document.querySelectorAll('.origin-filter-btn'));
     if (!btns.length) {
@@ -418,15 +386,8 @@ function initializeOriginFilters() {
 }
 
 // Jobs-style: simple "Try it" link near the primary CTA
-let tryItLinkInitialized = false;
 
 function initializeTryItLink() {
-  if (tryItLinkInitialized) {
-    console.log('✅ Try It link already initialized (skipping duplicate setup)');
-    return;
-  }
-  tryItLinkInitialized = true; // Set BEFORE adding listener
-  
   try {
     const link = document.getElementById('tryHiLink');
     if (!link) return;
@@ -521,15 +482,7 @@ async function handleTabSwitch(tabName) {
   }
 }
 
-let hiMapInitialized = false;
-
 function initializeHiMap() {
-  if (hiMapInitialized) {
-    console.log('✅ Hi Map already initialized (skipping duplicate setup)');
-    return;
-  }
-  hiMapInitialized = true; // Set BEFORE creating map
-  
   try {
     if (typeof L === 'undefined') {
       console.warn('⚠️ Leaflet not loaded, map will be hidden');
@@ -727,63 +680,29 @@ window.loadCurrentStatsFromDatabase = async () => {
   
   // 🎯 BFCache: Refresh state when page restored from cache
   window.addEventListener('pageshow', async (e)=>{ 
-    console.log('📍 PAGESHOW EVENT:', { persisted: e.persisted, visibility: document.visibilityState });
+    console.log('📍 PAGESHOW:', e.persisted ? 'BFCache restore' : 'normal load');
     
     if (e.persisted) {
-      console.log('🔄 BFCache restore detected - forcing full refresh');
+      console.log('🔄 Refreshing from BFCache...');
       
-      // CRITICAL: Reset initialization flags to allow re-init
-      // Without this, idempotency guards block re-initialization
-      if (typeof hiMapInitialized !== 'undefined') {
-        window.hiMapInitialized = false;
-        console.log('🔄 Reset hiMapInitialized flag');
-      }
-      
-      // Re-dispatch hi:auth-ready to refresh tier and all dependent systems
-      if (window.ProfileManager && window.ProfileManager.getProfile()) {
+      // Re-dispatch hi:auth-ready
+      if (window.ProfileManager?.getProfile()) {
         const profile = window.ProfileManager.getProfile();
         const userId = window.ProfileManager.getUserId();
-        console.log('🔄 Re-dispatching hi:auth-ready from BFCache restore');
         window.dispatchEvent(new CustomEvent('hi:auth-ready', {
-          detail: {
-            userId: userId,
-            authenticated: !!userId,
-            profile: profile,
-            fromBFCache: true
-          }
+          detail: { userId, authenticated: !!userId, profile, fromBFCache: true }
         }));
       }
       
-      // Force map refresh if it exists
+      // Refresh map
       if (window.hiMap) {
-        console.log('🔄 Forcing map invalidateSize and refresh');
-        try {
-          window.hiMap.invalidateSize();
-          // Reload markers
-          if (window.loadHiMapMarkers) {
-            await window.loadHiMapMarkers();
-          }
-        } catch (err) {
-          console.warn('⚠️ Map refresh failed:', err);
-        }
+        window.hiMap.invalidateSize();
+        if (window.loadHiMapMarkers) await window.loadHiMapMarkers();
       }
       
-      // Force feed refresh by resetting controller
+      // Refresh feed
       if (window.unifiedHiIslandController) {
-        console.log('🔄 Forcing feed controller refresh');
-        try {
-          // Reset controller state
-          const controller = window.unifiedHiIslandController;
-          if (controller.initPromise) {
-            controller.initPromise = null;
-            controller.isInitialized = false;
-          }
-          // Re-initialize to refresh feed
-          await controller.init();
-          console.log('✅ Feed controller re-initialized');
-        } catch (err) {
-          console.warn('⚠️ Feed refresh failed:', err);
-        }
+        await window.unifiedHiIslandController.init();
       }
       
       // Refresh stats
