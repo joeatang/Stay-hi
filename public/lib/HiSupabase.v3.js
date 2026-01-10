@@ -54,6 +54,7 @@ function validateClientFreshness() {
       window.hiSupabase = null;
       window.supabaseClient = null;
       window.sb = null;
+      createdClient = null; // 🚀 CRITICAL: Also clear module-scoped variable!
       return false; // Client was stale
     }
   }
@@ -184,6 +185,31 @@ function getHiSupabase() {
   // 🚀 CRITICAL: Validate client freshness on EVERY access
   // This handles BFCache restoration even if pageshow doesn't fire
   validateClientFreshness();
+  
+  // 🚀 CRITICAL: If client was cleared by validation, recreate it
+  if (!createdClient && window.supabase?.createClient) {
+    console.log('🔄 Recreating Supabase client after staleness detection');
+    const authOptions = {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: false,
+        storage: window.localStorage,
+        storageKey: 'sb-gfcubvroxgfvjhacinic-auth-token'
+      }
+    };
+    const REAL_SUPABASE_URL = window.SUPABASE_URL || document.querySelector('meta[name="supabase-url"]')?.content || 'https://gfcubvroxgfvjhacinic.supabase.co';
+    const REAL_SUPABASE_KEY = window.SUPABASE_ANON_KEY || document.querySelector('meta[name="supabase-anon-key"]')?.content || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ4MDQxMzEsImV4cCI6MjA1MDM4MDEzMX0.VUf0Ts-OhCrfzlCVWHPf4zv1wIIQJuZuKQEZx7UNqSk';
+    
+    createdClient = window.supabase.createClient(REAL_SUPABASE_URL, REAL_SUPABASE_KEY, authOptions);
+    window.__HI_SUPABASE_CLIENT = createdClient;
+    window.__HI_SUPABASE_CLIENT_URL = window.location.pathname;
+    window.hiSupabase = createdClient;
+    window.supabaseClient = createdClient;
+    window.sb = createdClient;
+    
+    window.dispatchEvent(new CustomEvent('hi:supabase-client-ready', { detail: { client: createdClient } }));
+  }
   
   if (!window.hiSupabase) window.hiSupabase = createdClient;
   return window.hiSupabase;
