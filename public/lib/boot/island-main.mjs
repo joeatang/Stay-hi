@@ -1100,8 +1100,12 @@ window.openHiComposer.showFallbackAlert = function() {
   }
 };
 
+console.log('🔍 island-main.mjs: document.readyState =', document.readyState);
+
 if (document.readyState === 'loading') {
+  console.log('🔍 Adding DOMContentLoaded listener');
   document.addEventListener('DOMContentLoaded', initHiIsland);
 } else {
+  console.log('🔍 Calling initHiIsland() immediately');
   initHiIsland();
 }
