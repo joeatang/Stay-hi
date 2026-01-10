@@ -1777,6 +1777,18 @@
   <!-- 🛡️ MOBILE FIX: Protect against iOS backgrounding memory wipes -->
   <!-- ❌ REMOVED: mobile-lifecycle-protector - restored stale ProfileManager -->
   <!-- <script src="./lib/mobile-lifecycle-protector.js"></script> -->
+  
+  <!-- 🔍 DIAGNOSTIC: Track navigation events -->
+  <script>
+    console.log('📍 Island page loaded');
+    window.addEventListener('pagehide', (e) => {
+      console.log('🚪 PAGEHIDE fired on Island', { persisted: e.persisted });
+    });
+    window.addEventListener('beforeunload', () => {
+      console.log('⚠️ BEFOREUNLOAD fired on Island');
+    });
+  </script>
+  
   <script>console.log('✅ mobile-lifecycle-protector loaded, about to load body scripts...');</script>
   
   <script src="assets/avatar-utils.js"></script>
