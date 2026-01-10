@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mobile Diag Overlay Test</title>
+  
+  <!-- Load diagnostic system -->
+  <script src="./lib/diagnostics/enable-mobile-diag.js"></script>
+  
+  <style>
+    body {
+      font-family: system-ui;
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    button {
+      padding: 12px 24px;
+      margin: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .test { background: #4CAF50; color: white; }
+    pre {
+      background: #f5f5f5;
+      padding: 12px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 Mobile Diag Overlay Test</h1>
+  
+  <h2>Instructions:</h2>
+  <ol>
+    <li>Add <code>?diag=1</code> to URL and reload</li>
+    <li>Check bottom-right for overlay with "Copy Report" button</li>
+    <li>Perform test actions below</li>
+    <li>Click "Copy Report" to get failure report</li>
+  </ol>
+  
+  <h2>Test Actions:</h2>
+  <button class="test" onclick="testNav()">Simulate Navigation</button>
+  <button class="test" onclick="testError()">Trigger Error</button>
+  <button class="test" onclick="testFetch()">Trigger Fetch</button>
+  <button class="test" onclick="testBackground()">Simulate Background</button>
+  
+  <h2>Expected Overlay Elements:</h2>
+  <pre>
+🔍 DIAG MODE
+Events: [count]
+Errors: [count]
+[Copy Report] button
+[Show Last Report] button
+  </pre>
+  
+  <h2>Report Format:</h2>
+  <pre id="sample"></pre>
+  
+  <script>
+    function testNav() {
+      const link = document.createElement('a');
+      link.href = '/hi-dashboard.html';
+      link.textContent = 'Dashboard';
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      alert('Navigation simulated - check overlay event count');
+    }
+    
+    function testError() {
+      setTimeout(() => {
+        throw new Error('Test error from overlay test page');
+      }, 100);
+      alert('Error will throw in 100ms - check overlay error count');
+    }
+    
+    function testFetch() {
+      fetch('/test-endpoint').catch(() => {});
+      alert('Fetch triggered - check overlay');
+    }
+    
+    function testBackground() {
+      alert('Background test:\n1. Tap OK\n2. Go to home screen\n3. Wait 10 seconds\n4. Return to Safari\n5. Check overlay for visibility events + request storm');
+    }
+    
+    // Show sample report format
+    const sampleReport = {
+      timestamp: "2026-01-10T00:30:00.000Z",
+      url: "https://stay-hi.vercel.app/hi-dashboard.html?diag=1",
+      page: "hi-dashboard.html",
+      bfcache_restore: false,
+      request_count_last_5s: 12,
+      warn_count: 3,
+      error_count: 1,
+      last_error: "AbortError @ supabase.min.js:123",
+      last_10_events: [
+        { ts_offset: 5000, type: "lifecycle", data: "visible" },
+        { ts_offset: 4500, type: "nav", data: "hi-island-NEW.html" },
+        { ts_offset: 3200, type: "splash", data: "start" },
+        { ts_offset: 2800, type: "error", data: "AbortError" }
+      ],
+      full_buffer_size: 45
+    };
+    
+    document.getElementById('sample').textContent = JSON.stringify(sampleReport, null, 2);
+    
+    // Instructions for mobile
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      const hasDialParams = location.search.includes('diag=1');
+      if (!hasDialParams) {
+        const banner = document.createElement('div');
+        banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#f00;color:#fff;padding:12px;text-align:center;font-weight:bold;z-index:999999;';
+        banner.innerHTML = '⚠️ Add ?diag=1 to URL to enable overlay!';
+        document.body.insertBefore(banner, document.body.firstChild);
+      }
+    }
+  </script>
+</body>
+</html>

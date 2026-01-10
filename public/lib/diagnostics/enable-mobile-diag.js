@@ -7,17 +7,18 @@
   const diagEnabled = urlParams.get('diag') === '1' || localStorage.getItem('HI_DIAG') === '1';
   
   if (diagEnabled) {
-    const script = document.createElement('script');
-    script.src = (window.location.hostname === 'localhost' ? '/public' : '') + '/lib/diagnostics/mobile-diag.js';
-    script.async = false; // Load synchronously to catch early events
-    document.head.insertBefore(script, document.head.firstChild);
+    const basePath = (window.location.hostname === 'localhost' ? '/public' : '');
     
-    // Add visual indicator
-    window.addEventListener('load', () => {
-      const indicator = document.createElement('div');
-      indicator.innerHTML = '🔍 DIAG';
-      indicator.style.cssText = 'position:fixed;top:0;right:0;background:#00ff00;color:#000;padding:4px 8px;z-index:999999;font-size:10px;font-weight:bold;';
-      document.body.appendChild(indicator);
-    });
+    // Load console-based diagnostics
+    const script1 = document.createElement('script');
+    script1.src = basePath + '/lib/diagnostics/mobile-diag.js';
+    script1.async = false;
+    document.head.insertBefore(script1, document.head.firstChild);
+    
+    // Load on-screen overlay diagnostics
+    const script2 = document.createElement('script');
+    script2.src = basePath + '/lib/diagnostics/mobile-diag-overlay.js';
+    script2.async = false;
+    document.head.insertBefore(script2, document.head.firstChild);
   }
 })();
