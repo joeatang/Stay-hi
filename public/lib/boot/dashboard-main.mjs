@@ -405,4 +405,28 @@ async function refreshDashboardState() {
 // Run on initial load
 document.addEventListener('DOMContentLoaded', initializeDashboard);
 
+// 🎯 BFCache: Re-dispatch hi:auth-ready when page restored from cache
+window.addEventListener('pageshow', async (e) => {
+  console.log('📍 PAGESHOW EVENT (Dashboard):', { persisted: e.persisted });
+  
+  if (e.persisted) {
+    console.log('🔄 BFCache restore detected on Dashboard');
+    
+    // Re-dispatch hi:auth-ready to refresh tier and all dependent systems
+    if (window.ProfileManager && window.ProfileManager.getProfile()) {
+      const profile = window.ProfileManager.getProfile();
+      const userId = window.ProfileManager.getUserId();
+      console.log('🔄 Re-dispatching hi:auth-ready from BFCache restore');
+      window.dispatchEvent(new CustomEvent('hi:auth-ready', {
+        detail: {
+          userId: userId,
+          authenticated: !!userId,
+          profile: profile,
+          fromBFCache: true
+        }
+      }));
+    }
+  }
+});
+
 /* Cache bust 1765736732 */

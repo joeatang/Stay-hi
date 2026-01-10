@@ -725,24 +725,30 @@ window.loadCurrentStatsFromDatabase = async () => {
   }
   window.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') safeRefresh(); });
   
-  // 🎯 BFCache: Reset aborted controller and refresh state
+  // 🎯 BFCache: Refresh state when page restored from cache
   window.addEventListener('pageshow', async (e)=>{ 
     console.log('📍 PAGESHOW EVENT:', { persisted: e.persisted, visibility: document.visibilityState });
     
     if (e.persisted) {
       console.log('🔄 BFCache restore detected');
       
-      // Reset aborted controller if exists
-      if (window.unifiedHiIslandController?.initPromise) {
-        const controller = window.unifiedHiIslandController;
-        // Clear rejected promise to allow retry
-        controller.initPromise = null;
-        controller.isInitialized = false;
-        console.log('🔄 Reset feed controller for BFCache restore');
+      // Re-dispatch hi:auth-ready to refresh tier and all dependent systems
+      if (window.ProfileManager && window.ProfileManager.getProfile()) {
+        const profile = window.ProfileManager.getProfile();
+        const userId = window.ProfileManager.getUserId();
+        console.log('🔄 Re-dispatching hi:auth-ready from BFCache restore');
+        window.dispatchEvent(new CustomEvent('hi:auth-ready', {
+          detail: {
+            userId: userId,
+            authenticated: !!userId,
+            profile: profile,
+            fromBFCache: true
+          }
+        }));
       }
       
-      // Call init which will use idempotency flag and call refreshIslandState()
-      await initHiIsland();
+      // Refresh stats
+      safeRefresh();
     } else if (document.visibilityState==='visible') {
       safeRefresh();
     }
