@@ -61,14 +61,20 @@ async function initHiIsland() {
   
   console.warn('🔍 TRACE: Starting ProfileManager initialization (non-blocking)...');
   
-  // 🚀 WOZ FIX: Load ProfileManager in background - don't block Island initialization
+  // 🚀 MOBILE SAFARI FIX: Keep reference to prevent garbage collection
   if (window.ProfileManager) {
-    window.ProfileManager.init()
-      .then(() => console.warn('✅ ProfileManager ready'))
-      .catch(error => console.warn('⚠️ ProfileManager init failed (non-critical):', error.message));
+    window.__profileManagerInit = window.ProfileManager.init();
+    window.__profileManagerInit
+      .then(() => {
+        console.warn('✅ ProfileManager ready');
+        delete window.__profileManagerInit; // Clean up reference
+      })
+      .catch(error => {
+        console.warn('⚠️ ProfileManager init failed (non-critical):', error.message);
+        delete window.__profileManagerInit;
+      });
   }
-  
-  // 🎯 Setup membership tier listener for pill display
+    // 🎯 Setup membership tier listener for pill display
   console.warn('🔍 TRACE: Calling setupMembershipTierListener...');
   setupMembershipTierListener();
   console.warn('🔍 TRACE: setupMembershipTierListener complete');

@@ -345,7 +345,7 @@ class ProfileManager {
     
     // 🚀 Mobile Safari optimization: use rAF instead of setTimeout
     const isMobileSafari = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    console.log(`📱 Mobile Safari detected: ${isMobileSafari}, rAF available: ${typeof requestAnimationFrame}`);
+    console.warn(`📱 Mobile Safari detected: ${isMobileSafari}, rAF available: ${typeof requestAnimationFrame}`);
     
     const wait = () => new Promise(resolve => {
       if (isMobileSafari) {
@@ -355,9 +355,9 @@ class ProfileManager {
       }
     });
     
-    console.log(`🔄 About to start polling loop (maxAttempts=${maxAttempts})`);
+    console.warn(`🔄 About to start polling loop (maxAttempts=${maxAttempts})`);
     for (let i = 0; i < maxAttempts; i++) {
-      console.log(`🔄 Loop iteration ${i} starting`);
+      console.warn(`🔄 Loop iteration ${i} starting`);
       let client = null;
       
       try {
@@ -368,22 +368,22 @@ class ProfileManager {
           client = window.getSupabase();
         } else {
           // HiSupabase not loaded yet, wait and retry
-          console.log(`⏳ Poll ${i}: HiSupabase not loaded yet`);
+          console.warn(`⏳ Poll ${i}: HiSupabase not loaded yet`);
           await wait();
           continue;
         }
       } catch (error) {
-        console.error(`❌ Poll ${i}: Error getting client:`, error);
+        console.warn(`❌ Poll ${i}: Error getting client:`, error);
         await wait();
         continue;
       }
       
       // Check if we got a valid client
       if (client && client.auth) {
-        console.log(`✅ Poll ${i}: Supabase client ready!`);
+        console.warn(`✅ Poll ${i}: Supabase client ready!`);
         return client;
       } else {
-        console.log(`⏳ Poll ${i}: Client not ready yet (client=${!!client}, auth=${!!client?.auth})`);
+        console.warn(`⏳ Poll ${i}: Client not ready yet (client=${!!client}, auth=${!!client?.auth})`);
       }
       
       await wait();
