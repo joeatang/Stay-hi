@@ -164,6 +164,45 @@ async function refreshIslandState() {
   console.log('♻️ Island state refreshed');
 }
 
+// 🚀 CRITICAL: Listen for app restoration (background return / navigation return)
+// This event is fired by HiSupabase after it recreates the client
+window.addEventListener('hi:app-restored', async (event) => {
+  console.log('🔄 [Island] App restored from:', event.detail?.source);
+  
+  try {
+    // 1. Refresh ProfileManager with new client
+    if (window.ProfileManager) {
+      console.log('🔄 Refreshing ProfileManager...');
+      // ProfileManager should pick up the new client automatically
+      await window.ProfileManager.initialize?.();
+    }
+    
+    // 2. Reset and refresh feed controller  
+    if (window.unifiedHiIslandController) {
+      console.log('🔄 Refreshing feed controller...');
+      window.unifiedHiIslandController.isInitialized = false;
+      window.unifiedHiIslandController.initPromise = null;
+      await window.unifiedHiIslandController.init();
+    }
+    
+    // 3. Refresh map
+    if (window.hiMap) {
+      console.log('🔄 Refreshing map...');
+      window.hiMap.invalidateSize();
+      if (window.loadHiMapMarkers) {
+        await window.loadHiMapMarkers();
+      }
+    }
+    
+    // 4. Refresh stats
+    loadRealStats().catch(err => console.warn('Stats refresh failed:', err));
+    
+    console.log('✅ [Island] App restoration complete');
+  } catch (error) {
+    console.error('❌ [Island] App restoration failed:', error);
+  }
+});
+
 // 🎯 Membership Tier Listener (Hi Island Parity with Dashboard)
 
 function setupMembershipTierListener() {

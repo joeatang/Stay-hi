@@ -76,11 +76,19 @@ if (!window.__hiSupabasePageshowRegistered) {
     // Only clear on RETURN navigations or BFCache restore
     // NOT on initial load - that would destroy the fresh client we just created!
     if (event.persisted) {
-      console.warn('[HiSupabase] 🔥 BFCache restore - clearing stale client');
+      console.warn('[HiSupabase] 🔥 BFCache restore - clearing & recreating client');
       clearSupabaseClient();
+      // 🚀 CRITICAL: Eagerly recreate client BEFORE other components try to use it
+      getHiSupabase();
+      // 🔔 Notify all components that app was restored from background
+      window.dispatchEvent(new CustomEvent('hi:app-restored', { detail: { source: 'bfcache' } }));
     } else if (!isInitialPageshow && createdClient) {
-      console.warn('[HiSupabase] 🔥 Return navigation - clearing stale client');
+      console.warn('[HiSupabase] 🔥 Return navigation - clearing & recreating client');
       clearSupabaseClient();
+      // 🚀 CRITICAL: Eagerly recreate client for return navigation too
+      getHiSupabase();
+      // 🔔 Notify components of navigation return
+      window.dispatchEvent(new CustomEvent('hi:app-restored', { detail: { source: 'navigation' } }));
     } else {
       console.log('[HiSupabase] ✅ Initial pageshow - keeping fresh client');
     }

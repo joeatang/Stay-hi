@@ -429,4 +429,24 @@ window.addEventListener('pageshow', async (e) => {
   }
 });
 
+// 🚀 CRITICAL: Listen for app restoration (background return / navigation return)
+// This event is fired by HiSupabase after it recreates the client
+window.addEventListener('hi:app-restored', async (event) => {
+  console.log('🔄 [Dashboard] App restored from:', event.detail?.source);
+  
+  try {
+    // Refresh ProfileManager with new client
+    if (window.ProfileManager) {
+      await window.ProfileManager.initialize?.();
+    }
+    
+    // Refresh dashboard state
+    await refreshDashboardState?.();
+    
+    console.log('✅ [Dashboard] App restoration complete');
+  } catch (error) {
+    console.error('❌ [Dashboard] App restoration failed:', error);
+  }
+});
+
 /* Cache bust 1765736732 */
