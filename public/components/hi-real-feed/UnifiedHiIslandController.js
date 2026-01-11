@@ -421,17 +421,34 @@ const controller = new UnifiedHiIslandController();
 window.unifiedHiIslandController = controller;
 window.hiIslandIntegration = controller; // Name expected by island-main.mjs
 
-// 🚨 CRITICAL FIX: Reset controller state on ALL pageshow events
-// Mobile Safari caches ES6 modules - singleton state persists across navigations!
+// 🚨 CRITICAL: Record init timestamp to distinguish initial pageshow from return navigation
+const CONTROLLER_INIT_TIMESTAMP = Date.now();
+
+// 🚀 CRITICAL FIX: Reset controller state on RETURN navigation only (not initial pageshow)
+// pageshow fires on BOTH initial load AND return navigation - we must distinguish!
 window.addEventListener('pageshow', (event) => {
-  console.log('🔄 [UnifiedController] pageshow:', event.persisted ? 'BFCache' : 'navigation');
+  const timeSinceInit = Date.now() - CONTROLLER_INIT_TIMESTAMP;
+  const isInitialPageshow = timeSinceInit < 200;
   
-  // Reset controller state so init() runs fresh
-  controller.isInitialized = false;
-  controller.initPromise = null;
+  console.log('🔄 [UnifiedController] pageshow:', {
+    persisted: event.persisted,
+    timeSinceInit,
+    isInitialPageshow,
+    wasInitialized: controller.isInitialized
+  });
   
-  // Don't null feedInstance - let init() handle reconnection
-  console.log('✅ [UnifiedController] State reset - ready for fresh init');
+  // Only reset on RETURN navigations or BFCache restore
+  if (event.persisted) {
+    console.log('✅ [UnifiedController] BFCache restore - resetting controller');
+    controller.isInitialized = false;
+    controller.initPromise = null;
+  } else if (!isInitialPageshow && controller.isInitialized) {
+    console.log('✅ [UnifiedController] Return navigation - resetting controller');
+    controller.isInitialized = false;
+    controller.initPromise = null;
+  } else {
+    console.log('✅ [UnifiedController] Initial pageshow - keeping fresh controller');
+  }
 });
 
 // Health check function expected by island-main.mjs

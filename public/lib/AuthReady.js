@@ -6,20 +6,36 @@ let _ready = false;
 let _emitted = false;
 let _result = null;
 
-// 🚨 CRITICAL FIX: Reset module state on ALL pageshow events
+// 🚨 CRITICAL: Record init timestamp to distinguish initial pageshow from return navigation
+const AUTH_INIT_TIMESTAMP = Date.now();
+
+// 🚀 CRITICAL FIX: Reset module state on RETURN navigation only (not initial pageshow)
+// pageshow fires on BOTH initial load AND return navigation - we must distinguish!
 // Mobile Safari caches ES6 modules - these variables persist across navigations!
-// On 2nd visit, _ready = true causes initialize() to return stale _result
 window.addEventListener('pageshow', (event) => {
-  console.log('🔄 [AuthReady] pageshow:', event.persisted ? 'BFCache' : 'navigation');
+  const timeSinceInit = Date.now() - AUTH_INIT_TIMESTAMP;
+  const isInitialPageshow = timeSinceInit < 200;
   
-  // Reset ALL module state
-  const wasReady = _ready;
-  _ready = false;
-  _emitted = false;
-  _result = null;
+  console.log('🔄 [AuthReady] pageshow:', {
+    persisted: event.persisted,
+    timeSinceInit,
+    isInitialPageshow,
+    wasReady: _ready
+  });
   
-  if (wasReady) {
-    console.log('✅ [AuthReady] Module state was stale - reset complete');
+  // Only reset on RETURN navigations or BFCache restore
+  if (event.persisted) {
+    console.log('✅ [AuthReady] BFCache restore - resetting stale state');
+    _ready = false;
+    _emitted = false;
+    _result = null;
+  } else if (!isInitialPageshow && _ready) {
+    console.log('✅ [AuthReady] Return navigation - resetting stale state');
+    _ready = false;
+    _emitted = false;
+    _result = null;
+  } else {
+    console.log('✅ [AuthReady] Initial pageshow - keeping fresh state');
   }
 });
 

@@ -2622,30 +2622,39 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
-// 🔄 HANDLE NAVIGATION: Reset module state on ALL pageshow events
-// 🚨 CRITICAL FIX: Mobile Safari caches ES6 modules across navigations!
-// isInitialized stays TRUE even on normal navigation (not just BFCache)
-// This causes initializeFeed() to skip creating a new feed instance
+// � CRITICAL: Record init timestamp to distinguish initial pageshow from return navigation
+const FEED_INIT_TIMESTAMP = Date.now();
+
+// 🔄 HANDLE NAVIGATION: Reset module state on RETURN pageshow events only
+// 🚀 CRITICAL FIX: pageshow fires on BOTH initial load AND return navigation!
+// We must NOT reset on initial pageshow - that would break first-time initialization
 window.addEventListener('pageshow', (event) => {
-  console.log('🔄 pageshow event:', event.persisted ? 'BFCache restore' : 'normal navigation');
+  const timeSinceInit = Date.now() - FEED_INIT_TIMESTAMP;
+  const isInitialPageshow = timeSinceInit < 200;
   
-  // 🚨 ALWAYS reset module state on ANY pageshow
-  // Mobile Safari reuses modules across navigations - state persists!
-  const wasInitialized = isInitialized;
-  isInitialized = false;
+  console.log('🔄 [HiRealFeed] pageshow:', {
+    persisted: event.persisted,
+    timeSinceInit,
+    isInitialPageshow,
+    wasInitialized: isInitialized
+  });
   
+  // Only reset on RETURN navigations or BFCache restore
   if (event.persisted) {
     // BFCache restore - recreate everything
     console.log('🔄 BFCache restore - forcing full reinitialization');
+    isInitialized = false;
     if (window.hiRealFeed) {
       window.hiRealFeed.destroy?.();
       window.hiRealFeed = null;
     }
     initializeFeed();
-  } else if (wasInitialized) {
-    // Normal navigation but module was cached (mobile Safari)
-    console.log('🔄 Module state reset - ready for fresh init');
-    // Don't destroy existing feed yet - let new init handle it
+  } else if (!isInitialPageshow && isInitialized) {
+    // Return navigation (not BFCache) - reset flag for fresh init
+    console.log('🔄 Return navigation - resetting module state');
+    isInitialized = false;
+  } else {
+    console.log('✅ Initial pageshow - keeping fresh state');
   }
 });
 

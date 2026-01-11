@@ -54,27 +54,34 @@ function clearSupabaseClient() {
   createdClient = null;
 }
 
-// 🚀 CRITICAL FIX: Clear client on ALL pageshow events
-// Mobile Safari caches ES6 modules - createdClient persists with dead AbortControllers!
-// This happens even when persisted = false (normal navigation, not BFCache)
+// � CRITICAL: Record init timestamp to distinguish initial pageshow from return navigation
+const SUPABASE_INIT_TIMESTAMP = Date.now();
+
+// 🚀 CRITICAL FIX: Clear client on RETURN navigation only (not initial pageshow)
+// pageshow fires on BOTH initial load AND return navigation - we must distinguish!
+// Mobile Safari caches ES6 modules - createdClient persists with dead AbortControllers
 window.addEventListener('pageshow', (event) => {
+  const timeSinceInit = Date.now() - SUPABASE_INIT_TIMESTAMP;
+  const isInitialPageshow = timeSinceInit < 200; // Initial pageshow fires within ~50ms of script load
+  
   console.warn('[HiSupabase] 📱 pageshow event fired:', {
     persisted: event.persisted,
     url: window.location.pathname,
-    hadClient: !!window.__HI_SUPABASE_CLIENT || !!createdClient,
-    timestamp: Date.now()
+    timeSinceInit,
+    isInitialPageshow,
+    hadClient: !!window.__HI_SUPABASE_CLIENT || !!createdClient
   });
   
-  // 🚨 ALWAYS clear - module state persists across navigations in mobile Safari!
-  const hadStaleClient = !!createdClient;
-  clearSupabaseClient();
-  
+  // Only clear on RETURN navigations or BFCache restore
+  // NOT on initial load - that would destroy the fresh client we just created!
   if (event.persisted) {
-    console.warn('[HiSupabase] 🔥 BFCache restore - client cleared');
-  } else if (hadStaleClient) {
-    console.warn('[HiSupabase] 🔥 Module had stale client - cleared for fresh start');
+    console.warn('[HiSupabase] 🔥 BFCache restore - clearing stale client');
+    clearSupabaseClient();
+  } else if (!isInitialPageshow && createdClient) {
+    console.warn('[HiSupabase] 🔥 Return navigation - clearing stale client');
+    clearSupabaseClient();
   } else {
-    console.log('[HiSupabase] ✅ Fresh page load, client ready for initialization');
+    console.log('[HiSupabase] ✅ Initial pageshow - keeping fresh client');
   }
 });
 
@@ -202,10 +209,12 @@ function getHiSupabase() {
         storageKey: 'sb-gfcubvroxgfvjhacinic-auth-token'
       }
     };
-    const REAL_SUPABASE_URL = window.SUPABASE_URL || document.querySelector('meta[name="supabase-url"]')?.content || 'https://gfcubvroxgfvjhacinic.supabase.co';
-    const REAL_SUPABASE_KEY = window.SUPABASE_ANON_KEY || document.querySelector('meta[name="supabase-anon-key"]')?.content || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ4MDQxMzEsImV4cCI6MjA1MDM4MDEzMX0.VUf0Ts-OhCrfzlCVWHPf4zv1wIIQJuZuKQEZx7UNqSk';
+    // 🚨 CRITICAL: Use SAME key as module-level REAL_SUPABASE_KEY (line 13)
+    // Previous bug: This had an OLD/REVOKED key causing "Invalid API key" errors
+    const recreateUrl = window.SUPABASE_URL || document.querySelector('meta[name="supabase-url"]')?.content || 'https://gfcubvroxgfvjhacinic.supabase.co';
+    const recreateKey = window.SUPABASE_ANON_KEY || document.querySelector('meta[name="supabase-anon-key"]')?.content || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g";
     
-    createdClient = window.supabase.createClient(REAL_SUPABASE_URL, REAL_SUPABASE_KEY, authOptions);
+    createdClient = window.supabase.createClient(recreateUrl, recreateKey, authOptions);
     window.__HI_SUPABASE_CLIENT = createdClient;
     window.__HI_SUPABASE_CLIENT_URL = window.location.pathname;
     window.__HI_SUPABASE_CLIENT_TIMESTAMP = Date.now();
