@@ -54,36 +54,40 @@ function clearSupabaseClient() {
   createdClient = null;
 }
 
-// � CRITICAL: Record init timestamp to distinguish initial pageshow from return navigation
-const SUPABASE_INIT_TIMESTAMP = Date.now();
-
-// 🚀 CRITICAL FIX: Clear client on RETURN navigation only (not initial pageshow)
-// pageshow fires on BOTH initial load AND return navigation - we must distinguish!
-// Mobile Safari caches ES6 modules - createdClient persists with dead AbortControllers
-window.addEventListener('pageshow', (event) => {
-  const timeSinceInit = Date.now() - SUPABASE_INIT_TIMESTAMP;
-  const isInitialPageshow = timeSinceInit < 200; // Initial pageshow fires within ~50ms of script load
+// 🚀 CRITICAL FIX: Only register ONE pageshow handler per page load
+// Mobile Safari loads modules multiple times - each adds another listener!
+// Without this guard, OLD listeners fire and clear the fresh client
+if (!window.__hiSupabasePageshowRegistered) {
+  window.__hiSupabasePageshowRegistered = Date.now();
+  const SUPABASE_INIT_TIMESTAMP = Date.now();
   
-  console.warn('[HiSupabase] 📱 pageshow event fired:', {
-    persisted: event.persisted,
-    url: window.location.pathname,
-    timeSinceInit,
-    isInitialPageshow,
-    hadClient: !!window.__HI_SUPABASE_CLIENT || !!createdClient
+  window.addEventListener('pageshow', (event) => {
+    const timeSinceInit = Date.now() - SUPABASE_INIT_TIMESTAMP;
+    const isInitialPageshow = timeSinceInit < 200; // Initial pageshow fires within ~50ms of script load
+    
+    console.warn('[HiSupabase] 📱 pageshow event fired:', {
+      persisted: event.persisted,
+      url: window.location.pathname,
+      timeSinceInit,
+      isInitialPageshow,
+      hadClient: !!window.__HI_SUPABASE_CLIENT || !!createdClient
+    });
+    
+    // Only clear on RETURN navigations or BFCache restore
+    // NOT on initial load - that would destroy the fresh client we just created!
+    if (event.persisted) {
+      console.warn('[HiSupabase] 🔥 BFCache restore - clearing stale client');
+      clearSupabaseClient();
+    } else if (!isInitialPageshow && createdClient) {
+      console.warn('[HiSupabase] 🔥 Return navigation - clearing stale client');
+      clearSupabaseClient();
+    } else {
+      console.log('[HiSupabase] ✅ Initial pageshow - keeping fresh client');
+    }
   });
-  
-  // Only clear on RETURN navigations or BFCache restore
-  // NOT on initial load - that would destroy the fresh client we just created!
-  if (event.persisted) {
-    console.warn('[HiSupabase] 🔥 BFCache restore - clearing stale client');
-    clearSupabaseClient();
-  } else if (!isInitialPageshow && createdClient) {
-    console.warn('[HiSupabase] 🔥 Return navigation - clearing stale client');
-    clearSupabaseClient();
-  } else {
-    console.log('[HiSupabase] ✅ Initial pageshow - keeping fresh client');
-  }
-});
+} else {
+  console.log('[HiSupabase] ⏭️ Pageshow listener already registered, skipping duplicate');
+}
 
 // 🚀 CRITICAL FIX: Module variable must be cleared on EVERY script load
 // Each page navigation re-runs this script, but if we had a cached value from

@@ -2622,40 +2622,41 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
-// � CRITICAL: Record init timestamp to distinguish initial pageshow from return navigation
-const FEED_INIT_TIMESTAMP = Date.now();
-
-// 🔄 HANDLE NAVIGATION: Reset module state on RETURN pageshow events only
-// 🚀 CRITICAL FIX: pageshow fires on BOTH initial load AND return navigation!
-// We must NOT reset on initial pageshow - that would break first-time initialization
-window.addEventListener('pageshow', (event) => {
-  const timeSinceInit = Date.now() - FEED_INIT_TIMESTAMP;
-  const isInitialPageshow = timeSinceInit < 200;
+// 🚀 CRITICAL FIX: Only register ONE pageshow handler per page load
+// Mobile Safari loads modules multiple times - each adds another listener!
+if (!window.__feedPageshowRegistered) {
+  window.__feedPageshowRegistered = Date.now();
+  const FEED_INIT_TIMESTAMP = Date.now();
   
-  console.log('🔄 [HiRealFeed] pageshow:', {
-    persisted: event.persisted,
-    timeSinceInit,
-    isInitialPageshow,
-    wasInitialized: isInitialized
-  });
-  
-  // Only reset on RETURN navigations or BFCache restore
-  if (event.persisted) {
-    // BFCache restore - recreate everything
-    console.log('🔄 BFCache restore - forcing full reinitialization');
-    isInitialized = false;
-    if (window.hiRealFeed) {
-      window.hiRealFeed.destroy?.();
-      window.hiRealFeed = null;
+  window.addEventListener('pageshow', (event) => {
+    const timeSinceInit = Date.now() - FEED_INIT_TIMESTAMP;
+    const isInitialPageshow = timeSinceInit < 200;
+    
+    console.log('🔄 [HiRealFeed] pageshow:', {
+      persisted: event.persisted,
+      timeSinceInit,
+      isInitialPageshow,
+      wasInitialized: isInitialized
+    });
+    
+    // Only reset on RETURN navigations or BFCache restore
+    if (event.persisted) {
+      console.log('🔄 BFCache restore - forcing full reinitialization');
+      isInitialized = false;
+      if (window.hiRealFeed) {
+        window.hiRealFeed.destroy?.();
+        window.hiRealFeed = null;
+      }
+      initializeFeed();
+    } else if (!isInitialPageshow && isInitialized) {
+      console.log('🔄 Return navigation - resetting module state');
+      isInitialized = false;
+    } else {
+      console.log('✅ Initial pageshow - keeping fresh state');
     }
-    initializeFeed();
-  } else if (!isInitialPageshow && isInitialized) {
-    // Return navigation (not BFCache) - reset flag for fresh init
-    console.log('🔄 Return navigation - resetting module state');
-    isInitialized = false;
-  } else {
-    console.log('✅ Initial pageshow - keeping fresh state');
-  }
-});
+  });
+} else {
+  console.log('[HiRealFeed] ⏭️ Pageshow listener already registered, skipping duplicate');
+}
 
 export default HiIslandRealFeed;

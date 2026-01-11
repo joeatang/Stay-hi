@@ -6,38 +6,41 @@ let _ready = false;
 let _emitted = false;
 let _result = null;
 
-// 🚨 CRITICAL: Record init timestamp to distinguish initial pageshow from return navigation
-const AUTH_INIT_TIMESTAMP = Date.now();
-
-// 🚀 CRITICAL FIX: Reset module state on RETURN navigation only (not initial pageshow)
-// pageshow fires on BOTH initial load AND return navigation - we must distinguish!
-// Mobile Safari caches ES6 modules - these variables persist across navigations!
-window.addEventListener('pageshow', (event) => {
-  const timeSinceInit = Date.now() - AUTH_INIT_TIMESTAMP;
-  const isInitialPageshow = timeSinceInit < 200;
+// 🚀 CRITICAL FIX: Only register ONE pageshow handler per page load
+// Mobile Safari loads modules multiple times - each adds another listener!
+if (!window.__authReadyPageshowRegistered) {
+  window.__authReadyPageshowRegistered = Date.now();
+  const AUTH_INIT_TIMESTAMP = Date.now();
   
-  console.log('🔄 [AuthReady] pageshow:', {
-    persisted: event.persisted,
-    timeSinceInit,
-    isInitialPageshow,
-    wasReady: _ready
+  window.addEventListener('pageshow', (event) => {
+    const timeSinceInit = Date.now() - AUTH_INIT_TIMESTAMP;
+    const isInitialPageshow = timeSinceInit < 200;
+    
+    console.log('🔄 [AuthReady] pageshow:', {
+      persisted: event.persisted,
+      timeSinceInit,
+      isInitialPageshow,
+      wasReady: _ready
+    });
+    
+    // Only reset on RETURN navigations or BFCache restore
+    if (event.persisted) {
+      console.log('✅ [AuthReady] BFCache restore - resetting stale state');
+      _ready = false;
+      _emitted = false;
+      _result = null;
+    } else if (!isInitialPageshow && _ready) {
+      console.log('✅ [AuthReady] Return navigation - resetting stale state');
+      _ready = false;
+      _emitted = false;
+      _result = null;
+    } else {
+      console.log('✅ [AuthReady] Initial pageshow - keeping fresh state');
+    }
   });
-  
-  // Only reset on RETURN navigations or BFCache restore
-  if (event.persisted) {
-    console.log('✅ [AuthReady] BFCache restore - resetting stale state');
-    _ready = false;
-    _emitted = false;
-    _result = null;
-  } else if (!isInitialPageshow && _ready) {
-    console.log('✅ [AuthReady] Return navigation - resetting stale state');
-    _ready = false;
-    _emitted = false;
-    _result = null;
-  } else {
-    console.log('✅ [AuthReady] Initial pageshow - keeping fresh state');
-  }
-});
+} else {
+  console.log('[AuthReady] ⏭️ Pageshow listener already registered, skipping duplicate');
+}
 
 async function wait(ms){ return new Promise(r=>setTimeout(r, ms)); }
 

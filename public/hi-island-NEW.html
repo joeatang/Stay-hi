@@ -1743,7 +1743,7 @@
   <!-- 🚀 DEPENDENCY MANAGER: Prevents race conditions on first load -->
   
   <!-- �🚀 TESLA FIX: Initialize HiSupabase.v3 before HiDB -->
-<script src="./lib/HiSupabase.v3.js?v=20260111-key-fix"></script>
+<script src="./lib/HiSupabase.v3.js?v=20260111-singleton"></script>
   
   
   <!-- 🛡️ ABORT-SAFE: Utilities for MPA navigation (must load before consumers) -->
@@ -1752,7 +1752,7 @@
   <script src="./lib/auth/auth-resilience.js?v=20260104-auth-fix"></script>
   
   <!-- 🔥 MOBILE FIX: AuthReady orchestrator - handles bfcache restoration -->
-  <script type="module" src="./lib/AuthReady.js?v=20260108-v2"></script>
+  <script type="module" src="./lib/AuthReady.js?v=20260111-singleton"></script>
   <script>console.log('✅ AuthReady.js loaded');</script>
   
   <!-- 🎯 TIER BRANDING: Loaded in HEAD, don't duplicate here -->
@@ -1813,8 +1813,8 @@
   <!-- TEMPORARILY DISABLED: HiIslandIntegration.js - conflicts with main feed -->
   <!-- TEMPORARILY DISABLED: HiGoldStandardIntegration.js - DOM structure mismatch -->
   <!-- ✅ UNIFIED FEED SYSTEM: Single controller for all feed operations -->
-  <script src="components/hi-real-feed/HiRealFeed.js?v=20260111-cache" type="module"></script>
-  <script src="components/hi-real-feed/UnifiedHiIslandController.js?v=20241231-client-check" type="module"></script>
+  <script src="components/hi-real-feed/HiRealFeed.js?v=20260111-singleton" type="module"></script>
+  <script src="components/hi-real-feed/UnifiedHiIslandController.js?v=20260111-singleton" type="module"></script>
   
   <!-- Hi Scale Component (needed for intensity selection in share sheet) -->
   <script src="ui/HiScale/HiScale.js?v=20241231-global-export" type="module"></script>

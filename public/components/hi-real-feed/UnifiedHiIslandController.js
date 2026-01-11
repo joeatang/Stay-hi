@@ -421,35 +421,39 @@ const controller = new UnifiedHiIslandController();
 window.unifiedHiIslandController = controller;
 window.hiIslandIntegration = controller; // Name expected by island-main.mjs
 
-// 🚨 CRITICAL: Record init timestamp to distinguish initial pageshow from return navigation
-const CONTROLLER_INIT_TIMESTAMP = Date.now();
-
-// 🚀 CRITICAL FIX: Reset controller state on RETURN navigation only (not initial pageshow)
-// pageshow fires on BOTH initial load AND return navigation - we must distinguish!
-window.addEventListener('pageshow', (event) => {
-  const timeSinceInit = Date.now() - CONTROLLER_INIT_TIMESTAMP;
-  const isInitialPageshow = timeSinceInit < 200;
+// � CRITICAL FIX: Only register ONE pageshow handler per page load
+// Mobile Safari loads modules multiple times - each adds another listener!
+if (!window.__controllerPageshowRegistered) {
+  window.__controllerPageshowRegistered = Date.now();
+  const CONTROLLER_INIT_TIMESTAMP = Date.now();
   
-  console.log('🔄 [UnifiedController] pageshow:', {
-    persisted: event.persisted,
-    timeSinceInit,
-    isInitialPageshow,
-    wasInitialized: controller.isInitialized
+  window.addEventListener('pageshow', (event) => {
+    const timeSinceInit = Date.now() - CONTROLLER_INIT_TIMESTAMP;
+    const isInitialPageshow = timeSinceInit < 200;
+    
+    console.log('🔄 [UnifiedController] pageshow:', {
+      persisted: event.persisted,
+      timeSinceInit,
+      isInitialPageshow,
+      wasInitialized: controller.isInitialized
+    });
+    
+    // Only reset on RETURN navigations or BFCache restore
+    if (event.persisted) {
+      console.log('✅ [UnifiedController] BFCache restore - resetting controller');
+      controller.isInitialized = false;
+      controller.initPromise = null;
+    } else if (!isInitialPageshow && controller.isInitialized) {
+      console.log('✅ [UnifiedController] Return navigation - resetting controller');
+      controller.isInitialized = false;
+      controller.initPromise = null;
+    } else {
+      console.log('✅ [UnifiedController] Initial pageshow - keeping fresh controller');
+    }
   });
-  
-  // Only reset on RETURN navigations or BFCache restore
-  if (event.persisted) {
-    console.log('✅ [UnifiedController] BFCache restore - resetting controller');
-    controller.isInitialized = false;
-    controller.initPromise = null;
-  } else if (!isInitialPageshow && controller.isInitialized) {
-    console.log('✅ [UnifiedController] Return navigation - resetting controller');
-    controller.isInitialized = false;
-    controller.initPromise = null;
-  } else {
-    console.log('✅ [UnifiedController] Initial pageshow - keeping fresh controller');
-  }
-});
+} else {
+  console.log('[UnifiedController] ⏭️ Pageshow listener already registered, skipping duplicate');
+}
 
 // Health check function expected by island-main.mjs
 window.getHiIslandHealth = () => ({
