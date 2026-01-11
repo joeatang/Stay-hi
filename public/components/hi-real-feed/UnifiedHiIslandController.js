@@ -421,6 +421,19 @@ const controller = new UnifiedHiIslandController();
 window.unifiedHiIslandController = controller;
 window.hiIslandIntegration = controller; // Name expected by island-main.mjs
 
+// 🚨 CRITICAL FIX: Reset controller state on ALL pageshow events
+// Mobile Safari caches ES6 modules - singleton state persists across navigations!
+window.addEventListener('pageshow', (event) => {
+  console.log('🔄 [UnifiedController] pageshow:', event.persisted ? 'BFCache' : 'navigation');
+  
+  // Reset controller state so init() runs fresh
+  controller.isInitialized = false;
+  controller.initPromise = null;
+  
+  // Don't null feedInstance - let init() handle reconnection
+  console.log('✅ [UnifiedController] State reset - ready for fresh init');
+});
+
 // Health check function expected by island-main.mjs
 window.getHiIslandHealth = () => ({
   initialized: controller.isInitialized,

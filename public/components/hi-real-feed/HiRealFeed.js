@@ -78,27 +78,17 @@ class HiIslandRealFeed {
   }
 
   // Initialize the feed with REAL data sources
+  // 🚀 MOBILE SAFARI FIX: Never block on database queries - use cache first
   async init() {
     console.log('🏝️ Initializing Hi-Island REAL Feed System...');
     
+    const isMobileSafari = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    
     try {
-      // Get current user for personal archives
-      await this.getCurrentUser();
-      // Try to fetch user's public share count via RPC; fail gracefully
-      try {
-        const supabase = this.getSupabase();
-        if (supabase && this.currentUserId) {
-          const { getUserShareCount } = await import('../../lib/rpc/getUserShareCount.js');
-          this.userPublicShareCount = await getUserShareCount(supabase, this.currentUserId);
-        } else {
-          this.userPublicShareCount = 0;
-        }
-      } catch (e) {
-        console.warn('⚠️ HiRealFeed: getUserShareCount unavailable:', e);
-        this.userPublicShareCount = 0;
-      }
+      // 🚀 MOBILE FIX: Load cached feed data FIRST for instant render
+      this._loadCachedFeed();
       
-      // Render the interface
+      // Render the interface immediately (with cached data or empty)
       this.render();
       
       // Attach event listeners
@@ -107,17 +97,77 @@ class HiIslandRealFeed {
       // Initialize auto-hide header scroll behavior
       this.initAutoHideHeader();
       
-      // Load initial data from REAL tables
-      await this.loadFeedData();
-      
-      // 🎯 Mark as initialized for splash screen
+      // 🎯 Mark as initialized BEFORE any database calls
       this.isInitialized = true;
+      console.log('✅ Hi-Island REAL Feed System ready (UI rendered)');
       
-      console.log('✅ Hi-Island REAL Feed System ready');
+      // 🚀 MOBILE FIX: Load fresh data in background with timeout
+      // Don't await - let it run async
+      this._loadFreshDataWithTimeout(isMobileSafari ? 3000 : 10000);
+      
     } catch (error) {
       console.error('❌ Hi-Island REAL Feed System initialization failed:', error);
-      // Still mark as initialized to prevent stuck splash
       this.isInitialized = true;
+    }
+  }
+  
+  // 🚀 MOBILE FIX: Load cached feed from localStorage
+  _loadCachedFeed() {
+    try {
+      const cached = localStorage.getItem('hi_feed_cache');
+      if (cached) {
+        const { general, archives, timestamp } = JSON.parse(cached);
+        const age = Date.now() - timestamp;
+        // Use cache if less than 5 minutes old
+        if (age < 300000 && general?.length) {
+          console.warn('⚡ Using cached feed data (' + general.length + ' items)');
+          this.feedData.general = general;
+          this.feedData.archives = archives || [];
+          return true;
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️ Feed cache read failed:', e);
+    }
+    return false;
+  }
+  
+  // 🚀 MOBILE FIX: Save feed to localStorage cache
+  _saveFeedCache() {
+    try {
+      localStorage.setItem('hi_feed_cache', JSON.stringify({
+        general: this.feedData.general?.slice(0, 50) || [], // Cache first 50 items
+        archives: this.feedData.archives?.slice(0, 50) || [],
+        timestamp: Date.now()
+      }));
+    } catch (e) {
+      console.warn('⚠️ Feed cache write failed:', e);
+    }
+  }
+  
+  // 🚀 MOBILE FIX: Load fresh data with timeout protection
+  async _loadFreshDataWithTimeout(timeoutMs) {
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('TIMEOUT')), timeoutMs);
+    });
+    
+    try {
+      // Get current user (with timeout)
+      await Promise.race([this.getCurrentUser(), timeoutPromise]);
+      
+      // Load feed data (with timeout)  
+      await Promise.race([this.loadFeedData(), timeoutPromise]);
+      
+      // Cache the fresh data
+      this._saveFeedCache();
+      
+      console.warn('✅ Feed loaded fresh data from database');
+    } catch (error) {
+      if (error.message === 'TIMEOUT') {
+        console.warn('⚠️ Feed database load timed out - using cache');
+      } else if (error.name !== 'AbortError') {
+        console.warn('⚠️ Feed load error:', error.message);
+      }
     }
   }
   
@@ -2572,15 +2622,30 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
-// 🔄 HANDLE BFCACHE: Reinitialize on pageshow if coming from cache
+// 🔄 HANDLE NAVIGATION: Reset module state on ALL pageshow events
+// 🚨 CRITICAL FIX: Mobile Safari caches ES6 modules across navigations!
+// isInitialized stays TRUE even on normal navigation (not just BFCache)
+// This causes initializeFeed() to skip creating a new feed instance
 window.addEventListener('pageshow', (event) => {
+  console.log('🔄 pageshow event:', event.persisted ? 'BFCache restore' : 'normal navigation');
+  
+  // 🚨 ALWAYS reset module state on ANY pageshow
+  // Mobile Safari reuses modules across navigations - state persists!
+  const wasInitialized = isInitialized;
+  isInitialized = false;
+  
   if (event.persisted) {
-    // Page was restored from bfcache (back button)
-    console.log('🔄 Page restored from cache - checking feed state');
-    if (!window.hiRealFeed) {
-      console.warn('⚠️ Feed missing after bfcache restore - reinitializing');
-      initializeFeed();
+    // BFCache restore - recreate everything
+    console.log('🔄 BFCache restore - forcing full reinitialization');
+    if (window.hiRealFeed) {
+      window.hiRealFeed.destroy?.();
+      window.hiRealFeed = null;
     }
+    initializeFeed();
+  } else if (wasInitialized) {
+    // Normal navigation but module was cached (mobile Safari)
+    console.log('🔄 Module state reset - ready for fresh init');
+    // Don't destroy existing feed yet - let new init handle it
   }
 });
 

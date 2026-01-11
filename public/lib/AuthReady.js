@@ -6,6 +6,23 @@ let _ready = false;
 let _emitted = false;
 let _result = null;
 
+// 🚨 CRITICAL FIX: Reset module state on ALL pageshow events
+// Mobile Safari caches ES6 modules - these variables persist across navigations!
+// On 2nd visit, _ready = true causes initialize() to return stale _result
+window.addEventListener('pageshow', (event) => {
+  console.log('🔄 [AuthReady] pageshow:', event.persisted ? 'BFCache' : 'navigation');
+  
+  // Reset ALL module state
+  const wasReady = _ready;
+  _ready = false;
+  _emitted = false;
+  _result = null;
+  
+  if (wasReady) {
+    console.log('✅ [AuthReady] Module state was stale - reset complete');
+  }
+});
+
 async function wait(ms){ return new Promise(r=>setTimeout(r, ms)); }
 
 async function salvageTokens(sb){

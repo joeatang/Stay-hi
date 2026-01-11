@@ -54,22 +54,27 @@ function clearSupabaseClient() {
   createdClient = null;
 }
 
-// 🚀 WOZ FIX: ALWAYS nuke client on BFCache restoration
-// BFCache preserves dead AbortControllers → ProfileManager hangs → Island never loads
+// 🚀 CRITICAL FIX: Clear client on ALL pageshow events
+// Mobile Safari caches ES6 modules - createdClient persists with dead AbortControllers!
+// This happens even when persisted = false (normal navigation, not BFCache)
 window.addEventListener('pageshow', (event) => {
   console.warn('[HiSupabase] 📱 pageshow event fired:', {
     persisted: event.persisted,
     url: window.location.pathname,
-    hadClient: !!window.__HI_SUPABASE_CLIENT,
+    hadClient: !!window.__HI_SUPABASE_CLIENT || !!createdClient,
     timestamp: Date.now()
   });
   
+  // 🚨 ALWAYS clear - module state persists across navigations in mobile Safari!
+  const hadStaleClient = !!createdClient;
+  clearSupabaseClient();
+  
   if (event.persisted) {
-    console.warn('[HiSupabase] 🔥 BFCache detected - NUKING stale client');
-    clearSupabaseClient();
-    console.warn('[HiSupabase] ✅ Client cleared, next getClient() will create fresh');
+    console.warn('[HiSupabase] 🔥 BFCache restore - client cleared');
+  } else if (hadStaleClient) {
+    console.warn('[HiSupabase] 🔥 Module had stale client - cleared for fresh start');
   } else {
-    console.log('[HiSupabase] Fresh page load (not BFCache restore)');
+    console.log('[HiSupabase] ✅ Fresh page load, client ready for initialization');
   }
 });
 

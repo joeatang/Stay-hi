@@ -83,39 +83,44 @@ async function initHiIsland() {
   loadRealStats().catch(err => console.warn('Stats loading failed:', err));
   
   // ✅ FIX: Initialize UnifiedHiIslandController to render feed (singleton pattern)
+  // 🚀 MOBILE FIX: Don't await - let feed load in background while UI renders
   console.warn('🔍 TRACE: Starting feed system initialization...');
   console.warn('🎯 Initializing feed system...');
-  if (window.UnifiedHiIslandController && !window.unifiedHiIslandController) {
-    console.warn('🔍 Creating new UnifiedHiIslandController instance...');
-    window.unifiedHiIslandController = new window.UnifiedHiIslandController();
-    try {
-      console.warn('🔍 Calling unifiedHiIslandController.init()...');
-      await window.unifiedHiIslandController.init();
-      console.warn('✅ Feed system initialized');
-    } catch (error) {
-      // AbortError expected during navigation - don't block other init steps
-      if (error.name === 'AbortError' || error.message?.includes('aborted')) {
-        console.warn('ℹ️ Feed init aborted (navigation in progress) - will complete on next visit');
-      } else {
-        console.error('❌ Feed init failed:', error);
-      }
-    }
-  } else if (window.unifiedHiIslandController) {
-    console.warn('✅ Feed controller already exists - RE-INITIALIZING to refresh data...');
-    try {
-      await window.unifiedHiIslandController.init();
-      console.warn('✅ Feed system re-initialized');
-    } catch (error) {
-      if (error.name === 'AbortError' || error.message?.includes('aborted')) {
-        console.warn('ℹ️ Feed re-init aborted (navigation in progress)');
-      } else {
-        console.error('❌ Feed re-init failed:', error);
-      }
-    }
-  } else {
-    console.error('❌ UnifiedHiIslandController not loaded!');
-  }
   
+  const initFeedNonBlocking = () => {
+    const controller = window.unifiedHiIslandController || 
+      (window.UnifiedHiIslandController ? new window.UnifiedHiIslandController() : null);
+    
+    if (!controller) {
+      console.error('❌ UnifiedHiIslandController not loaded!');
+      return;
+    }
+    
+    window.unifiedHiIslandController = controller;
+    
+    // Non-blocking: init in background with 5-second timeout
+    const timeoutId = setTimeout(() => {
+      console.warn('⚠️ Feed init timed out after 5s - continuing anyway');
+    }, 5000);
+    
+    controller.init()
+      .then(() => {
+        clearTimeout(timeoutId);
+        console.warn('✅ Feed system initialized');
+      })
+      .catch(error => {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError' || error.message?.includes('aborted')) {
+          console.warn('ℹ️ Feed init aborted (navigation)');
+        } else {
+          console.warn('⚠️ Feed init failed:', error.message);
+        }
+      });
+  };
+  
+  initFeedNonBlocking();
+  
+  // Continue immediately - don't wait for feed
   console.warn('🔍 TRACE: Calling initializeTabSystem...');
   initializeTabSystem();
   console.warn('🔍 TRACE: Calling initializeOriginFilters...');
