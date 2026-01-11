@@ -178,10 +178,20 @@ window.addEventListener('hi:app-restored', async (event) => {
     }
     
     // 2. Reset and refresh feed controller  
+    // 🔥 CRITICAL FIX: Wait for HiRealFeed.js pageshow handler to finish
+    // HiRealFeed.js destroys old instance and creates new one on pageshow
+    // If we don't wait, controller grabs reference to DESTROYED instance
     if (window.unifiedHiIslandController) {
-      console.log('🔄 Refreshing feed controller...');
+      console.log('🔄 Refreshing feed controller (waiting for new feed instance)...');
+      
+      // Wait for HiRealFeed to recreate itself (pageshow handler runs async)
+      await new Promise(resolve => setTimeout(resolve, 150));
+      
+      // Clear stale reference - force controller to re-acquire
+      window.unifiedHiIslandController.feedInstance = null;
       window.unifiedHiIslandController.isInitialized = false;
       window.unifiedHiIslandController.initPromise = null;
+      
       await window.unifiedHiIslandController.init();
     }
     
