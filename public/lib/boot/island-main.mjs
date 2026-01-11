@@ -59,16 +59,13 @@ async function initHiIsland() {
     }
   }
   
-  console.warn('🔍 TRACE: Starting ProfileManager initialization...');
+  console.warn('🔍 TRACE: Starting ProfileManager initialization (non-blocking)...');
   
-  // 🏆 Initialize ProfileManager (singleton will handle re-init logic)
+  // 🚀 WOZ FIX: Load ProfileManager in background - don't block Island initialization
   if (window.ProfileManager) {
-    try {
-      await window.ProfileManager.init();
-      console.warn('✅ ProfileManager ready');
-    } catch (error) {
-      console.warn('⚠️ ProfileManager init failed (non-critical):', error.message);
-    }
+    window.ProfileManager.init()
+      .then(() => console.warn('✅ ProfileManager ready'))
+      .catch(error => console.warn('⚠️ ProfileManager init failed (non-critical):', error.message));
   }
   
   // 🎯 Setup membership tier listener for pill display

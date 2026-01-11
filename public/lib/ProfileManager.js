@@ -724,16 +724,19 @@ class ProfileManager {
   }
 }
 
-// Create singleton instance
-const profileManager = new ProfileManager();
-
-// Export for ES6 modules
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = profileManager;
+// 🚀 WOZ FIX: Only create singleton if it doesn't exist
+if (!window.ProfileManager || !window.ProfileManager._createdAt) {
+  console.log('🆕 Creating fresh ProfileManager singleton');
+  const profileManager = new ProfileManager();
+  window.ProfileManager = profileManager;
+  
+  // Export for ES6 modules
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = profileManager;
+  }
+} else {
+  console.log('♻️ Reusing existing ProfileManager singleton');
 }
-
-// Expose globally
-window.ProfileManager = profileManager;
 
 // 🚀 CRITICAL: Clear singleton on page unload to prevent corruption across navigation
 window.addEventListener('pagehide', () => {
