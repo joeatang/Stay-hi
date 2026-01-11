@@ -129,7 +129,8 @@
   <!-- Tier & Points Helpers -->
   <script src="./lib/access/HiTier.js"></script>
   <script src="./lib/rewards/HiPoints.js"></script>
-  <script src="./lib/HiBrandTiers.js" async></script>
+  <!-- 🛑 FIX: Remove async - HiBrandTiers must load BEFORE auth-ready fires to show branded name not "Bronze" -->
+  <script src="./lib/HiBrandTiers.js"></script>
   
   <!-- 🔥 CRITICAL: Expose loadProfileData EARLY before boot scripts -->
   <script>
