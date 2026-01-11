@@ -119,9 +119,11 @@ class ProfileManager {
       
       // Step 1: Wait for Supabase client
       this._supabase = await this._waitForSupabase();
+      console.warn('🔍 [ProfileManager] Step 1 complete, moving to Step 2...');
       
       // Step 2: Wait for auth to be ready
       await this._waitForAuth();
+      console.warn('🔍 [ProfileManager] Step 2 complete, moving to Step 3...');
       
       // Step 3: Load profile from database (no hardcoded defaults)
       await this._loadProfileFromDatabase();
@@ -138,7 +140,7 @@ class ProfileManager {
       this._setupEventListeners();
       
       this._initialized = true;
-      console.log('✅ ProfileManager ready:', {
+      console.warn('✅ ProfileManager ready:', {
         userId: this._userId,
         username: this._profile?.username,
         authenticated: !!this._userId
@@ -413,33 +415,38 @@ class ProfileManager {
    * 🔥 FIX: Check if AuthReady already finished, otherwise wait for event
    */
   async _waitForAuth() {
+    console.warn('🔍 [ProfileManager] _waitForAuth() starting...');
     if (this._authReady) {
+      console.warn('🔍 [ProfileManager] Auth already ready, skipping wait');
       return;
     }
 
     // 🚀 CRITICAL: Check if AuthReady.js already finished (event already fired)
     // Import waitAuthReady from AuthReady.js if available
     if (window.waitAuthReady) {
-      console.log('🔍 Checking if AuthReady already completed...');
+      console.warn('🔍 Checking if AuthReady already completed...');
       try {
         const authState = await window.waitAuthReady();
+        console.warn('🔍 waitAuthReady returned:', !!authState);
         const { session, membership } = authState || {};
         
         if (session?.user) {
           this._userId = session.user.id;
           this._authReady = true;
-          console.log('✅ Auth ready (from AuthReady cache) - authenticated user:', this._userId);
+          console.warn('✅ Auth ready (from AuthReady cache) - authenticated user:', this._userId);
           return;
         } else {
           this._userId = null;
           this._authReady = true;
-          console.log('ℹ️ Auth ready (from AuthReady cache) - anonymous user');
+          console.warn('ℹ️ Auth ready (from AuthReady cache) - anonymous user');
           return;
         }
       } catch (error) {
         console.warn('⚠️ waitAuthReady failed, falling back to event listener:', error);
       }
     }
+
+    console.warn('🔍 [ProfileManager] Setting up auth event listener...');
 
     // Fallback: Listen for event (if AuthReady hasn't fired yet)
     if (!this._authReadyPromise) {
