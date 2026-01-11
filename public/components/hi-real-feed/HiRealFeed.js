@@ -1424,16 +1424,23 @@ class HiIslandRealFeed {
         return false;
       }
       
-      const updatePayload = { 
+      // 🎯 Table-specific payloads (public_shares doesn't have updated_at column)
+      const archivesPayload = { 
         content: newContent, 
-        text: newContent, // Ensure both fields stay in sync
+        text: newContent,
         updated_at: new Date().toISOString() 
       };
+      const publicSharesPayload = { 
+        content: newContent, 
+        text: newContent
+      };
+      
+      const sourcePayload = sourceTable === 'hi_archives' ? archivesPayload : publicSharesPayload;
       
       // 🎯 CASCADE UPDATE: Update the source table first
       const { error: sourceError } = await client
         .from(sourceTable)
-        .update(updatePayload)
+        .update(sourcePayload)
         .eq('id', shareId)
         .eq('user_id', user.id);
       
@@ -1445,10 +1452,11 @@ class HiIslandRealFeed {
       
       // 🎯 CASCADE: Try to update the OTHER table too (silent fail - share may not exist there)
       const otherTable = sourceTable === 'hi_archives' ? 'public_shares' : 'hi_archives';
+      const otherPayload = otherTable === 'hi_archives' ? archivesPayload : publicSharesPayload;
       try {
         await client
           .from(otherTable)
-          .update(updatePayload)
+          .update(otherPayload)
           .eq('id', shareId)
           .eq('user_id', user.id);
         // Note: This may not find a match if share isn't in both tables - that's OK
