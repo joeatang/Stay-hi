@@ -753,11 +753,7 @@ if (!window.ProfileManager || !window.ProfileManager._createdAt) {
   console.log('♻️ Reusing existing ProfileManager singleton');
 }
 
-// 🚀 CRITICAL: Clear singleton on page unload to prevent corruption across navigation
-window.addEventListener('pagehide', () => {
-  console.log('🧹 Clearing ProfileManager singleton for next page');
-  ProfileManager.instance = null;
-  window.ProfileManager = null;
-});
+// 🚀 WOZ FIX: Removed pagehide listener - constructor age check handles stale instances
+// The pagehide event fires too early on mobile Safari, clearing instance mid-init
 
 console.log('📦 ProfileManager class loaded (singleton pattern)');
