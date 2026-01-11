@@ -429,10 +429,17 @@ window.addEventListener('pageshow', async (e) => {
   }
 });
 
-// 🚀 CRITICAL: Listen for app restoration (background return / navigation return)
-// This event is fired by HiSupabase after it recreates the client
+// 🚀 CRITICAL: Listen for app restoration from BFCACHE ONLY
+// This event is ONLY fired on BFCache restore (Safari backgrounding)
+// Navigation returns do NOT fire this - scripts reload fresh
 window.addEventListener('hi:app-restored', async (event) => {
-  console.log('🔄 [Dashboard] App restored from:', event.detail?.source);
+  // 🔥 WOZ FIX: This should ONLY fire for BFCache, but guard anyway
+  if (event.detail?.source !== 'bfcache') {
+    console.log('🔄 [Dashboard] Ignoring non-BFCache app-restored event:', event.detail?.source);
+    return;
+  }
+  
+  console.log('🔄 [Dashboard] BFCache restore - refreshing components...');
   
   try {
     // Refresh ProfileManager with new client
@@ -443,9 +450,9 @@ window.addEventListener('hi:app-restored', async (event) => {
     // Refresh dashboard state
     await refreshDashboardState?.();
     
-    console.log('✅ [Dashboard] App restoration complete');
+    console.log('✅ [Dashboard] BFCache restoration complete');
   } catch (error) {
-    console.error('❌ [Dashboard] App restoration failed:', error);
+    console.error('❌ [Dashboard] BFCache restoration failed:', error);
   }
 });
 

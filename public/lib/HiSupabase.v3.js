@@ -83,12 +83,14 @@ if (!window.__hiSupabasePageshowRegistered) {
       // 🔔 Notify all components that app was restored from background
       window.dispatchEvent(new CustomEvent('hi:app-restored', { detail: { source: 'bfcache' } }));
     } else if (!isInitialPageshow && createdClient) {
-      console.warn('[HiSupabase] 🔥 Return navigation - clearing & recreating client');
+      // 🔥 WOZ FIX: On fresh navigation, scripts reload - NO restoration needed!
+      // Only BFCache preserves old state that needs refresh.
+      // Dispatching hi:app-restored on navigation caused DOUBLE init race condition.
+      console.warn('[HiSupabase] 🔥 Return navigation - clearing & recreating client (no event)');
       clearSupabaseClient();
-      // 🚀 CRITICAL: Eagerly recreate client for return navigation too
+      // Eagerly recreate client
       getHiSupabase();
-      // 🔔 Notify components of navigation return
-      window.dispatchEvent(new CustomEvent('hi:app-restored', { detail: { source: 'navigation' } }));
+      // 🚫 DO NOT dispatch hi:app-restored - scripts are fresh, not restored!
     } else {
       console.log('[HiSupabase] ✅ Initial pageshow - keeping fresh client');
     }

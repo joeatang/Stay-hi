@@ -164,35 +164,32 @@ async function refreshIslandState() {
   console.log('♻️ Island state refreshed');
 }
 
-// 🚀 CRITICAL: Listen for app restoration (background return / navigation return)
-// This event is fired by HiSupabase after it recreates the client
+// 🚀 CRITICAL: Listen for app restoration from BFCACHE ONLY
+// This event is ONLY fired on BFCache restore (Safari backgrounding)
+// Navigation returns do NOT fire this - scripts reload fresh
 window.addEventListener('hi:app-restored', async (event) => {
-  console.log('🔄 [Island] App restored from:', event.detail?.source);
+  // 🔥 WOZ FIX: This should ONLY fire for BFCache, but guard anyway
+  if (event.detail?.source !== 'bfcache') {
+    console.log('🔄 [Island] Ignoring non-BFCache app-restored event:', event.detail?.source);
+    return;
+  }
+  
+  console.log('🔄 [Island] BFCache restore - refreshing components...');
   
   try {
     // 1. Refresh ProfileManager with new client
     if (window.ProfileManager) {
       console.log('🔄 Refreshing ProfileManager...');
-      // ProfileManager should pick up the new client automatically
       await window.ProfileManager.initialize?.();
     }
     
     // 2. Reset and refresh feed controller  
-    // 🔥 CRITICAL FIX: Wait for HiRealFeed.js pageshow handler to finish
-    // HiRealFeed.js destroys old instance and creates new one on pageshow
-    // If we don't wait, controller grabs reference to DESTROYED instance
+    // Wait for HiRealFeed.js pageshow handler to finish recreating the instance
     if (window.unifiedHiIslandController) {
-      console.log('🔄 Refreshing feed controller...');
-      
-      // Only wait + clear on BFCache restore (where HiRealFeed recreates itself)
-      // Navigation returns don't destroy the feed instance
-      if (event.detail?.source === 'bfcache') {
-        console.log('🔄 BFCache restore - waiting for HiRealFeed recreation...');
-        await new Promise(resolve => setTimeout(resolve, 150));
-        // Clear stale reference - force controller to re-acquire
-        window.unifiedHiIslandController.feedInstance = null;
-      }
-      
+      console.log('🔄 BFCache restore - waiting for HiRealFeed recreation...');
+      await new Promise(resolve => setTimeout(resolve, 150));
+      // Clear stale reference - force controller to re-acquire
+      window.unifiedHiIslandController.feedInstance = null;
       window.unifiedHiIslandController.isInitialized = false;
       window.unifiedHiIslandController.initPromise = null;
       
@@ -211,9 +208,9 @@ window.addEventListener('hi:app-restored', async (event) => {
     // 4. Refresh stats
     loadRealStats().catch(err => console.warn('Stats refresh failed:', err));
     
-    console.log('✅ [Island] App restoration complete');
+    console.log('✅ [Island] BFCache restoration complete');
   } catch (error) {
-    console.error('❌ [Island] App restoration failed:', error);
+    console.error('❌ [Island] BFCache restoration failed:', error);
   }
 });
 
