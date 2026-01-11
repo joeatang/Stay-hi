@@ -1075,17 +1075,19 @@ class HiIslandRealFeed {
   
   // 🎯 X/INSTAGRAM GOLD STANDARD: Show edit modal (SINGLETON - only one modal at a time)
   async showEditModal(shareId, sourceTable = 'hi_archives') {
+    console.log('✏️ [EDIT MODAL] Opening for share:', shareId, 'table:', sourceTable);
+    
     // 🛡️ GUARD: Prevent multiple modals - close any existing first
     const existingModal = document.querySelector('.hi-edit-modal-overlay, .hi-delete-modal-overlay');
     if (existingModal) {
-      console.log('⚠️ Modal already open, closing first');
+      console.log('⚠️ [EDIT MODAL] Closing existing modal first');
       existingModal.remove();
       document.body.style.overflow = '';
     }
     
     // 🛡️ GUARD: Prevent rapid double-clicks
     if (this._editModalLock) {
-      console.log('⚠️ Edit modal already opening, ignoring duplicate');
+      console.log('⚠️ [EDIT MODAL] Lock active, ignoring duplicate');
       return;
     }
     this._editModalLock = true;
@@ -1097,19 +1099,24 @@ class HiIslandRealFeed {
       share = this.feedData.general?.find(s => s.id === shareId);
     }
     if (!share) {
-      console.error('❌ Share not found for edit:', shareId);
+      console.error('❌ [EDIT MODAL] Share not found:', shareId);
+      alert('Could not find this post to edit. Please refresh and try again.');
       return;
     }
     
+    console.log('✏️ [EDIT MODAL] Found share:', share.id);
     const content = share.content || share.text || '';
     
     // Create modal (SINGLETON)
     const modal = document.createElement('div');
     modal.className = 'hi-edit-modal-overlay';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Edit your post');
     modal.innerHTML = `
       <div class="hi-edit-modal">
         <div class="hi-edit-modal-header">
-          <h3>Edit Hi</h3>
+          <h3>✏️ Edit Your Hi</h3>
           <button class="hi-edit-modal-close" aria-label="Close">✕</button>
         </div>
         <div class="hi-edit-modal-body">
@@ -1118,12 +1125,13 @@ class HiIslandRealFeed {
         </div>
         <div class="hi-edit-modal-footer">
           <button class="hi-edit-btn hi-edit-btn-cancel">Cancel</button>
-          <button class="hi-edit-btn hi-edit-btn-save">Save Changes</button>
+          <button class="hi-edit-btn hi-edit-btn-save">💾 Save Changes</button>
         </div>
       </div>
     `;
     
     document.body.appendChild(modal);
+    console.log('✏️ [EDIT MODAL] Modal appended to body');
     document.body.style.overflow = 'hidden';
     
     // Focus textarea
@@ -3074,54 +3082,62 @@ class HiIslandRealFeed {
       
       /* 🎯 GOLD STANDARD: Edit Modal - Center-Staged, Unmissable */
       .hi-edit-modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0, 0, 0, 0.85);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 99999;
+        position: fixed !important;
+        inset: 0 !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        min-height: 100vh !important;
+        background: rgba(0, 0, 0, 0.92) !important;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 999999 !important;
         padding: 20px;
         box-sizing: border-box;
-        animation: modalOverlayFadeIn 0.25s ease-out;
+        animation: modalOverlayFadeIn 0.2s ease-out;
         overflow-y: auto;
+        margin: 0 !important;
       }
       
       @keyframes modalOverlayFadeIn {
         from { opacity: 0; backdrop-filter: blur(0px); }
-        to { opacity: 1; backdrop-filter: blur(8px); }
+        to { opacity: 1; backdrop-filter: blur(12px); }
       }
       
       .hi-edit-modal {
-        position: relative;
+        position: relative !important;
         background: linear-gradient(180deg, #1e1e3f 0%, #151528 100%);
-        border: 2px solid rgba(255, 209, 102, 0.3);
-        border-radius: 20px;
+        border: 3px solid #FFD166 !important;
+        border-radius: 24px;
         width: 100%;
         max-width: 520px;
         max-height: 85vh;
         overflow: hidden;
         box-shadow: 
-          0 0 0 1px rgba(255, 255, 255, 0.1),
-          0 25px 80px rgba(0, 0, 0, 0.6),
-          0 0 60px rgba(255, 209, 102, 0.15);
-        animation: modalCenterStage 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          0 0 0 4px rgba(255, 209, 102, 0.3),
+          0 25px 80px rgba(0, 0, 0, 0.8),
+          0 0 100px rgba(255, 209, 102, 0.25);
+        animation: modalBounceIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
         margin: auto;
+        transform: translateZ(0);
       }
       
-      @keyframes modalCenterStage {
-        from { 
-          transform: scale(0.9) translateY(30px); 
+      @keyframes modalBounceIn {
+        0% { 
+          transform: scale(0.8) translateY(40px); 
           opacity: 0; 
         }
-        to { 
+        60% {
+          transform: scale(1.03) translateY(-5px);
+          opacity: 1;
+        }
+        100% { 
           transform: scale(1) translateY(0); 
           opacity: 1; 
         }
@@ -3260,40 +3276,44 @@ class HiIslandRealFeed {
       
       /* 🎯 GOLD STANDARD: Delete Modal - Center-Staged, Clear Warning */
       .hi-delete-modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0, 0, 0, 0.88);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 99999;
+        position: fixed !important;
+        inset: 0 !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        min-height: 100vh !important;
+        background: rgba(0, 0, 0, 0.92) !important;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 999999 !important;
         padding: 20px;
         box-sizing: border-box;
-        animation: modalOverlayFadeIn 0.25s ease-out;
+        animation: modalOverlayFadeIn 0.2s ease-out;
+        margin: 0 !important;
       }
       
       .hi-delete-modal {
-        position: relative;
+        position: relative !important;
         background: linear-gradient(180deg, #2a1a1a 0%, #1a1015 100%);
-        border: 2px solid rgba(239, 68, 68, 0.4);
-        border-radius: 20px;
+        border: 3px solid #EF4444 !important;
+        border-radius: 24px;
         width: 100%;
         max-width: 400px;
         padding: 36px 28px;
         text-align: center;
         box-shadow: 
-          0 0 0 1px rgba(255, 255, 255, 0.05),
-          0 25px 80px rgba(0, 0, 0, 0.6),
-          0 0 60px rgba(239, 68, 68, 0.15);
-        animation: modalCenterStage 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          0 0 0 4px rgba(239, 68, 68, 0.3),
+          0 25px 80px rgba(0, 0, 0, 0.8),
+          0 0 100px rgba(239, 68, 68, 0.25);
+        animation: modalBounceIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
         margin: auto;
+        transform: translateZ(0);
       }
       
       .hi-delete-modal-icon {
