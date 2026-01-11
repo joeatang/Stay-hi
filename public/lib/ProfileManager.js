@@ -345,6 +345,8 @@ class ProfileManager {
     
     // 🚀 Mobile Safari optimization: use rAF instead of setTimeout
     const isMobileSafari = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    console.log(`📱 Mobile Safari detected: ${isMobileSafari}, rAF available: ${typeof requestAnimationFrame}`);
+    
     const wait = () => new Promise(resolve => {
       if (isMobileSafari) {
         requestAnimationFrame(() => requestAnimationFrame(resolve)); // Double rAF = ~32ms
@@ -353,7 +355,9 @@ class ProfileManager {
       }
     });
     
+    console.log(`🔄 About to start polling loop (maxAttempts=${maxAttempts})`);
     for (let i = 0; i < maxAttempts; i++) {
+      console.log(`🔄 Loop iteration ${i} starting`);
       let client = null;
       
       try {
