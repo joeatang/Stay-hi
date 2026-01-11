@@ -132,14 +132,14 @@
       }, remaining);
     }
     
-    // Fallback: hide splash after 12 seconds no matter what (longer than dependency timeout)
+    // Fallback: hide splash after 8 seconds no matter what (aligns with DependencyManager timeout)
     setTimeout(() => {
       console.warn('⚠️ Splash timeout - hiding anyway');
       window.hiIslandReady.auth = true;
       window.hiIslandReady.map = true;
       window.hiIslandReady.feed = true;
       checkReadyAndHideSplash();
-    }, 12000);
+    }, 8000);
     
     window.addEventListener('load', function() {
       // Mark auth as ready (basic page load)

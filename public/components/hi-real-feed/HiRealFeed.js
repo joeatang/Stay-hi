@@ -1973,11 +1973,12 @@ class HiIslandRealFeed {
     try {
       const userId = this.currentUserId || null;
 
-      // Optimistic UI update
+      // Optimistic UI update + subtle haptic feedback
       buttonEl.classList.add('waved', 'loading');
       buttonEl.disabled = true;
       buttonEl.textContent = '👋 Waving...';
       buttonEl.setAttribute('aria-pressed', 'true');
+      if (navigator.vibrate) navigator.vibrate(10);
 
       const supabase = this.getSupabase();
       if (!supabase) {
@@ -2073,11 +2074,12 @@ class HiIslandRealFeed {
     try {
       const userId = this.currentUserId || null;
 
-      // Optimistic UI update
+      // Optimistic UI update + subtle haptic feedback
       buttonEl.classList.add('peaced', 'loading');
       buttonEl.disabled = true;
       buttonEl.textContent = '🕊️ Sending...';
       buttonEl.setAttribute('aria-pressed', 'true');
+      if (navigator.vibrate) navigator.vibrate(10);
 
       const supabase = this.getSupabase();
       if (!supabase) {
@@ -3057,6 +3059,13 @@ class HiIslandRealFeed {
 
       .share-action-btn:hover {
         background: rgba(255, 255, 255, 0.2);
+      }
+
+      .share-action-btn:disabled,
+      .share-action-btn.loading {
+        opacity: 0.6;
+        cursor: not-allowed;
+        pointer-events: none;
       }
 
       .load-more-btn {
