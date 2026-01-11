@@ -128,8 +128,8 @@
   <!-- 🛡️ WOZ-GRADE: Stats Write Guard (prevents navigation increments) -->
   <script src="lib/stats/StatsWriteGuard.js" defer></script>
   
-  <!-- 🎨 Hi Brand Tier System (Single Source of Truth) -->
-  <script src="lib/HiBrandTiers.js" async></script>
+  <!-- 🎨 Hi Brand Tier System (Single Source of Truth) - NO ASYNC to prevent race condition -->
+  <script src="lib/HiBrandTiers.js"></script>
 
   <!-- Design System -->
   <link rel="stylesheet" href="styles/tokens.css"/>
