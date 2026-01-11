@@ -57,6 +57,10 @@ function clearSupabaseClient() {
 // 🚀 CRITICAL FIX: Only register ONE pageshow handler per page load
 // Mobile Safari loads modules multiple times - each adds another listener!
 // Without this guard, OLD listeners fire and clear the fresh client
+// 🔧 NAVIGATION FIX: Clear stale flag on fresh script execution
+// Window flags persist in some browsers across same-tab navigation,
+// but the OLD listener has stale timestamp causing race condition
+window.__hiSupabasePageshowRegistered = null;
 if (!window.__hiSupabasePageshowRegistered) {
   window.__hiSupabasePageshowRegistered = Date.now();
   const SUPABASE_INIT_TIMESTAMP = Date.now();
