@@ -164,56 +164,6 @@ async function refreshIslandState() {
   console.log('♻️ Island state refreshed');
 }
 
-// 🚀 CRITICAL: Listen for app restoration from BFCACHE ONLY
-// This event is ONLY fired on BFCache restore (Safari backgrounding)
-// Navigation returns do NOT fire this - scripts reload fresh
-window.addEventListener('hi:app-restored', async (event) => {
-  // 🔥 WOZ FIX: This should ONLY fire for BFCache, but guard anyway
-  if (event.detail?.source !== 'bfcache') {
-    console.log('🔄 [Island] Ignoring non-BFCache app-restored event:', event.detail?.source);
-    return;
-  }
-  
-  console.log('🔄 [Island] BFCache restore - refreshing components...');
-  
-  try {
-    // 1. Refresh ProfileManager with new client
-    if (window.ProfileManager) {
-      console.log('🔄 Refreshing ProfileManager...');
-      await window.ProfileManager.initialize?.();
-    }
-    
-    // 2. Reset and refresh feed controller  
-    // Wait for HiRealFeed.js pageshow handler to finish recreating the instance
-    if (window.unifiedHiIslandController) {
-      console.log('🔄 BFCache restore - waiting for HiRealFeed recreation...');
-      await new Promise(resolve => setTimeout(resolve, 150));
-      // Clear stale reference - force controller to re-acquire
-      window.unifiedHiIslandController.feedInstance = null;
-      window.unifiedHiIslandController.isInitialized = false;
-      window.unifiedHiIslandController.initPromise = null;
-      
-      await window.unifiedHiIslandController.init();
-    }
-    
-    // 3. Refresh map
-    if (window.hiMap) {
-      console.log('🔄 Refreshing map...');
-      window.hiMap.invalidateSize();
-      if (window.loadHiMapMarkers) {
-        await window.loadHiMapMarkers();
-      }
-    }
-    
-    // 4. Refresh stats
-    loadRealStats().catch(err => console.warn('Stats refresh failed:', err));
-    
-    console.log('✅ [Island] BFCache restoration complete');
-  } catch (error) {
-    console.error('❌ [Island] BFCache restoration failed:', error);
-  }
-});
-
 // 🎯 Membership Tier Listener (Hi Island Parity with Dashboard)
 
 function setupMembershipTierListener() {

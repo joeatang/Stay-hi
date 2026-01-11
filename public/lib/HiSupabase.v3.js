@@ -57,10 +57,6 @@ function clearSupabaseClient() {
 // 🚀 CRITICAL FIX: Only register ONE pageshow handler per page load
 // Mobile Safari loads modules multiple times - each adds another listener!
 // Without this guard, OLD listeners fire and clear the fresh client
-// 🔧 NAVIGATION FIX: Clear stale flag on fresh script execution
-// Window flags persist in some browsers across same-tab navigation,
-// but the OLD listener has stale timestamp causing race condition
-window.__hiSupabasePageshowRegistered = null;
 if (!window.__hiSupabasePageshowRegistered) {
   window.__hiSupabasePageshowRegistered = Date.now();
   const SUPABASE_INIT_TIMESTAMP = Date.now();
@@ -80,21 +76,11 @@ if (!window.__hiSupabasePageshowRegistered) {
     // Only clear on RETURN navigations or BFCache restore
     // NOT on initial load - that would destroy the fresh client we just created!
     if (event.persisted) {
-      console.warn('[HiSupabase] 🔥 BFCache restore - clearing & recreating client');
+      console.warn('[HiSupabase] 🔥 BFCache restore - clearing stale client');
       clearSupabaseClient();
-      // 🚀 CRITICAL: Eagerly recreate client BEFORE other components try to use it
-      getHiSupabase();
-      // 🔔 Notify all components that app was restored from background
-      window.dispatchEvent(new CustomEvent('hi:app-restored', { detail: { source: 'bfcache' } }));
     } else if (!isInitialPageshow && createdClient) {
-      // 🔥 WOZ FIX: On fresh navigation, scripts reload - NO restoration needed!
-      // Only BFCache preserves old state that needs refresh.
-      // Dispatching hi:app-restored on navigation caused DOUBLE init race condition.
-      console.warn('[HiSupabase] 🔥 Return navigation - clearing & recreating client (no event)');
+      console.warn('[HiSupabase] 🔥 Return navigation - clearing stale client');
       clearSupabaseClient();
-      // Eagerly recreate client
-      getHiSupabase();
-      // 🚫 DO NOT dispatch hi:app-restored - scripts are fresh, not restored!
     } else {
       console.log('[HiSupabase] ✅ Initial pageshow - keeping fresh client');
     }

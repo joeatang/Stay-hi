@@ -423,10 +423,6 @@ window.hiIslandIntegration = controller; // Name expected by island-main.mjs
 
 // 🚀 CRITICAL FIX: Only register ONE pageshow handler per page load
 // Mobile Safari loads modules multiple times - each adds another listener!
-// 🔧 NAVIGATION FIX: Clear stale flag on fresh script execution
-// Window flags persist in some browsers across same-tab navigation,
-// but the OLD listener has stale timestamp causing race condition
-window.__controllerPageshowRegistered = null;
 if (!window.__controllerPageshowRegistered) {
   window.__controllerPageshowRegistered = Date.now();
   const CONTROLLER_INIT_TIMESTAMP = Date.now();
