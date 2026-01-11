@@ -956,6 +956,13 @@ class HiIslandRealFeed {
 
   // 🔧 TESLA-GRADE FIX: Simplified event listeners (no internal tabs)  
   attachEventListeners() {
+    // 🛡️ GUARD: Prevent duplicate event listener attachment
+    if (this._eventListenersAttached) {
+      console.log('⚠️ Event listeners already attached, skipping duplicate');
+      return;
+    }
+    this._eventListenersAttached = true;
+    
     // Only attach load more listeners - tabs are handled by hi-island
     this.attachLoadMoreListeners();
 
@@ -1066,8 +1073,24 @@ class HiIslandRealFeed {
     return 'general';
   }
   
-  // 🎯 X/INSTAGRAM GOLD STANDARD: Show edit modal
+  // 🎯 X/INSTAGRAM GOLD STANDARD: Show edit modal (SINGLETON - only one modal at a time)
   async showEditModal(shareId, sourceTable = 'hi_archives') {
+    // 🛡️ GUARD: Prevent multiple modals - close any existing first
+    const existingModal = document.querySelector('.hi-edit-modal-overlay, .hi-delete-modal-overlay');
+    if (existingModal) {
+      console.log('⚠️ Modal already open, closing first');
+      existingModal.remove();
+      document.body.style.overflow = '';
+    }
+    
+    // 🛡️ GUARD: Prevent rapid double-clicks
+    if (this._editModalLock) {
+      console.log('⚠️ Edit modal already opening, ignoring duplicate');
+      return;
+    }
+    this._editModalLock = true;
+    setTimeout(() => { this._editModalLock = false; }, 300);
+    
     // Find the share data (check both caches)
     let share = this.feedData.archives?.find(s => s.id === shareId);
     if (!share) {
@@ -1080,7 +1103,7 @@ class HiIslandRealFeed {
     
     const content = share.content || share.text || '';
     
-    // Create modal
+    // Create modal (SINGLETON)
     const modal = document.createElement('div');
     modal.className = 'hi-edit-modal-overlay';
     modal.innerHTML = `
@@ -1159,8 +1182,24 @@ class HiIslandRealFeed {
     });
   }
   
-  // 🎯 X/INSTAGRAM GOLD STANDARD: Show delete confirmation
+  // 🎯 X/INSTAGRAM GOLD STANDARD: Show delete confirmation (SINGLETON - only one modal at a time)
   showDeleteConfirmation(shareId, sourceTable = 'hi_archives') {
+    // 🛡️ GUARD: Prevent multiple modals - close any existing first
+    const existingModal = document.querySelector('.hi-edit-modal-overlay, .hi-delete-modal-overlay');
+    if (existingModal) {
+      console.log('⚠️ Modal already open, closing first');
+      existingModal.remove();
+      document.body.style.overflow = '';
+    }
+    
+    // 🛡️ GUARD: Prevent rapid double-clicks
+    if (this._deleteModalLock) {
+      console.log('⚠️ Delete modal already opening, ignoring duplicate');
+      return;
+    }
+    this._deleteModalLock = true;
+    setTimeout(() => { this._deleteModalLock = false; }, 300);
+    
     // Determine the source text based on where the share came from
     const sourceText = sourceTable === 'public_shares' 
       ? 'This Hi will be permanently removed from the community feed and your archives.'
