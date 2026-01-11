@@ -1078,7 +1078,7 @@ class HiIslandRealFeed {
     console.log('✏️ [EDIT MODAL] Opening for share:', shareId, 'table:', sourceTable);
     
     // 🛡️ GUARD: Prevent multiple modals - close any existing first
-    const existingModal = document.querySelector('.hi-edit-modal-overlay, .hi-delete-modal-overlay');
+    const existingModal = document.querySelector('[data-modal-type="hi-modal"]');
     if (existingModal) {
       console.log('⚠️ [EDIT MODAL] Closing existing modal first');
       existingModal.remove();
@@ -1107,31 +1107,126 @@ class HiIslandRealFeed {
     console.log('✏️ [EDIT MODAL] Found share:', share.id);
     const content = share.content || share.text || '';
     
-    // Create modal (SINGLETON)
+    // Create modal (SINGLETON) - Using INLINE STYLES because CSS classes don't apply to document.body elements
     const modal = document.createElement('div');
-    modal.className = 'hi-edit-modal-overlay';
+    modal.setAttribute('data-modal-type', 'hi-modal');
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-modal', 'true');
     modal.setAttribute('aria-label', 'Edit your post');
+    
+    // 🎯 INLINE STYLES - CSS classes don't work on document.body appended elements
+    modal.style.cssText = `
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background: rgba(0, 0, 0, 0.92) !important;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      z-index: 999999 !important;
+      padding: 20px;
+      box-sizing: border-box;
+      margin: 0 !important;
+    `;
+    
     modal.innerHTML = `
-      <div class="hi-edit-modal">
-        <div class="hi-edit-modal-header">
-          <h3>✏️ Edit Your Hi</h3>
-          <button class="hi-edit-modal-close" aria-label="Close">✕</button>
+      <div style="
+        position: relative;
+        background: linear-gradient(180deg, #1e1e3f 0%, #151528 100%);
+        border: 3px solid #FFD166;
+        border-radius: 24px;
+        width: 100%;
+        max-width: 520px;
+        max-height: 85vh;
+        overflow: hidden;
+        box-shadow: 0 0 0 4px rgba(255, 209, 102, 0.3), 0 25px 80px rgba(0, 0, 0, 0.8), 0 0 100px rgba(255, 209, 102, 0.25);
+        animation: modalBounceIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        margin: auto;
+      ">
+        <style>
+          @keyframes modalBounceIn {
+            0% { transform: scale(0.8) translateY(40px); opacity: 0; }
+            60% { transform: scale(1.03) translateY(-5px); opacity: 1; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+          }
+        </style>
+        <div style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 20px 24px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 209, 102, 0.05);
+        ">
+          <h3 style="margin: 0; color: #FFD166; font-size: 20px; font-weight: 700;">✏️ Edit Your Hi</h3>
+          <button class="hi-edit-modal-close" style="
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-weight: bold;
+          " aria-label="Close">✕</button>
         </div>
-        <div class="hi-edit-modal-body">
-          <textarea class="hi-edit-textarea" placeholder="What's on your mind?">${this.escapeHtml(content)}</textarea>
-          <div class="hi-edit-char-count"><span class="hi-edit-char-current">${content.length}</span>/500</div>
+        <div style="padding: 24px;">
+          <textarea class="hi-edit-textarea" style="
+            width: 100%;
+            min-height: 160px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 14px;
+            padding: 18px;
+            color: white;
+            font-size: 17px;
+            font-family: inherit;
+            line-height: 1.6;
+            resize: vertical;
+            box-sizing: border-box;
+          " placeholder="What's on your mind?">${this.escapeHtml(content)}</textarea>
+          <div style="text-align: right; margin-top: 10px; font-size: 13px; color: rgba(255, 255, 255, 0.5); font-weight: 500;">
+            <span class="hi-edit-char-current">${content.length}</span>/500
+          </div>
         </div>
-        <div class="hi-edit-modal-footer">
-          <button class="hi-edit-btn hi-edit-btn-cancel">Cancel</button>
-          <button class="hi-edit-btn hi-edit-btn-save">💾 Save Changes</button>
+        <div style="
+          display: flex;
+          gap: 14px;
+          justify-content: flex-end;
+          padding: 20px 24px;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(0, 0, 0, 0.2);
+        ">
+          <button class="hi-edit-btn-cancel" style="
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+          ">Cancel</button>
+          <button class="hi-edit-btn-save" style="
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            background: linear-gradient(135deg, #FFD166 0%, #F0B429 100%);
+            color: #1a1a2e;
+            border: none;
+            box-shadow: 0 4px 20px rgba(255, 209, 102, 0.4);
+          ">💾 Save Changes</button>
         </div>
       </div>
     `;
     
     document.body.appendChild(modal);
-    console.log('✏️ [EDIT MODAL] Modal appended to body');
+    console.log('✏️ [EDIT MODAL] Modal appended to body WITH INLINE STYLES');
     document.body.style.overflow = 'hidden';
     
     // Focus textarea
@@ -1192,17 +1287,19 @@ class HiIslandRealFeed {
   
   // 🎯 X/INSTAGRAM GOLD STANDARD: Show delete confirmation (SINGLETON - only one modal at a time)
   showDeleteConfirmation(shareId, sourceTable = 'hi_archives') {
+    console.log('🗑️ [DELETE MODAL] Opening for share:', shareId, 'table:', sourceTable);
+    
     // 🛡️ GUARD: Prevent multiple modals - close any existing first
-    const existingModal = document.querySelector('.hi-edit-modal-overlay, .hi-delete-modal-overlay');
+    const existingModal = document.querySelector('[data-modal-type="hi-modal"]');
     if (existingModal) {
-      console.log('⚠️ Modal already open, closing first');
+      console.log('⚠️ [DELETE MODAL] Closing existing modal first');
       existingModal.remove();
       document.body.style.overflow = '';
     }
     
     // 🛡️ GUARD: Prevent rapid double-clicks
     if (this._deleteModalLock) {
-      console.log('⚠️ Delete modal already opening, ignoring duplicate');
+      console.log('⚠️ [DELETE MODAL] Lock active, ignoring duplicate');
       return;
     }
     this._deleteModalLock = true;
@@ -1214,20 +1311,74 @@ class HiIslandRealFeed {
       : 'This Hi will be permanently removed from your archives.';
     
     const modal = document.createElement('div');
-    modal.className = 'hi-delete-modal-overlay';
+    modal.setAttribute('data-modal-type', 'hi-modal');
+    
+    // 🎯 INLINE STYLES - CSS classes don't work on document.body appended elements
+    modal.style.cssText = `
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background: rgba(0, 0, 0, 0.92) !important;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      z-index: 999999 !important;
+      padding: 20px;
+      box-sizing: border-box;
+      margin: 0 !important;
+    `;
+    
     modal.innerHTML = `
-      <div class="hi-delete-modal">
-        <div class="hi-delete-modal-icon">🗑️</div>
-        <h3>Delete this Hi?</h3>
-        <p>This action cannot be undone. ${sourceText}</p>
-        <div class="hi-delete-modal-actions">
-          <button class="hi-delete-btn hi-delete-btn-cancel">Cancel</button>
-          <button class="hi-delete-btn hi-delete-btn-confirm">Delete</button>
+      <div style="
+        position: relative;
+        background: linear-gradient(180deg, #2a1a1a 0%, #1a1015 100%);
+        border: 3px solid #EF4444;
+        border-radius: 24px;
+        width: 100%;
+        max-width: 400px;
+        padding: 36px 28px;
+        text-align: center;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.3), 0 25px 80px rgba(0, 0, 0, 0.8), 0 0 100px rgba(239, 68, 68, 0.25);
+        margin: auto;
+      ">
+        <div style="font-size: 56px; margin-bottom: 20px;">🗑️</div>
+        <h3 style="margin: 0 0 14px 0; color: #EF4444; font-size: 22px; font-weight: 700;">Delete this Hi?</h3>
+        <p style="margin: 0 0 28px 0; color: rgba(255, 255, 255, 0.6); font-size: 15px; line-height: 1.6;">
+          This action cannot be undone. ${sourceText}
+        </p>
+        <div style="display: flex; gap: 16px; justify-content: center;">
+          <button class="hi-delete-btn-cancel" style="
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-width: 120px;
+          ">Cancel</button>
+          <button class="hi-delete-btn-confirm" style="
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+            min-width: 120px;
+          ">Delete</button>
         </div>
       </div>
     `;
     
     document.body.appendChild(modal);
+    console.log('🗑️ [DELETE MODAL] Modal appended to body WITH INLINE STYLES');
     document.body.style.overflow = 'hidden';
     
     const closeModal = () => {
