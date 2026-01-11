@@ -997,11 +997,12 @@ class HiIslandRealFeed {
           e.stopPropagation();
           const action = overflowItem.dataset.action;
           const shareId = overflowItem.dataset.shareId;
+          const sourceTable = overflowItem.dataset.sourceTable || 'hi_archives';
           
           if (action === 'edit') {
-            this.showEditModal(shareId);
+            this.showEditModal(shareId, sourceTable);
           } else if (action === 'delete') {
-            this.showDeleteConfirmation(shareId);
+            this.showDeleteConfirmation(shareId, sourceTable);
           }
           
           // Close dropdown after action
@@ -1051,10 +1052,27 @@ class HiIslandRealFeed {
     });
   }
   
+  // 🎯 Get current active tab
+  getCurrentTab() {
+    const activeTab = document.querySelector('.hi-feed-tab-btn.active, .feed-tab.active, [data-tab].active');
+    if (activeTab) {
+      return activeTab.dataset.tab || (activeTab.textContent.toLowerCase().includes('archive') ? 'archives' : 'general');
+    }
+    // Fallback: Check which feed container is visible
+    const archivesContainer = document.querySelector('[data-feed="archives"], .archives-feed');
+    if (archivesContainer && !archivesContainer.classList.contains('hidden')) {
+      return 'archives';
+    }
+    return 'general';
+  }
+  
   // 🎯 X/INSTAGRAM GOLD STANDARD: Show edit modal
-  async showEditModal(shareId) {
-    // Find the share data
-    const share = this.feedData.archives?.find(s => s.id === shareId);
+  async showEditModal(shareId, sourceTable = 'hi_archives') {
+    // Find the share data (check both caches)
+    let share = this.feedData.archives?.find(s => s.id === shareId);
+    if (!share) {
+      share = this.feedData.general?.find(s => s.id === shareId);
+    }
     if (!share) {
       console.error('❌ Share not found for edit:', shareId);
       return;
@@ -1129,7 +1147,8 @@ class HiIslandRealFeed {
       saveBtn.disabled = true;
       saveBtn.textContent = 'Saving...';
       
-      const success = await this.updateShare(shareId, newContent);
+      // 🎯 CASCADE: Pass sourceTable for multi-table update
+      const success = await this.updateShare(shareId, newContent, sourceTable);
       
       if (success) {
         closeModal();
@@ -1141,14 +1160,19 @@ class HiIslandRealFeed {
   }
   
   // 🎯 X/INSTAGRAM GOLD STANDARD: Show delete confirmation
-  showDeleteConfirmation(shareId) {
+  showDeleteConfirmation(shareId, sourceTable = 'hi_archives') {
+    // Determine the source text based on where the share came from
+    const sourceText = sourceTable === 'public_shares' 
+      ? 'This Hi will be permanently removed from the community feed and your archives.'
+      : 'This Hi will be permanently removed from your archives.';
+    
     const modal = document.createElement('div');
     modal.className = 'hi-delete-modal-overlay';
     modal.innerHTML = `
       <div class="hi-delete-modal">
         <div class="hi-delete-modal-icon">🗑️</div>
         <h3>Delete this Hi?</h3>
-        <p>This action cannot be undone. This Hi will be permanently removed from your archives.</p>
+        <p>This action cannot be undone. ${sourceText}</p>
         <div class="hi-delete-modal-actions">
           <button class="hi-delete-btn hi-delete-btn-cancel">Cancel</button>
           <button class="hi-delete-btn hi-delete-btn-confirm">Delete</button>
@@ -1174,7 +1198,8 @@ class HiIslandRealFeed {
       confirmBtn.disabled = true;
       confirmBtn.textContent = 'Deleting...';
       
-      const success = await this.deleteShare(shareId);
+      // 🎯 CASCADE: Pass sourceTable for multi-table delete
+      const success = await this.deleteShare(shareId, sourceTable);
       
       if (success) {
         closeModal();
@@ -1185,8 +1210,9 @@ class HiIslandRealFeed {
     });
   }
   
-  // 🎯 Update share content in database
-  async updateShare(shareId, newContent) {
+  // 🎯 X/INSTAGRAM GOLD STANDARD: Update share with CASCADE to both tables
+  // sourceTable tells us which table the share is FROM ('hi_archives' or 'public_shares')
+  async updateShare(shareId, newContent, sourceTable = 'hi_archives') {
     try {
       const client = window.hiSupabase || window.supabaseClient;
       if (!client) {
@@ -1200,30 +1226,62 @@ class HiIslandRealFeed {
         return false;
       }
       
-      // Update in hi_archives table
-      const { error } = await client
-        .from('hi_archives')
-        .update({ content: newContent, updated_at: new Date().toISOString() })
+      const updatePayload = { 
+        content: newContent, 
+        text: newContent, // Ensure both fields stay in sync
+        updated_at: new Date().toISOString() 
+      };
+      
+      // 🎯 CASCADE UPDATE: Update the source table first
+      const { error: sourceError } = await client
+        .from(sourceTable)
+        .update(updatePayload)
         .eq('id', shareId)
         .eq('user_id', user.id);
       
-      if (error) {
-        console.error('❌ Failed to update share:', error);
+      if (sourceError) {
+        console.error(`❌ Failed to update share in ${sourceTable}:`, sourceError);
         alert('Failed to save changes. Please try again.');
         return false;
       }
       
-      // Update local data
-      const share = this.feedData.archives?.find(s => s.id === shareId);
-      if (share) {
-        share.content = newContent;
-        share.text = newContent;
+      // 🎯 CASCADE: Try to update the OTHER table too (silent fail - share may not exist there)
+      const otherTable = sourceTable === 'hi_archives' ? 'public_shares' : 'hi_archives';
+      try {
+        await client
+          .from(otherTable)
+          .update(updatePayload)
+          .eq('id', shareId)
+          .eq('user_id', user.id);
+        // Note: This may not find a match if share isn't in both tables - that's OK
+        console.log(`📦 Cascade update attempted to ${otherTable}`);
+      } catch (cascadeErr) {
+        // Silent fail - the share may only exist in one table
+        console.log(`ℹ️ Share not found in ${otherTable} (cascade skipped)`);
       }
       
-      // Re-render the feed item
-      this.renderFeedItems('archives', this.feedData.archives);
+      // Update local data in BOTH caches
+      const archiveShare = this.feedData.archives?.find(s => s.id === shareId);
+      if (archiveShare) {
+        archiveShare.content = newContent;
+        archiveShare.text = newContent;
+      }
       
-      console.log('✅ Share updated successfully');
+      const generalShare = this.feedData.general?.find(s => s.id === shareId);
+      if (generalShare) {
+        generalShare.content = newContent;
+        generalShare.text = newContent;
+      }
+      
+      // Re-render the current tab's feed
+      const currentTab = this.getCurrentTab();
+      if (currentTab === 'archives' && this.feedData.archives) {
+        this.renderFeedItems('archives', this.feedData.archives);
+      } else if (currentTab === 'general' && this.feedData.general) {
+        this.renderFeedItems('general', this.feedData.general);
+      }
+      
+      console.log('✅ Share updated successfully (cascade to both tables)');
       return true;
       
     } catch (err) {
@@ -1233,8 +1291,9 @@ class HiIslandRealFeed {
     }
   }
   
-  // 🎯 Delete share from database
-  async deleteShare(shareId) {
+  // 🎯 X/INSTAGRAM GOLD STANDARD: Delete share with CASCADE to both tables
+  // sourceTable tells us which table the share is FROM ('hi_archives' or 'public_shares')
+  async deleteShare(shareId, sourceTable = 'hi_archives') {
     try {
       const client = window.hiSupabase || window.supabaseClient;
       if (!client) {
@@ -1248,21 +1307,37 @@ class HiIslandRealFeed {
         return false;
       }
       
-      // Delete from hi_archives table
-      const { error } = await client
-        .from('hi_archives')
+      // 🎯 CASCADE DELETE: Delete from source table first
+      const { error: sourceError } = await client
+        .from(sourceTable)
         .delete()
         .eq('id', shareId)
         .eq('user_id', user.id);
       
-      if (error) {
-        console.error('❌ Failed to delete share:', error);
+      if (sourceError) {
+        console.error(`❌ Failed to delete share from ${sourceTable}:`, sourceError);
         alert('Failed to delete. Please try again.');
         return false;
       }
       
-      // Remove from local data
+      // 🎯 CASCADE: Try to delete from the OTHER table too (silent fail - share may not exist there)
+      const otherTable = sourceTable === 'hi_archives' ? 'public_shares' : 'hi_archives';
+      try {
+        await client
+          .from(otherTable)
+          .delete()
+          .eq('id', shareId)
+          .eq('user_id', user.id);
+        // Note: This may not find a match if share isn't in both tables - that's OK
+        console.log(`📦 Cascade delete attempted to ${otherTable}`);
+      } catch (cascadeErr) {
+        // Silent fail - the share may only exist in one table
+        console.log(`ℹ️ Share not found in ${otherTable} (cascade skipped)`);
+      }
+      
+      // Remove from BOTH local data caches
       this.feedData.archives = this.feedData.archives?.filter(s => s.id !== shareId) || [];
+      this.feedData.general = this.feedData.general?.filter(s => s.id !== shareId) || [];
       
       // 🎯 Optimistic UI: Remove the element immediately
       const shareEl = document.querySelector(`.hi-share-item[data-share-id="${shareId}"]`);
@@ -1273,7 +1348,7 @@ class HiIslandRealFeed {
         setTimeout(() => shareEl.remove(), 300);
       }
       
-      console.log('✅ Share deleted successfully');
+      console.log('✅ Share deleted successfully (cascade to both tables)');
       return true;
       
     } catch (err) {
@@ -1925,6 +2000,8 @@ class HiIslandRealFeed {
     const element = document.createElement('div');
     element.className = 'hi-share-item';
     element.dataset.shareId = share.id;
+    // 🎯 CRITICAL: Track source table for cascade operations
+    element.dataset.sourceTable = tabName === 'archives' ? 'hi_archives' : 'public_shares';
     
     const visibilityIcon = this.getVisibilityIcon(share.visibility);
     const timeAgo = this.formatTimeAgo(share.created_at);
@@ -1940,11 +2017,15 @@ class HiIslandRealFeed {
       window.__shareRenderLogged = true;
     }
 
-    // 🎯 X/INSTAGRAM GOLD STANDARD: Show overflow menu only on user's own shares (Archives tab)
-    const isOwnShare = tabName === 'archives';
+    // 🎯 X/INSTAGRAM GOLD STANDARD: Show overflow menu on user's OWN shares (ANY tab)
+    // CRITICAL FIX: Use user_id comparison, NOT tab-based check
+    // Anonymous shares (null user_id) are uneditable by design
+    const isOwnShare = share.user_id && this.currentUserId && share.user_id === this.currentUserId;
+    const sourceTable = tabName === 'archives' ? 'hi_archives' : 'public_shares';
+    
     const overflowMenuHTML = isOwnShare ? `
       <div class="share-overflow-menu">
-        <button class="share-overflow-btn" data-action="overflow" data-share-id="${share.id}" aria-label="More options" title="More options">
+        <button class="share-overflow-btn" data-action="overflow" data-share-id="${share.id}" data-source-table="${sourceTable}" aria-label="More options" title="More options">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <circle cx="12" cy="5" r="2"/>
             <circle cx="12" cy="12" r="2"/>
@@ -1952,10 +2033,10 @@ class HiIslandRealFeed {
           </svg>
         </button>
         <div class="share-overflow-dropdown" data-dropdown-for="${share.id}" style="display: none;">
-          <button class="share-overflow-item" data-action="edit" data-share-id="${share.id}">
+          <button class="share-overflow-item" data-action="edit" data-share-id="${share.id}" data-source-table="${sourceTable}">
             <span>✏️</span> Edit
           </button>
-          <button class="share-overflow-item share-overflow-item-danger" data-action="delete" data-share-id="${share.id}">
+          <button class="share-overflow-item share-overflow-item-danger" data-action="delete" data-share-id="${share.id}" data-source-table="${sourceTable}">
             <span>🗑️</span> Delete
           </button>
         </div>
@@ -3183,6 +3264,89 @@ class HiIslandRealFeed {
         opacity: 0.6;
         cursor: not-allowed;
         transform: none;
+      }
+      
+      /* 🎯 X/INSTAGRAM GOLD STANDARD: Mobile Bottom Sheet for Overflow Menu */
+      @media (max-width: 480px) {
+        /* Convert dropdown to bottom sheet on mobile */
+        .share-overflow-dropdown {
+          position: fixed !important;
+          top: auto !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          min-width: 100% !important;
+          border-radius: 20px 20px 0 0 !important;
+          padding-bottom: env(safe-area-inset-bottom, 20px);
+          animation: bottomSheetSlideIn 0.25s ease !important;
+        }
+        
+        @keyframes bottomSheetSlideIn {
+          from { transform: translateY(100%); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .share-overflow-item {
+          padding: 16px 24px;
+          font-size: 16px;
+          justify-content: flex-start;
+        }
+        
+        .share-overflow-item:first-child {
+          border-radius: 20px 20px 0 0;
+        }
+        
+        /* Add a handle indicator for bottom sheet */
+        .share-overflow-dropdown::before {
+          content: '';
+          display: block;
+          width: 40px;
+          height: 4px;
+          background: rgba(255, 255, 255, 0.3);
+          border-radius: 2px;
+          margin: 12px auto 8px;
+        }
+        
+        /* Modal responsive adjustments */
+        .hi-edit-modal,
+        .hi-delete-modal {
+          max-height: 85vh;
+          margin: 0;
+        }
+        
+        .hi-edit-modal {
+          border-radius: 20px 20px 0 0;
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          max-width: 100%;
+          animation: bottomSheetSlideIn 0.25s ease;
+        }
+        
+        .hi-delete-modal {
+          border-radius: 20px;
+          margin: auto 16px;
+        }
+      }
+      
+      /* Tablet adjustments */
+      @media (min-width: 481px) and (max-width: 768px) {
+        .hi-edit-modal,
+        .hi-delete-modal {
+          max-width: 450px;
+        }
+      }
+      
+      /* Desktop enhancements */
+      @media (min-width: 1024px) {
+        .share-overflow-dropdown {
+          min-width: 160px;
+        }
+        
+        .share-overflow-item {
+          padding: 14px 20px;
+        }
       }
     `;
     
