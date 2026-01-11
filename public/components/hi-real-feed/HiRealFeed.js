@@ -54,6 +54,7 @@ class HiIslandRealFeed {
     // 🔧 CRITICAL FIX: Track resources for cleanup (prevent memory leaks)
     this._scrollHandlers = new Map(); // Store scroll handler references
     this._abortController = null; // Cancel in-flight requests
+    this._documentClickHandler = null; // Track document click listener for cleanup
     
     // Origin filter state for General tab: 'all' | 'quick' | 'muscle' | 'island'
     this.originFilter = 'all';
@@ -976,6 +977,309 @@ class HiIslandRealFeed {
           await this.handleShareExternal(btn);
         }
       });
+      
+      // 🎯 X/INSTAGRAM GOLD STANDARD: Overflow menu handlers (Edit/Delete)
+      container.addEventListener('click', (e) => {
+        // Handle overflow button click (toggle dropdown)
+        const overflowBtn = e.target.closest('.share-overflow-btn');
+        if (overflowBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          const shareId = overflowBtn.dataset.shareId;
+          this.toggleOverflowMenu(shareId);
+          return;
+        }
+        
+        // Handle overflow item click (Edit/Delete)
+        const overflowItem = e.target.closest('.share-overflow-item');
+        if (overflowItem) {
+          e.preventDefault();
+          e.stopPropagation();
+          const action = overflowItem.dataset.action;
+          const shareId = overflowItem.dataset.shareId;
+          
+          if (action === 'edit') {
+            this.showEditModal(shareId);
+          } else if (action === 'delete') {
+            this.showDeleteConfirmation(shareId);
+          }
+          
+          // Close dropdown after action
+          this.closeAllOverflowMenus();
+          return;
+        }
+        
+        // Close overflow menus when clicking elsewhere
+        if (!e.target.closest('.share-overflow-menu')) {
+          this.closeAllOverflowMenus();
+        }
+      });
+    }
+    
+    // 🎯 Close overflow menus when clicking outside (with cleanup tracking)
+    if (this._documentClickHandler) {
+      document.removeEventListener('click', this._documentClickHandler);
+    }
+    this._documentClickHandler = (e) => {
+      if (!e.target.closest('.share-overflow-menu')) {
+        this.closeAllOverflowMenus();
+      }
+    };
+    document.addEventListener('click', this._documentClickHandler);
+  }
+  
+  // 🎯 X/INSTAGRAM: Toggle overflow dropdown menu
+  toggleOverflowMenu(shareId) {
+    const dropdown = document.querySelector(`.share-overflow-dropdown[data-dropdown-for="${shareId}"]`);
+    if (!dropdown) return;
+    
+    const isVisible = dropdown.style.display !== 'none';
+    
+    // Close all other dropdowns first
+    this.closeAllOverflowMenus();
+    
+    // Toggle this one
+    if (!isVisible) {
+      dropdown.style.display = 'block';
+    }
+  }
+  
+  // 🎯 Close all overflow menus
+  closeAllOverflowMenus() {
+    document.querySelectorAll('.share-overflow-dropdown').forEach(d => {
+      d.style.display = 'none';
+    });
+  }
+  
+  // 🎯 X/INSTAGRAM GOLD STANDARD: Show edit modal
+  async showEditModal(shareId) {
+    // Find the share data
+    const share = this.feedData.archives?.find(s => s.id === shareId);
+    if (!share) {
+      console.error('❌ Share not found for edit:', shareId);
+      return;
+    }
+    
+    const content = share.content || share.text || '';
+    
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'hi-edit-modal-overlay';
+    modal.innerHTML = `
+      <div class="hi-edit-modal">
+        <div class="hi-edit-modal-header">
+          <h3>Edit Hi</h3>
+          <button class="hi-edit-modal-close" aria-label="Close">✕</button>
+        </div>
+        <div class="hi-edit-modal-body">
+          <textarea class="hi-edit-textarea" placeholder="What's on your mind?">${this.escapeHtml(content)}</textarea>
+          <div class="hi-edit-char-count"><span class="hi-edit-char-current">${content.length}</span>/500</div>
+        </div>
+        <div class="hi-edit-modal-footer">
+          <button class="hi-edit-btn hi-edit-btn-cancel">Cancel</button>
+          <button class="hi-edit-btn hi-edit-btn-save">Save Changes</button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+    
+    // Focus textarea
+    const textarea = modal.querySelector('.hi-edit-textarea');
+    textarea.focus();
+    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    
+    // Character count
+    const charCount = modal.querySelector('.hi-edit-char-current');
+    textarea.addEventListener('input', () => {
+      charCount.textContent = textarea.value.length;
+      if (textarea.value.length > 500) {
+        charCount.style.color = '#EF4444';
+      } else {
+        charCount.style.color = '';
+      }
+    });
+    
+    // Close handlers
+    const closeModal = () => {
+      modal.remove();
+      document.body.style.overflow = '';
+    };
+    
+    modal.querySelector('.hi-edit-modal-close').addEventListener('click', closeModal);
+    modal.querySelector('.hi-edit-btn-cancel').addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+    
+    // Save handler
+    modal.querySelector('.hi-edit-btn-save').addEventListener('click', async () => {
+      const newContent = textarea.value.trim();
+      if (!newContent) {
+        alert('Content cannot be empty');
+        return;
+      }
+      if (newContent.length > 500) {
+        alert('Content is too long (max 500 characters)');
+        return;
+      }
+      
+      const saveBtn = modal.querySelector('.hi-edit-btn-save');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+      
+      const success = await this.updateShare(shareId, newContent);
+      
+      if (success) {
+        closeModal();
+      } else {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Changes';
+      }
+    });
+  }
+  
+  // 🎯 X/INSTAGRAM GOLD STANDARD: Show delete confirmation
+  showDeleteConfirmation(shareId) {
+    const modal = document.createElement('div');
+    modal.className = 'hi-delete-modal-overlay';
+    modal.innerHTML = `
+      <div class="hi-delete-modal">
+        <div class="hi-delete-modal-icon">🗑️</div>
+        <h3>Delete this Hi?</h3>
+        <p>This action cannot be undone. This Hi will be permanently removed from your archives.</p>
+        <div class="hi-delete-modal-actions">
+          <button class="hi-delete-btn hi-delete-btn-cancel">Cancel</button>
+          <button class="hi-delete-btn hi-delete-btn-confirm">Delete</button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+    
+    const closeModal = () => {
+      modal.remove();
+      document.body.style.overflow = '';
+    };
+    
+    modal.querySelector('.hi-delete-btn-cancel').addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+    
+    modal.querySelector('.hi-delete-btn-confirm').addEventListener('click', async () => {
+      const confirmBtn = modal.querySelector('.hi-delete-btn-confirm');
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Deleting...';
+      
+      const success = await this.deleteShare(shareId);
+      
+      if (success) {
+        closeModal();
+      } else {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Delete';
+      }
+    });
+  }
+  
+  // 🎯 Update share content in database
+  async updateShare(shareId, newContent) {
+    try {
+      const client = window.hiSupabase || window.supabaseClient;
+      if (!client) {
+        alert('Not connected. Please refresh the page.');
+        return false;
+      }
+      
+      const { data: { user } } = await client.auth.getUser();
+      if (!user) {
+        alert('Please sign in to edit your shares.');
+        return false;
+      }
+      
+      // Update in hi_archives table
+      const { error } = await client
+        .from('hi_archives')
+        .update({ content: newContent, updated_at: new Date().toISOString() })
+        .eq('id', shareId)
+        .eq('user_id', user.id);
+      
+      if (error) {
+        console.error('❌ Failed to update share:', error);
+        alert('Failed to save changes. Please try again.');
+        return false;
+      }
+      
+      // Update local data
+      const share = this.feedData.archives?.find(s => s.id === shareId);
+      if (share) {
+        share.content = newContent;
+        share.text = newContent;
+      }
+      
+      // Re-render the feed item
+      this.renderFeedItems('archives', this.feedData.archives);
+      
+      console.log('✅ Share updated successfully');
+      return true;
+      
+    } catch (err) {
+      console.error('❌ Error updating share:', err);
+      alert('An error occurred. Please try again.');
+      return false;
+    }
+  }
+  
+  // 🎯 Delete share from database
+  async deleteShare(shareId) {
+    try {
+      const client = window.hiSupabase || window.supabaseClient;
+      if (!client) {
+        alert('Not connected. Please refresh the page.');
+        return false;
+      }
+      
+      const { data: { user } } = await client.auth.getUser();
+      if (!user) {
+        alert('Please sign in to delete your shares.');
+        return false;
+      }
+      
+      // Delete from hi_archives table
+      const { error } = await client
+        .from('hi_archives')
+        .delete()
+        .eq('id', shareId)
+        .eq('user_id', user.id);
+      
+      if (error) {
+        console.error('❌ Failed to delete share:', error);
+        alert('Failed to delete. Please try again.');
+        return false;
+      }
+      
+      // Remove from local data
+      this.feedData.archives = this.feedData.archives?.filter(s => s.id !== shareId) || [];
+      
+      // 🎯 Optimistic UI: Remove the element immediately
+      const shareEl = document.querySelector(`.hi-share-item[data-share-id="${shareId}"]`);
+      if (shareEl) {
+        shareEl.style.transition = 'all 0.3s ease';
+        shareEl.style.opacity = '0';
+        shareEl.style.transform = 'translateX(-20px)';
+        setTimeout(() => shareEl.remove(), 300);
+      }
+      
+      console.log('✅ Share deleted successfully');
+      return true;
+      
+    } catch (err) {
+      console.error('❌ Error deleting share:', err);
+      alert('An error occurred. Please try again.');
+      return false;
     }
   }
 
@@ -1620,6 +1924,7 @@ class HiIslandRealFeed {
   createShareElement(share, tabName) {
     const element = document.createElement('div');
     element.className = 'hi-share-item';
+    element.dataset.shareId = share.id;
     
     const visibilityIcon = this.getVisibilityIcon(share.visibility);
     const timeAgo = this.formatTimeAgo(share.created_at);
@@ -1635,6 +1940,28 @@ class HiIslandRealFeed {
       window.__shareRenderLogged = true;
     }
 
+    // 🎯 X/INSTAGRAM GOLD STANDARD: Show overflow menu only on user's own shares (Archives tab)
+    const isOwnShare = tabName === 'archives';
+    const overflowMenuHTML = isOwnShare ? `
+      <div class="share-overflow-menu">
+        <button class="share-overflow-btn" data-action="overflow" data-share-id="${share.id}" aria-label="More options" title="More options">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="5" r="2"/>
+            <circle cx="12" cy="12" r="2"/>
+            <circle cx="12" cy="19" r="2"/>
+          </svg>
+        </button>
+        <div class="share-overflow-dropdown" data-dropdown-for="${share.id}" style="display: none;">
+          <button class="share-overflow-item" data-action="edit" data-share-id="${share.id}">
+            <span>✏️</span> Edit
+          </button>
+          <button class="share-overflow-item share-overflow-item-danger" data-action="delete" data-share-id="${share.id}">
+            <span>🗑️</span> Delete
+          </button>
+        </div>
+      </div>
+    ` : '';
+
     element.innerHTML = `
       <div class="share-header">
         <div class="share-user" style="cursor: pointer;" onclick="if(window.openProfileModal && '${share.user_id}') window.openProfileModal('${share.user_id}')" title="View ${this.escapeHtml(share.display_name || 'Hi Friend')}'s profile">
@@ -1647,6 +1974,7 @@ class HiIslandRealFeed {
         <div class="share-meta">
           <span class="share-visibility">${visibilityIcon}</span>
           <span class="share-time">${timeAgo}</span>
+          ${overflowMenuHTML}
         </div>
       </div>
       
@@ -2552,6 +2880,310 @@ class HiIslandRealFeed {
           flex-wrap: wrap;
         }
       }
+      
+      /* 🎯 X/INSTAGRAM GOLD STANDARD: Overflow Menu Styles */
+      .share-overflow-menu {
+        position: relative;
+        margin-left: 8px;
+      }
+      
+      .share-overflow-btn {
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .share-overflow-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+      }
+      
+      .share-overflow-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: rgba(30, 30, 30, 0.98);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        min-width: 140px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(20px);
+        z-index: 1000;
+        overflow: hidden;
+        animation: dropdownFadeIn 0.15s ease;
+      }
+      
+      @keyframes dropdownFadeIn {
+        from { opacity: 0; transform: translateY(-8px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      
+      .share-overflow-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 12px 16px;
+        background: none;
+        border: none;
+        color: white;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        text-align: left;
+      }
+      
+      .share-overflow-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      
+      .share-overflow-item-danger {
+        color: #EF4444;
+      }
+      
+      .share-overflow-item-danger:hover {
+        background: rgba(239, 68, 68, 0.15);
+      }
+      
+      /* 🎯 Edit Modal Styles */
+      .hi-edit-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        padding: 20px;
+        animation: modalFadeIn 0.2s ease;
+      }
+      
+      @keyframes modalFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      
+      .hi-edit-modal {
+        background: linear-gradient(180deg, #1a1a2e 0%, #16162a 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        width: 100%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        animation: modalSlideIn 0.25s ease;
+      }
+      
+      @keyframes modalSlideIn {
+        from { transform: translateY(20px) scale(0.95); opacity: 0; }
+        to { transform: translateY(0) scale(1); opacity: 1; }
+      }
+      
+      .hi-edit-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      
+      .hi-edit-modal-header h3 {
+        margin: 0;
+        color: white;
+        font-size: 18px;
+        font-weight: 600;
+      }
+      
+      .hi-edit-modal-close {
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 20px;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+      }
+      
+      .hi-edit-modal-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+      }
+      
+      .hi-edit-modal-body {
+        padding: 20px;
+      }
+      
+      .hi-edit-textarea {
+        width: 100%;
+        min-height: 150px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        padding: 16px;
+        color: white;
+        font-size: 16px;
+        font-family: inherit;
+        resize: vertical;
+        transition: border-color 0.2s ease;
+      }
+      
+      .hi-edit-textarea:focus {
+        outline: none;
+        border-color: #FFD166;
+      }
+      
+      .hi-edit-char-count {
+        text-align: right;
+        margin-top: 8px;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.5);
+      }
+      
+      .hi-edit-modal-footer {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        padding: 16px 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      
+      .hi-edit-btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+      }
+      
+      .hi-edit-btn-cancel {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+      }
+      
+      .hi-edit-btn-cancel:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      
+      .hi-edit-btn-save {
+        background: #FFD166;
+        color: #1a1a1a;
+      }
+      
+      .hi-edit-btn-save:hover {
+        background: #FFE066;
+        transform: translateY(-1px);
+      }
+      
+      .hi-edit-btn-save:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+      
+      /* 🎯 Delete Confirmation Modal Styles */
+      .hi-delete-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        padding: 20px;
+        animation: modalFadeIn 0.2s ease;
+      }
+      
+      .hi-delete-modal {
+        background: linear-gradient(180deg, #1a1a2e 0%, #16162a 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        width: 100%;
+        max-width: 360px;
+        padding: 32px 24px;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        animation: modalSlideIn 0.25s ease;
+      }
+      
+      .hi-delete-modal-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+      }
+      
+      .hi-delete-modal h3 {
+        margin: 0 0 12px 0;
+        color: white;
+        font-size: 20px;
+        font-weight: 600;
+      }
+      
+      .hi-delete-modal p {
+        margin: 0 0 24px 0;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      
+      .hi-delete-modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+      }
+      
+      .hi-delete-btn {
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+        min-width: 100px;
+      }
+      
+      .hi-delete-btn-cancel {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+      }
+      
+      .hi-delete-btn-cancel:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      
+      .hi-delete-btn-confirm {
+        background: #EF4444;
+        color: white;
+      }
+      
+      .hi-delete-btn-confirm:hover {
+        background: #DC2626;
+        transform: translateY(-1px);
+      }
+      
+      .hi-delete-btn-confirm:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
     `;
     
     document.head.appendChild(styles);
@@ -2572,6 +3204,12 @@ class HiIslandRealFeed {
       container.removeEventListener('scroll', handler);
     });
     this._scrollHandlers.clear();
+    
+    // Remove document click listener for overflow menu
+    if (this._documentClickHandler) {
+      document.removeEventListener('click', this._documentClickHandler);
+      this._documentClickHandler = null;
+    }
     
     // Clear data
     this.feedData = { general: [], archives: [] };
