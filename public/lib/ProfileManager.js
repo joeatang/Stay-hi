@@ -337,10 +337,21 @@ class ProfileManager {
   /**
    * Wait for Supabase client to be available
    * 🚀 WOZ FIX: ALWAYS get fresh client from HiSupabase.getClient(), never read window directly
+   * 🚀 MOBILE FIX: Use requestAnimationFrame instead of setTimeout (Safari throttles setTimeout in background)
    */
   async _waitForSupabase() {
     console.warn('🔍 [ProfileManager] _waitForSupabase() starting...');
     const maxAttempts = 100; // 5 seconds (50ms intervals)
+    
+    // 🚀 Mobile Safari optimization: use rAF instead of setTimeout
+    const isMobileSafari = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const wait = () => new Promise(resolve => {
+      if (isMobileSafari) {
+        requestAnimationFrame(() => requestAnimationFrame(resolve)); // Double rAF = ~32ms
+      } else {
+        setTimeout(resolve, 50);
+      }
+    });
     
     for (let i = 0; i < maxAttempts; i++) {
       let client = null;
@@ -354,12 +365,12 @@ class ProfileManager {
         } else {
           // HiSupabase not loaded yet, wait and retry
           console.log(`⏳ Poll ${i}: HiSupabase not loaded yet`);
-          await new Promise(resolve => setTimeout(resolve, 50));
+          await wait();
           continue;
         }
       } catch (error) {
         console.error(`❌ Poll ${i}: Error getting client:`, error);
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await wait();
         continue;
       }
       
@@ -371,7 +382,7 @@ class ProfileManager {
         console.log(`⏳ Poll ${i}: Client not ready yet (client=${!!client}, auth=${!!client?.auth})`);
       }
       
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await wait();
     }
     
     throw new Error('Supabase client not available after 5 seconds');
