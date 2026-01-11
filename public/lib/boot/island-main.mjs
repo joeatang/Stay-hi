@@ -182,13 +182,17 @@ window.addEventListener('hi:app-restored', async (event) => {
     // HiRealFeed.js destroys old instance and creates new one on pageshow
     // If we don't wait, controller grabs reference to DESTROYED instance
     if (window.unifiedHiIslandController) {
-      console.log('🔄 Refreshing feed controller (waiting for new feed instance)...');
+      console.log('🔄 Refreshing feed controller...');
       
-      // Wait for HiRealFeed to recreate itself (pageshow handler runs async)
-      await new Promise(resolve => setTimeout(resolve, 150));
+      // Only wait + clear on BFCache restore (where HiRealFeed recreates itself)
+      // Navigation returns don't destroy the feed instance
+      if (event.detail?.source === 'bfcache') {
+        console.log('🔄 BFCache restore - waiting for HiRealFeed recreation...');
+        await new Promise(resolve => setTimeout(resolve, 150));
+        // Clear stale reference - force controller to re-acquire
+        window.unifiedHiIslandController.feedInstance = null;
+      }
       
-      // Clear stale reference - force controller to re-acquire
-      window.unifiedHiIslandController.feedInstance = null;
       window.unifiedHiIslandController.isInitialized = false;
       window.unifiedHiIslandController.initPromise = null;
       
