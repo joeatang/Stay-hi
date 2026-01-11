@@ -3072,237 +3072,300 @@ class HiIslandRealFeed {
         background: rgba(239, 68, 68, 0.15);
       }
       
-      /* 🎯 Edit Modal Styles */
+      /* 🎯 GOLD STANDARD: Edit Modal - Center-Staged, Unmissable */
       .hi-edit-modal-overlay {
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.75);
-        backdrop-filter: blur(4px);
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 10000;
+        z-index: 99999;
         padding: 20px;
-        animation: modalFadeIn 0.2s ease;
+        box-sizing: border-box;
+        animation: modalOverlayFadeIn 0.25s ease-out;
+        overflow-y: auto;
       }
       
-      @keyframes modalFadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
+      @keyframes modalOverlayFadeIn {
+        from { opacity: 0; backdrop-filter: blur(0px); }
+        to { opacity: 1; backdrop-filter: blur(8px); }
       }
       
       .hi-edit-modal {
-        background: linear-gradient(180deg, #1a1a2e 0%, #16162a 100%);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
+        position: relative;
+        background: linear-gradient(180deg, #1e1e3f 0%, #151528 100%);
+        border: 2px solid rgba(255, 209, 102, 0.3);
+        border-radius: 20px;
         width: 100%;
-        max-width: 500px;
-        max-height: 90vh;
+        max-width: 520px;
+        max-height: 85vh;
         overflow: hidden;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        animation: modalSlideIn 0.25s ease;
+        box-shadow: 
+          0 0 0 1px rgba(255, 255, 255, 0.1),
+          0 25px 80px rgba(0, 0, 0, 0.6),
+          0 0 60px rgba(255, 209, 102, 0.15);
+        animation: modalCenterStage 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        margin: auto;
       }
       
-      @keyframes modalSlideIn {
-        from { transform: translateY(20px) scale(0.95); opacity: 0; }
-        to { transform: translateY(0) scale(1); opacity: 1; }
+      @keyframes modalCenterStage {
+        from { 
+          transform: scale(0.9) translateY(30px); 
+          opacity: 0; 
+        }
+        to { 
+          transform: scale(1) translateY(0); 
+          opacity: 1; 
+        }
       }
       
       .hi-edit-modal-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 16px 20px;
+        padding: 20px 24px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 209, 102, 0.05);
       }
       
       .hi-edit-modal-header h3 {
         margin: 0;
-        color: white;
+        color: #FFD166;
+        font-size: 20px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      
+      .hi-edit-modal-header h3::before {
+        content: '✏️';
         font-size: 18px;
-        font-weight: 600;
       }
       
       .hi-edit-modal-close {
-        background: none;
+        background: rgba(255, 255, 255, 0.1);
         border: none;
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 20px;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 18px;
         cursor: pointer;
-        padding: 4px 8px;
-        border-radius: 8px;
+        padding: 8px 12px;
+        border-radius: 10px;
         transition: all 0.2s ease;
+        font-weight: bold;
       }
       
       .hi-edit-modal-close:hover {
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.2);
         color: white;
+        transform: scale(1.05);
       }
       
       .hi-edit-modal-body {
-        padding: 20px;
+        padding: 24px;
       }
       
       .hi-edit-textarea {
         width: 100%;
-        min-height: 150px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 12px;
-        padding: 16px;
+        min-height: 160px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        border-radius: 14px;
+        padding: 18px;
         color: white;
-        font-size: 16px;
+        font-size: 17px;
         font-family: inherit;
+        line-height: 1.6;
         resize: vertical;
-        transition: border-color 0.2s ease;
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+      }
+      
+      .hi-edit-textarea::placeholder {
+        color: rgba(255, 255, 255, 0.4);
       }
       
       .hi-edit-textarea:focus {
         outline: none;
         border-color: #FFD166;
+        background: rgba(255, 255, 255, 0.1);
+        box-shadow: 0 0 0 4px rgba(255, 209, 102, 0.15);
       }
       
       .hi-edit-char-count {
         text-align: right;
-        margin-top: 8px;
+        margin-top: 10px;
         font-size: 13px;
         color: rgba(255, 255, 255, 0.5);
+        font-weight: 500;
       }
       
       .hi-edit-modal-footer {
         display: flex;
-        gap: 12px;
+        gap: 14px;
         justify-content: flex-end;
-        padding: 16px 20px;
+        padding: 20px 24px;
         border-top: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(0, 0, 0, 0.2);
       }
       
       .hi-edit-btn {
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 600;
+        padding: 14px 28px;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 700;
         cursor: pointer;
         transition: all 0.2s ease;
         border: none;
+        min-width: 120px;
       }
       
       .hi-edit-btn-cancel {
         background: rgba(255, 255, 255, 0.1);
         color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
       }
       
       .hi-edit-btn-cancel:hover {
         background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
       }
       
       .hi-edit-btn-save {
-        background: #FFD166;
+        background: linear-gradient(135deg, #FFD166 0%, #F4A261 100%);
         color: #1a1a1a;
+        box-shadow: 0 4px 15px rgba(255, 209, 102, 0.4);
       }
       
       .hi-edit-btn-save:hover {
-        background: #FFE066;
-        transform: translateY(-1px);
+        background: linear-gradient(135deg, #FFE066 0%, #FFD166 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 209, 102, 0.5);
       }
       
       .hi-edit-btn-save:disabled {
         opacity: 0.6;
         cursor: not-allowed;
         transform: none;
+        box-shadow: none;
       }
       
-      /* 🎯 Delete Confirmation Modal Styles */
+      /* 🎯 GOLD STANDARD: Delete Modal - Center-Staged, Clear Warning */
       .hi-delete-modal-overlay {
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.8);
-        backdrop-filter: blur(4px);
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.88);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 10000;
+        z-index: 99999;
         padding: 20px;
-        animation: modalFadeIn 0.2s ease;
+        box-sizing: border-box;
+        animation: modalOverlayFadeIn 0.25s ease-out;
       }
       
       .hi-delete-modal {
-        background: linear-gradient(180deg, #1a1a2e 0%, #16162a 100%);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
+        position: relative;
+        background: linear-gradient(180deg, #2a1a1a 0%, #1a1015 100%);
+        border: 2px solid rgba(239, 68, 68, 0.4);
+        border-radius: 20px;
         width: 100%;
-        max-width: 360px;
-        padding: 32px 24px;
+        max-width: 400px;
+        padding: 36px 28px;
         text-align: center;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        animation: modalSlideIn 0.25s ease;
+        box-shadow: 
+          0 0 0 1px rgba(255, 255, 255, 0.05),
+          0 25px 80px rgba(0, 0, 0, 0.6),
+          0 0 60px rgba(239, 68, 68, 0.15);
+        animation: modalCenterStage 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        margin: auto;
       }
       
       .hi-delete-modal-icon {
-        font-size: 48px;
-        margin-bottom: 16px;
+        font-size: 56px;
+        margin-bottom: 20px;
+        animation: deleteIconPulse 2s ease-in-out infinite;
+      }
+      
+      @keyframes deleteIconPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
       }
       
       .hi-delete-modal h3 {
-        margin: 0 0 12px 0;
-        color: white;
-        font-size: 20px;
-        font-weight: 600;
+        margin: 0 0 14px 0;
+        color: #EF4444;
+        font-size: 22px;
+        font-weight: 700;
       }
       
       .hi-delete-modal p {
-        margin: 0 0 24px 0;
+        margin: 0 0 28px 0;
         color: rgba(255, 255, 255, 0.6);
-        font-size: 14px;
-        line-height: 1.5;
+        font-size: 15px;
+        line-height: 1.6;
       }
       
       .hi-delete-modal-actions {
         display: flex;
-        gap: 12px;
+        gap: 16px;
         justify-content: center;
       }
       
       .hi-delete-btn {
-        padding: 12px 24px;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 600;
+        padding: 14px 28px;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 700;
         cursor: pointer;
         transition: all 0.2s ease;
         border: none;
-        min-width: 100px;
+        min-width: 120px;
       }
       
       .hi-delete-btn-cancel {
         background: rgba(255, 255, 255, 0.1);
         color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
       }
       
       .hi-delete-btn-cancel:hover {
         background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
       }
       
       .hi-delete-btn-confirm {
-        background: #EF4444;
+        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
         color: white;
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
       }
       
       .hi-delete-btn-confirm:hover {
-        background: #DC2626;
-        transform: translateY(-1px);
+        background: linear-gradient(135deg, #F87171 0%, #EF4444 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
       }
       
       .hi-delete-btn-confirm:disabled {
         opacity: 0.6;
         cursor: not-allowed;
         transform: none;
+        box-shadow: none;
       }
       
       /* 🎯 X/INSTAGRAM GOLD STANDARD: Mobile Bottom Sheet for Overflow Menu */
