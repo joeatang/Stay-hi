@@ -518,14 +518,15 @@ function initializeHiMap() {
       console.warn('⚠️ Leaflet not loaded, map will be hidden');
       return;
     }
-    const mapElement = document.getElementById('globe');
+    // 🚀 WOZ FIX: Look for the correct map element ID
+    const mapElement = document.getElementById('hi-island-map-root');
     if (!mapElement) {
       console.warn('⚠️ Map element not found, retrying after DOM settles...');
       // Map element might still be rendering - retry after a short delay
       let retryCount = 0;
       const retryInit = () => {
         retryCount++;
-        const retryElement = document.getElementById('globe');
+        const retryElement = document.getElementById('hi-island-map-root');
         if (!retryElement && retryCount < 3) {
           console.warn(`⚠️ Map element not found (retry ${retryCount}/3), trying again...`);
           setTimeout(retryInit, 100 * retryCount); // 100ms, 200ms, 300ms
