@@ -1412,9 +1412,9 @@ class HiIslandRealFeed {
   // sourceTable tells us which table the share is FROM ('hi_archives' or 'public_shares')
   async updateShare(shareId, newContent, sourceTable = 'hi_archives') {
     try {
-      const client = window.hiSupabase || window.supabaseClient;
+      const client = this.getSupabase();
       if (!client) {
-        alert('Not connected. Please refresh the page.');
+        alert('Connection issue. Please refresh the page.');
         return false;
       }
       
@@ -1493,9 +1493,9 @@ class HiIslandRealFeed {
   // sourceTable tells us which table the share is FROM ('hi_archives' or 'public_shares')
   async deleteShare(shareId, sourceTable = 'hi_archives') {
     try {
-      const client = window.hiSupabase || window.supabaseClient;
+      const client = this.getSupabase();
       if (!client) {
-        alert('Not connected. Please refresh the page.');
+        alert('Connection issue. Please refresh the page.');
         return false;
       }
       
