@@ -515,73 +515,77 @@ class ProfileManager {
 
   /**
    * Load profile from database (database-first, no hardcoded defaults)
+   * 🚀 MOBILE FIX: 3-second timeout prevents hanging on iOS Safari
    */
   async _loadProfileFromDatabase() {
     if (!this._userId) {
-      console.log('ℹ️ No user_id - skipping profile load');
+      console.warn('ℹ️ No user_id - skipping profile load');
       this._profile = this._getAnonymousProfile();
       return;
     }
 
-    try {
-      console.log('📥 Loading profile from database for user:', this._userId);
+    // 🚀 MOBILE FIX: Try localStorage FIRST for instant load, then refresh from DB
+    const storageKey = `stayhi_profile_${this._userId}`;
+    const cached = localStorage.getItem(storageKey);
+    if (cached) {
+      try {
+        this._profile = JSON.parse(cached);
+        console.warn('⚡ Using cached profile (instant load)');
+        // Don't return - continue to refresh from DB in background
+      } catch (e) {
+        console.warn('⚠️ Cached profile parse failed');
+      }
+    }
 
-      // 🚀 CRITICAL: Get fresh Supabase client (detects if window client changed)
+    try {
       const supabase = this._getSupabase();
       
-      const { data, error } = await supabase
+      // 🚀 MOBILE FIX: Race the query against a 3-second timeout
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('TIMEOUT')), 3000);
+      });
+      
+      const queryPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', this._userId)
         .single();
+      
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
-        console.error('❌ Database query failed:', error);
+      if (error && error.code !== 'PGRST116') {
         throw error;
       }
 
       if (data) {
-        console.log('✅ Profile loaded from database:', {
-          username: data.username,
-          display_name: data.display_name,
-          bio: data.bio
-        });
+        console.warn('✅ Profile loaded from database');
         this._profile = data;
-        // Cache for next navigation
         this._cacheProfile(data);
-
-        // Update localStorage cache
-        const storageKey = `stayhi_profile_${this._userId}`;
         localStorage.setItem(storageKey, JSON.stringify(data));
-
-      } else {
-        console.log('ℹ️ No profile in database, creating default');
-        // Create minimal profile in database
+      } else if (!this._profile) {
+        // No cache and no DB data - create default
+        console.warn('ℹ️ No profile found, creating default');
         this._profile = {
           id: this._userId,
           username: `user_${this._userId.slice(-6)}`,
           display_name: 'Stay Hi User',
-          bio: '', // NO hardcoded fallback
+          bio: '',
           location: '',
           avatar_url: null,
           created_at: new Date().toISOString()
         };
-
-        // Save to database
-        await this._supabase
-          .from('profiles')
-          .upsert(this._profile, { onConflict: 'id' });
+        // Save in background (don't await)
+        this._supabase.from('profiles').upsert(this._profile, { onConflict: 'id' });
       }
 
     } catch (error) {
-      console.error('❌ Profile load failed:', error);
-      // Fallback to localStorage
-      const storageKey = `stayhi_profile_${this._userId}`;
-      const cached = localStorage.getItem(storageKey);
-      if (cached) {
-        console.log('📦 Using cached profile from localStorage');
-        this._profile = JSON.parse(cached);
+      if (error.message === 'TIMEOUT') {
+        console.warn('⚠️ Profile query timed out - using cache');
       } else {
+        console.warn('⚠️ Profile load error:', error.message);
+      }
+      // Already have cache loaded above, or use anonymous
+      if (!this._profile) {
         this._profile = this._getAnonymousProfile();
       }
     }
