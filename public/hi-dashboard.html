@@ -1461,37 +1461,9 @@ console.log('✅ [Universal Tier Listener] Loaded and listening');
       transform: translateY(0) rotate(180deg);
     }
 
-    /* Floating Hiffirmations System - Tesla Grade Positioning */
-    .floating-hiffirmations {
-      position: fixed;
-      bottom: 90px; /* Moved above footer */
-      left: 20px;
-      width: 56px;
-      height: 56px;
-      background: linear-gradient(135deg, #E91E63 0%, #9C27B0 100%);
-      border: none;
-      border-radius: 50%;
-      color: white;
-      font-size: 20px;
-      cursor: pointer;
-      z-index: 999;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 16px rgba(233, 30, 99, 0.3);
-      animation: gentlePulse 4s infinite;
-    }
-
-    .floating-hiffirmations:hover {
-      transform: translateY(-2px) scale(1.05);
-      box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4);
-      animation-play-state: paused;
-    }
-
-    .floating-hiffirmations:active {
-      transform: translateY(0) scale(0.95);
-    }
+    /* Floating Hiffirmations System - REMOVED (access via header pill only)
+    .floating-hiffirmations { display: none; }
+    */
 
     @keyframes gentlePulse {
       0%, 100% { transform: scale(1); }
@@ -1662,10 +1634,7 @@ console.log('✅ [Universal Tier Listener] Loaded and listening');
 
   <!-- Skip target handled by <main id="main"> below -->
 
-  <!-- Tesla-Grade Floating HiFirmation Button -->
-  <button class="floating-hiffirmations" id="floatingHiffirmations" aria-label="Daily HiFirmations" title="Get inspired with daily HiFirmations">
-    ✨
-  </button>
+  <!-- Floating Hiffirmations removed - access via header pill only -->
 
   <!-- Header wiring for calendar + home (called by dashboard-init.js) -->
   <script src="./lib/boot/dashboard-header-wire.js" defer></script>

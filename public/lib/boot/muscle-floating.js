@@ -13,7 +13,7 @@ function addFloatingRefresh() {
 }
 
 // Initialize refresh button after page load
-addFloatingRefresh();
+// addFloatingRefresh(); // DISABLED - floating buttons removed from UI
 
 // Floating Hiffirmations System - Hi Muscle Context
 class FloatingHiffirmations {
@@ -512,7 +512,8 @@ class FloatingHiffirmations {
 }
 
 // Initialize floating Hiffirmations system
-const floatingHiffirmations = new FloatingHiffirmations();
+// DISABLED - floating buttons removed, access Hiffirmations via header pill only
+// const floatingHiffirmations = new FloatingHiffirmations();
 
 // Quote Card Generation System (Tesla-Grade)
 class HiQuoteCardGenerator {

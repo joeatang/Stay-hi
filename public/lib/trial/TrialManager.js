@@ -126,6 +126,12 @@
         return;
       }
       
+      // 🎯 TIER CHECK: Don't nag paid users (bronze, gold, premium, collective)
+      if (status.isPaid) {
+        this.hideTrialBanner();
+        return;
+      }
+      
       // Only show if 4 days or less remaining
       if (!status.shouldShowReminder) {
         this.hideTrialBanner();

@@ -423,11 +423,78 @@
 
   function getDailyHiffirmation(date=new Date()){
     const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`; let hash=0; for(let i=0;i<key.length;i++){ hash=(hash*31+key.charCodeAt(i))|0; }
-    const hiffirmations=["✨ Stay Hi! You're on a Hi level of positive energy today","🌟 Your Hi vibes are lifting others to new Hi-ghts of joy","💫 Hi there! You have the power to get someone Hi on life today","🔥 Hi amazing soul! Your authentic self is Hi-ly inspiring","🌈 Every Hi you share lifts our world to Hi-er dimensions","⭐ Hi friend! You're exactly Hi enough, right Hi and now","💝 Hi incredible human! Your presence gets everyone Hi on good vibes","🌺 Hi warrior! You're reaching Hi-er levels with each Hi moment","🎯 Hi there! Trust your journey, you're flying Hi and amazing","💎 Hi shining star! Your Hi energy can never be brought low","🚀 Hi unstoppable force! Your potential reaches the Hi-est peaks","🌸 Hi beautiful! You bring Hi-quality beauty to every moment","⚡ Hi energy! Your Hi frequency lights up every space you enter","🏔️ Hi mountain mover! You're Hi above any challenge life brings","🎨 Hi creative soul! Your imagination paints the world in Hi definition","🌊 Hi flowing river! You ride Hi through all of life's changes","🔮 Hi intuitive being! Your inner wisdom operates on the Hi-est level","🦋 Hi transformer! You're evolving into your Hi-est, most amazing self","🌅 Hi sunrise! Each day brings Hi-level opportunities just for you","💪 Hi resilient heart! Your bounce-back ability is Hi-ly remarkable" ];
+    const hiffirmations=[
+      // Core Hi Energy
+      "✨ Stay Hi! Your energy is contagious today",
+      "🌟 You're radiating Hi vibes that lift everyone around you",
+      "💫 Hi there, beautiful soul! The world needs your light",
+      "🔥 Your authentic Hi energy is changing the atmosphere",
+      "🌈 Every Hi you share creates ripples of joy",
+      // Self-Worth & Presence
+      "⭐ You are Hi enough, exactly as you are, right now",
+      "💝 Your presence alone raises the vibe of any room",
+      "🌺 Hi warrior! You've overcome more than you remember",
+      "🎯 Trust your path - you're exactly where you need to be",
+      "💎 You are rare and valuable - never forget that",
+      // Growth & Potential
+      "🚀 Your potential has no ceiling - keep reaching Hi-er",
+      "🌸 Every small step forward is still forward",
+      "⚡ You're becoming who you were always meant to be",
+      "🏔️ Mountains bow to those who refuse to stop climbing",
+      "🎨 You're painting your masterpiece one day at a time",
+      // Resilience & Strength
+      "🌊 You've survived every storm so far. This one's no different",
+      "🔮 Your inner strength runs deeper than you know",
+      "🦋 Transformation is messy and beautiful - just like you",
+      "🌅 New beginnings are always possible, starting now",
+      "💪 Your resilience is inspiring, even when you can't see it",
+      // Connection & Community
+      "🤝 Someone out there is grateful you exist today",
+      "🌍 Your kindness travels further than you'll ever know",
+      "💕 The love you give comes back multiplied",
+      "🎭 Be yourself - everyone else is taken anyway",
+      "🌻 You bloom exactly when you're meant to bloom",
+      // Encouragement & Hope
+      "🌠 Make a wish - you deserve good things coming your way",
+      "🎪 Life is an adventure and you're the main character",
+      "🦅 Spread your wings - the sky isn't the limit, it's the view",
+      "🌙 Even in darkness, you carry your own light",
+      "☀️ Your sunshine personality brightens cloudy days",
+      // Mindset & Perspective
+      "🧠 Your mind is powerful - use it to lift yourself up",
+      "👁️ See the beauty around you - it's everywhere when you look",
+      "🎵 Dance like the universe is your playlist",
+      "📚 Every experience is teaching you something valuable",
+      "🔑 You hold the key to your own happiness",
+      // Action & Momentum
+      "🎯 Small consistent actions create massive results",
+      "🏃 Progress isn't always visible - trust the process",
+      "🌱 You're growing even when you feel stuck",
+      "⏰ This moment matters - you're making it count",
+      "🎪 Show up as yourself - that's always enough",
+      // Gratitude & Joy
+      "🙏 Gratitude turns what you have into more than enough",
+      "😊 Your smile is someone's favorite notification",
+      "🎁 Today is a gift - that's why it's called the present",
+      "🌈 After every rain comes colors you couldn't see before",
+      "💫 Magic happens when you believe in yourself",
+      // Deep Wisdom
+      "🦉 Your intuition knows things your mind hasn't figured out yet",
+      "💎 Pressure creates diamonds - you're being refined",
+      "🌊 Flow like water - adapt without losing your essence",
+      "🔥 The fire inside you burns brighter than the fire around you",
+      "🌳 Deep roots make strong trees - your foundation matters",
+      // Celebration of Self
+      "🎉 Celebrate yourself today - you've earned it",
+      "👑 You're royalty in your own story - act like it",
+      "🌟 Stars can't shine without darkness - keep glowing",
+      "💜 You're loved more than you know by people you've touched",
+      "✨ The universe conspired to create exactly one of you - that's special"
+    ];
     const selectedMessage = hiffirmations[Math.abs(hash % hiffirmations.length)];
     const lastHiffirmationDate = localStorage.getItem('lastHiffirmationDate'); const today = new Date().toDateString(); const isDaily = lastHiffirmationDate !== today;
     if (isDaily){ localStorage.setItem('lastHiffirmationDate', today); return selectedMessage; }
-    const hiBoosts=["Stay Hi! Keep that Hi energy shining! ✨","Hi beautiful! You've got that Hi-level magic! 💪","Hi amazing! Keep riding Hi! 🚀","Hi superstar! Stay on that Hi frequency! 🌟"]; return hiBoosts[Math.floor(Math.random()*hiBoosts.length)];
+    const hiBoosts=["Stay Hi! Your vibe is unmatched ✨","You've got that magic today 💪","Keep shining, Hi soul! 🚀","Your energy is everything 🌟","The world is better with you in it 🌈"]; return hiBoosts[Math.floor(Math.random()*hiBoosts.length)];
   }
   function getNextHiffirmationCountdown(){ const now=new Date(); const tomorrow=new Date(now); tomorrow.setDate(tomorrow.getDate()+1); tomorrow.setHours(0,0,0,0); const timeLeft=tomorrow-now; return { hours:Math.floor(timeLeft/3600000), minutes:Math.floor((timeLeft%3600000)/60000), timeLeft }; }
 
@@ -804,7 +871,7 @@
     await initializeDatabase();
     
     setupHiffirmationsHandler();
-    setupFloatingHiffirmationsHandler();
+    // setupFloatingHiffirmationsHandler(); // REMOVED - access via header pill only
     
     // ✅ BULLETPROOF: Setup 7-day pill with fallback protection
     let weeklyProgressSetup = false;

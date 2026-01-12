@@ -105,7 +105,7 @@
         document.body.appendChild(refreshButton);
       }
     }
-    addFloatingRefresh();
+    // addFloatingRefresh(); // DISABLED - floating buttons removed from UI
   })();
 
   // Floating Hiffirmations System (class-based)
@@ -232,7 +232,8 @@
     trackUserEngagementPattern(){ this.engagementPattern={ sessionStart:Date.now(), totalClicks:0, milestoneActions:0, messageInteractions:0 }; this.button.addEventListener('click', ()=>{ this.engagementPattern.messageInteractions++; }); document.addEventListener('click', (e)=>{ this.engagementPattern.totalClicks++; if (e.target.closest && e.target.closest('.medallion, [data-action], button')){ this.engagementPattern.milestoneActions++; } }); }
   }
   // Start floating system
-  window.addEventListener('DOMContentLoaded', () => { try { new FloatingHiffirmations(); } catch(e){ console.warn('FloatingHiffirmations init failed:', e); } });
+  // DISABLED - floating buttons removed, access Hiffirmations via header pill only
+  // window.addEventListener('DOMContentLoaded', () => { try { new FloatingHiffirmations(); } catch(e){ console.warn('FloatingHiffirmations init failed:', e); } });
 
   // Tesla-Grade Quote Card Generation System
   class HiQuoteCardGenerator {
