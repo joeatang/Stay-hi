@@ -571,6 +571,67 @@ const supabase = window.hiSupabase
 
 ---
 
+## ⚠️ Active vs Legacy Code Guide
+
+### ✅ ACTIVE CODE - Use These
+
+| Category | Active Files | Notes |
+|----------|--------------|-------|
+| **Supabase Client** | `lib/HiSupabase.v3.js` | Only v3, never legacy |
+| **Auth** | `lib/AuthReady.js`, `lib/auth/auth-resilience.js` | Event-driven pattern |
+| **Profile** | `lib/ProfileManager.js` | Singleton, source of truth |
+| **Database** | `lib/HiDB.js`, `lib/hibase/` | HiDB for direct ops, HiBase for module API |
+| **Membership** | `lib/membership/HiMembershipBridge.js` | Bridges all membership signals |
+| **Tiers** | `lib/config/TIER_CONFIG.js` | Single source of truth for tier definitions |
+| **Stats** | `lib/stats/GoldStandardTracker.js` | For share tracking |
+| **Pages** | `hi-dashboard.html`, `hi-island-NEW.html`, `hi-muscle.html`, `profile.html`, `welcome.html` | Main app pages |
+
+### ❌ LEGACY CODE - Avoid These
+
+| Category | Legacy Files | Why Deprecated |
+|----------|--------------|----------------|
+| **Supabase** | `lib/HiSupabase.legacy.js`, `lib/HiSupabase.js` | Use v3 only |
+| **Root /lib/** | `/lib/*` (outside public) | Use `public/lib/` only |
+| **Old Stats** | `assets/global-stats.js`, `assets/real-time-stats.js` | Replaced by HiDB + triggers |
+| **Backup Files** | `*.bak`, `*.backup`, `*.bak2` | Old snapshots |
+| **Test Files** | `test-*.html`, `*-debug.html` | Dev only, not production |
+| **Old Auth** | `assets/progressive-auth.js` | Replaced by AuthShim |
+| **SQL Files** | Root `*.sql` files | Reference only, deployed to Supabase |
+
+### 🔍 How to Identify Active Code
+
+1. **Check load order in HTML** - If it's in `<script>` tags (not commented), it's active
+2. **Search for imports** - If a module is imported, it's in use
+3. **Check for `console.log` prefixes** - Active code uses `[HiDB]`, `[AuthReady]`, etc.
+4. **Look at file dates** - Recent modifications usually mean active
+5. **Check this map** - The tables above are authoritative
+
+### 🎯 Database: What's Actually Used
+
+| Table | Status | Used By |
+|-------|--------|---------|
+| `profiles` | ✅ Active | ProfileManager, profile.html |
+| `public_shares` | ✅ Active | HiDB.insertPublicShare(), Island feed |
+| `hi_archives` | ✅ Active | Private shares, archive view |
+| `user_stats` | ✅ Active | Stats display, streak tracking |
+| `global_stats` | ✅ Active | Homepage counters (single row, id=1) |
+| `user_memberships` | ✅ Active | Tier system, TrialManager |
+| `user_streaks` | ✅ Active | Streak system |
+| `invitation_codes` | ✅ Active | Invite system |
+
+### 🔧 Key RPC Functions (Database)
+
+| Function | Active? | Purpose |
+|----------|---------|---------|
+| `get_unified_membership()` | ✅ | Returns tier, is_admin, features |
+| `get_global_stats()` | ✅ | Returns total_his, hi_waves, total_users |
+| `get_user_share_count(user_id)` | ✅ | Count user's public shares |
+| `create_share_v2(...)` | ✅ | Insert new share |
+| `use_invite_code(code)` | ✅ | Redeem invitation code |
+| `increment_total_hi()` | ⚠️ Trigger | Auto-called by DB, don't call manually |
+
+---
+
 ## 🔮 Future Additions
 
 - [ ] Add Supabase database schema diagram
