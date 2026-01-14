@@ -18,7 +18,7 @@
 
 | Step | File | Status | Notes |
 |------|------|--------|-------|
-| 1. Deploy RPC | `DEPLOY_FREE_MEMBERSHIP_RPC.sql` | ⬜ | Run in Supabase SQL Editor |
+| 1. Deploy RPC | `DEPLOY_FREE_MEMBERSHIP_RPC.sql` | ✅ | Deployed 2026-01-13 |
 | 2. Add free signup handler | `signup-init.js` | ⬜ | Call `create_free_membership()` when no invite code |
 | 3. Update welcome page | `welcome.html` | ⬜ | Add "Create Free Account" CTA |
 | 4. Remove invite requirement | `signup.html` | ⬜ | Make invite field optional for free tier |
