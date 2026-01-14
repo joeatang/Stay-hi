@@ -131,8 +131,17 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
   const password = document.getElementById('password').value;
   const invite = document.getElementById('invite').value.trim();
   
-  if (!email || !password || !invite) {
-    showError('Please fill in all fields.');
+  // Check if this is a free signup (no invite code)
+  const isFreeSignup = !invite || invite === '';
+  
+  if (!email || !password) {
+    showError('Please fill in email and password.');
+    return;
+  }
+  
+  // Only require invite code if not a free signup
+  if (!isFreeSignup && !invite) {
+    showError('Please enter an invite code, or leave blank for a free account.');
     return;
   }
   
@@ -147,6 +156,92 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
   submitBtn.textContent = 'Creating Account...';
 
   try {
+    // ========================================
+    // FREE SIGNUP PATH (no invite code)
+    // ========================================
+    if (isFreeSignup) {
+      console.log('🆓 Free signup flow - no invite code');
+      
+      // 1. Create user in Supabase auth
+      let userId = null;
+      try {
+        const siteUrl = window.location.origin;
+        const redirectUrl = `${siteUrl}/public/hi-dashboard.html`;
+        
+        console.log('📧 Creating free account with email redirect:', redirectUrl);
+        
+        const { data, error } = await supabaseClient.auth.signUp({ 
+          email, 
+          password,
+          options: {
+            emailRedirectTo: redirectUrl
+          }
+        });
+        
+        if (error) {
+          showError(error.message || 'Sign up failed.');
+          return;
+        }
+        userId = data.user?.id;
+        
+        if (!userId) {
+          showError('Account creation failed - no user ID returned.');
+          return;
+        }
+        
+        console.log('✅ Free user created:', userId);
+      } catch (err) {
+        console.error('❌ Free signup error:', err);
+        showError('Error creating account.');
+        return;
+      }
+      
+      // 2. Create free tier membership (with retry for auth trigger delay)
+      console.log('📝 Creating free membership for user:', userId);
+      let membershipSuccess = false;
+      
+      for (let attempt = 0; attempt < 10; attempt++) {
+        try {
+          console.log(`🔄 Attempt ${attempt + 1}/10: Calling create_free_membership RPC...`);
+          const { data: membershipData, error } = await supabaseClient.rpc('create_free_membership', { 
+            p_user_id: userId 
+          });
+          
+          if (error) {
+            // If foreign key error (user not created yet), retry
+            if (error.code === '23503') {
+              console.log(`⏳ Attempt ${attempt + 1}/10: User record not ready, retrying in 500ms...`);
+              await new Promise(resolve => setTimeout(resolve, 500));
+              continue;
+            }
+            console.error(`❌ Free membership error:`, error);
+            break;
+          }
+          
+          console.log('✅ Free membership created:', membershipData);
+          membershipSuccess = true;
+          break;
+        } catch (err) {
+          console.error(`❌ Exception (attempt ${attempt + 1}):`, err);
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+      
+      // 3. Process referral if present
+      await processReferralRedemption(userId);
+      
+      // 4. Success
+      showSuccess('📧 Free account created! Check your email to verify.');
+      setTimeout(() => {
+        window.location.href = 'awaiting-verification.html?email=' + encodeURIComponent(email);
+      }, 2000);
+      return;
+    }
+    
+    // ========================================
+    // INVITE CODE SIGNUP PATH (existing flow - unchanged)
+    // ========================================
+    
     // 1. Validate invite code via Supabase RPC
     let validCode = false;
     let codeId = null;
