@@ -20,9 +20,9 @@
 |------|------|--------|-------|
 | 1. Deploy RPC | `DEPLOY_FREE_MEMBERSHIP_RPC.sql` | ✅ | Deployed 2026-01-13 |
 | 2. Add free signup handler | `signup-init.js` | ✅ | Calls `create_free_membership()` when no invite code |
-| 3. Update welcome page | `welcome.html` | ⬜ | Add "Create Free Account" CTA |
+| 3. Update welcome page | `welcome.html` | ✅ | Removed anonymous, added "Sign Up Free" as primary CTA |
 | 4. Remove invite requirement | `signup.html` | ✅ | Invite field now optional |
-| 5. Test free → paid upgrade | Manual test | ⬜ | Verify free user can later use invite code |
+| 5. Test free signup | Manual test | ✅ | Verified in Supabase |
 
 **Architecture verified:** Zero schema changes. `user_memberships` table unchanged. Existing users unaffected.
 

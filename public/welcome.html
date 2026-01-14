@@ -627,15 +627,14 @@
     <!-- HI DEV: Tesla-Grade HiMedallion Component -->
     <div id="hiMedallionContainer" class="hi-medallion-section"></div>
     <div class="welcome-actions">
-      <a id="cta-experience-anon" 
-         class="welcome-btn primary" 
-         href="./hi-dashboard.html?source=welcome"
-         data-hi-nav="anon">✨ Experience Hi Anonymously</a>
-      <button class="welcome-btn secondary" id="joinCommunityBtn">🌟 Get Full Hi Access via Stan</button>
-      <button class="welcome-btn tertiary" id="haveCodeBtn">📨 Sign Up (Invite Code Required)</button>
+      <button class="welcome-btn primary" id="signUpFreeBtn">🌱 Sign Up Free</button>
+      <button class="welcome-btn secondary" id="joinCommunityBtn">🌟 Get Premium Access</button>
       <div class="welcome-signin-link">
         <span style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">Already a member? </span>
         <a href="signin.html" style="color: #FFD166; text-decoration: none; font-weight: 600;">Sign in</a>
+      </div>
+      <div class="welcome-invite-link">
+        <a href="signup.html" style="color: rgba(255,255,255,0.5); font-size: 0.8rem; text-decoration: none;">Have an invite code?</a>
       </div>
     </div>
 
@@ -673,9 +672,6 @@
 
   <!-- 🔧 Development Tools Gate (Local Only) -->
   <script type="module" src="./lib/boot/welcome-devtools-gate.mjs"></script>
-  
-  <!-- HI DEV: Welcome CTA reliability fix (P1) -->
-  <script defer src="./js/welcome-cta.js"></script>
   
   <!-- HI DEV: Tesla-Grade HiMedallion Component -->
   <script type="module" src="./lib/boot/welcome-medallion.mjs"></script>
