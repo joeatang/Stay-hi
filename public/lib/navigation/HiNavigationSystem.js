@@ -129,7 +129,12 @@ class HiNavigationSystem {
   // 🚪 Navigation escape routes system
   initEscapeRoutes() {
     // Add floating navigation pill (non-intrusive)
-    if (this.config.enableEscapeRoutes) {
+    // 🎯 GOLD STANDARD: Skip floating nav on landing pages (welcome, signin, signup)
+    const skipFloatingNavPages = ['/welcome.html', '/welcome', '/signin.html', '/signin', '/signup.html', '/signup', '/', '/index.html'];
+    const currentPath = window.location.pathname;
+    const shouldSkipFloatingNav = skipFloatingNavPages.some(p => currentPath === p || currentPath.endsWith(p));
+    
+    if (this.config.enableEscapeRoutes && !shouldSkipFloatingNav) {
       this.injectFloatingNav();
     }
     

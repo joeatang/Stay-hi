@@ -134,16 +134,19 @@
     }
     body {
       background: linear-gradient(135deg, #2d1e4f 0%, #ff7a18 60%, #ffd166 100%);
+      /* 🎯 GOLD STANDARD 2026: True viewport centering (X/Instagram pattern) */
       min-height: 100vh;
+      min-height: 100dvh; /* Dynamic viewport height - accounts for mobile browser chrome */
       width: 100%;
       max-width: 100vw;
       margin: 0;
       font-family: var(--f-sans);
-      padding: 20px min(16px, 4vw);
+      /* Symmetric padding for perfect centering */
+      padding: env(safe-area-inset-top, 20px) min(16px, 4vw) env(safe-area-inset-bottom, 20px);
       overflow-x: hidden;
       position: relative;
       box-sizing: border-box;
-      /* TESLA-GRADE VIEWPORT CENTERING */
+      /* GOLD STANDARD: Flexbox centering (vertical + horizontal) */
       display: flex;
       align-items: center;
       justify-content: center;
