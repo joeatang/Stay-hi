@@ -12,9 +12,9 @@
 
 - [ ] **Diagnose dual modal issue** — Update Available modal + App Recovery Mode appearing together on mobile. Investigate trigger conditions in `HiPWA.js` + `EmergencyRecovery.js`
 - [ ] **Hi Island user profiles** — Finish profile showcase with bio, info display. Started but not completed.
-- [ ] **Free account signup on welcome page** — Implementation checklist below
+- [x] ~~**Free account signup on welcome page**~~ — ✅ COMPLETE (2026-01-14)
 
-#### 📋 Free Signup Implementation Checklist
+#### 📋 Free Signup Implementation Checklist — ✅ ALL COMPLETE
 
 | Step | File | Status | Notes |
 |------|------|--------|-------|
@@ -40,6 +40,11 @@
 - [ ] User search in Mission Control
 - [ ] Tier upgrade/downgrade UI in Mission Control
 
+### 🔵 LOW PRIORITY — Cosmetic Cleanup
+
+- [ ] **Remove unused medallion CSS from welcome.html** — `HiMedallion.css`, `medallion-curiosity-system.css/js` still loading but feature disabled
+- [ ] **Clean up broken module files** — `welcome-referral.mjs`, `welcome-medallion.mjs`, `welcome-flags-wait.mjs` have broken imports (currently disabled via HTML comments)
+
 ---
 
 ## ✅ Completed
@@ -50,6 +55,9 @@
 | Mission Control added to Hi Code Map | 2026-01-13 | Full architecture docs |
 | Grant degenmentality admin access | 2026-01-13 | SQL executed in Supabase |
 | Create TODO tracker | 2026-01-13 | This file |
+| **Free signup implementation** | 2026-01-14 | RPC + signup.html + welcome.html updated |
+| **Welcome page simplification** | 2026-01-14 | Removed anonymous mode, 2 clear CTAs |
+| **Disable broken welcome scripts** | 2026-01-14 | medallion, referral, flags-wait commented out |
 
 ---
 
