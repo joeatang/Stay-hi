@@ -20,6 +20,7 @@
 10. [Component Library](#-component-library)
 11. [Boot Sequence](#-boot-sequence)
 12. [Key Patterns & Conventions](#-key-patterns--conventions)
+13. [Mission Control (Admin)](#-mission-control-admin)
 
 ---
 
@@ -563,10 +564,157 @@ const supabase = window.hiSupabase
 
 ---
 
+## 🎛️ Mission Control (Admin)
+
+### Overview
+
+**Mission Control** is the administrative command center for Hi platform management. Access is restricted to users with `admin` or `super_admin` roles in the `admin_roles` table.
+
+**Entry Point:** [hi-mission-control.html](../public/hi-mission-control.html)
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `hi-mission-control.html` | Main admin dashboard page |
+| `lib/admin/AdminAccessManager.js` | **Unified admin auth orchestrator** - Singleton that manages all admin access checks |
+| `lib/boot/mission-control-init.js` | Dashboard initialization, button handlers, stats loading |
+| `lib/admin/InviteCodeModal.js` | Modal UI for generating invite codes with options |
+| `lib/admin/self-check-embed.js` | Diagnostics overlay (triggered via `#self-check` hash) |
+| `admin-setup-guide.html` | Admin setup instructions page |
+| `invite-admin.html` | Invite management redirect page |
+
+### Access Flow
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│  User navigates to /hi-mission-control.html                     │
+└────────────────────────────┬───────────────────────────────────┘
+                             │
+┌────────────────────────────▼───────────────────────────────────┐
+│  AdminAccessManager.checkAdmin({ force: true })                 │
+│  - Calls RPC: check_admin_access_v2('admin', null)              │
+│  - Returns: { access_granted: true/false, reason: string }      │
+└────────────────────────────┬───────────────────────────────────┘
+                             │
+          ┌──────────────────┴──────────────────┐
+          ▼                                      ▼
+┌─────────────────────┐              ┌─────────────────────────┐
+│  ✅ ADMIN GRANTED    │              │  ❌ ACCESS DENIED        │
+│  - Hide loading      │              │  - Show unauthorized     │
+│  - Show dashboard    │              │  - Log security incident │
+│  - Load stats        │              │  - Offer sign-in link    │
+│  - Create session    │              └─────────────────────────┘
+└─────────────────────┘
+```
+
+### Dashboard Panels
+
+#### 1. 📊 Stats Grid (Auto-populated)
+- Total Users
+- Active Memberships  
+- Total Invitations
+- Active Invitations
+- Recent Signups (7d)
+- Security Events (24h)
+- Global Platform Stats (waves, His, users)
+
+#### 2. 🎯 Invitation Management
+
+| Button | Function | Status |
+|--------|----------|--------|
+| **Generate New Invite Code** | Opens modal or creates bronze tier code | ✅ Working |
+| **View All Invitations** | Lists all non-expired codes | ✅ Working |
+| **Active Invitations Only** | Filters to usable codes | ✅ Working |
+| **Clean Expired Codes** | Deactivates expired invitations | ✅ Working |
+
+#### 3. 🔐 Admin Passcode Management (super_admin only)
+- Rotate admin passcode
+- View passcode metadata
+- Test passcode unlock
+
+#### 4. 👥 User Management
+
+| Button | Function | Status | Fix Required |
+|--------|----------|--------|--------------|
+| **User Statistics** | Query auth.users | ❌ Broken | Needs RPC (RLS blocks direct query) |
+| **Recent Signups** | Query auth.users | ❌ Broken | Needs RPC (RLS blocks direct query) |
+| **Membership Analytics** | Query user_memberships | ⚠️ Works | Needs better formatting |
+| **Security Events** | Query admin_access_logs | ⚠️ Works | May have RLS limitations |
+
+### Admin RPC Functions
+
+| RPC | Purpose | Caller |
+|-----|---------|--------|
+| `check_admin_access_v2(p_required_role, p_ip_address)` | Verify admin privileges | AdminAccessManager |
+| `create_admin_session(p_ip_address, p_user_agent)` | Create admin session | mission-control-init |
+| `get_admin_dashboard_stats()` | Get dashboard stats | mission-control-init |
+| `admin_generate_invite_code(p_user_id, p_tier, p_trial_days, p_max_uses, p_expires_in_hours)` | Create invite code | generateInviteCode() |
+| `admin_list_invite_codes(p_include_expired)` | List invitation codes | listInviteCodes() |
+| `set_admin_passcode(p_new_passcode, p_notes)` | Rotate admin passcode | rotatePasscode() |
+| `admin_unlock_with_passcode(p_passcode)` | Test passcode unlock | testPasscodeUnlock() |
+
+### Database Tables (Admin-Specific)
+
+| Table | Purpose |
+|-------|---------|
+| `admin_roles` | User → role mapping (`admin`, `super_admin`) |
+| `admin_access_logs` | Security event logging |
+| `admin_passcode_config` | Passcode rotation history |
+| `admin_sessions` | Active admin sessions |
+| `invitation_codes` | Generated invite codes |
+
+### Events Emitted
+
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `hi:admin-state-changed` | `{ isAdmin, status, reason, user, roleType }` | Admin state updated |
+| `hi:admin-confirmed` | `{ user }` | Admin access verified |
+| `hi:admin-role-known` | `{ roleType }` | Role type fetched (admin/super_admin) |
+| `hi:invite-code-generated` | `{ code }` | New invite code created via modal |
+
+### Granting Admin Access
+
+To grant admin access to a user, run in Supabase SQL Editor:
+
+```sql
+INSERT INTO admin_roles (user_id, role_type, permissions, security_level, is_active)
+SELECT id, 'super_admin', 
+  '{"all": true, "user_management": true, "system_admin": true}'::JSONB,
+  'maximum', true
+FROM auth.users WHERE email = 'user@example.com'
+ON CONFLICT (user_id) DO UPDATE SET 
+  role_type = EXCLUDED.role_type,
+  permissions = EXCLUDED.permissions,
+  is_active = true;
+```
+
+### Safe Update Guidelines
+
+When modifying Mission Control:
+
+1. **Never modify RPCs without testing** - Use Supabase SQL Editor first
+2. **Preserve AdminAccessManager singleton** - It caches state to prevent flickering
+3. **Test with non-admin first** - Ensure access denial works correctly
+4. **Keep audit logging** - `window.HiAudit?.log()` calls must remain
+5. **Session timeout is intentional** - 60-minute auto-logout for security
+
+### Known Gaps / Future Work
+
+- [ ] Fix User Statistics button (create `get_admin_user_stats()` RPC)
+- [ ] Fix Recent Signups button (create `get_admin_recent_signups()` RPC)
+- [ ] Improve Membership Analytics formatting
+- [ ] Add bulk invite code generation
+- [ ] Add user search functionality
+- [ ] Add tier upgrade/downgrade UI
+
+---
+
 ## 📝 Changelog
 
 | Date | Change |
 |------|--------|
+| 2026-01-13 | Added Mission Control (Admin) section |
 | 2026-01-13 | Initial Hi Code Map created |
 
 ---
