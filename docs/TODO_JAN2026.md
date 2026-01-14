@@ -12,6 +12,7 @@
 
 - [ ] **Diagnose dual modal issue** — Update Available modal + App Recovery Mode appearing together on mobile. Investigate trigger conditions in `HiPWA.js` + `EmergencyRecovery.js`
 - [ ] **Hi Island user profiles** — Finish profile showcase with bio, info display. Started but not completed.
+- [ ] **Free account signup on welcome page** — Update welcome.html to allow free tier signups without invite code. Define free tier limits vs paid tiers.
 
 ### 🟡 MEDIUM PRIORITY — Mission Control Fixes
 
