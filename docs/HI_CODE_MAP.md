@@ -338,6 +338,31 @@ Level 5: premium    → "Hi Luminary"    → Unlimited, all features
 Level 6: collective → "Hi Collective"  → Lifetime, admin access
 ```
 
+### Free Tier Details (Hi Explorer)
+
+The free tier allows users to sign up and use the app without an invite code or payment:
+
+| Feature | Free Tier | Paid Tiers |
+|---------|-----------|------------|
+| **Medallion Taps** | ✅ Unlimited | ✅ Unlimited |
+| **Map Access** | ✅ Full | ✅ Full |
+| **Shares/Month** | 5 (private only) | 30-Unlimited |
+| **Public Sharing** | ❌ No | ✅ Yes |
+| **Avatar Upload** | ❌ Default only | ✅ Custom |
+| **Hi Muscle (Gym)** | ✅ Yes | ✅ Yes |
+| **Calendar** | ✅ Yes (beta) | ✅ Yes |
+| **Trends** | ❌ No | ✅ Yes (Gold+) |
+| **Archive** | Basic | Full |
+| **Trial Period** | 90 days | Per tier |
+
+**Signup Flow:**
+1. User enters email on `welcome.html`
+2. Supabase magic link sent
+3. On confirm, `user_memberships` created with `tier: 'free'`
+4. User gets `Hi Explorer` badge
+
+**Source of Truth:** [lib/config/TIER_CONFIG.js](../public/lib/config/TIER_CONFIG.js)
+
 ### Key Files
 
 | File | Role |
