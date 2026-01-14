@@ -33,8 +33,8 @@
   <!-- HI-OS S-ARCH/1: Webroot Guard (console-only for production) -->
   <script src="./lib/boot/welcome-webroot-guard.js"></script>
   
-  <!-- Flag Init Guard -->
-  <script type="module" src="./lib/boot/welcome-flags-wait.mjs"></script>
+  <!-- Flag Init Guard - DISABLED: hiFlags.waitUntilReady() method removed -->
+  <!-- <script type="module" src="./lib/boot/welcome-flags-wait.mjs"></script> -->
   
   <!-- PWA Meta Tags -->
   <link rel="icon" href="./favicon.ico">
@@ -624,8 +624,6 @@
       <span style="font-size: 0.95em; opacity: 0.9;">so you can really say hi to the world</span>
     </div>
     
-    <!-- HI DEV: Tesla-Grade HiMedallion Component -->
-    <div id="hiMedallionContainer" class="hi-medallion-section"></div>
     <div class="welcome-actions">
       <button class="welcome-btn primary" id="signUpFreeBtn">🌱 Sign Up Free</button>
       <button class="welcome-btn secondary" id="joinCommunityBtn">🌟 Get Premium Access</button>
@@ -667,14 +665,14 @@
   <!--  Tesla-Grade Feature Flags System -->
   <script type="module" src="./lib/flags/HiFlags.js"></script>
   
-  <!-- 🎁 HiBase Referral Code Handler -->
-  <script type="module" src="./lib/boot/welcome-referral.mjs"></script>
+  <!-- 🎁 HiBase Referral Code Handler - DISABLED: referrals flag OFF, import paths broken -->
+  <!-- <script type="module" src="./lib/boot/welcome-referral.mjs"></script> -->
 
   <!-- 🔧 Development Tools Gate (Local Only) -->
   <script type="module" src="./lib/boot/welcome-devtools-gate.mjs"></script>
   
-  <!-- HI DEV: Tesla-Grade HiMedallion Component -->
-  <script type="module" src="./lib/boot/welcome-medallion.mjs"></script>
+  <!-- HI DEV: Tesla-Grade HiMedallion Component - DISABLED: feature removed from welcome -->
+  <!-- <script type="module" src="./lib/boot/welcome-medallion.mjs"></script> -->
   
   <!-- 🚀 Tesla-Grade Navigation System -->
   <script src="./lib/navigation/HiNavigationSystem.js"></script>
