@@ -12,7 +12,19 @@
 
 - [ ] **Diagnose dual modal issue** — Update Available modal + App Recovery Mode appearing together on mobile. Investigate trigger conditions in `HiPWA.js` + `EmergencyRecovery.js`
 - [ ] **Hi Island user profiles** — Finish profile showcase with bio, info display. Started but not completed.
-- [ ] **Free account signup on welcome page** — Update welcome.html to allow free tier signups without invite code. Define free tier limits vs paid tiers.
+- [ ] **Free account signup on welcome page** — Implementation checklist below
+
+#### 📋 Free Signup Implementation Checklist
+
+| Step | File | Status | Notes |
+|------|------|--------|-------|
+| 1. Deploy RPC | `DEPLOY_FREE_MEMBERSHIP_RPC.sql` | ⬜ | Run in Supabase SQL Editor |
+| 2. Add free signup handler | `signup-init.js` | ⬜ | Call `create_free_membership()` when no invite code |
+| 3. Update welcome page | `welcome.html` | ⬜ | Add "Create Free Account" CTA |
+| 4. Remove invite requirement | `signup.html` | ⬜ | Make invite field optional for free tier |
+| 5. Test free → paid upgrade | Manual test | ⬜ | Verify free user can later use invite code |
+
+**Architecture verified:** Zero schema changes. `user_memberships` table unchanged. Existing users unaffected.
 
 ### 🟡 MEDIUM PRIORITY — Mission Control Fixes
 
