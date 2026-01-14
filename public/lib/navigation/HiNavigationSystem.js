@@ -129,8 +129,20 @@ class HiNavigationSystem {
   // 🚪 Navigation escape routes system
   initEscapeRoutes() {
     // Add floating navigation pill (non-intrusive)
-    // 🎯 GOLD STANDARD: Skip floating nav on landing pages (welcome, signin, signup)
-    const skipFloatingNavPages = ['/welcome.html', '/welcome', '/signin.html', '/signin', '/signup.html', '/signup', '/', '/index.html'];
+    // 🎯 GOLD STANDARD: Skip floating nav on all main app pages
+    // These pages have proper navigation - floating nav only for edge cases
+    const skipFloatingNavPages = [
+      '/welcome.html', '/welcome', 
+      '/signin.html', '/signin', 
+      '/signup.html', '/signup', 
+      '/', '/index.html',
+      '/hi-dashboard.html', '/dashboard',
+      '/hi-island.html', '/hi-island', '/hi-island-NEW.html',
+      '/hi-muscle.html', '/hi-muscle',
+      '/profile.html', '/profile',
+      '/hi-mission-control.html', '/hi-mission-control',
+      '/reset-password.html'
+    ];
     const currentPath = window.location.pathname;
     const shouldSkipFloatingNav = skipFloatingNavPages.some(p => currentPath === p || currentPath.endsWith(p));
     

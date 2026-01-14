@@ -4,6 +4,16 @@
 (function() {
   'use strict';
   
+  // 🎯 GOLD STANDARD: Skip recovery system on auth pages (no session expected)
+  const skipPages = ['/welcome.html', '/welcome', '/signin.html', '/signin', '/signup.html', '/signup', '/reset-password.html', '/', '/index.html'];
+  const currentPath = window.location.pathname;
+  const shouldSkip = skipPages.some(p => currentPath === p || currentPath.endsWith(p));
+  
+  if (shouldSkip) {
+    console.log('[Emergency] Skipping recovery system on auth page');
+    return; // Exit early - don't run freeze detection on pages without sessions
+  }
+  
   console.log('[Emergency] Recovery system initialized');
   
   // Freeze detection config
