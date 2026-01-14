@@ -139,54 +139,6 @@
     console.log('✅ __loadProfileData placeholder exposed early (prevents race condition)');
   </script>
   
-  <!-- CRITICAL: Daily Check-in Button Init -->
-  <script>
-    console.log('🎬 Check-in init script loaded in HEAD');
-    window.initDailyCheckin = function() {
-      console.log('🎯 initDailyCheckin() called');
-      const btn = document.getElementById('dailyCheckinBtn');
-      if(!btn) { console.error('❌ Button not found'); return false; }
-      
-      const client = window.supabaseClient || window.hiSupabase;
-      if(!client) { console.warn('⏳ Client not ready, will retry on auth-ready'); return false; }
-      
-      console.log('✅ Attaching handler NOW');
-      btn.addEventListener('click', async ()=>{
-        console.log('🎯 CLICKED!');
-        const status = document.getElementById('checkinStatus');
-        btn.disabled = true; btn.textContent = 'Checking...';
-        try {
-          const { data, error } = await client.rpc('award_daily_checkin');
-          console.log('📬', data, error);
-          if(error){ status.textContent = error.message; status.style.color = '#f66'; }
-          else {
-            if(data?.awarded){ status.textContent = `+${data.delta}!`; status.style.color = '#6c6'; }
-            else { status.textContent = 'Done today'; status.style.color = '#aaa'; }
-            const el = document.getElementById('pointsBalance'); 
-            if(el && data?.balance !== undefined) el.textContent = data.balance;
-          }
-        } catch(e){ 
-          console.error('❌', e);
-          status.textContent = 'Error'; status.style.color = '#f66';
-        }
-        finally { btn.disabled = false; btn.textContent = 'Daily Check-in +5'; }
-      });
-      return true;
-    };
-    
-    // Try on DOMContentLoaded
-    document.addEventListener('DOMContentLoaded', ()=>{
-      console.log('📄 DOM loaded, trying init...');
-      if(!window.initDailyCheckin()) {
-        console.log('⏳ Waiting for auth-ready...');
-        document.addEventListener('hi:auth-ready', ()=>{
-          console.log('🔐 Auth ready, retrying...');
-          window.initDailyCheckin();
-        }, { once: true });
-      }
-    });
-  </script>
-  
   <!-- 🚀 INTEGRATION #2: HiBase + HiFlags for Profile operations (flagged rollout) -->
   <script type="module" src="./lib/flags/HiFlags.js"></script>
   <script type="module" src="./lib/hibase/index.js"></script>
@@ -1622,11 +1574,11 @@
                           status.textContent = `+${delta} points!`; 
                           status.style.color = '#6c6'; 
                           
-                          // Update points display
+                          // Update points display (RPC returns 'balance', not 'new_balance')
                           const el = document.getElementById('pointsBalance'); 
-                          if(el && data?.new_balance) {
-                            el.textContent = data.new_balance;
-                            console.log('💰 Points updated:', data.new_balance);
+                          if(el && data?.balance !== undefined) {
+                            el.textContent = data.balance;
+                            console.log('💰 Points updated:', data.balance);
                           }
                           
                           // Disable button (already checked in today)
@@ -1638,6 +1590,7 @@
                           status.textContent = 'Already done today'; 
                           status.style.color = '#aaa'; 
                           btn.disabled = true;
+                          btn.textContent = '✅ Done today';
                         }
                       }
                     } catch(e){ 
@@ -3788,42 +3741,8 @@ FOR INSERT WITH CHECK (
       } catch(e){ console.error('❌ Error loading points balance:', e); }
     });
     
-    // Wait for auth-ready to ensure Supabase client is loaded
-    document.addEventListener('hi:auth-ready', ()=>{
-      console.log('🔐 Auth ready - initializing daily check-in button');
-      const btn = document.getElementById('dailyCheckinBtn');
-      const client = window.supabaseClient || window.hiSupabase;
-      
-      console.log('🔘 Daily check-in button found:', !!btn);
-      console.log('🔌 Supabase client ready:', !!client);
-      
-      if(!btn) { console.error('❌ dailyCheckinBtn not found!'); return; }
-      if(!client) { console.error('❌ Supabase client not ready!'); return; }
-      
-      console.log('✅ Attaching click handler to daily check-in button');
-      btn.addEventListener('click', async ()=>{
-        console.log('🎯 Daily check-in button clicked!');
-        const status = document.getElementById('checkinStatus');
-        btn.disabled = true; btn.textContent = 'Checking...';
-        try {
-          console.log('📡 Calling award_daily_checkin RPC...');
-          const { data, error } = await client.rpc('award_daily_checkin');
-          console.log('📬 RPC response:', { data, error });
-          if(error){ status.textContent = error.message; status.style.color = '#f66'; }
-          else {
-            if(data?.awarded){ status.textContent = `+${data.delta} today`; status.style.color = '#6c6'; }
-            else { status.textContent = 'Already checked in today'; status.style.color = '#aaa'; }
-            const el = document.getElementById('pointsBalance'); if(el && typeof data?.balance !== 'undefined') el.textContent = data.balance;
-            try { await refreshLedger(); } catch(_){ }
-          }
-        } catch(e){ 
-          console.error('❌ Check-in error:', e);
-          const status = document.getElementById('checkinStatus'); 
-          if(status){ status.textContent = 'Error: ' + e.message; status.style.color = '#f66'; } 
-        }
-        finally { btn.disabled = false; btn.textContent = 'Daily Check-in +5'; }
-      });
-    });
+    // NOTE: Daily check-in button handler is defined INLINE next to the button (line ~1590)
+    // This prevents duplicate handlers and ensures single source of truth
 
     async function refreshLedger(){
       if(!window.HiPoints) return;
