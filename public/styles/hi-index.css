@@ -275,14 +275,21 @@
   bottom: 0;
   z-index: 9999;
   display: flex;
-  align-items: center;
+  /* 🚀 GOLD STANDARD: Position modal in upper portion of screen */
+  align-items: flex-start;
   justify-content: center;
-  /* 🚀 FIX: Add padding to prevent modal from touching screen edges */
-  padding: 16px;
+  padding: 60px 16px 16px;  /* More top padding to push down from status bar */
   background: rgba(0, 0, 0, 0);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
+}
+
+@media (min-height: 700px) {
+  .hi-index-modal {
+    /* On taller screens, add more top space for better visual balance */
+    padding-top: 10vh;
+  }
 }
 
 .hi-index-modal--visible {
