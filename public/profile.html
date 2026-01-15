@@ -777,6 +777,56 @@
       margin-left: auto;
       margin-right: auto;
     }
+
+    /* Social Links Display */
+    .profile-social-links {
+      display: flex;
+      gap: 12px;
+      margin: 12px 0;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .social-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--tesla-surface);
+      border-radius: 20px;
+      color: var(--tesla-secondary);
+      font-size: 13px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border: 1px solid var(--tesla-border);
+    }
+
+    .social-link:hover {
+      background: var(--tesla-primary);
+      color: var(--tesla-bg);
+      border-color: var(--tesla-primary);
+      transform: translateY(-1px);
+    }
+
+    .social-link svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .social-link.instagram:hover {
+      background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+      border-color: #dc2743;
+    }
+
+    .social-link.twitter:hover {
+      background: #000;
+      border-color: #000;
+    }
+
+    .social-link.tiktok:hover {
+      background: #000;
+      border-color: #00f2ea;
+    }
     
     .profile-location {
       font-size: 14px;
@@ -1138,6 +1188,54 @@
       margin-top: 4px;
       display: block;
     }
+
+    /* Social Links Form Section */
+    .social-links-section {
+      padding-top: 16px;
+      border-top: 1px solid var(--tesla-border);
+      margin-top: 8px;
+    }
+
+    .social-links-section h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--tesla-primary);
+      margin: 0 0 12px 0;
+    }
+
+    .social-input-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .social-input-group svg {
+      width: 20px;
+      height: 20px;
+      color: var(--tesla-secondary);
+      flex-shrink: 0;
+    }
+
+    .social-input-group input {
+      flex: 1;
+      padding: 10px 12px;
+      background: var(--tesla-surface);
+      border: 1px solid var(--tesla-border);
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+    }
+
+    .social-input-group input:focus {
+      outline: none;
+      border-color: var(--tesla-primary);
+    }
+
+    .social-input-group input::placeholder {
+      color: var(--tesla-secondary);
+      opacity: 0.6;
+    }
     
     /* Tesla Toggle Switch */
     .toggle-label {
@@ -1443,6 +1541,7 @@
         <h1 id="profileDisplayName" class="profile-display-name">Loading...</h1>
         <h2 id="profileUsername" class="profile-username">@...</h2>
         <p id="profileBio" class="profile-bio">Loading profile...</p>
+        <div id="profileSocialLinks" class="profile-social-links" style="display: none;"></div>
         <p id="profileLocation" class="profile-location">📍 ...</p>
         <p id="profileJoined" class="profile-joined">Member since October 2025</p>
       </div>
@@ -1740,6 +1839,32 @@
           <p class="location-privacy">🔒 Only country and state/region are shared for privacy</p>
         </div>
 
+        <!-- Social Links Section -->
+        <div class="social-links-section">
+          <h4>🔗 Social Links</h4>
+          <div class="social-input-group">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+            </svg>
+            <input type="text" id="editInstagram" placeholder="Instagram username" maxlength="30">
+          </div>
+          <div class="social-input-group">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+            <input type="text" id="editTwitter" placeholder="X (Twitter) username" maxlength="30">
+          </div>
+          <div class="social-input-group">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+            </svg>
+            <input type="text" id="editTiktok" placeholder="TikTok username" maxlength="30">
+          </div>
+          <small class="form-hint">Usernames only (without @)</small>
+        </div>
+
         <!-- Tesla Security: Public profile feature removed for data protection -->
       </form>
       
@@ -1762,6 +1887,9 @@
       bio: '',
       location: '',
       avatar_url: null,
+      instagram: '',
+      twitter: '',
+      tiktok: '',
       created_at: new Date().toISOString().split('T')[0],
       id: null
     };
@@ -2847,11 +2975,19 @@ FOR INSERT WITH CHECK (
       const usernameEl = document.getElementById('editUsername');
       const bioEl = document.getElementById('editBio');
       const locationEl = document.getElementById('editLocation');
+      const instagramEl = document.getElementById('editInstagram');
+      const twitterEl = document.getElementById('editTwitter');
+      const tiktokEl = document.getElementById('editTiktok');
       
       if (displayNameEl) displayNameEl.value = currentProfile.display_name || '';
       if (usernameEl) usernameEl.value = currentProfile.username || '';
       if (bioEl) bioEl.value = currentProfile.bio || '';
       if (locationEl) locationEl.value = currentProfile.location || '';
+      
+      // Social links
+      if (instagramEl) instagramEl.value = currentProfile.instagram || '';
+      if (twitterEl) twitterEl.value = currentProfile.twitter || '';
+      if (tiktokEl) tiktokEl.value = currentProfile.tiktok || '';
       // Tesla Security: Public profile feature removed
       
       // Update bio counter
@@ -2897,7 +3033,11 @@ FOR INSERT WITH CHECK (
       const formData = {
         display_name: document.getElementById('editDisplayName').value.trim(),
         username: document.getElementById('editUsername').value.replace('@', '').trim(),
-        bio: document.getElementById('editBio').value.trim()
+        bio: document.getElementById('editBio').value.trim(),
+        // Social links (strip @ if user included it)
+        instagram: (document.getElementById('editInstagram')?.value || '').replace('@', '').trim(),
+        twitter: (document.getElementById('editTwitter')?.value || '').replace('@', '').trim(),
+        tiktok: (document.getElementById('editTiktok')?.value || '').replace('@', '').trim()
       };
 
       // Get location from LocationPicker input (Tesla-grade single source of truth)
@@ -3155,6 +3295,48 @@ FOR INSERT WITH CHECK (
       const locationEl = document.getElementById('profileLocation');
       if (locationEl) {
         locationEl.textContent = profileData.location || 'Location not set';
+      }
+
+      // Update social links display
+      const socialLinksEl = document.getElementById('profileSocialLinks');
+      if (socialLinksEl) {
+        const links = [];
+        
+        if (profileData.instagram) {
+          links.push(`<a href="https://instagram.com/${profileData.instagram}" target="_blank" rel="noopener" class="social-link instagram">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+            </svg>
+            @${profileData.instagram}
+          </a>`);
+        }
+        
+        if (profileData.twitter) {
+          links.push(`<a href="https://x.com/${profileData.twitter}" target="_blank" rel="noopener" class="social-link twitter">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+            @${profileData.twitter}
+          </a>`);
+        }
+        
+        if (profileData.tiktok) {
+          links.push(`<a href="https://tiktok.com/@${profileData.tiktok}" target="_blank" rel="noopener" class="social-link tiktok">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+            </svg>
+            @${profileData.tiktok}
+          </a>`);
+        }
+        
+        if (links.length > 0) {
+          socialLinksEl.innerHTML = links.join('');
+          socialLinksEl.style.display = 'flex';
+        } else {
+          socialLinksEl.style.display = 'none';
+        }
       }
       
       // Update joined date

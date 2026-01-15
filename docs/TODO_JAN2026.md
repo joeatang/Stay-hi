@@ -10,30 +10,28 @@
 
 ### 🔴 P1 — IN PROGRESS (Hi Index - New Feature)
 
-- [ ] **#1 Hi Index Dashboard** — Wellness score that scales long-term. 7-day rolling calculation, 1-5 scale. *Started 2026-01-15.*
+- [x] **#1 Hi Index Dashboard** — ✅ DEPLOYED 2026-01-15
+  - Community Hi Index (global stats) ✅
+  - Personal Hi Index with streak multiplier ✅
+  - Tier-gated (free = community only, paid = personal stats) ✅
+  - Modal with chart + streak bonus section ✅
   
-  **Part A: Community Hi Index (Global)**
-  - **Formula:** Shares = 10pts, 100 taps = 1pt, normalized to 1-5 scale
-  - **UI:** Daily % change (↑ Hi Inspiration / ↓ Hi Opportunity), line chart with 7/30/365 toggle
-  - **Placement:** Evaluate dashboard vs modal vs quick-access link
-  - **Approach:** Daily batch aggregation (not real-time) to avoid architecture disruption
+- [ ] **#1b Hi Index Modal — Tesla-Grade Polish** 🆕
+  - [ ] Refactor modal CSS to proper Apple/Tesla design system
+  - [ ] Add 7/30-day chart toggle
+  - [ ] Smooth animations and micro-interactions
+  - [ ] Better typography hierarchy
+
+- [ ] **#1c Emotional Trends Tab (Hi Island)** 🆕 *Brainstorm 2026-01-15*
+  - [ ] Populate "Emotional Trends" tab on Hi Island with deep personal analytics
+  - [ ] 30-day line charts, mood patterns, streak history
+  - [ ] Full personal Hi Index breakdown (the "data nerd" view)
+  - [ ] **Architecture decision:** Dashboard = global stats teaser + personal highlights, Emotional Trends = deep personal dive
   
-  **Part B: Personal Hi Stats (Per-User)** 🆕
-  - **Same 7-day rolling formula** but scoped to individual user's actions
-  - **Personal percentile:** Show where user ranks vs community over time
-  - **Private dashboard view:**
-    - Personal Hi trajectory (line chart)
-    - Personal daily % change
-    - 30-day history chart
-  - **Privacy:** Only visible to the user themselves
-  - **Architecture:** Leverage existing `hi_points_daily_activity` + `user_stats` tables
-  
-  **Files to create:**
-  - `public/lib/HiIndex.js` — Calculation engine (community + personal)
-  - `public/assets/hi-index-ui.js` — Dashboard UI component
-  - SQL: `hi_index_daily_snapshots` table for batch aggregation
-  
-  **Constraint:** Minimal disruption to stable architecture
+- [ ] **#1d Dashboard Stats Architecture** 🆕 *Brainstorm 2026-01-15*
+  - [ ] Dashboard should be **primarily global stats** with personal teaser
+  - [ ] Personal deep-dive lives in Emotional Trends OR Profile tab
+  - [ ] Matches Apple Health / Strava pattern: highlights on main, details in dedicated section
 
 ### 🟠 P2 — User-Facing Polish
 
@@ -56,10 +54,23 @@
 - [ ] **#9 Google OAuth** — Supabase config + frontend buttons. (~1-2 days)
 - [ ] **#10 Apple OAuth** — Requires Apple Dev account. Prep for App Store. (~1-2 days)
 
-### ⚫ P6 — App Store Prep
+### ⚫ P6 — App Store Prep 🆕 *Expanded 2026-01-15*
 
 - [ ] **#11 Capacitor wrapper** — PWA → native iOS/Android. (~2-4 weeks)
 - [ ] **#12 App Store submission** — iOS first (harder = fix issues early)
+- [ ] **#17 App Store Deployment Plan** 🆕
+  - [ ] Document full iOS App Store submission process
+  - [ ] Document full Google Play submission process
+  - [ ] Create app icons (all required sizes)
+  - [ ] Write App Store descriptions + screenshots
+  - [ ] Understand TestFlight beta testing workflow
+  
+- [ ] **#18 Post-Launch Update Strategy** 🆕 *Education needed*
+  - [ ] Learn how iOS/Android app updates work after publish
+  - [ ] Understand review times for updates
+  - [ ] Document "how to push bug fixes to live app"
+  - [ ] PWA fallback strategy (web updates instant, app updates delayed)
+  - [ ] Version numbering strategy (semantic versioning)
 
 ### ⚪ P7 — Future / Research (Lowest Priority)
 
