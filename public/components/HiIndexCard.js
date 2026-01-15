@@ -281,13 +281,18 @@
       const communityArrow = access.trends ? this._getTrendArrow(community.trend, community.percentChange) : '';
       const personalArrow = access.trends && personalHasData ? this._getTrendArrow(personal.trend, personal.percentChange) : '';
       
+      // Streak bonus indicator (for paid tiers with trends)
+      const streakBonus = (access.trends && personalHasData && personal.streak?.hasBonus) 
+        ? `<span class="hi-index-card__streak-bonus" title="${personal.streak.label}">🔥${personal.streak.bonusDisplay}</span>`
+        : '';
+      
       return `
         <div class="hi-index-card hi-index-card--paid ${trendClass}" role="button" tabindex="0" 
              aria-label="Your Hi Index is ${personalDisplay}. Community Hi Index is ${community.indexDisplay}. Tap to see details.">
           <div class="hi-index-card__dual">
             <!-- Personal Stats -->
             <div class="hi-index-card__stat hi-index-card__stat--personal">
-              <span class="hi-index-card__stat-label">You</span>
+              <span class="hi-index-card__stat-label">You ${streakBonus}</span>
               <div class="hi-index-card__stat-row">
                 <span class="hi-index-card__stat-value">${personalDisplay}</span>
                 ${personalArrow}

@@ -647,3 +647,141 @@
 .hi-index-modal__stat-value--gold {
   color: #FFD166 !important;
 }
+
+/* ============================================================================
+   STREAK BONUS STYLES
+   ============================================================================ */
+
+/* Card streak bonus indicator */
+.hi-index-card__streak-bonus {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #F97316;
+  background: rgba(249, 115, 22, 0.15);
+  padding: 2px 6px;
+  border-radius: 8px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+/* Modal streak section */
+.hi-index-modal__streak-section {
+  margin: 16px 0;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+.hi-index-modal__streak-section--active {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(234, 88, 12, 0.05) 100%);
+  border-color: rgba(249, 115, 22, 0.3);
+}
+
+.hi-index-modal__streak-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.hi-index-modal__streak-icon {
+  font-size: 18px;
+}
+
+.hi-index-modal__streak-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  flex: 1;
+}
+
+.hi-index-modal__streak-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #F97316;
+  background: rgba(249, 115, 22, 0.2);
+  padding: 3px 8px;
+  border-radius: 12px;
+}
+
+.hi-index-modal__streak-body {
+  padding-left: 26px; /* Align with title after icon */
+}
+
+.hi-index-modal__streak-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 4px 0;
+}
+
+.hi-index-modal__streak-progress {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 0 4px 0;
+}
+
+.hi-index-modal__streak-math {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 8px 0 0 0;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+}
+
+.hi-index-modal__streak-math strong {
+  color: #FFD166;
+  font-weight: 600;
+}
+
+.hi-index-modal__streak-indicator {
+  font-size: 10px;
+  margin-left: 2px;
+}
+
+/* Streak tiers visual (for deep analytics - Gold+) */
+.hi-index-modal__streak-tiers {
+  display: flex;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.hi-index-modal__streak-tier {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  position: relative;
+}
+
+.hi-index-modal__streak-tier--active {
+  background: linear-gradient(90deg, #F97316, #EA580C);
+}
+
+.hi-index-modal__streak-tier--next {
+  background: rgba(249, 115, 22, 0.3);
+  animation: streak-pulse 2s ease-in-out infinite;
+}
+
+@keyframes streak-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 360px) {
+  .hi-index-card__streak-bonus {
+    font-size: 9px;
+    padding: 1px 4px;
+  }
+  
+  .hi-index-modal__streak-section {
+    padding: 10px 12px;
+  }
+  
+  .hi-index-modal__streak-body {
+    padding-left: 0;
+  }
+}

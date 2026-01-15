@@ -192,12 +192,14 @@
 
     /**
      * Format index data with UI-friendly properties
+     * Handles streak multiplier data for personal index
      */
     _formatIndexData(data, scope) {
       const index = parseFloat(data.index) || 1.0;
       const percentChange = parseFloat(data.percent_change) || 0;
       
-      return {
+      // Base result for both community and personal
+      const result = {
         index: index,
         indexDisplay: index.toFixed(1),
         rawScore: parseFloat(data.raw_score) || 0,
@@ -208,14 +210,58 @@
         trend: data.trend || 'stable',
         trendLabel: this._getTrendLabel(data.trend),
         trendIcon: this._getTrendIcon(data.trend),
-        percentile: scope === 'personal' ? (parseInt(data.percentile) || 0) : null,
-        percentileDisplay: scope === 'personal' ? this._formatPercentile(data.percentile) : null,
         periodDays: data.period_days || 7,
         asOf: data.as_of,
         dots: this._getIndexDots(index),
         levelLabel: this._getLevelLabel(index),
-        scope: scope
+        scope: scope,
+        isEmpty: false
       };
+      
+      // Personal-specific fields
+      if (scope === 'personal') {
+        // Percentile
+        result.percentile = parseInt(data.percentile) || 0;
+        result.percentileDisplay = this._formatPercentile(data.percentile);
+        
+        // Streak multiplier data (new!)
+        const streak = data.streak || {};
+        result.streak = {
+          current: parseInt(streak.current) || 0,
+          multiplier: parseFloat(streak.multiplier) || 1.0,
+          bonusPercent: parseInt(streak.bonus_percent) || 0,
+          label: streak.label || 'Build a 7-day streak for bonus!',
+          daysToNextTier: streak.next_tier !== null ? parseInt(streak.next_tier) : null,
+          hasBonus: (parseFloat(streak.multiplier) || 1.0) > 1.0
+        };
+        
+        // Base index (before multiplier) for transparency
+        result.baseIndex = parseFloat(data.base_index) || index;
+        result.baseIndexDisplay = (parseFloat(data.base_index) || index).toFixed(1);
+        
+        // Bonus display (e.g., "+10%")
+        result.streak.bonusDisplay = result.streak.bonusPercent > 0 
+          ? `+${result.streak.bonusPercent}%` 
+          : null;
+        
+        // Next tier messaging
+        if (result.streak.daysToNextTier !== null) {
+          const days = result.streak.daysToNextTier;
+          result.streak.nextTierMessage = days === 1 
+            ? '1 more day to unlock next bonus!' 
+            : `${days} more days to unlock next bonus!`;
+        } else {
+          result.streak.nextTierMessage = 'Maximum streak bonus achieved! 🏆';
+        }
+      } else {
+        // Community doesn't have these fields
+        result.percentile = null;
+        result.percentileDisplay = null;
+        result.streak = null;
+        result.baseIndex = null;
+      }
+      
+      return result;
     }
 
     /**
@@ -334,7 +380,20 @@
         dots: '○○○○○',
         levelLabel: 'New Explorer',
         scope: 'personal',
-        isEmpty: true
+        isEmpty: true,
+        // Streak fields (empty defaults)
+        streak: {
+          current: 0,
+          multiplier: 1.0,
+          bonusPercent: 0,
+          label: 'Build a 7-day streak for bonus!',
+          daysToNextTier: 7,
+          hasBonus: false,
+          bonusDisplay: null,
+          nextTierMessage: '7 more days to unlock your first bonus!'
+        },
+        baseIndex: 0,
+        baseIndexDisplay: '—'
       };
     }
 

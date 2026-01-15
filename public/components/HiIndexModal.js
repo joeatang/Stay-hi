@@ -309,6 +309,29 @@
      */
     _getPaidContentHTML(community, personal, history, access) {
       const personalHasData = personal && !personal.isEmpty;
+      const streak = personal?.streak || {};
+      const hasStreakBonus = streak.hasBonus && streak.bonusPercent > 0;
+
+      // Streak bonus section (for Bronze+)
+      const streakBonusSection = access.trends ? `
+        <!-- Streak Bonus Section -->
+        <div class="hi-index-modal__streak-section ${hasStreakBonus ? 'hi-index-modal__streak-section--active' : ''}">
+          <div class="hi-index-modal__streak-header">
+            <span class="hi-index-modal__streak-icon">${hasStreakBonus ? '🔥' : '💪'}</span>
+            <span class="hi-index-modal__streak-title">${streak.current || 0}-Day Streak</span>
+            ${hasStreakBonus ? `<span class="hi-index-modal__streak-badge">${streak.bonusDisplay}</span>` : ''}
+          </div>
+          <div class="hi-index-modal__streak-body">
+            <p class="hi-index-modal__streak-label">${streak.label || 'Build a 7-day streak for bonus!'}</p>
+            ${streak.daysToNextTier !== null ? `
+              <p class="hi-index-modal__streak-progress">${streak.nextTierMessage}</p>
+            ` : ''}
+            ${hasStreakBonus && personal.baseIndexDisplay ? `
+              <p class="hi-index-modal__streak-math">Base: ${personal.baseIndexDisplay} × ${streak.multiplier}× = <strong>${personal.indexDisplay}</strong></p>
+            ` : ''}
+          </div>
+        </div>
+      ` : '';
 
       // Personal section
       const personalSection = personalHasData ? `
@@ -318,7 +341,7 @@
           <div class="hi-index-modal__stat-row hi-index-modal__stat-row--personal">
             <div class="hi-index-modal__stat">
               <span class="hi-index-modal__stat-value hi-index-modal__stat-value--gold">${personal.indexDisplay}</span>
-              <span class="hi-index-modal__stat-label">Your Index</span>
+              <span class="hi-index-modal__stat-label">Your Index ${hasStreakBonus ? `<span class="hi-index-modal__streak-indicator">🔥</span>` : ''}</span>
               <span class="hi-index-modal__stat-dots">${personal.dots}</span>
             </div>
             <div class="hi-index-modal__stat">
@@ -332,6 +355,9 @@
               </div>
             ` : ''}
           </div>
+          
+          ${streakBonusSection}
+          
           <!-- Activity Breakdown -->
           <div class="hi-index-modal__breakdown">
             <div class="hi-index-modal__breakdown-row">
