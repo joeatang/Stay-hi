@@ -3,10 +3,37 @@
  * 
  * Shows personal Hi journey: trajectory chart, 30-day history, percentile.
  * Opens from HiIndexCard tap.
+ * 
+ * TIER-GATING:
+ * - Free: Community stats only
+ * - Paid: Personal + Community with breakdown
+ * - Gold+: Deep analytics + percentile rank
  */
 
 (function() {
   'use strict';
+
+  // Tier access levels (matches HiIndexCard.js)
+  const TIER_ACCESS = {
+    'free': { personalStats: false, trends: false, deepAnalytics: false },
+    'anonymous': { personalStats: false, trends: false, deepAnalytics: false },
+    'bronze': { personalStats: true, trends: true, deepAnalytics: false },
+    'silver': { personalStats: true, trends: true, deepAnalytics: false },
+    'gold': { personalStats: true, trends: true, deepAnalytics: true },
+    'premium': { personalStats: true, trends: true, deepAnalytics: true },
+    'collective': { personalStats: true, trends: true, deepAnalytics: true }
+  };
+
+  function getUserTier() {
+    if (window.HiBrandTiers?.getCurrentTier) return window.HiBrandTiers.getCurrentTier();
+    if (window.ProfileManager?.getUserTier) return window.ProfileManager.getUserTier();
+    try { const c = localStorage.getItem('hi_user_tier'); if (c) return c; } catch (e) {}
+    return 'free';
+  }
+
+  function getTierAccess(tier) {
+    return TIER_ACCESS[tier?.toLowerCase()] || TIER_ACCESS['free'];
+  }
 
   class HiIndexModal {
     constructor() {
@@ -105,22 +132,30 @@
       const body = this.element.querySelector('.hi-index-modal__body');
       
       try {
+        // Try to initialize HiIndex if not ready
         if (!window.hiIndexInstance) {
-          throw new Error('HiIndex not initialized');
+          const client = window.HiSupabase?.getClient?.() || window.hiSupabase || window.supabase;
+          if (client && window.HiIndex) {
+            window.hiIndexInstance = new window.HiIndex(client);
+            console.log('[HiIndexModal] Created HiIndex instance on-demand');
+          } else {
+            throw new Error('Supabase client not available');
+          }
         }
 
-        // Load personal + history in parallel
-        const [personal, history] = await Promise.all([
+        // Load community + personal + history in parallel
+        const [community, personal, communityHistory] = await Promise.all([
+          window.hiIndexInstance.getCommunity(),
           window.hiIndexInstance.getPersonal(),
-          window.hiIndexInstance.getHistory()
+          window.hiIndexInstance.getHistory('community', 30)
         ]);
 
-        this.data = { personal, history };
-        body.innerHTML = this._getContentHTML(personal, history);
+        this.data = { community, personal, history: communityHistory };
+        body.innerHTML = this._getContentHTML(community, personal, communityHistory);
         
         // Render chart after DOM ready
         requestAnimationFrame(() => {
-          this._renderChart(history);
+          this._renderChart(communityHistory);
         });
 
       } catch (err) {
@@ -130,47 +165,163 @@
     }
 
     /**
-     * Generate main content HTML
+     * Generate main content HTML - TIER-GATED
      */
-    _getContentHTML(personal, history) {
-      const hasData = !personal.isEmpty && history.length > 0;
+    _getContentHTML(community, personal, history) {
+      // Show content if we have community data (always available)
+      const hasData = community && !community.isEmpty;
       
       if (!hasData) {
         return this._getEmptyStateHTML();
       }
 
+      const tier = getUserTier();
+      const access = getTierAccess(tier);
+
+      // FREE TIER: Community stats only
+      if (!access.personalStats) {
+        return this._getFreeContentHTML(community, history);
+      }
+
+      // PAID TIERS: Full personal + community view
+      return this._getPaidContentHTML(community, personal, history, access);
+    }
+
+    /**
+     * Free tier content: Community only
+     */
+    _getFreeContentHTML(community, history) {
       return `
-        <!-- Current Stats -->
+        <!-- Community Wellness -->
         <div class="hi-index-modal__stats">
           <div class="hi-index-modal__stat hi-index-modal__stat--main">
-            <span class="hi-index-modal__stat-value">${personal.indexDisplay}</span>
-            <span class="hi-index-modal__stat-label">Hi Index</span>
-            <span class="hi-index-modal__stat-dots">${personal.dots}</span>
+            <span class="hi-index-modal__stat-value">${community.indexDisplay}</span>
+            <span class="hi-index-modal__stat-label">Community Hi Index</span>
+            <span class="hi-index-modal__stat-dots">${community.dots}</span>
           </div>
           
           <div class="hi-index-modal__stat-row">
             <div class="hi-index-modal__stat">
-              <span class="hi-index-modal__stat-value ${personal.trend}">${personal.percentChangeDisplay}</span>
-              <span class="hi-index-modal__stat-label">vs Yesterday</span>
+              <span class="hi-index-modal__stat-value">${community.shareCount || 0}</span>
+              <span class="hi-index-modal__stat-label">Shares (7d)</span>
             </div>
-            
-            ${personal.percentile ? `
-              <div class="hi-index-modal__stat">
-                <span class="hi-index-modal__stat-value">${personal.percentileDisplay}</span>
-                <span class="hi-index-modal__stat-label">in Community</span>
-              </div>
-            ` : ''}
+            <div class="hi-index-modal__stat">
+              <span class="hi-index-modal__stat-value">${community.tapCount || 0}</span>
+              <span class="hi-index-modal__stat-label">Taps (7d)</span>
+            </div>
           </div>
         </div>
 
         <!-- Level Label -->
         <div class="hi-index-modal__level">
-          ${personal.trendIcon} ${personal.levelLabel}
+          ${community.trendIcon} ${community.levelLabel}
         </div>
 
-        <!-- 30-Day Chart -->
+        <!-- 30-Day Community Chart -->
         <div class="hi-index-modal__chart-section">
-          <h3 class="hi-index-modal__section-title">Your 30-Day Journey</h3>
+          <h3 class="hi-index-modal__section-title">Community 30-Day Trend</h3>
+          <div class="hi-index-modal__chart-container">
+            <canvas id="hiIndexChart" width="320" height="160"></canvas>
+          </div>
+        </div>
+
+        <!-- Upgrade CTA -->
+        <div class="hi-index-modal__upgrade">
+          <p>🔓 Upgrade to see your personal Hi Index and deeper analytics</p>
+          <button class="hi-index-modal__upgrade-btn" onclick="window.location.href='/public/pricing.html'">
+            View Plans
+          </button>
+        </div>
+
+        <!-- Community Insight -->
+        <div class="hi-index-modal__insight">
+          ${this._getCommunityInsight(community)}
+        </div>
+      `;
+    }
+
+    /**
+     * Paid tier content: Personal + Community
+     */
+    _getPaidContentHTML(community, personal, history, access) {
+      const personalHasData = personal && !personal.isEmpty;
+
+      // Personal section
+      const personalSection = personalHasData ? `
+        <!-- Your Personal Stats -->
+        <div class="hi-index-modal__section hi-index-modal__section--personal">
+          <h3 class="hi-index-modal__section-title">Your Hi Journey</h3>
+          <div class="hi-index-modal__stat-row hi-index-modal__stat-row--personal">
+            <div class="hi-index-modal__stat">
+              <span class="hi-index-modal__stat-value hi-index-modal__stat-value--gold">${personal.indexDisplay}</span>
+              <span class="hi-index-modal__stat-label">Your Index</span>
+              <span class="hi-index-modal__stat-dots">${personal.dots}</span>
+            </div>
+            <div class="hi-index-modal__stat">
+              <span class="hi-index-modal__stat-value ${personal.trend}">${personal.percentChangeDisplay}</span>
+              <span class="hi-index-modal__stat-label">vs Yesterday</span>
+            </div>
+            ${access.deepAnalytics && personal.percentile ? `
+              <div class="hi-index-modal__stat">
+                <span class="hi-index-modal__stat-value">${personal.percentileDisplay}</span>
+                <span class="hi-index-modal__stat-label">Rank</span>
+              </div>
+            ` : ''}
+          </div>
+          <!-- Activity Breakdown -->
+          <div class="hi-index-modal__breakdown">
+            <div class="hi-index-modal__breakdown-row">
+              <div class="hi-index-modal__breakdown-item">
+                <span class="hi-index-modal__breakdown-icon">🌊</span>
+                <span class="hi-index-modal__breakdown-value">${personal.shareCount || 0}</span>
+                <span class="hi-index-modal__breakdown-label">Shares</span>
+              </div>
+              <div class="hi-index-modal__breakdown-item">
+                <span class="hi-index-modal__breakdown-icon">👆</span>
+                <span class="hi-index-modal__breakdown-value">${personal.tapCount || 0}</span>
+                <span class="hi-index-modal__breakdown-label">Taps</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ` : `
+        <!-- Start Journey CTA -->
+        <div class="hi-index-modal__cta">
+          <p>Share or tap to start building your personal Hi Index!</p>
+        </div>
+      `;
+
+      return `
+        ${personalSection}
+
+        <!-- Community Wellness -->
+        <div class="hi-index-modal__stats">
+          <div class="hi-index-modal__stat hi-index-modal__stat--main">
+            <span class="hi-index-modal__stat-value">${community.indexDisplay}</span>
+            <span class="hi-index-modal__stat-label">Community Hi Index</span>
+            <span class="hi-index-modal__stat-dots">${community.dots}</span>
+          </div>
+          
+          <div class="hi-index-modal__stat-row">
+            <div class="hi-index-modal__stat">
+              <span class="hi-index-modal__stat-value ${community.trend}">${community.percentChangeDisplay}</span>
+              <span class="hi-index-modal__stat-label">vs Yesterday</span>
+            </div>
+            <div class="hi-index-modal__stat">
+              <span class="hi-index-modal__stat-value">${community.shareCount || 0}</span>
+              <span class="hi-index-modal__stat-label">Shares (7d)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Level Label -->
+        <div class="hi-index-modal__level">
+          ${community.trendIcon} ${community.levelLabel}
+        </div>
+
+        <!-- 30-Day Community Chart -->
+        <div class="hi-index-modal__chart-section">
+          <h3 class="hi-index-modal__section-title">Community 30-Day Trend</h3>
           <div class="hi-index-modal__chart-container">
             <canvas id="hiIndexChart" width="320" height="160" aria-label="Hi Index chart showing last 30 days"></canvas>
           </div>
@@ -182,28 +333,23 @@
           </div>
         </div>
 
-        <!-- Activity Breakdown -->
-        <div class="hi-index-modal__breakdown">
-          <h3 class="hi-index-modal__section-title">Last 7 Days</h3>
-          <div class="hi-index-modal__breakdown-row">
-            <div class="hi-index-modal__breakdown-item">
-              <span class="hi-index-modal__breakdown-icon">🌊</span>
-              <span class="hi-index-modal__breakdown-value">${personal.shareCount || 0}</span>
-              <span class="hi-index-modal__breakdown-label">Shares</span>
-            </div>
-            <div class="hi-index-modal__breakdown-item">
-              <span class="hi-index-modal__breakdown-icon">👆</span>
-              <span class="hi-index-modal__breakdown-value">${personal.tapCount || 0}</span>
-              <span class="hi-index-modal__breakdown-label">Taps</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Insight -->
+        <!-- Community Insight -->
         <div class="hi-index-modal__insight">
-          ${this._getInsight(personal)}
+          ${this._getCommunityInsight(community)}
         </div>
       `;
+    }
+
+    /**
+     * Get community insight message
+     */
+    _getCommunityInsight(community) {
+      if (community.trend === 'up') {
+        return '✨ The community is thriving! Keep spreading Hi energy.';
+      } else if (community.trend === 'down') {
+        return '🌱 Every Hi counts — share some positivity today!';
+      }
+      return '⚡ Steady vibes in the Hi community.';
     }
 
     /**

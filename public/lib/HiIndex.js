@@ -379,29 +379,56 @@
     }
   }
 
+  // Helper to get Supabase client (multiple fallbacks)
+  function getSupabaseClient() {
+    // Try HiSupabase.getClient() first (primary method)
+    if (window.HiSupabase?.getClient) {
+      return window.HiSupabase.getClient();
+    }
+    // Fallback to window.hiSupabase
+    if (window.hiSupabase) {
+      return window.hiSupabase;
+    }
+    // Fallback to supabase global
+    if (window.supabase) {
+      return window.supabase;
+    }
+    return null;
+  }
+
   // Export to window
   window.HiIndex = HiIndex;
 
   // Auto-initialize when Supabase is ready
   window.addEventListener('hi:supabase-ready', (e) => {
-    const client = e.detail?.client || window.hiSupabase;
+    const client = e.detail?.client || getSupabaseClient();
     if (client && !window.hiIndexInstance) {
       window.hiIndexInstance = new HiIndex(client);
-      console.log('[HiIndex] ✅ Auto-initialized');
+      console.log('[HiIndex] ✅ Auto-initialized (supabase-ready event)');
     }
   });
 
-  // Fallback: Initialize after DOM ready if Supabase exists
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(() => {
-        if (!window.hiIndexInstance && window.hiSupabase) {
-          window.hiIndexInstance = new HiIndex(window.hiSupabase);
-          console.log('[HiIndex] ✅ Fallback initialized');
-        }
-      }, 1000);
-    });
-  }
+  // Also listen to auth-ready (fires after supabase is definitely ready)
+  window.addEventListener('hi:auth-ready', () => {
+    if (!window.hiIndexInstance) {
+      const client = getSupabaseClient();
+      if (client) {
+        window.hiIndexInstance = new HiIndex(client);
+        console.log('[HiIndex] ✅ Auto-initialized (auth-ready event)');
+      }
+    }
+  });
+
+  // Immediate init if Supabase already exists
+  setTimeout(() => {
+    if (!window.hiIndexInstance) {
+      const client = getSupabaseClient();
+      if (client) {
+        window.hiIndexInstance = new HiIndex(client);
+        console.log('[HiIndex] ✅ Initialized (immediate fallback)');
+      }
+    }
+  }, 100);
 
   console.log('[HiIndex] Module loaded');
 })();

@@ -3,10 +3,48 @@
  * 
  * Compact card that displays current Hi Index and opens modal on tap.
  * Injects into dashboard below global stats.
+ * 
+ * TIER-GATING:
+ * - Free tier: Global stats dots only
+ * - Paid tiers: Personal + Global side-by-side with trends
  */
 
 (function() {
   'use strict';
+
+  // Tier access levels for Hi Index features
+  const TIER_ACCESS = {
+    'free': { personalStats: false, trends: false, deepAnalytics: false },
+    'anonymous': { personalStats: false, trends: false, deepAnalytics: false },
+    'bronze': { personalStats: true, trends: true, deepAnalytics: false },
+    'silver': { personalStats: true, trends: true, deepAnalytics: false },
+    'gold': { personalStats: true, trends: true, deepAnalytics: true },
+    'premium': { personalStats: true, trends: true, deepAnalytics: true },
+    'collective': { personalStats: true, trends: true, deepAnalytics: true }
+  };
+
+  // Get current user's tier
+  function getUserTier() {
+    // Try HiBrandTiers first
+    if (window.HiBrandTiers?.getCurrentTier) {
+      return window.HiBrandTiers.getCurrentTier();
+    }
+    // Fallback to ProfileManager
+    if (window.ProfileManager?.getUserTier) {
+      return window.ProfileManager.getUserTier();
+    }
+    // Check localStorage cache
+    try {
+      const cached = localStorage.getItem('hi_user_tier');
+      if (cached) return cached;
+    } catch (e) {}
+    return 'free';
+  }
+
+  // Get tier access level
+  function getTierAccess(tier) {
+    return TIER_ACCESS[tier?.toLowerCase()] || TIER_ACCESS['free'];
+  }
 
   class HiIndexCard {
     constructor(options = {}) {
@@ -33,10 +71,14 @@
       // Show loading state
       this._render({ loading: true });
 
-      // Load data
+      // Load data - COMMUNITY first (always has data), then personal
       try {
         if (window.hiIndexInstance) {
-          this.data = await window.hiIndexInstance.getPersonal();
+          const [community, personal] = await Promise.all([
+            window.hiIndexInstance.getCommunity(),
+            window.hiIndexInstance.getPersonal()
+          ]);
+          this.data = { community, personal };
           this._render(this.data);
         } else {
           // Wait for HiIndex to initialize
@@ -86,7 +128,9 @@
         return;
       }
 
-      if (data.isEmpty) {
+      // Check if BOTH community and personal are empty (very rare)
+      const community = data.community || data;
+      if (community.isEmpty && (!data.personal || data.personal.isEmpty)) {
         container.innerHTML = this._getEmptyHTML();
         this._attachListeners(container);
         return;
@@ -136,28 +180,85 @@
     }
 
     /**
-     * Main card HTML
+     * Main card HTML - Shows COMMUNITY (global wellness) + Personal stats based on tier
      */
     _getCardHTML(data) {
-      const trendClass = data.trend === 'up' ? 'hi-index-card--up' : 
-                        data.trend === 'down' ? 'hi-index-card--down' : '';
+      // data = { community, personal }
+      const community = data.community || data; // Fallback for old format
+      const personal = data.personal;
+      const tier = getUserTier();
+      const access = getTierAccess(tier);
+      
+      const trendClass = community.trend === 'up' ? 'hi-index-card--up' : 
+                        community.trend === 'down' ? 'hi-index-card--down' : '';
+      
+      // Free tier: Global dots only (compact)
+      if (!access.personalStats) {
+        return `
+          <div class="hi-index-card hi-index-card--free ${trendClass}" role="button" tabindex="0" 
+               aria-label="Community Hi Index. Tap to learn more.">
+            <div class="hi-index-card__main">
+              <span class="hi-index-card__icon">✨</span>
+              <div class="hi-index-card__content">
+                <span class="hi-index-card__title">Community Hi</span>
+                <span class="hi-index-card__dots hi-index-card__dots--large" aria-label="${community.indexDisplay} out of 5">${community.dots}</span>
+              </div>
+            </div>
+            <span class="hi-index-card__chevron" aria-hidden="true">›</span>
+          </div>
+        `;
+      }
+      
+      // Paid tiers: Show both Personal + Global side-by-side
+      const personalHasData = personal && !personal.isEmpty;
+      const personalDisplay = personalHasData ? personal.indexDisplay : '—';
+      const personalDots = personalHasData ? personal.dots : '○○○○○';
+      
+      // Trend arrows
+      const communityArrow = access.trends ? this._getTrendArrow(community.trend, community.percentChange) : '';
+      const personalArrow = access.trends && personalHasData ? this._getTrendArrow(personal.trend, personal.percentChange) : '';
       
       return `
-        <div class="hi-index-card ${trendClass}" role="button" tabindex="0" 
-             aria-label="Your Hi Index is ${data.indexDisplay}. ${data.percentChangeDisplay}. Tap to see your journey.">
-          <div class="hi-index-card__main">
-            <span class="hi-index-card__icon">${data.trendIcon}</span>
-            <div class="hi-index-card__content">
-              <div class="hi-index-card__row">
-                <span class="hi-index-card__title">Hi Index: ${data.indexDisplay}</span>
-                <span class="hi-index-card__change ${data.trend}">${data.percentChangeDisplay}</span>
+        <div class="hi-index-card hi-index-card--paid ${trendClass}" role="button" tabindex="0" 
+             aria-label="Your Hi Index is ${personalDisplay}. Community Hi Index is ${community.indexDisplay}. Tap to see details.">
+          <div class="hi-index-card__dual">
+            <!-- Personal Stats -->
+            <div class="hi-index-card__stat hi-index-card__stat--personal">
+              <span class="hi-index-card__stat-label">You</span>
+              <div class="hi-index-card__stat-row">
+                <span class="hi-index-card__stat-value">${personalDisplay}</span>
+                ${personalArrow}
               </div>
-              <span class="hi-index-card__dots" aria-hidden="true">${data.dots}</span>
+              <span class="hi-index-card__stat-dots">${personalDots}</span>
+            </div>
+            
+            <!-- Divider -->
+            <div class="hi-index-card__divider"></div>
+            
+            <!-- Community Stats -->
+            <div class="hi-index-card__stat hi-index-card__stat--community">
+              <span class="hi-index-card__stat-label">Community</span>
+              <div class="hi-index-card__stat-row">
+                <span class="hi-index-card__stat-value">${community.indexDisplay}</span>
+                ${communityArrow}
+              </div>
+              <span class="hi-index-card__stat-dots">${community.dots}</span>
             </div>
           </div>
           <span class="hi-index-card__chevron" aria-hidden="true">›</span>
         </div>
       `;
+    }
+
+    /**
+     * Get trend arrow HTML
+     */
+    _getTrendArrow(trend, percentChange) {
+      if (!trend || trend === 'stable') return '';
+      const arrow = trend === 'up' ? '↑' : '↓';
+      const colorClass = trend === 'up' ? 'hi-index-card__arrow--up' : 'hi-index-card__arrow--down';
+      const value = Math.abs(percentChange || 0).toFixed(0);
+      return `<span class="hi-index-card__arrow ${colorClass}">${arrow}${value}%</span>`;
     }
 
     /**
@@ -188,7 +289,11 @@
       const check = setInterval(async () => {
         if (window.hiIndexInstance) {
           clearInterval(check);
-          this.data = await window.hiIndexInstance.getPersonal();
+          const [community, personal] = await Promise.all([
+            window.hiIndexInstance.getCommunity(),
+            window.hiIndexInstance.getPersonal()
+          ]);
+          this.data = { community, personal };
           this._render(this.data);
         }
       }, 500);
@@ -210,7 +315,11 @@
       
       if (window.hiIndexInstance) {
         window.hiIndexInstance.clearCache();
-        this.data = await window.hiIndexInstance.getPersonal();
+        const [community, personal] = await Promise.all([
+          window.hiIndexInstance.getCommunity(),
+          window.hiIndexInstance.getPersonal()
+        ]);
+        this.data = { community, personal };
         this._render(this.data);
       }
     }
