@@ -1438,9 +1438,10 @@ export class HiShareSheet {
       });
       
       // Tesla: ALL shares get archived (fixes anonymous archive bug)
+      // 🎯 FIX: Check result.ok since HiDB returns {ok:false} instead of throwing
       if (window.hiDB?.insertArchive) {
         let warned=false;
-        await this._withRetry(() => Promise.race([
+        const archiveResult = await this._withRetry(() => Promise.race([
           window.hiDB.insertArchive(archivePayload),
           new Promise((_, reject) => setTimeout(() => reject(new Error('Archive timeout')), 5000))
         ]), 2, 600).then(res => {
@@ -1456,6 +1457,7 @@ export class HiShareSheet {
               statusEl.style.display = 'inline-block';
             }
           } catch {}
+          return res; // 🎯 FIX: Return result for ok check below
         }).catch(err => {
           console.error('❌ CRITICAL: Archive save failed after retries:', err);
           try {
@@ -1470,6 +1472,12 @@ export class HiShareSheet {
           } catch {}
           throw new Error(`Archive failed: ${err?.message || 'unknown'}`); // 🔥 FIX: Throw to fail persist()
         });
+        
+        // 🎯 FIX: HiDB.insertArchive returns {ok:false} on failure, not a rejection
+        if (!archiveResult?.ok) {
+          console.error('❌ CRITICAL: Archive returned failure:', archiveResult);
+          throw new Error(`Archive failed: ${archiveResult?.error || 'Database save failed'}`);
+        }
       }
 
       // 🎯 TESLA FIX #2: Only public/anonymous shares go to island (NO private leaks)
@@ -1491,14 +1499,21 @@ export class HiShareSheet {
         };
         
         // Tesla: Enhanced public share with retry + timeout
+        // 🎯 FIX: Check result.ok since HiDB returns {ok:false} instead of throwing
         let warned=false;
-        await this._withRetry(() => Promise.race([
+        const publicShareResult = await this._withRetry(() => Promise.race([
           window.hiDB.insertPublicShare(publicPayload),
           new Promise((_, reject) => setTimeout(() => reject(new Error('Public share timeout')), 5000))
         ]), 2, 600).catch(err => {
           console.error('❌ CRITICAL: Public share failed after retries:', err);
           throw new Error(`Public share failed: ${err?.message || 'unknown'}`); // 🔥 FIX: Throw to fail persist()
         });
+        
+        // 🎯 FIX: HiDB.insertPublicShare returns {ok:false} on failure, not a rejection
+        if (!publicShareResult?.ok) {
+          console.error('❌ CRITICAL: Public share returned failure:', publicShareResult);
+          throw new Error(`Public share failed: ${publicShareResult?.error || 'Database save failed'}`);
+        }
 
         // Update map (retry quietly)
         if (window.hiDB?.updateMap) {

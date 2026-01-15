@@ -405,13 +405,24 @@
                 This incident has been logged and security has been notified.
             </div>
             <div style="margin-top:24px; display:flex; gap:12px; justify-content:center;">
-                <a href="/signin.html?redirect=/hi-mission-control.html" style="
+                <a id="mcSigninLink" href="signin.html?redirect=hi-mission-control.html" style="
                     background:#10b981; color:#0b1b1e; padding:10px 16px; border-radius:8px;
                     text-decoration:none; font-weight:600;">Sign in to Continue</a>
-                <a href="/welcome.html" style="
+                <a id="mcHomeLink" href="welcome.html" style="
                     border:1px solid #334155; color:#e2e8f0; padding:10px 16px; border-radius:8px;
                     text-decoration:none;">Back to Home</a>
             </div>
+            <script>
+            (function(){
+                try{
+                    const p = window.hiPaths || { page: f=>f };
+                    const signin = document.getElementById('mcSigninLink');
+                    const home = document.getElementById('mcHomeLink');
+                    if(signin) signin.href = p.page ? p.page('signin',{redirect:'hi-mission-control.html'}) : 'signin.html?redirect=hi-mission-control.html';
+                    if(home) home.href = p.page ? p.page('welcome.html') : 'welcome.html';
+                }catch(e){console.warn('[MC] Path fix error:',e);}
+            })();
+            </script>
         </div>
     </div>
     
