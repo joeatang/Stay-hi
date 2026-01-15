@@ -15,9 +15,11 @@
   const listeners = new Set();
 
   function getClient(){
+    // 🚀 FIX: Prefer HiSupabase.getClient() which auto-recreates after pageshow
     const candidates = [
-      window.hiSupabase,
       (window.HiSupabase?.getClient && window.HiSupabase.getClient()),
+      (window.getSupabase && window.getSupabase()),
+      window.hiSupabase,
       window.supabaseClient,
       window.sb
     ];
@@ -66,9 +68,16 @@
         .eq('is_active', true)
         .limit(1)
         .maybeSingle();
-      if (error || !data) return null;
-      return data.role_type || null;
-    } catch { return null; }
+      // 🚀 FIX: Silently handle 500 errors (table may have RLS issues)
+      if (error) {
+        console.warn('[AdminAccessManager] fetchRoleType error (non-critical):', error.code || error.message);
+        return null;
+      }
+      return data?.role_type || null;
+    } catch(e) { 
+      console.warn('[AdminAccessManager] fetchRoleType exception (non-critical):', e.message);
+      return null; 
+    }
   }
 
   async function checkAdmin({ force=false } = {}){

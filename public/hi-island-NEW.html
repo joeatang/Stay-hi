@@ -251,7 +251,8 @@
           return navigator.serviceWorker.controller ? 'controlled' : 'not-controlled';
         }
         function supaState(){
-          const c = window.__HI_SUPABASE_CLIENT || window.hiSupabase || window.supabaseClient || window.sb;
+          // 🚀 FIX: Use HiSupabase.getClient() which auto-recreates after pageshow
+          const c = window.HiSupabase?.getClient?.() || window.getSupabase?.() || window.__HI_SUPABASE_CLIENT || window.hiSupabase || window.supabaseClient || window.sb;
           if (!c) return 'missing';
           const rpcOK = typeof c.rpc === 'function';
           const isStub = !rpcOK;

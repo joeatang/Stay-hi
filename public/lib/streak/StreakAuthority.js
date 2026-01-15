@@ -106,7 +106,12 @@ class StreakAuthority {
    * @private
    */
   static async #fetchFromDatabase(userId) {
-    const client = window.hiSupabase || window.supabaseClient || window.__HI_SUPABASE_CLIENT;
+    // 🚀 FIX: Use HiSupabase.getClient() which auto-recreates client after pageshow clears
+    const client = window.HiSupabase?.getClient?.() 
+      || window.getSupabase?.() 
+      || window.hiSupabase 
+      || window.supabaseClient 
+      || window.__HI_SUPABASE_CLIENT;
     if (!client) {
       throw new Error('Supabase client not available');
     }

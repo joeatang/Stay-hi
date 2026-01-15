@@ -315,7 +315,8 @@
     const btnSignIn = document.getElementById('btnSignIn');
     
     async function updateAccountButton() {
-      const client = window.hiSupabase || window.supabaseClient || window.sb;
+      // 🚀 FIX: Use HiSupabase.getClient() which auto-recreates after pageshow
+      const client = window.HiSupabase?.getClient?.() || window.getSupabase?.() || window.hiSupabase || window.supabaseClient || window.sb;
       const { data } = await client?.auth?.getSession?.() || {};
       const isLoggedIn = !!data?.session;
       
@@ -339,8 +340,8 @@
       btnSignOut.addEventListener('click', async () => {
         console.log('[Dashboard] Sign out initiated');
         try {
-          // Get Supabase client
-          const client = window.hiSupabase || window.supabaseClient || window.sb;
+          // 🚀 FIX: Get Supabase client using getter
+          const client = window.HiSupabase?.getClient?.() || window.getSupabase?.() || window.hiSupabase || window.supabaseClient || window.sb;
           if (client?.auth?.signOut) {
             console.log('[Dashboard] Signing out from Supabase');
             await client.auth.signOut();

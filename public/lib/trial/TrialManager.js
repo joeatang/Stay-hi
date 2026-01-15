@@ -64,7 +64,8 @@
       if (!userId) return { active: false, tier: 'free' };
       
       try {
-        const client = window.hiSupabase || window.supabaseClient;
+        // 🚀 FIX: Use HiSupabase.getClient() which auto-recreates after pageshow
+        const client = window.HiSupabase?.getClient?.() || window.getSupabase?.() || window.hiSupabase || window.supabaseClient;
         if (!client) {
           console.warn('[TrialManager] No Supabase client available');
           return { active: false, tier: 'free' };
