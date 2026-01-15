@@ -1,6 +1,6 @@
 # 🗺️ Hi Code Map
 
-> **Living Document** - Last Updated: January 13, 2026  
+> **Living Document** - Last Updated: January 14, 2026  
 > **Purpose:** Complete architecture reference for the Hi App codebase  
 > **Location:** `/docs/HI_CODE_MAP.md`
 
@@ -17,7 +17,8 @@
 7. [Membership & Tier System](#-membership--tier-system)
 8. [Event System](#-event-system)
 9. [Database Schema](#-database-schema)
-10. [Component Library](#-component-library)
+10. [Hi Points System](#-hi-points-system)
+11. [Component Library](#-component-library)
 11. [Boot Sequence](#-boot-sequence)
 12. [Key Patterns & Conventions](#-key-patterns--conventions)
 13. [Mission Control (Admin)](#-mission-control-admin)
@@ -460,6 +461,88 @@ window.addEventListener('hi:auth-ready', async (e) => {
 
 ---
 
+## 🎯 Hi Points System
+
+### Overview
+
+Hi Points is a tier-gated reward system where **paid tier users only** can earn points for activities. Points can be redeemed for future rewards (comments, merch, features).
+
+### Key Principle: Paid Tiers Only
+
+| Tier | Can Earn Points? | Multiplier |
+|------|------------------|------------|
+| Free | ❌ No | 0.0x |
+| Bronze | ✅ Yes | 1.0x |
+| Silver | ✅ Yes | 1.25x |
+| Gold | ✅ Yes | 1.5x |
+| Premium | ✅ Yes | 2.0x |
+| Collective | ✅ Yes | 2.5x |
+
+### Point Values
+
+| Action | Base Points | Daily Cap | Notes |
+|--------|-------------|-----------|-------|
+| Daily Check-in | 5 pts | 1x/day | Enforced by `hi_points_daily_checkins` |
+| Share | 10 pts | 10/day | Any type: public, private, anonymous |
+| Reaction (wave/peace) | 1 pt | 50/day | Only first reaction per share |
+| Medallion Taps | 1 pt per 100 taps | 10 pts/day | Batch accumulation |
+
+### Database Tables
+
+| Table | Purpose |
+|-------|---------|
+| `hi_points` | User balance storage |
+| `hi_points_ledger` | Immutable transaction log (append-only) |
+| `hi_points_config` | Tier multipliers (admin-editable) |
+| `hi_points_daily_activity` | Per-user daily rate limiting |
+| `hi_points_daily_checkins` | Check-in tracking |
+| `hi_points_redemptions` | Future redemption tracking |
+
+### RPC Functions
+
+| Function | Purpose |
+|----------|---------|
+| `hi_award_points(user, delta, reason, context)` | Core award function (service-only) |
+| `award_daily_checkin()` | +5 pts, once/day |
+| `award_share_points(share_type)` | +10 base pts, 10/day cap |
+| `award_reaction_points(reaction_type)` | +1 base pt, 50/day cap |
+| `award_tap_batch_points(taps)` | +1 pt per 100 taps, 10 batches/day |
+| `get_user_tier_for_points(user_id)` | Get tier + multiplier |
+| `get_daily_points_summary()` | Get current user's points status |
+| `can_user_earn_points(user_id)` | Quick boolean tier check |
+
+### Frontend Integration Points
+
+| File | Function | Point Type |
+|------|----------|------------|
+| `dashboard-main.js` | `incrementHiWave()` | Tap points |
+| `HiShareSheet.js` | `persist()` | Share points |
+| `HiRealFeed.js` | Wave button handler | Reaction points |
+| `HiRealFeed.js` | Peace button handler | Reaction points |
+| `profile.html` | Check-in button | Check-in points |
+
+### Event System
+
+```javascript
+// Listen for points earned
+window.addEventListener('hi:points-earned', (e) => {
+  const { points, source, balance } = e.detail;
+  // source: 'tap', 'share', 'wave', 'peace', 'checkin'
+});
+```
+
+### Client Library
+
+```javascript
+// Get current balance
+const { balance } = await HiPoints.getBalance();
+
+// Get transaction history
+const ledger = await HiPoints.getLedger(20);
+```
+
+---
+
 ## 🧩 Component Library
 
 ### `/public/ui/` Components
@@ -739,6 +822,7 @@ When modifying Mission Control:
 
 | Date | Change |
 |------|--------|
+| 2026-01-14 | Added Hi Points System section with tier multipliers, RPCs, and frontend integration |
 | 2026-01-13 | Added Mission Control (Admin) section |
 | 2026-01-13 | Initial Hi Code Map created |
 

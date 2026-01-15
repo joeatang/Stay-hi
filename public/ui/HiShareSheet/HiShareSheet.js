@@ -1531,6 +1531,29 @@ export class HiShareSheet {
         this.showToast('🔒 Saved privately to your archive ✨');
       }
 
+      // 🎯 HI POINTS: Award share points (10 base pts, paid tiers only)
+      try {
+        const supabase = window.HiSupabase?.getClient?.() || window.supabaseClient;
+        if (supabase && authenticatedUserId) {
+          const shareType = anon ? 'anonymous' : (toIsland ? 'public' : 'private');
+          const { data: pointsData } = await supabase.rpc('award_share_points', { p_share_type: shareType });
+          if (pointsData?.awarded) {
+            console.log('🎯 SHARE POINTS EARNED:', pointsData.points, 'pts (', pointsData.tier, ')');
+            // Show points toast after share toast
+            setTimeout(() => {
+              this.showToast(`+${pointsData.points} Hi Points! 🎯`);
+            }, 1500);
+            window.dispatchEvent(new CustomEvent('hi:points-earned', { 
+              detail: { points: pointsData.points, source: 'share', balance: pointsData.balance, tier: pointsData.tier }
+            }));
+          } else if (pointsData?.reason === 'daily_cap_reached') {
+            console.log('ℹ️ Share points cap reached for today');
+          } else if (pointsData?.reason === 'free_tier') {
+            console.log('ℹ️ Free tier - upgrade to earn points');
+          }
+        }
+      } catch (pointsErr) { console.warn('⚠️ Share points (non-critical):', pointsErr.message); }
+
       // Track stats (non-blocking with timeout + retry)
       if (window.trackShareSubmission) {
         const shareType = anon ? 'anonymous' : (toIsland ? 'public' : 'private');

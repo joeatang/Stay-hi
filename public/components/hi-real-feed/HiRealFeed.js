@@ -2020,6 +2020,19 @@ class HiIslandRealFeed {
         // ignore storage failures
       }
       
+      // 🎯 HI POINTS: Award reaction points (1 base pt, paid tiers only)
+      if (!alreadyWaved) {
+        try {
+          const { data: pointsData } = await supabase.rpc('award_reaction_points', { p_reaction_type: 'wave' });
+          if (pointsData?.awarded) {
+            console.log('🎯 WAVE POINTS EARNED:', pointsData.points, 'pts');
+            window.dispatchEvent(new CustomEvent('hi:points-earned', { 
+              detail: { points: pointsData.points, source: 'wave', balance: pointsData.balance }
+            }));
+          }
+        } catch (pointsErr) { console.warn('⚠️ Wave points (non-critical):', pointsErr.message); }
+      }
+      
       // 🎯 FIX RACE CONDITION: Update feedData in memory AND localStorage
       // This prevents stale counts when navigating away/back before trigger completes
       const currentFeed = this.feedData[this.currentTab] || [];
@@ -2107,6 +2120,19 @@ class HiIslandRealFeed {
         localStorage.setItem('peacedShares', JSON.stringify(Array.from(this.peacedShares)));
       } catch {
         // ignore storage failures
+      }
+      
+      // 🎯 HI POINTS: Award reaction points (1 base pt, paid tiers only)
+      if (!alreadySentPeace) {
+        try {
+          const { data: pointsData } = await supabase.rpc('award_reaction_points', { p_reaction_type: 'peace' });
+          if (pointsData?.awarded) {
+            console.log('🎯 PEACE POINTS EARNED:', pointsData.points, 'pts');
+            window.dispatchEvent(new CustomEvent('hi:points-earned', { 
+              detail: { points: pointsData.points, source: 'peace', balance: pointsData.balance }
+            }));
+          }
+        } catch (pointsErr) { console.warn('⚠️ Peace points (non-critical):', pointsErr.message); }
       }
       
       // 🎯 FIX RACE CONDITION: Update feedData in memory AND localStorage

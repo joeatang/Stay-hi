@@ -180,6 +180,22 @@
         __dbg('✅ HI MEDALLION TAP SUCCESS:', { newWaveCount: result.data, isAuthenticated: !!userId });
         if (window.hiWavesRealtime){ await window.hiWavesRealtime.forceRefresh(); }
         setTimeout(()=> initHiStatsOnce && initHiStatsOnce('medallion-tap-refresh'), 100);
+        
+        // 🎯 HI POINTS: Award tap points (100 taps = 1 point, paid tiers only)
+        try {
+          const supabase = window.HiSupabase?.getClient?.() || window.supabaseClient;
+          if (supabase && userId) {
+            const { data: pointsData } = await supabase.rpc('award_tap_batch_points', { p_taps: 1 });
+            if (pointsData?.awarded) {
+              __dbg('🎯 TAP POINTS EARNED:', pointsData.points, 'pts');
+              window.dispatchEvent(new CustomEvent('hi:points-earned', { 
+                detail: { points: pointsData.points, source: 'tap', balance: pointsData.balance }
+              }));
+            } else if (pointsData?.reason === 'accumulating') {
+              __dbg('🎯 Taps accumulating:', pointsData.taps_accumulated, '/', 100);
+            }
+          }
+        } catch (pointsErr) { console.warn('⚠️ Tap points (non-critical):', pointsErr.message); }
       } else {
         console.error('❌ METRICS SEPARATION ERROR: HiBase.stats not available');
       }
