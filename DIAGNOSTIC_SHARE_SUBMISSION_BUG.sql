@@ -46,12 +46,11 @@ SELECT '═══ SECTION 2: MEMBERSHIP STATUS ═══' as section;
 SELECT 
   um.user_id,
   um.tier,
-  um.is_active,
-  um.expires_at,
+  um.status,
+  um.created_at,
   CASE WHEN um.tier = 'free' THEN '⚠️ Free tier - limited features'
-       WHEN um.is_active = false THEN '❌ Membership inactive'
-       WHEN um.expires_at < NOW() THEN '❌ Membership expired'
-       ELSE '✅ Active paid membership' END as membership_status
+       WHEN um.status != 'active' THEN '❌ Membership not active'
+       ELSE '✅ Active membership' END as membership_status
 FROM user_memberships um
 JOIN auth.users u ON u.id = um.user_id
 WHERE u.email = 'degenmentality@gmail.com';
@@ -342,8 +341,8 @@ SELECT
   '4️⃣ user_stats' as check_area,
   CASE WHEN us.user_id IS NOT NULL THEN '✅ EXISTS' ELSE '⚠️ MISSING (created on first activity)' END as status,
   us.user_id::text as user_id,
-  COALESCE(us.total_his::text, '0') as email,
-  COALESCE(us.total_waves::text, '0') as created,
+  COALESCE(us.total_waves::text, '0') as email,
+  'N/A' as created,
   us.updated_at::text as last_signin
 FROM user_info u
 LEFT JOIN user_stats us ON us.user_id = u.id;

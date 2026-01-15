@@ -8,17 +8,14 @@
 
 ## 🎯 Active Tasks (Prioritized)
 
-### � P0 — IN PROGRESS (Critical Bug Fix)
+### 🔴 P1 — IN PROGRESS (Hi Index - New Feature)
 
-- [ ] **#0 Share Submission Bug** — Anonymous share not appearing + profile click error. Run `DIAGNOSTIC_SHARE_SUBMISSION_BUG.sql`, deploy fixes. *Currently investigating.*
-
-### 🔴 P1 — NEXT UP (Hi Index - New Feature)
-
-- [ ] **#1 Hi Index Dashboard** — Wellness score that scales long-term. 7-day rolling calculation, 1-5 scale. Shares worth more than taps. *Up next after bug fix.*
+- [ ] **#1 Hi Index Dashboard** — Wellness score that scales long-term. 7-day rolling calculation, 1-5 scale. Shares worth more than taps. *Started 2026-01-15.*
   - **Formula:** Shares = 10pts, 100 taps = 1pt, normalized to 1-5 scale
   - **UI:** Daily % change (↑ Hi Inspiration / ↓ Hi Opportunity), line chart with 7/30/365 toggle
   - **Placement:** Evaluate dashboard vs modal vs quick-access link
   - **Constraint:** Minimal disruption to stable architecture
+  - **Approach:** Daily batch aggregation (not real-time) to avoid architecture disruption
 
 ### 🟠 P2 — User-Facing Polish
 
@@ -57,6 +54,12 @@
 
 ### ✅ Recently Completed
 
+- [x] ~~**#0 Share Submission Bug**~~ — ✅ FIXED (2026-01-15). Anonymous shares now truly anonymous.
+  - **Root cause:** RPC COALESCE bug — `v_user_id := COALESCE(p_user_id, auth.uid())` made anonymous shares get real user_id
+  - **Fixes deployed:** `FIX_ANONYMOUS_SHARE_RPC.sql` (RPC now respects NULL), `CLEANUP_FALSELY_ATTRIBUTED_ANON_SHARES.sql` (7 historical shares fixed)
+  - **JS updated:** `HiShareSheet.js` now checks `result.ok` after archive/public share operations
+  - **Diagnostic:** `DIAGNOSTIC_SHARE_SUBMISSION_BUG.sql` created for future debugging
+  - **Architecture verified:** hi_archives (private) separate from public_shares (public/anonymous) — private records unaffected
 - [x] ~~**Diagnose dual modal issue**~~ — ✅ FIXED (2026-01-14). EmergencyRecovery.js now skips auth pages.
 - [x] ~~**Free account signup on welcome page**~~ — ✅ COMPLETE (2026-01-14)
 - [x] ~~**Welcome page logo + floating nav cleanup**~~ — ✅ COMPLETE (2026-01-14)
