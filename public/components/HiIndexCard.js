@@ -13,37 +13,89 @@
   'use strict';
 
   // Tier access levels for Hi Index features
+  // COMPREHENSIVE: All 6 official tiers + legacy/edge cases
   const TIER_ACCESS = {
+    // === FREE TIERS (No personal stats) ===
     'free': { personalStats: false, trends: false, deepAnalytics: false },
     'anonymous': { personalStats: false, trends: false, deepAnalytics: false },
+    'starter': { personalStats: false, trends: false, deepAnalytics: false },     // Legacy SQL value
+    '24hr': { personalStats: false, trends: false, deepAnalytics: false },         // Legacy 24-hour access
+    'trial': { personalStats: false, trends: false, deepAnalytics: false },        // Trial (handled by TrialManager → maps to real tier)
+    
+    // === PAID TIERS (Personal stats + trends) ===
     'bronze': { personalStats: true, trends: true, deepAnalytics: false },
     'silver': { personalStats: true, trends: true, deepAnalytics: false },
+    
+    // === PREMIUM TIERS (Deep analytics) ===
     'gold': { personalStats: true, trends: true, deepAnalytics: true },
     'premium': { personalStats: true, trends: true, deepAnalytics: true },
     'collective': { personalStats: true, trends: true, deepAnalytics: true }
   };
 
-  // Get current user's tier
+  // Get current user's tier (bulletproof detection)
   function getUserTier() {
-    // Try HiBrandTiers first
-    if (window.HiBrandTiers?.getCurrentTier) {
-      return window.HiBrandTiers.getCurrentTier();
+    // 1. Try ProfileManager (most reliable if available)
+    if (window.ProfileManager?.profile?.membership_tier) {
+      const tier = window.ProfileManager.profile.membership_tier;
+      // If trial, let TrialManager resolve effective tier
+      if (tier === 'trial' && window.TrialManager?.getEffectiveTier) {
+        return window.TrialManager.getEffectiveTier(window.ProfileManager.profile);
+      }
+      return tier;
     }
-    // Fallback to ProfileManager
-    if (window.ProfileManager?.getUserTier) {
-      return window.ProfileManager.getUserTier();
+    // 2. Try HiMembership
+    if (window.HiMembership?.membershipStatus?.tier) {
+      const tier = window.HiMembership.membershipStatus.tier;
+      if (tier === 'trial' && window.TrialManager?.getEffectiveTier) {
+        return window.TrialManager.getEffectiveTier(window.HiMembership.membershipStatus);
+      }
+      return tier;
     }
-    // Check localStorage cache
+    // 3. Check localStorage cache (set by AuthReady)
     try {
-      const cached = localStorage.getItem('hi_user_tier');
-      if (cached) return cached;
+      const cached = localStorage.getItem('hi_membership_tier');
+      if (cached && cached !== 'null' && cached !== 'undefined') return cached;
     } catch (e) {}
+    // 4. Check HiBrandTiers current state (display utility but may have tier)
+    if (window.HiBrandTiers?.currentTier) {
+      return window.HiBrandTiers.currentTier;
+    }
+    // 5. Default to free (anonymous users)
     return 'free';
   }
 
-  // Get tier access level
+  // Get tier access level (bulletproof normalization)
   function getTierAccess(tier) {
-    return TIER_ACCESS[tier?.toLowerCase()] || TIER_ACCESS['free'];
+    // Normalize tier: lowercase, trim whitespace, handle nullish
+    const normalized = (tier || 'free').toString().toLowerCase().trim();
+    
+    // Direct lookup first
+    if (TIER_ACCESS[normalized]) {
+      return TIER_ACCESS[normalized];
+    }
+    
+    // Handle legacy/mapped values
+    const TIER_MAP = {
+      'standard': 'bronze',      // Legacy UI label
+      'basic': 'bronze',         // Legacy
+      'pro': 'premium',          // Legacy
+      'unlimited': 'premium',    // Legacy
+      'founder': 'collective',   // Special founder tier
+      'admin': 'collective',     // Admin users get collective access
+      'explorer': 'free',        // Display name mapping
+      'pathfinder': 'bronze',    // Display name mapping
+      'trailblazer': 'silver',   // Display name mapping
+      'champion': 'gold',        // Display name mapping
+      'pioneer': 'premium'       // Display name mapping
+    };
+    
+    const mapped = TIER_MAP[normalized];
+    if (mapped && TIER_ACCESS[mapped]) {
+      return TIER_ACCESS[mapped];
+    }
+    
+    // Ultimate fallback: free tier access
+    return TIER_ACCESS['free'];
   }
 
   class HiIndexCard {
@@ -188,6 +240,17 @@
       const personal = data.personal;
       const tier = getUserTier();
       const access = getTierAccess(tier);
+      
+      // Debug logging
+      console.log('[HiIndexCard] Tier detection:', {
+        tier,
+        access,
+        sources: {
+          profileManager: window.ProfileManager?.profile?.membership_tier,
+          hiMembership: window.HiMembership?.membershipStatus?.tier,
+          localStorage: localStorage.getItem('hi_membership_tier')
+        }
+      });
       
       const trendClass = community.trend === 'up' ? 'hi-index-card--up' : 
                         community.trend === 'down' ? 'hi-index-card--down' : '';
