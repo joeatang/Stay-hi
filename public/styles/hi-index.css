@@ -1,0 +1,432 @@
+/* ============================================================================
+   HI INDEX STYLES
+   Dashboard card + modal styles for Hi Index wellness score system
+   ============================================================================ */
+
+/* ============================================================================
+   TRIGGER CARD — Dashboard Integration
+   ============================================================================ */
+
+.hi-index-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  margin: 12px 0;
+  background: linear-gradient(135deg, 
+    rgba(99, 102, 241, 0.08) 0%,
+    rgba(99, 102, 241, 0.04) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.hi-index-card:hover {
+  background: linear-gradient(135deg, 
+    rgba(99, 102, 241, 0.12) 0%,
+    rgba(99, 102, 241, 0.08) 100%);
+  border-color: rgba(99, 102, 241, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
+
+.hi-index-card:active {
+  transform: translateY(0);
+}
+
+.hi-index-card:focus-visible {
+  outline: 2px solid #6366F1;
+  outline-offset: 2px;
+}
+
+.hi-index-card__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.hi-index-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.hi-index-card__label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.hi-index-card__trend {
+  font-size: 11px;
+  font-weight: 500;
+  color: #10B981;
+  white-space: nowrap;
+  margin-left: 8px;
+}
+
+.hi-index-card__trend:contains("Opportunity") {
+  color: #F59E0B;
+}
+
+.hi-index-card__score {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.hi-index-card__number {
+  font-size: clamp(20px, 4vw, 28px);
+  font-weight: 700;
+  color: #FFD166;
+}
+
+.hi-index-card__max {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.hi-index-card__dots {
+  margin-left: 8px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #FFD166;
+  opacity: 0.8;
+}
+
+.hi-index-card__cta {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+}
+
+/* Mobile adjustment */
+@media (max-width: 480px) {
+  .hi-index-card {
+    padding: 12px 16px;
+    margin: 8px 0;
+  }
+
+  .hi-index-card__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .hi-index-card__trend {
+    margin-left: 0;
+  }
+}
+
+/* ============================================================================
+   MODAL — Full Hi Index View
+   ============================================================================ */
+
+.hi-index-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.hi-index-modal--visible {
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hi-index-modal__backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  cursor: pointer;
+}
+
+.hi-index-modal__content {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(135deg,
+    rgba(26, 29, 58, 0.95) 0%,
+    rgba(37, 43, 82, 0.95) 100%);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 32px 24px;
+  max-width: 100%;
+  width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalSlideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hi-index-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.hi-index-modal__title {
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+}
+
+.hi-index-modal__close {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.hi-index-modal__close:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
+}
+
+/* Score Section */
+.hi-index-score {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.hi-index-score__value {
+  font-size: 48px;
+  font-weight: 700;
+  color: #FFD166;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.hi-index-score__scale {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 16px;
+}
+
+.hi-index-score__dots {
+  font-size: 24px;
+  letter-spacing: 2px;
+  color: #FFD166;
+  margin-bottom: 16px;
+}
+
+.hi-index-score__trend {
+  font-size: 14px;
+  font-weight: 600;
+  color: #10B981;
+}
+
+.hi-index-score__percentile {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 12px;
+}
+
+/* Chart Section */
+.hi-index-chart {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.hi-index-chart__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hi-index-chart__toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.hi-index-chart__toggle-btn {
+  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hi-index-chart__toggle-btn.active {
+  background: #6366F1;
+  border-color: #6366F1;
+  color: white;
+}
+
+.hi-index-chart__canvas {
+  width: 100%;
+  height: 200px;
+  display: block;
+}
+
+.hi-index-chart__loading {
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+}
+
+/* Activity Section */
+.hi-index-activity {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.hi-index-activity__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 16px;
+}
+
+.hi-index-activity__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hi-index-activity__item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.hi-index-activity__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.hi-index-activity__value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #FFD166;
+}
+
+.hi-index-activity__note {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Empty State */
+.hi-index-empty {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.hi-index-empty__icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.hi-index-empty__title {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 8px;
+}
+
+.hi-index-empty__message {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+}
+
+/* Loading Shimmer */
+.hi-index-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.05)
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .hi-index-card,
+  .hi-index-modal__content,
+  .hi-index-chart__toggle-btn {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* Desktop modal sizing */
+@media (min-width: 640px) {
+  .hi-index-modal__content {
+    width: 480px;
+    max-height: 85vh;
+  }
+}

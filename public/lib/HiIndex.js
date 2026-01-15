@@ -1,0 +1,407 @@
+/**
+ * 🌟 HiIndex.js — Hi Index Calculation Engine
+ * 
+ * Client-side wrapper for Hi Index RPCs.
+ * Handles caching, loading states, and error recovery.
+ * 
+ * Usage:
+ *   const hiIndex = new HiIndex(supabaseClient);
+ *   const personal = await hiIndex.getPersonal();
+ *   const community = await hiIndex.getCommunity();
+ *   const history = await hiIndex.getHistory('personal', 30);
+ */
+
+(function() {
+  'use strict';
+
+  // Cache TTL (5 minutes for index, 1 hour for history)
+  const INDEX_CACHE_TTL = 5 * 60 * 1000;
+  const HISTORY_CACHE_TTL = 60 * 60 * 1000;
+
+  class HiIndex {
+    constructor(supabase) {
+      this.supabase = supabase;
+      this.cache = {
+        personal: null,
+        community: null,
+        personalHistory: null,
+        communityHistory: null
+      };
+      this.cacheTimestamps = {};
+      this.loading = {
+        personal: false,
+        community: false,
+        history: false
+      };
+    }
+
+    /**
+     * Get personal Hi Index (7-day rolling score)
+     * @param {boolean} forceRefresh - Bypass cache
+     * @returns {Promise<Object>} Personal index data
+     */
+    async getPersonal(forceRefresh = false) {
+      const cacheKey = 'personal';
+      
+      // Check cache
+      if (!forceRefresh && this._isCacheValid(cacheKey, INDEX_CACHE_TTL)) {
+        console.log('[HiIndex] Using cached personal index');
+        return this.cache.personal;
+      }
+
+      // Prevent duplicate requests
+      if (this.loading.personal) {
+        console.log('[HiIndex] Personal index already loading, waiting...');
+        return this._waitForLoading('personal');
+      }
+
+      this.loading.personal = true;
+
+      try {
+        const { data, error } = await this.supabase.rpc('get_personal_hi_index', { p_days: 7 });
+        
+        if (error) {
+          console.error('[HiIndex] Personal index error:', error);
+          throw error;
+        }
+
+        // Handle not authenticated
+        if (data?.error === 'not_authenticated') {
+          console.log('[HiIndex] User not authenticated');
+          return this._getEmptyPersonal();
+        }
+
+        this.cache.personal = this._formatIndexData(data, 'personal');
+        this.cacheTimestamps.personal = Date.now();
+        
+        console.log('[HiIndex] Personal index loaded:', this.cache.personal);
+        return this.cache.personal;
+
+      } catch (err) {
+        console.error('[HiIndex] Failed to load personal index:', err);
+        return this._getEmptyPersonal();
+      } finally {
+        this.loading.personal = false;
+      }
+    }
+
+    /**
+     * Get community Hi Index (7-day rolling score)
+     * @param {boolean} forceRefresh - Bypass cache
+     * @returns {Promise<Object>} Community index data
+     */
+    async getCommunity(forceRefresh = false) {
+      const cacheKey = 'community';
+      
+      // Check cache
+      if (!forceRefresh && this._isCacheValid(cacheKey, INDEX_CACHE_TTL)) {
+        console.log('[HiIndex] Using cached community index');
+        return this.cache.community;
+      }
+
+      // Prevent duplicate requests
+      if (this.loading.community) {
+        console.log('[HiIndex] Community index already loading, waiting...');
+        return this._waitForLoading('community');
+      }
+
+      this.loading.community = true;
+
+      try {
+        const { data, error } = await this.supabase.rpc('get_community_hi_index', { p_days: 7 });
+        
+        if (error) {
+          console.error('[HiIndex] Community index error:', error);
+          throw error;
+        }
+
+        this.cache.community = this._formatIndexData(data, 'community');
+        this.cacheTimestamps.community = Date.now();
+        
+        console.log('[HiIndex] Community index loaded:', this.cache.community);
+        return this.cache.community;
+
+      } catch (err) {
+        console.error('[HiIndex] Failed to load community index:', err);
+        return this._getEmptyCommunity();
+      } finally {
+        this.loading.community = false;
+      }
+    }
+
+    /**
+     * Get historical index data for charts
+     * @param {string} scope - 'personal' or 'community'
+     * @param {number} days - Number of days (default 30)
+     * @returns {Promise<Object>} Historical data
+     */
+    async getHistory(scope = 'personal', days = 30) {
+      const cacheKey = scope === 'community' ? 'communityHistory' : 'personalHistory';
+      
+      // Check cache
+      if (this._isCacheValid(cacheKey, HISTORY_CACHE_TTL)) {
+        console.log(`[HiIndex] Using cached ${scope} history`);
+        return this.cache[cacheKey];
+      }
+
+      try {
+        const { data, error } = await this.supabase.rpc('get_hi_index_history', { 
+          p_scope: scope, 
+          p_days: days 
+        });
+        
+        if (error) {
+          console.error('[HiIndex] History error:', error);
+          throw error;
+        }
+
+        if (data?.error === 'not_authenticated') {
+          return { scope, days, data: [] };
+        }
+
+        const formatted = {
+          scope: data.scope,
+          days: data.days,
+          data: data.data || []
+        };
+
+        this.cache[cacheKey] = formatted;
+        this.cacheTimestamps[cacheKey] = Date.now();
+        
+        console.log(`[HiIndex] ${scope} history loaded:`, formatted.data.length, 'days');
+        return formatted;
+
+      } catch (err) {
+        console.error('[HiIndex] Failed to load history:', err);
+        return { scope, days, data: [] };
+      }
+    }
+
+    /**
+     * Get both personal and community index in parallel
+     * @returns {Promise<Object>} Combined index data
+     */
+    async getBoth() {
+      const [personal, community] = await Promise.all([
+        this.getPersonal(),
+        this.getCommunity()
+      ]);
+
+      return { personal, community };
+    }
+
+    /**
+     * Format index data with UI-friendly properties
+     */
+    _formatIndexData(data, scope) {
+      const index = parseFloat(data.index) || 1.0;
+      const percentChange = parseFloat(data.percent_change) || 0;
+      
+      return {
+        index: index,
+        indexDisplay: index.toFixed(1),
+        rawScore: parseFloat(data.raw_score) || 0,
+        shareCount: parseInt(data.share_count) || 0,
+        tapCount: parseInt(data.tap_count) || 0,
+        percentChange: percentChange,
+        percentChangeDisplay: this._formatPercentChange(percentChange),
+        trend: data.trend || 'stable',
+        trendLabel: this._getTrendLabel(data.trend),
+        trendIcon: this._getTrendIcon(data.trend),
+        percentile: scope === 'personal' ? (parseInt(data.percentile) || 0) : null,
+        percentileDisplay: scope === 'personal' ? this._formatPercentile(data.percentile) : null,
+        periodDays: data.period_days || 7,
+        asOf: data.as_of,
+        dots: this._getIndexDots(index),
+        levelLabel: this._getLevelLabel(index),
+        scope: scope
+      };
+    }
+
+    /**
+     * Format percent change for display
+     */
+    _formatPercentChange(value) {
+      if (value === 0) return 'No change';
+      const sign = value > 0 ? '↑' : '↓';
+      return `${sign}${Math.abs(value).toFixed(1)}%`;
+    }
+
+    /**
+     * Get trend label (positive framing)
+     */
+    _getTrendLabel(trend) {
+      switch (trend) {
+        case 'up': return 'Hi Inspiration';
+        case 'down': return 'Hi Opportunity';
+        default: return 'Steady';
+      }
+    }
+
+    /**
+     * Get trend icon
+     */
+    _getTrendIcon(trend) {
+      switch (trend) {
+        case 'up': return '✨';
+        case 'down': return '🌱';
+        default: return '⚡';
+      }
+    }
+
+    /**
+     * Get visual dots for index (●○ style)
+     */
+    _getIndexDots(index) {
+      const filled = Math.round(index);
+      const dots = [];
+      for (let i = 1; i <= 5; i++) {
+        dots.push(i <= filled ? '●' : '○');
+      }
+      return dots.join('');
+    }
+
+    /**
+     * Get level label based on index
+     */
+    _getLevelLabel(index) {
+      if (index >= 4.5) return 'Hi Master';
+      if (index >= 3.5) return 'Flourishing';
+      if (index >= 2.5) return 'Growing Strong';
+      if (index >= 1.5) return 'Taking Root';
+      return 'Planting Seeds';
+    }
+
+    /**
+     * Format percentile for display
+     */
+    _formatPercentile(percentile) {
+      const p = parseInt(percentile) || 0;
+      if (p >= 90) return 'Top 10%';
+      if (p >= 75) return 'Top 25%';
+      if (p >= 50) return 'Top 50%';
+      if (p >= 25) return 'Top 75%';
+      return 'Getting started';
+    }
+
+    /**
+     * Check if cache is still valid
+     */
+    _isCacheValid(key, ttl) {
+      const timestamp = this.cacheTimestamps[key];
+      if (!timestamp) return false;
+      return (Date.now() - timestamp) < ttl && this.cache[key] !== null;
+    }
+
+    /**
+     * Wait for loading to complete
+     */
+    async _waitForLoading(key) {
+      return new Promise((resolve) => {
+        const checkInterval = setInterval(() => {
+          if (!this.loading[key]) {
+            clearInterval(checkInterval);
+            resolve(this.cache[key]);
+          }
+        }, 100);
+        // Timeout after 5s
+        setTimeout(() => {
+          clearInterval(checkInterval);
+          resolve(this.cache[key] || this._getEmptyPersonal());
+        }, 5000);
+      });
+    }
+
+    /**
+     * Empty personal index (for unauthenticated or errors)
+     */
+    _getEmptyPersonal() {
+      return {
+        index: 0,
+        indexDisplay: '—',
+        rawScore: 0,
+        shareCount: 0,
+        tapCount: 0,
+        percentChange: 0,
+        percentChangeDisplay: 'Start your journey',
+        trend: 'stable',
+        trendLabel: 'Welcome',
+        trendIcon: '👋',
+        percentile: null,
+        percentileDisplay: 'Share or tap to begin',
+        periodDays: 7,
+        asOf: null,
+        dots: '○○○○○',
+        levelLabel: 'New Explorer',
+        scope: 'personal',
+        isEmpty: true
+      };
+    }
+
+    /**
+     * Empty community index (for errors)
+     */
+    _getEmptyCommunity() {
+      return {
+        index: 1.0,
+        indexDisplay: '1.0',
+        rawScore: 0,
+        shareCount: 0,
+        tapCount: 0,
+        percentChange: 0,
+        percentChangeDisplay: 'No data',
+        trend: 'stable',
+        trendLabel: 'Growing',
+        trendIcon: '🌱',
+        percentile: null,
+        percentileDisplay: null,
+        periodDays: 7,
+        asOf: null,
+        dots: '●○○○○',
+        levelLabel: 'Planting Seeds',
+        scope: 'community',
+        isEmpty: true
+      };
+    }
+
+    /**
+     * Clear all caches (call after user action like share/tap)
+     */
+    clearCache() {
+      this.cache = {
+        personal: null,
+        community: null,
+        personalHistory: null,
+        communityHistory: null
+      };
+      this.cacheTimestamps = {};
+      console.log('[HiIndex] Cache cleared');
+    }
+  }
+
+  // Export to window
+  window.HiIndex = HiIndex;
+
+  // Auto-initialize when Supabase is ready
+  window.addEventListener('hi:supabase-ready', (e) => {
+    const client = e.detail?.client || window.hiSupabase;
+    if (client && !window.hiIndexInstance) {
+      window.hiIndexInstance = new HiIndex(client);
+      console.log('[HiIndex] ✅ Auto-initialized');
+    }
+  });
+
+  // Fallback: Initialize after DOM ready if Supabase exists
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        if (!window.hiIndexInstance && window.hiSupabase) {
+          window.hiIndexInstance = new HiIndex(window.hiSupabase);
+          console.log('[HiIndex] ✅ Fallback initialized');
+        }
+      }, 1000);
+    });
+  }
+
+  console.log('[HiIndex] Module loaded');
+})();
