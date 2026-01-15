@@ -215,11 +215,13 @@
         ]);
 
         this.data = { community, personal, history: communityHistory };
+        this._chartDays = 30; // Default to 30 days
         body.innerHTML = this._getContentHTML(community, personal, communityHistory);
         
-        // Render chart after DOM ready
+        // Render chart and setup toggle after DOM ready
         requestAnimationFrame(() => {
-          this._renderChart(communityHistory.data);
+          this._renderChart(communityHistory.data, 30);
+          this._setupChartToggle();
         });
 
       } catch (err) {
@@ -281,9 +283,15 @@
           ${community.trendIcon} ${community.levelLabel}
         </div>
 
-        <!-- 30-Day Community Chart -->
+        <!-- Community Chart with 7/30 Day Toggle -->
         <div class="hi-index-modal__chart-section">
-          <h3 class="hi-index-modal__section-title">Community 30-Day Trend</h3>
+          <div class="hi-index-chart__title">
+            <span>Community Trend</span>
+            <div class="hi-index-chart__toggle">
+              <button class="hi-index-chart__toggle-btn" data-days="7">7d</button>
+              <button class="hi-index-chart__toggle-btn active" data-days="30">30d</button>
+            </div>
+          </div>
           <div class="hi-index-modal__chart-container">
             <canvas id="hiIndexChart" width="320" height="160"></canvas>
           </div>
@@ -409,17 +417,17 @@
           ${community.trendIcon} ${community.levelLabel}
         </div>
 
-        <!-- 30-Day Community Chart -->
+        <!-- Community Chart with 7/30 Day Toggle -->
         <div class="hi-index-modal__chart-section">
-          <h3 class="hi-index-modal__section-title">Community 30-Day Trend</h3>
-          <div class="hi-index-modal__chart-container">
-            <canvas id="hiIndexChart" width="320" height="160" aria-label="Hi Index chart showing last 30 days"></canvas>
+          <div class="hi-index-chart__title">
+            <span>Community Trend</span>
+            <div class="hi-index-chart__toggle">
+              <button class="hi-index-chart__toggle-btn" data-days="7">7d</button>
+              <button class="hi-index-chart__toggle-btn active" data-days="30">30d</button>
+            </div>
           </div>
-          <div class="hi-index-modal__chart-legend">
-            <span class="hi-index-modal__legend-item">
-              <span class="hi-index-modal__legend-dot"></span>
-              Daily Hi Index
-            </span>
+          <div class="hi-index-modal__chart-container">
+            <canvas id="hiIndexChart" width="320" height="160" aria-label="Hi Index chart"></canvas>
           </div>
         </div>
 
@@ -491,9 +499,9 @@
     }
 
     /**
-     * Render 30-day chart using Canvas
+     * Render chart using Canvas (supports 7 or 30 day views)
      */
-    _renderChart(history) {
+    _renderChart(history, days = 30) {
       const canvas = document.getElementById('hiIndexChart');
       if (!canvas) return;
 
@@ -509,8 +517,8 @@
         return;
       }
 
-      // Prepare data (ensure 30 days, fill gaps with null)
-      const data = this._prepareChartData(history);
+      // Prepare data (ensure correct days, fill gaps with null)
+      const data = this._prepareChartData(history, days);
       
       // Chart dimensions
       const padding = { top: 20, right: 20, bottom: 30, left: 35 };
@@ -545,11 +553,15 @@
         ctx.fillText(i.toString(), padding.left - 8, y + 3);
       }
 
-      // X-axis labels (every 7 days)
+      // X-axis labels (dynamic based on days)
       ctx.textAlign = 'center';
       const today = new Date();
       
-      [0, 7, 14, 21, 29].forEach(dayOffset => {
+      const xLabels = days === 7 
+        ? [0, 2, 4, 6]  // 7-day view: Today, -2d, -4d, -6d
+        : [0, 7, 14, 21, 29];  // 30-day view
+      
+      xLabels.forEach(dayOffset => {
         if (dayOffset < data.length) {
           const x = padding.left + (data.length - 1 - dayOffset) * xStep;
           const label = dayOffset === 0 ? 'Today' : `-${dayOffset}d`;
@@ -560,7 +572,7 @@
       // Line path
       ctx.beginPath();
       ctx.strokeStyle = '#FFD166';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = days === 7 ? 3 : 2; // Thicker line for 7-day view
       ctx.lineJoin = 'round';
       ctx.lineCap = 'round';
 
@@ -626,10 +638,10 @@
     }
 
     /**
-     * Prepare chart data array (30 days)
+     * Prepare chart data array (7 or 30 days)
      */
-    _prepareChartData(history) {
-      const data = new Array(30).fill(null);
+    _prepareChartData(history, days = 30) {
+      const data = new Array(days).fill(null);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -638,8 +650,8 @@
         entryDate.setHours(0, 0, 0, 0);
         const daysAgo = Math.floor((today - entryDate) / (1000 * 60 * 60 * 24));
         
-        if (daysAgo >= 0 && daysAgo < 30) {
-          data[29 - daysAgo] = entry.personal_index;
+        if (daysAgo >= 0 && daysAgo < days) {
+          data[days - 1 - daysAgo] = entry.personal_index;
         }
       });
 
@@ -667,6 +679,53 @@
       announcer.textContent = message;
       document.body.appendChild(announcer);
       setTimeout(() => announcer.remove(), 1000);
+    }
+
+    /**
+     * Setup 7/30 day chart toggle buttons
+     */
+    _setupChartToggle() {
+      const toggleBtns = this.element.querySelectorAll('.hi-index-chart__toggle-btn');
+      if (!toggleBtns.length) return;
+
+      toggleBtns.forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const days = parseInt(btn.dataset.days, 10);
+          if (days === this._chartDays) return; // Already showing this view
+
+          // Update active state
+          toggleBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          this._chartDays = days;
+
+          // Fade out, update, fade in
+          const canvas = document.getElementById('hiIndexChart');
+          if (canvas) {
+            canvas.classList.add('hi-index-chart__canvas--fading');
+          }
+
+          // Load new data if needed
+          try {
+            if (days === 7) {
+              // Use last 7 days of existing 30-day data
+              const last7 = this.data.history.data?.slice(-7) || [];
+              setTimeout(() => {
+                this._renderChart(last7, 7);
+                canvas?.classList.remove('hi-index-chart__canvas--fading');
+              }, 150);
+            } else {
+              // Show full 30 days
+              setTimeout(() => {
+                this._renderChart(this.data.history.data, 30);
+                canvas?.classList.remove('hi-index-chart__canvas--fading');
+              }, 150);
+            }
+          } catch (err) {
+            console.warn('[HiIndexModal] Toggle error:', err);
+            canvas?.classList.remove('hi-index-chart__canvas--fading');
+          }
+        });
+      });
     }
   }
 

@@ -340,6 +340,45 @@
   }
 }
 
+/* Staggered entrance animations */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hi-index-modal__stats,
+.hi-index-modal__section,
+.hi-index-modal__chart-section,
+.hi-index-modal__insight,
+.hi-index-modal__upgrade,
+.hi-index-modal__streak-section {
+  animation: fadeSlideIn 0.4s ease-out backwards;
+}
+
+.hi-index-modal__stats { animation-delay: 0.1s; }
+.hi-index-modal__section--personal { animation-delay: 0.15s; }
+.hi-index-modal__streak-section { animation-delay: 0.2s; }
+.hi-index-modal__chart-section { animation-delay: 0.25s; }
+.hi-index-modal__insight { animation-delay: 0.35s; }
+.hi-index-modal__upgrade { animation-delay: 0.3s; }
+
+/* Score number animation */
+@keyframes countUp {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.hi-index-modal__stat-value {
+  animation: countUp 0.5s ease-out backwards;
+  animation-delay: 0.2s;
+}
+
 .hi-index-modal__header {
   display: flex;
   align-items: center;
@@ -391,6 +430,16 @@
   color: #FFD166;
   line-height: 1;
   margin-bottom: 8px;
+  /* Enhanced score emphasis */
+  text-shadow: 0 0 30px rgba(255, 209, 102, 0.4);
+}
+
+/* Main stat value in modal - larger and more prominent */
+.hi-index-modal__stat--main .hi-index-modal__stat-value {
+  font-size: 56px;
+  font-weight: 800;
+  color: #FFD166;
+  text-shadow: 0 0 40px rgba(255, 209, 102, 0.5);
 }
 
 .hi-index-score__scale {
@@ -454,16 +503,31 @@
   transition: all 0.2s ease;
 }
 
+.hi-index-chart__toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
 .hi-index-chart__toggle-btn.active {
   background: #6366F1;
   border-color: #6366F1;
   color: white;
 }
 
+.hi-index-chart__toggle-btn.active:hover {
+  background: #4F46E5;
+}
+
 .hi-index-chart__canvas {
   width: 100%;
   height: 200px;
   display: block;
+}
+
+/* Chart canvas fade transition */
+.hi-index-chart__canvas--fading {
+  opacity: 0.3;
+  transition: opacity 0.15s ease;
 }
 
 .hi-index-chart__loading {
