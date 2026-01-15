@@ -18,10 +18,12 @@
 8. [Event System](#-event-system)
 9. [Database Schema](#-database-schema)
 10. [Hi Points System](#-hi-points-system)
-11. [Component Library](#-component-library)
-11. [Boot Sequence](#-boot-sequence)
-12. [Key Patterns & Conventions](#-key-patterns--conventions)
-13. [Mission Control (Admin)](#-mission-control-admin)
+11. [Hi Wall (Planned)](#-hi-wall-planned-feature)
+12. [Notification System (Planned)](#-notification-system-planned-feature)
+13. [Component Library](#-component-library)
+14. [Boot Sequence](#-boot-sequence)
+15. [Key Patterns & Conventions](#-key-patterns--conventions)
+16. [Mission Control (Admin)](#-mission-control-admin)
 
 ---
 
@@ -543,7 +545,240 @@ const ledger = await HiPoints.getLedger(20);
 
 ---
 
-## 🧩 Component Library
+## � Hi Wall (Planned Feature)
+
+> **Status:** Design Complete | **Target:** Q1 2026
+
+### Concept
+
+Hi Wall is a points-redemption feature where users spend Hi Points to leave encouraging notes for other community members. The points cost provides natural rate-limiting and gives points real value.
+
+### User Experience
+
+**Viewing Notes (Recipient):**
+- **Location:** Profile page → "💬 Hi Notes" tab
+- **Display:** Chronological feed of notes received
+- **Privacy:** Only visible to the recipient (and sender)
+
+**Leaving Notes (Sender):**
+- **Trigger Points:**
+  1. Profile Modal → "Leave a Hi Note 💬" button
+  2. Share Card → Long-press menu → "Send Note to @user"
+  3. Hi Wall Page → "Write a Note" with user search
+- **Cost:** 10-50 points per note (configurable)
+- **Limit:** 140 characters max (like old Twitter)
+
+### Compose Modal Design
+
+```
+┌─────────────────────────────────────┐
+│  ✨ Leave a Hi Note                  │
+│                                      │
+│  To: @joeatang                       │
+│  ┌─────────────────────────────────┐│
+│  │ Write something encouraging...  ││
+│  │                                 ││
+│  └─────────────────────────────────┘│
+│  0/140 characters                    │
+│                                      │
+│  Cost: 25 Hi Points                  │
+│  Your balance: 150 pts               │
+│                                      │
+│  [Cancel]        [Send Note 💬]      │
+└─────────────────────────────────────┘
+```
+
+### Database Schema (Planned)
+
+```sql
+CREATE TABLE hi_wall_notes (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  from_user_id uuid NOT NULL REFERENCES auth.users(id),
+  to_user_id uuid NOT NULL REFERENCES auth.users(id),
+  message text NOT NULL CHECK (length(message) BETWEEN 1 AND 140),
+  points_spent int NOT NULL DEFAULT 25,
+  is_public boolean DEFAULT true,      -- Show on global wall?
+  is_read boolean DEFAULT false,
+  created_at timestamptz DEFAULT now()
+);
+
+-- RLS: Users can only read notes TO them or FROM them
+CREATE POLICY "hi_wall_notes_select_own" ON hi_wall_notes
+  FOR SELECT TO authenticated
+  USING (auth.uid() = to_user_id OR auth.uid() = from_user_id);
+```
+
+### RPC Functions (Planned)
+
+| Function | Purpose |
+|----------|---------|
+| `send_hi_note(to_user, message)` | Create note, deduct points |
+| `get_my_notes_received(limit)` | Get notes sent TO current user |
+| `get_my_notes_sent(limit)` | Get notes sent BY current user |
+| `mark_note_read(note_id)` | Mark note as read |
+
+### Integration Points
+
+| File | Change |
+|------|--------|
+| `profile.html` | Add "Hi Notes" tab |
+| `profile-modal.js` | Add "Leave Note" button |
+| `HiRealFeed.js` | Add note option to share menu |
+| `HiPoints.js` | Add `spendPoints()` method |
+
+---
+
+## 🔔 Notification System (Planned Feature)
+
+> **Status:** Schema Designed | **Target:** Q1-Q2 2026
+
+### Notification Types
+
+#### Engagement Notifications
+| Type ID | Title | Trigger | Channels |
+|---------|-------|---------|----------|
+| `wave_received` | "👋 @maya waved at your Hi Moment" | Someone waves at your share | Push, In-app |
+| `peace_received` | "✌️ @alex peace'd your share" | Someone peace's your share | In-app only |
+| `hi_note_received` | "💬 @sam left you a Hi Note" | Someone leaves a note | Push, In-app |
+| `share_featured` | "🌟 Your share was featured!" | Admin features share | Push |
+
+#### Progress Notifications
+| Type ID | Title | Trigger | Channels |
+|---------|-------|---------|----------|
+| `streak_at_risk` | "🔥 Your streak needs you!" | No activity by 8pm | Push |
+| `milestone_reached` | "🏆 7-Day Streak Achieved!" | 7/30/100 day milestones | Push, In-app |
+| `level_up` | "⬆️ You reached Level 5!" | XP threshold crossed | In-app |
+| `points_summary` | "💰 Weekly Points Summary" | Sunday 6pm | Email (opt-in) |
+
+#### Reminders
+| Type ID | Title | Trigger | Channels |
+|---------|-------|---------|----------|
+| `daily_checkin` | "⏰ Time for your daily Hi!" | User-configured time | Push |
+| `weekly_reflection` | "📅 Weekly Reflection Time" | Sunday morning | Push |
+| `mindfulness_moment` | "🧘 Take a mindful moment" | Configurable intervals | Push (opt-in) |
+
+#### System Notifications
+| Type ID | Title | Trigger | Channels |
+|---------|-------|---------|----------|
+| `new_feature` | "📢 New Feature Available" | Major update | In-app |
+| `trial_expiring` | "⚠️ Trial expires in 3 days" | 3 days before expiry | Push, Email |
+| `tier_upgraded` | "✅ Welcome to Gold tier!" | Successful payment | In-app |
+| `security_alert` | "🔐 New device sign-in" | Login from new device | Push, Email |
+
+### Database Schema (Planned)
+
+```sql
+-- Notification type definitions
+CREATE TABLE notification_types (
+  id text PRIMARY KEY,                    -- 'wave_received', 'streak_risk'
+  category text NOT NULL,                 -- 'engagement', 'progress', 'system'
+  title_template text NOT NULL,           -- '{{sender}} waved at your Hi Moment!'
+  body_template text,
+  icon text,
+  default_channels jsonb DEFAULT '["in_app"]',
+  is_dismissable boolean DEFAULT true,
+  created_at timestamptz DEFAULT now()
+);
+
+-- User notification preferences
+CREATE TABLE notification_preferences (
+  user_id uuid PRIMARY KEY REFERENCES auth.users(id),
+  push_enabled boolean DEFAULT true,
+  email_digest text DEFAULT 'weekly',     -- 'none', 'daily', 'weekly'
+  quiet_hours_start time,                 -- e.g., 22:00
+  quiet_hours_end time,                   -- e.g., 07:00
+  checkin_reminder_time time,             -- e.g., 09:00
+  disabled_types text[] DEFAULT '{}',     -- ['peace_received'] to mute
+  updated_at timestamptz DEFAULT now()
+);
+
+-- Notification inbox
+CREATE TABLE notifications (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES auth.users(id),
+  type_id text NOT NULL REFERENCES notification_types(id),
+  title text NOT NULL,
+  body text,
+  data jsonb DEFAULT '{}',                -- {sender_id, share_id, note_id}
+  channels_sent text[] DEFAULT '{}',
+  is_read boolean DEFAULT false,
+  read_at timestamptz,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE INDEX idx_notifications_user_unread 
+  ON notifications(user_id, created_at DESC) 
+  WHERE is_read = false;
+```
+
+### In-App Notification Bell
+
+```
+┌─────────────────────────────────────┐
+│ 🔔 Notifications         [Mark All] │
+├─────────────────────────────────────┤
+│ ● 💬 @maya left you a Hi Note       │
+│   "Your energy is contagious!"      │
+│   2 hours ago                       │
+├─────────────────────────────────────┤
+│ ● 🏆 7-Day Streak Achieved!         │
+│   You're on fire! Keep it up.       │
+│   Yesterday                         │
+├─────────────────────────────────────┤
+│ ○ 👋 @alex waved at your Hi Moment  │
+│   5 days ago                        │
+└─────────────────────────────────────┘
+```
+
+### RPC Functions (Planned)
+
+| Function | Purpose |
+|----------|---------|
+| `create_notification(user, type, data)` | Internal: Create notification |
+| `get_my_notifications(limit, unread_only)` | Get user's notification inbox |
+| `mark_notification_read(notification_id)` | Mark single as read |
+| `mark_all_notifications_read()` | Mark all as read |
+| `get_unread_count()` | Badge count for bell |
+| `update_notification_preferences(prefs)` | Update user settings |
+
+### Push Notification Infrastructure
+
+**Current State (in `sw.js`):**
+```javascript
+// Already implemented - just needs backend connection
+self.addEventListener('push', event => {
+  const options = {
+    body: 'Time for your daily Hi! 🌟',
+    icon: '/assets/brand/hi-logo-192.png',
+    badge: '/assets/brand/hi-logo-192.png',
+    tag: 'daily-hi',
+    data: { url: '/' }
+  };
+  event.waitUntil(
+    self.registration.showNotification('Hi Collective', options)
+  );
+});
+```
+
+**What's Needed:**
+1. Web Push subscription management (VAPID keys)
+2. Backend push service (Supabase Edge Function or OneSignal)
+3. User subscription storage in `notification_preferences`
+4. Trigger logic in database functions
+
+### Implementation Phases
+
+| Phase | Scope | Timeline |
+|-------|-------|----------|
+| **Phase 1** | In-app notifications (bell + inbox) | 3-4 days |
+| **Phase 2** | User preferences UI | 1-2 days |
+| **Phase 3** | Web push integration | 3-5 days |
+| **Phase 4** | Scheduled notifications (reminders) | 2-3 days |
+| **Phase 5** | Email digest (optional) | 2-3 days |
+
+---
+
+## �🧩 Component Library
 
 ### `/public/ui/` Components
 

@@ -10,9 +10,10 @@
 
 ### 🔴 HIGH PRIORITY — User-Facing Issues
 
-- [ ] **Diagnose dual modal issue** — Update Available modal + App Recovery Mode appearing together on mobile. Investigate trigger conditions in `HiPWA.js` + `EmergencyRecovery.js`
+- [x] ~~**Diagnose dual modal issue**~~ — ✅ FIXED (2026-01-14). EmergencyRecovery.js now skips auth pages. Update Available modal is correct PWA behavior.
 - [ ] **Hi Island user profiles** — Finish profile showcase with bio, info display. Started but not completed.
 - [x] ~~**Free account signup on welcome page**~~ — ✅ COMPLETE (2026-01-14)
+- [x] ~~**Welcome page logo + floating nav cleanup**~~ — ✅ COMPLETE (2026-01-14). Logo 88px, floating nav excluded from all main pages.
 
 #### 📋 Free Signup Implementation Checklist — ✅ ALL COMPLETE
 
@@ -99,6 +100,151 @@ When an invite code expires for an existing member:
 
 ---
 
+## � STRATEGIC FEATURE ROADMAP (Added Jan 14, 2026)
+
+### 1️⃣ Social Login (OAuth Providers)
+**Status:** 📋 Research Phase  
+**Complexity:** Medium  
+**What it entails:**
+- Supabase natively supports: Google, Apple, Facebook, Twitter/X, Discord, GitHub
+- **Implementation:** Enable providers in Supabase Dashboard → Auth → Providers
+- **Frontend changes:** Add OAuth buttons to signup/signin pages, handle redirects
+- **Database:** No schema changes (auth.users handles it)
+- **Apple requirement:** Requires Apple Developer account ($99/year) - NEEDED for App Store anyway
+- **Google:** Free, requires Google Cloud Console project
+- **Timeline:** ~1-2 days per provider
+- **Recommendation:** Start with Google + Apple (most users). Add X/Twitter for brand alignment.
+
+### 2️⃣ App Store Submission (iOS + Android)
+**Status:** 📋 Planning Phase  
+**Complexity:** High  
+**What it entails:**
+- **PWA → Native wrapper** options:
+  - **Capacitor** (Ionic) - Recommended, wraps existing web app
+  - **PWABuilder** - Microsoft tool, simplest for basic PWA
+  - **React Native** - Full rewrite, not recommended
+- **iOS Requirements:**
+  - Apple Developer Account ($99/year)
+  - App Store Connect setup
+  - App Review Guidelines compliance (wellness apps have scrutiny)
+  - Privacy Nutrition Labels
+  - 1024x1024 app icon, screenshots for all device sizes
+- **Android Requirements:**
+  - Google Play Developer Account ($25 one-time)
+  - Privacy Policy URL
+  - Content rating questionnaire
+  - APK/AAB signing
+- **Current state:** Hi-OS is already a PWA with manifest.json, sw.js, icons
+- **Timeline:** 2-4 weeks for submission-ready build
+- **Recommendation:** Use Capacitor to wrap existing PWA. Start with iOS (harder approval = fix issues early).
+
+### 3️⃣ Social Media Links in Bio
+**Status:** 📋 Design Phase  
+**Complexity:** Low  
+**What it entails:**
+- **Database:** Add columns to `profiles` table: `instagram_handle`, `twitter_handle`, `tiktok_handle`, `website_url`
+- **Frontend:** Profile edit form with icon-prefixed inputs
+- **Display:** Profile modal shows clickable social icons
+- **Privacy:** User controls which links are public
+- **Validation:** Basic URL/handle validation, no tracking pixels
+- **Timeline:** 1-2 days
+- **Existing foundation:** `profiles` table has `website` column already
+
+### 4️⃣ Push Notifications (Sound + Haptics)
+**Status:** ⚙️ Partial Infrastructure  
+**Complexity:** Medium-High  
+**Current state:**
+- ✅ Service worker exists (`sw.js`) with push notification listener (lines 304-330)
+- ✅ Notification click handler implemented
+- ✅ `navigator.vibrate()` already used in `dashboard-main.js` (lines 132, 146)
+- ❌ Not connected to backend push service
+**What's needed:**
+- **Web Push:** Supabase Edge Functions or external service (OneSignal, Firebase FCM)
+- **Native Push:** Requires Capacitor wrapper + native push plugins
+- **Triggers:** Define when to notify (check-in reminders, streak risk, community activity)
+- **User prefs:** Notification settings UI
+- **Timeline:** 3-5 days for web push, additional 2-3 days for native
+- **Recommendation:** Implement web push first, then native when wrapping for app stores.
+
+### 5️⃣ Hi Wall / Hi Notes (Points Redemption Feature)
+**Status:** 🎨 Design Approved  
+**Complexity:** Medium  
+**Concept:** Users spend Hi Points to leave encouraging notes on a public wall
+**What it entails:**
+- **New table:** `hi_wall_notes` (user_id, message, points_spent, created_at)
+- **Cost:** 10-50 points per note (encourages earning before posting)
+- **Display:** Feed-like display on dedicated page or profile section
+- **Moderation:** Optional word filter, report button
+- **Anti-spam:** Points cost = natural rate limiting
+- **Name options:** "Hi Wall", "Hi Notes", "Hi Vibes", "The Wall"
+- **Timeline:** 2-3 days
+- **Fits with:** Points system just deployed, redemption table ready
+
+### 6️⃣ AI Companion Bot (Daily Hi Notes)
+**Status:** 🧪 Experimental  
+**Complexity:** High  
+**What it entails:**
+- **Separate admin account:** Create bot user with special tier (e.g., `bot` tier)
+- **Scheduler:** Cron job or Supabase Edge Function runs daily
+- **Content generation:**
+  - Option A: Pre-written messages rotated
+  - Option B: OpenAI/Anthropic API generates contextual messages
+  - Option C: Hybrid (templates + AI fills in)
+- **Character system:** Define bot persona, voice, emoji usage
+- **Backend tool:** Admin dashboard to preview/approve messages before posting
+- **Database:** Bot posts to `public_shares` with `origin: 'ai-companion'`
+- **Timeline:** 1 week for basic version, ongoing for AI integration
+- **Consideration:** Keep bot posts visually distinct (badge, avatar, styling)
+
+### 7️⃣ Hi Gym Emotion Search Enhancement
+**Status:** 📋 Feature Enhancement  
+**Complexity:** Medium  
+**Current state:**
+- ✅ `emotions.js` has structured catalog with categories
+- ✅ Search exists in hi-muscle.html grid filtering
+- ✅ `hi-gym.js` has `suggestOptimalEmotions()` for smart suggestions
+**What's needed:**
+- **Expanded emotion pool:** Add 50-100 more emotions with synonyms
+- **Search improvements:** Fuzzy matching, emotion synonyms, natural language
+- **AI direction:** "I feel stuck" → suggests Clarity, Focus, Momentum
+- **Emotion groups:** Quick filters (Energy, Calm, Connection, Growth)
+- **Timeline:** 2-3 days for search, 1 week for AI suggestions
+
+### 7a️⃣ Trend Analytics & Behavioral Intelligence
+**Status:** 📋 Infrastructure Planning  
+**Complexity:** High  
+**Current tracking:**
+- ✅ `hi_points_daily_activity` - Daily action counts
+- ✅ `hi_points_ledger` - All point transactions with timestamps
+- ✅ `user_stats` - Streaks, total moments, waves
+- ✅ `public_shares` - Share content with emotions, timestamps
+- ✅ `HiMonitor.js` - Event telemetry system
+- ✅ TIER_CONFIG has `trendsAccess` per tier (basic/full/premium)
+**What's needed:**
+- **New tables:** `user_emotional_trends`, `user_activity_patterns`
+- **Aggregate queries:** Weekly emotion patterns, time-of-day activity, streak patterns
+- **ML-ready:** Structure data for future ML model training
+- **Notification triggers:** "You usually check in around 9am", "Your streak is at risk"
+- **Timeline:** 1-2 weeks for infrastructure, ongoing for insights
+- **Recommendation:** Start collecting now, build insights UI later
+
+### 8️⃣ User Analytics Dashboard
+**Status:** 📋 Feature Design  
+**Complexity:** Medium  
+**What makes sense for Hi:**
+- **Personal insights page:** `/hi-insights.html` or profile tab
+- **Charts:**
+  - Streak calendar (already exists in premium-calendar.js)
+  - Emotion journey history (current → desired over time)
+  - Points earned by category (shares, reactions, check-ins)
+  - Time-of-day activity heatmap
+- **Tier gating:** Basic charts for Bronze, full analytics for Gold+
+- **Privacy-first:** Only shows YOUR data, never comparative
+- **Timeline:** 1 week for basic, 2-3 weeks for full analytics
+- **Existing foundation:** `premium-calendar.js`, `hi-gym.js` insights, points ledger
+
+---
+
 ## 💡 Feature Brainstorm: Hi Wall
 
 **User request:** Way to interact with shares (like replies)  
@@ -110,7 +256,7 @@ When an invite code expires for an existing member:
 3. **Hi Cheers** — One-tap positivity reactions without threading
 4. **Hi Kudos** — Weekly digest of appreciation received
 
-**Decision needed:** Does wall-style interaction fulfill the need without becoming comment threads?
+**Decision:** ✅ Hi Wall with Points Redemption — Users spend points to leave notes (natural rate limiting, adds value to points system)
 
 ---
 
@@ -130,4 +276,4 @@ At end of January:
 ---
 
 > **Maintained by:** Joe  
-> **Last Updated:** January 13, 2026
+> **Last Updated:** January 14, 2026
