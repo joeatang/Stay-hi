@@ -10,12 +10,30 @@
 
 ### 🔴 P1 — IN PROGRESS (Hi Index - New Feature)
 
-- [ ] **#1 Hi Index Dashboard** — Wellness score that scales long-term. 7-day rolling calculation, 1-5 scale. Shares worth more than taps. *Started 2026-01-15.*
+- [ ] **#1 Hi Index Dashboard** — Wellness score that scales long-term. 7-day rolling calculation, 1-5 scale. *Started 2026-01-15.*
+  
+  **Part A: Community Hi Index (Global)**
   - **Formula:** Shares = 10pts, 100 taps = 1pt, normalized to 1-5 scale
   - **UI:** Daily % change (↑ Hi Inspiration / ↓ Hi Opportunity), line chart with 7/30/365 toggle
   - **Placement:** Evaluate dashboard vs modal vs quick-access link
-  - **Constraint:** Minimal disruption to stable architecture
   - **Approach:** Daily batch aggregation (not real-time) to avoid architecture disruption
+  
+  **Part B: Personal Hi Stats (Per-User)** 🆕
+  - **Same 7-day rolling formula** but scoped to individual user's actions
+  - **Personal percentile:** Show where user ranks vs community over time
+  - **Private dashboard view:**
+    - Personal Hi trajectory (line chart)
+    - Personal daily % change
+    - 30-day history chart
+  - **Privacy:** Only visible to the user themselves
+  - **Architecture:** Leverage existing `hi_points_daily_activity` + `user_stats` tables
+  
+  **Files to create:**
+  - `public/lib/HiIndex.js` — Calculation engine (community + personal)
+  - `public/assets/hi-index-ui.js` — Dashboard UI component
+  - SQL: `hi_index_daily_snapshots` table for batch aggregation
+  
+  **Constraint:** Minimal disruption to stable architecture
 
 ### 🟠 P2 — User-Facing Polish
 
@@ -43,12 +61,12 @@
 - [ ] **#11 Capacitor wrapper** — PWA → native iOS/Android. (~2-4 weeks)
 - [ ] **#12 App Store submission** — iOS first (harder = fix issues early)
 
-### ⚪ P7 — Future / Research
+### ⚪ P7 — Future / Research (Lowest Priority)
 
 - [ ] **#13 AI Companion Bot** — Daily encouragement posts. High complexity.
 - [ ] **#14 Hi Gym emotion search** — Fuzzy matching, AI suggestions.
 - [ ] **#15 User Analytics Dashboard** — `/hi-insights.html` with charts.
-- [ ] **#16 Trac Network exploration** — Evaluate P2P integration for Hi Wall or content proofs. See [TRAC_NETWORK_COMPATIBILITY_AUDIT.md](TRAC_NETWORK_COMPATIBILITY_AUDIT.md). *Wait for Mainnet or hybrid approach.*
+- [ ] **#16 Trac Network exploration** — Evaluate P2P integration for Hi Wall or content proofs. See [TRAC_NETWORK_COMPATIBILITY_AUDIT.md](TRAC_NETWORK_COMPATIBILITY_AUDIT.md). *Wait for Mainnet or hybrid approach. LAST PRIORITY.*
 
 ---
 
@@ -314,4 +332,4 @@ At end of January:
 ---
 
 > **Maintained by:** Joe  
-> **Last Updated:** January 14, 2026
+> **Last Updated:** January 15, 2026
