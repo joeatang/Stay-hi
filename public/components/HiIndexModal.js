@@ -219,7 +219,7 @@
         
         // Render chart after DOM ready
         requestAnimationFrame(() => {
-          this._renderChart(communityHistory);
+          this._renderChart(communityHistory.data);
         });
 
       } catch (err) {
