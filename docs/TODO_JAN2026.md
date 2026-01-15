@@ -8,38 +8,50 @@
 
 ## 🎯 Active Tasks (Prioritized)
 
-### 🔴 P1 — NEXT UP (User-Facing)
+### � P0 — IN PROGRESS (Critical Bug Fix)
 
-- [ ] **#1 Hi Island user profiles** — Finish profile showcase with bio, info display. Started but not completed. *Most visible incomplete feature.*
-- [ ] **#2 Social Links in Bio** — Add Instagram/Twitter/TikTok handles to profiles. Low effort, high value. (~1-2 days)
+- [ ] **#0 Share Submission Bug** — Anonymous share not appearing + profile click error. Run `DIAGNOSTIC_SHARE_SUBMISSION_BUG.sql`, deploy fixes. *Currently investigating.*
 
-### 🟠 P2 — Mission Control Admin Fixes
+### 🔴 P1 — NEXT UP (Hi Index - New Feature)
 
-- [ ] **#3 Fix User Statistics button** — Create `get_admin_user_stats()` RPC with SECURITY DEFINER
-- [ ] **#4 Fix Recent Signups button** — Create `get_admin_recent_signups()` RPC (same pattern)
-- [ ] **#5 Improve Membership Analytics formatting** — Better UI display instead of raw JSON
+- [ ] **#1 Hi Index Dashboard** — Wellness score that scales long-term. 7-day rolling calculation, 1-5 scale. Shares worth more than taps. *Up next after bug fix.*
+  - **Formula:** Shares = 10pts, 100 taps = 1pt, normalized to 1-5 scale
+  - **UI:** Daily % change (↑ Hi Inspiration / ↓ Hi Opportunity), line chart with 7/30/365 toggle
+  - **Placement:** Evaluate dashboard vs modal vs quick-access link
+  - **Constraint:** Minimal disruption to stable architecture
 
-### 🟡 P3 — Points Redemption (Hi Wall)
+### 🟠 P2 — User-Facing Polish
 
-- [ ] **#6 Hi Wall / Hi Notes** — Users spend Hi Points to leave encouraging notes. Points system deployed, redemption table ready. (~2-3 days)
+- [ ] **#2 Hi Island user profiles** — Finish profile showcase with bio, info display. Started but not completed. *Most visible incomplete feature.*
+- [ ] **#3 Social Links in Bio** — Add Instagram/Twitter/TikTok handles to profiles. Low effort, high value. (~1-2 days)
 
-### 🟢 P4 — Growth Features
+### 🟡 P3 — Mission Control Admin Fixes
 
-- [ ] **#7 Push Notifications** — Connect sw.js listener to backend. Web push first. (~3-5 days)
-- [ ] **#8 Google OAuth** — Supabase config + frontend buttons. (~1-2 days)
-- [ ] **#9 Apple OAuth** — Requires Apple Dev account. Prep for App Store. (~1-2 days)
+- [ ] **#4 Fix User Statistics button** — Create `get_admin_user_stats()` RPC with SECURITY DEFINER
+- [ ] **#5 Fix Recent Signups button** — Create `get_admin_recent_signups()` RPC (same pattern)
+- [ ] **#6 Improve Membership Analytics formatting** — Better UI display instead of raw JSON
 
-### 🔵 P5 — App Store Prep
+### 🟢 P4 — Points Redemption (Hi Wall)
 
-- [ ] **#10 Capacitor wrapper** — PWA → native iOS/Android. (~2-4 weeks)
-- [ ] **#11 App Store submission** — iOS first (harder = fix issues early)
+- [ ] **#7 Hi Wall / Hi Notes** — Users spend Hi Points to leave encouraging notes. Points system deployed, redemption table ready. (~2-3 days)
 
-### ⚪ P6 — Future / Research
+### 🔵 P5 — Growth Features
 
-- [ ] **#12 AI Companion Bot** — Daily encouragement posts. High complexity.
-- [ ] **#13 Hi Gym emotion search** — Fuzzy matching, AI suggestions.
-- [ ] **#14 User Analytics Dashboard** — `/hi-insights.html` with charts.
-- [ ] **#15 Trac Network exploration** — Evaluate P2P integration for Hi Wall or content proofs. See [TRAC_NETWORK_COMPATIBILITY_AUDIT.md](TRAC_NETWORK_COMPATIBILITY_AUDIT.md). *Wait for Mainnet or hybrid approach.*
+- [ ] **#8 Push Notifications** — Connect sw.js listener to backend. Web push first. (~3-5 days)
+- [ ] **#9 Google OAuth** — Supabase config + frontend buttons. (~1-2 days)
+- [ ] **#10 Apple OAuth** — Requires Apple Dev account. Prep for App Store. (~1-2 days)
+
+### ⚫ P6 — App Store Prep
+
+- [ ] **#11 Capacitor wrapper** — PWA → native iOS/Android. (~2-4 weeks)
+- [ ] **#12 App Store submission** — iOS first (harder = fix issues early)
+
+### ⚪ P7 — Future / Research
+
+- [ ] **#13 AI Companion Bot** — Daily encouragement posts. High complexity.
+- [ ] **#14 Hi Gym emotion search** — Fuzzy matching, AI suggestions.
+- [ ] **#15 User Analytics Dashboard** — `/hi-insights.html` with charts.
+- [ ] **#16 Trac Network exploration** — Evaluate P2P integration for Hi Wall or content proofs. See [TRAC_NETWORK_COMPATIBILITY_AUDIT.md](TRAC_NETWORK_COMPATIBILITY_AUDIT.md). *Wait for Mainnet or hybrid approach.*
 
 ---
 
