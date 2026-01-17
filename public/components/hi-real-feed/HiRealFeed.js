@@ -1931,17 +1931,23 @@ class HiIslandRealFeed {
   matchesOriginFilter(share, filter) {
     try {
       const o = String(share.origin || '').toLowerCase();
+      const t = String(share.type || '').toLowerCase();
       
-      // 🎯 STEP 1: Check explicit MUSCLE origins first (highest priority)
+      // 🎯 STEP 1: Check explicit PULSE origins (Hi Pulse page)
+      const isExplicitPulse = o.includes('pulse') || t.includes('pulse') ||
+                              ['pulse', 'pulse_hi', 'hi-pulse'].includes(o);
+      if (isExplicitPulse) return filter === 'pulse';
+      
+      // 🎯 STEP 2: Check explicit MUSCLE origins
       const isExplicitGym = o.includes('gym') || o.includes('muscle') || 
                             ['hi-muscle','muscle','gym','higym','hi_muscle_journey'].includes(o);
       if (isExplicitGym) return filter === 'muscle';
       
-      // 🎯 STEP 2: Check explicit ISLAND origins (second priority)
+      // 🎯 STEP 3: Check explicit ISLAND origins
       const isExplicitIsland = o.includes('island') || o === 'hi-island';
       if (isExplicitIsland) return filter === 'island';
       
-      // 🎯 STEP 3: Everything else goes to QUICK (catch-all)
+      // 🎯 STEP 4: Everything else goes to QUICK (catch-all)
       return filter === 'quick';
       
     } catch {
