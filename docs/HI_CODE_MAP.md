@@ -1,8 +1,23 @@
 # 🗺️ Hi Code Map
 
-> **Living Document** - Last Updated: January 17, 2026  
+> **Living Document** - Last Updated: January 17, 2026 (Hi Pulse v1.1.0 Release)  
 > **Purpose:** Complete architecture reference for the Hi App codebase  
 > **Location:** `/docs/HI_CODE_MAP.md`
+
+---
+
+## 🎉 Recent Updates (January 2026)
+
+| Date | Update | Status |
+|------|--------|--------|
+| 2026-01-17 | **Hi Pulse v1.1.0** - New stats dashboard with live ticker | ✅ Deployed |
+| 2026-01-17 | HiTicker component - Bloomberg-style scrolling messages | ✅ Complete |
+| 2026-01-17 | HiShareSheet celebration toasts - Visual feedback on all pages | ✅ Complete |
+| 2026-01-17 | HiDB.js added to hi-pulse.html - Share persistence fixed | ✅ Complete |
+| 2026-01-17 | Footer navigation updated - Hi Pulse replaces Hi Gym | ✅ Complete |
+| 2026-01-15 | Hi Index cards - Community + Personal stats | ✅ Complete |
+| 2026-01-14 | Free signup flow - No invite code required | ✅ Complete |
+| 2026-01-14 | Hi Points system - Tier-based earning | ✅ Complete |
 
 ---
 
