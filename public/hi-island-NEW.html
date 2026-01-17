@@ -706,7 +706,9 @@
       background: #1a1a2e;
     }
 
-    /* � GOLD STANDARD: Drop a Hi Button - Orange Glassmorphic */
+    /* 🏝️ v1.1.0: Drop Hi button removed - sharing now via medallion long-press menu
+       CSS preserved for potential future use or rollback
+    
     .drop-hi-button-gold-standard {
       position: relative;
       display: flex;
@@ -804,6 +806,7 @@
     .drop-hi-button-gold-standard:hover .button-glow {
       opacity: 1;
     }
+    End of v1.1.0 preserved CSS */
 
     @keyframes pulse-orange {
       0%, 100% { 
@@ -1521,7 +1524,7 @@
           </a>
           <a href="hi-muscle.html" class="nav-item">
             <span class="nav-icon">💪</span>
-            <span>Hi Gym</span>
+            <span>Mind Gym</span>
           </a>
           <a href="profile.html?from=hi-island-NEW.html" class="nav-item">
             <span class="nav-icon">👤</span>
@@ -1575,27 +1578,22 @@
 
   <!-- Main Content -->
   <main class="wrap">
-    <!-- 🏝️ GOLD STANDARD: Hero Section with Drop Hi Button -->
+    <!-- 🏝️ v1.1.0: Simplified Hero Section (Drop Hi removed - now via medallion menu) -->
     <section class="mapwrap" aria-label="Hi Island – world map">
       <div class="hero">
         <div>
+          <h1 style="font-size: 1.6rem; font-weight: 600; margin: 0 0 8px; color: #fff;">Hi Island 🏝️</h1>
           <div class="sub">A gentle stream of Hi Shares from around the world</div>
         </div>
-        <button 
-          class="hi-btn drop-hi-button-gold-standard" 
-          onclick="handleDropHiClick()" 
-          id="dropHiButton"
-          aria-label="Drop a Hi moment on the island"
-          type="button">
-          <span class="button-icon">🏝️</span>
-          <span class="button-text">Drop a Hi</span>
-          <span class="button-glow"></span>
-        </button>
-        <div style="margin-top: 8px;">
+        <!-- v1.1.0: Share a Hi now available via medallion long-press menu -->
+        <div id="hiIslandCTA" style="margin-top: 16px;">
           <button id="tryHiLink" type="button" aria-label="Try a Hi without saving"
-            style="background: none; border: none; color: rgba(255,255,255,0.8); font-size: 12px; cursor: pointer; text-decoration: underline; padding: 4px 6px;">
-            Try it — nothing is saved
+            style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.9); font-size: 14px; cursor: pointer; padding: 10px 20px; border-radius: 12px; transition: all 0.2s ease;">
+            ✨ Try it — nothing is saved
           </button>
+          <p style="margin: 12px 0 0; font-size: 12px; color: rgba(255,255,255,0.6);">
+            Tap the medallion to check in • Long-press for more options
+          </p>
         </div>
       </div>
       <!-- 🗺️ Map Component: Shows Hi Shares with location pins -->
@@ -1694,7 +1692,7 @@
           pointer-events: auto;
           position: relative;
           z-index: 10;
-        ">💪 HiGym</button>
+        ">💪 Mind Gym</button>
         <button class="origin-filter-btn" data-filter="island" style="
           padding: 6px 12px; 
           border: 1px solid rgba(255, 255, 255, 0.2); 
