@@ -122,6 +122,9 @@
   <script src="./lib/boot/sw-register.js"></script>
   <script src="assets/post-auth-path.js"></script>
   <script src="lib/access/AuthShim.js"></script>
+  
+  <!-- 🎯 CRITICAL: HiDB for share persistence (must be before HiShareSheet) -->
+  <script src="./lib/HiDB.js" defer></script>
 
   <!-- Global brand & Tesla performance -->
   <link rel="stylesheet" href="assets/theme.css"/>

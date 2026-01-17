@@ -135,7 +135,7 @@ class HiTickerComponent {
 
     // Calculate animation duration based on content width
     const contentWidth = track.scrollWidth / 2; // Half because we duplicate content
-    const duration = Math.max(12, contentWidth / 80); // ~80px/second (faster)
+    const duration = Math.max(10, contentWidth / 110); // ~110px/second (v1.1.1 faster)
 
     track.style.animationDuration = `${duration}s`;
   }

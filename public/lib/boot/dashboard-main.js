@@ -910,13 +910,19 @@
       await initializeWeeklyProgress();
     });
     
-    // FALLBACK: If auth already ready OR event doesn't fire within 2s, initialize anyway
-    setTimeout(async () => {
-      if (!weeklyProgressSetup) {
-        console.log('🎯 [7-DAY PILL] Fallback timeout triggered, initializing without waiting for event');
-        await initializeWeeklyProgress();
-      }
-    }, 2000);
+    // 🚀 PERFORMANCE: Immediate init if auth already ready OR ProfileManager has data
+    if (window.ProfileManager?.isAuthenticated?.() || window.NavCache?.getAuth()?.isAuthenticated) {
+      console.log('⚡ [7-DAY PILL] Auth already ready, immediate init');
+      initializeWeeklyProgress();
+    } else {
+      // FALLBACK: Reduced to 800ms for faster perceived load (was 2s)
+      setTimeout(async () => {
+        if (!weeklyProgressSetup) {
+          console.log('🎯 [7-DAY PILL] Fallback timeout triggered, initializing without waiting for event');
+          await initializeWeeklyProgress();
+        }
+      }, 800);
+    }
     
     // 🔧 SURGICAL FIX: Use unified cache keys for shimmer only (not as source of truth)
     const savedWaves=localStorage.getItem('globalHiWaves'); const savedTotal=localStorage.getItem('globalTotalHis'); const savedUsers=localStorage.getItem('globalTotalUsers');

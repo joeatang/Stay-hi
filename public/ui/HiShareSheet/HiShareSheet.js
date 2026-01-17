@@ -1487,7 +1487,13 @@ export class HiShareSheet {
       }
 
       // 🎯 TESLA FIX #2: Only public/anonymous shares go to island (NO private leaks)
-      if (toIsland && window.hiDB?.insertPublicShare) {
+      if (toIsland) {
+        // 🚨 CRITICAL: Ensure HiDB is loaded for public shares
+        if (!window.hiDB?.insertPublicShare) {
+          console.error('❌ CRITICAL: window.hiDB.insertPublicShare not available! HiDB.js may not be loaded.');
+          throw new Error('Share system not ready. Please refresh the page and try again.');
+        }
+        
         const publicPayload = {
           currentEmoji,
           currentName: this.origin === 'higym' ? 'Hi GYM' : (this.origin === 'hi-island' ? 'Hi Island' : (this.origin === 'pulse' ? 'Hi Pulse' : 'Hi-5')),
@@ -1663,21 +1669,24 @@ export class HiShareSheet {
       return;
     }
     
+    // 🎯 CELEBRATION TOASTS: Always use showCelebrationToast for share success
+    // This works on ALL pages (creates its own element, no #toast required)
+    if (message.includes('Shared') || message.includes('✨') || message.includes('🌟') || message.includes('Saved') || message.includes('Hi Points')) {
+      this.showCelebrationToast(message);
+      return;
+    }
+    
+    // Standard toast (if element exists)
     const toast = document.getElementById('toast');
     if (toast) {
-      // Enhanced success celebration for shares
-      if (message.includes('Shared') || message.includes('✨') || message.includes('🌟')) {
-        this.showCelebrationToast(message);
-      } else {
-        // Standard toast
-        toast.textContent = message;
-        toast.classList.add('show');
-        setTimeout(() => {
-          toast.classList.remove('show');
-        }, 3000);
-      }
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
     } else {
-      console.log('📢', message);
+      // Fallback: Use celebration toast style for any message
+      this.showCelebrationToast(message);
     }
   }
   
