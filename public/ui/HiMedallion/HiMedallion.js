@@ -1,6 +1,8 @@
 /* ===================================================================
    🎯 HI MEDALLION COMPONENT - Tesla-Grade Interactive Logic
    Cross-browser compatible, accessible, performant
+   
+   v1.1.0: Added long-press support for menu activation
 =================================================================== */
 
 /**
@@ -11,14 +13,19 @@
  * @param {string} opts.ariaLabel - Accessible label
  * @param {string} opts.origin - Analytics origin tracking
  * @param {Function} opts.onTap - Tap/click handler
+ * @param {Function} opts.onLongPress - Long-press handler (v1.1.0)
  * @param {Function} opts.onHover - Hover handler (desktop)
  * @param {Function} opts.onFocus - Focus handler (keyboard)
+ * @param {number} opts.longPressThreshold - Long-press duration in ms (default: 800)
  */
 export function mountHiMedallion(container, opts = {}) {
   if (!container) {
     console.warn('[HI DEV] HiMedallion: No container element provided');
     return;
   }
+
+  // v1.1.0: Long-press configuration
+  const LONG_PRESS_THRESHOLD = opts.longPressThreshold || 800;
 
   // HI DEV: Size override support
   if (opts.size) {
@@ -29,6 +36,10 @@ export function mountHiMedallion(container, opts = {}) {
   container.setAttribute('role', 'button');
   container.setAttribute('tabindex', '0');
   container.setAttribute('aria-label', opts.ariaLabel || 'Give Yourself a Hi5');
+  
+  // v1.1.0: Prevent iOS context menu on long-press
+  container.style.setProperty('-webkit-touch-callout', 'none');
+  container.style.setProperty('touch-action', 'manipulation');
 
   // HI DEV: Ensure visual layers exist (rings + texture) for shield/target look
   const baseEl = container.querySelector('.hi-medallion__base');
@@ -191,33 +202,114 @@ export function mountHiMedallion(container, opts = {}) {
   container.addEventListener('pointercancel', pressOff, { passive: true });
   container.addEventListener('mouseleave', pressOff, { passive: true });
 
-  // HI DEV: Touch event optimization for mobile
+  // v1.1.0: Long-press support for menu activation
   let touchStartTime = 0;
+  let longPressTimer = null;
+  let longPressTriggered = false;
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  /**
+   * v1.1.0: Handle long-press action
+   */
+  const handleLongPress = (event) => {
+    longPressTriggered = true;
+    pressOff();
+    
+    // Haptic feedback for long-press
+    try {
+      if (navigator.vibrate && 'ontouchstart' in window) {
+        navigator.vibrate([50, 30, 50]); // Double pulse for long-press
+      }
+    } catch (error) {
+      // Silently ignore vibration errors
+    }
+
+    trackInteraction('long_press', {
+      inputType: event.type,
+      duration: LONG_PRESS_THRESHOLD
+    });
+
+    // Execute long-press callback
+    if (opts.onLongPress && typeof opts.onLongPress === 'function') {
+      try {
+        opts.onLongPress(event, container);
+      } catch (error) {
+        console.error('[HI DEV] HiMedallion onLongPress error:', error);
+      }
+    } else {
+      // Default: Open medallion menu if available
+      if (window.HiMedallionMenu?.open) {
+        window.HiMedallionMenu.open({ anchor: container });
+      }
+    }
+  };
+
+  /**
+   * v1.1.0: Cancel long-press if user moves finger
+   */
+  const cancelLongPress = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+  };
+
   container.addEventListener('touchstart', (event) => {
     touchStartTime = Date.now();
+    touchStartX = event.touches[0]?.clientX || 0;
+    touchStartY = event.touches[0]?.clientY || 0;
+    longPressTriggered = false;
     pressOn();
+    
+    // Start long-press timer
+    cancelLongPress();
+    longPressTimer = setTimeout(() => {
+      handleLongPress(event);
+    }, LONG_PRESS_THRESHOLD);
+  }, { passive: true });
+
+  container.addEventListener('touchmove', (event) => {
+    // Cancel long-press if finger moves too much
+    const touch = event.touches[0];
+    if (touch) {
+      const deltaX = Math.abs(touch.clientX - touchStartX);
+      const deltaY = Math.abs(touch.clientY - touchStartY);
+      if (deltaX > 10 || deltaY > 10) {
+        cancelLongPress();
+      }
+    }
   }, { passive: true });
 
   container.addEventListener('touchend', (event) => {
+    cancelLongPress();
     const touchDuration = Date.now() - touchStartTime;
-    // HI DEV: Only fire on quick taps, not long presses
-    if (touchDuration < 500) {
+    
+    // Only fire tap if it wasn't a long-press
+    if (!longPressTriggered && touchDuration < LONG_PRESS_THRESHOLD) {
       handleActivation(event);
     }
     pressOff();
+    longPressTriggered = false;
   }, { passive: false });
+
+  container.addEventListener('touchcancel', () => {
+    cancelLongPress();
+    pressOff();
+    longPressTriggered = false;
+  }, { passive: true });
 
   /**
    * HI DEV: Cleanup function for component unmounting
    */
   const cleanup = () => {
     clearTimeout(pulseTimeout);
+    cancelLongPress(); // v1.1.0: Clear long-press timer
     container.removeEventListener('click', handleActivation);
     container.removeEventListener('keydown', handleKeydown);
     container.removeEventListener('mouseenter', handleMouseEnter);
     container.removeEventListener('focus', handleFocus);
-    container.removeEventListener('touchstart', handleActivation);
-    container.removeEventListener('touchend', handleActivation);
+    // v1.1.0: Touch events are cleaned up by browser on element removal
   };
 
   // HI DEV: Return cleanup function and API

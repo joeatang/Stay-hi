@@ -1,7 +1,29 @@
 // Dashboard Module Boot: extracted from hi-dashboard.html (CSP externalization)
 // Hi Components: HiShareSheet + HiMedallion (Tesla-grade initialization)
+// v1.1.0: Added HiMedallionMenu, HiPointsAnimation, HiToast for enhanced medallion UX
 import { HiShareSheet } from '../../ui/HiShareSheet/HiShareSheet.js';
 import { mountHiMedallion } from '../../ui/HiMedallion/HiMedallion.js';
+
+// v1.1.0: Dynamic imports for new components (lazy load)
+let HiMedallionMenu = null;
+let HiPointsAnimation = null;
+let HiToast = null;
+
+async function loadV110Components() {
+  try {
+    const [menuModule, animModule, toastModule] = await Promise.all([
+      import('../../ui/HiMedallionMenu/HiMedallionMenu.js'),
+      import('../../ui/HiPointsAnimation/HiPointsAnimation.js'),
+      import('../../ui/HiToast/HiToast.js')
+    ]);
+    HiMedallionMenu = menuModule.HiMedallionMenu;
+    HiPointsAnimation = animModule.HiPointsAnimation;
+    HiToast = toastModule.HiToast;
+    console.log('✅ [v1.1.0] New components loaded');
+  } catch (err) {
+    console.warn('⚠️ [v1.1.0] Components load failed (non-critical):', err);
+  }
+}
 
 // 🎯 WOZ FIX: Prevent duplicate initialization (event listener stacking)
 let dashboardInitialized = false;
@@ -108,12 +130,13 @@ async function initializeDashboard() {
   }
 
   // Long-Press Hi 5 System
+  // v1.1.0: Updated to 800ms threshold and new menu
   function setupMedallionLongPress(medallionElement) {
     if (!medallionElement || medallionElement.__longPressSetup) return;
     medallionElement.__longPressSetup = true;
     let longPressTimer = null; let rafId = null; let startTime = 0; let startX=0; let startY=0;
     let longPressCompleted = false; // 🛑 WOZ: Track if long-press completed
-    const LONG_PRESS_DURATION = 1500; // slightly easier
+    const LONG_PRESS_DURATION = 800; // v1.1.0: Reduced to 800ms for better UX
     const MOVE_TOLERANCE = 12; // px
     function loop(){
       const elapsed = Date.now() - startTime;
@@ -144,8 +167,18 @@ async function initializeDashboard() {
       cancelLongPress(); 
       medallionElement.classList.add('long-press-complete'); 
       try{ navigator?.vibrate?.(100);}catch{} 
-      console.log('🎯 Long-press completed - triggering Hi 5 flow'); 
-      triggerHi5Flow(); 
+      console.log('🎯 Long-press completed - opening medallion menu'); 
+      
+      // v1.1.0: Open medallion menu instead of Hi5 flow
+      if (HiMedallionMenu?.open) {
+        HiMedallionMenu.open({ anchor: medallionElement });
+      } else if (window.HiMedallionMenu?.open) {
+        window.HiMedallionMenu.open({ anchor: medallionElement });
+      } else {
+        // Fallback to old Hi5 behavior
+        triggerHi5Flow();
+      }
+      
       setTimeout(()=>{ medallionElement.classList.remove('long-press-complete'); longPressCompleted = false; }, 500); 
     }
     
@@ -267,31 +300,94 @@ async function initializeDashboard() {
     }
   }
 
+  // v1.1.0: Handle daily check-in on medallion tap
+  async function handleMedallionCheckIn(medallionElement) {
+    try {
+      // Only for authenticated users
+      let userId = null;
+      if (window.HiSupabase?.getClient) {
+        const { data: { user } } = await window.HiSupabase.getClient().auth.getUser();
+        userId = user?.id;
+      }
+      
+      if (!userId) {
+        console.log('[v1.1.0] Skipping check-in for anonymous user');
+        return;
+      }
+
+      // Try to award daily check-in (RPC handles once-per-day logic)
+      const supabase = window.HiSupabase.getClient();
+      const { data, error } = await supabase.rpc('award_daily_checkin');
+      
+      if (error) {
+        console.warn('[v1.1.0] Check-in RPC error:', error.message);
+        return;
+      }
+
+      if (data?.awarded) {
+        console.log('🎉 [v1.1.0] Daily check-in awarded:', data.points, 'pts');
+        
+        // Show floating +5 animation
+        if (HiPointsAnimation?.checkin) {
+          HiPointsAnimation.checkin(medallionElement);
+        } else if (window.HiPointsAnimation?.checkin) {
+          window.HiPointsAnimation.checkin(medallionElement);
+        }
+
+        // Show toast notification
+        if (HiToast?.checkin) {
+          HiToast.checkin();
+        } else if (window.HiToast?.checkin) {
+          window.HiToast.checkin();
+        }
+
+        // Fire points event
+        window.dispatchEvent(new CustomEvent('hi:points-earned', { 
+          detail: { points: data.points, source: 'checkin', balance: data.balance }
+        }));
+      } else if (data?.reason === 'already_checked_in') {
+        console.log('[v1.1.0] Already checked in today');
+      } else {
+        console.log('[v1.1.0] Check-in result:', data);
+      }
+    } catch (err) {
+      // Don't block UX on check-in errors
+      if (err.name === 'AbortError') return;
+      console.warn('[v1.1.0] Check-in error (non-critical):', err.message);
+    }
+  }
+
   // Mount HiMedallion with tap tracking
+  // v1.1.0: Added daily check-in + points animation
   const medallionContainer = document.getElementById('hiMedallionContainer');
   if (medallionContainer) {
-    import('../../ui/HiMedallion/HiMedallion.js').then(({ mountHiMedallion }) => {
-      const medallionElement = medallionContainer.querySelector('#hiMedallion');
-      if (medallionElement) {
-        mountHiMedallion(medallionElement, {
-          origin: 'dashboard',
-          ariaLabel: 'Send positive energy to the Stay Hi community',
-          onTap: () => {
-            console.log('🏅 Medallion tapped - tracking wave...');
-            if (window.gWaves === undefined) window.gWaves = 0;
-            window.gWaves += 1;
-            requestAnimationFrame(() => {
-              const globalHiWavesEl = document.getElementById('globalHiWaves');
-              if (globalHiWavesEl) {
-                globalHiWavesEl.textContent = window.gWaves.toLocaleString();
-                globalHiWavesEl.classList.remove('burst');
-                requestAnimationFrame(() => {
-                  globalHiWavesEl.classList.add('burst');
-                  setTimeout(() => { requestAnimationFrame(() => { globalHiWavesEl.classList.remove('burst'); }); }, 500);
-                });
-              }
-            });
-            if (window.updateGlobalStats) window.updateGlobalStats();
+    // Load v1.1.0 components before mounting
+    loadV110Components().then(() => {
+      import('../../ui/HiMedallion/HiMedallion.js').then(({ mountHiMedallion }) => {
+        const medallionElement = medallionContainer.querySelector('#hiMedallion');
+        if (medallionElement) {
+          mountHiMedallion(medallionElement, {
+            origin: 'dashboard',
+            ariaLabel: 'Tap to say hi and spread positivity',
+            onTap: async () => {
+              console.log('🏅 Medallion tapped - tracking wave...');
+              if (window.gWaves === undefined) window.gWaves = 0;
+              window.gWaves += 1;
+              requestAnimationFrame(() => {
+                const globalHiWavesEl = document.getElementById('globalHiWaves');
+                if (globalHiWavesEl) {
+                  globalHiWavesEl.textContent = window.gWaves.toLocaleString();
+                  globalHiWavesEl.classList.remove('burst');
+                  requestAnimationFrame(() => {
+                    globalHiWavesEl.classList.add('burst');
+                    setTimeout(() => { requestAnimationFrame(() => { globalHiWavesEl.classList.remove('burst'); }); }, 500);
+                  });
+                }
+              });
+              if (window.updateGlobalStats) window.updateGlobalStats();
+              
+              // v1.1.0: Check-in + Points on first tap of the day
+              await handleMedallionCheckIn(medallionElement);
             
             // 🎯 Gold Standard: Track both global + personal medallion taps
             (async () => {
@@ -378,6 +474,7 @@ async function initializeDashboard() {
         setupMedallionLongPress(medallionElement);
       }
     }).catch(error => console.error('❌ Failed to load HiMedallion:', error));
+    }).catch(error => console.error('❌ Failed to load v1.1.0 components:', error));
   }
 
   // Initialize the Try link after DOM is ready

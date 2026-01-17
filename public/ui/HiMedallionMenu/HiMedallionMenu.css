@@ -1,0 +1,179 @@
+/**
+ * HiMedallionMenu.css
+ * Long-Press Menu Styles for Medallion (v1.1.0)
+ */
+
+/* Backdrop */
+.hi-medallion-menu-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 9998;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.25s ease;
+}
+
+.hi-medallion-menu-backdrop--show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Menu */
+.hi-medallion-menu {
+  position: fixed;
+  width: 280px;
+  background: rgba(15, 16, 36, 0.98);
+  backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.9) translateY(10px);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+}
+
+.hi-medallion-menu--show {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1) translateY(0);
+}
+
+/* Header */
+.hi-medallion-menu-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.hi-medallion-menu-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(232, 235, 255, 0.7);
+}
+
+/* Options */
+.hi-medallion-menu-options {
+  padding: 8px;
+}
+
+.hi-medallion-menu-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.hi-medallion-menu-option:hover,
+.hi-medallion-menu-option:focus {
+  background: rgba(255, 255, 255, 0.08);
+  outline: none;
+}
+
+.hi-medallion-menu-option:focus-visible {
+  outline: 2px solid #FFD166;
+  outline-offset: 2px;
+}
+
+.hi-medallion-menu-option:active {
+  background: rgba(255, 255, 255, 0.12);
+  transform: scale(0.98);
+}
+
+/* Option Icon */
+.hi-medallion-menu-icon {
+  font-size: 1.5rem;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+/* Option Text */
+.hi-medallion-menu-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #e8ebff;
+  display: block;
+  line-height: 1.2;
+}
+
+.hi-medallion-menu-hint {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(232, 235, 255, 0.5);
+  display: block;
+  margin-top: 2px;
+}
+
+/* Hover states with accent colors */
+.hi-medallion-menu-option[data-action="share"]:hover .hi-medallion-menu-icon,
+.hi-medallion-menu-option[data-action="share"]:focus .hi-medallion-menu-icon {
+  background: rgba(255, 209, 102, 0.15);
+}
+
+.hi-medallion-menu-option[data-action="share"]:hover .hi-medallion-menu-label,
+.hi-medallion-menu-option[data-action="share"]:focus .hi-medallion-menu-label {
+  color: #FFD166;
+}
+
+.hi-medallion-menu-option[data-action="mindgym"]:hover .hi-medallion-menu-icon,
+.hi-medallion-menu-option[data-action="mindgym"]:focus .hi-medallion-menu-icon {
+  background: rgba(78, 205, 196, 0.15);
+}
+
+.hi-medallion-menu-option[data-action="mindgym"]:hover .hi-medallion-menu-label,
+.hi-medallion-menu-option[data-action="mindgym"]:focus .hi-medallion-menu-label {
+  color: #4ECDC4;
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .hi-medallion-menu {
+    width: calc(100vw - 32px);
+    max-width: 320px;
+    left: 50% !important;
+    bottom: 120px !important;
+    top: auto !important;
+    transform: translateX(-50%);
+  }
+
+  .hi-medallion-menu--show {
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .hi-medallion-menu {
+    transition: opacity 0.2s ease;
+  }
+
+  .hi-medallion-menu-backdrop {
+    transition: opacity 0.2s ease;
+  }
+
+  .hi-medallion-menu-option:active {
+    transform: none;
+  }
+}
