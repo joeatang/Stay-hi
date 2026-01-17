@@ -1,9 +1,10 @@
 -- ===============================================
--- 🔧 FIX RPC USER COUNT - MINIMAL FIX
+-- 🔧 FIX RPC USER COUNT - COMPLETE FIX
 -- ===============================================
--- The UPDATE to global_stats was correct, but the RPC 
--- is still using the OLD logic that counts from public_shares.
--- This script fixes the RPC to read from global_stats table.
+-- FIXED: Uses individual variables instead of RECORD to avoid
+-- "record is not assigned yet" error when p_user_id is NULL
+-- 
+-- RUN STATUS: ✅ DEPLOYED 2026-01-17
 
 -- 1. DIAGNOSTIC: What does global_stats have NOW?
 SELECT 
@@ -13,7 +14,7 @@ SELECT
   total_his
 FROM global_stats;
 
--- 2. FIX THE RPC: Replace get_user_stats to read from global_stats AND user_stats
+-- 2. FIX THE RPC: Uses individual variables with defaults
 CREATE OR REPLACE FUNCTION get_user_stats(p_user_id UUID DEFAULT auth.uid())
 RETURNS JSON
 LANGUAGE plpgsql
@@ -21,41 +22,41 @@ SECURITY DEFINER
 AS $$
 DECLARE
   gs RECORD;
-  us RECORD;
-  user_points BIGINT;
+  v_total_waves BIGINT := 0;
+  v_total_shares BIGINT := 0;
+  v_current_streak INT := 0;
+  v_last_hi_date TIMESTAMPTZ := NULL;
+  v_hi_points BIGINT := 0;
 BEGIN
   -- 🔧 WOZ FIX: Read from global_stats table (SINGLE SOURCE OF TRUTH)
-  -- NOT computed from public_shares anymore!
   SELECT hi_waves, total_his, total_users INTO gs FROM global_stats LIMIT 1;
   
-  -- 🎯 NEW: Fetch REAL personal stats from user_stats (if user is authenticated)
+  -- 🎯 Fetch personal stats only if user_id provided
   IF p_user_id IS NOT NULL THEN
     SELECT 
-      COALESCE(total_waves, 0) as total_waves,
-      COALESCE(total_hi_moments, 0) as total_shares,
-      COALESCE(current_streak, 0) as current_streak,
-      COALESCE(longest_streak, 0) as longest_streak,
+      COALESCE(total_waves, 0),
+      COALESCE(total_hi_moments, 0),
+      COALESCE(current_streak, 0),
       last_hi_date
-    INTO us
+    INTO v_total_waves, v_total_shares, v_current_streak, v_last_hi_date
     FROM user_stats
     WHERE user_id = p_user_id;
     
-    -- Get hi_points balance
-    SELECT COALESCE(balance, 0) INTO user_points
+    SELECT COALESCE(balance, 0) INTO v_hi_points
     FROM hi_points
     WHERE user_id = p_user_id;
   END IF;
   
   RETURN jsonb_build_object(
     'personalStats', jsonb_build_object(
-      'totalWaves', COALESCE(us.total_waves, 0),
-      'totalShares', COALESCE(us.total_shares, 0),
+      'totalWaves', v_total_waves,
+      'totalShares', v_total_shares,
       'weeklyShares', 0,  -- TODO: Calculate from recent shares
-      'currentStreak', COALESCE(us.current_streak, 0),
-      'hiPoints', COALESCE(user_points, 0),
+      'currentStreak', v_current_streak,
+      'hiPoints', v_hi_points,
       'totalMilestones', 0,  -- TODO: Count from milestones table
-      'lastWaveAt', us.last_hi_date,
-      'lastShareAt', us.last_hi_date
+      'lastWaveAt', v_last_hi_date,
+      'lastShareAt', v_last_hi_date
     ),
     'globalStats', jsonb_build_object(
       'hiWaves', COALESCE(gs.hi_waves, 0),
@@ -66,7 +67,7 @@ BEGIN
     -- Also include flat keys for compatibility  
     'waves', COALESCE(gs.hi_waves, 0),
     'total_his', COALESCE(gs.total_his, 0),
-    'users', COALESCE(gs.total_users, 0)  -- 🔧 FROM TABLE, NOT public_shares count!
+    'users', COALESCE(gs.total_users, 0)  -- 🔧 FROM TABLE!
   );
 END;
 $$;
@@ -75,7 +76,7 @@ $$;
 GRANT EXECUTE ON FUNCTION get_user_stats(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION get_user_stats(UUID) TO anon;
 
--- 3. ALSO ensure global_stats has the correct value
+-- 3. Ensure global_stats has correct value
 UPDATE global_stats
 SET 
   total_users = (SELECT COUNT(*) FROM profiles),
