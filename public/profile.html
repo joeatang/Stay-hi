@@ -827,6 +827,16 @@
       background: #000;
       border-color: #00f2ea;
     }
+
+    .social-link.linkedin:hover {
+      background: #0077B5;
+      border-color: #0077B5;
+    }
+
+    .social-link.website:hover {
+      background: var(--hi-teal, #14b8a6);
+      border-color: var(--hi-teal, #14b8a6);
+    }
     
     .profile-location {
       font-size: 14px;
@@ -1858,11 +1868,17 @@
           </div>
           <div class="social-input-group">
             <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+              <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
             </svg>
-            <input type="text" id="editTiktok" placeholder="TikTok username" maxlength="30">
+            <input type="text" id="editLinkedin" placeholder="LinkedIn profile URL" maxlength="200">
           </div>
-          <small class="form-hint">Usernames only (without @)</small>
+          <div class="social-input-group">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 16.057v-3.057h2.994c-.059 1.143-.212 2.24-.456 3.057h-2.538zm-1 0h-2.538c-.244-.817-.397-1.914-.456-3.057h2.994v3.057zm0-5.057h-2.995c.059-1.143.212-2.24.456-3.057h2.539v3.057zm1 0v-3.057h2.538c.244.817.397 1.914.456 3.057h-2.994zm-4.014-5c.601-1.128 1.253-1.869 2.014-2.197v2.197h-2.014zm4.014 0v-2.197c.761.328 1.413 1.069 2.014 2.197h-2.014zm4.482 2c-.269-.998-.633-1.892-1.084-2.648 1.045.468 1.918 1.265 2.516 2.248-.439.191-.916.36-1.432.4zm-1.968-4.016c-.77-.37-1.615-.682-2.514-.82 1.075.154 2.071.599 2.514.82zm-5.968.82c-.899.138-1.744.45-2.514.82.443-.221 1.439-.666 2.514-.82zm-3.414 1.196c.598-.983 1.471-1.78 2.516-2.248-.451.756-.815 1.65-1.084 2.648-.516-.04-.993-.209-1.432-.4zm-2.118 5h3.014c.041-1.312.22-2.52.547-3.587-.714.062-1.378.205-1.992.419-.617 1.024-.966 2.179-1.569 3.168zm0 2c.603.989.952 2.144 1.569 3.168.614.214 1.278.357 1.992.419-.327-1.067-.506-2.275-.547-3.587h-3.014zm9.986 5.587c-.041-1.312-.22-2.52-.547-3.587h-3.439v3.014c.769.008 1.502.189 2.158.407l1.828.166zm-5-3.587c-.327 1.067-.506 2.275-.547 3.587l1.828-.166c.656-.218 1.389-.399 2.158-.407v-3.014h-3.439zm2.439 5.587c.761-.328 1.413-1.069 2.014-2.197h-2.014v2.197zm-4.439-2.197c.601 1.128 1.253 1.869 2.014 2.197v-2.197h-2.014zm6.439 0h2.014c-.601 1.128-1.253 1.869-2.014 2.197v-2.197zm2.482-4c.269.998.633 1.892 1.084 2.648-1.045-.468-1.918-1.265-2.516-2.248.439-.191.916-.36 1.432-.4zm4.518-2h-3.014c-.041-1.312-.22-2.52-.547-3.587.714.062 1.378.205 1.992.419.617 1.024.966 2.179 1.569 3.168z"/>
+            </svg>
+            <input type="text" id="editWebsite" placeholder="Your website URL" maxlength="200">
+          </div>
+          <small class="form-hint">Usernames only (without @) • Full URLs for LinkedIn/Website</small>
         </div>
 
         <!-- Tesla Security: Public profile feature removed for data protection -->
@@ -2977,17 +2993,19 @@ FOR INSERT WITH CHECK (
       const locationEl = document.getElementById('editLocation');
       const instagramEl = document.getElementById('editInstagram');
       const twitterEl = document.getElementById('editTwitter');
-      const tiktokEl = document.getElementById('editTiktok');
+      const linkedinEl = document.getElementById('editLinkedin');
+      const websiteEl = document.getElementById('editWebsite');
       
       if (displayNameEl) displayNameEl.value = currentProfile.display_name || '';
       if (usernameEl) usernameEl.value = currentProfile.username || '';
       if (bioEl) bioEl.value = currentProfile.bio || '';
       if (locationEl) locationEl.value = currentProfile.location || '';
       
-      // Social links
-      if (instagramEl) instagramEl.value = currentProfile.instagram || '';
-      if (twitterEl) twitterEl.value = currentProfile.twitter || '';
-      if (tiktokEl) tiktokEl.value = currentProfile.tiktok || '';
+      // Social links - use correct DB column names
+      if (instagramEl) instagramEl.value = currentProfile.instagram_handle || '';
+      if (twitterEl) twitterEl.value = currentProfile.twitter_handle || '';
+      if (linkedinEl) linkedinEl.value = currentProfile.linkedin_url || '';
+      if (websiteEl) websiteEl.value = currentProfile.website_url || '';
       // Tesla Security: Public profile feature removed
       
       // Update bio counter
@@ -3034,10 +3052,11 @@ FOR INSERT WITH CHECK (
         display_name: document.getElementById('editDisplayName').value.trim(),
         username: document.getElementById('editUsername').value.replace('@', '').trim(),
         bio: document.getElementById('editBio').value.trim(),
-        // Social links (strip @ if user included it)
-        instagram: (document.getElementById('editInstagram')?.value || '').replace('@', '').trim(),
-        twitter: (document.getElementById('editTwitter')?.value || '').replace('@', '').trim(),
-        tiktok: (document.getElementById('editTiktok')?.value || '').replace('@', '').trim()
+        // Social links (strip @ if user included it) - use correct DB column names!
+        instagram_handle: (document.getElementById('editInstagram')?.value || '').replace('@', '').trim(),
+        twitter_handle: (document.getElementById('editTwitter')?.value || '').replace('@', '').trim(),
+        linkedin_url: (document.getElementById('editLinkedin')?.value || '').trim(),
+        website_url: (document.getElementById('editWebsite')?.value || '').trim()
       };
 
       // Get location from LocationPicker input (Tesla-grade single source of truth)
@@ -3302,32 +3321,42 @@ FOR INSERT WITH CHECK (
       if (socialLinksEl) {
         const links = [];
         
-        if (profileData.instagram) {
-          links.push(`<a href="https://instagram.com/${profileData.instagram}" target="_blank" rel="noopener" class="social-link instagram">
+        if (profileData.instagram_handle) {
+          links.push(`<a href="https://instagram.com/${profileData.instagram_handle}" target="_blank" rel="noopener" class="social-link instagram">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
               <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
               <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
             </svg>
-            @${profileData.instagram}
+            @${profileData.instagram_handle}
           </a>`);
         }
         
-        if (profileData.twitter) {
-          links.push(`<a href="https://x.com/${profileData.twitter}" target="_blank" rel="noopener" class="social-link twitter">
+        if (profileData.twitter_handle) {
+          links.push(`<a href="https://x.com/${profileData.twitter_handle}" target="_blank" rel="noopener" class="social-link twitter">
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
             </svg>
-            @${profileData.twitter}
+            @${profileData.twitter_handle}
           </a>`);
         }
         
-        if (profileData.tiktok) {
-          links.push(`<a href="https://tiktok.com/@${profileData.tiktok}" target="_blank" rel="noopener" class="social-link tiktok">
+        if (profileData.linkedin_url) {
+          links.push(`<a href="${profileData.linkedin_url}" target="_blank" rel="noopener" class="social-link linkedin">
             <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+              <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
             </svg>
-            @${profileData.tiktok}
+            LinkedIn
+          </a>`);
+        }
+        
+        if (profileData.website_url) {
+          const displayUrl = profileData.website_url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+          links.push(`<a href="${profileData.website_url}" target="_blank" rel="noopener" class="social-link website">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 16.057v-3.057h2.994c-.059 1.143-.212 2.24-.456 3.057h-2.538zm-1 0h-2.538c-.244-.817-.397-1.914-.456-3.057h2.994v3.057zm0-5.057h-2.995c.059-1.143.212-2.24.456-3.057h2.539v3.057zm1 0v-3.057h2.538c.244.817.397 1.914.456 3.057h-2.994z"/>
+            </svg>
+            ${displayUrl}
           </a>`);
         }
         

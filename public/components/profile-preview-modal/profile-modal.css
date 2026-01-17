@@ -285,3 +285,51 @@
 .profile-preview-modal * {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Social Links */
+.profile-modal-social-links {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 12px;
+}
+
+.profile-modal-social-links .social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.05);
+  color: #666;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.profile-modal-social-links .social-link:hover {
+  background: rgba(102, 126, 234, 0.15);
+  color: #667eea;
+  transform: translateY(-2px);
+}
+
+.profile-modal-social-links .twitter-link:hover {
+  background: rgba(29, 161, 242, 0.15);
+  color: #1DA1F2;
+}
+
+.profile-modal-social-links .instagram-link:hover {
+  background: linear-gradient(45deg, rgba(253, 29, 29, 0.15), rgba(131, 58, 180, 0.15));
+  color: #E1306C;
+}
+
+.profile-modal-social-links .linkedin-link:hover {
+  background: rgba(0, 119, 181, 0.15);
+  color: #0077B5;
+}
+
+.profile-modal-social-links .website-link:hover {
+  background: rgba(102, 126, 234, 0.15);
+  color: #667eea;
+}
