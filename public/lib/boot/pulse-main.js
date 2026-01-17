@@ -90,33 +90,27 @@
     try {
       if (!userId) return;
 
-      // Use StreakAuthority if available (same as dashboard)
-      let streak = 0;
-      if (window.HiBase?.streaks?.StreakAuthority) {
-        const streakResult = await window.HiBase.streaks.StreakAuthority.get(userId);
-        if (streakResult?.data) {
-          streak = streakResult.data.current || 0;
-        }
-      } else if (window.ProfileManager?.getStreak) {
-        streak = window.ProfileManager.getStreak() || 0;
-      }
+      const supabase = window.HiSupabase?.getClient?.() || window.supabase;
+      if (!supabase) return;
 
-      // Get user stats from ProfileManager or profile cache
-      let shares = 0;
-      let points = 0;
+      // 🎯 ONE SOURCE OF TRUTH: Use get_user_stats RPC (same as global stats)
+      const { data, error } = await supabase.rpc('get_user_stats', { p_user_id: userId });
       
-      if (window.ProfileManager) {
-        const profile = window.ProfileManager.getProfile?.() || {};
-        shares = profile.total_shares || profile.hi_count || 0;
-        points = profile.hi_points || 0;
+      if (error) {
+        console.error('[Hi Pulse] Error fetching user stats:', error);
+        return;
       }
 
-      // Update UI
-      setStatValue('userShares', formatNumber(shares));
-      setStatValue('userStreak', streak > 0 ? `${streak} 🔥` : '0');
-      setStatValue('userPoints', formatNumber(points));
+      if (data?.personalStats) {
+        const { totalShares, currentStreak, hiPoints } = data.personalStats;
+        
+        // Update UI
+        setStatValue('userShares', formatNumber(totalShares || 0));
+        setStatValue('userStreak', currentStreak > 0 ? `${currentStreak} 🔥` : '0');
+        setStatValue('userPoints', formatNumber(hiPoints || 0));
 
-      console.log('[Hi Pulse] Personal stats loaded:', { shares, streak, points });
+        console.log('[Hi Pulse] Personal stats loaded:', { totalShares, currentStreak, hiPoints });
+      }
     } catch (err) {
       console.error('[Hi Pulse] Error loading personal stats:', err);
     }
