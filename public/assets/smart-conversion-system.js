@@ -380,22 +380,28 @@
     }
     
     /**
-     * v1.1.0: Check if user is on a paid tier (collective, explorer, patron, guardian)
+     * v1.1.0: Check if user is on a paid tier (bronze+)
      * Paid users should not see upgrade/conversion prompts
      */
     isUserPaidTier() {
       try {
+        // 🎯 UPDATED: Include both current and legacy tier names for compatibility
+        const paidTiers = [
+          // Current tiers (from TIER_CONFIG.js)
+          'bronze', 'silver', 'gold', 'premium', 'collective',
+          // Legacy tiers (for backward compatibility)
+          'explorer', 'patron', 'guardian', 'lifetime', 'member'
+        ];
+        
         // Check HiMembership if available
         if (window.HiMembership?.membershipStatus) {
           const tier = window.HiMembership.membershipStatus.tier;
-          const paidTiers = ['collective', 'explorer', 'patron', 'guardian', 'lifetime', 'member'];
           return paidTiers.includes(tier);
         }
         
         // Fallback: Check HiBrandTiers if available
         if (window.HiBrandTiers?.currentTier) {
           const tier = window.HiBrandTiers.currentTier;
-          const paidTiers = ['collective', 'explorer', 'patron', 'guardian', 'lifetime', 'member'];
           return paidTiers.includes(tier);
         }
         
@@ -404,7 +410,6 @@
         if (cachedMembership) {
           const parsed = JSON.parse(cachedMembership);
           const tier = parsed.tier;
-          const paidTiers = ['collective', 'explorer', 'patron', 'guardian', 'lifetime', 'member'];
           return paidTiers.includes(tier);
         }
         
