@@ -135,6 +135,10 @@
   
   <!-- 🌟 Hi Toast Component -->
   <link rel="stylesheet" href="./ui/HiToast/HiToast.css"/>
+  
+  <!-- 🎯 Hi Share Sheet Component -->
+  <link rel="stylesheet" href="./ui/HiShareSheet/HiShareSheet.css"/>
+  <link rel="stylesheet" href="./ui/HiScale/HiScale.css"/>
 
   <style>
     /* Tesla-Grade Hi Pulse Styling - Mobile First */
@@ -764,6 +768,16 @@
   <script src="./lib/HiIndex.js"></script>
   <script src="./components/HiIndexCard.js"></script>
   <script src="./components/HiIndexModal.js"></script>
+  
+  <!-- 🎯 Hi Share Sheet Component -->
+  <script type="module">
+    import { HiShareSheet } from './ui/HiShareSheet/HiShareSheet.js';
+    const shareSheet = new HiShareSheet({ origin: 'pulse' });
+    shareSheet.init().then(() => {
+      window.HiShareSheet = shareSheet;
+      console.log('✅ [Hi Pulse] HiShareSheet initialized with origin: pulse');
+    });
+  </script>
   
   <!-- Page Logic -->
   <script type="module" src="./lib/boot/pulse-main.js"></script>

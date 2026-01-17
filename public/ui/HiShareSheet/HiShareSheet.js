@@ -16,7 +16,7 @@ export class HiShareSheet {
     // Debug logger gate (only logs when window.__HI_DEBUG__ true)
     this._dbg = (...a) => { if (window.__HI_DEBUG__) console.log(...a); };
     this.version = '2.2.0-hi-scale';
-    this.origin = options.origin || 'hi5'; // 'hi5', 'higym', or 'hi-island'
+    this.origin = options.origin || 'hi5'; // 'hi5', 'higym', 'hi-island', or 'pulse'
     this.onSuccess = options.onSuccess || (() => {});
     this.isOpen = false;
     this._isReady = false; // A2: Readiness state tracking
@@ -1424,8 +1424,8 @@ export class HiShareSheet {
         desiredEmoji,
         journal: text,
         location,
-        origin: this.origin, // 'hi5', 'higym', or 'hi-island'
-        type: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : 'self_hi5'),
+        origin: this.origin, // 'hi5', 'higym', 'hi-island', or 'pulse'
+        type: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : (this.origin === 'pulse' ? 'pulse_hi' : 'self_hi5')),
         user_id: authenticatedUserId, // Tesla: ALWAYS use real authenticated user_id for archives
         hi_intensity: hiIntensity // 🎯 Hi Scale: Optional intensity rating (1-5 or null)
       };

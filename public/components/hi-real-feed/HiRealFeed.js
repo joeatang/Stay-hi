@@ -2427,6 +2427,11 @@ class HiIslandRealFeed {
       pillClass = 'origin-island';
       pillColor = '#10B981';
       pillBorder = '#059669';
+    } else if (type === 'pulse_hi' || type === 'pulse') {
+      pillLabel = '💫 Hi Pulse';  // 🌟 NEW: Hi Pulse origin
+      pillClass = 'origin-pulse';
+      pillColor = '#FFD166';
+      pillBorder = '#FFC233';
     } else {
       pillLabel = 'Hi 5'; // 🎯 FIX: Add space to match branding (was 'Hi5')
       pillClass = 'origin-hi5';
