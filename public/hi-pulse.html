@@ -323,6 +323,15 @@
       color: #4ECDC4;
     }
 
+    /* Hi Index Section (v1.1.0) */
+    .hi-index-section {
+      margin: 24px 0;
+    }
+    
+    .hi-index-card-wrapper {
+      /* Let HiIndexCard.js handle styling */
+    }
+
     /* Quick Actions */
     .quick-actions {
       display: flex;
@@ -675,6 +684,13 @@
       <!-- HiTicker will be injected here -->
     </div>
 
+    <!-- Hi Index Card (v1.1.0) -->
+    <section class="hi-index-section">
+      <div id="hiIndexCardContainer" class="hi-index-card-wrapper">
+        <!-- HiIndexCard will be injected here -->
+      </div>
+    </section>
+
     <!-- Global Stats (Everyone) -->
     <section class="stats-section">
       <div class="stats-section-title">🌍 Global Pulse</div>
@@ -743,6 +759,11 @@
   
   <!-- Hi Toast Component -->
   <script src="./ui/HiToast/HiToast.js" type="module"></script>
+  
+  <!-- Hi Index Components (v1.1.0 - Source of Truth: RPCs) -->
+  <script src="./lib/HiIndex.js"></script>
+  <script src="./components/HiIndexCard.js"></script>
+  <script src="./components/HiIndexModal.js"></script>
   
   <!-- Page Logic -->
   <script type="module" src="./lib/boot/pulse-main.js"></script>
