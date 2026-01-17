@@ -4,10 +4,11 @@
   'use strict';
 
   // Hi Footer navigation configuration
+  // v1.1.0: Replaced "Hi Gym" with "Hi Pulse" (stats page)
   const hiFooterTabsBase = [
     { id: 'today', label: 'Hi Today', icon: '⭘', page: 'dashboard', pages: ['hi-dashboard.html', 'index.html', ''] },
     { id: 'explore', label: 'Hi-island', icon: '🧭', page: 'island', pages: ['hi-island-NEW.html'] },
-    { id: 'plus', label: 'Hi Gym', icon: '✨', page: 'muscle', pages: ['hi-muscle.html', 'calendar.html'] },
+    { id: 'pulse', label: 'Hi Pulse', icon: '📊', page: 'pulse', pages: ['hi-pulse.html'] },
     { id: 'me', label: 'Me', page: 'profile', icon: '👤', pages: ['profile.html'] }
   ];
   

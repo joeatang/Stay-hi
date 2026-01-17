@@ -1,0 +1,65 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-01-08",
+  "messages": [
+    {
+      "id": "welcome",
+      "text": "Welcome to Hi Pulse — the heartbeat of our community",
+      "icon": "💓",
+      "active": true,
+      "priority": 10
+    },
+    {
+      "id": "daily-checkin",
+      "text": "Tap the medallion daily to earn +5 Hi Points",
+      "icon": "🎖️",
+      "active": true,
+      "priority": 9
+    },
+    {
+      "id": "community-love",
+      "text": "Every Hi moment makes someone's day brighter",
+      "icon": "🌟",
+      "active": true,
+      "priority": 8
+    },
+    {
+      "id": "mind-gym",
+      "text": "Visit the Mind Gym to strengthen your emotional wellness",
+      "icon": "🧠",
+      "active": true,
+      "priority": 7,
+      "link": "hi-muscle.html"
+    },
+    {
+      "id": "hi-island",
+      "text": "Explore Hi Island to see community moments",
+      "icon": "🏝️",
+      "active": true,
+      "priority": 6,
+      "link": "hi-island-NEW.html"
+    },
+    {
+      "id": "share-kindness",
+      "text": "One kind word can change someone's entire day",
+      "icon": "✨",
+      "active": true,
+      "priority": 5
+    },
+    {
+      "id": "streak-tip",
+      "text": "Build your streak by checking in every day",
+      "icon": "🔥",
+      "active": true,
+      "priority": 4
+    },
+    {
+      "id": "gratitude",
+      "text": "Practice gratitude — it's the secret to staying hi",
+      "icon": "🙏",
+      "active": true,
+      "priority": 3
+    }
+  ],
+  "_readme": "Edit this file to update ticker messages. Active messages will be displayed in priority order. Set active: false to hide a message without deleting it."
+}

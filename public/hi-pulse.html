@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <script>window.CACHE_VERSION='20260108-v1.1.0';</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>Hi Pulse — Stay Hi</title>
+
+  <!-- 📱 PWA Configuration -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FFD166">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Hi Pulse">
+
+  <!-- Preload Supabase CDN for instant client init -->
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" as="script">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+  <!-- 🎬 CRITICAL: Inline Blocking Splash Screen (Prevents FOUC) -->
+  <style id="splash-critical-css">
+    /* GOLD STANDARD: Force splash visible IMMEDIATELY */
+    body { 
+      visibility: hidden !important; 
+    }
+    body.splash-ready {
+      visibility: visible !important;
+    }
+    .hi-splash-instant {
+      position: fixed !important;
+      top: 0 !important; 
+      left: 0 !important; 
+      right: 0 !important; 
+      bottom: 0 !important;
+      z-index: 999999 !important;
+      background: linear-gradient(135deg, 
+        rgba(26, 29, 58, 1) 0%,
+        rgba(37, 43, 82, 1) 25%,
+        rgba(45, 30, 79, 1) 50%,
+        rgba(55, 35, 70, 1) 75%,
+        rgba(26, 29, 58, 1) 100%) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
+    .hi-splash-logo {
+      width: 140px;
+      height: 140px;
+      border-radius: 32px;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+      animation: logoGlow 3s ease-in-out infinite;
+    }
+    @keyframes logoGlow {
+      0%, 100% { 
+        transform: scale(1);
+        filter: drop-shadow(0 0 20px rgba(255, 122, 24, 0.4));
+      }
+      50% { 
+        transform: scale(1.05);
+        filter: drop-shadow(0 0 30px rgba(255, 122, 24, 0.6));
+      }
+    }
+  </style>
+  <script>
+    // 🚀 GOLD STANDARD: Show body immediately, hide splash after load
+    document.addEventListener('DOMContentLoaded', function() {
+      document.body.classList.add('splash-ready');
+    });
+    
+    window.splashStartTime = performance.now();
+    window.addEventListener('load', function() {
+      const splash = document.getElementById('instant-splash');
+      if (!splash) return;
+      
+      const elapsed = performance.now() - window.splashStartTime;
+      const minDuration = window.innerWidth <= 768 ? 1400 : 1200;
+      const remaining = Math.max(0, minDuration - elapsed);
+      
+      setTimeout(() => {
+        splash.style.transition = 'opacity 0.3s ease-out';
+        splash.style.opacity = '0';
+        setTimeout(() => splash.remove(), 300);
+      }, remaining);
+    }, { once: true });
+  </script>
+
+  <!-- 🚀 DEPENDENCY MANAGER: Prevents race conditions on first load -->
+  <script src="./lib/boot/dependency-manager.js"></script>
+  <script src="assets/url-path-fixer.js"></script>
+  <script src="./lib/HiSupabase.v3.js"></script>
+  <script src="./lib/ProfileManager.js"></script>
+  <script src="./lib/navigation/NavigationStateCache.js"></script>
+  <script>
+    // 🏆 CRITICAL: Initialize ProfileManager before any operations
+    (async () => {
+      if (window.ProfileManager) {
+        await window.ProfileManager.init();
+        console.log('✅ [Hi Pulse] ProfileManager initialized');
+      }
+    })();
+  </script>
+  <script type="module">
+    import('./lib/AuthReady.js?t=' + Date.now());
+  </script>
+  <!-- 🎯 TIER BRANDING: Must load BEFORE universal-tier-listener -->
+  <script src="lib/HiBrandTiers.js"></script>
+  <script type="module">
+    import('./lib/boot/universal-tier-listener.js?t=' + Date.now());
+  </script>
+  <script src="./lib/auth/auth-resilience.js"></script>
+  <script src="assets/hi-paths.js"></script>
+  <script src="lib/config/TIER_CONFIG.js"></script>
+  <script src="lib/membership/HiMembershipBridge.js"></script>
+  <script src="lib/access/AccessGate.js"></script>
+  <script src="components/AccessGateModal.js"></script>
+  <script src="./lib/admin/AdminAccessManager.js"></script>
+  <script src="./lib/access/AccessGateTelemetry.js"></script>
+  <script src="./lib/access/AccessGateTelemetryExport.js"></script>
+  <script src="./lib/boot/upgrade-cta.js"></script>
+  <script src="./lib/boot/sw-register.js"></script>
+  <script src="assets/post-auth-path.js"></script>
+  <script src="lib/access/AuthShim.js"></script>
+
+  <!-- Global brand & Tesla performance -->
+  <link rel="stylesheet" href="assets/theme.css"/>
+  <link rel="stylesheet" href="assets/create-parity.css"/>
+  <link rel="stylesheet" href="assets/premium-ux.css"/>
+  <link rel="stylesheet" href="./ui/HiFooter/HiFooter.css"/>
+  <link rel="stylesheet" href="./ui/HiModal/HiModal.css">
+  
+  <!-- 🌟 Hi Ticker Component -->
+  <link rel="stylesheet" href="./ui/HiTicker/HiTicker.css"/>
+  
+  <!-- 🌟 Hi Toast Component -->
+  <link rel="stylesheet" href="./ui/HiToast/HiToast.css"/>
+
+  <style>
+    /* Tesla-Grade Hi Pulse Styling - Mobile First */
+    * { box-sizing: border-box; }
+    
+    body {
+      background: radial-gradient(1200px 600px at 50% -220px, rgba(255, 209, 102, 0.08) 0%, rgba(255, 209, 102, 0) 60%), #0f1024;
+      color: #e8ebff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    /* Tesla-Grade Header */
+    .tesla-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      background: rgba(15, 16, 36, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 1000;
+      padding-top: env(safe-area-inset-top);
+    }
+
+    .header-left, .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .brand-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-hi-logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+    }
+
+    .brand-text {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #FFD166;
+      letter-spacing: -0.5px;
+    }
+
+    .home-nav-btn, .menu-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #FFD166;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .home-nav-btn:hover, .menu-btn:hover {
+      background: rgba(255, 209, 102, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .tier-indicator {
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    /* Main Content */
+    .wrap {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 80px 16px 120px;
+    }
+
+    /* Page Title */
+    .page-title {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .page-title h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #FFD166;
+      margin: 0 0 8px;
+      letter-spacing: -0.02em;
+    }
+
+    .page-title p {
+      font-size: 1rem;
+      color: rgba(232, 235, 255, 0.7);
+      margin: 0;
+    }
+
+    /* Ticker Container */
+    .ticker-container {
+      margin-bottom: 32px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Stats Grid */
+    .stats-section {
+      margin-bottom: 32px;
+    }
+
+    .stats-section-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+      padding-left: 4px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 20px 12px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 209, 102, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #FFD166;
+      line-height: 1;
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: rgba(232, 235, 255, 0.6);
+      font-weight: 500;
+    }
+
+    .stat-card.personal {
+      border-color: rgba(78, 205, 196, 0.3);
+    }
+
+    .stat-card.personal .stat-value {
+      color: #4ECDC4;
+    }
+
+    /* Quick Actions */
+    .quick-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    .action-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px 20px;
+      border: none;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .action-btn--primary {
+      background: linear-gradient(135deg, #FFD166 0%, #FF9F1C 100%);
+      color: #0f1024;
+    }
+
+    .action-btn--primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255, 209, 102, 0.3);
+    }
+
+    .action-btn--secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #e8ebff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .action-btn--secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+
+    /* Loading State */
+    .stat-value.loading {
+      background: linear-gradient(90deg, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 8px;
+      height: 1.75rem;
+      width: 60px;
+      margin: 0 auto 8px;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Auth-Only Content */
+    .auth-only {
+      display: none;
+    }
+
+    body[data-authenticated="true"] .auth-only {
+      display: block;
+    }
+
+    body[data-authenticated="true"] .anon-only {
+      display: none;
+    }
+
+    /* Sign-in Prompt */
+    .signin-prompt {
+      text-align: center;
+      padding: 32px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      border: 1px dashed rgba(255, 255, 255, 0.2);
+      margin-top: 24px;
+    }
+
+    .signin-prompt p {
+      margin: 0 0 16px;
+      color: rgba(232, 235, 255, 0.7);
+    }
+
+    .signin-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .signin-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(78, 205, 196, 0.3);
+    }
+
+    /* Navigation Modal */
+    .navigation-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .navigation-modal.open {
+      display: flex;
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .navigation-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    .navigation-content {
+      position: relative;
+      width: min(400px, 90vw);
+      background: rgba(15, 16, 34, 0.95);
+      backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 24px;
+      padding: 24px;
+      color: white;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .navigation-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .navigation-header h3 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: #FFD166;
+    }
+
+    .close-nav-btn {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .close-nav-btn:hover {
+      background: rgba(255, 0, 0, 0.2);
+    }
+
+    .navigation-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .nav-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: white;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: 1px solid transparent;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-item.active {
+      background: rgba(255, 209, 102, 0.2);
+      border-color: rgba(255, 209, 102, 0.3);
+    }
+
+    .nav-icon {
+      font-size: 18px;
+      width: 24px;
+      text-align: center;
+    }
+
+    /* Responsive adjustments */
+    @media (min-width: 768px) {
+      .wrap {
+        padding: 100px 24px 140px;
+      }
+
+      .page-title h1 {
+        font-size: 2.5rem;
+      }
+
+      .stats-grid {
+        gap: 16px;
+      }
+
+      .stat-card {
+        padding: 28px 20px;
+      }
+
+      .stat-value {
+        font-size: 2.25rem;
+      }
+    }
+
+    /* Safe area padding for footer */
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+      .wrap {
+        padding-bottom: calc(120px + env(safe-area-inset-bottom));
+      }
+    }
+  </style>
+  
+  <!-- Tier Loading Skeleton CSS -->
+  <link rel="stylesheet" href="./assets/tier-loading-skeleton.css">
+</head>
+<body data-tab="pulse" data-page="hi-pulse">
+  <!-- 🎬 STATIC SPLASH: First element rendered -->
+  <div class="hi-splash-instant" id="instant-splash">
+    <img src="assets/brand/hi-logo-dark.png" alt="Hi" class="hi-splash-logo" />
+  </div>
+  
+  <!-- Tesla-Grade Header -->
+  <header class="tesla-header">
+    <div class="header-left">
+      <button class="home-nav-btn" onclick="navigateToHome()" aria-label="Go to Hi Today" title="Navigate to Hi Today">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9,22 9,12 15,12 15,22"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="header-center">
+      <div class="brand-container">
+        <img src="./assets/brand/hi-logo-light.png" alt="Hi" class="brand-hi-logo">
+        <span class="brand-text">Hi Pulse</span>
+      </div>
+    </div>
+    
+    <div class="header-right">
+      <div id="hi-tier-indicator" class="tier-indicator" title="Loading tier..." data-auth-loading="true">
+        <span class="tier-text tier-loading">⏳</span>
+      </div>
+      <button class="menu-btn" onclick="openNavigation()">
+        <span style="font-size: 18px;">☰</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Navigation Modal -->
+  <div id="navigationModal" class="navigation-modal">
+    <div class="navigation-backdrop" onclick="closeNavigation()"></div>
+    <div class="navigation-content">
+      <div class="navigation-header">
+        <h3>Hi Navigation</h3>
+        <button class="close-nav-btn" onclick="closeNavigation()">✕</button>
+      </div>
+      
+      <nav class="navigation-menu">
+        <div>
+          <div class="nav-section-title">Core</div>
+          <a href="/public/hi-dashboard.html" class="nav-item">
+            <span class="nav-icon">🏠</span>
+            Dashboard
+          </a>
+          <a href="/public/profile.html" class="nav-item">
+            <span class="nav-icon">👤</span>
+            Profile
+          </a>
+          <a href="/public/hi-island-NEW.html" class="nav-item">
+            <span class="nav-icon">🏝️</span>
+            Hi Island
+          </a>
+          <a href="/public/hi-muscle.html" class="nav-item">
+            <span class="nav-icon">🧠</span>
+            Mind Gym
+          </a>
+          <a href="/public/hi-pulse.html" class="nav-item active">
+            <span class="nav-icon">📊</span>
+            Hi Pulse
+          </a>
+        </div>
+        
+        <div>
+          <div class="nav-section-title">Admin</div>
+          <a href="hi-mission-control.html" class="nav-item" data-mc-link>
+            <span class="nav-icon">🎛️</span>
+            <span>Hi Mission Control</span>
+          </a>
+        </div>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="wrap">
+    <div class="page-title">
+      <h1>📊 Hi Pulse</h1>
+      <p>The heartbeat of the Hi community</p>
+    </div>
+
+    <!-- Ticker -->
+    <div class="ticker-container" id="tickerContainer">
+      <!-- HiTicker will be injected here -->
+    </div>
+
+    <!-- Global Stats (Everyone) -->
+    <section class="stats-section">
+      <div class="stats-section-title">🌍 Global Pulse</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value loading" id="globalTotalHis"></div>
+          <div class="stat-label">Hi Moments</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value loading" id="globalHiWaves"></div>
+          <div class="stat-label">Hi Waves</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value loading" id="globalUsers"></div>
+          <div class="stat-label">Hi Friends</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Personal Stats (Auth only) -->
+    <section class="stats-section auth-only">
+      <div class="stats-section-title">✨ Your Pulse</div>
+      <div class="stats-grid">
+        <div class="stat-card personal">
+          <div class="stat-value loading" id="userShares"></div>
+          <div class="stat-label">Your Shares</div>
+        </div>
+        <div class="stat-card personal">
+          <div class="stat-value loading" id="userStreak"></div>
+          <div class="stat-label">Current Streak</div>
+        </div>
+        <div class="stat-card personal">
+          <div class="stat-value loading" id="userPoints"></div>
+          <div class="stat-label">Hi Points</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sign-in prompt for anonymous users -->
+    <div class="signin-prompt anon-only">
+      <p>Sign in to see your personal pulse and earn Hi Points! ✨</p>
+      <button class="signin-btn" onclick="openSignIn()">
+        <span>👋</span>
+        Sign In
+      </button>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <a href="hi-dashboard.html" class="action-btn action-btn--primary" id="shareHiBtn">
+        <span>🌟</span>
+        Share a Hi
+      </a>
+      <a href="hi-muscle.html" class="action-btn action-btn--secondary">
+        <span>🧠</span>
+        Mind Gym
+      </a>
+    </div>
+  </main>
+
+  <!-- Hi Footer -->
+  <script src="./ui/HiFooter/HiFooter.js"></script>
+  
+  <!-- Hi Ticker Component -->
+  <script src="./ui/HiTicker/HiTicker.js" type="module"></script>
+  
+  <!-- Hi Toast Component -->
+  <script src="./ui/HiToast/HiToast.js" type="module"></script>
+  
+  <!-- Page Logic -->
+  <script type="module" src="./lib/boot/pulse-main.js"></script>
+
+  <script>
+    // Navigation helpers
+    function navigateToHome() {
+      const href = window.hiPaths?.page ? window.hiPaths.page('dashboard') : 'hi-dashboard.html';
+      window.location.href = href;
+    }
+
+    function openNavigation() {
+      const modal = document.getElementById('navigationModal');
+      if (modal) {
+        modal.classList.add('open');
+      }
+    }
+
+    function closeNavigation() {
+      const modal = document.getElementById('navigationModal');
+      if (modal) {
+        modal.classList.remove('open');
+      }
+    }
+
+    function openSignIn() {
+      // Use existing AccessGate if available
+      if (window.AccessGate?.prompt) {
+        window.AccessGate.prompt({ context: 'pulse_signin' });
+      } else if (window.AccessGateModal?.show) {
+        window.AccessGateModal.show();
+      } else {
+        // Fallback: redirect to welcome
+        window.location.href = window.hiPaths?.page ? window.hiPaths.page('welcome') : 'welcome.html';
+      }
+    }
+
+    // Resolve navigation links
+    document.querySelectorAll('.nav-item').forEach(link => {
+      const href = link.getAttribute('href');
+      if (href && window.hiPaths?.resolve) {
+        link.setAttribute('href', window.hiPaths.resolve(href));
+      }
+    });
+
+    // Mission Control gate
+    (function(){
+      function resolveMC(){ 
+        try { 
+          return window.hiPaths?.resolve ? window.hiPaths.resolve('hi-mission-control.html') : 'hi-mission-control.html'; 
+        } catch { 
+          return 'hi-mission-control.html'; 
+        } 
+      }
+      function attach(){
+        document.querySelectorAll('[data-mc-link]').forEach(a => {
+          const href = resolveMC(); 
+          a.setAttribute('href', href);
+          if (!a.__mcBound){
+            a.__mcBound = true;
+            a.addEventListener('click', function(e){
+              if (window.HiMissionControlAccess){ 
+                e.preventDefault(); 
+                window.HiMissionControlAccess.openGate(); 
+              }
+            });
+          }
+        });
+      }
+      attach();
+      window.addEventListener('hi:admin-confirmed', attach);
+    })();
+  </script>
+</body>
+</html>

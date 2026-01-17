@@ -39,6 +39,7 @@
   }
   
   // Page key to filename mapping (single source of truth)
+  // v1.1.0: Added 'pulse' for Hi Pulse page
   const PAGE_MAP = {
     'dashboard': 'hi-dashboard.html',
     'today': 'hi-dashboard.html',
@@ -46,9 +47,13 @@
     'explore': 'hi-island-NEW.html',
     'muscle': 'hi-muscle.html',
     'gym': 'hi-muscle.html',
+    'mindgym': 'hi-muscle.html',
+    'pulse': 'hi-pulse.html',
+    'stats': 'hi-pulse.html',
     'profile': 'profile.html',
     'me': 'profile.html',
     'admin': 'hi-mission-control.html',
+    'welcome': 'welcome.html',
     'signin': 'signin.html',
     'signup': 'signup.html'
   };
