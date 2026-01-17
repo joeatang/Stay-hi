@@ -4,7 +4,7 @@
  * 
  * Displays a floating menu with two options:
  * - Share a Hi (opens HiShareSheet)
- * - Mind Gym (navigates to hi-muscle.html)
+ * - Hi Gym (navigates to hi-muscle.html)
  * 
  * Triggered by long-press on medallion (800ms threshold).
  */
@@ -37,18 +37,18 @@ class HiMedallionMenuManager {
     this.menu.setAttribute('aria-label', 'Medallion actions');
     this.menu.innerHTML = `
       <div class="hi-medallion-menu-header">
-        <span class="hi-medallion-menu-title">What would you like to do?</span>
+        <span class="hi-medallion-menu-title">Your next move</span>
       </div>
       <div class="hi-medallion-menu-options">
         <button class="hi-medallion-menu-option" data-action="share" role="menuitem">
           <span class="hi-medallion-menu-icon">🌟</span>
           <span class="hi-medallion-menu-label">Share a Hi</span>
-          <span class="hi-medallion-menu-hint">Spread positivity</span>
+          <span class="hi-medallion-menu-hint">Celebrate a win</span>
         </button>
-        <button class="hi-medallion-menu-option" data-action="mindgym" role="menuitem">
-          <span class="hi-medallion-menu-icon">🧠</span>
-          <span class="hi-medallion-menu-label">Mind Gym</span>
-          <span class="hi-medallion-menu-hint">Emotional wellness</span>
+        <button class="hi-medallion-menu-option" data-action="higym" role="menuitem">
+          <span class="hi-medallion-menu-icon">💪</span>
+          <span class="hi-medallion-menu-label">Hi Gym</span>
+          <span class="hi-medallion-menu-hint">Train your mind</span>
         </button>
       </div>
     `;
@@ -155,9 +155,11 @@ class HiMedallionMenuManager {
 
     switch (action) {
       case 'share':
-        // Open HiShareSheet
-        if (window.HiShareSheet?.open) {
-          window.HiShareSheet.open({ origin: 'medallion_menu' });
+        // Open HiShareSheet (same modal used everywhere)
+        if (window.openHiShareSheet) {
+          window.openHiShareSheet('hi5', { source: 'medallion_menu' });
+        } else if (window.HiShareSheet?.open) {
+          window.HiShareSheet.open({ origin: 'hi5' });
         } else {
           // Fallback: navigate to island
           const href = window.hiPaths?.page ? window.hiPaths.page('island') : 'hi-island-NEW.html';
@@ -165,8 +167,8 @@ class HiMedallionMenuManager {
         }
         break;
 
-      case 'mindgym':
-        // Navigate to Mind Gym
+      case 'higym':
+        // Navigate to Hi Gym
         const gymHref = window.hiPaths?.page ? window.hiPaths.page('muscle') : 'hi-muscle.html';
         window.location.href = gymHref;
         break;
