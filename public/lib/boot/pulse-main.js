@@ -59,7 +59,7 @@
             const stats = JSON.parse(cached);
             setStatValue('globalTotalHis', formatNumber(stats.total_his || stats.gTotalHis || 0));
             setStatValue('globalHiWaves', formatNumber(stats.hi_waves || stats.gTotalHiWaves || 0));
-            setStatValue('globalUsers', formatNumber(stats.total_users || stats.gTotalUsers || 16));
+            setStatValue('globalUsers', formatNumber(stats.total_users || stats.gTotalUsers || 0));
           } catch (e) {}
         }
         return;
@@ -69,7 +69,7 @@
         // Map the response fields to our display
         const totalHis = data.total_his || 0;
         const hiWaves = data.hi_waves || 0;
-        const totalUsers = data.total_users || 16;
+        const totalUsers = data.total_users || 0;  // 🔧 WOZ FIX: No hardcoded fallback - trust database
         
         setStatValue('globalTotalHis', formatNumber(totalHis));
         setStatValue('globalHiWaves', formatNumber(hiWaves));
