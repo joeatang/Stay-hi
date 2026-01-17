@@ -1,6 +1,6 @@
 # 🗺️ Hi Code Map
 
-> **Living Document** - Last Updated: January 14, 2026  
+> **Living Document** - Last Updated: January 17, 2026  
 > **Purpose:** Complete architecture reference for the Hi App codebase  
 > **Location:** `/docs/HI_CODE_MAP.md`
 
@@ -504,6 +504,7 @@ window.addEventListener('hi:auth-ready', async (e) => {
 | Function | Purpose |
 |----------|---------|
 | `get_unified_membership()` | Returns tier, is_admin, features |
+| `get_user_stats(p_user_id)` | Returns globalStats + personalStats (single source of truth) |
 | `get_global_stats()` | Returns total_his, hi_waves, total_users |
 | `get_user_share_count(user_id)` | Count user's shares |
 | `create_share_v2(...)` | Insert new share |
@@ -1165,6 +1166,8 @@ When modifying Mission Control:
 
 | Date | Change |
 |------|--------|
+| 2026-01-17 | Hi Pulse v1.1.0: Added HiShareSheet, fixed `get_user_stats` RPC to return personal stats, added `pulse_hi` origin badge |
+| 2026-01-17 | Fixed user count (16→25): RPC now reads from `global_stats.total_users` instead of counting `public_shares` |
 | 2026-01-14 | Added Hi Points System section with tier multipliers, RPCs, and frontend integration |
 | 2026-01-13 | Added Mission Control (Admin) section |
 | 2026-01-13 | Initial Hi Code Map created |
