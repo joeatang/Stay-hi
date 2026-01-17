@@ -265,6 +265,7 @@
               <div class="hi-index-card__content">
                 <span class="hi-index-card__title">Community Hi</span>
                 <span class="hi-index-card__dots hi-index-card__dots--large" aria-label="${community.indexDisplay} out of 5">${community.dots}</span>
+                <span class="hi-index-card__tap-hint">Tap for details</span>
               </div>
             </div>
             <span class="hi-index-card__chevron" aria-hidden="true">›</span>
@@ -313,7 +314,10 @@
               <span class="hi-index-card__stat-dots">${community.dots}</span>
             </div>
           </div>
-          <span class="hi-index-card__chevron" aria-hidden="true">›</span>
+          <div class="hi-index-card__footer">
+            <span class="hi-index-card__tap-hint">Tap for details</span>
+            <span class="hi-index-card__chevron" aria-hidden="true">›</span>
+          </div>
         </div>
       `;
     }

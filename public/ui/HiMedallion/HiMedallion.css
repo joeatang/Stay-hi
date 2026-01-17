@@ -80,35 +80,35 @@
   background: 
     conic-gradient(from 0deg, 
       transparent 0deg, 
-      rgba(255, 255, 255, 0.1) 15deg,
+      rgba(255, 209, 102, 0.25) 15deg,
       transparent 30deg,
-      rgba(255, 255, 255, 0.05) 45deg,
+      rgba(255, 209, 102, 0.15) 45deg,
       transparent 60deg,
-      rgba(255, 255, 255, 0.08) 75deg,
+      rgba(255, 209, 102, 0.20) 75deg,
       transparent 90deg,
-      rgba(255, 255, 255, 0.03) 105deg,
+      rgba(255, 209, 102, 0.10) 105deg,
       transparent 120deg,
-      rgba(255, 255, 255, 0.06) 135deg,
+      rgba(255, 209, 102, 0.18) 135deg,
       transparent 150deg,
-      rgba(255, 255, 255, 0.04) 165deg,
+      rgba(255, 209, 102, 0.12) 165deg,
       transparent 180deg,
-      rgba(255, 255, 255, 0.09) 195deg,
+      rgba(255, 209, 102, 0.22) 195deg,
       transparent 210deg,
-      rgba(255, 255, 255, 0.02) 225deg,
+      rgba(255, 209, 102, 0.08) 225deg,
       transparent 240deg,
-      rgba(255, 255, 255, 0.07) 255deg,
+      rgba(255, 209, 102, 0.20) 255deg,
       transparent 270deg,
-      rgba(255, 255, 255, 0.05) 285deg,
+      rgba(255, 209, 102, 0.15) 285deg,
       transparent 300deg,
-      rgba(255, 255, 255, 0.1) 315deg,
+      rgba(255, 209, 102, 0.25) 315deg,
       transparent 330deg,
-      rgba(255, 255, 255, 0.04) 345deg,
+      rgba(255, 209, 102, 0.12) 345deg,
       transparent 360deg
     );
   z-index: -2;
   animation: sunrayPulse 8s ease-in-out infinite;
-  opacity: 0.4;
-  filter: blur(1px);
+  opacity: 0.7;
+  filter: blur(2px);
 }
 
 /* 🏗️ TESLA-GRADE: Premium icon display with Tesla texture */
@@ -211,15 +211,15 @@
 @keyframes sunrayPulse {
   0% {
     transform: scale(1) rotate(0deg);
-    opacity: 0.3;
+    opacity: 0.5;
   }
   50% {
     transform: scale(1.05) rotate(180deg);
-    opacity: 0.6;
+    opacity: 0.85;
   }
   100% {
     transform: scale(1) rotate(360deg);
-    opacity: 0.3;
+    opacity: 0.5;
   }
 }
 

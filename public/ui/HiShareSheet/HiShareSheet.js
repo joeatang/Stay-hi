@@ -1484,16 +1484,16 @@ export class HiShareSheet {
       if (toIsland && window.hiDB?.insertPublicShare) {
         const publicPayload = {
           currentEmoji,
-          currentName: this.origin === 'higym' ? 'Hi GYM' : (this.origin === 'hi-island' ? 'Hi Island' : 'Hi-5'),
+          currentName: this.origin === 'higym' ? 'Hi GYM' : (this.origin === 'hi-island' ? 'Hi Island' : (this.origin === 'pulse' ? 'Hi Pulse' : 'Hi-5')),
           desiredEmoji,
-          desiredName: this.origin === 'higym' ? 'Hi GYM' : (this.origin === 'hi-island' ? 'Hi Island' : 'Hi-5'),
+          desiredName: this.origin === 'higym' ? 'Hi GYM' : (this.origin === 'hi-island' ? 'Hi Island' : (this.origin === 'pulse' ? 'Hi Pulse' : 'Hi-5')),
           text,
           isAnonymous: anon,
           location,
           // isPublic removed - let isAnonymous determine visibility
-          type: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : 'self_hi5'),
-          origin: this.origin, // Will be 'higym', 'hi-island', or 'hi5'
-          pill: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hiisland' : 'hi5'), // 🎯 FIX: Changed 'island' to 'hiisland'
+          type: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hi_island' : (this.origin === 'pulse' ? 'pulse_hi' : 'self_hi5')),
+          origin: this.origin, // Will be 'higym', 'hi-island', 'pulse', or 'hi5'
+          pill: this.origin === 'higym' ? 'higym' : (this.origin === 'hi-island' ? 'hiisland' : (this.origin === 'pulse' ? 'pulse' : 'hi5')),
           user_id: publicShareUserId, // Tesla: NULL for anonymous, real ID for public
           hi_intensity: hiIntensity // 🎯 Hi Scale: Optional intensity rating (1-5 or null)
         };
