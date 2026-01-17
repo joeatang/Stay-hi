@@ -9,14 +9,13 @@ SELECT
   '📊 PULSE SHARES COUNT' as check_name,
   COUNT(*) as total_pulse_shares
 FROM public_shares 
-WHERE origin ILIKE '%pulse%' OR type ILIKE '%pulse%';
+WHERE origin ILIKE '%pulse%' OR pill ILIKE '%pulse%';
 
 -- STEP 2: Check recent shares from Joe's account
 SELECT 
   '📋 JOE''S RECENT SHARES' as check_name,
   id,
   origin,
-  type,
   pill,
   visibility,
   LEFT(text, 50) as text_preview,
