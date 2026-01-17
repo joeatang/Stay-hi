@@ -606,6 +606,45 @@ async function initCalendar() {
 
 ---
 
+## 🚀 HI PULSE v1.1.0 DEPLOYMENT NOTES (January 17, 2026)
+
+### What Was Done
+| Component | Change | Status |
+|-----------|--------|--------|
+| **RPC: get_user_stats** | Fixed NULL bug, now returns personal + global stats | ✅ DEPLOYED to Supabase |
+| **Hi Pulse page** | Added HiShareSheet, personal stats from RPC | 🟡 On feature branch |
+| **HiRealFeed** | Added `pulse_hi` origin badge (💫 Hi Pulse) | 🟡 On feature branch |
+| **smart-conversion-system.js** | Updated paidTiers array | 🟡 On feature branch |
+| **HI_CODE_MAP.md** | Updated with v1.1.0 changes | 🟡 On feature branch |
+
+### Current Deployment Status
+```
+Database (Supabase):  ✅ LIVE - RPC changes are already in production
+Frontend (Vercel):    🟡 NOT LIVE - Still on feature/hi-pulse-v1.1.0 branch
+```
+
+### To Deploy Frontend to Production
+```bash
+git checkout main
+git merge feature/hi-pulse-v1.1.0
+git push origin main
+# → Vercel auto-deploys to production
+```
+
+### Migration Files Created
+```
+supabase/migrations/
+├── 2026-01-17_001_fix_get_user_stats_rpc.sql      # Forward migration
+├── 2026-01-17_001_ROLLBACK_get_user_stats_rpc.sql # Rollback script
+└── README.md                                       # Migration guide
+```
+
+### Rollback Process
+1. **Frontend:** In Vercel dashboard, click "Rollback" on previous deployment
+2. **Database:** Run `2026-01-17_001_ROLLBACK_get_user_stats_rpc.sql` in Supabase SQL Editor
+
+---
+
 ## ✅ VERDICT
 
 **Your foundation is ROCK SOLID.** The auth system, tier system, and database security are all production-ready. The gaps identified are **polish items** and **feature gates**, not fundamental flaws.
