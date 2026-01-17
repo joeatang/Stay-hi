@@ -1550,8 +1550,17 @@ console.log('✅ [Universal Tier Listener] Loaded and listening');
   <!-- Tier Loading Skeleton CSS -->
   <link rel="stylesheet" href="./assets/tier-loading-skeleton.css">
   
-  <!-- Hi Index: Wellness Score System -->
+  <!-- Hi Index: Wellness Score System - HIDDEN v1.1.0 (moved to Hi Pulse) -->
   <link rel="stylesheet" href="./styles/hi-index.css">
+  
+  <!-- 🌟 v1.1.0: Hide global stats and Hi Index on dashboard (now on Hi Pulse) -->
+  <style>
+    .global-stats-container,
+    .hi-index-card-wrapper,
+    #hiIndexCardContainer {
+      display: none !important;
+    }
+  </style>
 </head>
 
 <body data-page="hi-dashboard">
@@ -1660,8 +1669,9 @@ console.log('✅ [Universal Tier Listener] Loaded and listening');
     <!-- Weekly Progress Strip (Context First) -->
     <div id="weekStrip" class="weekstrip" aria-label="Your week"></div>
     
-    <!-- Global Stats Above Medallion (Your Favorite Combo!) -->
-    <div class="global-stats-container">
+    <!-- 🌟 v1.1.0: Global Stats REMOVED - now on Hi Pulse page -->
+    <!-- Global Stats Above Medallion (Your Favorite Combo!) - HIDDEN v1.1.0 -->
+    <div class="global-stats-container" style="display: none !important;">
       <div class="global-stat">
         <span class="stat-icon">👋</span>
         <div class="stat-content">

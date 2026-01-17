@@ -3,6 +3,7 @@
  * Hi Pulse Page Boot Script (v1.1.0)
  * 
  * Loads global stats, personal stats, and initializes the ticker.
+ * Uses existing stats infrastructure (UnifiedStatsLoader, StreakAuthority)
  */
 
 (async function initPulse() {
@@ -35,7 +36,7 @@
   }
 
   // =========================================
-  // 2. Load Global Stats
+  // 2. Load Global Stats (using existing system)
   // =========================================
   
   async function loadGlobalStats() {
@@ -46,24 +47,36 @@
         return;
       }
 
-      const { data, error } = await supabase.rpc('get_global_stats');
+      // Use same approach as dashboard - read from global_stats table directly
+      const { data, error } = await supabase.from('global_stats').select('total_his, hi_waves, total_users').single();
       
       if (error) {
         console.error('[Hi Pulse] Error fetching global stats:', error);
-        setStatValue('globalTotalHis', '—');
-        setStatValue('globalHiWaves', '—');
-        setStatValue('globalUsers', '—');
+        // Fallback to cached values if available
+        const cached = localStorage.getItem('hi_global_stats_cache');
+        if (cached) {
+          try {
+            const stats = JSON.parse(cached);
+            setStatValue('globalTotalHis', formatNumber(stats.total_his || stats.gTotalHis || 0));
+            setStatValue('globalHiWaves', formatNumber(stats.hi_waves || stats.gTotalHiWaves || 0));
+            setStatValue('globalUsers', formatNumber(stats.total_users || stats.gTotalUsers || 16));
+          } catch (e) {}
+        }
         return;
       }
 
-      if (data && data[0]) {
-        const stats = data[0];
-        setStatValue('globalTotalHis', formatNumber(stats.total_his || 0));
-        setStatValue('globalHiWaves', formatNumber(stats.hi_waves || 0));
-        setStatValue('globalUsers', formatNumber(stats.total_users || 0));
+      if (data) {
+        // Map the response fields to our display
+        const totalHis = data.total_his || 0;
+        const hiWaves = data.hi_waves || 0;
+        const totalUsers = data.total_users || 16;
+        
+        setStatValue('globalTotalHis', formatNumber(totalHis));
+        setStatValue('globalHiWaves', formatNumber(hiWaves));
+        setStatValue('globalUsers', formatNumber(totalUsers));
+        
+        console.log('[Hi Pulse] Global stats loaded:', { totalHis, hiWaves, totalUsers });
       }
-      
-      console.log('[Hi Pulse] Global stats loaded:', data);
     } catch (err) {
       console.error('[Hi Pulse] Error loading global stats:', err);
     }
@@ -75,39 +88,35 @@
   
   async function loadPersonalStats(userId) {
     try {
-      const supabase = window.HiSupabase?.getClient?.() || window.supabase;
-      if (!supabase || !userId) return;
+      if (!userId) return;
 
-      // Load user stats
-      const [statsResult, streakResult, pointsResult] = await Promise.all([
-        supabase.rpc('get_user_share_count', { p_user_id: userId }),
-        supabase.from('user_streaks').select('current_streak').eq('user_id', userId).maybeSingle(),
-        supabase.from('hi_points').select('balance').eq('user_id', userId).maybeSingle()
-      ]);
-
-      // User shares
-      if (statsResult.data !== null && !statsResult.error) {
-        setStatValue('userShares', formatNumber(statsResult.data));
-      } else {
-        setStatValue('userShares', '0');
+      // Use StreakAuthority if available (same as dashboard)
+      let streak = 0;
+      if (window.HiBase?.streaks?.StreakAuthority) {
+        const streakResult = await window.HiBase.streaks.StreakAuthority.get(userId);
+        if (streakResult?.data) {
+          streak = streakResult.data.current || 0;
+        }
+      } else if (window.ProfileManager?.getStreak) {
+        streak = window.ProfileManager.getStreak() || 0;
       }
 
-      // Current streak
-      if (streakResult.data && !streakResult.error) {
-        const streak = streakResult.data.current_streak || 0;
-        setStatValue('userStreak', streak > 0 ? `${streak} 🔥` : '0');
-      } else {
-        setStatValue('userStreak', '0');
+      // Get user stats from ProfileManager or profile cache
+      let shares = 0;
+      let points = 0;
+      
+      if (window.ProfileManager) {
+        const profile = window.ProfileManager.getProfile?.() || {};
+        shares = profile.total_shares || profile.hi_count || 0;
+        points = profile.hi_points || 0;
       }
 
-      // Hi Points
-      if (pointsResult.data && !pointsResult.error) {
-        setStatValue('userPoints', formatNumber(pointsResult.data.balance || 0));
-      } else {
-        setStatValue('userPoints', '0');
-      }
+      // Update UI
+      setStatValue('userShares', formatNumber(shares));
+      setStatValue('userStreak', streak > 0 ? `${streak} 🔥` : '0');
+      setStatValue('userPoints', formatNumber(points));
 
-      console.log('[Hi Pulse] Personal stats loaded');
+      console.log('[Hi Pulse] Personal stats loaded:', { shares, streak, points });
     } catch (err) {
       console.error('[Hi Pulse] Error loading personal stats:', err);
     }

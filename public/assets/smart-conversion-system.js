@@ -363,6 +363,12 @@
     triggerSmartConversion(conversionType, config) {
       if (this.isShowingConversion) return;
       
+      // v1.1.0: Don't show upgrade prompts to paid tier users
+      if (this.isUserPaidTier()) {
+        console.log('🎯 Smart conversion skipped: User is on paid tier');
+        return;
+      }
+      
       this.isShowingConversion = true;
       this.conversionData.conversionAttempts++;
       this.conversionData.lastConversionPrompt = Date.now();
@@ -371,6 +377,42 @@
       console.log('🎯 Smart conversion triggered:', conversionType, config);
       
       this.showConversionModal(config);
+    }
+    
+    /**
+     * v1.1.0: Check if user is on a paid tier (collective, explorer, patron, guardian)
+     * Paid users should not see upgrade/conversion prompts
+     */
+    isUserPaidTier() {
+      try {
+        // Check HiMembership if available
+        if (window.HiMembership?.membershipStatus) {
+          const tier = window.HiMembership.membershipStatus.tier;
+          const paidTiers = ['collective', 'explorer', 'patron', 'guardian', 'lifetime', 'member'];
+          return paidTiers.includes(tier);
+        }
+        
+        // Fallback: Check HiBrandTiers if available
+        if (window.HiBrandTiers?.currentTier) {
+          const tier = window.HiBrandTiers.currentTier;
+          const paidTiers = ['collective', 'explorer', 'patron', 'guardian', 'lifetime', 'member'];
+          return paidTiers.includes(tier);
+        }
+        
+        // Fallback: Check localStorage for tier info
+        const cachedMembership = localStorage.getItem('hi_membership_status');
+        if (cachedMembership) {
+          const parsed = JSON.parse(cachedMembership);
+          const tier = parsed.tier;
+          const paidTiers = ['collective', 'explorer', 'patron', 'guardian', 'lifetime', 'member'];
+          return paidTiers.includes(tier);
+        }
+        
+        return false;
+      } catch (error) {
+        console.warn('🎯 Could not determine tier for conversion check:', error);
+        return false;
+      }
     }
     
     showConversionModal(config) {
