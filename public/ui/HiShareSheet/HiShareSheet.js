@@ -666,6 +666,12 @@ export class HiShareSheet {
       return;
     }
 
+    // 🎯 CRITICAL FIX: Update origin from options BEFORE using it
+    if (options.origin) {
+      this.origin = options.origin;
+      console.log('🎯 [SHARE SHEET] Origin set to:', this.origin);
+    }
+
     // Store context and preset for submission
     this.context = options.context || this.origin;
     this.preset = options.preset || 'default';
