@@ -82,6 +82,22 @@ async function initHiIsland() {
   // Unified stats only: remove legacy multi-path cache bootstrap
   loadRealStats().catch(err => console.warn('Stats loading failed:', err));
   
+  // 🔄 Listen for background stats refresh (UnifiedStatsLoader dispatches this)
+  window.addEventListener('hi:stats-updated', (e) => {
+    const stats = e.detail;
+    if (stats) {
+      const wavesEl = document.getElementById('globalHiWaves');
+      const hisEl = document.getElementById('globalTotalHis');
+      const usersEl = document.getElementById('globalTotalUsers');
+      
+      if (wavesEl && Number.isFinite(stats.waves)) wavesEl.textContent = stats.waves.toLocaleString();
+      if (hisEl && Number.isFinite(stats.totalHis)) hisEl.textContent = stats.totalHis.toLocaleString();
+      if (usersEl && Number.isFinite(stats.totalUsers)) usersEl.textContent = stats.totalUsers.toLocaleString();
+      
+      console.log('[Hi Island] Stats updated from background refresh:', stats.overall);
+    }
+  });
+  
   // ✅ FIX: Initialize UnifiedHiIslandController to render feed (singleton pattern)
   // 🚀 MOBILE FIX: Don't await - let feed load in background while UI renders
   console.warn('🔍 TRACE: Starting feed system initialization...');
