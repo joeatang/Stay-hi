@@ -8,30 +8,75 @@
 
 ## 🎯 Active Tasks (Prioritized)
 
-### 🔴 P1 — IN PROGRESS (Hi Index - New Feature)
+### 🔴 P0 — IN PROGRESS (Hi Pulse Update v1.1.0) 🆕 *Started 2026-01-17*
 
-- [x] **#1 Hi Index Dashboard** — ✅ DEPLOYED 2026-01-15
+**Branch:** `feature/hi-pulse-v1.1.0`  
+**Goal:** Simplify UX, unify share entry points, reduce user confusion
+
+#### Core Changes
+- [ ] **#0a Hi Pulse Page** — NEW dedicated analytics page
+  - [ ] Create `hi-pulse.html` with ticker, stats, personal journey
+  - [ ] Move Hi Index stats from dashboard to Hi Pulse
+  - [ ] Add scrolling ticker with configurable messages
+  - [ ] Global stats + Personal stats + Trends (Gold+)
+  
+- [ ] **#0b Dashboard Simplification**
+  - [ ] Remove heavy stats (moved to Hi Pulse)
+  - [ ] Add warm branding: "Say Hi to You."
+  - [ ] Add guidance text: "one tap starts your day"
+  - [ ] 7-day pill + Medallion + Streak + Hiffirmation only
+  
+- [ ] **#0c Medallion Redesign**
+  - [ ] First tap = Daily check-in (+5 pts animation) + wave count
+  - [ ] Subsequent taps = Wave counts + accumulate tap points
+  - [ ] Long-press (800ms) = "Weapon select" menu
+    - [ ] Option 1: "Share a Hi" → Standard HiShareSheet
+    - [ ] Option 2: "Mind Gym" → Navigate to hi-muscle.html
+  - [ ] Elegant toast system for feedback
+  
+- [ ] **#0d Footer Update**
+  - [ ] Replace "Hi Gym" with "Hi Pulse" 
+  - [ ] Update HiFooter.js tabs array
+  
+- [ ] **#0e Hi Island Cleanup**
+  - [ ] Remove "Drop a Hi" button
+  - [ ] Remove "Try it" button
+  - [ ] Keep map + feed + reactions
+  
+- [ ] **#0f Navigation Updates**
+  - [ ] Update hamburger menus (dashboard, island, profile)
+  - [ ] Update HiHeader.js dropdown
+  - [ ] Update HiStandardNavigation.js
+
+#### New Components to Build
+- [ ] `HiTicker.js` + `HiTicker.css` — Bloomberg-style scrolling ticker
+- [ ] `ticker-config.json` — Editable ticker messages
+- [ ] `HiToast.js` + `HiToast.css` — Elegant notification toasts
+- [ ] `HiPointsAnimation.js` — Floating +5 animation
+- [ ] `HiMedallionMenu.js` + `.css` — Long-press "weapon select" UI
+
+#### Admin Panel (Mission Control)
+- [ ] Add "Content Management" section
+- [ ] Ticker message editor (CRUD)
+- [ ] Export/Import JSON
+
+#### QA Checklist (Before Merge)
+- [ ] Test on iPhone SE (320px)
+- [ ] Test on iPhone 14 Pro
+- [ ] Test on Android Chrome
+- [ ] Test all user flows (new + returning)
+- [ ] Test anonymous user experience
+- [ ] Verify no data loss
+
+---
+
+### 🟠 P1 — Previous Hi Index Work (SUPERSEDED by Hi Pulse)
+
+- [x] **#1 Hi Index Dashboard** — ✅ DEPLOYED 2026-01-15 → Moving to Hi Pulse
   - Community Hi Index (global stats) ✅
   - Personal Hi Index with streak multiplier ✅
   - Tier-gated (free = community only, paid = personal stats) ✅
   - Modal with chart + streak bonus section ✅
-  
-- [ ] **#1b Hi Index Modal — Tesla-Grade Polish** 🆕
-  - [ ] Refactor modal CSS to proper Apple/Tesla design system
-  - [ ] Add 7/30-day chart toggle
-  - [ ] Smooth animations and micro-interactions
-  - [ ] Better typography hierarchy
-
-- [ ] **#1c Emotional Trends Tab (Hi Island)** 🆕 *Brainstorm 2026-01-15*
-  - [ ] Populate "Emotional Trends" tab on Hi Island with deep personal analytics
-  - [ ] 30-day line charts, mood patterns, streak history
-  - [ ] Full personal Hi Index breakdown (the "data nerd" view)
-  - [ ] **Architecture decision:** Dashboard = global stats teaser + personal highlights, Emotional Trends = deep personal dive
-  
-- [ ] **#1d Dashboard Stats Architecture** 🆕 *Brainstorm 2026-01-15*
-  - [ ] Dashboard should be **primarily global stats** with personal teaser
-  - [ ] Personal deep-dive lives in Emotional Trends OR Profile tab
-  - [ ] Matches Apple Health / Strava pattern: highlights on main, details in dedicated section
 
 ### 🟠 P2 — User-Facing Polish
 

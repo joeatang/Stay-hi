@@ -45,8 +45,10 @@
 | **Hi5** | Quick self-affirmation from dashboard |
 | **Hi Gym** | Emotional journey tracker (current → desired emotion) |
 | **Hi Island** | Map + feed showing community Hi moments |
+| **Hi Pulse** | Stats dashboard with global/personal analytics + live ticker |
 | **Hiffirmations** | Daily inspirational messages |
 | **Streak** | Consecutive days of Hi activity |
+| **Hi Check-in** | Daily medallion tap = +5 pts (once/day, paid tiers) |
 
 ---
 
@@ -261,6 +263,60 @@ Stay-hi/
 2. Select desired emotion (where you want to be)
 3. Optionally write journal entry
 4. Save privately or share publicly
+
+---
+
+### 📊 hi-pulse.html (Hi Pulse - Stats Dashboard)
+
+> **Added in v1.1.0** | **Replaces Hi Gym in footer nav**
+
+**Purpose:** Centralized stats + analytics page with community pulse ticker
+
+**Key Files:**
+| File | Purpose |
+|------|---------|
+| `lib/boot/pulse-main.js` | Stats loading, ticker init |
+| `ui/HiTicker/HiTicker.js` | Scrolling ticker component |
+| `ui/HiTicker/HiTicker.css` | Ticker styling |
+| `assets/ticker-config.json` | Editable ticker messages |
+
+**Features:**
+- Live scrolling ticker with admin-editable messages
+- Global stats: Total Hi Moments, Hi Waves, Active Users
+- Personal stats (auth users): Your Shares, Your Streak, Your Points
+- Quick actions: Share Hi, Mind Gym links
+
+**Architecture:**
+```
+┌─────────────────────────────────────────────────────────┐
+│                    HI TICKER                            │
+│  "15,847 people said hi today" • "New: Dark mode!"     │
+└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│              GLOBAL PULSE (Everyone)                    │
+│  ┌───────────┐  ┌───────────┐  ┌───────────┐           │
+│  │ Total His │  │ Hi Waves  │  │   Users   │           │
+│  │  12,847   │  │  98,432   │  │   4,521   │           │
+│  └───────────┘  └───────────┘  └───────────┘           │
+└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│              YOUR PULSE (Auth users)                    │
+│  ┌───────────┐  ┌───────────┐  ┌───────────┐           │
+│  │Your Shares│  │Your Streak│  │ Hi Points │           │
+│  │    47     │  │   12 🔥   │  │    350    │           │
+│  └───────────┘  └───────────┘  └───────────┘           │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Ticker Data Source:**
+- **Phase 1:** `assets/ticker-config.json` (file-based, editable by deploys)
+- **Phase 2:** Supabase table `hi_ticker_messages` (admin dashboard control)
+
+**Load Order:**
+1. HiSupabase.v3.js → Supabase client
+2. AuthReady.js → Session (optional)
+3. pulse-main.js → Ticker init, stats fetch
+4. HiTicker.js → Marquee animation
 
 ---
 
@@ -778,7 +834,7 @@ self.addEventListener('push', event => {
 
 ---
 
-## �🧩 Component Library
+## 🧩 Component Library
 
 ### `/public/ui/` Components
 
@@ -787,11 +843,15 @@ self.addEventListener('push', event => {
 | **HiShareSheet** | `HiShareSheet/HiShareSheet.js` | Share modal with private/public/anonymous options |
 | **HiFooter** | `HiFooter/HiFooter.js` | Bottom navigation bar |
 | **HiMedallion** | `HiMedallion/HiMedallion.js` | Interactive tap circle |
+| **HiMedallionMenu** | `HiMedallionMenu/HiMedallionMenu.js` | Long-press menu (Share Hi / Mind Gym) |
 | **HiScale** | `HiScale/HiScale.js` | Intensity slider (1-10) |
 | **HiModal** | `HiModal/HiModal.css` | Base modal styles |
 | **HiStreaks** | `HiStreaks/HiStreaks.js` | Streak display widget |
 | **HiUpgradeModal** | `HiUpgradeModal/` | Tier upgrade prompts |
 | **HiFeed** | `HiFeed/HiFeed.js` | Social feed rendering |
+| **HiTicker** | `HiTicker/HiTicker.js` | Scrolling news ticker (v1.1.0) |
+| **HiToast** | `HiToast/HiToast.js` | Notification toasts (v1.1.0) |
+| **HiPointsAnimation** | `HiPointsAnimation/HiPointsAnimation.js` | Floating +N points animation (v1.1.0) |
 
 ### `/public/components/` Components
 
@@ -801,6 +861,53 @@ self.addEventListener('push', event => {
 | `HiShareableCard/` | Shareable quote card generator |
 | `hi-calendar/` | Calendar view |
 | `profile-preview-modal/` | Profile popup |
+
+---
+
+## 🎖️ Medallion Behavior (v1.1.0)
+
+> **Updated in v1.1.0** | Gateway to all Hi actions
+
+The medallion is the central interaction point. It supports two gestures:
+
+### Tap Gesture (< 800ms)
+**First tap of the day:**
+- Check-in recorded (paid tiers: +5 Hi Points)
+- Hi Wave sent
+- Floating "+5" animation (HiPointsAnimation)
+- Toast: "Welcome back! +5 Hi Points 🌟"
+
+**Subsequent taps:**
+- Hi Wave sent only
+- Standard ripple animation
+
+### Long-Press Gesture (≥ 800ms)
+Opens **HiMedallionMenu** with two options:
+1. **Share a Hi** → Opens HiShareSheet
+2. **Mind Gym** → Navigates to hi-muscle.html
+
+```
+┌─────────────────────┐
+│  (Long-press menu)  │
+│ ┌─────────────────┐ │
+│ │  🌟 Share a Hi  │ │
+│ └─────────────────┘ │
+│ ┌─────────────────┐ │
+│ │  🧠 Mind Gym    │ │
+│ └─────────────────┘ │
+└─────────────────────┘
+```
+
+### iOS Context Menu Prevention
+Long-press must use `touch-action: manipulation` and prevent default to avoid Safari's context menu.
+
+### Implementation Files
+| File | Purpose |
+|------|---------|
+| `HiMedallion.js` | Core tap/wave logic + long-press detection |
+| `HiMedallionMenu.js` | Floating menu component |
+| `HiPointsAnimation.js` | Floating +N animation |
+| `dashboard-main.js` | Check-in logic + toast wiring |
 
 ---
 
@@ -841,6 +948,7 @@ self.addEventListener('push', event => {
 | hi-dashboard.html | dashboard-init.js + dashboard-main.js |
 | hi-island-NEW.html | island-main.mjs + island-floating.js |
 | hi-muscle.html | muscle-main.js + muscle-floating.js |
+| hi-pulse.html | pulse-main.js |
 | profile.html | profile-main.js + profile-navigation.js |
 | welcome.html | welcome-*.js (multiple modules) |
 
