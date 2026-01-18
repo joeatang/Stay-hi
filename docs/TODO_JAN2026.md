@@ -2,120 +2,142 @@
 
 > **Started:** January 13, 2026  
 > **Status:** Active  
+> **Last Updated:** January 17, 2026 (brain dump session)  
 > **Rollover:** Incomplete items move to `TODO_FEB2026.md` at month end
 
 ---
 
 ## 🎯 Active Tasks (Prioritized)
 
-### 🔴 P0 — ✅ COMPLETE: Hi Pulse Update v1.1.0 *(Completed 2026-01-17)*
+### 🔴 P0 — CRITICAL BUGS (Fix Immediately)
 
-**Branch:** `main` (merged)  
-**Goal:** Simplify UX, unify share entry points, reduce user confusion
+- [ ] **#19 Auth Session Loss on Phone Sleep** 🆕🔥
+  - User gets signed out when phone sleeps but app shows "half signed in" state
+  - Profile pic loads but 7-day pill breaks, sign-in button appears on Hi Pulse
+  - Investigate: auth-resilience.js, BFCache handling, session restore on wake
+  - *This is breaking the core experience*
 
-#### Core Changes
-- [x] **#0a Hi Pulse Page** — ✅ DEPLOYED 2026-01-17
-  - [x] Create `hi-pulse.html` with ticker, stats, personal journey
-  - [x] Move Hi Index stats from dashboard to Hi Pulse
-  - [x] Add scrolling ticker with configurable messages
-  - [x] Global stats + Personal stats + Trends (Gold+)
-  - [x] HiDB.js added for share persistence (fixed 2026-01-17)
-  - [x] Celebration toast system for share success
-  
-- [x] **#0b Dashboard Simplification** — ✅ COMPLETE
-  - [x] Simplified dashboard (Hi Pulse handles heavy stats)
-  - [x] 7-day pill + Medallion + Streak + Hiffirmation
-  - [x] Performance optimized (800ms auth fallback)
-  
-- [ ] **#0c Medallion Redesign** — DEFERRED (v1.2.0)
-  - [ ] First tap = Daily check-in (+5 pts animation) + wave count
-  - [ ] Subsequent taps = Wave counts + accumulate tap points
-  - [ ] Long-press (800ms) = "Weapon select" menu
-  
-- [x] **#0d Footer Update** — ✅ COMPLETE
-  - [x] Replace "Hi Gym" with "Hi Pulse" 
-  - [x] Update HiFooter.js tabs array
-  
-- [ ] **#0e Hi Island Cleanup** — DEFERRED (v1.2.0)
-  - [ ] Remove "Drop a Hi" button  
-  - [ ] Keep map + feed + reactions
-  
-- [ ] **#0f Navigation Updates** — PARTIAL
-  - [ ] Update hamburger menus
-  - [x] HiHeader dropdown updated
+- [ ] **#20 Hi Pulse "Your Shares" Regression** 🆕🔥
+  - Was showing 69, now shows 1
+  - All stats (Hi Pulse, Profile, Hi Island) should pull from ONE source of truth
+  - Audit: Where is each page getting share count from? Unify to single RPC.
+  - *User-visible data integrity issue*
 
-#### New Components Built ✅
-- [x] `HiTicker.js` + `HiTicker.css` — Bloomberg-style scrolling ticker ✅
-- [x] `ticker-config.json` — 8 editable ticker messages ✅
-- [x] Celebration toast in HiShareSheet ✅
-- [ ] `HiPointsAnimation.js` — Deferred
-- [ ] `HiMedallionMenu.js` — Deferred
+- [ ] **#21 Mission Control: degenmentality Can't Generate Codes** 🆕
+  - Error: "need to be a verified admin or logged into an admin account"
+  - Check: admin_roles table, RPC permissions, is_active flag
+  - *Blocking admin functionality*
 
-#### QA Checklist ✅ PASSED
-- [x] Test all user flows
-- [x] Verify no data loss
-- [x] Shares from Hi Pulse visible on Hi Island
-- [x] All 6 tier configs verified
+### 🟠 P1 — HIGH PRIORITY (This Week)
+
+- [ ] **#22 Hi Island Social Media Not Showing in Profile Cards** 🆕
+  - Social links exist in profiles table but not displaying
+  - Audit: HiIslandProfileCard.js, profile fetch query, UI rendering
+  - Low effort fix if it's just a display issue
+
+- [ ] **#23 Hi Island Map Audit** 🆕
+  - Previous audit found missing areas
+  - Need to verify all regions are included
+  - Update Leaflet/map bounds if needed
+
+- [ ] **#24 Mission Control Full Audit** 🆕
+  - Hardcoded stats that don't match real data
+  - Buttons that don't work
+  - Admin sign-in friction
+  - Make it functional, practical, valuable
+
+- [ ] **#25 Invite Code Expiration Flow — Triple Check** 🆕
+  - What happens when code expires?
+  - Is user notified? Downgraded? When?
+  - Document the complete flow
+  - *Must be smooth before public launch*
+
+- [ ] **#26 Unified Stats Source of Truth** 🆕
+  - Hi Pulse personal stats
+  - Profile page stats  
+  - Hi Island profile card stats
+  - All must pull from same RPC/table
+  - Create single `get_user_stats()` if needed
+
+### 🟡 P2 — MEDIUM PRIORITY (This Month)
+
+- [ ] **#27 Bulk Upgrade Current Users to 1-Year** 🆕
+  - Thank-you gift before public launch
+  - SQL to extend all current user_memberships by 1 year
+  - Does app notify them? Should it?
+  - Consider: In-app announcement or email
+
+- [ ] **#28 Referral Link System** 🆕
+  - How do users share links for referral credit?
+  - Options: Custom system vs Stan Store integration
+  - Need: Tracking, attribution, reward mechanism
+  - Research phase first
+
+- [ ] **#7 Hi Wall / Hi Notes** *(existing)*
+  - Users spend Hi Points to leave encouraging notes
+  - Points system deployed, redemption table ready
+  - (~2-3 days)
+
+- [ ] **#2 Hi Island user profiles** *(existing)*
+  - Finish profile showcase with bio, info display
+  - Most visible incomplete feature
+
+- [ ] **#3 Social Links in Bio** *(existing)*
+  - Add Instagram/Twitter/TikTok handles to profiles
+  - Low effort, high value (~1-2 days)
+
+### 🟢 P3 — LOWER PRIORITY (Nice to Have)
+
+- [ ] **#29 Physical Token Rewards for Milestones** 🆕
+  - Honor-based with light verification
+  - What milestones trigger rewards?
+  - Shipping logistics
+  - Do we have systems for this? (Research)
+
+- [ ] **#30 App Pitch Questions** 🆕
+  - Discovery questions that lead to Hi as the answer:
+    - "How do you check in with yourself daily?"
+    - "What's your morning routine for mental health?"
+    - "How do you track your emotional journey?"
+  - Document for sales/marketing
+
+- [ ] **#4 Fix User Statistics button** *(existing)*
+  - Create `get_admin_user_stats()` RPC with SECURITY DEFINER
+
+- [ ] **#5 Fix Recent Signups button** *(existing)*
+  - Create `get_admin_recent_signups()` RPC (same pattern)
+
+### 🔵 P4 — FUTURE FEATURES (Research/Planning)
+
+- [ ] **#31 AI Companion Bot for Hi Island** 🆕
+  - AI agentic work sending Hi notes
+  - Separate bot account
+  - Scheduled posts with personality
+  - Content generation pipeline
+  - *High complexity — needs design doc*
+
+- [ ] **#32 Crypto Wallet Sign-In / Verification** 🆕
+  - Not accessing wallet, just verifying ownership
+  - Badge for verified wallet holders
+  - Use NFT/asset as PFP
+  - Community partnerships for badges
+  - *Research: Web3 auth libraries, UX patterns*
+
+- [ ] **#13 AI Companion Bot** *(existing — merged with #31)*
+- [ ] **#8 Push Notifications** *(existing)*
+- [ ] **#9 Google OAuth** *(existing)*
+- [ ] **#10 Apple OAuth** *(existing)*
+
+### ⚫ P5 — APP STORE PREP (When Ready)
+
+- [ ] **#11 Capacitor wrapper** — PWA → native iOS/Android
+- [ ] **#12 App Store submission** — iOS first
+- [ ] **#17 App Store Deployment Plan**
+- [ ] **#18 Post-Launch Update Strategy**
 
 ---
 
-### 🟠 P1 — Previous Hi Index Work (SUPERSEDED by Hi Pulse)
-
-- [x] **#1 Hi Index Dashboard** — ✅ DEPLOYED 2026-01-15 → Moving to Hi Pulse
-  - Community Hi Index (global stats) ✅
-  - Personal Hi Index with streak multiplier ✅
-  - Tier-gated (free = community only, paid = personal stats) ✅
-  - Modal with chart + streak bonus section ✅
-
-### 🟠 P2 — User-Facing Polish
-
-- [ ] **#2 Hi Island user profiles** — Finish profile showcase with bio, info display. Started but not completed. *Most visible incomplete feature.*
-- [ ] **#3 Social Links in Bio** — Add Instagram/Twitter/TikTok handles to profiles. Low effort, high value. (~1-2 days)
-
-### 🟡 P3 — Mission Control Admin Fixes
-
-- [ ] **#4 Fix User Statistics button** — Create `get_admin_user_stats()` RPC with SECURITY DEFINER
-- [ ] **#5 Fix Recent Signups button** — Create `get_admin_recent_signups()` RPC (same pattern)
-- [ ] **#6 Improve Membership Analytics formatting** — Better UI display instead of raw JSON
-
-### 🟢 P4 — Points Redemption (Hi Wall)
-
-- [ ] **#7 Hi Wall / Hi Notes** — Users spend Hi Points to leave encouraging notes. Points system deployed, redemption table ready. (~2-3 days)
-
-### 🔵 P5 — Growth Features
-
-- [ ] **#8 Push Notifications** — Connect sw.js listener to backend. Web push first. (~3-5 days)
-- [ ] **#9 Google OAuth** — Supabase config + frontend buttons. (~1-2 days)
-- [ ] **#10 Apple OAuth** — Requires Apple Dev account. Prep for App Store. (~1-2 days)
-
-### ⚫ P6 — App Store Prep 🆕 *Expanded 2026-01-15*
-
-- [ ] **#11 Capacitor wrapper** — PWA → native iOS/Android. (~2-4 weeks)
-- [ ] **#12 App Store submission** — iOS first (harder = fix issues early)
-- [ ] **#17 App Store Deployment Plan** 🆕
-  - [ ] Document full iOS App Store submission process
-  - [ ] Document full Google Play submission process
-  - [ ] Create app icons (all required sizes)
-  - [ ] Write App Store descriptions + screenshots
-  - [ ] Understand TestFlight beta testing workflow
-  
-- [ ] **#18 Post-Launch Update Strategy** 🆕 *Education needed*
-  - [ ] Learn how iOS/Android app updates work after publish
-  - [ ] Understand review times for updates
-  - [ ] Document "how to push bug fixes to live app"
-  - [ ] PWA fallback strategy (web updates instant, app updates delayed)
-  - [ ] Version numbering strategy (semantic versioning)
-
-### ⚪ P7 — Future / Research (Lowest Priority)
-
-- [ ] **#13 AI Companion Bot** — Daily encouragement posts. High complexity.
-- [ ] **#14 Hi Gym emotion search** — Fuzzy matching, AI suggestions.
-- [ ] **#15 User Analytics Dashboard** — `/hi-insights.html` with charts.
-- [ ] **#16 Trac Network exploration** — Evaluate P2P integration for Hi Wall or content proofs. See [TRAC_NETWORK_COMPATIBILITY_AUDIT.md](TRAC_NETWORK_COMPATIBILITY_AUDIT.md). *Wait for Mainnet or hybrid approach. LAST PRIORITY.*
-
----
-
-### ✅ Recently Completed
+### ✅ COMPLETED: Hi Pulse Update v1.1.0 *(2026-01-17)*
 
 - [x] ~~**#0 Share Submission Bug**~~ — ✅ FIXED (2026-01-15). Anonymous shares now truly anonymous.
   - **Root cause:** RPC COALESCE bug — `v_user_id := COALESCE(p_user_id, auth.uid())` made anonymous shares get real user_id
