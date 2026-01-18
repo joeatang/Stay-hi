@@ -148,9 +148,6 @@
   <!-- Unified Admin Access Manager -->
   <script src="./lib/admin/AdminAccessManager.js"></script>
   
-  <!-- 🌟 Analytics v2.0: Hi Scale Prompt (Tesla-grade elegance) -->
-  <script src="./components/HiScalePrompt.js"></script>
-  
   <!-- Tesla CSS: Critical + Progressive Enhancement -->
   <link rel="stylesheet" href="assets/location-picker.css">
   <link rel="preload" href="assets/premium-ux.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -1696,14 +1693,6 @@
                           // Disable button (already checked in today)
                           btn.disabled = true;
                           btn.textContent = '✅ Checked in!';
-                          
-                          // 🌟 ANALYTICS v2.0: Show Hi Scale prompt (non-blocking)
-                          setTimeout(() => {
-                            if (window.HiScalePrompt) {
-                              console.log('🌟 Showing Hi Scale prompt after check-in');
-                              window.HiScalePrompt.show();
-                            }
-                          }, 800); // Delay for smoother UX
                         }
                         else { 
                           console.log('ℹ️ Already checked in today');
