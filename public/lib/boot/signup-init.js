@@ -29,12 +29,12 @@ function showError(message) {
   const successEl = document.getElementById('form-success');
   
   successEl.style.display = 'none';
-  errorEl.textContent = message;
+  errorEl.innerHTML = message; // Allow HTML for links in error messages
   errorEl.style.display = 'block';
   
   setTimeout(() => {
     errorEl.style.display = 'none';
-  }, 5000);
+  }, 8000); // Increased to 8s for longer error messages with actions
 }
 
 function showSuccess(message) {
@@ -258,7 +258,23 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
       
       if (!data || !data.is_valid) {
         console.error('❌ Code validation failed:', data);
-        showError(data?.reason || 'Invalid or expired invite code.');
+        
+        // Enhanced error messages with actionable guidance
+        let errorMessage = 'Invalid or expired invite code.';
+        
+        if (data?.reason === 'Code has reached maximum uses') {
+          errorMessage = '⚠️ This invite code is full. Please contact your referrer for a fresh code, or <a href="signup.html?mode=free" style="color: #FFD166; text-decoration: underline;">sign up free</a> without a code.';
+        } else if (data?.reason === 'Code has expired') {
+          errorMessage = '⚠️ This invite code has expired. Please request a new code, or <a href="signup.html?mode=free" style="color: #FFD166; text-decoration: underline;">sign up free</a> without a code.';
+        } else if (data?.reason === 'Code is inactive') {
+          errorMessage = '⚠️ This invite code has been deactivated. Please request a new code, or <a href="signup.html?mode=free" style="color: #FFD166; text-decoration: underline;">sign up free</a> without a code.';
+        } else if (data?.reason === 'Code not found') {
+          errorMessage = '⚠️ Invite code not recognized. Please double-check the code, or <a href="signup.html?mode=free" style="color: #FFD166; text-decoration: underline;">sign up free</a> without a code.';
+        } else {
+          errorMessage = data?.reason || errorMessage;
+        }
+        
+        showError(errorMessage);
         return;
       }
       

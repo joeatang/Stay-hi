@@ -51,6 +51,10 @@ If a migration causes issues:
 
 | Date | Migration | Description | Status |
 |------|-----------|-------------|--------|
+| 2026-01-18 | 005 | User timezone system (global UX for midnight resets) | ⏳ Ready |
+| 2026-01-18 | 004 | Hi Index v2.0 with Hi Scale integration (activity × feeling) | ⏳ Ready |
+| 2026-01-18 | 003 | Analytics Gold Standard v2.0 (personal journey tracking) | ⏳ Ready |
+| 2026-01-17 | 002 | Sync Total Hi Moments counter | ✅ Deployed |
 | 2026-01-17 | 001 | Fix get_user_stats RPC (personal stats + global_stats table) | ✅ Deployed |
 
 ---

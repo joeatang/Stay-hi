@@ -11,6 +11,17 @@
 
 ### 🔴 P0 — CRITICAL BUGS (Fix Immediately)
 
+- [ ] **#33 Signup Race Condition Bug** 🆕🔥🐛 *(2026-01-18)* **✅ FIX DEPLOYED**
+  - **Critical Discovery:** `use_invite_code()` has database race condition
+  - **What happens:** Function queries `auth.users.email` immediately after signup, but record not visible yet
+  - **Result:** User sees false error "Code has reached maximum uses" but account IS created
+  - **Proof:** User italo505@aol.com saw error, but can now sign in (account exists)
+  - **Root Cause:** Replication delay between auth.signUp() and RPC seeing the user record
+  - **Fix:** Remove email query from `use_invite_code()` - not needed for membership creation
+  - **Files:** `FIX_USE_INVITE_CODE_RACE_CONDITION.sql` ✅ DEPLOYED, `SIGNUP_BUG_ROOT_CAUSE_ANALYSIS.md`
+  - **Status:** SQL fix deployed (2026-01-18), awaiting test signup confirmation
+  - **Next:** Test with fresh invite code, monitor for 24h, then close if successful
+
 - [ ] **#19 Auth Session Loss on Phone Sleep** 🆕🔥
   - User gets signed out when phone sleeps but app shows "half signed in" state
   - Profile pic loads but 7-day pill breaks, sign-in button appears on Hi Pulse
@@ -29,6 +40,40 @@
   - *Blocking admin functionality*
 
 ### 🟠 P1 — HIGH PRIORITY (This Week)
+
+- [ ] **#34 Analytics v2.0 Frontend — Hi Scale Prompt** 🆕 *(2026-01-18)*
+  - **Backend:** ✅ COMPLETE (migrations 003 + 004 deployed)
+  - **Task:** Add post-check-in modal: "😫 1 2 3 4 5 😊 How are you feeling?"
+  - **Location:** dashboard-main.js after successful check-in
+  - **Behavior:** Non-blocking, dismissible, optional note field
+  - **RPC:** Calls `record_hi_scale_rating(rating, note)` (already deployed)
+  - **UX:** Tesla-grade elegance, smooth animation, celebrates submission
+  - **Goal:** Capture feeling to enable Hi Index v2.0 authenticity
+  - *Estimated: 2-3 hours*
+
+- [ ] **#35 Analytics v2.0 Frontend — Hi Pulse v2.0 UI** 🆕 *(2026-01-18)*
+  - **Backend:** ✅ COMPLETE (6 RPC functions ready)
+  - **Task:** Build personal analytics dashboard in hi-pulse.html
+  - **Components:** Create `/components/HiAnalytics/` folder
+    - HiAnalytics.js (main controller)
+    - EmotionalJourneyChart.js (line chart, 7-30 days)
+    - WeeklyPatternsGrid.js (best/worst days)
+    - MilestonesList.js (achievements, insights)
+  - **Layout:** Tabbed interface (Overview | Journey | Patterns | Milestones)
+  - **Tier Gating:** Bronze (7 days), Silver (30 days), Gold (unlimited)
+  - **RPC Calls:** get_user_emotional_journey(), get_user_weekly_patterns(), get_user_insights()
+  - **UX:** Clean, inspiring, data-driven, mobile-first
+  - *Estimated: 1-2 days*
+
+- [ ] **#36 Timezone Detection on Signup** 🆕 *(2026-01-18)*
+  - **Backend:** ⏳ Migration 005 ready (not deployed yet)
+  - **Task:** Auto-detect user timezone via Intl API on signup
+  - **Location:** signup-init.js after user creation
+  - **Code:** `const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;`
+  - **Store:** Update profiles.timezone column
+  - **Benefit:** Streak resets at user's midnight (not UTC)
+  - **Status:** Blocked until migration 005 deployed (optional)
+  - *Estimated: 30 minutes*
 
 - [ ] **#22 Hi Island Social Media Not Showing in Profile Cards** 🆕
   - Social links exist in profiles table but not displaying

@@ -10,6 +10,10 @@
 
 | Date | Update | Status |
 |------|--------|--------|
+| 2026-01-18 | **Analytics Gold Standard v2.0** - Personal analytics backend deployed | ✅ Backend Complete |
+| 2026-01-18 | 3 new analytics tables (snapshots, trends, insights) + 6 RPC functions | ✅ Deployed |
+| 2026-01-18 | **Hi Index v2.0** - Now measures Practice × Feeling (Hi Scale integration) | ✅ Deployed |
+| 2026-01-18 | Migration system - Versioned migrations (003, 004, 005) with rollback scripts | ✅ Complete |
 | 2026-01-17 | **Hi Pulse v1.1.0** - New stats dashboard with live ticker | ✅ Deployed |
 | 2026-01-17 | HiTicker component - Bloomberg-style scrolling messages | ✅ Complete |
 | 2026-01-17 | HiShareSheet celebration toasts - Visual feedback on all pages | ✅ Complete |
