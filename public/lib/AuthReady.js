@@ -12,31 +12,43 @@ if (!window.__authReadyPageshowRegistered) {
   window.__authReadyPageshowRegistered = Date.now();
   const AUTH_INIT_TIMESTAMP = Date.now();
   
+  // 🚀 SESSION PERSISTENCE FIX: Track URL to distinguish navigation from phone wake
+  let lastAuthURL = window.location.href;
+  
   window.addEventListener('pageshow', (event) => {
     const timeSinceInit = Date.now() - AUTH_INIT_TIMESTAMP;
     const isInitialPageshow = timeSinceInit < 200;
+    const currentURL = window.location.href;
+    const urlChanged = currentURL !== lastAuthURL;
     
     console.log('🔄 [AuthReady] pageshow:', {
       persisted: event.persisted,
       timeSinceInit,
       isInitialPageshow,
+      urlChanged, // NEW: Distinguish navigation from phone sleep
       wasReady: _ready
     });
     
-    // Only reset on RETURN navigations or BFCache restore
-    if (event.persisted) {
-      console.log('✅ [AuthReady] BFCache restore - resetting stale state');
+    // 🚀 FIX: ONLY reset on ACTUAL navigation (URL changed)
+    // Phone sleep/wake fires pageshow but URL is the SAME - preserve state!
+    if (event.persisted && urlChanged) {
+      console.log('✅ [AuthReady] BFCache navigation (URL changed) - resetting stale state');
       _ready = false;
       _emitted = false;
       _result = null;
-    } else if (!isInitialPageshow && _ready) {
-      console.log('✅ [AuthReady] Return navigation - resetting stale state');
+    } else if (!isInitialPageshow && _ready && urlChanged) {
+      console.log('✅ [AuthReady] Return navigation (URL changed) - resetting stale state');
       _ready = false;
       _emitted = false;
       _result = null;
+    } else if (event.persisted && !urlChanged) {
+      // 📱 Phone sleep/wake - KEEP STATE (still valid!)
+      console.log('📱 [AuthReady] Phone wake detected (URL unchanged) - preserving auth state ✅');
     } else {
       console.log('✅ [AuthReady] Initial pageshow - keeping fresh state');
     }
+    
+    lastAuthURL = currentURL; // Update for next check
   });
 } else {
   console.log('[AuthReady] ⏭️ Pageshow listener already registered, skipping duplicate');

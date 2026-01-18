@@ -61,29 +61,40 @@ if (!window.__hiSupabasePageshowRegistered) {
   window.__hiSupabasePageshowRegistered = Date.now();
   const SUPABASE_INIT_TIMESTAMP = Date.now();
   
+  // 🚀 SESSION PERSISTENCE FIX: Track URL to distinguish navigation from phone wake
+  let lastPageURL = window.location.href;
+  
   window.addEventListener('pageshow', (event) => {
     const timeSinceInit = Date.now() - SUPABASE_INIT_TIMESTAMP;
     const isInitialPageshow = timeSinceInit < 200; // Initial pageshow fires within ~50ms of script load
+    const currentURL = window.location.href;
+    const urlChanged = currentURL !== lastPageURL;
     
     console.warn('[HiSupabase] 📱 pageshow event fired:', {
       persisted: event.persisted,
       url: window.location.pathname,
       timeSinceInit,
       isInitialPageshow,
+      urlChanged, // NEW: Distinguish navigation from phone sleep
       hadClient: !!window.__HI_SUPABASE_CLIENT || !!createdClient
     });
     
-    // Only clear on RETURN navigations or BFCache restore
-    // NOT on initial load - that would destroy the fresh client we just created!
-    if (event.persisted) {
-      console.warn('[HiSupabase] 🔥 BFCache restore - clearing stale client');
+    // 🚀 FIX: ONLY clear on ACTUAL navigation (URL changed)
+    // Phone sleep/wake fires pageshow but URL is the SAME - preserve session!
+    if (event.persisted && urlChanged) {
+      console.warn('[HiSupabase] 🔥 BFCache navigation detected (URL changed) - clearing stale client');
       clearSupabaseClient();
-    } else if (!isInitialPageshow && createdClient) {
-      console.warn('[HiSupabase] 🔥 Return navigation - clearing stale client');
+    } else if (!isInitialPageshow && createdClient && urlChanged) {
+      console.warn('[HiSupabase] 🔥 Return navigation detected (URL changed) - clearing stale client');
       clearSupabaseClient();
+    } else if (event.persisted && !urlChanged) {
+      // 📱 Phone sleep/wake - KEEP CLIENT (session still valid!)
+      console.log('[HiSupabase] 📱 Phone wake detected (URL unchanged) - preserving client and session ✅');
     } else {
       console.log('[HiSupabase] ✅ Initial pageshow - keeping fresh client');
     }
+    
+    lastPageURL = currentURL; // Update for next check
   });
 } else {
   console.log('[HiSupabase] ⏭️ Pageshow listener already registered, skipping duplicate');
