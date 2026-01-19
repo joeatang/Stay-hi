@@ -179,7 +179,15 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
         });
         
         if (error) {
-          showError(error.message || 'Sign up failed.');
+          console.error('❌ Sign-up error:', error);
+          // More specific error messages
+          if (error.message.includes('already registered')) {
+            showError('This email is already registered. <a href="/signin.html" style="color: #4ECDC4; text-decoration: underline;">Sign in instead?</a>');
+          } else if (error.message.includes('invalid email')) {
+            showError('Please enter a valid email address.');
+          } else {
+            showError(error.message || 'Sign up failed. Please try again.');
+          }
           return;
         }
         userId = data.user?.id;
