@@ -1551,6 +1551,34 @@ export class HiShareSheet {
       // 🎯 TIER TRACKING: Increment client-side share counter (fallback)
       this.incrementShareCount();
       
+      // 🧠 EMOTION TRACKING: Save to analytics if this is a Hi Gym share
+      if (this.origin === 'higym' && this.emotionalJourney && authenticatedUserId) {
+        try {
+          const supabase = window.HiSupabase?.getClient?.() || window.supabaseClient;
+          if (supabase) {
+            // Extract emotion names from emojis (e.g., "😊" -> "Joy")
+            const currentEmotion = this.extractEmotionName(this.emotionalJourney.current);
+            const desiredEmotion = this.extractEmotionName(this.emotionalJourney.desired);
+            
+            const { data: emotionData, error: emotionError } = await supabase.rpc('record_hi_scale_rating', {
+              p_rating: hiIntensity, // Use Hi Scale rating if provided
+              p_note: null,
+              p_current_emotion: currentEmotion,
+              p_desired_emotion: desiredEmotion,
+              p_reflection: text // Journal text
+            });
+            
+            if (emotionData?.success) {
+              console.log('✅ Emotion journey tracked:', { currentEmotion, desiredEmotion });
+            } else if (emotionError) {
+              console.warn('⚠️ Emotion tracking (non-critical):', emotionError.message);
+            }
+          }
+        } catch (emotionErr) {
+          console.warn('⚠️ Emotion tracking (non-critical):', emotionErr.message);
+        }
+      }
+      
       // Show success toast immediately
       if (toIsland) {
         this.showToast(anon ? '✨ Shared anonymously!' : '🌟 Shared publicly!');
@@ -1775,6 +1803,28 @@ export class HiShareSheet {
       toast.style.transform = 'translate(-50%, -50%) scale(0.95)';
       setTimeout(() => toast.remove(), 500);
     }, 3500); // Longer display for important message
+  }
+  
+  // 🧠 Extract emotion name from emoji (for analytics)
+  extractEmotionName(emoji) {
+    if (!emoji) return null;
+    
+    // Load emotion catalog from window.HI_EMOTIONS
+    if (!window.HI_EMOTIONS?.categories) {
+      console.warn('⚠️ HI_EMOTIONS not loaded, cannot extract emotion name');
+      return emoji; // Fallback to emoji itself
+    }
+    
+    // Search all categories for matching emoji
+    for (const category of window.HI_EMOTIONS.categories) {
+      const match = category.items.find(item => item.emoji === emoji);
+      if (match) {
+        return match.name; // e.g., "Joy", "Calm", "Frustration"
+      }
+    }
+    
+    // No match found, return emoji
+    return emoji;
   }
 }
 
