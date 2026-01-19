@@ -61,40 +61,48 @@ if (!window.__hiSupabasePageshowRegistered) {
   window.__hiSupabasePageshowRegistered = Date.now();
   const SUPABASE_INIT_TIMESTAMP = Date.now();
   
-  // 🚀 SESSION PERSISTENCE FIX: Track URL to distinguish navigation from phone wake
+  // 🚀 WOZ FIX: Track referrer + timestamp to CORRECTLY detect phone wake vs navigation
   let lastPageURL = window.location.href;
+  let lastPageshowTime = Date.now();
   
   window.addEventListener('pageshow', (event) => {
     const timeSinceInit = Date.now() - SUPABASE_INIT_TIMESTAMP;
+    const timeSinceLastPageshow = Date.now() - lastPageshowTime;
     const isInitialPageshow = timeSinceInit < 200; // Initial pageshow fires within ~50ms of script load
     const currentURL = window.location.href;
     const urlChanged = currentURL !== lastPageURL;
+    
+    // 🔥 WOZ LOGIC: Phone wake has SHORT gap (<3s), navigation has LONG gap
+    const isPhoneWake = event.persisted && 
+                        !urlChanged && 
+                        timeSinceLastPageshow < 3000; // <3s = phone wake, not BFCache restore
     
     console.warn('[HiSupabase] 📱 pageshow event fired:', {
       persisted: event.persisted,
       url: window.location.pathname,
       timeSinceInit,
+      timeSinceLastPageshow,
       isInitialPageshow,
-      urlChanged, // NEW: Distinguish navigation from phone sleep
+      urlChanged,
+      isPhoneWake, // ✨ NEW: Reliable phone wake detection
       hadClient: !!window.__HI_SUPABASE_CLIENT || !!createdClient
     });
     
-    // 🚀 FIX: ONLY clear on ACTUAL navigation (URL changed)
-    // Phone sleep/wake fires pageshow but URL is the SAME - preserve session!
-    if (event.persisted && urlChanged) {
+    // 🔥 WOZ FIX: NEVER clear on phone wake, ONLY on actual navigation
+    if (isPhoneWake) {
+      console.log('[HiSupabase] 📱 Phone wake detected - preserving client and session ✅');
+    } else if (event.persisted && urlChanged) {
       console.warn('[HiSupabase] 🔥 BFCache navigation detected (URL changed) - clearing stale client');
       clearSupabaseClient();
     } else if (!isInitialPageshow && createdClient && urlChanged) {
       console.warn('[HiSupabase] 🔥 Return navigation detected (URL changed) - clearing stale client');
       clearSupabaseClient();
-    } else if (event.persisted && !urlChanged) {
-      // 📱 Phone sleep/wake - KEEP CLIENT (session still valid!)
-      console.log('[HiSupabase] 📱 Phone wake detected (URL unchanged) - preserving client and session ✅');
     } else {
       console.log('[HiSupabase] ✅ Initial pageshow - keeping fresh client');
     }
     
-    lastPageURL = currentURL; // Update for next check
+    lastPageURL = currentURL;
+    lastPageshowTime = Date.now(); // Track for next comparison
   });
 } else {
   console.log('[HiSupabase] ⏭️ Pageshow listener already registered, skipping duplicate');
@@ -143,6 +151,18 @@ if (!createdClient) {
     try { window.supabaseClient = real; } catch(_){ }
     try { window.sb = real; } catch(_){ }
     console.log('✅ Fresh Supabase client created for:', window.location.pathname);
+    
+    // 🎯 WOZ FIX: Clear session cache on auth events (keeps cache fresh)
+    real.auth.onAuthStateChange((event, session) => {
+      console.log('[HiSupabase] 🔔 Auth event:', event);
+      if (window.HiSupabase?.clearSessionCache) {
+        window.HiSupabase.clearSessionCache();
+      }
+      // Broadcast to event bus for other listeners
+      window.dispatchEvent(new CustomEvent('hi:auth-state-change', { 
+        detail: { event, session } 
+      }));
+    });
     
     // 🔥 NAVIGATION FIX: Notify singleton components that a new client exists
     // This lets ProfileManager, auth-resilience, etc. update their references
@@ -270,7 +290,55 @@ if (!window.getSupabase) {
 
 // Ensure window.HiSupabase.getClient() pattern works without instantiating a second client.
 if (!window.HiSupabase) {
-  window.HiSupabase = { getClient: getHiSupabase };
+  window.HiSupabase = { 
+    getClient: getHiSupabase,
+    // 🎯 WOZ SESSION CACHE: Prevent auth spam (6+ simultaneous getSession() calls)
+    _sessionCache: null,
+    _sessionCacheTime: 0,
+    _sessionPromise: null,
+    
+    async getSession() {
+      const CACHE_TTL = 5000; // 5 seconds (balance freshness vs spam)
+      const now = Date.now();
+      
+      // Return cached session if fresh
+      if (this._sessionCache && (now - this._sessionCacheTime) < CACHE_TTL) {
+        console.log('[HiSession] ⚡ Returning cached session (', Math.round((now - this._sessionCacheTime)/1000), 's old)');
+        return { data: { session: this._sessionCache }, error: null };
+      }
+      
+      // If check already in progress, return same promise
+      if (this._sessionPromise) {
+        console.log('[HiSession] ⏳ Session check in progress, returning existing promise');
+        return this._sessionPromise;
+      }
+      
+      // Fetch fresh session
+      console.log('[HiSession] 🔄 Fetching fresh session...');
+      this._sessionPromise = this.getClient().auth.getSession()
+        .then(result => {
+          this._sessionCache = result.data?.session || null;
+          this._sessionCacheTime = Date.now();
+          this._sessionPromise = null;
+          console.log('[HiSession] ✅ Session fetched and cached');
+          return result;
+        })
+        .catch(err => {
+          this._sessionPromise = null;
+          console.error('[HiSession] ❌ Session fetch failed:', err);
+          throw err;
+        });
+      
+      return this._sessionPromise;
+    },
+    
+    clearSessionCache() {
+      this._sessionCache = null;
+      this._sessionCacheTime = 0;
+      this._sessionPromise = null;
+      console.log('[HiSession] 🧹 Session cache cleared');
+    }
+  };
 } else if (!window.HiSupabase.getClient) {
   window.HiSupabase.getClient = getHiSupabase;
 }
