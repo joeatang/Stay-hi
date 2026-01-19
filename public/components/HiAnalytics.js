@@ -154,14 +154,19 @@ class HiAnalytics {
   hasAccess(requiredTier) {
     if (!this.userId) return false; // Must be authenticated
     
+    // Tier hierarchy from TIER_CONFIG.js
     const tierHierarchy = {
       'anonymous': 0,
-      'bronze': 1,
-      'collective': 1,
-      'silver': 2,
-      'pathfinder': 2,
-      'gold': 3,
-      'champion': 3
+      'free': 1,
+      'bronze': 2,
+      'pathfinder': 2,  // Bronze alias
+      'silver': 3,
+      'trailblazer': 3,  // Silver alias
+      'gold': 4,
+      'champion': 4,  // Gold alias
+      'premium': 5,
+      'pioneer': 5,  // Premium alias
+      'collective': 6  // Highest tier (admin + community)
     };
 
     const requiredLevel = tierHierarchy[requiredTier.toLowerCase()] || 999;
