@@ -142,9 +142,11 @@ if (!createdClient) {
           storageKey: 'sb-gfcubvroxgfvjhacinic-auth-token' // Original shared key (restored)
         }
       };
+    // 🔥 ZOMBIE FIX: Use REAL_SUPABASE_KEY (line 13) - NOT hardcoded old key
+    // Old hardcoded key was revoked = 401 errors
     const real = window.supabase.createClient(
-      'https://gfcubvroxgfvjhacinic.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjY1ODc3NjcsImV4cCI6MjA0MjE2Mzc2N30.G-84E13xYq4TrARuXGhfr5n1QTFDsVoOYOpMNvvq80s',
+      REAL_SUPABASE_URL,
+      REAL_SUPABASE_KEY,
       authOptions
     );
     createdClient = real;
@@ -250,11 +252,8 @@ function getHiSupabase() {
       }
     };
     // 🚨 CRITICAL: Use SAME key as module-level REAL_SUPABASE_KEY (line 13)
-    // Previous bug: This had an OLD/REVOKED key causing "Invalid API key" errors
-    const recreateUrl = window.SUPABASE_URL || document.querySelector('meta[name="supabase-url"]')?.content || 'https://gfcubvroxgfvjhacinic.supabase.co';
-    const recreateKey = window.SUPABASE_ANON_KEY || document.querySelector('meta[name="supabase-anon-key"]')?.content || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g";
-    
-    createdClient = window.supabase.createClient(recreateUrl, recreateKey, authOptions);
+    // Use constants to ensure consistency
+    createdClient = window.supabase.createClient(REAL_SUPABASE_URL, REAL_SUPABASE_KEY, authOptions);
     window.__HI_SUPABASE_CLIENT = createdClient;
     window.__HI_SUPABASE_CLIENT_URL = window.location.pathname;
     window.__HI_SUPABASE_CLIENT_TIMESTAMP = Date.now();
