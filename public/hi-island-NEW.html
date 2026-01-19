@@ -1988,25 +1988,58 @@
       
       console.log('✅ Hi Island unhandled rejection handler armed');
       
-      // 🚀 ZOMBIE FIX: Stop all background processes when navigating away
-      // This prevents EmergencyRecovery, telemetry export, and other setInterval
-      // timers from continuing to run and blocking database queries on next page
-      window.addEventListener('pagehide', function cleanupHiIslandBackgroundProcesses(event) {
-        console.log('🧹 [Hi Island Cleanup] Stopping background processes...');
-        
-        // 1. Clear highest setInterval ID (stops ALL intervals)
-        // Modern browsers assign sequential IDs, so clearing from current down to 0
-        // ensures no orphaned timers remain
-        const highestIntervalId = setTimeout(function() {}, 0);
-        for (let i = 0; i < highestIntervalId; i++) {
-          clearInterval(i);
+      // 🚀 ZOMBIE FIX: Track specific interval IDs and clear them on navigation
+      // EmergencyRecovery and AccessGateTelemetryExport create intervals that never stop
+      window.__hiIslandIntervals = window.__hiIslandIntervals || [];
+      
+      // Intercept setInterval to track Hi Island's timers
+      const originalSetInterval = window.setInterval;
+      window.setInterval = function(...args) {
+        const id = originalSetInterval.apply(this, args);
+        if (window.__hiIslandIntervals) {
+          window.__hiIslandIntervals.push(id);
+          console.log(`🔍 [Hi Island] Tracked interval ID: ${id}`);
         }
-        clearTimeout(highestIntervalId);
+        return id;
+      };
+      
+      // Cleanup function that stops all Hi Island intervals
+      function cleanupHiIsland() {
+        console.log('🧹 [Hi Island Cleanup] Stopping background processes...');
+        console.log(`🧹 Clearing ${window.__hiIslandIntervals?.length || 0} tracked intervals`);
+        
+        // Clear all tracked intervals
+        if (window.__hiIslandIntervals) {
+          window.__hiIslandIntervals.forEach(id => {
+            clearInterval(id);
+            console.log(`✅ Cleared interval ${id}`);
+          });
+          window.__hiIslandIntervals = [];
+        }
+        
+        // Clear any ProfileManager abort controllers
+        if (window.ProfileManager?.instance?._abortController) {
+          window.ProfileManager.instance._abortController.abort();
+          console.log('✅ Aborted ProfileManager queries');
+        }
         
         console.log('✅ [Hi Island Cleanup] All background timers cleared');
-      }, { once: true }); // Only clean up once per page load
+      }
       
-      console.log('✅ Hi Island cleanup listener registered');
+      // Listen to MULTIPLE navigation events (Safari is inconsistent)
+      ['pagehide', 'beforeunload', 'visibilitychange'].forEach(eventName => {
+        window.addEventListener(eventName, function(event) {
+          // For visibilitychange, only cleanup if hiding (not showing)
+          if (eventName === 'visibilitychange' && document.visibilityState === 'visible') {
+            return;
+          }
+          
+          console.log(`🔍 [Hi Island] ${eventName} event fired`);
+          cleanupHiIsland();
+        }, { once: eventName !== 'visibilitychange' }); // visibilitychange can fire multiple times
+      });
+      
+      console.log('✅ Hi Island cleanup listeners registered (pagehide, beforeunload, visibilitychange)');
     })();
   </script>
 </body>
