@@ -339,6 +339,111 @@
       /* Let HiIndexCard.js handle styling */
     }
 
+    /* Tab Navigation */
+    .analytics-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      padding: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .analytics-tab {
+      flex: 1;
+      min-width: fit-content;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 12px;
+      background: transparent;
+      color: rgba(232, 235, 255, 0.6);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .analytics-tab:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(232, 235, 255, 0.9);
+    }
+
+    .analytics-tab.active {
+      background: rgba(255, 209, 102, 0.15);
+      color: #FFD166;
+      border: 1px solid rgba(255, 209, 102, 0.3);
+    }
+
+    .analytics-tab.locked {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .analytics-tab .lock-icon {
+      font-size: 0.75rem;
+    }
+
+    /* Tab Content */
+    .analytics-content {
+      display: none;
+    }
+
+    .analytics-content.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Upgrade Prompt (for locked tabs) */
+    .upgrade-prompt {
+      background: rgba(255, 209, 102, 0.1);
+      border: 1px solid rgba(255, 209, 102, 0.3);
+      border-radius: 16px;
+      padding: 32px 24px;
+      text-align: center;
+      margin: 40px 0;
+    }
+
+    .upgrade-prompt h3 {
+      color: #FFD166;
+      margin: 0 0 12px;
+      font-size: 1.3rem;
+    }
+
+    .upgrade-prompt p {
+      color: rgba(232, 235, 255, 0.7);
+      margin: 0 0 20px;
+      line-height: 1.6;
+    }
+
+    .upgrade-btn {
+      padding: 12px 32px;
+      background: linear-gradient(135deg, #FFD166, #FF9A56);
+      border: none;
+      border-radius: 12px;
+      color: #0f1024;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .upgrade-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255, 209, 102, 0.3);
+    }
+
     /* Quick Actions */
     .quick-actions {
       display: flex;
@@ -686,75 +791,115 @@
       <p>The heartbeat of the Hi community</p>
     </div>
 
-    <!-- Ticker -->
-    <div class="ticker-container" id="tickerContainer">
-      <!-- HiTicker will be injected here -->
-    </div>
-
-    <!-- Hi Index Card (v1.1.0) -->
-    <section class="hi-index-section">
-      <div id="hiIndexCardContainer" class="hi-index-card-wrapper">
-        <!-- HiIndexCard will be injected here -->
-      </div>
-    </section>
-
-    <!-- Global Stats (Everyone) -->
-    <section class="stats-section">
-      <div class="stats-section-title">🌍 Global Pulse</div>
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-value loading" id="globalTotalHis"></div>
-          <div class="stat-label">Hi Moments</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value loading" id="globalHiWaves"></div>
-          <div class="stat-label">Hi Waves</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value loading" id="globalUsers"></div>
-          <div class="stat-label">Hi Friends</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Personal Stats (Auth only) -->
-    <section class="stats-section auth-only">
-      <div class="stats-section-title">✨ Your Pulse</div>
-      <div class="stats-grid">
-        <div class="stat-card personal">
-          <div class="stat-value loading" id="userShares"></div>
-          <div class="stat-label">Your Shares</div>
-        </div>
-        <div class="stat-card personal">
-          <div class="stat-value loading" id="userStreak"></div>
-          <div class="stat-label">Current Streak</div>
-        </div>
-        <div class="stat-card personal">
-          <div class="stat-value loading" id="userPoints"></div>
-          <div class="stat-label">Hi Points</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Sign-in prompt for anonymous users -->
-    <div class="signin-prompt anon-only">
-      <p>Sign in to see your personal pulse and earn Hi Points! ✨</p>
-      <button class="signin-btn" onclick="openSignIn()">
-        <span>👋</span>
-        Sign In
+    <!-- 🆕 Tab Navigation -->
+    <div class="analytics-tabs">
+      <button class="analytics-tab active" data-tab="overview">
+        <span>📊</span> Overview
+      </button>
+      <button class="analytics-tab locked" data-tab="journey" data-tier-required="silver">
+        <span>📈</span> Your Journey <span class="lock-icon">🔒</span>
+      </button>
+      <button class="analytics-tab locked" data-tab="patterns" data-tier-required="gold">
+        <span>🔍</span> Patterns <span class="lock-icon">🔒</span>
+      </button>
+      <button class="analytics-tab locked" data-tab="milestones" data-tier-required="silver">
+        <span>🏆</span> Milestones <span class="lock-icon">🔒</span>
       </button>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="quick-actions">
-      <a href="hi-dashboard.html" class="action-btn action-btn--primary" id="shareHiBtn">
-        <span>🌟</span>
-        Share a Hi
-      </a>
-      <a href="hi-muscle.html" class="action-btn action-btn--secondary">
-        <span>💪</span>
-        Hi Gym
-      </a>
+    <!-- 🆕 Tab Content: Overview (existing content) -->
+    <div class="analytics-content active" data-content="overview">
+      <!-- Ticker -->
+      <div class="ticker-container" id="tickerContainer">
+        <!-- HiTicker will be injected here -->
+      </div>
+
+      <!-- Hi Index Card (v1.1.0) -->
+      <section class="hi-index-section">
+        <div id="hiIndexCardContainer" class="hi-index-card-wrapper">
+          <!-- HiIndexCard will be injected here -->
+        </div>
+      </section>
+
+      <!-- Global Stats (Everyone) -->
+      <section class="stats-section">
+        <div class="stats-section-title">🌍 Global Pulse</div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value loading" id="globalTotalHis"></div>
+            <div class="stat-label">Hi Moments</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value loading" id="globalHiWaves"></div>
+            <div class="stat-label">Hi Waves</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value loading" id="globalUsers"></div>
+            <div class="stat-label">Hi Friends</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Personal Stats (Auth only) -->
+      <section class="stats-section auth-only">
+        <div class="stats-section-title">✨ Your Pulse</div>
+        <div class="stats-grid">
+          <div class="stat-card personal">
+            <div class="stat-value loading" id="userShares"></div>
+            <div class="stat-label">Your Shares</div>
+          </div>
+          <div class="stat-card personal">
+            <div class="stat-value loading" id="userStreak"></div>
+            <div class="stat-label">Current Streak</div>
+          </div>
+          <div class="stat-card personal">
+            <div class="stat-value loading" id="userPoints"></div>
+            <div class="stat-label">Hi Points</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sign-in prompt for anonymous users -->
+      <div class="signin-prompt anon-only">
+        <p>Sign in to see your personal pulse and earn Hi Points! ✨</p>
+        <button class="signin-btn" onclick="openSignIn()">
+          <span>👋</span>
+          Sign In
+        </button>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <a href="hi-dashboard.html" class="action-btn action-btn--primary" id="shareHiBtn">
+          <span>🌟</span>
+          Share a Hi
+        </a>
+        <a href="hi-muscle.html" class="action-btn action-btn--secondary">
+          <span>💪</span>
+          Hi Gym
+        </a>
+      </div>
+    </div>
+
+    <!-- 🆕 Tab Content: Your Journey (Silver+) -->
+    <div class="analytics-content" data-content="journey">
+      <div id="journeyContent">
+        <!-- HiAnalytics.js will populate this -->
+      </div>
+    </div>
+
+    <!-- 🆕 Tab Content: Patterns (Gold+) -->
+    <div class="analytics-content" data-content="patterns">
+      <div id="patternsContent">
+        <!-- HiAnalytics.js will populate this -->
+      </div>
+    </div>
+
+    <!-- 🆕 Tab Content: Milestones (Silver+) -->
+    <div class="analytics-content" data-content="milestones">
+      <div id="milestonesContent">
+        <!-- HiAnalytics.js will populate this -->
+      </div>
     </div>
   </main>
 
@@ -771,6 +916,9 @@
   <script src="./lib/HiIndex.js"></script>
   <script src="./components/HiIndexCard.js"></script>
   <script src="./components/HiIndexModal.js"></script>
+  
+  <!-- 📊 Hi Analytics v2.0 Component -->
+  <script src="./components/HiAnalytics.js"></script>
   
   <!-- 🎯 Hi Share Sheet Component -->
   <script type="module">
