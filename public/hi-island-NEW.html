@@ -2038,15 +2038,40 @@
         console.log('✅ [Hi Island Cleanup] Background timers cleared + client destroyed');
       }
       
-      // Listen to MULTIPLE navigation events (Safari is inconsistent)
-      ['pagehide', 'beforeunload', 'visibilitychange'].forEach(eventName => {
-        window.addEventListener(eventName, function(event) {
-          // For visibilitychange, only cleanup if hiding (not showing)
-          if (eventName === 'visibilitychange' && document.visibilityState === 'visible') {
-            return;
-          }
+      // 🔥 APP BACKGROUND ZOMBIE FIX: Track sleep/wake cycles
+      let lastHiddenTime = 0;
+      
+      // Separate visibilitychange handler for sleep/wake detection
+      document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+          // Phone going to sleep or app backgrounding
+          lastHiddenTime = Date.now();
+          console.log('📱 [Hi Island] App backgrounding/sleeping at', new Date().toISOString());
+        } else {
+          // Phone waking up or app foregrounding
+          const hiddenDuration = Date.now() - lastHiddenTime;
+          console.log('📱 [Hi Island] App waking/foregrounding after', hiddenDuration, 'ms');
           
-          console.log(`🔍 [Hi Island] ${eventName} event fired`);
+          // 🔥 If phone was asleep >2s, Safari closed HTTP connections
+          if (lastHiddenTime > 0 && hiddenDuration > 2000) {
+            console.warn('🔥 [Hi Island] Phone slept >2s - clearing client (dead HTTP connections)');
+            if (window.__HI_SUPABASE_CLIENT) {
+              window.__HI_SUPABASE_CLIENT = null;
+              window.hiSupabase = null;
+              window.supabaseClient = null;
+              window.sb = null;
+              console.log('✅ [Hi Island] Client destroyed on wake - will recreate with fresh connections');
+            }
+          } else {
+            console.log('✅ [Hi Island] Quick wake (<2s) - keeping client');
+          }
+        }
+      });
+      
+      // Listen to MULTIPLE navigation events (Safari is inconsistent)
+      ['pagehide', 'beforeunload'].forEach(eventName => {
+        window.addEventListener(eventName, function(event) {
+          console.log(`🔍 [Hi Island] ${eventName} event fired - cleaning up`);
           cleanupHiIsland();
         }, { once: eventName !== 'visibilitychange' }); // visibilitychange can fire multiple times
       });

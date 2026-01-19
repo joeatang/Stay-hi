@@ -90,9 +90,10 @@ if (!window[PAGE_KEY]) {
       hadClient: !!window.__HI_SUPABASE_CLIENT || !!createdClient
     });
     
-    // 🔥 WOZ FIX: NEVER clear on phone wake, ONLY on actual navigation
+    // 🔥 ZOMBIE FIX: Phone wake/app return = dead HTTP connections, must recreate client
     if (isPhoneWake) {
-      console.log('[HiSupabase] 📱 Phone wake detected - preserving client and session ✅');
+      console.log('[HiSupabase] 📱 Phone wake detected - clearing client (dead HTTP connections) ⚠️');
+      clearSupabaseClient(); // Safari closes connections when phone sleeps
     } else if (event.persisted && urlChanged) {
       console.warn('[HiSupabase] 🔥 BFCache navigation detected (URL changed) - clearing stale client');
       clearSupabaseClient();
@@ -105,6 +106,31 @@ if (!window[PAGE_KEY]) {
     
     lastPageURL = currentURL;
     lastPageshowTime = Date.now(); // Track for next comparison
+  });
+  
+  // 🔥 APP BACKGROUND ZOMBIE FIX: Safari closes HTTP connections when app backgrounds
+  // Track how long app was hidden to detect sleep/background (vs quick tab switch)
+  let lastVisibilityHidden = 0;
+  
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      // App going to background - mark timestamp
+      lastVisibilityHidden = Date.now();
+      console.log('[HiSupabase] 👋 App backgrounding at', new Date().toISOString());
+    } else {
+      // App returning to foreground
+      const hiddenDuration = Date.now() - lastVisibilityHidden;
+      console.log('[HiSupabase] 👀 App foregrounding after', hiddenDuration, 'ms');
+      
+      // 🔥 If app was hidden >3s, Safari likely closed HTTP connections
+      if (hiddenDuration > 3000) {
+        console.warn('[HiSupabase] 🔥 App was backgrounded >3s - clearing client (dead HTTP connections)');
+        clearSupabaseClient();
+        // Client will be recreated on next getClient() call with fresh connections
+      } else {
+        console.log('[HiSupabase] ✅ Quick tab switch (<3s) - keeping client');
+      }
+    }
   });
 } else {
   console.log('[HiSupabase] ⏭️ Pageshow listener already registered for', window.location.pathname);
