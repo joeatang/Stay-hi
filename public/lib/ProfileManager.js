@@ -540,50 +540,59 @@ class ProfileManager {
     try {
       const supabase = this._getSupabase();
       
-      // 🚀 MOBILE FIX: Race the query against a 3-second timeout
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('TIMEOUT')), 3000);
-      });
+      // � ZOMBIE FIX: Use AbortController to properly cancel timed-out queries
+      // This prevents AbortError when navigation happens during slow queries
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        console.warn('⏱️ Profile query timeout (3s) - aborting');
+        controller.abort();
+      }, 3000);
       
-      const queryPromise = supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', this._userId)
-        .single();
-      
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', this._userId)
+          .abortSignal(controller.signal)
+          .single();
+        
+        clearTimeout(timeoutId);
 
-      if (error && error.code !== 'PGRST116') {
-        throw error;
-      }
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
 
-      if (data) {
-        console.warn('✅ Profile loaded from database');
-        this._profile = data;
-        this._cacheProfile(data);
-        localStorage.setItem(storageKey, JSON.stringify(data));
-      } else if (!this._profile) {
-        // No cache and no DB data - create default
-        console.warn('ℹ️ No profile found, creating default');
-        this._profile = {
-          id: this._userId,
-          username: `user_${this._userId.slice(-6)}`,
-          display_name: 'Stay Hi User',
-          bio: '',
-          location: '',
-          avatar_url: null,
-          created_at: new Date().toISOString()
-        };
-        // Save in background (don't await)
-        this._supabase.from('profiles').upsert(this._profile, { onConflict: 'id' });
+        if (data) {
+          console.warn('✅ Profile loaded from database');
+          this._profile = data;
+          this._cacheProfile(data);
+          localStorage.setItem(storageKey, JSON.stringify(data));
+        } else if (!this._profile) {
+          // No cache and no DB data - create default
+          console.warn('ℹ️ No profile found, creating default');
+          this._profile = {
+            id: this._userId,
+            username: `user_${this._userId.slice(-6)}`,
+            display_name: 'Stay Hi User',
+            bio: '',
+            location: '',
+            avatar_url: null,
+            created_at: new Date().toISOString()
+          };
+          // Save in background (don't await)
+          this._supabase.from('profiles').upsert(this._profile, { onConflict: 'id' });
+        }
+      } catch (queryError) {
+        clearTimeout(timeoutId);
+        if (queryError.name === 'AbortError') {
+          console.warn('⚠️ Profile query timed out - using cache');
+        } else {
+          throw queryError;
+        }
       }
 
     } catch (error) {
-      if (error.message === 'TIMEOUT') {
-        console.warn('⚠️ Profile query timed out - using cache');
-      } else {
-        console.warn('⚠️ Profile load error:', error.message);
-      }
+      console.warn('⚠️ Profile load error:', error.message);
       // Already have cache loaded above, or use anonymous
       if (!this._profile) {
         this._profile = this._getAnonymousProfile();

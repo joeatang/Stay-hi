@@ -1194,7 +1194,7 @@ if (document.readyState === 'loading') {
   // Safety: also trigger after timeout if DOMContentLoaded never fires
   setTimeout(() => {
     console.warn('🕐 Timeout fired, checking if init was called');
-    if (!window.__islandInitCalled) {
+    if (!window.__islandInitRunning) {
       console.warn('⚠️ DOMContentLoaded never fired, forcing init NOW');
       initHiIsland();
     } else {
