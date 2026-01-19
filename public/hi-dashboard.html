@@ -168,7 +168,8 @@
   <script src="assets/url-path-fixer.js" async></script>
   
   <!-- Supabase UMD (required for real auth) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <!-- 🔥 CRITICAL: Must match Hi Island version (2.81.1) to prevent auth corruption across navigation -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1/dist/umd/supabase.min.js" integrity="sha384-XLEuzmdNfK1V09d59bu+Uv3EFtEp5kFP8BmseBq85CUpeFZXhUfqjk4ZeR/biZmS" crossorigin="anonymous"></script>
   <script src="assets/config.js"></script>
   
   <!-- CRITICAL: Load HiSupabase.v3.js FIRST - sets window.hiSupabase before anything else needs it -->
