@@ -546,20 +546,31 @@ class ProfileManager {
         hasFrom: !!supabase?.from,
         clientUrl: window.__HI_SUPABASE_CLIENT_URL,
         clientTimestamp: window.__HI_SUPABASE_CLIENT_TIMESTAMP,
-        currentPath: window.location.pathname
+        currentPath: window.location.pathname,
+        navigatorOnline: navigator.onLine
       });
+      
+      // 🔥 SLEEP/WAKE FIX: Give network 500ms to reconnect after phone wake
+      // Safari's network stack needs time to restore connections after sleep/app switch
+      const clientAge = Date.now() - (window.__HI_SUPABASE_CLIENT_TIMESTAMP || 0);
+      if (clientAge < 1000) {
+        console.warn('📡 [ProfileManager] Fresh client (<1s old) - waiting 500ms for network to stabilize');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        console.warn('✅ [ProfileManager] Network stabilization wait complete');
+      }
       
       // 🚀 ZOMBIE FIX: Use AbortController to properly cancel timed-out queries
       // This prevents AbortError when navigation happens during slow queries
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
-        console.warn('⏱️ Profile query timeout (3s) - aborting');
+        console.warn('⏱️ Profile query timeout (5s) - aborting');
         console.warn('🔍 [ZOMBIE DEBUG] Timeout details:', {
           controllerSignal: controller.signal,
-          aborted: controller.signal.aborted
+          aborted: controller.signal.aborted,
+          navigatorOnLine: navigator.onLine
         });
         controller.abort();
-      }, 3000);
+      }, 5000); // Increased from 3s to 5s for wake scenarios
       
       console.warn('🔍 [ZOMBIE DEBUG] Starting profile query...');
       try {
