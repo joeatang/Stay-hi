@@ -1,6 +1,26 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <!-- 🚀 ZOMBIE FIX: Track intervals BEFORE any scripts load -->
+  <script>
+    (function() {
+      'use strict';
+      // Track all setInterval IDs created on Hi Island
+      window.__hiIslandIntervals = [];
+      
+      // Intercept setInterval IMMEDIATELY (before EmergencyRecovery, etc.)
+      const originalSetInterval = window.setInterval;
+      window.setInterval = function(...args) {
+        const id = originalSetInterval.apply(this, args);
+        window.__hiIslandIntervals.push(id);
+        console.log(`🔍 [Hi Island] Tracked interval ID: ${id} (total: ${window.__hiIslandIntervals.length})`);
+        return id;
+      };
+      
+      console.log('✅ [Hi Island] Interval tracker armed (EARLY)');
+    })();
+  </script>
+  
   <!-- 🎯 CACHE BUSTER: Increment on each deployment to force fresh JS/CSS load -->
   <script>
     window.CACHE_VERSION='20260110-SOLVED';
@@ -1988,22 +2008,7 @@
       
       console.log('✅ Hi Island unhandled rejection handler armed');
       
-      // 🚀 ZOMBIE FIX: Track specific interval IDs and clear them on navigation
-      // EmergencyRecovery and AccessGateTelemetryExport create intervals that never stop
-      window.__hiIslandIntervals = window.__hiIslandIntervals || [];
-      
-      // Intercept setInterval to track Hi Island's timers
-      const originalSetInterval = window.setInterval;
-      window.setInterval = function(...args) {
-        const id = originalSetInterval.apply(this, args);
-        if (window.__hiIslandIntervals) {
-          window.__hiIslandIntervals.push(id);
-          console.log(`🔍 [Hi Island] Tracked interval ID: ${id}`);
-        }
-        return id;
-      };
-      
-      // Cleanup function that stops all Hi Island intervals
+      // 🚀 ZOMBIE FIX: Cleanup function (interval tracking happens in <head>)
       function cleanupHiIsland() {
         console.log('🧹 [Hi Island Cleanup] Stopping background processes...');
         console.log(`🧹 Clearing ${window.__hiIslandIntervals?.length || 0} tracked intervals`);
