@@ -132,19 +132,19 @@ console.log('[HiSupabase] 🧹 Module variable initialized (createdClient = null
 if (!createdClient) {
   // If a global UMD build is already available, use it immediately
   if (window.supabase?.createClient) {
-    // 🚀 WOZ FIX: Add auth persistence options to prevent session loss on background
-    const authOptions = {
-      auth: {
-        persistSession: true, // CRITICAL: Persist session across app backgrounds
-        autoRefreshToken: true, // ✅ ENABLED: Auto-refresh tokens like X/Instagram (Brave Incognito works fine)
-        detectSessionInUrl: false, // Prevent URL-based auth conflicts
-        storage: window.localStorage, // Explicitly use localStorage (survives backgrounds)
-        storageKey: 'sb-gfcubvroxgfvjhacinic-auth-token' // Stable storage key
-      }
-    };
-    
-    const real = window.supabase.createClient(REAL_SUPABASE_URL, REAL_SUPABASE_KEY, authOptions);
-    createdClient = real;
+      // 🚀 ZOMBIE FIX: Use page-specific storage key to prevent cross-page auth conflicts
+      // PROBLEM: Hi Island and Dashboard both using same storage key = auth corruption
+      // SOLUTION: Each page gets own storage namespace
+      const pageStorageKey = `sb-gfcubvroxgfvjhacinic-auth-token:${window.location.pathname}`;
+      
+      // 🚀 WOZ FIX: Add auth persistence options to prevent session loss on background
+      const authOptions = {
+        auth: {
+          persistSession: true, // CRITICAL: Persist session across app backgrounds
+          autoRefreshToken: true, // ✅ ENABLED: Auto-refresh tokens like X/Instagram (Brave Incognito works fine)
+          detectSessionInUrl: false, // Prevent URL-based auth conflicts
+          storage: window.localStorage, // Explicitly use localStorage (survives backgrounds)
+          storageKey: pageStorageKey // 🔥 Page-specific key prevents conflicts
     window.__HI_SUPABASE_CLIENT = real;
     window.__HI_SUPABASE_CLIENT_URL = window.location.pathname;
     window.__HI_SUPABASE_CLIENT_TIMESTAMP = Date.now();
