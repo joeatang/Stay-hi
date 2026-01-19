@@ -212,7 +212,13 @@
       button.addEventListener('touchend', (e) => {
         e.preventDefault();
         button.style.transform = 'scale(1)';
-        this.show();
+        console.log('📊 Button tapped! Calling show()...');
+        try {
+          this.show();
+        } catch (error) {
+          console.error('📊 CRITICAL: Error in button handler:', error);
+          alert('Button error: ' + error.message);
+        }
       });
       
       button.addEventListener('click', (e) => {
@@ -454,19 +460,58 @@
     }
     
     show() {
-      if (this.isVisible) return;
+      console.log('📊 show() called. isVisible:', this.isVisible);
       
-      // Hide floating button while modal is open
-      const button = document.getElementById('nav-diag-float-btn');
-      if (button) {
-        button.style.display = 'none';
+      if (this.isVisible) {
+        console.log('📊 Modal already visible, returning early');
+        return;
       }
       
-      const html = this.generateHTML();
-      const div = document.createElement('div');
-      div.innerHTML = html;
-      document.body.appendChild(div.firstChild);
-      this.isVisible = true;
+      console.log('📊 Starting modal generation...');
+      
+      try {
+        console.log('📊 Calling generateHTML()...');
+        const html = this.generateHTML();
+        console.log('📊 HTML length:', html ? html.length : 'NULL');
+        
+        if (!html || html.length === 0) {
+          throw new Error('generateHTML() returned empty string');
+        }
+        
+        console.log('📊 Creating div element...');
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        
+        console.log('📊 div.firstChild:', div.firstChild ? 'EXISTS' : 'NULL');
+        
+        if (!div.firstChild) {
+          throw new Error('div.firstChild is null - HTML parsing failed');
+        }
+        
+        console.log('📊 Appending to document.body...');
+        document.body.appendChild(div.firstChild);
+        
+        this.isVisible = true;
+        console.log('📊 ✅ Modal displayed successfully!');
+        
+        // Hide floating button while modal is open
+        const button = document.getElementById('nav-diag-float-btn');
+        if (button) {
+          button.style.display = 'none';
+          console.log('📊 Button hidden');
+        }
+      } catch (error) {
+        console.error('📊 ❌ CRITICAL ERROR in show():', error);
+        console.error('📊 Stack trace:', error.stack);
+        alert('Diagnostic Error:\n\n' + error.message + '\n\nCheck console for details.');
+        
+        // Make sure button is visible if modal failed
+        const button = document.getElementById('nav-diag-float-btn');
+        if (button) {
+          button.style.display = 'flex';
+          console.log('📊 Button restored after error');
+        }
+      }
     }
     
     hide() {
