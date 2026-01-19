@@ -288,7 +288,7 @@ class HiAnalytics {
       <div class="journey-loaded">
         <div class="stats-section-title">📈 Your Emotional Journey (Last ${days} Days)</div>
         <div id="emotionalJourneyChartContainer" style="padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 16px; margin-top: 16px;">
-          <div style="text-align: center; color: rgba(232, 235, 255, 0.6);">Loading...</div>
+          <div class="journey-loading" style="text-align: center; color: rgba(232, 235, 255, 0.6);">Loading...</div>
         </div>
       </div>
     `;
@@ -308,6 +308,10 @@ class HiAnalytics {
 
         return data || [];
       });
+
+      // Clear loading state
+      const loadingEl = container.querySelector('.journey-loading');
+      if (loadingEl) loadingEl.remove();
 
       // Render chart
       const chart = new window.EmotionalJourneyChart('emotionalJourneyChartContainer', {
