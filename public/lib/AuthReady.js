@@ -185,10 +185,33 @@ async function initialize(){
       
       // Fallback: try getSession() if no cache or cache failed
       console.log('[AuthReady] 🔄 Fetching fresh session from Supabase...');
-      let { data: { session } } = await sb.auth.getSession();
-      if (!session) {
-        await salvageTokens(sb);
-        ({ data: { session } } = await sb.auth.getSession());
+      
+      // 🔥 CRITICAL FIX: Add timeout protection to prevent silent logout
+      let session = null;
+      try {
+        // Add 3s timeout (fail fast instead of hanging)
+        const sessionPromise = sb.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session check timeout')), 3000)
+        );
+        
+        const result = await Promise.race([sessionPromise, timeoutPromise]);
+        session = result?.data?.session || null;
+        
+        if (!session) {
+          await salvageTokens(sb);
+          // Retry with 2s timeout
+          const retryPromise = sb.auth.getSession();
+          const retryTimeout = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Retry timeout')), 2000)
+          );
+          const retryResult = await Promise.race([retryPromise, retryTimeout]);
+          session = retryResult?.data?.session || null;
+        }
+      } catch (error) {
+        console.warn('[AuthReady] Session check timeout/error - using cached state:', error.message);
+        // CRITICAL: Don't clear session on timeout - preserve cached state
+        session = window.__hiAuthReady?.session || null;
       }
 
       // If still no session, we continue but membership will be null
@@ -287,13 +310,36 @@ async function recheckAuth(source) {
   console.log(`[AuthReady] App returned from background (${source}) - checking session...`);
   try {
     const sb = getHiSupabase();
-    let { data: { session } } = await sb.auth.getSession();
+    
+    // 🔥 CRITICAL FIX: Add timeout protection
+    let session = null;
+    try {
+      const sessionPromise = sb.auth.getSession();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('timeout')), 3000)
+      );
+      const result = await Promise.race([sessionPromise, timeoutPromise]);
+      session = result?.data?.session || null;
+    } catch (timeoutError) {
+      console.warn('[AuthReady] Session check timeout - using cached state');
+      session = window.__hiAuthReady?.session || null;
+    }
     
     // If no session, try to restore from localStorage
     if (!session) {
       console.warn('[AuthReady] No session found - attempting restore...');
       await salvageTokens(sb);
-      ({ data: { session } } = await sb.auth.getSession());
+      try {
+        const retryPromise = sb.auth.getSession();
+        const retryTimeout = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('timeout')), 2000)
+        );
+        const retryResult = await Promise.race([retryPromise, retryTimeout]);
+        session = retryResult?.data?.session || null;
+      } catch (retryError) {
+        console.warn('[AuthReady] Retry timeout - preserving cached state');
+        session = window.__hiAuthReady?.session || null;
+      }
       
       if (session) {
         console.log('[AuthReady] ✅ Session restored successfully');

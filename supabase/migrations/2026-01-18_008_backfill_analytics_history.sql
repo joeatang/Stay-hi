@@ -19,7 +19,6 @@ INSERT INTO user_daily_snapshots (
   user_id,
   snapshot_date,
   shares_count,
-  checked_in,
   created_at,
   updated_at
 )
@@ -27,7 +26,6 @@ SELECT
   COALESCE(c.user_id, s.user_id, a.user_id, pa.user_id) as user_id,
   COALESCE(c.day, s.share_date, a.archive_date, pa.day) as snapshot_date,
   COALESCE(s.daily_shares, 0) as shares_count,
-  CASE WHEN c.day IS NOT NULL THEN TRUE ELSE FALSE END as checked_in,
   NOW() as created_at,
   NOW() as updated_at
 FROM 
@@ -65,7 +63,6 @@ WHERE COALESCE(c.user_id, s.user_id, a.user_id, pa.user_id) IS NOT NULL
 ON CONFLICT (user_id, snapshot_date) 
 DO UPDATE SET
   shares_count = GREATEST(user_daily_snapshots.shares_count, EXCLUDED.shares_count),
-  checked_in = user_daily_snapshots.checked_in OR EXCLUDED.checked_in,
   updated_at = NOW();
 
 -- ============================================================================

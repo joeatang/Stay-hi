@@ -7,6 +7,9 @@
 -- Fix: Remove activity_count from RETURNS TABLE and SELECT
 -- ============================================================================
 
+-- Must DROP first because we're changing return type
+DROP FUNCTION IF EXISTS get_user_emotional_journey(UUID, INT);
+
 -- Fix RPC to only return columns that exist
 CREATE OR REPLACE FUNCTION get_user_emotional_journey(
   p_user_id UUID DEFAULT NULL,

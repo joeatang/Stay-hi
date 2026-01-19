@@ -4,11 +4,13 @@
 console.log('🏝️ Island main.mjs loading...');
 
 async function initHiIsland() {
-  if (window.__islandInitRunning) {
-    console.warn('⚠️ initHiIsland() already running, skipping duplicate call');
+  // 🔥 CRITICAL: Set flag synchronously BEFORE any await to prevent race condition
+  // This must happen immediately, not after first await point
+  if (window.__islandInitStarted) {
+    console.warn('⚠️ initHiIsland() already called, skipping duplicate');
     return;
   }
-  window.__islandInitRunning = true;
+  window.__islandInitStarted = true; // Lock immediately (never unset)
   console.warn('🏝️ Hi Island initializing... (START OF FUNCTION)');
   
   // 🚀 FIX: Wait for critical dependencies before rendering
@@ -146,8 +148,7 @@ async function initHiIsland() {
   console.warn('🔍 TRACE: Calling initializeHiMap...');
   initializeHiMap();
   
-  // 🚀 CRITICAL: Clear re-entry guard so page can init again on next visit
-  window.__islandInitRunning = false;
+  // ✅ Guard flag stays set for lifetime of page (prevents duplicate init)
   
   console.log('✅ Hi Island ready with Gold Standard UI');
 }
@@ -1194,7 +1195,7 @@ if (document.readyState === 'loading') {
   // Safety: also trigger after timeout if DOMContentLoaded never fires
   setTimeout(() => {
     console.warn('🕐 Timeout fired, checking if init was called');
-    if (!window.__islandInitRunning) {
+    if (!window.__islandInitStarted) {
       console.warn('⚠️ DOMContentLoaded never fired, forcing init NOW');
       initHiIsland();
     } else {
