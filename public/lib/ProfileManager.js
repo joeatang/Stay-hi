@@ -540,14 +540,28 @@ class ProfileManager {
     try {
       const supabase = this._getSupabase();
       
-      // � ZOMBIE FIX: Use AbortController to properly cancel timed-out queries
+      // 🔍 ZOMBIE DEBUG: Log client state before query
+      console.warn('🔍 [ZOMBIE DEBUG] About to query profiles:', {
+        hasSupabase: !!supabase,
+        hasFrom: !!supabase?.from,
+        clientUrl: window.__HI_SUPABASE_CLIENT_URL,
+        clientTimestamp: window.__HI_SUPABASE_CLIENT_TIMESTAMP,
+        currentPath: window.location.pathname
+      });
+      
+      // 🚀 ZOMBIE FIX: Use AbortController to properly cancel timed-out queries
       // This prevents AbortError when navigation happens during slow queries
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
         console.warn('⏱️ Profile query timeout (3s) - aborting');
+        console.warn('🔍 [ZOMBIE DEBUG] Timeout details:', {
+          controllerSignal: controller.signal,
+          aborted: controller.signal.aborted
+        });
         controller.abort();
       }, 3000);
       
+      console.warn('🔍 [ZOMBIE DEBUG] Starting profile query...');
       try {
         const { data, error } = await supabase
           .from('profiles')
