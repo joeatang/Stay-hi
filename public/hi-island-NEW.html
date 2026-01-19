@@ -2022,13 +2022,20 @@
           window.__hiIslandIntervals = [];
         }
         
-        // 🚫 ZOMBIE FIX: DO NOT abort ProfileManager's controller!
-        // ProfileManager is a SINGLETON that persists across pages.
-        // Aborting its controller here breaks Dashboard's queries!
-        // The controller will be naturally replaced when ProfileManager
-        // initializes on the next page.
+        // � ZOMBIE ROOT CAUSE FIX: Destroy Supabase client to close network connections
+        // The old Hi Island client stays in memory and holds dead HTTP/2 connections.
+        // Safari closes these on navigation, causing Dashboard queries to hang forever.
+        // We must NULL OUT the client references so the next page creates fresh connections.
+        if (window.__HI_SUPABASE_CLIENT) {
+          console.log('🔥 [Cleanup] Destroying Hi Island Supabase client...');
+          window.__HI_SUPABASE_CLIENT = null;
+          window.hiSupabase = null;
+          window.supabaseClient = null;
+          window.sb = null;
+          console.log('✅ [Cleanup] Supabase client destroyed - next page will create fresh');
+        }
         
-        console.log('✅ [Hi Island Cleanup] Background timers cleared (ProfileManager preserved)');
+        console.log('✅ [Hi Island Cleanup] Background timers cleared + client destroyed');
       }
       
       // Listen to MULTIPLE navigation events (Safari is inconsistent)
