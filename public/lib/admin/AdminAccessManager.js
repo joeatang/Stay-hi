@@ -59,6 +59,12 @@
   }
 
   async function fetchRoleType(client){
+    // 🔥 MOBILE ZOMBIE FIX: admin_roles table doesn't exist (error 42P17)
+    // Endless 500 errors on mobile were causing memory exhaustion → zombie mode
+    // Disabling this query completely - if needed later, create the table first
+    return null;
+    
+    /* DISABLED - TABLE DOESN'T EXIST
     if (!STATE.isAdmin) return null;
     try {
       const { data, error } = await client
@@ -68,7 +74,6 @@
         .eq('is_active', true)
         .limit(1)
         .maybeSingle();
-      // 🚀 FIX: Silently handle 500 errors (table may have RLS issues)
       if (error) {
         console.warn('[AdminAccessManager] fetchRoleType error (non-critical):', error.code || error.message);
         return null;
@@ -78,6 +83,7 @@
       console.warn('[AdminAccessManager] fetchRoleType exception (non-critical):', e.message);
       return null; 
     }
+    */
   }
 
   async function checkAdmin({ force=false } = {}){
