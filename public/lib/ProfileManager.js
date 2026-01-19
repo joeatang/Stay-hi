@@ -547,13 +547,30 @@ class ProfileManager {
         clientUrl: window.__HI_SUPABASE_CLIENT_URL,
         clientTimestamp: window.__HI_SUPABASE_CLIENT_TIMESTAMP,
         currentPath: window.location.pathname,
-        navigatorOnline: navigator.onLine
+        navigatorOnline: navigator.onLine,
+        networkStabilizing: window.__HI_NETWORK_STABILIZING
       });
+      
+      // 🔥 GLOBAL TIMING FIX: Respect global network stabilization flag
+      // This flag is set when app returns from background (any page)
+      // Ensures ALL pages wait for network, even if user navigates fast
+      if (window.__HI_NETWORK_STABILIZING) {
+        const waitStart = window.__HI_NETWORK_STABILIZE_START || Date.now();
+        const elapsed = Date.now() - waitStart;
+        const remaining = Math.max(0, 800 - elapsed);
+        
+        if (remaining > 0) {
+          console.warn(`🚦 [ProfileManager] Global network stabilizing - waiting ${remaining}ms`);
+          await new Promise(resolve => setTimeout(resolve, remaining));
+          console.warn('✅ [ProfileManager] Global network stabilization complete');
+        }
+      }
       
       // 🔥 SLEEP/WAKE FIX: Give network 500ms to reconnect after phone wake
       // Safari's network stack needs time to restore connections after sleep/app switch
       const clientAge = Date.now() - (window.__HI_SUPABASE_CLIENT_TIMESTAMP || 0);
-      if (clientAge < 1000) {
+      if (clientAge < 1000 && !window.__HI_NETWORK_STABILIZING) {
+        // Only do local wait if global flag wasn't set (belt & suspenders)
         console.warn('📡 [ProfileManager] Fresh client (<1s old) - waiting 500ms for network to stabilize');
         await new Promise(resolve => setTimeout(resolve, 500));
         console.warn('✅ [ProfileManager] Network stabilization wait complete');

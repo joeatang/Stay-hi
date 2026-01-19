@@ -126,7 +126,18 @@ if (!window[PAGE_KEY]) {
       if (hiddenDuration > 3000) {
         console.warn('[HiSupabase] 🔥 App was backgrounded >3s - clearing client (dead HTTP connections)');
         clearSupabaseClient();
-        // Client will be recreated on next getClient() call with fresh connections
+        
+        // 🔥 TIMING FIX: Set global flag to prevent ALL pages from querying until network ready
+        // User might navigate DURING the 500ms stabilization window - this protects them
+        window.__HI_NETWORK_STABILIZING = true;
+        window.__HI_NETWORK_STABILIZE_START = Date.now();
+        console.warn('[HiSupabase] 🚦 Network stabilizing - ALL queries will wait 800ms');
+        
+        setTimeout(() => {
+          window.__HI_NETWORK_STABILIZING = false;
+          console.log('[HiSupabase] ✅ Network stabilization complete - queries allowed');
+        }, 800); // 800ms to ensure Safari network fully reconnected
+        
       } else {
         console.log('[HiSupabase] ✅ Quick tab switch (<3s) - keeping client');
       }
