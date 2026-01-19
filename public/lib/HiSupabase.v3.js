@@ -57,8 +57,10 @@ function clearSupabaseClient() {
 // 🚀 CRITICAL FIX: Only register ONE pageshow handler per page load
 // Mobile Safari loads modules multiple times - each adds another listener!
 // Without this guard, OLD listeners fire and clear the fresh client
-if (!window.__hiSupabasePageshowRegistered) {
-  window.__hiSupabasePageshowRegistered = Date.now();
+// 🔥 ZOMBIE FIX: Make guard PAGE-SPECIFIC - prevents Hi Island's handler from polluting Dashboard
+const PAGE_KEY = `__hiSupabasePageshow_${window.location.pathname.replace(/\//g, '_')}`;
+if (!window[PAGE_KEY]) {
+  window[PAGE_KEY] = Date.now();
   const SUPABASE_INIT_TIMESTAMP = Date.now();
   
   // 🚀 WOZ FIX: Track referrer + timestamp to CORRECTLY detect phone wake vs navigation
@@ -105,7 +107,7 @@ if (!window.__hiSupabasePageshowRegistered) {
     lastPageshowTime = Date.now(); // Track for next comparison
   });
 } else {
-  console.log('[HiSupabase] ⏭️ Pageshow listener already registered, skipping duplicate');
+  console.log('[HiSupabase] ⏭️ Pageshow listener already registered for', window.location.pathname);
 }
 
 // 🚀 CRITICAL FIX: Module variable must be cleared on EVERY script load
