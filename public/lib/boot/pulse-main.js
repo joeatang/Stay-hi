@@ -148,6 +148,7 @@
   
   function handleAuthState(session) {
     const isAuthenticated = !!session?.user;
+    console.log('[Hi Pulse] 🔐 Auth state:', { isAuthenticated, userId: session?.user?.id });
     document.body.setAttribute('data-authenticated', isAuthenticated.toString());
 
     if (isAuthenticated) {
@@ -180,14 +181,36 @@
 
   // Wait for auth ready
   window.addEventListener('hi:auth-ready', (e) => {
+    console.log('[Hi Pulse] 📨 Received hi:auth-ready event:', e.detail);
     const { session } = e.detail || {};
     handleAuthState(session);
   });
 
   // 🔥 WOZ FIX: Check if auth-ready already fired (late listener race condition)
   if (window.__hiAuthReady) {
-    console.log('[Hi Pulse] Auth already ready - using cached state');
+    console.log('[Hi Pulse] ✅ Auth already ready - using cached state');
     handleAuthState(window.__hiAuthReady.session);
+  } else {
+    console.log('[Hi Pulse] ⏳ Waiting for auth-ready event...');
+    
+    // 🚨 BACKUP: Check session directly after 1s if event doesn't fire
+    setTimeout(async () => {
+      if (document.body.getAttribute('data-authenticated') !== 'true') {
+        console.log('[Hi Pulse] ⚠️ Auth event timeout - checking session directly');
+        try {
+          const supabase = window.HiSupabase?.getClient?.() || window.supabase;
+          if (supabase) {
+            const { data } = await supabase.auth.getSession();
+            if (data?.session) {
+              console.log('[Hi Pulse] ✅ Found session via backup check');
+              handleAuthState(data.session);
+            }
+          }
+        } catch (err) {
+          console.warn('[Hi Pulse] Backup session check failed:', err);
+        }
+      }
+    }, 1000);
   }
 
   console.log('[Hi Pulse] Initialized');
