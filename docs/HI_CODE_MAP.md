@@ -300,9 +300,10 @@ Stay-hi/
 | `assets/ticker-config.json` | Editable ticker messages |
 
 **Features:**
-- Live scrolling ticker with admin-editable messages
-- Global stats: Total Hi Moments, Hi Waves, Active Users
-- Personal stats (auth users): Your Shares, Your Streak, Your Points
+- **Live scrolling ticker** with admin-editable messages
+- **Global stats:** Total Hi Moments, Hi Waves, Active Users
+- **Personal stats** (auth users): Your Shares, Your Streak, Your Points
+- **Analytics v2.0 tabs:** Overview | Journey | Patterns | Milestones
 - Quick actions: Share Hi, Mind Gym links
 
 **Architecture:**
@@ -322,10 +323,54 @@ Stay-hi/
 │              YOUR PULSE (Auth users)                    │
 │  ┌───────────┐  ┌───────────┐  ┌───────────┐           │
 │  │Your Shares│  │Your Streak│  │ Hi Points │           │
-│  │    47     │  │   12 🔥   │  │    350    │           │
+│  │    72     │  │   16 🔥   │  │    350    │           │
 │  └───────────┘  └───────────┘  └───────────┘           │
 └─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│         ANALYTICS v2.0 (Tier-gated tabs)                │
+│  Overview │ 📈 Journey │ 🔍 Patterns │ 🏆 Milestones    │
+│                                                          │
+│  [Journey Tab - Silver+ (7-30 days)]                    │
+│  Line chart: Hi Scale ratings over time                 │
+│  Empty state: "Share Hi Scale ratings in Hi Gym"        │
+│                                                          │
+│  [Patterns Tab - Gold+ (Placeholder)]                   │
+│  Best/worst days • Peak hours • Correlations            │
+│  Coming soon in Phase 2                                 │
+│                                                          │
+│  [Milestones Tab - Silver+ (Placeholder)]               │
+│  Streak calendar • Achievement badges • Progress        │
+│  Coming soon in Phase 3                                 │
+└─────────────────────────────────────────────────────────┘
 ```
+
+**Analytics v2.0 Components:**
+| Component | Purpose | Status |
+|-----------|---------|--------|
+| `components/HiAnalytics.js` | Tab controller, tier gating, data fetching | ✅ Deployed |
+| `components/charts/EmotionalJourneyChart.js` | Canvas line chart (Journey tab) | ✅ Deployed |
+| `components/charts/WeeklyPatternsChart.js` | Bar chart (Patterns tab) | 📋 Phase 2 |
+| `components/charts/MilestonesCalendar.js` | Heatmap (Milestones tab) | 📋 Phase 3 |
+
+**Analytics Backend (Migrations 003, 004, 006, 007, 008):**
+| Table | Purpose | Status |
+|-------|---------|--------|
+| `user_daily_snapshots` | Daily activity + Hi Scale ratings | ✅ Backfilled |
+| `user_trend_summaries` | Weekly/monthly aggregates | ✅ Ready |
+| `user_behavior_insights` | Correlation insights | ✅ Ready |
+
+**Analytics RPCs:**
+| Function | Returns | Tier Access |
+|----------|---------|-------------|
+| `get_user_emotional_journey()` | Hi Scale ratings over time | All tiers |
+| `get_user_weekly_pattern()` | Best/worst days of week | Gold+ |
+| `get_user_top_insights()` | Behavioral correlations | Gold+ |
+| `dismiss_user_insight()` | Mark insight as read | All tiers |
+
+**Tier Gating:**
+- **Free/Bronze:** Journey tab (7 days)
+- **Silver:** Journey (30 days) + Milestones
+- **Gold/Collective:** Unlimited Journey + Patterns + Milestones
 
 **Ticker Data Source:**
 - **Phase 1:** `assets/ticker-config.json` (file-based, editable by deploys)

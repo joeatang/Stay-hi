@@ -28,11 +28,11 @@
   - Investigate: auth-resilience.js, BFCache handling, session restore on wake
   - *This is breaking the core experience*
 
-- [ ] **#20 Hi Pulse "Your Shares" Regression** 🆕🔥
-  - Was showing 69, now shows 1
-  - All stats (Hi Pulse, Profile, Hi Island) should pull from ONE source of truth
-  - Audit: Where is each page getting share count from? Unify to single RPC.
-  - *User-visible data integrity issue*
+- [x] ~~**#20 Hi Pulse "Your Shares" Regression**~~ — ✅ FIXED (2026-01-18)
+  - **Root cause:** `get_user_stats` RPC read from cached `user_stats.total_hi_moments` instead of source `public_shares`
+  - **Fix:** Migration 009 - RPC now queries `public_shares` directly (single source of truth)
+  - **Result:** Share count always accurate, no more cache drift
+  - **Files:** `2026-01-18_009_fix_user_stats_shares_source.sql` ✅ DEPLOYED
 
 - [ ] **#21 Mission Control: degenmentality Can't Generate Codes** 🆕
   - Error: "need to be a verified admin or logged into an admin account"
@@ -51,19 +51,40 @@
   - **Goal:** Capture feeling to enable Hi Index v2.0 authenticity
   - *Estimated: 2-3 hours*
 
-- [ ] **#35 Analytics v2.0 Frontend — Hi Pulse v2.0 UI** 🆕 *(2026-01-18)*
-  - **Backend:** ✅ COMPLETE (6 RPC functions ready)
-  - **Task:** Build personal analytics dashboard in hi-pulse.html
-  - **Components:** Create `/components/HiAnalytics/` folder
-    - HiAnalytics.js (main controller)
-    - EmotionalJourneyChart.js (line chart, 7-30 days)
-    - WeeklyPatternsGrid.js (best/worst days)
-    - MilestonesList.js (achievements, insights)
-  - **Layout:** Tabbed interface (Overview | Journey | Patterns | Milestones)
-  - **Tier Gating:** Bronze (7 days), Silver (30 days), Gold (unlimited)
-  - **RPC Calls:** get_user_emotional_journey(), get_user_weekly_patterns(), get_user_insights()
-  - **UX:** Clean, inspiring, data-driven, mobile-first
-  - *Estimated: 1-2 days*
+- [x] ~~**#35 Analytics v2.0 Frontend — Journey Tab (Phase 1)**~~ — ✅ COMPLETE (2026-01-18)
+  - **Backend:** ✅ Migrations 003, 004, 006, 007, 008 deployed
+  - **Frontend:** ✅ HiAnalytics.js + EmotionalJourneyChart.js deployed
+  - **Features:** Tabbed interface (Overview | Journey | Patterns | Milestones)
+  - **Journey Tab:** Line chart showing Hi Scale ratings over time (7-30 days)
+  - **Tier Gating:** Free/Bronze (7 days), Silver (30 days), Gold/Collective (unlimited)
+  - **Historical Data:** Migration 008 backfilled check-ins + shares for all users
+  - **RPC:** `get_user_emotional_journey()` queries user_daily_snapshots
+  - **Files:** `HiAnalytics.js`, `EmotionalJourneyChart.js`, `2026-01-18_007_FIX`, `2026-01-18_008_backfill`
+  - **Status:** Journey tab live, Patterns + Milestones placeholders ready for Phase 2 + 3
+
+- [ ] **#37 Analytics v2.0 — Patterns Tab (Phase 2)** 🆕 *(2026-01-18)*
+  - **Backend:** ✅ Tables ready (user_daily_snapshots, user_behavior_insights)
+  - **Need:** New RPCs for pattern analysis
+  - **Charts:**
+    - Best/worst days of week (bar chart showing avg Hi Scale by day)
+    - Peak activity hours (heatmap showing when user is most active)
+    - Correlations: "Sharing boosts your Hi Scale by +0.7" (insight cards)
+    - 30-day trend analysis (moving averages, slope direction)
+  - **Tier Gating:** Gold+ only (premium analytics feature)
+  - **UX:** Data-driven insights with actionable recommendations
+  - *Estimated: 2-3 days*
+
+- [ ] **#38 Analytics v2.0 — Milestones Tab (Phase 3)** 🆕 *(2026-01-18)*
+  - **Backend:** ✅ Tables ready (user_daily_snapshots for calendar)
+  - **Need:** Achievement badge system RPC
+  - **Components:**
+    - Streak calendar heatmap (GitHub-style contribution graph)
+    - Achievement badges (7-day streak, 30-day streak, 100 shares, etc.)
+    - Progress timeline (milestone history with dates)
+    - Personal records (longest streak, highest Hi Index, peak activity day)
+  - **Tier Gating:** Silver+ (motivational feature for committed users)
+  - **UX:** Celebrates progress, visual accomplishments, share-worthy
+  - *Estimated: 2-3 days*
 
 - [ ] **#36 Timezone Detection on Signup** 🆕 *(2026-01-18)*
   - **Backend:** ⏳ Migration 005 ready (not deployed yet)
