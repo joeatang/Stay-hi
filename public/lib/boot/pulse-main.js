@@ -182,7 +182,8 @@
   // Wait for auth ready
   window.addEventListener('hi:auth-ready', (e) => {
     console.log('[Hi Pulse] 📨 Received hi:auth-ready event:', e.detail);
-    const { session } = e.detail || {};
+    // 🔥 FIX: e.detail doesn't have session, get it from window.__hiAuthReady
+    const session = window.__hiAuthReady?.session;
     handleAuthState(session);
   });
 
