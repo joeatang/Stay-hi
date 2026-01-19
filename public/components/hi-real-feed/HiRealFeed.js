@@ -306,21 +306,10 @@ class HiIslandRealFeed {
     if (window.supabaseClient) return window.supabaseClient;
     if (window.sb) return window.sb;
     
-    // Last resort: CDN client
-    if (window.supabase?.createClient) {
-      console.warn('HiRealFeed: Using CDN fallback client');
-      const url = "https://gfcubvroxgfvjhacinic.supabase.co";
-      const key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MTIyNjYsImV4cCI6MjA3NDQ4ODI2Nn0.5IlxofMPFNdKsEueM_dhgsJP9wI-GnZRUM9hfR0zE1g";
-      return window.supabase.createClient(url, key, {
-        auth: {
-          persistSession: true,  // 🎯 FIX: Persist sessions across browser restarts
-          autoRefreshToken: true,
-          detectSessionInUrl: true
-        }
-      });
-    }
-    
-    console.error('❌ HiRealFeed: No Supabase client found');
+    // 🚫 ZOMBIE FIX: NEVER create new Supabase clients!
+    // Creating new clients = Multiple GoTrueClient instances = auth corruption
+    // ONLY reuse existing clients from HiSupabase.v3.js
+    console.error('❌ HiRealFeed: No Supabase client found (CDN fallback disabled to prevent auth corruption)');
     return null;
   }
 
