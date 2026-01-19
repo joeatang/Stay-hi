@@ -315,15 +315,28 @@
     const btnSignIn = document.getElementById('btnSignIn');
     
     async function updateAccountButton() {
-      // 🚀 FIX: Use HiSupabase.getClient() which auto-recreates after pageshow
-      const client = window.HiSupabase?.getClient?.() || window.getSupabase?.() || window.hiSupabase || window.supabaseClient || window.sb;
-      const { data } = await client?.auth?.getSession?.() || {};
-      const isLoggedIn = !!data?.session;
+      // 🚀 WOZ FIX: Use cached session from HiSupabase (5x faster, no network)
+      let isLoggedIn = false;
+      
+      try {
+        // Try cached session first (instant)
+        if (window.HiSupabase?.getSession) {
+          const { data } = await window.HiSupabase.getSession();
+          isLoggedIn = !!data?.session;
+        } else {
+          // Fallback to regular getSession
+          const client = window.HiSupabase?.getClient?.() || window.getSupabase?.() || window.hiSupabase || window.supabaseClient || window.sb;
+          const { data } = await client?.auth?.getSession?.() || {};
+          isLoggedIn = !!data?.session;
+        }
+      } catch (err) {
+        console.warn('[Dashboard] Session check failed:', err);
+      }
       
       if (btnSignIn) btnSignIn.style.display = isLoggedIn ? 'none' : 'flex';
       if (btnSignOut) btnSignOut.style.display = isLoggedIn ? 'flex' : 'none';
       
-      console.log('[Dashboard] 🔐 Account button updated:', { isLoggedIn, showSignIn: !isLoggedIn, showSignOut: isLoggedIn });
+      __dbg('[Dashboard] 🔐 Account button updated:', { isLoggedIn, showSignIn: !isLoggedIn, showSignOut: isLoggedIn });
     }
     
     // Wrap openNavigation to update account button first

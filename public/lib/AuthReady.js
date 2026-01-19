@@ -153,17 +153,21 @@ async function initialize(){
       if (storedAuth && cachedTier) {
         try {
           const parsed = JSON.parse(storedAuth);
-          // Supabase stores full session object with user, access_token, refresh_token, etc.
-          if (parsed.user && parsed.access_token) {
+          // Supabase v2 stores full session object at root level
+          const session = parsed;
+          const user = parsed.user;
+          const accessToken = parsed.access_token;
+          const expiresAt = parsed.expires_at || 0;
+          
+          if (user && accessToken) {
             // 🔒 CRITICAL: Check if token expired (expires_at is Unix timestamp in seconds)
-            const expiresAt = parsed.expires_at || 0;
             const nowSeconds = Math.floor(Date.now() / 1000);
             const isExpired = expiresAt < nowSeconds;
             
             if (!isExpired) {
-              console.log('[AuthReady] 🚀 Using cached session - skipping slow getSession()');
+              console.log('[AuthReady] 🚀 Using cached session (valid for', Math.round((expiresAt - nowSeconds) / 60), 'min)');
               return {
-                session: parsed, // Return FULL session object, not just user
+                session, // Return full session object
                 membership: {
                   tier: cachedTier,
                   is_admin: cachedAdmin === '1',
@@ -180,6 +184,7 @@ async function initialize(){
       }
       
       // Fallback: try getSession() if no cache or cache failed
+      console.log('[AuthReady] 🔄 Fetching fresh session from Supabase...');
       let { data: { session } } = await sb.auth.getSession();
       if (!session) {
         await salvageTokens(sb);

@@ -184,17 +184,13 @@
     handleAuthState(session);
   });
 
-  // Fallback: Check auth after delay if event doesn't fire
-  setTimeout(() => {
-    const supabase = window.HiSupabase?.getClient?.();
-    if (supabase) {
-      supabase.auth.getSession().then(({ data }) => {
-        if (data?.session) {
-          handleAuthState(data.session);
-        }
-      });
-    }
-  }, 2000);
+  // 🔥 WOZ FIX: Check if auth-ready already fired (late listener race condition)
+  if (window.__hiAuthReady) {
+    console.log('[Hi Pulse] Auth already ready - using cached state');
+    handleAuthState(window.__hiAuthReady.session);
+  }
+
+  console.log('[Hi Pulse] Initialized');
 
   // Wire up Share Hi button to open share modal
   const shareBtn = document.getElementById('shareHiBtn');
