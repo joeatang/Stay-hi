@@ -207,7 +207,7 @@ class HiIslandMap {
             avatar_url
           )
         `)
-        .in('origin', ['hiisland', 'hi-island', 'higym', 'hi-muscle', 'hi5']) // 🎯 All 3 share sheets
+        .in('origin', ['hiisland', 'hi-island', 'higym', 'hi-muscle', 'hi5', 'dashboard', 'pulse']) // 🎯 All share sources
         .or('is_public.eq.true,is_anonymous.eq.true')
         .not('location', 'is', null)
         .order('created_at', { ascending: false })
