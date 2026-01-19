@@ -37,12 +37,10 @@
       // Setup listeners
       this.setupListeners();
       
-      // Check if should show on load
-      if (new URLSearchParams(window.location.search).get('navdiag') === 'show') {
-        setTimeout(() => this.show(), 500);
-      }
+      // Create floating diagnostic button (mobile-friendly)
+      this.createFloatingButton();
       
-      console.log('📊 Navigation Diagnostic Tool loaded. Press Ctrl+Shift+D to view report.');
+      console.log('📊 Navigation Diagnostic Tool loaded. Tap the 📊 button to view report.');
     }
     
     getPageName() {
@@ -144,17 +142,14 @@
         this.check7DayPill();
       }
       
-      // Track ProfileManager timeouts
-      const originalConsoleWarn = console.warn;
-      console.warn = (...args) => {
-        const message = args.join(' ');
-        if (message.includes('Profile query timeout')) {
-          this.recordEvent('PROFILE_TIMEOUT', { message });
-        } else if (message.includes('Feed database load timed out')) {
-          this.recordEvent('FEED_TIMEOUT', { message });
-        }
-        originalConsoleWarn.apply(console, args);
-      };
+      // Listen for timeout events (fired by other components)
+      window.addEventListener('hi:profile-timeout', () => {
+        this.recordEvent('PROFILE_TIMEOUT', {});
+      });
+      
+      window.addEventListener('hi:feed-timeout', () => {
+        this.recordEvent('FEED_TIMEOUT', {});
+      });
       
       // Keyboard shortcut: Ctrl+Shift+D
       document.addEventListener('keydown', (e) => {
@@ -163,6 +158,76 @@
           this.toggle();
         }
       });
+    }
+    
+    createFloatingButton() {
+      // Create floating diagnostic button (bottom-right corner)
+      const button = document.createElement('button');
+      button.id = 'nav-diag-float-btn';
+      button.innerHTML = '📊';
+      button.title = 'Show Navigation Diagnostics';
+      button.style.cssText = `
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        font-size: 24px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        z-index: 999998;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+        -webkit-tap-highlight-color: transparent;
+      `;
+      
+      // Add pulsing animation to attract attention
+      button.style.animation = 'diagPulse 2s infinite';
+      
+      // Add animation keyframes
+      if (!document.getElementById('diag-animations')) {
+        const style = document.createElement('style');
+        style.id = 'diag-animations';
+        style.textContent = `
+          @keyframes diagPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); }
+            50% { transform: scale(1.1); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5); }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
+      // Button interactions
+      button.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        button.style.transform = 'scale(0.9)';
+      });
+      
+      button.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        button.style.transform = 'scale(1)';
+        this.show();
+      });
+      
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.show();
+      });
+      
+      // Add to page when DOM ready
+      if (document.body) {
+        document.body.appendChild(button);
+      } else {
+        document.addEventListener('DOMContentLoaded', () => {
+          document.body.appendChild(button);
+        });
+      }
     }
     
     check7DayPill() {
@@ -314,6 +379,12 @@
               `).join('')}
             </div>
             
+      
+      // Show floating button again
+      const button = document.getElementById('nav-diag-float-btn');
+      if (button) {
+        button.style.display = 'flex';
+      }
             <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
               <h3 style="margin-top: 0; color: #4ECDC4;">Timeline (Last 20 Events)</h3>
               <div style="font-family: 'Courier New', monospace; font-size: 12px;">
@@ -370,6 +441,12 @@
     
     show() {
       if (this.isVisible) return;
+      
+      // Hide floating button while modal is open
+      const button = document.getElementById('nav-diag-float-btn');
+      if (button) {
+        button.style.display = 'none';
+      }
       
       const html = this.generateHTML();
       const div = document.createElement('div');
