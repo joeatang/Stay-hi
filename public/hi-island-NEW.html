@@ -1843,6 +1843,9 @@
   <!-- WOZ FIX: Diagnostic script crashes on line 88 - interceptAsyncFunction doesn't exist -->
   <!-- <script src="lib/diagnostic/HiShareFreezeDiagnostic.js"></script> -->
   
+  <!-- 🔍 ZOMBIE MODE DETECTIVE: Desktop-friendly mobile debugging -->
+  <script src="lib/diagnostic/HiIslandZombieDetective.js"></script>
+  
   <!-- 🚀 TESLA FIX: Initialize Supabase client before other modules -->
   <script type="module" src="./lib/boot/island-supabase-verify.mjs"></script>
 
@@ -1950,7 +1953,7 @@
 
   <!-- Page Orchestrator -->
   <script>console.log('🔍 About to load island-main.mjs');</script>
-  <script src="./lib/boot/island-main.mjs?v=20260110-clean"></script>
+  <script src="./lib/boot/island-main.mjs?v=20260119-zombie-fix"></script>
   <script>console.log('🔍 island-main.mjs script tag parsed');</script>
   <!-- Tesla Navigation + Floating Systems -->
   <!-- Removed floating refresh & hiffirmations on Island (dashboard-only) -->
