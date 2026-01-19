@@ -251,15 +251,53 @@ class HiAnalytics {
       return;
     }
 
+    // Determine days based on tier
+    const maxDays = this.getMaxDays();
+    const days = Math.min(this.options?.defaultDays || 7, maxDays);
+
+    // Show loading state
     container.innerHTML = `
-      <div class="upgrade-prompt">
-        <h3>📈 Your Emotional Journey</h3>
-        <p>Track your Hi Scale ratings over time and see how you're progressing.</p>
-        <p style="opacity: 0.6; font-size: 0.9rem; margin-top: 16px;">
-          Coming soon in Analytics v2.0! Backend is ready, building the charts now.
-        </p>
+      <div class="journey-loaded">
+        <div class="stats-section-title">📈 Your Emotional Journey (Last ${days} Days)</div>
+        <div id="emotionalJourneyChartContainer" style="padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 16px; margin-top: 16px;">
+          <div style="text-align: center; color: rgba(232, 235, 255, 0.6);">Loading...</div>
+        </div>
       </div>
     `;
+
+    try {
+      // Query RPC
+      const data = await this.getCached(`journey_${days}`, async () => {
+        const { data, error } = await this.supabase.rpc('get_user_emotional_journey', {
+          p_user_id: this.userId,
+          p_days: days
+        });
+
+        if (error) {
+          console.error('[HiAnalytics] Error loading journey:', error);
+          return [];
+        }
+
+        return data || [];
+      });
+
+      // Render chart
+      const chart = new window.EmotionalJourneyChart('emotionalJourneyChartContainer', {
+        days,
+        tier: this.tier
+      });
+      
+      await chart.render(data);
+
+      console.log('[HiAnalytics] Journey chart rendered', { dataPoints: data.length });
+    } catch (err) {
+      console.error('[HiAnalytics] Failed to load journey:', err);
+      container.querySelector('#emotionalJourneyChartContainer').innerHTML = `
+        <div style="text-align: center; color: rgba(232, 235, 255, 0.6);">
+          Unable to load data. Try refreshing the page.
+        </div>
+      `;
+    }
   }
 
   /**
