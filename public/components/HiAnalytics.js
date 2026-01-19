@@ -123,6 +123,29 @@ class HiAnalytics {
   }
 
   /**
+   * Get max days based on tier
+   * @returns {number}
+   * @private
+   */
+  getMaxDays() {
+    const tierLimits = {
+      'anonymous': 0,
+      'free': 7,
+      'bronze': 7,
+      'pathfinder': 7,
+      'silver': 30,
+      'trailblazer': 30,
+      'gold': 36500,  // ~100 years (unlimited)
+      'champion': 36500,
+      'premium': 36500,
+      'pioneer': 36500,
+      'collective': 36500
+    };
+
+    return tierLimits[this.tier.toLowerCase()] || 7;
+  }
+
+  /**
    * Update tab lock states based on user tier
    * @private
    */
@@ -271,7 +294,7 @@ class HiAnalytics {
     `;
 
     try {
-      // Query RPC
+      // Query RPC (migration 007)
       const data = await this.getCached(`journey_${days}`, async () => {
         const { data, error } = await this.supabase.rpc('get_user_emotional_journey', {
           p_user_id: this.userId,
