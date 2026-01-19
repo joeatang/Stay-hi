@@ -132,11 +132,6 @@ console.log('[HiSupabase] 🧹 Module variable initialized (createdClient = null
 if (!createdClient) {
   // If a global UMD build is already available, use it immediately
   if (window.supabase?.createClient) {
-      // 🚀 ZOMBIE FIX: Use page-specific storage key to prevent cross-page auth conflicts
-      // PROBLEM: Hi Island and Dashboard both using same storage key = auth corruption
-      // SOLUTION: Each page gets own storage namespace
-      const pageStorageKey = `sb-gfcubvroxgfvjhacinic-auth-token:${window.location.pathname}`;
-      
       // 🚀 WOZ FIX: Add auth persistence options to prevent session loss on background
       const authOptions = {
         auth: {
@@ -144,7 +139,15 @@ if (!createdClient) {
           autoRefreshToken: true, // ✅ ENABLED: Auto-refresh tokens like X/Instagram (Brave Incognito works fine)
           detectSessionInUrl: false, // Prevent URL-based auth conflicts
           storage: window.localStorage, // Explicitly use localStorage (survives backgrounds)
-          storageKey: pageStorageKey // 🔥 Page-specific key prevents conflicts
+          storageKey: 'sb-gfcubvroxgfvjhacinic-auth-token' // Original shared key (restored)
+        }
+      };
+    const real = window.supabase.createClient(
+      'https://gfcubvroxgfvjhacinic.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmY3VidnJveGdmdmpoYWNpbmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjY1ODc3NjcsImV4cCI6MjA0MjE2Mzc2N30.G-84E13xYq4TrARuXGhfr5n1QTFDsVoOYOpMNvvq80s',
+      authOptions
+    );
+    createdClient = real;
     window.__HI_SUPABASE_CLIENT = real;
     window.__HI_SUPABASE_CLIENT_URL = window.location.pathname;
     window.__HI_SUPABASE_CLIENT_TIMESTAMP = Date.now();
