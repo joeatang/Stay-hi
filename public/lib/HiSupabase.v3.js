@@ -129,9 +129,17 @@ console.log('[HiSupabase] 🧹 Module variable initialized (createdClient = null
 
 // 🚀 WOZ FIX: NEVER reuse BFCache-preserved clients - they have dead AbortControllers
 // Always create fresh client on script execution
+console.log('[HiSupabase] 🔍 Checking if we can create client...', {
+  hasCreatedClient: !!createdClient,
+  hasWindowSupabase: !!window.supabase,
+  hasCreateClient: !!window.supabase?.createClient,
+  url: window.location.pathname
+});
+
 if (!createdClient) {
   // If a global UMD build is already available, use it immediately
   if (window.supabase?.createClient) {
+      console.log('[HiSupabase] ✅ UMD available, creating fresh client...');
       // 🚀 WOZ FIX: Add auth persistence options to prevent session loss on background
       const authOptions = {
         auth: {
@@ -175,6 +183,13 @@ if (!createdClient) {
     // This lets ProfileManager, auth-resilience, etc. update their references
     window.dispatchEvent(new CustomEvent('hi:supabase-client-ready', { detail: { client: real } }));
   } else {
+    console.warn('[HiSupabase] ❌ window.supabase.createClient NOT available - falling back to stub');
+    console.warn('[HiSupabase] Debug info:', {
+      hasWindowSupabase: !!window.supabase,
+      supabaseType: typeof window.supabase,
+      supabaseKeys: window.supabase ? Object.keys(window.supabase) : [],
+      hasCreateClient: !!window.supabase?.createClient
+    });
     // Immediate stub exposure for early consumers
     createdClient = createStubClient();
     __hiSupabaseIsStub = true;
