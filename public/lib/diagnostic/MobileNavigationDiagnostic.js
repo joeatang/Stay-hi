@@ -259,34 +259,43 @@
     }
     
     generateReport() {
-      const report = {
-        session: {
-          start: new Date(Date.now() - this.sessionStart + this.sessionStart).toISOString(),
-          duration: Math.round((Date.now() - this.sessionStart) / 1000) + 's',
-          currentPage: this.currentPage,
-          totalEvents: this.events.length
-        },
-        eventsByType: {},
-        timeline: []
-      };
-      
-      // Group events by type
-      this.events.forEach(event => {
-        if (!report.eventsByType[event.type]) {
-          report.eventsByType[event.type] = [];
-        }
-        report.eventsByType[event.type].push(event);
-      });
-      
-      // Create timeline (last 20 events)
-      report.timeline = this.events.slice(-20).map(event => ({
-        time: `+${(event.timestamp / 1000).toFixed(1)}s`,
-        type: event.type,
-        page: event.page,
-        data: JSON.stringify(event.data).substring(0, 100)
-      }));
-      
-      return report;
+      try {
+        const report = {
+          session: {
+            start: new Date(Date.now() - this.sessionStart + this.sessionStart).toISOString(),
+            duration: Math.round((Date.now() - this.sessionStart) / 1000) + 's',
+            currentPage: this.currentPage,
+            totalEvents: this.events.length
+          },
+          eventsByType: {},
+          timeline: []
+        };
+        
+        // Group events by type
+        this.events.forEach(event => {
+          if (!report.eventsByType[event.type]) {
+            report.eventsByType[event.type] = [];
+          }
+          report.eventsByType[event.type].push(event);
+        });
+        
+        // Create timeline (last 20 events)
+        report.timeline = this.events.slice(-20).map(event => ({
+          time: `+${(event.timestamp / 1000).toFixed(1)}s`,
+          type: event.type,
+          page: event.page,
+          data: JSON.stringify(event.data || {}).substring(0, 100)
+        }));
+        
+        return report;
+      } catch (error) {
+        console.error('📊 Error generating report:', error);
+        return {
+          session: { error: error.message },
+          eventsByType: {},
+          timeline: []
+        };
+      }
     }
     
     generateHTML() {
@@ -352,10 +361,10 @@
             
             <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
               <h3 style="margin-top: 0; color: #4ECDC4;">Session Info</h3>
-              <div><strong>Start:</strong> ${report.session.start.split('T')[1].split('.')[0]}</div>
-              <div><strong>Duration:</strong> ${report.session.duration}</div>
-              <div><strong>Current Page:</strong> ${report.session.currentPage}</div>
-              <div><strong>Total Events:</strong> ${report.session.totalEvents}</div>
+              <div><strong>Start:</strong> ${report.session.start ? report.session.start.split('T')[1].split('.')[0] : 'N/A'}</div>
+              <div><strong>Duration:</strong> ${report.session.duration || 'N/A'}</div>
+              <div><strong>Current Page:</strong> ${report.session.currentPage || 'Unknown'}</div>
+              <div><strong>Total Events:</strong> ${report.session.totalEvents || 0}</div>
             </div>
             
             ${issues.length > 0 ? `
@@ -412,31 +421,36 @@
     }
     
     getDashboardDiagnostics() {
-      const pillChecks = this.events.filter(e => e.type === '7DAY_PILL_CHECK');
-      
-      if (pillChecks.length === 0) {
-        return '<div>No Dashboard diagnostics (not on Dashboard page)</div>';
+      try {
+        const pillChecks = this.events.filter(e => e.type === '7DAY_PILL_CHECK');
+        
+        if (pillChecks.length === 0) {
+          return '<div>No Dashboard diagnostics (not on Dashboard page)</div>';
+        }
+        
+        return `
+          <div><strong>7-Day Pill Checks:</strong> ${pillChecks.length}</div>
+          <div><strong>First Check:</strong> +${(pillChecks[0]?.timestamp / 1000).toFixed(1)}s</div>
+          <div><strong>Last Check:</strong> +${(pillChecks[pillChecks.length - 1]?.timestamp / 1000).toFixed(1)}s</div>
+          <div><strong>Ever Found:</strong> ${pillChecks.some(e => e.data?.found) ? '✅ Yes' : '❌ No'}</div>
+          <div><strong>Ever Visible:</strong> ${pillChecks.some(e => e.data?.visible) ? '✅ Yes' : '❌ No'}</div>
+          ${pillChecks.length > 0 ? `
+            <div style="margin-top: 10px; font-family: 'Courier New', monospace; font-size: 11px;">
+              ${pillChecks.map(check => `
+                <div style="padding: 4px; background: #2a2a2a; margin: 2px 0; border-radius: 4px;">
+                  Check ${check.data?.checkNumber || '?'}: 
+                  ${check.data?.found ? '✅ Found' : '❌ Not Found'} | 
+                  ${check.data?.visible ? '✅ Visible' : '❌ Hidden'}
+                  ${check.data?.display ? ` (display: ${check.data.display})` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        `;
+      } catch (error) {
+        console.error('📊 Error generating dashboard diagnostics:', error);
+        return '<div>Error generating diagnostics: ' + error.message + '</div>';
       }
-      
-      return `
-        <div><strong>7-Day Pill Checks:</strong> ${pillChecks.length}</div>
-        <div><strong>First Check:</strong> +${(pillChecks[0]?.timestamp / 1000).toFixed(1)}s</div>
-        <div><strong>Last Check:</strong> +${(pillChecks[pillChecks.length - 1]?.timestamp / 1000).toFixed(1)}s</div>
-        <div><strong>Ever Found:</strong> ${pillChecks.some(e => e.data.found) ? '✅ Yes' : '❌ No'}</div>
-        <div><strong>Ever Visible:</strong> ${pillChecks.some(e => e.data.visible) ? '✅ Yes' : '❌ No'}</div>
-        ${pillChecks.length > 0 ? `
-          <div style="margin-top: 10px; font-family: 'Courier New', monospace; font-size: 11px;">
-            ${pillChecks.map(check => `
-              <div style="padding: 4px; background: #2a2a2a; margin: 2px 0; border-radius: 4px;">
-                Check ${check.data.checkNumber}: 
-                ${check.data.found ? '✅ Found' : '❌ Not Found'} | 
-                ${check.data.visible ? '✅ Visible' : '❌ Hidden'}
-                ${check.data.display ? ` (display: ${check.data.display})` : ''}
-              </div>
-            `).join('')}
-          </div>
-        ` : ''}
-      `;
     }
     
     show() {
