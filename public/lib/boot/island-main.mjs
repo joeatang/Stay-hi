@@ -699,27 +699,27 @@ function initializeHiMapCore() {
           addMarkers(sampleLocations);
           return;
         }
-        // Prefer tier-aware RPC, fallback to normalized view, then table
-        let records = [];
-        try {
-          const { data, error } = await supabase.rpc('get_public_shares_map_tier', { p_tier: membershipTier });
-          if (!error && Array.isArray(data)) {
-            records = data;
-          }
-        } catch {}
-        if (!records.length) {
-          try {
-            const { data, error } = await supabase.from('public_shares_map').select('*').order('created_at', { ascending: false }).limit(200);
-            if (!error && Array.isArray(data)) {
-              records = data;
-            }
-          } catch {}
+        
+        // 🎯 SIMPLIFIED: Map shows ONLY share sheet entries (public_shares table)
+        // Other metrics (Hi Waves, global stats) have their own dedicated displays
+        console.log('🗺️ Loading share sheet entries for map...');
+        const { data, error } = await supabase
+          .from('public_shares')
+          .select('id, location, content, created_at, is_public, is_anonymous')
+          .eq('is_public', true)
+          .not('location', 'is', null)
+          .order('created_at', { ascending: false })
+          .limit(200);
+        
+        if (error) {
+          console.warn('⚠️ Share sheet query failed:', error);
+          addMarkers(sampleLocations);
+          return;
         }
-        if (!records.length) {
-          // Minimal fallback: public shares with location
-          const { data } = await supabase.from('public_shares').select('id, location, content, created_at, is_public, is_anonymous').eq('is_public', true).not('location', 'is', null).order('created_at', { ascending: false }).limit(200);
-          records = Array.isArray(data) ? data : [];
-        }
+        
+        const records = Array.isArray(data) ? data : [];
+        console.log(`🗺️ Loaded ${records.length} share sheet entries`);
+        
         const locations = await geocodeIfNeeded(records);
         if (locations.length) {
           addMarkers(locations);

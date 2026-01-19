@@ -1987,6 +1987,26 @@
       });
       
       console.log('✅ Hi Island unhandled rejection handler armed');
+      
+      // 🚀 ZOMBIE FIX: Stop all background processes when navigating away
+      // This prevents EmergencyRecovery, telemetry export, and other setInterval
+      // timers from continuing to run and blocking database queries on next page
+      window.addEventListener('pagehide', function cleanupHiIslandBackgroundProcesses(event) {
+        console.log('🧹 [Hi Island Cleanup] Stopping background processes...');
+        
+        // 1. Clear highest setInterval ID (stops ALL intervals)
+        // Modern browsers assign sequential IDs, so clearing from current down to 0
+        // ensures no orphaned timers remain
+        const highestIntervalId = setTimeout(function() {}, 0);
+        for (let i = 0; i < highestIntervalId; i++) {
+          clearInterval(i);
+        }
+        clearTimeout(highestIntervalId);
+        
+        console.log('✅ [Hi Island Cleanup] All background timers cleared');
+      }, { once: true }); // Only clean up once per page load
+      
+      console.log('✅ Hi Island cleanup listener registered');
     })();
   </script>
 </body>
