@@ -2022,13 +2022,13 @@
           window.__hiIslandIntervals = [];
         }
         
-        // Clear any ProfileManager abort controllers
-        if (window.ProfileManager?.instance?._abortController) {
-          window.ProfileManager.instance._abortController.abort();
-          console.log('✅ Aborted ProfileManager queries');
-        }
+        // 🚫 ZOMBIE FIX: DO NOT abort ProfileManager's controller!
+        // ProfileManager is a SINGLETON that persists across pages.
+        // Aborting its controller here breaks Dashboard's queries!
+        // The controller will be naturally replaced when ProfileManager
+        // initializes on the next page.
         
-        console.log('✅ [Hi Island Cleanup] All background timers cleared');
+        console.log('✅ [Hi Island Cleanup] Background timers cleared (ProfileManager preserved)');
       }
       
       // Listen to MULTIPLE navigation events (Safari is inconsistent)
