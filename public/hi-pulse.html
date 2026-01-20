@@ -101,9 +101,8 @@
       }
     })();
   </script>
-  <script type="module">
-    import('./lib/AuthReady.js?t=' + Date.now());
-  </script>
+  <!-- 🔥 ZOMBIE FIX: Cache bust AuthReady to load timeout fixes -->
+  <script type="module" src="./lib/AuthReady.js?v=20260120-timeout-fix"></script>
   <!-- 🎯 TIER BRANDING: Must load BEFORE universal-tier-listener -->
   <script src="lib/HiBrandTiers.js"></script>
   <script type="module">

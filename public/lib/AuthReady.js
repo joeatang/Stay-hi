@@ -137,11 +137,15 @@ async function initialize(){
   
   const sb = getHiSupabase();
 
-  // � ZOMBIE FIX: Increased from 5s to 15s (inner operations now take up to 10s)
-  // This is the overall wrapper timeout for entire auth initialization
+  // 🚀 ZOMBIE FIX: Adaptive timeout - shorter on mobile for better UX
+  // Mobile BFCache protection (7s) vs Desktop slow network tolerance (15s)
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const authTimeout = isMobile ? 7000 : 15000;
+  console.log(`[AuthReady] Using ${authTimeout}ms timeout (${isMobile ? 'mobile' : 'desktop'} detected)`);
+  
   try {
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Auth initialization timeout')), 15000)
+      setTimeout(() => reject(new Error('Auth initialization timeout')), authTimeout)
     );
     
     const authPromise = (async () => {
