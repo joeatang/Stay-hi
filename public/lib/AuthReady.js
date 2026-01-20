@@ -42,8 +42,15 @@ if (!window.__authReadyPageshowRegistered) {
       _emitted = false;
       _result = null;
     } else if (event.persisted && !urlChanged) {
-      // 📱 Phone sleep/wake - KEEP STATE (still valid!)
-      console.log('📱 [AuthReady] Phone wake detected (URL unchanged) - preserving auth state ✅');
+      // 📱 Phone sleep/wake - KEEP STATE but RE-EMIT event for UI refresh
+      console.log('📱 [AuthReady] Phone wake detected (URL unchanged) - preserving auth state but re-emitting event ✅');
+      _emitted = false; // Allow event to fire again so tier display refreshes
+      if (_ready && _result) {
+        // Re-dispatch immediately with cached data
+        window.dispatchEvent(new CustomEvent('hi:auth-ready', { detail: _result }));
+        console.log('[AuthReady] ♻️ Re-emitted on wake', { user: _result.session?.user?.id, tier: _result.membership?.tier });
+        _emitted = true;
+      }
     } else {
       console.log('✅ [AuthReady] Initial pageshow - keeping fresh state');
     }
