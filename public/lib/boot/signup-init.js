@@ -166,7 +166,7 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
       let userId = null;
       try {
         const siteUrl = window.location.origin;
-        const redirectUrl = `${siteUrl}/public/hi-dashboard.html`;
+        const redirectUrl = `${siteUrl}/hi-dashboard.html`;
         
         console.log('📧 Creating free account with email redirect:', redirectUrl);
         
@@ -300,7 +300,7 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
     try {
       // Get the site URL for email redirects
       const siteUrl = window.location.origin;
-      const redirectUrl = `${siteUrl}/public/hi-dashboard.html`;
+      const redirectUrl = `${siteUrl}/hi-dashboard.html`;
       
       console.log('📧 Creating account with email redirect:', redirectUrl);
       

@@ -1954,6 +1954,41 @@ console.log('✅ [Universal Tier Listener] Loaded and listening');
   <!-- Integrity watchdog merged into mc-access-core.js -->
   
   <!-- Hi Components: HiShareSheet + HiMedallion (Externalized) -->
+  <script type="module">
+    // Initialize HiShareSheet
+    import { HiShareSheet } from './ui/HiShareSheet/HiShareSheet.js';
+    const shareSheet = new HiShareSheet({ origin: 'dashboard' });
+    shareSheet.init().then(() => {
+      window.HiShareSheet = shareSheet;
+      console.log('✅ [Dashboard] HiShareSheet initialized with origin: dashboard');
+    });
+    
+    // Initialize HiMedallionMenu
+    import { HiMedallionMenu } from './ui/HiMedallionMenu/HiMedallionMenu.js';
+    window.HiMedallionMenu = HiMedallionMenu;
+    console.log('✅ [Dashboard] HiMedallionMenu loaded');
+    
+    // Initialize HiMedallion with long-press support
+    import { autoMountHiMedallions } from './ui/HiMedallion/HiMedallion.js';
+    document.addEventListener('DOMContentLoaded', () => {
+      const medallions = autoMountHiMedallions({
+        origin: 'dashboard',
+        onTap: () => {
+          console.log('👆 Medallion tapped');
+          // Single tap could track a Hi or do nothing
+        },
+        onLongPress: (event) => {
+          console.log('⏱️ Medallion long-pressed - opening menu');
+          const medallion = event?.target?.closest('.hi-medallion');
+          if (window.HiMedallionMenu) {
+            window.HiMedallionMenu.open({ anchor: medallion });
+          }
+        }
+      });
+      console.log('✅ [Dashboard] HiMedallion mounted with long-press → menu');
+    });
+  </script>
+  
   <!-- 🎯 Hi Index: Wellness Score System (Dashboard Integration) -->
   <script src="./lib/HiIndex.js"></script>
   <script src="./components/HiIndexCard.js"></script>

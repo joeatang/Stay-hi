@@ -10,6 +10,7 @@ class HiIslandMap {
     this.markers = [];
     this.markerCluster = null; // 🆕 Cluster group for Tesla-grade scaling
     this.mapInitialized = false;
+    this._loadedShareIds = new Set(); // 🔥 Track loaded shares to prevent duplicates
     
     this.init();
   }
@@ -69,10 +70,10 @@ class HiIslandMap {
     if (!mapCanvas || this.mapInitialized) return;
 
     try {
-      // Create map centered on world view
+      // Create map centered on United States
       this.map = L.map(mapCanvas, {
-        center: [20, 0],
-        zoom: 2,
+        center: [39.8283, -98.5795], // Geographic center of continental US
+        zoom: 4,
         minZoom: 2,
         maxZoom: 10,
         scrollWheelZoom: true,
@@ -252,6 +253,11 @@ class HiIslandMap {
       if (shares && shares.length > 0) {
         for (const share of shares) {
           try {
+            // 🔥 Skip if already loaded (prevent duplicates from progressive loading)
+            if (this._loadedShareIds.has(share.id)) {
+              continue;
+            }
+            
             // 🎯 FIX: Use location STRING field and geocode it
             const locationString = share.location;
             
@@ -278,6 +284,7 @@ class HiIslandMap {
                 };
                 
                 this.addMarkerAt(lat, lng, markerData);
+                this._loadedShareIds.add(share.id); // 🔥 Track as loaded
                 bounds.push([lat, lng]);
                 markersAdded++;
               } else {
@@ -489,28 +496,9 @@ class HiIslandMap {
     ];
 
     try {
-      // Add seed data to database if hiDB is available
-      if (window.hiDB && window.hiDB.insertPublicShare) {
-        for (const share of seedShares) {
-          try {
-            await window.hiDB.insertPublicShare({
-              currentEmoji: share.currentEmoji,
-              desiredEmoji: share.desiredEmoji,
-              text: share.text,
-              isAnonymous: share.isAnonymous,
-              location: share.location,
-              isPublic: true,
-              origin: share.origin,
-              type: 'self_hi5'
-            });
-            console.log(`✅ Added seed share: ${share.location}`);
-          } catch (error) {
-            // Silently continue if share already exists
-            console.log(`📝 Seed share exists: ${share.location}`);
-          }
-        }
-      }
-
+      // 🚫 SEED DATA: Display on map only - DO NOT save to database
+      // Seed markers are visual placeholders, not real user shares
+      
       // Immediately display markers from seed data
       console.log('🗺️ Creating markers from seed data...');
       let markersAdded = 0;

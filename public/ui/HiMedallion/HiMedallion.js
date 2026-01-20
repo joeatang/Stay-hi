@@ -255,6 +255,35 @@ export function mountHiMedallion(container, opts = {}) {
     }
   };
 
+  // 🎨 Visual progress animation for long-press
+  let progressInterval = null;
+  
+  const startProgressAnimation = () => {
+    const startTime = Date.now();
+    container.classList.add('long-press-active', 'long-press-filling');
+    container.style.setProperty('--progress', '0%');
+    
+    progressInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min((elapsed / LONG_PRESS_THRESHOLD) * 100, 100);
+      container.style.setProperty('--progress', `${progress}%`);
+      
+      if (progress >= 100) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
+    }, 16); // ~60fps
+  };
+  
+  const stopProgressAnimation = () => {
+    if (progressInterval) {
+      clearInterval(progressInterval);
+      progressInterval = null;
+    }
+    container.classList.remove('long-press-active', 'long-press-filling', 'long-press-complete');
+    container.style.setProperty('--progress', '0%');
+  };
+
   container.addEventListener('touchstart', (event) => {
     touchStartTime = Date.now();
     touchStartX = event.touches[0]?.clientX || 0;
@@ -262,9 +291,13 @@ export function mountHiMedallion(container, opts = {}) {
     longPressTriggered = false;
     pressOn();
     
+    // Start visual progress
+    startProgressAnimation();
+    
     // Start long-press timer
     cancelLongPress();
     longPressTimer = setTimeout(() => {
+      container.classList.add('long-press-complete');
       handleLongPress(event);
     }, LONG_PRESS_THRESHOLD);
   }, { passive: true });
@@ -277,12 +310,14 @@ export function mountHiMedallion(container, opts = {}) {
       const deltaY = Math.abs(touch.clientY - touchStartY);
       if (deltaX > 10 || deltaY > 10) {
         cancelLongPress();
+        stopProgressAnimation();
       }
     }
   }, { passive: true });
 
   container.addEventListener('touchend', (event) => {
     cancelLongPress();
+    stopProgressAnimation();
     const touchDuration = Date.now() - touchStartTime;
     
     // Only fire tap if it wasn't a long-press
@@ -295,9 +330,64 @@ export function mountHiMedallion(container, opts = {}) {
 
   container.addEventListener('touchcancel', () => {
     cancelLongPress();
+    stopProgressAnimation();
     pressOff();
     longPressTriggered = false;
   }, { passive: true });
+  
+  // 🖱️ DESKTOP: Mouse/pointer long-press support
+  let mouseDownTime = 0;
+  let mouseDownX = 0;
+  let mouseDownY = 0;
+  
+  container.addEventListener('mousedown', (event) => {
+    // Ignore if touch events are available (prevent double trigger on touch devices)
+    if ('ontouchstart' in window) return;
+    
+    mouseDownTime = Date.now();
+    mouseDownX = event.clientX;
+    mouseDownY = event.clientY;
+    longPressTriggered = false;
+    pressOn();
+    
+    // Start visual progress
+    startProgressAnimation();
+    
+    // Start long-press timer
+    cancelLongPress();
+    longPressTimer = setTimeout(() => {
+      container.classList.add('long-press-complete');
+      handleLongPress(event);
+    }, LONG_PRESS_THRESHOLD);
+  }, { passive: true });
+  
+  container.addEventListener('mousemove', (event) => {
+    // Cancel long-press if mouse moves too much while held
+    if (longPressTimer) {
+      const deltaX = Math.abs(event.clientX - mouseDownX);
+      const deltaY = Math.abs(event.clientY - mouseDownY);
+      if (deltaX > 10 || deltaY > 10) {
+        cancelLongPress();
+        stopProgressAnimation();
+      }
+    }
+  }, { passive: true });
+  
+  costopProgressAnimation();
+    ntainer.addEventListener('mouseup', (event) => {
+    // Ignore if touch events are available
+    if ('ontouchstart' in window) return;
+    
+    cancelLongPress();
+    const pressDuration = Date.now() - mouseDownTime;
+    
+    // Only fire click if it wasn't a long-press
+    if (!longPressTriggered && pressDuration < LONG_PRESS_THRESHOLD) {
+      handleActivation(event);
+    }
+    pressOff();
+    longPressTriggered = false;
+  }, { passive: false });
 
   /**
    * HI DEV: Cleanup function for component unmounting

@@ -13,13 +13,17 @@
   place-items: center;
   border-radius: 50%;
   isolation: isolate;
-  transform: translateZ(0);
-  will-change: transform, box-shadow;
+  transform: translateZ(0) translate3d(0, 0, 0);
+  will-change: transform;
   backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+  -webkit-perspective: 1000px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   user-select: none;
+  touch-action: manipulation;
   transition: transform .18s cubic-bezier(.2,.7,.2,1), filter .18s ease-out, box-shadow .18s ease-out;
 }
 
