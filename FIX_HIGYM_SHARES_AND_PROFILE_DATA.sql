@@ -195,8 +195,6 @@ ORDER BY ordinal_position;
 SELECT 
   '🔍 user_stats without profiles' as check_name,
   us.user_id,
-  us.total_his,
-  us.current_streak,
   us.created_at
 FROM user_stats us
 LEFT JOIN profiles p ON p.id = us.user_id
@@ -219,20 +217,14 @@ SELECT
   p.social_links,
   p.created_at as profile_created,
   p.updated_at as profile_updated,
-  us.total_his,
-  us.current_streak,
-  us.longest_streak,
-  us.last_hi_date,
   COUNT(ps.id) as public_share_count,
   COUNT(ha.id) as archive_count
 FROM profiles p
-LEFT JOIN user_stats us ON us.user_id = p.id
 LEFT JOIN public_shares ps ON ps.user_id = p.id
 LEFT JOIN hi_archives ha ON ha.user_id = p.id
 GROUP BY 
   p.id, p.username, p.display_name, p.avatar_url, 
-  p.bio, p.location, p.social_links, p.created_at, p.updated_at,
-  us.total_his, us.current_streak, us.longest_streak, us.last_hi_date;
+  p.bio, p.location, p.social_links, p.created_at, p.updated_at;
 
 COMMENT ON VIEW v_profile_complete IS 
 'Complete user profile view for debugging data loss issues';
