@@ -195,7 +195,6 @@ ORDER BY ordinal_position;
 SELECT 
   '🔍 user_stats without profiles' as check_name,
   us.user_id,
-  us.display_name,
   us.total_his,
   us.current_streak,
   us.created_at
@@ -214,7 +213,6 @@ SELECT
   p.id as user_id,
   p.username,
   p.display_name,
-  p.email,
   p.avatar_url,
   p.bio,
   p.location,
@@ -232,7 +230,7 @@ LEFT JOIN user_stats us ON us.user_id = p.id
 LEFT JOIN public_shares ps ON ps.user_id = p.id
 LEFT JOIN hi_archives ha ON ha.user_id = p.id
 GROUP BY 
-  p.id, p.username, p.display_name, p.email, p.avatar_url, 
+  p.id, p.username, p.display_name, p.avatar_url, 
   p.bio, p.location, p.social_links, p.created_at, p.updated_at,
   us.total_his, us.current_streak, us.longest_streak, us.last_hi_date;
 
