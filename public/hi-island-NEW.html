@@ -1785,13 +1785,19 @@
   <script src="./lib/auth/auth-resilience.js?v=20260104-auth-fix"></script>
   
   <!-- 🔥 MOBILE FIX: AuthReady orchestrator - handles bfcache restoration -->
-  <script type="module" src="./lib/AuthReady.js?v=20260120-optimistic-auth"></script>
+  <script type="module">
+    // Force fresh load on mobile Safari - static version gets aggressively cached
+    import('./lib/AuthReady.js?t=' + Date.now());
+  </script>
   <script>console.log('✅ AuthReady.js loaded');</script>
   
   <!-- 🎯 TIER BRANDING: Loaded in HEAD, don't duplicate here -->
   
   <!-- 🎯 UNIVERSAL TIER LISTENER: Single source of truth for tier display across all pages -->
-  <script type="module" src="./lib/boot/universal-tier-listener.js?v=20260108-v2"></script>
+  <script type="module">
+    // Force fresh load on mobile Safari
+    import('./lib/boot/universal-tier-listener.js?t=' + Date.now());
+  </script>
   <script>console.log('✅ universal-tier-listener.js loaded');</script>
   
   <!-- 🏆 WOZ FIX: ProfileManager - Single Source of Truth -->

@@ -113,15 +113,21 @@ export function mountHiMedallion(container, opts = {}) {
   
   /**
    * 🎯 TESLA ELEGANCE: Floating feedback animation
-   * First tap: "Stay Hi +5" with shimmer | Subsequent: Multi-particle "Hi" burst
+   * First check-in of the day: "Stay Hi +5" with shimmer | Subsequent: Multi-particle "Hi" burst
    */
-  const showFloatingFeedback = () => {
+  const showFloatingFeedback = async () => {
     tapCount++;
     
-    const isFirstTap = tapCount === 1;
+    // 🎯 FIX: Only show "Stay Hi +5" if this is ACTUALLY the first check-in of the day
+    // Check localStorage for today's check-in status
+    const today = new Date().toISOString().split('T')[0];
+    const lastCheckin = localStorage.getItem('hi_last_checkin_date');
+    const isFirstCheckinToday = lastCheckin !== today;
     
-    if (isFirstTap) {
-      // First tap: Premium "Stay Hi +5" with gradient shimmer
+    if (isFirstCheckinToday && tapCount === 1) {
+      // First check-in: Premium "Stay Hi +5" with gradient shimmer
+      // Store check-in date so we don't show this again until tomorrow
+      localStorage.setItem('hi_last_checkin_date', today);
       const floater = document.createElement('div');
       floater.className = 'hi-medallion-floater-premium';
       floater.textContent = 'Stay Hi +5';
