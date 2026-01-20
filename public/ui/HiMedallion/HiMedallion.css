@@ -372,41 +372,101 @@
    🎯 TESLA ELEGANCE: Floating Feedback Animations
 =================================================================== */
 
-/* Floating text animations */
-@keyframes floatUpLarge {
+/* ========================================================================
+   🎯 TESLA-GRADE FLOATING FEEDBACK ANIMATIONS
+   Premium gradient shimmer + multi-particle burst system
+======================================================================== */
+
+/* Premium "Stay Hi +5" animation (first tap only) */
+@keyframes floatUpPremium {
   0% {
     opacity: 0;
-    transform: translate(-50%, -50%) translateY(0) scale(0.8);
+    transform: translate(-50%, -50%) translateY(0) scale(0.7) rotate(-5deg);
+    background-position: 0% 50%;
+    filter: drop-shadow(0 0 12px rgba(147, 51, 234, 0.6)) drop-shadow(0 4px 8px rgba(147, 51, 234, 0.3)) blur(0px);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, -50%) translateY(-15px) scale(1.1) rotate(2deg);
+    background-position: 100% 50%;
+  }
+  35% {
+    transform: translate(-50%, -50%) translateY(-25px) scale(1.05) rotate(0deg);
+    background-position: 200% 50%;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translateY(-100px) scale(1.1) rotate(3deg);
+    background-position: 400% 50%;
+    filter: drop-shadow(0 0 20px rgba(147, 51, 234, 0.4)) drop-shadow(0 8px 16px rgba(147, 51, 234, 0.2)) blur(4px);
+  }
+}
+
+/* Particle burst animations (subsequent taps) */
+@keyframes floatUpParticle1 {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translateY(0) translateX(0) scale(0.8) rotate(0deg);
+    filter: drop-shadow(0 0 8px rgba(147, 51, 234, 0.4)) blur(0px);
   }
   20% {
     opacity: 1;
-    transform: translate(-50%, -50%) translateY(-10px) scale(1);
+    transform: translate(-50%, -50%) translateY(-10px) translateX(calc(sin(var(--angle)) * 15px)) scale(1) rotate(var(--rotation));
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) translateY(-80px) scale(1.05);
+    transform: translate(-50%, -50%) translateY(calc(-1 * var(--distance))) translateX(calc(sin(var(--angle)) * var(--distance) * 0.5)) scale(0.9) rotate(calc(var(--rotation) * 1.5));
+    filter: drop-shadow(0 0 12px rgba(147, 51, 234, 0.2)) blur(2px);
   }
 }
 
-@keyframes floatUpSubtle {
+@keyframes floatUpParticle2 {
   0% {
     opacity: 0;
-    transform: translate(-50%, -50%) translateY(0) scale(0.9);
+    transform: translate(-50%, -50%) translateY(0) translateX(0) scale(0.75) rotate(0deg);
+    filter: drop-shadow(0 0 6px rgba(147, 51, 234, 0.3)) blur(0px);
   }
-  30% {
+  25% {
     opacity: 0.9;
-    transform: translate(-50%, -50%) translateY(-8px) scale(1);
+    transform: translate(-50%, -50%) translateY(-8px) translateX(calc(sin(var(--angle)) * 12px)) scale(0.95) rotate(var(--rotation));
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) translateY(-50px) scale(1);
+    transform: translate(-50%, -50%) translateY(calc(-1 * var(--distance) * 0.9)) translateX(calc(sin(var(--angle)) * var(--distance) * 0.4)) scale(0.85) rotate(calc(var(--rotation) * 1.3));
+    filter: drop-shadow(0 0 10px rgba(147, 51, 234, 0.15)) blur(2px);
   }
 }
 
-/* Floating element styles */
-.hi-medallion-floater {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  letter-spacing: 0.02em;
+@keyframes floatUpParticle3 {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translateY(0) translateX(0) scale(0.7) rotate(0deg);
+    filter: drop-shadow(0 0 4px rgba(147, 51, 234, 0.2)) blur(0px);
+  }
+  30% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) translateY(-6px) translateX(calc(sin(var(--angle)) * 10px)) scale(0.9) rotate(var(--rotation));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translateY(calc(-1 * var(--distance) * 0.8)) translateX(calc(sin(var(--angle)) * var(--distance) * 0.3)) scale(0.8) rotate(calc(var(--rotation) * 1.2));
+    filter: drop-shadow(0 0 8px rgba(147, 51, 234, 0.1)) blur(2px);
+  }
+}
+
+/* Floating element base styles */
+.hi-medallion-floater-premium,
+.hi-medallion-floater-particle {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.hi-medallion-floater-premium {
+  font-feature-settings: 'liga', 'kern';
+}
+
+.hi-medallion-floater-particle {
+  font-feature-settings: 'tnum';
 }

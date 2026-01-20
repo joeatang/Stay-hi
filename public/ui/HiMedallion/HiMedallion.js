@@ -113,39 +113,80 @@ export function mountHiMedallion(container, opts = {}) {
   
   /**
    * 🎯 TESLA ELEGANCE: Floating feedback animation
-   * First tap: "Stay Hi +5" | Subsequent: Subtle "Hi" particles
+   * First tap: "Stay Hi +5" with shimmer | Subsequent: Multi-particle "Hi" burst
    */
   const showFloatingFeedback = () => {
     tapCount++;
     
     const isFirstTap = tapCount === 1;
-    const text = isFirstTap ? 'Stay Hi +5' : 'Hi';
     
-    // Create floating element
-    const floater = document.createElement('div');
-    floater.className = 'hi-medallion-floater';
-    floater.textContent = text;
-    floater.style.cssText = `
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      font-size: ${isFirstTap ? '18px' : '14px'};
-      font-weight: ${isFirstTap ? '600' : '500'};
-      color: ${isFirstTap ? 'rgba(147, 51, 234, 1)' : 'rgba(147, 51, 234, 0.8)'};
-      opacity: 1;
-      pointer-events: none;
-      z-index: 1000;
-      text-shadow: 0 0 8px rgba(147, 51, 234, 0.3);
-      white-space: nowrap;
-      animation: ${isFirstTap ? 'floatUpLarge' : 'floatUpSubtle'} ${isFirstTap ? '1.2s' : '0.8s'} cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    `;
-    
-    container.style.position = 'relative';
-    container.appendChild(floater);
-    
-    // Remove after animation
-    setTimeout(() => floater.remove(), isFirstTap ? 1200 : 800);
+    if (isFirstTap) {
+      // First tap: Premium "Stay Hi +5" with gradient shimmer
+      const floater = document.createElement('div');
+      floater.className = 'hi-medallion-floater-premium';
+      floater.textContent = 'Stay Hi +5';
+      floater.style.cssText = `
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        background: linear-gradient(135deg, #9333ea 0%, #c084fc 50%, #9333ea 100%);
+        background-size: 200% 200%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        opacity: 1;
+        pointer-events: none;
+        z-index: 1000;
+        filter: drop-shadow(0 0 12px rgba(147, 51, 234, 0.6)) drop-shadow(0 4px 8px rgba(147, 51, 234, 0.3));
+        white-space: nowrap;
+        animation: floatUpPremium 1.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      `;
+      
+      container.style.position = 'relative';
+      container.appendChild(floater);
+      setTimeout(() => floater.remove(), 1600);
+    } else {
+      // Subsequent taps: Multi-particle "Hi" burst (3 particles)
+      const particleCount = 3;
+      for (let i = 0; i < particleCount; i++) {
+        setTimeout(() => {
+          const angle = (Math.random() - 0.5) * 60; // Random angle ±30°
+          const distance = 40 + Math.random() * 30; // Random distance 40-70px
+          const rotation = (Math.random() - 0.5) * 20; // Random rotation ±10°
+          
+          const floater = document.createElement('div');
+          floater.className = 'hi-medallion-floater-particle';
+          floater.textContent = 'Hi';
+          floater.style.cssText = `
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            color: rgba(147, 51, 234, ${0.9 - i * 0.15});
+            opacity: 1;
+            pointer-events: none;
+            z-index: 1000;
+            filter: drop-shadow(0 0 8px rgba(147, 51, 234, 0.4));
+            white-space: nowrap;
+            animation: floatUpParticle${i + 1} 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            --angle: ${angle}deg;
+            --distance: ${distance}px;
+            --rotation: ${rotation}deg;
+          `;
+          
+          container.style.position = 'relative';
+          container.appendChild(floater);
+          setTimeout(() => floater.remove(), 1000);
+        }, i * 80); // Stagger particles by 80ms
+      }
+    }
   };
 
   /**
