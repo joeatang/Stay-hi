@@ -123,12 +123,13 @@ export function mountHiMedallion(container, opts = {}) {
     const isFirstCheckinToday = lastCheckin !== today;
     
     if (isFirstCheckinToday) {
-      // First check-in: Premium "Stay Hi +5" with gradient shimmer
+      // First check-in: Premium "Stay Hi" with gradient shimmer
       // Store check-in date so we don't show this again until tomorrow
+      // NOTE: Points (5) awarded by database RPC, not animation
       localStorage.setItem('hi_last_checkin_date', today);
       const floater = document.createElement('div');
       floater.className = 'hi-medallion-floater-premium';
-      floater.textContent = 'Stay Hi +5';
+      floater.textContent = 'Stay Hi';
       floater.style.cssText = `
         position: absolute;
         left: 50%;
