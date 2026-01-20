@@ -41,6 +41,20 @@
 
 ### 🟠 P1 — HIGH PRIORITY (This Week)
 
+- [ ] **#39 PWA Install Promotion + Zombie Mode Fix** 🆕🔥 *(2026-01-20)*
+  - **Goal:** Get 30-40% of active users to install PWA (eliminates 70-80% zombie mode)
+  - **Strategy:** Positive framing ("upgrade experience"), NOT browser shaming
+  - **Components:**
+    - Install banner after successful check-in (high-intent moment)
+    - "Add to Home Screen" button in settings
+    - Tooltip on first zombie mode detection: "📱 Install Hi for smoothest experience"
+  - **Tracking:** Analytics for install rate, zombie mode % (browser vs installed)
+  - **Copy:** "Install Hi for instant loading" / "Power users install Hi"
+  - **Files:** Add install prompt component, update sw.js/manifest.json
+  - **Documentation:** PWA_INSTALLATION_GUIDE.md with iOS/Android instructions
+  - *Estimated: 1 day for component, ongoing for optimization*
+  - **See:** [PWA_CAPABILITIES_DEEP_DIVE.md](./PWA_CAPABILITIES_DEEP_DIVE.md) for full analysis
+
 - [ ] **#34 Analytics v2.0 Frontend — Hi Scale Prompt** 🆕 *(2026-01-18)*
   - **Backend:** ✅ COMPLETE (migrations 003 + 004 deployed)
   - **Task:** Add post-check-in modal: "😫 1 2 3 4 5 😊 How are you feeling?"
