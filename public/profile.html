@@ -116,8 +116,8 @@
   <script src="./lib/HiSupabase.v3.js?v=20260110-ns"></script>
   <!-- 🚀 WOZ FIX: Query timeout + retry logic -->
   <script src="./lib/query-timeout.js" defer></script>
-  <!-- 🚀 STATE RESILIENCE: DISABLED temporarily - blocking normal load -->
-  <!-- <script src="./lib/boot/HiStateResilience.js"></script> -->
+  <!-- 🚀 STATE RESILIENCE: FIXED - waits for first load, shows 'Reconnecting...' toast -->
+  <script src="./lib/boot/HiStateResilience.js"></script>
   <!-- ✅ CRITICAL: AuthReady orchestrates session + membership and fires hi:auth-ready event -->
   <script type="module">
     import('./lib/AuthReady.js?t=' + Date.now());

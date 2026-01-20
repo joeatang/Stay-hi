@@ -20,8 +20,56 @@ class HiStateResilience {
     this.BACKUP_TIMESTAMP_KEY = 'hi_state_backup_time';
     this.MAX_STATE_AGE_MS = 30 * 60 * 1000; // 30 minutes max staleness
     
+    // 🎯 FIX: Only backup/restore AFTER first successful load
+    this.hasLoadedOnce = false;
+    this.isRestoring = false;
+    
     console.log('[HiStateResilience] Initializing...');
     this.registerListeners();
+  }
+
+  /**
+   * Show reconnecting toast (UX feedback)
+   */
+  showReconnectingToast() {
+    const toast = document.createElement('div');
+    toast.id = 'hi-reconnecting-toast';
+    toast.textContent = 'Reconnecting...';
+    toast.style.cssText = `
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 24px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 999999;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      animation: fadeInOut 1.5s ease-in-out;
+    `;
+    
+    // Add animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fadeInOut {
+        0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+        20% { opacity: 1; transform: translateX(-50%) translateY(0); }
+        80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+        100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(toast);
+    
+    // Remove after animation
+    setTimeout(() => {
+      toast.remove();
+      style.remove();
+    }, 1500);
   }
 
   /**
@@ -213,39 +261,65 @@ class HiStateResilience {
 
   /**
    * Register visibility listeners
-   * ARCHITECTURE PRESERVED: Only reads/writes, doesn't change existing logic
+   * 🎯 FIX: Only backup/restore AFTER first successful load
    */
   registerListeners() {
+    // Listen for successful auth load (indicates app is ready)
+    window.addEventListener('hi:auth-ready', () => {
+      console.log('[HiStateResilience] ✅ First load complete - enabling state backup');
+      this.hasLoadedOnce = true;
+      
+      // Backup immediately after first load
+      setTimeout(() => this.backupState(), 2000);
+    });
+    
     document.addEventListener('visibilitychange', async () => {
       if (document.hidden) {
         // App going to background - SNAPSHOT EVERYTHING
-        console.log('[HiStateResilience] 👋 App backgrounding - capturing state...');
-        this.backupState();
+        // 🎯 FIX: Only backup if we've loaded successfully once
+        if (this.hasLoadedOnce && !this.isRestoring) {
+          console.log('[HiStateResilience] 👋 App backgrounding - capturing state...');
+          this.backupState();
+        } else {
+          console.log('[HiStateResilience] 👋 App backgrounding - skipping backup (not ready yet)');
+        }
       } else {
         // App returning to foreground - RESTORE IMMEDIATELY
-        console.log('[HiStateResilience] 👁️ App foregrounding - restoring state...');
+        console.log('[HiStateResilience] 👁️ App foregrounding...');
         
         const state = this.restoreState();
-        if (state) {
+        
+        // 🎯 FIX: Only restore if we have valid state AND we've loaded before
+        if (state && this.hasLoadedOnce) {
+          this.isRestoring = true;
+          
+          // Show UX feedback
+          this.showReconnectingToast();
+          
           // Apply cached state INSTANTLY (0ms)
           await this.applyRestoredState(state);
           
           // Then refresh in background (non-blocking)
-          this.refreshInBackground();
+          setTimeout(() => {
+            this.refreshInBackground();
+            this.isRestoring = false;
+          }, 500);
+        } else if (!state) {
+          console.log('[HiStateResilience] No state to restore, letting normal load proceed');
         } else {
-          console.log('[HiStateResilience] No state to restore, fresh load');
+          console.log('[HiStateResilience] Fresh load detected, skipping restoration');
         }
       }
     });
     
     // Also backup periodically (every 30s while active)
     setInterval(() => {
-      if (!document.hidden) {
+      if (!document.hidden && this.hasLoadedOnce && !this.isRestoring) {
         this.backupState();
       }
     }, 30000);
     
-    console.log('[HiStateResilience] ✅ Listeners registered');
+    console.log('[HiStateResilience] ✅ Listeners registered (will activate after first load)');
   }
 
   /**

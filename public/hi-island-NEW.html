@@ -1784,8 +1784,8 @@
   <script src="./lib/utils/abort-utils.js"></script>
   <!-- 🚀 CRITICAL: Auth resilience layer (must load AFTER HiSupabase exists) -->
   <script src="./lib/auth/auth-resilience.js?v=20260104-auth-fix"></script>
-  <!-- 🚀 STATE RESILIENCE: DISABLED temporarily - blocking normal load -->
-  <!-- <script src="./lib/boot/HiStateResilience.js"></script> -->
+  <!-- 🚀 STATE RESILIENCE: FIXED - waits for first load, shows 'Reconnecting...' toast -->
+  <script src="./lib/boot/HiStateResilience.js"></script>
   
   <!-- 🔥 MOBILE FIX: AuthReady orchestrator - handles bfcache restoration -->
   <script type="module">

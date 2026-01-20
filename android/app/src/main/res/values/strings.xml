@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Stay Hi</string>
+    <string name="title_activity_main">Stay Hi</string>
+    <string name="package_name">app.stayhi.live</string>
+    <string name="custom_url_scheme">app.stayhi.live</string>
+</resources>
