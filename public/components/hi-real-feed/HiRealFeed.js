@@ -438,6 +438,21 @@ class HiIslandRealFeed {
       }
 
       if (error) {
+        // 🎯 OPTIMISTIC AUTH: Detect actual auth failures (401/403)
+        const isAuthError = error.code === '401' || error.code === '403' || 
+                           error.message?.includes('JWT') || 
+                           error.message?.includes('not authenticated');
+        
+        if (isAuthError) {
+          console.warn('🔐 [HiRealFeed] Auth failure detected - dispatching hi:auth-failed');
+          window.dispatchEvent(new CustomEvent('hi:auth-failed', { 
+            detail: { source: 'HiRealFeed', error: error.message } 
+          }));
+          // Keep using cached feed - don't break UI while auth recheck runs
+          console.warn('✅ Using cached feed while auth recheck runs');
+          return;
+        }
+        
         console.error('❌ Failed to load from public_shares:', error);
         console.error('❌ Query details:', {
           table: 'public_shares',

@@ -186,8 +186,22 @@
         try {
           const supabase = window.HiSupabase?.getClient?.() || window.supabaseClient;
           if (supabase && userId) {
-            const { data: checkinData } = await supabase.rpc('award_daily_checkin');
-            if (checkinData?.awarded) {
+            const { data: checkinData, error: checkinError } = await supabase.rpc('award_daily_checkin');
+            
+            // 🎯 OPTIMISTIC AUTH: Detect actual auth failures (401/403)
+            if (checkinError) {
+              const isAuthError = checkinError.code === '401' || checkinError.code === '403' || 
+                                 checkinError.message?.includes('JWT') || 
+                                 checkinError.message?.includes('not authenticated');
+              if (isAuthError) {
+                console.warn('🔐 [dashboard-main] Auth failure in check-in - dispatching hi:auth-failed');
+                window.dispatchEvent(new CustomEvent('hi:auth-failed', { 
+                  detail: { source: 'dashboard-medallion-checkin', error: checkinError.message } 
+                }));
+              } else {
+                throw checkinError;
+              }
+            } else if (checkinData?.awarded) {
               __dbg('✅ DAILY CHECK-IN AWARDED:', checkinData.delta, 'pts (first tap of day)');
               window.dispatchEvent(new CustomEvent('hi:checkin-complete', { 
                 detail: { points: checkinData.delta, balance: checkinData.balance, source: 'medallion' }
@@ -202,8 +216,22 @@
         try {
           const supabase = window.HiSupabase?.getClient?.() || window.supabaseClient;
           if (supabase && userId) {
-            const { data: pointsData } = await supabase.rpc('award_tap_batch_points', { p_taps: 1 });
-            if (pointsData?.awarded) {
+            const { data: pointsData, error: pointsError } = await supabase.rpc('award_tap_batch_points', { p_taps: 1 });
+            
+            // 🎯 OPTIMISTIC AUTH: Detect actual auth failures (401/403)
+            if (pointsError) {
+              const isAuthError = pointsError.code === '401' || pointsError.code === '403' || 
+                                 pointsError.message?.includes('JWT') || 
+                                 pointsError.message?.includes('not authenticated');
+              if (isAuthError) {
+                console.warn('🔐 [dashboard-main] Auth failure in tap points - dispatching hi:auth-failed');
+                window.dispatchEvent(new CustomEvent('hi:auth-failed', { 
+                  detail: { source: 'dashboard-medallion-points', error: pointsError.message } 
+                }));
+              } else {
+                throw pointsError;
+              }
+            } else if (pointsData?.awarded) {
               __dbg('🎯 TAP POINTS EARNED:', pointsData.points, 'pts');
               window.dispatchEvent(new CustomEvent('hi:points-earned', { 
                 detail: { points: pointsData.points, source: 'tap', balance: pointsData.balance }

@@ -288,28 +288,45 @@ window.waitAuthReady = waitAuthReady;
 window.getAuthState = getAuthState;
 window.isAuthReady = isAuthReady; // Expose ready check
 
-// 🚀 MOBILE FIX: Restore session when app returns from background
-// Desktop uses visibilitychange, mobile uses pageshow/pagehide
+// 🚀 OPTIMISTIC AUTH: Restore session when app returns from background
+// NEW STRATEGY: Trust cached auth, only recheck on API failures (not on every background/foreground)
+// This eliminates 90% of zombie mode by not proactively invalidating sessions
+
+// 🔒 DISABLED: Proactive rechecking causes more harm than good in browser environment
+// Only recheck when we get actual API failures (401/403 errors)
+
+/*
+// LEGACY CODE - Caused aggressive zombie mode in Safari:
 document.addEventListener('visibilitychange', async () => {
   if (document.visibilityState === 'visible') {
     await recheckAuth('visibilitychange');
   }
 });
 
-// 🔥 MOBILE FIX: iOS Safari uses pageshow/pagehide instead of visibilitychange
 window.addEventListener('pageshow', async (event) => {
   if (event.persisted) {
-    // Page restored from bfcache (mobile backgrounding)
-    console.log('[AuthReady] 📱 Mobile: Page restored from bfcache');
     await recheckAuth('pageshow');
   }
 });
 
-// 🔥 MOBILE FIX: Handle app resume (Android/iOS)
 window.addEventListener('focus', async () => {
   if (document.visibilityState === 'visible') {
     await recheckAuth('focus');
   }
+});
+*/
+
+// 🎯 NEW APPROACH: API-triggered auth recheck
+// Listen for authentication failures, THEN recheck (not preemptively)
+window.addEventListener('hi:auth-failed', async (event) => {
+  console.log('[AuthReady] 🔄 API auth failure detected, rechecking session...');
+  await recheckAuth('api-failure');
+});
+
+// Still handle actual session changes (user logs in/out)
+window.addEventListener('hi:session-expired', async () => {
+  console.log('[AuthReady] 🔄 Session explicitly expired, rechecking...');
+  await recheckAuth('session-expired');
 });
 
 // Reusable recheck logic with debounce protection

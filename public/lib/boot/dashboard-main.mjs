@@ -320,6 +320,16 @@ async function initializeDashboard() {
       const { data, error } = await supabase.rpc('award_daily_checkin');
       
       if (error) {
+        // 🎯 OPTIMISTIC AUTH: Detect actual auth failures (401/403)
+        const isAuthError = error.code === '401' || error.code === '403' || 
+                           error.message?.includes('JWT') || 
+                           error.message?.includes('not authenticated');
+        if (isAuthError) {
+          console.warn('🔐 [dashboard-main.mjs] Auth failure in check-in - dispatching hi:auth-failed');
+          window.dispatchEvent(new CustomEvent('hi:auth-failed', { 
+            detail: { source: 'dashboard-checkin-button', error: error.message } 
+          }));
+        }
         console.warn('[v1.1.0] Check-in RPC error:', error.message);
         return;
       }
@@ -414,8 +424,22 @@ async function initializeDashboard() {
                     if (userId) {
                       try {
                         const supabase = window.HiSupabase?.getClient?.() || window.supabaseClient;
-                        const { data: checkinData } = await supabase.rpc('award_daily_checkin');
-                        if (checkinData?.awarded) {
+                        const { data: checkinData, error: checkinError } = await supabase.rpc('award_daily_checkin');
+                        
+                        // 🎯 OPTIMISTIC AUTH: Detect actual auth failures (401/403)
+                        if (checkinError) {
+                          const isAuthError = checkinError.code === '401' || checkinError.code === '403' || 
+                                             checkinError.message?.includes('JWT') || 
+                                             checkinError.message?.includes('not authenticated');
+                          if (isAuthError) {
+                            console.warn('🔐 [dashboard-main.mjs] Auth failure in medallion check-in - dispatching hi:auth-failed');
+                            window.dispatchEvent(new CustomEvent('hi:auth-failed', { 
+                              detail: { source: 'dashboard-medallion-checkin-mjs', error: checkinError.message } 
+                            }));
+                          } else {
+                            throw checkinError;
+                          }
+                        } else if (checkinData?.awarded) {
                           console.log('✅ DAILY CHECK-IN AWARDED:', checkinData.delta, 'pts (first tap of day)');
                           window.dispatchEvent(new CustomEvent('hi:checkin-complete', { 
                             detail: { points: checkinData.delta, balance: checkinData.balance, source: 'medallion' }

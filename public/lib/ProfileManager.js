@@ -602,6 +602,23 @@ class ProfileManager {
         clearTimeout(timeoutId);
 
         if (error && error.code !== 'PGRST116') {
+          // 🎯 OPTIMISTIC AUTH: Detect actual auth failures (401/403)
+          const isAuthError = error.code === '401' || error.code === '403' || 
+                             error.message?.includes('JWT') || 
+                             error.message?.includes('not authenticated');
+          
+          if (isAuthError) {
+            console.warn('🔐 [ProfileManager] Auth failure detected - dispatching hi:auth-failed');
+            window.dispatchEvent(new CustomEvent('hi:auth-failed', { 
+              detail: { source: 'ProfileManager', error: error.message } 
+            }));
+            // Keep using cached profile - don't invalidate until recheck completes
+            if (this._profile) {
+              console.warn('✅ Using cached profile while auth recheck runs');
+              return;
+            }
+          }
+          
           throw error;
         }
 
