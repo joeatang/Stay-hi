@@ -148,8 +148,11 @@ class HiIslandRealFeed {
   
   // 🚀 MOBILE FIX: Load fresh data with timeout protection
   async _loadFreshDataWithTimeout(timeoutMs) {
+    // Increase default timeout to 8s for slow networks/Supabase latency
+    const actualTimeout = timeoutMs || 8000; // Was 5000, now 8000
+    
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('TIMEOUT')), timeoutMs);
+      setTimeout(() => reject(new Error('TIMEOUT')), actualTimeout);
     });
     
     try {
@@ -165,7 +168,8 @@ class HiIslandRealFeed {
       console.warn('✅ Feed loaded fresh data from database');
     } catch (error) {
       if (error.message === 'TIMEOUT') {
-        console.warn('⚠️ Feed database load timed out - using cache');
+        console.warn(`⚠️ Feed database load timed out after ${actualTimeout}ms - using cache`);
+        console.warn('💡 TIP: Slow network or Supabase overloaded. App continues with cached data.');
       } else if (error.name !== 'AbortError') {
         console.warn('⚠️ Feed load error:', error.message);
       }

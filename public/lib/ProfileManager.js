@@ -580,14 +580,15 @@ class ProfileManager {
       // This prevents AbortError when navigation happens during slow queries
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
-        console.warn('⏱️ Profile query timeout (5s) - aborting');
+        console.warn('⏱️ Profile query timeout (8s) - aborting');
         console.warn('🔍 [ZOMBIE DEBUG] Timeout details:', {
           controllerSignal: controller.signal,
           aborted: controller.signal.aborted,
-          navigatorOnLine: navigator.onLine
+          navigatorOnLine: navigator.onLine,
+          supabaseHealthCheck: 'https://gfcubvroxgfvjhacinic.supabase.co'
         });
         controller.abort();
-      }, 5000); // Increased from 3s to 5s for wake scenarios
+      }, 8000); // Increased from 5s to 8s for slow networks/Supabase latency
       
       console.warn('🔍 [ZOMBIE DEBUG] Starting profile query...');
       try {
