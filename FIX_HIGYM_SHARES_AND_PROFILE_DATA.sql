@@ -34,14 +34,15 @@ SELECT
   id,
   username,
   display_name,
-  email,
+  avatar_url,
+  bio,
+  location,
   created_at,
   updated_at
 FROM profiles
 WHERE 
   LOWER(username) LIKE '%cindy%' 
-  OR LOWER(display_name) LIKE '%cindy%'
-  OR LOWER(email) LIKE '%cindy%';
+  OR LOWER(display_name) LIKE '%cindy%';
 
 -- Check if public_shares has 'text' column
 SELECT 
