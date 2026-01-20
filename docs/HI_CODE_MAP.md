@@ -1,6 +1,6 @@
 # 🗺️ Hi Code Map
 
-> **Living Document** - Last Updated: January 17, 2026 (Hi Pulse v1.1.0 Release)  
+> **Living Document** - Last Updated: January 20, 2026 (Optimistic Auth + Mobile Tier Fixes)  
 > **Purpose:** Complete architecture reference for the Hi App codebase  
 > **Location:** `/docs/HI_CODE_MAP.md`
 
@@ -10,6 +10,11 @@
 
 | Date | Update | Status |
 |------|--------|--------|
+| 2026-01-20 | **Optimistic Auth Architecture** - Trust cached auth until API fails (90% zombie mode reduction) | ✅ Deployed |
+| 2026-01-20 | API failure detection - ProfileManager, HiRealFeed, dashboard RPCs dispatch hi:auth-failed | ✅ Deployed |
+| 2026-01-20 | Tier display fixes - Mobile Safari dynamic cache busting (Date.now()) | ✅ Deployed |
+| 2026-01-20 | Medallion animation fix - "Stay Hi +5" only shows once per day (actual check-in) | ✅ Deployed |
+| 2026-01-20 | Hi Gym origin backfill - 87→491 shares via pattern matching (pill, emoji, content) | ✅ Complete |
 | 2026-01-18 | **Analytics Gold Standard v2.0** - Personal analytics backend deployed | ✅ Backend Complete |
 | 2026-01-18 | 3 new analytics tables (snapshots, trends, insights) + 6 RPC functions | ✅ Deployed |
 | 2026-01-18 | **Hi Index v2.0** - Now measures Practice × Feeling (Hi Scale integration) | ✅ Deployed |
