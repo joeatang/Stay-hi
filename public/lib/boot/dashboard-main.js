@@ -181,6 +181,23 @@
         if (window.hiWavesRealtime){ await window.hiWavesRealtime.forceRefresh(); }
         setTimeout(()=> initHiStatsOnce && initHiStatsOnce('medallion-tap-refresh'), 100);
         
+        // 🎯 FIRST TAP = CHECK-IN: Award daily check-in (5 pts + streak tracking)
+        // This makes the medallion the central interaction point for users
+        try {
+          const supabase = window.HiSupabase?.getClient?.() || window.supabaseClient;
+          if (supabase && userId) {
+            const { data: checkinData } = await supabase.rpc('award_daily_checkin');
+            if (checkinData?.awarded) {
+              __dbg('✅ DAILY CHECK-IN AWARDED:', checkinData.delta, 'pts (first tap of day)');
+              window.dispatchEvent(new CustomEvent('hi:checkin-complete', { 
+                detail: { points: checkinData.delta, balance: checkinData.balance, source: 'medallion' }
+              }));
+            } else if (checkinData?.reason === 'already-checked-in') {
+              __dbg('ℹ️ Already checked in today');
+            }
+          }
+        } catch (checkinErr) { console.warn('⚠️ Daily check-in (non-critical):', checkinErr.message); }
+        
         // 🎯 HI POINTS: Award tap points (100 taps = 1 point, paid tiers only)
         try {
           const supabase = window.HiSupabase?.getClient?.() || window.supabaseClient;

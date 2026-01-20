@@ -409,6 +409,23 @@ async function initializeDashboard() {
                     const { globalWaves, personalTaps } = result.data;
                     console.log('✅ Medallion tap tracked:', { globalWaves, personalTaps });
                     
+                    // 🎯 FIRST TAP = CHECK-IN: Award daily check-in (5 pts + streak tracking)
+                    // This makes the medallion the central interaction point for users
+                    if (userId) {
+                      try {
+                        const supabase = window.HiSupabase?.getClient?.() || window.supabaseClient;
+                        const { data: checkinData } = await supabase.rpc('award_daily_checkin');
+                        if (checkinData?.awarded) {
+                          console.log('✅ DAILY CHECK-IN AWARDED:', checkinData.delta, 'pts (first tap of day)');
+                          window.dispatchEvent(new CustomEvent('hi:checkin-complete', { 
+                            detail: { points: checkinData.delta, balance: checkinData.balance, source: 'medallion' }
+                          }));
+                        } else if (checkinData?.reason === 'already-checked-in') {
+                          console.log('ℹ️ Already checked in today');
+                        }
+                      } catch (checkinErr) { console.warn('⚠️ Daily check-in (non-critical):', checkinErr.message); }
+                    }
+                    
                     // Update global counter UI
                     window.gWaves = globalWaves;
                     localStorage.setItem('dashboard_waves_cache', String(window.gWaves));
