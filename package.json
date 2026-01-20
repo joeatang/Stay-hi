@@ -14,14 +14,18 @@
     "audit:headers": "node scripts/header-audit.mjs"
   },
   "dependencies": {
+    "@capacitor/android": "^8.0.1",
+    "@capacitor/cli": "^8.0.1",
+    "@capacitor/core": "^8.0.1",
+    "@capacitor/ios": "^8.0.1",
     "@supabase/supabase-js": "^2.81.1",
     "node-fetch": "^3.3.2",
     "sharp": "^0.33.3"
   },
   "devDependencies": {
-    "puppeteer": "^22.15.0",
-    "lighthouse": "^11.7.1",
+    "axe-core": "^4.8.0",
     "chrome-launcher": "^1.1.0",
-    "axe-core": "^4.8.0"
+    "lighthouse": "^11.7.1",
+    "puppeteer": "^22.15.0"
   }
 }

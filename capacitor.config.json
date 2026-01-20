@@ -1,0 +1,17 @@
+{
+  "appId": "app.stayhi.live",
+  "appName": "Stay Hi",
+  "webDir": "public",
+  "server": {
+    "url": "https://stayhi.live",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true,
+    "backgroundColor": "#FFD166"
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "backgroundColor": "#FFD166"
+  }
+}
