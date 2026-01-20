@@ -1,11 +1,11 @@
 // 🚀 TESLA-GRADE SERVICE WORKER
 // Hi Collective PWA - Offline-first architecture
 
-// 🚀 WOZ FIX: Bump version to force cache clear on navigation regression
-const BUILD_TAG = 'v1.0.8-20260110-client-validation';
+// 🚀 ZOMBIE MODE FIX: Force PWA to load fresh optimistic auth code (Jan 20 2026)
+const BUILD_TAG = 'v1.5.0-20260120-optimistic-auth';
 // Bump cache versions to force update on deploy
-const CACHE_NAME = 'hi-collective-v1.4.5-client-validation';
-const STATIC_CACHE_NAME = 'hi-static-v1.4.5-client-validation';
+const CACHE_NAME = 'hi-collective-v1.5.0-optimistic-auth';
+const STATIC_CACHE_NAME = 'hi-static-v1.5.0-optimistic-auth';
 const OFFLINE_FALLBACK = '/public/offline.html';
 
 // Adjust paths when scope is /public/ so we request existing files from python server
@@ -62,7 +62,15 @@ const APP_SHELL_FILES = [
   // Brand assets
   '/assets/brand/hi-logo-dark.png',
   '/assets/brand/hi-logo-192.png',
-  '/assets/brand/hi-logo-512.png'
+  '/assets/brand/hi-logo-512.png',
+  
+  // 🔥 CRITICAL: Auth files MUST be precached to override Safari HTTP cache
+  // Without this, PWA loads old AuthReady.js from Safari cache → zombie mode
+  '/lib/AuthReady.js',
+  '/lib/boot/universal-tier-listener.js',
+  '/lib/HiBrandTiers.js',
+  '/lib/managers/ProfileManager.js',
+  '/components/HiRealFeed.js'
   
   // NOTE: Do NOT cache HiSupabase.v3.js or HiFlags.js - they change frequently
   // NOTE: Supabase UMD CDN handled by browser caching
@@ -71,6 +79,8 @@ const APP_SHELL_FILES = [
 // Install event - cache app shell
 self.addEventListener('install', event => {
   console.log('[SW] Install event', BUILD_TAG, CACHE_NAME);
+  // 🔥 ZOMBIE FIX: Force immediate activation (don't wait for tabs to close)
+  self.skipWaiting();
   event.waitUntil((async () => {
     try {
       const staticCache = await caches.open(STATIC_CACHE_NAME);
