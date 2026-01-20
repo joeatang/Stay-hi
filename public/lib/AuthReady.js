@@ -312,18 +312,43 @@ window.addEventListener('focus', async () => {
   }
 });
 
-// Reusable recheck logic
+// Reusable recheck logic with debounce protection
+let lastRecheckTime = 0;
+let recheckInProgress = false;
+
 async function recheckAuth(source) {
+  const now = Date.now();
+  const timeSinceLastCheck = now - lastRecheckTime;
+  
+  // 🚀 ZOMBIE FIX: Debounce - skip if checked within last 5 seconds
+  if (timeSinceLastCheck < 5000) {
+    console.log(`[AuthReady] Skipping ${source} recheck (${timeSinceLastCheck}ms since last check)`);
+    return;
+  }
+  
+  // 🚀 ZOMBIE FIX: Prevent concurrent rechecks
+  if (recheckInProgress) {
+    console.log(`[AuthReady] Skipping ${source} recheck (already in progress)`);
+    return;
+  }
+  
   console.log(`[AuthReady] App returned from background (${source}) - checking session...`);
+  recheckInProgress = true;
+  lastRecheckTime = now;
+  
   try {
     const sb = getHiSupabase();
+    
+    // 🚀 ZOMBIE FIX: Adaptive timeout - 7s mobile, 10s desktop
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const timeout = isMobile ? 7000 : 10000;
     
     // 🔥 CRITICAL FIX: Add timeout protection
     let session = null;
     try {
       const sessionPromise = sb.auth.getSession();
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('timeout')), 10000) // 🚀 ZOMBIE FIX: 3s → 10s for slow networks
+        setTimeout(() => reject(new Error('timeout')), timeout)
       );
       const result = await Promise.race([sessionPromise, timeoutPromise]);
       session = result?.data?.session || null;
@@ -339,7 +364,7 @@ async function recheckAuth(source) {
       try {
         const retryPromise = sb.auth.getSession();
         const retryTimeout = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('timeout')), 6000) // 🚀 ZOMBIE FIX: 2s → 6s for slow networks
+          setTimeout(() => reject(new Error('timeout')), timeout - 4000) // 3s mobile, 6s desktop
         );
         const retryResult = await Promise.race([retryPromise, retryTimeout]);
         session = retryResult?.data?.session || null;
@@ -388,6 +413,9 @@ async function recheckAuth(source) {
     }
   } catch (e) {
     console.error('[AuthReady] ❌ Session check failed:', e);
+  } finally {
+    // 🚀 ZOMBIE FIX: Always reset the in-progress flag
+    recheckInProgress = false;
   }
 }
 
