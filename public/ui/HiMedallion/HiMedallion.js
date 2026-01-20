@@ -108,6 +108,46 @@ export function mountHiMedallion(container, opts = {}) {
     }
   };
 
+  // 🎯 Tesla-grade floating feedback system
+  let tapCount = 0; // Track tap count for session
+  
+  /**
+   * 🎯 TESLA ELEGANCE: Floating feedback animation
+   * First tap: "Stay Hi +5" | Subsequent: Subtle "Hi" particles
+   */
+  const showFloatingFeedback = () => {
+    tapCount++;
+    
+    const isFirstTap = tapCount === 1;
+    const text = isFirstTap ? 'Stay Hi +5' : 'Hi';
+    
+    // Create floating element
+    const floater = document.createElement('div');
+    floater.className = 'hi-medallion-floater';
+    floater.textContent = text;
+    floater.style.cssText = `
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: ${isFirstTap ? '18px' : '14px'};
+      font-weight: ${isFirstTap ? '600' : '500'};
+      color: ${isFirstTap ? 'rgba(147, 51, 234, 1)' : 'rgba(147, 51, 234, 0.8)'};
+      opacity: 1;
+      pointer-events: none;
+      z-index: 1000;
+      text-shadow: 0 0 8px rgba(147, 51, 234, 0.3);
+      white-space: nowrap;
+      animation: ${isFirstTap ? 'floatUpLarge' : 'floatUpSubtle'} ${isFirstTap ? '1.2s' : '0.8s'} cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    `;
+    
+    container.style.position = 'relative';
+    container.appendChild(floater);
+    
+    // Remove after animation
+    setTimeout(() => floater.remove(), isFirstTap ? 1200 : 800);
+  };
+
   /**
    * HI DEV: Main activation handler
    */
@@ -127,11 +167,15 @@ export function mountHiMedallion(container, opts = {}) {
 
     // HI DEV: Visual feedback
     triggerPulse();
+    
+    // 🎯 TESLA ELEGANCE: Floating feedback
+    showFloatingFeedback();
 
     // HI DEV: Track interaction
     trackInteraction('tap', {
       inputType: event.type,
-      pointerType: event.pointerType || 'unknown'
+      pointerType: event.pointerType || 'unknown',
+      tapNumber: tapCount
     });
 
     // HI DEV: Execute user callback
