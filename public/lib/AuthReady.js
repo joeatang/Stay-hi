@@ -137,10 +137,11 @@ async function initialize(){
   
   const sb = getHiSupabase();
 
-  // 🔥 FIX: Add 5-second timeout (reduced from 10 - fail fast)
+  // � ZOMBIE FIX: Increased from 5s to 15s (inner operations now take up to 10s)
+  // This is the overall wrapper timeout for entire auth initialization
   try {
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Auth initialization timeout')), 5000)
+      setTimeout(() => reject(new Error('Auth initialization timeout')), 15000)
     );
     
     const authPromise = (async () => {
