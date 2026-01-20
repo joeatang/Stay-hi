@@ -1,11 +1,11 @@
 // 🚀 TESLA-GRADE SERVICE WORKER
 // Hi Collective PWA - Offline-first architecture
 
-// 🚀 ZOMBIE MODE FIX: Force PWA to load fresh optimistic auth code (Jan 20 2026)
-const BUILD_TAG = 'v1.5.0-20260120-optimistic-auth';
+// 🚀 AGGRESSIVE CACHING: Instant responses while preparing for Capacitor (Jan 20 2026)
+const BUILD_TAG = 'v1.5.1-20260120-aggressive-cache';
 // Bump cache versions to force update on deploy
-const CACHE_NAME = 'hi-collective-v1.5.0-optimistic-auth';
-const STATIC_CACHE_NAME = 'hi-static-v1.5.0-optimistic-auth';
+const CACHE_NAME = 'hi-collective-v1.5.1-aggressive';
+const STATIC_CACHE_NAME = 'hi-static-v1.5.1-aggressive';
 const OFFLINE_FALLBACK = '/public/offline.html';
 
 // Adjust paths when scope is /public/ so we request existing files from python server
@@ -125,7 +125,7 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch event - Tesla-grade caching strategy without redirect conflicts
+// Fetch event - AGGRESSIVE caching strategy for instant responses
 self.addEventListener('fetch', event => {
   const request = event.request;
   const url = new URL(request.url);
@@ -152,19 +152,58 @@ self.addEventListener('fetch', event => {
     return;
   }
   
-  // JS under /lib should be network-first to avoid stale logic
-  if (url.pathname.startsWith('/lib/') || url.pathname.startsWith('/public/lib/')) {
-    event.respondWith(networkFirst(request));
+  // 🚀 AGGRESSIVE: JS/CSS cache-first with background update
+  // Returns cached instantly, updates in background
+  if (url.pathname.startsWith('/lib/') || 
+      url.pathname.startsWith('/public/lib/') ||
+      url.pathname.startsWith('/components/') ||
+      url.pathname.startsWith('/public/components/') ||
+      url.pathname.match(/\.(js|css)$/)) {
+    event.respondWith(aggressiveCacheFirst(request));
     return;
   }
 
-  // Static assets (styles, images, fonts) via stale-while-revalidate for freshness
+  // Static assets (images, fonts) via stale-while-revalidate for freshness
   if (url.pathname.includes('/assets/') ||
-      url.pathname.match(/\.(css|png|jpg|jpeg|svg|webp|avif|gif|woff|woff2)$/)) {
+      url.pathname.match(/\.(png|jpg|jpeg|svg|webp|avif|gif|woff|woff2)$/)) {
     event.respondWith(staleWhileRevalidate(request));
     return;
   }
 });
+
+// 🚀 AGGRESSIVE cache-first: Return cache instantly, update in background
+async function aggressiveCacheFirst(request) {
+  try {
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(request);
+    
+    // Return cached immediately if available
+    if (cached) {
+      // Update in background (non-blocking)
+      fetch(request).then(response => {
+        if (response && response.ok) {
+          cache.put(request, response.clone());
+        }
+      }).catch(err => console.log('[SW] Background update failed:', request.url));
+      
+      return cached;
+    }
+    
+    // No cache: fetch from network
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) {
+      cache.put(request, networkResponse.clone());
+      enforceDynamicCacheBudget();
+    }
+    return networkResponse;
+    
+  } catch (error) {
+    console.warn('[SW] Aggressive cache-first error:', request.url, error);
+    // Try cache again as last resort
+    const fallback = await caches.match(request);
+    return fallback || new Response('Offline', { status: 503 });
+  }
+}
 
 // Cache-first strategy for app shell and static assets
 async function cacheFirst(request) {
