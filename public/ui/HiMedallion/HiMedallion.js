@@ -109,22 +109,20 @@ export function mountHiMedallion(container, opts = {}) {
   };
 
   // 🎯 Tesla-grade floating feedback system
-  let tapCount = 0; // Track tap count for session
+  // NOTE: tapCount removed - we check localStorage ONLY for check-in status
   
   /**
    * 🎯 TESLA ELEGANCE: Floating feedback animation
    * First check-in of the day: "Stay Hi +5" with shimmer | Subsequent: Multi-particle "Hi" burst
    */
   const showFloatingFeedback = async () => {
-    tapCount++;
-    
-    // 🎯 FIX: Only show "Stay Hi +5" if this is ACTUALLY the first check-in of the day
-    // Check localStorage for today's check-in status
+    // 🎯 FIX: Check localStorage FIRST - only show "Stay Hi +5" if NOT checked in today
+    // Don't rely on tapCount (resets on page load)
     const today = new Date().toISOString().split('T')[0];
     const lastCheckin = localStorage.getItem('hi_last_checkin_date');
     const isFirstCheckinToday = lastCheckin !== today;
     
-    if (isFirstCheckinToday && tapCount === 1) {
+    if (isFirstCheckinToday) {
       // First check-in: Premium "Stay Hi +5" with gradient shimmer
       // Store check-in date so we don't show this again until tomorrow
       localStorage.setItem('hi_last_checkin_date', today);

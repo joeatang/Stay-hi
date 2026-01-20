@@ -9,7 +9,7 @@ import os
 
 # Colors from theme
 BG_COLOR = "#FFD166"  # Hi yellow - high contrast
-LOGO_PATH = "public/assets/brand/hi-logo-light.png"
+LOGO_PATH = "public/assets/brand/hi-logo-dark.png"  # BLACK logo for better contrast
 OUTPUT_DIR = "public/assets/brand"
 
 def create_pwa_icon(size, is_maskable=False):
@@ -50,39 +50,41 @@ def create_pwa_icon(size, is_maskable=False):
 def main():
     print("🎨 Generating PWA icons...")
     
-    # Generate 192x192 (any + maskable)
+    # Generate 192x192 (any + maskable) - PWA ONLY
     icon_192 = create_pwa_icon(192, is_maskable=False)
     if icon_192:
-        output_path = os.path.join(OUTPUT_DIR, "hi-logo-192.png")
+        output_path = os.path.join(OUTPUT_DIR, "pwa-icon-192.png")
         icon_192.save(output_path, "PNG", optimize=True)
         print(f"✅ Created: {output_path}")
     
-    # Generate 512x512 (any)
+    # Generate 512x512 (any) - PWA ONLY
     icon_512 = create_pwa_icon(512, is_maskable=False)
     if icon_512:
-        output_path = os.path.join(OUTPUT_DIR, "hi-logo-512.png")
+        output_path = os.path.join(OUTPUT_DIR, "pwa-icon-512.png")
         icon_512.save(output_path, "PNG", optimize=True)
         print(f"✅ Created: {output_path}")
     
-    # Generate 512x512 maskable (with 10% safe zone)
+    # Generate 512x512 maskable (with 10% safe zone) - PWA ONLY
     icon_512_maskable = create_pwa_icon(512, is_maskable=True)
     if icon_512_maskable:
-        output_path = os.path.join(OUTPUT_DIR, "hi-logo-512-maskable.png")
+        output_path = os.path.join(OUTPUT_DIR, "pwa-icon-512-maskable.png")
         icon_512_maskable.save(output_path, "PNG", optimize=True)
         print(f"✅ Created: {output_path}")
     
-    # Generate apple-touch-icon (180x180 for iOS)
+    # Generate apple-touch-icon (180x180 for iOS) - PWA ONLY
     icon_180 = create_pwa_icon(180, is_maskable=False)
     if icon_180:
-        output_path = os.path.join(OUTPUT_DIR, "apple-touch-icon.png")
+        output_path = os.path.join(OUTPUT_DIR, "pwa-touch-icon.png")
         icon_180.save(output_path, "PNG", optimize=True)
         print(f"✅ Created: {output_path}")
     
-    print("\n🎉 Icon generation complete!")
+    print("\n🎉 PWA icon generation complete!")
+    print("\nIMPORTANT: These are PWA-ONLY icons (pwa-icon-*.png)")
+    print("Dashboard medallion uses original hi-logo-*.png (preserved)")
     print("\nNext steps:")
-    print("1. Update manifest.json to use hi-logo-512-maskable.png")
-    print("2. Add apple-touch-icon to HTML <head>")
-    print("3. Test on home screen - logo should be clearly visible")
+    print("1. Update manifest.json to use pwa-icon-512-maskable.png")
+    print("2. Update HTML <head> to use pwa-touch-icon.png")
+    print("3. Test on home screen - BLACK logo should pop on yellow")
 
 if __name__ == "__main__":
     main()
