@@ -70,9 +70,10 @@ async function salvageTokens(sb){
 
 async function fetchMembership(sb){
   try {
-    // 🔥 FIX: Add 5-second timeout (reduced from 8 - fail fast with cache fallback)
+    // � ZOMBIE FIX: Increased from 5s to 10s for slow networks
+    // RPC queries can timeout on slow connections causing membership loss
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Membership timeout')), 5000)
+      setTimeout(() => reject(new Error('Membership timeout')), 10000)
     );
     
     const membershipPromise = sb.rpc('get_unified_membership');
@@ -189,10 +190,11 @@ async function initialize(){
       // 🔥 CRITICAL FIX: Add timeout protection to prevent silent logout
       let session = null;
       try {
-        // Add 3s timeout (fail fast instead of hanging)
+        // 🚀 ZOMBIE FIX: Increased from 3s to 10s for slow networks (desktop Chrome timing out)
+        // Supabase queries can take 4-8s on slow connections or database load
         const sessionPromise = sb.auth.getSession();
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session check timeout')), 3000)
+          setTimeout(() => reject(new Error('Session check timeout')), 10000)
         );
         
         const result = await Promise.race([sessionPromise, timeoutPromise]);
@@ -200,10 +202,10 @@ async function initialize(){
         
         if (!session) {
           await salvageTokens(sb);
-          // Retry with 2s timeout
+          // Retry with 6s timeout (increased from 2s)
           const retryPromise = sb.auth.getSession();
           const retryTimeout = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Retry timeout')), 2000)
+            setTimeout(() => reject(new Error('Retry timeout')), 6000)
           );
           const retryResult = await Promise.race([retryPromise, retryTimeout]);
           session = retryResult?.data?.session || null;
@@ -316,7 +318,7 @@ async function recheckAuth(source) {
     try {
       const sessionPromise = sb.auth.getSession();
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('timeout')), 3000)
+        setTimeout(() => reject(new Error('timeout')), 10000) // 🚀 ZOMBIE FIX: 3s → 10s for slow networks
       );
       const result = await Promise.race([sessionPromise, timeoutPromise]);
       session = result?.data?.session || null;
@@ -332,7 +334,7 @@ async function recheckAuth(source) {
       try {
         const retryPromise = sb.auth.getSession();
         const retryTimeout = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('timeout')), 2000)
+          setTimeout(() => reject(new Error('timeout')), 6000) // 🚀 ZOMBIE FIX: 2s → 6s for slow networks
         );
         const retryResult = await Promise.race([retryPromise, retryTimeout]);
         session = retryResult?.data?.session || null;
