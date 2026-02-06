@@ -9,11 +9,19 @@
 
 ## 🎯 PRIORITY THIS MONTH
 
-### 🏆 TOP 3 FOCUS AREAS (Feb 2026)
+### 🏆 TOP 4 FOCUS AREAS (Feb 2026)
 
 1. **🚀 Launch-Ready Polish** - Fix remaining critical bugs, complete Capacitor/App Store prep
 2. **📊 Analytics v2.0** - Complete Patterns + Milestones tabs (80% done, finish it!)
 3. **🎁 User Retention** - PWA install push, bulk 1-year upgrade for current users
+4. **₿ Trac Foundation** - Start building Self-Custody Edition (parallel development, zero risk to current users)
+
+### 🔀 DUAL-TRACK STRATEGY
+
+**Track A: Current App (Web/PWA)** - Continue serving 30 users, add features
+**Track B: Trac Version (Pear/Bitcoin)** - Build independence, real earning for users
+
+Both tracks run in parallel. Current users unaffected.
 
 ---
 
@@ -68,6 +76,8 @@
 ---
 
 ## 🟠 P1 — HIGH PRIORITY (Complete This Month)
+
+### TRACK A: Current App Improvements
 
 ### #39 PWA Install Promotion 🚀
 **Status:** READY TO BUILD  
@@ -207,6 +217,100 @@
 
 **Timeline:** 1 day  
 **Files:** hi-mission-control.html, admin-core.js
+
+---
+
+### TRACK B: Trac Foundation (Self-Custody Edition) ₿
+
+**Goal:** Start building parallel Trac version for TRUE ownership + Bitcoin earning
+
+### #41 Trac Project Setup 🆕🔥
+**Status:** NEW - Critical foundation work  
+**Why this matters:** 
+- Current Hi Points = database numbers you control
+- TAP tokens = Bitcoin-native assets USERS own
+- Enable real earning: "Stay Hi to Earn Bitcoin"
+- Users can trade, transfer, truly own their rewards
+
+**Week 1 Tasks (Feb 6-12):**
+- [ ] Create new repo: `stay-hi-trac` (separate from current app)
+- [ ] Clone Trac reference repos to workspace for Copilot context:
+  ```bash
+  git clone https://github.com/Trac-Systems/trac-contract-example
+  git clone https://github.com/Trac-Systems/tap-protocol-token-auth-boilerplate
+  git clone https://github.com/Trac-Systems/pear-appling-v2
+  ```
+- [ ] Set up VS Code multi-root workspace (current app + Trac repos)
+- [ ] Install Pear CLI: `npm install -g pear-cli`
+- [ ] Run Trac example apps to understand UX
+
+**Timeline:** 3-4 hours  
+**Risk to current app:** ZERO (completely separate repo)
+
+---
+
+### #42 Hi Points → TAP Token Prototype 🆕₿
+**Status:** NEW - Core value proposition  
+**Goal:** Prove Hi Points can be real Bitcoin tokens
+
+**Week 2 Tasks (Feb 13-19):**
+- [ ] Study `tap-protocol-token-auth-boilerplate` code
+- [ ] Write Hi Points TAP contract (mint/burn operations)
+- [ ] Deploy to Bitcoin TESTNET (free testnet BTC)
+- [ ] Award yourself 100 test Hi Points
+- [ ] Verify on Bitcoin testnet explorer
+- [ ] Document: "How Hi Points become real Bitcoin assets"
+
+**What success looks like:**
+- You can see Hi Points as tokens on Bitcoin blockchain
+- Mint operation = award points for check-in
+- Burn operation = spend points on Hi Wall
+- Provably scarce (can't be inflated by admin)
+
+**Timeline:** 6-8 hours  
+**Files:** `stay-hi-trac/contract/hi-points-tap.js`
+
+---
+
+### #43 Local-First Storage Prototype 🆕
+**Status:** NEW - Core infrastructure  
+**Goal:** Prove user data works offline without Supabase
+
+**Week 3 Tasks (Feb 20-26):**
+- [ ] Install Hyperbee: `npm install hyperbee hypercore`
+- [ ] Build test: Store 1 profile in Hyperbee (vs Supabase)
+- [ ] Build test: Store 5 journal entries locally
+- [ ] Measure read/write speed vs Supabase
+- [ ] Test offline mode (disconnect internet, still works)
+
+**What success looks like:**
+- Profile + journals stored on YOUR computer
+- No server dependency
+- Works 100% offline
+- Data you can backup/transfer
+
+**Timeline:** 4-6 hours  
+**Files:** `stay-hi-trac/lib/hyperbee-storage.js`
+
+---
+
+### #44 Trac Learning & Strategy 🆕
+**Status:** ONGOING  
+**Why:** You're not a dev, need to understand what you're building
+
+**Tasks:**
+- [ ] Join Trac Discord server
+- [ ] Watch Pear app tutorials
+- [ ] Study TAP protocol docs (1 hour reading)
+- [ ] List questions for Trac devs
+- [ ] Decision by end of month: DIY or hire contractor?
+
+**Key questions to answer:**
+- How hard is this really? (firsthand experience building prototypes)
+- Do we need help? (technical contractor vs DIY)
+- What's the MVPscope? (what can we cut to ship faster?)
+
+**Timeline:** 2 hours/week background learning
 
 ---
 
