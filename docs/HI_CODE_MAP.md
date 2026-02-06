@@ -1,6 +1,6 @@
 # 🗺️ Hi Code Map
 
-> **Living Document** - Last Updated: January 20, 2026 (Optimistic Auth + Mobile Tier Fixes)  
+> **Living Document** - Last Updated: February 5, 2026  
 > **Purpose:** Complete architecture reference for the Hi App codebase  
 > **Location:** `/docs/HI_CODE_MAP.md`
 
@@ -10,20 +10,18 @@
 
 | Date | Update | Status |
 |------|--------|--------|
-| 2026-01-20 | **Optimistic Auth Architecture** - Trust cached auth until API fails (90% zombie mode reduction) | ✅ Deployed |
-| 2026-01-20 | API failure detection - ProfileManager, HiRealFeed, dashboard RPCs dispatch hi:auth-failed | ✅ Deployed |
-| 2026-01-20 | Tier display fixes - Mobile Safari dynamic cache busting (Date.now()) | ✅ Deployed |
-| 2026-01-20 | Medallion animation fix - "Stay Hi +5" only shows once per day (actual check-in) | ✅ Deployed |
-| 2026-01-20 | Hi Gym origin backfill - 87→491 shares via pattern matching (pill, emoji, content) | ✅ Complete |
-| 2026-01-18 | **Analytics Gold Standard v2.0** - Personal analytics backend deployed | ✅ Backend Complete |
-| 2026-01-18 | 3 new analytics tables (snapshots, trends, insights) + 6 RPC functions | ✅ Deployed |
-| 2026-01-18 | **Hi Index v2.0** - Now measures Practice × Feeling (Hi Scale integration) | ✅ Deployed |
-| 2026-01-18 | Migration system - Versioned migrations (003, 004, 005) with rollback scripts | ✅ Complete |
-| 2026-01-17 | **Hi Pulse v1.1.0** - New stats dashboard with live ticker | ✅ Deployed |
-| 2026-01-17 | HiTicker component - Bloomberg-style scrolling messages | ✅ Complete |
-| 2026-01-17 | HiShareSheet celebration toasts - Visual feedback on all pages | ✅ Complete |
-| 2026-01-17 | HiDB.js added to hi-pulse.html - Share persistence fixed | ✅ Complete |
-| 2026-01-17 | Footer navigation updated - Hi Pulse replaces Hi Gym | ✅ Complete |
+| 2026-02-05 | TODO system migrated - January archived, February 2026 active | ✅ Complete |
+| 2026-02-05 | Trac Network compatibility audit completed (research phase) | ✅ Complete |
+| 2026-01-30 | **Capacitor Setup Complete** - Native iOS/Android wrapper (Phase 1B-2A-3A) | ✅ In Progress |
+| 2026-01-28 | **PWA Production Ready** - Icons optimized, offline audit complete | ✅ Deployed |
+| 2026-01-25 | **HiStateResilience.js** - 80% zombie mode reduction via auth resilience | ✅ Deployed |
+| 2026-01-20 | **Optimistic Auth Architecture** - Trust cached auth until API fails | ✅ Deployed |
+| 2026-01-20 | API failure detection - ProfileManager, HiRealFeed dispatch hi:auth-failed | ✅ Deployed |
+| 2026-01-20 | Tier display fixes - Mobile Safari cache busting | ✅ Deployed |
+| 2026-01-20 | Medallion animation fix - "Stay Hi +5" once per day | ✅ Deployed |
+| 2026-01-18 | **Analytics v2.0 Phase 1** - Journey Tab deployed | ✅ Backend Complete |
+| 2026-01-18 | Hi Index v2.0 - Practice × Feeling (Hi Scale integration) | ✅ Deployed |
+| 2026-01-17 | **Hi Pulse v1.1.0** - Stats dashboard with live ticker | ✅ Deployed |
 | 2026-01-15 | Hi Index cards - Community + Personal stats | ✅ Complete |
 | 2026-01-14 | Free signup flow - No invite code required | ✅ Complete |
 | 2026-01-14 | Hi Points system - Tier-based earning | ✅ Complete |
@@ -44,10 +42,13 @@
 10. [Hi Points System](#-hi-points-system)
 11. [Hi Wall (Planned)](#-hi-wall-planned-feature)
 12. [Notification System (Planned)](#-notification-system-planned-feature)
-13. [Component Library](#-component-library)
-14. [Boot Sequence](#-boot-sequence)
-15. [Key Patterns & Conventions](#-key-patterns--conventions)
-16. [Mission Control (Admin)](#-mission-control-admin)
+13. [Analytics v2.0 System](#-analytics-v20-system-new)
+14. [Native App Wrapper (Capacitor)](#-native-app-wrapper-capacitor-new)
+15. [Component Library](#-component-library)
+16. [Boot Sequence](#-boot-sequence)
+17. [Key Patterns & Conventions](#-key-patterns--conventions)
+18. [Mission Control (Admin)](#-mission-control-admin)
+19. [TODO System](#-todo-system-new)
 
 ---
 
@@ -1304,6 +1305,191 @@ When modifying Mission Control:
 
 ---
 
+## � Analytics v2.0 System (NEW)
+
+> **Deployed:** January 18, 2026 (Phase 1: Journey Tab)  
+> **Status:** Backend complete, Patterns + Milestones tabs in development
+
+### Architecture
+
+```
+User Actions → daily_snapshots → RPCs → Frontend Charts
+   ↓              (triggers)        ↓
+Points/Shares → behavior_insights → Tier-gated views
+```
+
+### Database Tables
+
+| Table | Purpose | Auto-populated |
+|-------|---------|----------------|
+| `user_daily_snapshots` | Daily activity + Hi Scale ratings | ✅ Triggers |
+| `user_emotional_trends` | Emotion journey history | ✅ Triggers |
+| `user_behavior_insights` | ML-ready pattern data | ⏳ Phase 2 |
+
+### RPCs (Remote Procedure Calls)
+
+| Function | Returns | Tier Gating |
+|----------|---------|-------------|
+| `get_user_emotional_journey(days)` | Array of {date, hi_scale, note} | Free: 7d, Silver: 30d, Gold: ∞ |
+| `record_hi_scale_rating(rating, note)` | Success boolean | All tiers |
+| `get_user_behavior_patterns()` | Insights object | Gold+ only (Phase 2) |
+| `get_user_achievements()` | Badge array | Silver+ (Phase 3) |
+
+### Frontend Components
+
+**Phase 1 (✅ Deployed):**
+- `HiAnalytics.js` - Tabbed interface controller
+- `EmotionalJourneyChart.js` - Line chart for Hi Scale history
+- Tab: Overview | **Journey** | Patterns (placeholder) | Milestones (placeholder)
+
+**Phase 2 (⏳ Feb 2026):**
+- `HiPatternsChart.js` - Best/worst days, peak hours, correlations
+- Bar charts, heatmaps, insight cards
+
+**Phase 3 (⏳ Feb 2026):**
+- `HiMilestonesChart.js` - Achievement badges, streak calendar
+- GitHub-style heatmap, progress timeline
+
+### Hi Index v2.0
+
+**Formula:** `Hi Index = Practice × Feeling`
+
+- **Practice:** Number of check-ins (consistency)
+- **Feeling:** Average Hi Scale rating (authenticity)
+- **Range:** 0-100 (50 = average Hi-er)
+
+**Display:**
+- Personal Hi Index card on Hi Pulse
+- Community Hi Index (average of all active users)
+- Tier-specific insights (Gold+ sees trends)
+
+---
+
+## 📱 Native App Wrapper (Capacitor) (NEW)
+
+> **Started:** January 30, 2026 (Phase 1B-2A-3A)  
+> **Status:** In Progress  
+> **Purpose:** Eliminate final 5-10% of zombie mode (Safari JS engine kill)
+
+### Why Capacitor?
+
+PWA limitations on iOS:
+- Safari kills JS engine when app backgrounded for ~30 seconds
+- No amount of auth resilience can prevent OS-level process termination
+- Native wrapper keeps process alive → 100% session stability
+
+### Architecture
+
+```
+Stay Hi Web App (PWA)
+        ↓
+    Capacitor Bridge
+        ↓
+Native iOS/Android Container
+        ↓
+    App Store Distribution
+```
+
+### Setup (Phase 1B-2A-3A)
+
+**Completed:**
+- [x] Capacitor CLI installed
+- [x] iOS platform configured
+- [x] Android platform configured
+- [x] Basic build scripts
+
+**Remaining:**
+- [ ] Test iOS build on physical device
+- [ ] Test Android build
+- [ ] Fix platform-specific issues
+- [ ] Configure splash screens
+- [ ] Configure app icons
+- [ ] TestFlight beta submission
+
+### File Structure
+
+```
+Stay-hi/
+├── capacitor.config.json    # Capacitor config
+├── ios/                     # Native iOS project (Xcode)
+├── android/                 # Native Android project (Android Studio)
+└── public/                  # Web app (unchanged)
+```
+
+### Benefits
+
+1. **Zombie Mode Eliminated:** Native wrapper = no JS engine kill
+2. **App Store Presence:** Discover-ability, credibility
+3. **Push Notifications:** Native push works better than web push
+4. **Offline Storage:** Better cache control
+5. **Device Features:** Camera, biometrics, sharing easier
+
+### Deployment Strategy
+
+1. Build web PWA (existing)
+2. Sync to Capacitor wrapper: `npx cap sync`
+3. Build native: `npx cap build ios` / `npx cap build android`
+4. Submit to App Store / Play Store
+5. OTA updates via Vercel (no app store review for content changes)
+
+### Maintenance
+
+- Web changes auto-deploy to PWA (Vercel)
+- Native wrapper only needs updates when:
+  - Capacitor version upgrades
+  - New native plugins added
+  - App icons/splash screens change
+
+---
+
+## 📋 TODO System (NEW)
+
+> **Active Document:** [TODO_FEB2026.md](./TODO_FEB2026.md)  
+> **Archive:** [TODO_JAN2026.md](./TODO_JAN2026.md)  
+> **Created:** January 13, 2026
+
+### Monthly Rollover Process
+
+**At end of each month:**
+1. Archive current TODO (mark as [ARCHIVED])
+2. Create new TODO_[MONTH]YYYY.md
+3. Move incomplete tasks to new month
+4. Add completion summary to archived month
+5. Update priorities based on progress
+
+### Priority Levels
+
+| Level | Description | Timeline | Examples |
+|-------|-------------|----------|----------|
+| **P0** | Critical bugs | Fix immediately | Auth session loss, admin broken |
+| **P1** | High priority | This week/month | Analytics completion, PWA install |
+| **P2** | Medium priority | This month | Hi Wall, referral system |
+| **P3** | Lower priority | Nice to have | Physical tokens, pitch questions |
+| **P4** | Future features | Research phase | AI bot, crypto wallet, Trac Network |
+| **P5** | App Store prep | When ready | Capacitor, submission process |
+
+### Task Format
+
+```markdown
+- [ ] **#XX Task Name** 🆕🔥 *(YYYY-MM-DD)*
+  - Description of what needs to be done
+  - **Files:** Affected files or components
+  - **Timeline:** Estimated time
+  - **Status:** Current state
+  - **Blocked by:** Dependencies (if any)
+```
+
+### March 2026 Checklist
+
+When creating TODO_MAR2026.md:
+- [ ] Review February completions
+- [ ] Audit if Analytics v2.0 100% done
+- [ ] Check App Store submission status
+- [ ] Evaluate new feature requests
+- [ ] Update priorities based on launch timeline
+
+---
+
 ## 🔮 Future Additions
 
 - [ ] Add Supabase database schema diagram
@@ -1311,8 +1497,10 @@ When modifying Mission Control:
 - [ ] Add troubleshooting section
 - [ ] Document build/deploy process
 - [ ] Add performance optimization notes
+- [ ] Document Trac Network integration (if pursued)
 
 ---
 
 > **Maintained by:** Hi Development Team  
-> **Questions?** Check ARCHITECTURE.md for high-level overview
+> **Questions?** Check ARCHITECTURE.md for high-level overview  
+> **Last Major Update:** February 5, 2026 (Capacitor + TODO system)
