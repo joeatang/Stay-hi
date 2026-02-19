@@ -294,23 +294,44 @@ Both tracks run in parallel. Current users unaffected.
 
 ---
 
-### #44 Trac Learning & Strategy 🆕
+### #44 Trac Learning & Context Building 🆕
 **Status:** ONGOING  
-**Why:** You're not a dev, need to understand what you're building
+**Why:** You guide strategy, Copilot codes - but both need context
 
-**Tasks:**
-- [ ] Join Trac Discord server
-- [ ] Watch Pear app tutorials
-- [ ] Study TAP protocol docs (1 hour reading)
-- [ ] List questions for Trac devs
-- [ ] Decision by end of month: DIY or hire contractor?
+**Your role:** Product vision, priorities, "what matters to users"  
+**Copilot's role:** Write code, debug, implement  
 
-**Key questions to answer:**
-- How hard is this really? (firsthand experience building prototypes)
-- Do we need help? (technical contractor vs DIY)
-- What's the MVPscope? (what can we cut to ship faster?)
+**📋 AUDIT COMPLETE - Key findings:**
 
-**Timeline:** 2 hours/week background learning
+**CONTRACT UPGRADEABILITY:** ⚠️ **HIGH RISK**
+- ❌ NO upgrade/migration docs in any Trac repo
+- ❌ Likely immutable like Ethereum contracts
+- ⚠️ Deploy with bug = start over with new contract
+- ✅ **Solution:** Extensive testnet testing BEFORE mainnet
+
+**ITERATION DIFFICULTY:**
+- Easy: UI changes, feature logic, point calculations
+- Medium: Daily rate limits (needs peer consensus)
+- Hard: Contract schema changes (may require migration)
+- **Recommendation:** Over-engineer storage flexibility upfront
+
+**3 DEPLOYMENT MODES:**
+1. **App3** (Pear apps) - Users run nodes, own data ⭐ Best for Stay Hi
+2. **Web3** (HTTP RPC) - Hybrid server, web UX 
+3. **Pure P2P** - No server, bootstrap only
+
+**Tasks (strategic context, not coding):**
+- [x] Audit Trac architecture (COMPLETE)
+- [ ] Join Trac Discord (ask: "Can contracts be upgraded post-deployment?")
+- [ ] Run trac-contract-example locally (understand UX)
+- [ ] Decision: Start with Web3 mode (easier) or pure App3?
+
+**Key decisions for you:**
+1. Accept deploy-once risk? (thorough testing mitigates)
+2. Start hybrid (web + Trac backend) or pure App3?
+3. What's MVP scope to ship fast and test?
+
+**Timeline:** Ongoing background learning
 
 ---
 
